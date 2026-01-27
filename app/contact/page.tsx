@@ -33,7 +33,7 @@ export default function ContactPage() {
         <input
           type="hidden"
           name="_redirect"
-          value="https://www.gafaig.com/contact?sent=1"
+          value="https://www.gafaig.com/thanks"
         />
 
         <div style={{ display: "grid", gap: "0.4rem" }}>
