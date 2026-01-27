@@ -1,3 +1,10 @@
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Framework — GAFAIG",
+  description:
+    "The GAFAIG framework provides a practical, auditable structure for governing high-impact AI systems across jurisdictions.",
+};
 export default function FrameworkPage() {
   return (
     <main style={{ padding: "4rem", fontFamily: "sans-serif" }}>

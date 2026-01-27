@@ -1,3 +1,10 @@
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Mission — GAFAIG",
+  description:
+    "GAFAIG advances human-centered AI governance at planetary scale through transparent oversight, public participation, and accountability.",
+};
 export default function MissionPage() {
   return (
     <main style={{ padding: "4rem", fontFamily: "sans-serif" }}>

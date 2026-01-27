@@ -1,3 +1,10 @@
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Participate — GAFAIG",
+  description:
+    "Learn how individuals, researchers, institutions, and partners can participate in shaping global AI governance through GAFAIG.",
+};
 export default function ParticipatePage() {
   return (
     <main style={{ padding: "4rem", fontFamily: "sans-serif" }}>

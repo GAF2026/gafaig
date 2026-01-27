@@ -1,3 +1,10 @@
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Governance — GAFAIG",
+  description:
+    "GAFAIG governance is designed to be transparent, globally inclusive, privacy-preserving, and resistant to capture.",
+};
 export default function GovernancePage() {
   return (
     <main style={{ padding: "4rem", fontFamily: "sans-serif" }}>
