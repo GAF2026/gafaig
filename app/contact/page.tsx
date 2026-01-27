@@ -3,44 +3,60 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Contact — GAFAIG",
   description:
-    "Contact GAFAIG to inquire about partnerships, research collaboration, governance initiatives, or general questions.",
+    "Contact GAFAIG to inquire about partnerships, governance initiatives, research collaboration, or general questions.",
 };
+
 export default function ContactPage() {
   return (
-    <main style={{ padding: "4rem", fontFamily: "sans-serif" }}>
-      <h1>Contact</h1>
-      <p style={{ maxWidth: 900, lineHeight: 1.6 }}>
-        Interested in collaborating, contributing, or learning more about GAFAIG? Send a message and we’ll respond as
-        quickly as possible.
+    <main style={{ padding: "4rem", maxWidth: 900, margin: "0 auto" }}>
+      <h1>Contact GAFAIG</h1>
+
+      <p style={{ marginTop: "1rem", marginBottom: "2rem", opacity: 0.85 }}>
+        Use the form below to reach the Global Authority for AI Governance. We
+        welcome inquiries related to governance frameworks, partnerships,
+        research collaboration, and general questions.
       </p>
 
       <form
-        action="YOUR_FORMSPREE_URL"
+        action="https://formspree.io/f/xnjdgnoy"
         method="POST"
         style={{
-          marginTop: "2rem",
-          maxWidth: 720,
           display: "grid",
-          gap: "1rem",
-          padding: "1.25rem",
-          border: "1px solid rgba(0,0,0,0.12)",
-          borderRadius: 12,
+          gap: "1.25rem",
+          padding: "1.5rem",
+          border: "1px solid rgba(0,0,0,0.15)",
+          borderRadius: 14,
+          background: "#ffffff",
         }}
       >
-        <div style={{ display: "grid", gap: "0.35rem" }}>
-          <label htmlFor="fullName" style={{ fontWeight: 600 }}>
+        {/* Redirect after successful submission */}
+        <input
+          type="hidden"
+          name="_redirect"
+          value="https://www.gafaig.com/contact?sent=1"
+        />
+
+        <div style={{ display: "grid", gap: "0.4rem" }}>
+          <label htmlFor="name" style={{ fontWeight: 600 }}>
             Full name *
           </label>
           <input
-            id="fullName"
-            name="fullName"
+            id="name"
+            name="name"
+            type="text"
             required
-            placeholder="Your name"
-            style={{ padding: "0.75rem", borderRadius: 10, border: "1px solid rgba(0,0,0,0.2)" }}
+            placeholder="Your full name"
+            style={{
+              padding: "0.75rem",
+              borderRadius: 10,
+              border: "1px solid rgba(0,0,0,0.3)",
+              background: "white",
+              fontSize: 14,
+            }}
           />
         </div>
 
-        <div style={{ display: "grid", gap: "0.35rem" }}>
+        <div style={{ display: "grid", gap: "0.4rem" }}>
           <label htmlFor="email" style={{ fontWeight: 600 }}>
             Email address *
           </label>
@@ -50,124 +66,101 @@ export default function ContactPage() {
             type="email"
             required
             placeholder="you@example.com"
-            style={{ padding: "0.75rem", borderRadius: 10, border: "1px solid rgba(0,0,0,0.2)" }}
+            style={{
+              padding: "0.75rem",
+              borderRadius: 10,
+              border: "1px solid rgba(0,0,0,0.3)",
+              background: "white",
+              fontSize: 14,
+            }}
           />
         </div>
 
-        <div style={{ display: "grid", gap: "0.35rem" }}>
-          <label htmlFor="phone" style={{ fontWeight: 600 }}>
-            Phone (optional)
-          </label>
-          <input
-            id="phone"
-            name="phone"
-            placeholder="+1 (555) 555-5555"
-            style={{ padding: "0.75rem", borderRadius: 10, border: "1px solid rgba(0,0,0,0.2)" }}
-          />
-        </div>
-
-        <div style={{ display: "grid", gap: "0.35rem" }}>
+        <div style={{ display: "grid", gap: "0.4rem" }}>
           <label htmlFor="organization" style={{ fontWeight: 600 }}>
-            Organization / Company (optional)
+            Organization (optional)
           </label>
           <input
             id="organization"
             name="organization"
+            type="text"
             placeholder="Company or institution"
-            style={{ padding: "0.75rem", borderRadius: 10, border: "1px solid rgba(0,0,0,0.2)" }}
+            style={{
+              padding: "0.75rem",
+              borderRadius: 10,
+              border: "1px solid rgba(0,0,0,0.3)",
+              background: "white",
+              fontSize: 14,
+            }}
           />
         </div>
 
-        <div style={{ display: "grid", gap: "0.35rem" }}>
-          <label htmlFor="role" style={{ fontWeight: 600 }}>
-            Role / Title (optional)
-          </label>
-          <input
-            id="role"
-            name="role"
-            placeholder="Your role"
-            style={{ padding: "0.75rem", borderRadius: 10, border: "1px solid rgba(0,0,0,0.2)" }}
-          />
-        </div>
-
-        <div style={{ display: "grid", gap: "0.35rem" }}>
+        <div style={{ display: "grid", gap: "0.4rem" }}>
           <label htmlFor="reason" style={{ fontWeight: 600 }}>
-            Reason for contacting *
+            Reason for contacting
           </label>
           <select
             id="reason"
             name="reason"
-            required
-            defaultValue=""
-            style={{ padding: "0.75rem", borderRadius: 10, border: "1px solid rgba(0,0,0,0.2)" }}
+            defaultValue="General inquiry"
+            style={{
+              padding: "0.75rem",
+              borderRadius: 10,
+              border: "1px solid rgba(0,0,0,0.3)",
+              background: "white",
+              fontSize: 14,
+            }}
           >
-            <option value="" disabled>
-              Select one
-            </option>
-            <option value="partnership">Partnership</option>
-            <option value="research">Research / Collaboration</option>
-            <option value="press">Press / Media</option>
-            <option value="careers">Careers</option>
-            <option value="general">General inquiry</option>
-            <option value="other">Other</option>
+            <option value="General inquiry">General inquiry</option>
+            <option value="Partnership">Partnership</option>
+            <option value="Research collaboration">Research collaboration</option>
+            <option value="Governance input">Governance input</option>
+            <option value="Media / speaking">Media / speaking</option>
+            <option value="Other">Other</option>
           </select>
         </div>
 
-        <div style={{ display: "grid", gap: "0.35rem" }}>
-          <label htmlFor="subject" style={{ fontWeight: 600 }}>
-            Subject *
-          </label>
-          <input
-            id="subject"
-            name="subject"
-            required
-            placeholder="What is this about?"
-            style={{ padding: "0.75rem", borderRadius: 10, border: "1px solid rgba(0,0,0,0.2)" }}
-          />
-        </div>
-
-        <div style={{ display: "grid", gap: "0.35rem" }}>
+        <div style={{ display: "grid", gap: "0.4rem" }}>
           <label htmlFor="message" style={{ fontWeight: 600 }}>
             Message *
           </label>
           <textarea
             id="message"
             name="message"
-            required
-            placeholder="Tell us what you’re looking for…"
             rows={6}
-            style={{ padding: "0.75rem", borderRadius: 10, border: "1px solid rgba(0,0,0,0.2)" }}
+            required
+            placeholder="How can we help?"
+            style={{
+              padding: "0.75rem",
+              borderRadius: 10,
+              border: "1px solid rgba(0,0,0,0.3)",
+              background: "white",
+              fontSize: 14,
+              resize: "vertical",
+            }}
           />
         </div>
-
-        <label style={{ display: "flex", gap: "0.6rem", alignItems: "flex-start", lineHeight: 1.4 }}>
-          <input type="checkbox" name="consent" required style={{ marginTop: 3 }} />
-          <span>
-            I acknowledge the privacy policy and consent to be contacted by GAFAIG regarding this inquiry. *
-          </span>
-        </label>
-
-        {/* Optional: helps Formspree route replies */}
-        <input type="hidden" name="_subject" value="GAFAIG Contact Form Submission" />
 
         <button
           type="submit"
           style={{
             marginTop: "0.5rem",
-            padding: "0.85rem 1rem",
+            padding: "0.9rem",
             borderRadius: 12,
-            border: "1px solid rgba(0,0,0,0.2)",
-            background: "black",
-            color: "white",
+            border: "none",
+            background: "#000",
+            color: "#fff",
             fontWeight: 700,
+            fontSize: 15,
             cursor: "pointer",
           }}
         >
           Send message
         </button>
 
-        <p style={{ fontSize: 12, opacity: 0.7, marginTop: "0.75rem" }}>
-          If you prefer, email us directly at <a href="mailto:info@gafaig.com">info@gafaig.com</a>.
+        <p style={{ fontSize: 12, opacity: 0.7 }}>
+          By submitting this form, you consent to being contacted regarding your
+          inquiry.
         </p>
       </form>
     </main>
