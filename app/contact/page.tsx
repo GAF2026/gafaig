@@ -12,7 +12,7 @@ export default function ContactPage({
 }: {
   searchParams?: { sent?: string };
 }) {
-  const initialSent = searchParams?.sent === "1";
+  const sent = searchParams?.sent === "1";
 
   return (
     <main style={{ maxWidth: 720, margin: "0 auto", padding: "4rem 1rem" }}>
@@ -24,7 +24,7 @@ export default function ContactPage({
         research collaboration, and general questions.
       </p>
 
-      <ContactForm initialSent={initialSent} />
+      <ContactForm initialSent={sent} />
     </main>
   );
 }

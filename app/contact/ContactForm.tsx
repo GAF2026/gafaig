@@ -1,100 +1,113 @@
 "use client";
 
-import React, { useState } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+
+const FORMSPREE_ENDPOINT = "https://formspree.io/f/xnjdgnoy";
 
 export default function ContactForm({ initialSent }: { initialSent: boolean }) {
   const router = useRouter();
+  const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">(
+    initialSent ? "success" : "idle"
+  );
 
-  const [status, setStatus] = useState<
-    "idle" | "submitting" | "success" | "error"
-  >(initialSent ? "success" : "idle");
+  const isSubmitting = status === "submitting";
 
-  const [errorMsg, setErrorMsg] = useState("");
+  const inputStyle: React.CSSProperties = useMemo(
+    () => ({
+      width: "100%",
+      padding: "0.75rem",
+      borderRadius: 10,
+      border: "1px solid rgba(0,0,0,0.25)",
+      background: "white",
+      fontSize: 16,
+    }),
+    []
+  );
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+
+    if (isSubmitting) return;
     setStatus("submitting");
-    setErrorMsg("");
 
     const form = e.currentTarget;
     const formData = new FormData(form);
 
     try {
-      const res = await fetch("https://formspree.io/f/xnjdgnoy", {
+      const res = await fetch(FORMSPREE_ENDPOINT, {
         method: "POST",
         body: formData,
         headers: { Accept: "application/json" },
       });
 
-      if (!res.ok) {
-        let msg = "Submission failed. Please try again.";
-        try {
-          const data = await res.json();
-          if (data?.errors?.length) {
-            msg = data.errors.map((x: any) => x.message).join(" ");
-          }
-        } catch {}
-        setStatus("error");
-        setErrorMsg(msg);
+      if (res.ok) {
+        setStatus("success");
+        form.reset();
+        router.replace("/contact?sent=1");
         return;
       }
 
-      // Success
-      setStatus("success");
-      form.reset();
-
-      // Keeps user on GAFAIG and shows success on refresh
-      router.replace("/contact?sent=1");
+      setStatus("error");
     } catch {
       setStatus("error");
-      setErrorMsg("Network error. Please try again.");
     }
   }
 
   return (
-    <>
+    <div>
       {status === "success" && (
         <div
-          role="status"
-          aria-live="polite"
           style={{
-            background: "#e6fffa",
-            border: "1px solid #38b2ac",
-            color: "#065f5b",
             padding: "1rem",
-            borderRadius: 8,
-            marginBottom: "1.5rem",
-            fontWeight: 700,
+            borderRadius: 12,
+            border: "1px solid rgba(0,0,0,0.15)",
+            background: "rgba(0,0,0,0.03)",
+            marginBottom: "1.25rem",
           }}
         >
-          ✅ Thank you — your message has been sent successfully.
+          <strong>Message sent.</strong>
+          <div style={{ marginTop: 6, opacity: 0.85 }}>
+            Thanks — we received your submission.
+          </div>
         </div>
       )}
 
       {status === "error" && (
         <div
-          role="alert"
           style={{
-            background: "#fff5f5",
-            border: "1px solid #e53e3e",
-            color: "#7b1c1c",
             padding: "1rem",
-            borderRadius: 8,
-            marginBottom: "1.5rem",
-            fontWeight: 700,
+            borderRadius: 12,
+            border: "1px solid rgba(255,0,0,0.25)",
+            background: "rgba(255,0,0,0.04)",
+            marginBottom: "1.25rem",
           }}
         >
-          {errorMsg || "Something went wrong. Please try again."}
+          <strong>Something went wrong.</strong>
+          <div style={{ marginTop: 6, opacity: 0.85 }}>
+            Please try again in a moment.
+          </div>
         </div>
       )}
 
       <form onSubmit={onSubmit} style={{ display: "grid", gap: "1.25rem" }}>
-        <Field label="Full name" htmlFor="name">
+        <div>
+          <label
+            htmlFor="name"
+            style={{ display: "block", fontWeight: 700, marginBottom: 6 }}
+          >
+            Full name
+          </label>
           <input id="name" name="name" type="text" required style={inputStyle} />
-        </Field>
+        </div>
 
-        <Field label="Email address" htmlFor="email">
+        <div>
+          <label
+            htmlFor="email"
+            style={{ display: "block", fontWeight: 700, marginBottom: 6 }}
+          >
+            Email address
+          </label>
           <input
             id="email"
             name="email"
@@ -102,26 +115,32 @@ export default function ContactForm({ initialSent }: { initialSent: boolean }) {
             required
             style={inputStyle}
           />
-        </Field>
+        </div>
 
-        <Field label="Organization (optional)" htmlFor="organization">
+        <div>
+          <label
+            htmlFor="organization"
+            style={{ display: "block", fontWeight: 700, marginBottom: 6 }}
+          >
+            Organization (optional)
+          </label>
           <input
             id="organization"
             name="organization"
             type="text"
             style={inputStyle}
           />
-        </Field>
+        </div>
 
-        <Field label="Reason for contacting" htmlFor="reason">
-          <select
-            id="reason"
-            name="reason"
-            required
-            defaultValue=""
-            style={inputStyle}
+        <div>
+          <label
+            htmlFor="reason"
+            style={{ display: "block", fontWeight: 700, marginBottom: 6 }}
           >
-            <option value="" disabled>
+            Reason for contacting
+          </label>
+          <select id="reason" name="reason" required style={inputStyle}>
+            <option value="" disabled defaultValue="">
               Select one
             </option>
             <option value="general">General inquiry</option>
@@ -131,9 +150,15 @@ export default function ContactForm({ initialSent }: { initialSent: boolean }) {
             <option value="media">Media / press</option>
             <option value="other">Other</option>
           </select>
-        </Field>
+        </div>
 
-        <Field label="Message" htmlFor="message">
+        <div>
+          <label
+            htmlFor="message"
+            style={{ display: "block", fontWeight: 700, marginBottom: 6 }}
+          >
+            Message
+          </label>
           <textarea
             id="message"
             name="message"
@@ -141,19 +166,24 @@ export default function ContactForm({ initialSent }: { initialSent: boolean }) {
             required
             style={{ ...inputStyle, resize: "vertical" }}
           />
-        </Field>
+        </div>
 
         <label style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
-          <input type="checkbox" required style={{ marginTop: 4 }} />
+          <input
+            name="consent"
+            type="checkbox"
+            required
+            style={{ marginTop: 4 }}
+          />
           <span style={{ fontSize: 14, opacity: 0.85 }}>
-            I consent to being contacted regarding this inquiry and acknowledge
-            the privacy policy.
+            I consent to being contacted regarding this inquiry and acknowledge the
+            privacy policy.
           </span>
         </label>
 
         <button
           type="submit"
-          disabled={status === "submitting"}
+          disabled={isSubmitting}
           style={{
             padding: "0.9rem 1.25rem",
             borderRadius: 10,
@@ -161,52 +191,17 @@ export default function ContactForm({ initialSent }: { initialSent: boolean }) {
             background: "#000",
             color: "#fff",
             fontWeight: 800,
-            cursor: status === "submitting" ? "not-allowed" : "pointer",
-            opacity: status === "submitting" ? 0.75 : 1,
+            cursor: isSubmitting ? "not-allowed" : "pointer",
+            opacity: isSubmitting ? 0.7 : 1,
           }}
         >
-          {status === "submitting" ? "Sending…" : "Send message"}
+          {isSubmitting ? "Sending..." : "Send message"}
         </button>
 
         <p style={{ fontSize: 12, opacity: 0.7 }}>
-          By submitting this form, you consent to being contacted regarding your
-          inquiry.
+          By submitting this form, you consent to being contacted regarding your inquiry.
         </p>
       </form>
-    </>
-  );
-}
-
-function Field({
-  label,
-  htmlFor,
-  children,
-}: {
-  label: string;
-  htmlFor: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div>
-      <label htmlFor={htmlFor} style={labelStyle}>
-        {label}
-      </label>
-      {children}
     </div>
   );
 }
-
-const labelStyle: React.CSSProperties = {
-  display: "block",
-  fontWeight: 700,
-  marginBottom: 6,
-};
-
-const inputStyle: React.CSSProperties = {
-  width: "100%",
-  padding: "0.75rem",
-  borderRadius: 10,
-  border: "1px solid rgba(0,0,0,0.25)",
-  background: "white",
-  fontSize: 16,
-};
