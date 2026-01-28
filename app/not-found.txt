@@ -1,0 +1,58 @@
+import Link from "next/link";
+
+export default function NotFound() {
+  return (
+    <main
+      style={{
+        maxWidth: 900,
+        margin: "0 auto",
+        padding: "5rem 1.25rem",
+      }}
+    >
+      <h1 style={{ fontSize: 40, marginBottom: "0.75rem" }}>
+        Page not found
+      </h1>
+
+      <p style={{ fontSize: 18, lineHeight: 1.7, opacity: 0.85, maxWidth: 720 }}>
+        The page you’re looking for doesn’t exist (or may have moved). Use the
+        navigation above, or go back to the homepage.
+      </p>
+
+      <div style={{ marginTop: "2rem", display: "flex", gap: "0.75rem" }}>
+        <Link
+          href="/"
+          style={{
+            display: "inline-block",
+            padding: "0.85rem 1.1rem",
+            borderRadius: 10,
+            background: "#000",
+            color: "#fff",
+            fontWeight: 800,
+            textDecoration: "none",
+          }}
+        >
+          Back to homepage
+        </Link>
+
+        <Link
+          href="/contact"
+          style={{
+            display: "inline-block",
+            padding: "0.85rem 1.1rem",
+            borderRadius: 10,
+            border: "1px solid rgba(0,0,0,0.2)",
+            color: "#000",
+            fontWeight: 800,
+            textDecoration: "none",
+          }}
+        >
+          Contact
+        </Link>
+      </div>
+
+      <div style={{ marginTop: "3rem", opacity: 0.7, fontSize: 14 }}>
+        If you believe this is an error, please let us know via the contact form.
+      </div>
+    </main>
+  );
+}
