@@ -1,56 +1,35 @@
 import Link from "next/link";
 
-const navItems = [
-  { href: "/", label: "Home" },
-  { href: "/about", label: "About" },
-  { href: "/standards", label: "Standards" },
-  { href: "/certification", label: "Certification" },
-  { href: "/registry", label: "Registry" },
-  { href: "/ask", label: "Ask GAFAIG" },
-];
-
 export default function SiteNav() {
   return (
-    <header style={{ borderBottom: "1px solid #e5e7eb" }}>
-      <nav
-        style={{
-          maxWidth: 1100,
-          margin: "0 auto",
-          padding: "16px 24px",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          gap: 16,
-        }}
-      >
+    <nav
+      style={{
+        padding: "1.25rem 4rem",
+        borderBottom: "1px solid rgba(0,0,0,0.1)",
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+      }}
+    >
+      <div style={{ display: "flex", gap: "1.25rem", alignItems: "center" }}>
         <Link
           href="/"
           style={{
             fontWeight: 700,
-            letterSpacing: "-0.01em",
-            textDecoration: "none",
-            color: "inherit",
+            fontSize: "1.05rem",
+            marginRight: "1rem",
           }}
         >
           GAFAIG
         </Link>
 
-        <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
-          {navItems.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              style={{
-                textDecoration: "none",
-                color: "#111827",
-                fontSize: 14,
-              }}
-            >
-              {item.label}
-            </Link>
-          ))}
-        </div>
-      </nav>
-    </header>
+        <Link href="/about">About</Link>
+        <Link href="/governance">Governance</Link>
+        <Link href="/standards">Standards</Link>
+        <Link href="/certification">Certification</Link>
+        <Link href="/registry">Registry</Link>
+        <Link href="/ask">Ask GAFAIG</Link>
+      </div>
+    </nav>
   );
 }

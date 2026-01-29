@@ -1,0 +1,35 @@
+{
+  "meta": {
+    "version": "v1.0",
+    "lastUpdated": "2026-01-29",
+    "disclosurePolicy": "/policy/registry-disclosure-thresholds",
+    "notes": "This registry represents the public record of GAFAIG certification status. Entries appear only when disclosure thresholds are met."
+  },
+  "records": [
+    {
+      "registryId": "GAFAIG-0000",
+      "organizationName": "Example Organization (Demo)",
+      "jurisdiction": "Global",
+      "certificationStatus": "Pending",
+      "certificationTier": "Foundational",
+      "certifiedStandards": [
+        "GAFAIG-S-001",
+        "GAFAIG-S-002"
+      ],
+      "certifiedScope": "AI governance program review (demonstration record only)",
+      "effectiveDate": null,
+      "expirationDate": null,
+      "lastReviewDate": null,
+      "publicNotes": "This is a demonstration entry used prior to the publication of the first certified organizations.",
+      "links": {
+        "organization": null,
+        "certification": "/certification",
+        "standards": [
+          "/standards/s-001",
+          "/standards/s-002"
+        ]
+      },
+      "history": []
+    }
+  ]
+}

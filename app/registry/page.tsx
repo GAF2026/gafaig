@@ -1,26 +1,26 @@
 import Link from "next/link";
+import registryData from "../data/registry.json";
 
 type RegistryRecord = {
-  orgName: string;
-  status: "Certified" | "Suspended" | "Revoked" | "Expired" | "Pending";
-  scope: string;
-  standards: string[];
-  effectiveDate: string;
-  lastUpdated: string;
+  registryId: string;
+  organizationName: string;
+  jurisdiction: string;
+  certificationStatus: "Certified" | "Suspended" | "Revoked" | "Expired" | "Pending";
+  certificationTier: string | null;
+  certifiedStandards: string[];
+  certifiedScope: string;
+  effectiveDate: string | null;
+  expirationDate: string | null;
+  lastReviewDate: string | null;
+  publicNotes: string | null;
+  links: {
+    organization: string | null;
+    certification: string | null;
+    standards: string[];
+  };
 };
 
-const sampleRecords: RegistryRecord[] = [
-  {
-    orgName: "Example Organization (Demo)",
-    status: "Pending",
-    scope: "AI governance program review (demo record)",
-    standards: ["GAFAIG-S-001", "GAFAIG-S-002"],
-    effectiveDate: "—",
-    lastUpdated: "—",
-  },
-];
-
-function StatusPill({ status }: { status: RegistryRecord["status"] }) {
+function StatusPill({ status }: { status: RegistryRecord["certificationStatus"] }) {
   const bg =
     status === "Certified"
       ? "#dcfce7"
@@ -62,17 +62,38 @@ function StatusPill({ status }: { status: RegistryRecord["status"] }) {
   );
 }
 
+function fmtDate(d: string | null) {
+  if (!d) return "—";
+  return d;
+}
+
 export default function RegistryPage() {
+  const meta = (registryData as any).meta as {
+    version: string;
+    lastUpdated: string;
+    disclosurePolicy: string;
+    notes?: string;
+  };
+
+  const records = ((registryData as any).records || []) as RegistryRecord[];
+
   return (
     <main style={{ maxWidth: 1100, margin: "0 auto", padding: "48px 24px" }}>
       <h1 style={{ fontSize: "2.25rem", fontWeight: 700, marginBottom: 12 }}>
         Public Certification Registry
       </h1>
 
-      <p style={{ fontSize: 18, lineHeight: 1.7, color: "#374151", marginBottom: 22 }}>
+      <p style={{ fontSize: 18, lineHeight: 1.7, color: "#374151", marginBottom: 10 }}>
         The GAFAIG Public Certification Registry provides verifiable information about certification
-        status, certified scope, and applicable standards. Registry entries are governed by GAFAIG’s{" "}
-        <Link href="/policy/registry-disclosure-thresholds">Public Registry Disclosure Thresholds</Link>.
+        status, certified scope, and applicable standards.
+      </p>
+
+      <p style={{ color: "#6b7280", lineHeight: 1.7, marginBottom: 22 }}>
+        Disclosure policy:{" "}
+        <Link href={meta.disclosurePolicy} style={{ color: "#111827" }}>
+          {meta.disclosurePolicy}
+        </Link>{" "}
+        • Registry schema: {meta.version} • Last updated: {meta.lastUpdated}
       </p>
 
       <section
@@ -100,29 +121,22 @@ export default function RegistryPage() {
             Search will activate when the registry database is live.
           </div>
         </div>
-      </section>
-
-      <section style={{ marginBottom: 26 }}>
-        <h2 style={{ fontSize: 18, fontWeight: 700, marginBottom: 8 }}>
-          What you can verify here
-        </h2>
-        <ul style={{ lineHeight: 1.8, color: "#374151", paddingLeft: 20 }}>
-          <li>Current certification status and effective dates</li>
-          <li>Certified scope (what is covered—and what is not)</li>
-          <li>Applicable GAFAIG standards (e.g., S-001, S-002)</li>
-          <li>Status changes consistent with published policies</li>
-        </ul>
+        {meta.notes ? (
+          <p style={{ marginTop: 10, color: "#6b7280", fontSize: 13, lineHeight: 1.6 }}>
+            {meta.notes}
+          </p>
+        ) : null}
       </section>
 
       <section style={{ marginBottom: 18 }}>
         <h2 style={{ fontSize: 18, fontWeight: 700, marginBottom: 10 }}>
-          Registry records (MVP preview)
+          Registry records
         </h2>
 
         <div style={{ display: "grid", gap: 12 }}>
-          {sampleRecords.map((r) => (
+          {records.map((r) => (
             <div
-              key={r.orgName}
+              key={r.registryId}
               style={{
                 border: "1px solid #e5e7eb",
                 borderRadius: 14,
@@ -139,16 +153,21 @@ export default function RegistryPage() {
                   marginBottom: 8,
                 }}
               >
-                <div style={{ fontWeight: 800, fontSize: 16 }}>{r.orgName}</div>
-                <StatusPill status={r.status} />
+                <div>
+                  <div style={{ fontWeight: 800, fontSize: 16 }}>{r.organizationName}</div>
+                  <div style={{ color: "#6b7280", fontSize: 12 }}>
+                    Registry ID: {r.registryId} • Jurisdiction: {r.jurisdiction}
+                  </div>
+                </div>
+                <StatusPill status={r.certificationStatus} />
               </div>
 
               <div style={{ color: "#374151", lineHeight: 1.6, marginBottom: 10 }}>
-                <strong>Scope:</strong> {r.scope}
+                <strong>Scope:</strong> {r.certifiedScope}
               </div>
 
-              <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 8 }}>
-                {r.standards.map((s) => (
+              <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 10 }}>
+                {r.certifiedStandards.map((s) => (
                   <span
                     key={s}
                     style={{
@@ -164,34 +183,56 @@ export default function RegistryPage() {
                     {s}
                   </span>
                 ))}
+                {r.certificationTier ? (
+                  <span
+                    style={{
+                      fontSize: 12,
+                      padding: "4px 10px",
+                      borderRadius: 999,
+                      border: "1px solid #e5e7eb",
+                      background: "#fff",
+                      color: "#111827",
+                      fontWeight: 700,
+                    }}
+                  >
+                    Tier: {r.certificationTier}
+                  </span>
+                ) : null}
               </div>
 
-              <div style={{ color: "#6b7280", fontSize: 12 }}>
-                <span style={{ marginRight: 14 }}>
-                  <strong>Effective:</strong> {r.effectiveDate}
-                </span>
-                <span>
-                  <strong>Last updated:</strong> {r.lastUpdated}
-                </span>
+              <div style={{ display: "flex", gap: 18, flexWrap: "wrap", color: "#6b7280", fontSize: 12 }}>
+                <div>
+                  <strong>Effective:</strong> {fmtDate(r.effectiveDate)}
+                </div>
+                <div>
+                  <strong>Expires:</strong> {fmtDate(r.expirationDate)}
+                </div>
+                <div>
+                  <strong>Last review:</strong> {fmtDate(r.lastReviewDate)}
+                </div>
+              </div>
+
+              {r.publicNotes ? (
+                <p style={{ marginTop: 10, color: "#374151", lineHeight: 1.6 }}>
+                  <strong>Public notes:</strong> {r.publicNotes}
+                </p>
+              ) : null}
+
+              <div style={{ marginTop: 12, display: "flex", gap: 12, flexWrap: "wrap" }}>
+                {r.links.certification ? (
+                  <Link href={r.links.certification} style={{ color: "#111827" }}>
+                    Certification
+                  </Link>
+                ) : null}
+                {r.links.standards?.map((href) => (
+                  <Link key={href} href={href} style={{ color: "#111827" }}>
+                    {href}
+                  </Link>
+                ))}
               </div>
             </div>
           ))}
         </div>
-
-        <p style={{ color: "#6b7280", fontSize: 13, marginTop: 10 }}>
-          Demo entries are placeholders. Public listings will appear as certification begins.
-        </p>
-      </section>
-
-      <section>
-        <h2 style={{ fontSize: 18, fontWeight: 700, marginBottom: 8 }}>
-          Misuse prevention
-        </h2>
-        <p style={{ lineHeight: 1.7, color: "#374151" }}>
-          Organizations may not represent GAFAIG certification outside their approved scope.
-          Misuse of certification claims or the GAFAIG compliance mark may result in status actions
-          under published procedures and program terms.
-        </p>
       </section>
     </main>
   );
