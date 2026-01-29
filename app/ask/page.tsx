@@ -1,64 +1,151 @@
-export default function AskPage() {
-  return (
-    <main style={{ maxWidth: 1100, margin: "0 auto", padding: "48px 24px" }}>
-      <h1 style={{ fontSize: "2.25rem", fontWeight: 700, marginBottom: 16 }}>
-        Ask GAFAIG
-      </h1>
+"use client";
 
-      <p style={{ fontSize: 18, lineHeight: 1.7, color: "#374151", marginBottom: 32 }}>
-        Ask GAFAIG provides structured guidance on human-centered AI governance, standards
-        interpretation, certification posture, and incident reporting expectations.
-        Responses are designed to be informative, cautious, and aligned with GAFAIG’s
-        published standards and policies.
+import { useState } from "react";
+
+type AskResponse = {
+  ok: boolean;
+  received: boolean;
+  answer: string;
+  message?: string;
+};
+
+export default function AskPage() {
+  const [question, setQuestion] = useState("");
+  const [answer, setAnswer] = useState<string>("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string>("");
+
+  async function onSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setError("");
+    setAnswer("");
+
+    const q = question.trim();
+    if (!q) {
+      setError("Please enter a question.");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const res = await fetch("/api/ask", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ question: q }),
+      });
+
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(text || `Request failed (${res.status})`);
+      }
+
+      const data = (await res.json()) as AskResponse;
+
+      if (!data.ok) {
+        throw new Error(data.message || "The API returned ok:false");
+      }
+
+      setAnswer(data.answer);
+    } catch (err: any) {
+      setError(err?.message || "Something went wrong.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <main style={{ padding: "4rem", maxWidth: 980, margin: "0 auto" }}>
+      <h1 style={{ fontSize: "2rem", marginBottom: "0.5rem" }}>Ask GAFAIG</h1>
+      <p style={{ opacity: 0.85, marginBottom: "2rem" }}>
+        Ask a question about GAFAIG standards, certification, registry policy, or governance.
       </p>
 
-      <section style={{ marginBottom: 28 }}>
-        <h2 style={{ fontSize: 18, fontWeight: 700, marginBottom: 8 }}>
-          What you can ask
-        </h2>
-        <ul style={{ lineHeight: 1.8, color: "#374151", paddingLeft: 20 }}>
-          <li>How GAFAIG standards apply to a specific AI use case</li>
-          <li>What disclosures are expected under GAFAIG-S-001 or GAFAIG-S-002</li>
-          <li>How certification scope is defined and reviewed</li>
-          <li>When incident disclosure or updates may be required</li>
-          <li>How registry status and certification changes are handled</li>
-        </ul>
-      </section>
+      <form onSubmit={onSubmit} style={{ display: "grid", gap: "0.75rem" }}>
+        <label style={{ fontWeight: 600 }} htmlFor="question">
+          Your question
+        </label>
+        <textarea
+          id="question"
+          value={question}
+          onChange={(e) => setQuestion(e.target.value)}
+          rows={5}
+          placeholder='Example: "What is GAFAIG S-001?"'
+          style={{
+            width: "100%",
+            padding: "0.9rem",
+            borderRadius: 10,
+            border: "1px solid rgba(0,0,0,0.2)",
+            fontFamily: "inherit",
+            fontSize: "1rem",
+          }}
+        />
 
-      <section style={{ marginBottom: 28 }}>
-        <h2 style={{ fontSize: 18, fontWeight: 700, marginBottom: 8 }}>
-          How responses are generated
-        </h2>
-        <p style={{ lineHeight: 1.7, color: "#374151" }}>
-          Ask GAFAIG responses are generated using AI systems configured to reflect
-          GAFAIG’s standards language, interpretation posture, and escalation rules.
-          Where uncertainty exists, responses may reference applicable standards or
-          recommend formal review rather than providing definitive conclusions.
-        </p>
-      </section>
+        <div style={{ display: "flex", gap: "0.75rem", alignItems: "center" }}>
+          <button
+            type="submit"
+            disabled={loading}
+            style={{
+              padding: "0.75rem 1rem",
+              borderRadius: 10,
+              border: "1px solid rgba(0,0,0,0.2)",
+              background: loading ? "rgba(0,0,0,0.05)" : "white",
+              cursor: loading ? "not-allowed" : "pointer",
+              fontWeight: 600,
+            }}
+          >
+            {loading ? "Asking..." : "Ask"}
+          </button>
 
-      <section style={{ marginBottom: 28 }}>
-        <h2 style={{ fontSize: 18, fontWeight: 700, marginBottom: 8 }}>
-          Safety, refusal, and escalation
-        </h2>
-        <p style={{ lineHeight: 1.7, color: "#374151" }}>
-          Ask GAFAIG is designed with refusal and escalation safeguards. The system may
-          decline to answer questions that exceed its scope, require confidential
-          information, or risk misinterpretation. In appropriate cases, inquiries may
-          be routed to structured intake or human review processes.
-        </p>
-      </section>
+          <button
+            type="button"
+            onClick={() => {
+              setQuestion("");
+              setAnswer("");
+              setError("");
+            }}
+            disabled={loading}
+            style={{
+              padding: "0.75rem 1rem",
+              borderRadius: 10,
+              border: "1px solid rgba(0,0,0,0.2)",
+              background: "white",
+              cursor: loading ? "not-allowed" : "pointer",
+            }}
+          >
+            Clear
+          </button>
+        </div>
 
-      <section>
-        <h2 style={{ fontSize: 18, fontWeight: 700, marginBottom: 8 }}>
-          Availability
-        </h2>
-        <p style={{ lineHeight: 1.7, color: "#374151" }}>
-          The interactive Ask GAFAIG interface is under active development. Initial
-          releases will prioritize clarity, consistency, and alignment with published
-          standards. Updates will be announced as features become available.
-        </p>
-      </section>
+        {error ? (
+          <div
+            style={{
+              marginTop: "0.75rem",
+              padding: "0.9rem",
+              borderRadius: 10,
+              border: "1px solid rgba(220, 38, 38, 0.35)",
+              background: "rgba(220, 38, 38, 0.06)",
+            }}
+          >
+            <strong style={{ display: "block", marginBottom: 6 }}>Error</strong>
+            <span>{error}</span>
+          </div>
+        ) : null}
+
+        {answer ? (
+          <div
+            style={{
+              marginTop: "0.75rem",
+              padding: "1rem",
+              borderRadius: 10,
+              border: "1px solid rgba(0,0,0,0.12)",
+              background: "rgba(0,0,0,0.03)",
+            }}
+          >
+            <strong style={{ display: "block", marginBottom: 8 }}>GAFAIG</strong>
+            <div style={{ whiteSpace: "pre-wrap", lineHeight: 1.5 }}>{answer}</div>
+          </div>
+        ) : null}
+      </form>
     </main>
   );
 }
