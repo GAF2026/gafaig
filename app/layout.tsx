@@ -30,7 +30,13 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
         <SiteNav />
-        {children}
+
+        <div className="container">
+          <div className="prose">
+            {children}
+          </div>
+        </div>
+
         <SiteFooter />
       </body>
     </html>

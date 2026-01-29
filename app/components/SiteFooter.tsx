@@ -4,73 +4,108 @@ export default function SiteFooter() {
   const year = new Date().getFullYear();
 
   return (
-    <footer
-      style={{
-        borderTop: "1px solid #e5e7eb",
-        marginTop: 56,
-        padding: "28px 0",
-      }}
-    >
-      <div style={{ maxWidth: 1100, margin: "0 auto", padding: "0 24px" }}>
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            gap: 24,
-            flexWrap: "wrap",
-            alignItems: "flex-start",
-          }}
-        >
-          <div style={{ minWidth: 240 }}>
-            <div style={{ fontWeight: 700, marginBottom: 8 }}>GAFAIG</div>
-            <div style={{ color: "#374151", lineHeight: 1.6, fontSize: 14 }}>
-              Global Authority for AI Governance — a global framework for human-centered AI
-              governance, enabling transparent oversight, participation, and accountability
-              at planetary scale.
-            </div>
-          </div>
+    <footer style={{ padding: "2.5rem 4rem" }}>
+      <div
+        style={{
+          maxWidth: 1100,
+          margin: "0 auto",
+          display: "grid",
+          gridTemplateColumns: "1.2fr 1fr 1fr",
+          gap: "1.5rem",
+        }}
+      >
+        <div>
+          <div style={{ fontWeight: 800, marginBottom: 8 }}>GAFAIG</div>
+          <p style={{ color: "#6b7280", lineHeight: 1.7, margin: 0 }}>
+            Global Authority for AI Governance (GAFAIG) is an independent certification
+            authority for human-centered AI governance.
+          </p>
 
-          <div style={{ minWidth: 260 }}>
-            <div style={{ fontWeight: 700, marginBottom: 8 }}>Policies</div>
-            <ul style={{ listStyle: "none", padding: 0, margin: 0, lineHeight: 1.9 }}>
-              <li>
-                <Link href="/policy/enforcement-boundary" style={{ textDecoration: "none", color: "#111827", fontSize: 14 }}>
-                  Enforcement Boundary
-                </Link>
-              </li>
-              <li>
-                <Link href="/policy/revocation-suspension" style={{ textDecoration: "none", color: "#111827", fontSize: 14 }}>
-                  Revocation & Suspension
-                </Link>
-              </li>
-              <li>
-                <Link href="/policy/appeals" style={{ textDecoration: "none", color: "#111827", fontSize: 14 }}>
-                  Appeals
-                </Link>
-              </li>
-              <li>
-                <Link href="/policy/registry-disclosure-thresholds" style={{ textDecoration: "none", color: "#111827", fontSize: 14 }}>
-                  Registry Disclosures
-                </Link>
-              </li>
-              <li>
-                <Link href="/policy/master-terms" style={{ textDecoration: "none", color: "#111827", fontSize: 14 }}>
-                  Certification Master Terms
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          <div style={{ minWidth: 180 }}>
-            <div style={{ fontWeight: 700, marginBottom: 8 }}>Contact</div>
-            <Link href="/contact" style={{ textDecoration: "none", color: "#111827", fontSize: 14 }}>
-              Contact GAFAIG
-            </Link>
+          <div className="callout legal" style={{ marginTop: "1rem" }}>
+            <strong>Boundary Notice</strong>
+            <p style={{ margin: 0, marginTop: ".5rem" }}>
+              GAFAIG is not a regulator or governmental authority. Certification does not
+              constitute legal compliance, regulatory approval, or warranty.
+            </p>
           </div>
         </div>
 
-        <div style={{ marginTop: 18, color: "#6b7280", fontSize: 12 }}>
-          © {year} GAFAIG. Standards and policies are living documents and may be updated with versioning and publication notes.
+        <div>
+          <div style={{ fontWeight: 700, marginBottom: 10 }}>Core</div>
+          <ul style={{ listStyle: "none", padding: 0, margin: 0, lineHeight: 2 }}>
+            <li>
+              <Link href="/about">About</Link>
+            </li>
+            <li>
+              <Link href="/governance">Governance</Link>
+            </li>
+            <li>
+              <Link href="/standards">Standards</Link>
+            </li>
+            <li>
+              <Link href="/certification">Certification</Link>
+            </li>
+            <li>
+              <Link href="/registry">Registry</Link>
+            </li>
+            <li>
+              <Link href="/ask">Ask GAFAIG</Link>
+            </li>
+          </ul>
+        </div>
+
+        <div>
+          <div style={{ fontWeight: 700, marginBottom: 10 }}>Policy</div>
+          <ul style={{ listStyle: "none", padding: 0, margin: 0, lineHeight: 2 }}>
+            <li>
+              <Link href="/policy">Policy Index</Link>
+            </li>
+            <li>
+              <Link href="/policy/enforcement-boundary">Enforcement Boundary</Link>
+            </li>
+            <li>
+              <Link href="/policy/revocation-suspension">Revocation &amp; Suspension</Link>
+            </li>
+            <li>
+              <Link href="/policy/appeals">Appeals &amp; Reconsideration</Link>
+            </li>
+            <li>
+              <Link href="/policy/registry-disclosure-thresholds">
+                Registry Disclosure Thresholds
+              </Link>
+            </li>
+            <li>
+              <Link href="/policy/master-terms">Certification Agreement (Master Terms)</Link>
+            </li>
+            <li>
+              <Link href="/policy/charter">Charter</Link>
+            </li>
+            <li>
+              <Link href="/policy/governance-canon">Governance Canon</Link>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <div
+        style={{
+          maxWidth: 1100,
+          margin: "1.75rem auto 0 auto",
+          paddingTop: "1.25rem",
+          borderTop: "1px solid rgba(0,0,0,0.1)",
+          display: "flex",
+          gap: "1rem",
+          flexWrap: "wrap",
+          justifyContent: "space-between",
+          alignItems: "center",
+          color: "#6b7280",
+          fontSize: 13,
+        }}
+      >
+        <div>© {year} GAFAIG. All rights reserved.</div>
+        <div>
+          Standards &amp; policies are living documents; certification expectations may
+          change under published rules.
         </div>
       </div>
     </footer>
