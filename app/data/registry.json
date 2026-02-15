@@ -1,35 +1,83 @@
 {
   "meta": {
-    "version": "v1.0",
-    "lastUpdated": "2026-01-29",
+    "version": "v0.2-db-ready",
+    "lastUpdated": "2026-01-30",
     "disclosurePolicy": "/policy/registry-disclosure-thresholds",
-    "notes": "This registry represents the public record of GAFAIG certification status. Entries appear only when disclosure thresholds are met."
+    "notes": "JSON-backed registry (MVP). Fields are DB-ready for future Supabase tables: organizations, certifications, systems, events."
   },
-  "records": [
+  "organizations": [
     {
-      "registryId": "GAFAIG-0000",
-      "organizationName": "Example Organization (Demo)",
-      "jurisdiction": "Global",
-      "certificationStatus": "Pending",
-      "certificationTier": "Foundational",
-      "certifiedStandards": [
-        "GAFAIG-S-001",
-        "GAFAIG-S-002"
-      ],
-      "certifiedScope": "AI governance program review (demonstration record only)",
-      "effectiveDate": null,
-      "expirationDate": null,
-      "lastReviewDate": null,
-      "publicNotes": "This is a demonstration entry used prior to the publication of the first certified organizations.",
-      "links": {
-        "organization": null,
-        "certification": "/certification",
-        "standards": [
-          "/standards/s-001",
-          "/standards/s-002"
-        ]
+      "orgId": "org-demo-001",
+      "legalName": "Demo Organization, Inc.",
+      "displayName": "Demo Organization",
+      "website": "https://example.com",
+      "hqCountry": "US",
+      "primaryContactEmail": "contact@example.com",
+      "createdAt": "2026-01-30",
+      "updatedAt": "2026-01-30"
+    }
+  ],
+  "certifications": [
+    {
+      "certId": "cert-demo-001",
+      "orgId": "org-demo-001",
+      "tier": "foundation",
+      "status": "listed",
+      "markEligible": true,
+      "scope": {
+        "summary": "Public-facing AI assistant for customer support and knowledge search.",
+        "deploymentSurfaces": ["web", "mobile"],
+        "regions": ["global"]
       },
-      "history": []
+      "standards": [
+        { "code": "GAFAIG-S-001", "href": "/standards/s-001" },
+        { "code": "GAFAIG-S-002", "href": "/standards/s-002" }
+      ],
+      "issuedAt": "2026-01-30",
+      "effectiveFrom": "2026-01-30",
+      "expiresAt": "2027-01-30",
+      "lastReviewedAt": "2026-01-30",
+      "publicNotes": "Demo entry for MVP. Replace with real listings when certification is active.",
+      "policyLinks": {
+        "masterTerms": "/policy/master-terms",
+        "enforcementBoundary": "/policy/enforcement-boundary",
+        "revocationSuspension": "/policy/revocation-suspension",
+        "appeals": "/policy/appeals",
+        "registryDisclosureThresholds": "/policy/registry-disclosure-thresholds"
+      }
+    }
+  ],
+  "systems": [
+    {
+      "systemId": "sys-demo-001",
+      "orgId": "org-demo-001",
+      "certId": "cert-demo-001",
+      "systemName": "Demo Support Assistant",
+      "systemType": "LLM-based assistant",
+      "purpose": "Customer support Q&A and policy lookup",
+      "affectedPopulations": ["customers", "support staff"],
+      "riskTier": "medium",
+      "humanOversight": "Escalation to human review for flagged topics (safety, legal, accusations).",
+      "monitoring": "Weekly monitoring summary; incident reporting under S-002.",
+      "updatedAt": "2026-01-30"
+    }
+  ],
+  "events": [
+    {
+      "eventId": "evt-demo-001",
+      "orgId": "org-demo-001",
+      "systemId": "sys-demo-001",
+      "eventType": "status_change",
+      "severity": "info",
+      "confidence": 0.9,
+      "occurredAt": "2026-01-30",
+      "publishedAt": "2026-01-30",
+      "summary": "Certification listed in public registry (demo).",
+      "publicDisclosure": {
+        "isDisclosed": true,
+        "thresholdBasis": "MVP demo disclosure",
+        "redactions": "none"
+      }
     }
   ]
 }

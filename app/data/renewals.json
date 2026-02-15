@@ -1,0 +1,32 @@
+{
+  "version": 1,
+  "lastUpdated": "2026-02-03T09:35:07.971Z",
+  "items": [
+    {
+      "requestId": "REN-20260130-cd90bf7d",
+      "createdAt": "2026-01-30T22:07:01.976Z",
+      "status": "received",
+      "contactEmail": "test@example.com",
+      "orgName": "Test Org",
+      "renewalPeriod": "2026"
+    },
+    {
+      "requestId": "REN-20260130-56882fd0",
+      "createdAt": "2026-01-30T22:09:05.716Z",
+      "status": "approved",
+      "contactEmail": "test@example.com",
+      "orgName": "Test Org",
+      "renewalPeriod": "2026",
+      "updatedAt": "2026-02-02T18:19:36.410Z"
+    },
+    {
+      "requestId": "REN-20260130-2a30263f",
+      "createdAt": "2026-01-30T22:12:34.445Z",
+      "status": "rejected",
+      "contactEmail": "test@example.com",
+      "orgName": "Test Org",
+      "renewalPeriod": "2026",
+      "updatedAt": "2026-02-03T09:35:07.971Z"
+    }
+  ]
+}

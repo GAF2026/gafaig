@@ -1,241 +1,217 @@
 import { NextResponse } from "next/server";
 
-type AskBody = { question?: string };
-
-const KB = {
-  project: {
-    name: "GAFAIG",
-    longName: "Global Authority for AI Governance",
-    hero:
-      "A global framework for human-centered AI governance, enabling transparent oversight, participation, and accountability at planetary scale.",
-  },
-  standards: {
-    "S-001": {
-      slug: "/standards/s-001",
-      title: "GAFAIG-S-001 — Human Impact Disclosure Standard",
-      summary:
-        "A disclosure standard that requires clear, human-readable reporting of AI system impacts, scope, risks, and accountability signals.",
-      whenToUse:
-        "Use S-001 when the question is about impact disclosure, transparency to the public, required fields in a disclosure, or what an AI developer must publish.",
-    },
-    "S-002": {
-      slug: "/standards/s-002",
-      title: "GAFAIG-S-002 — AI Incident Disclosure & Reporting Standard",
-      summary:
-        "A reporting standard for AI incidents, including severity, confidence, containment, notification, and post-incident updates.",
-      whenToUse:
-        "Use S-002 when the question is about incidents, reporting timelines, severity/confidence scoring, corrective actions, or public incident transparency.",
-    },
-  },
-  policy: {
-    anchor:
-      "GAFAIG policy pages define enforcement boundaries, revocation/suspension, appeals, registry disclosure thresholds, and master terms.",
-    links: [
-      "/policy",
-      "/policy/enforcement-boundary",
-      "/policy/revocation-suspension",
-      "/policy/appeals",
-      "/policy/registry-disclosure-thresholds",
-      "/policy/master-terms",
-    ],
-  },
-  certification: {
-    overview:
-      "GAFAIG certification is a structured pathway for systems to meet defined governance and disclosure standards, with renewal and low-risk fast-track options.",
-    links: ["/certification", "/certification/apply", "/certification/renewal"],
-  },
+type AskRequest = {
+  question?: string;
+  context?: {
+    page?: string;
+    userRole?: "public" | "applicant" | "reviewer" | "admin";
+  };
 };
+
+type AskResponse = {
+  ok: true;
+  received: true;
+  requestId: string;
+  question: string;
+  answer: {
+    summary: string;
+    directAnswer: string;
+    references: Array<{ label: string; href: string; type: "standard" | "policy" | "page" }>;
+    citations: Array<{ source: string; note: string }>;
+    escalation: {
+      shouldEscalate: boolean;
+      reason?: string;
+      contactPath?: string;
+    };
+    policyFlags: {
+      legalOrRegulatoryAdvice: boolean;
+      safetyCritical: boolean;
+      defamationOrAccusation: boolean;
+      personalData: boolean;
+    };
+  };
+};
+
+function makeId() {
+  // short deterministic-ish id
+  const rnd = Math.random().toString(16).slice(2);
+  const ts = Date.now().toString(16);
+  return `gafaig-ask-${ts}-${rnd.slice(0, 6)}`;
+}
 
 function normalize(q: string) {
   return q.trim().replace(/\s+/g, " ");
 }
 
-function classify(question: string) {
+function detectFlags(question: string) {
   const q = question.toLowerCase();
 
-  const isS001 =
-    q.includes("s-001") ||
-    q.includes("s001") ||
-    q.includes("human impact") ||
-    q.includes("impact disclosure") ||
-    q.includes("disclosure standard") ||
-    q.includes("transparency");
+  const legalOrRegulatoryAdvice =
+    /\b(law|legal|regulation|regulatory|sue|lawsuit|liability|compliance with (gdpr|hipaa|ccpa)|attorney)\b/.test(q);
 
-  const isS002 =
-    q.includes("s-002") ||
-    q.includes("s002") ||
-    q.includes("incident") ||
-    q.includes("reporting") ||
-    q.includes("severity") ||
-    q.includes("confidence score") ||
-    q.includes("breach") ||
-    q.includes("harm event");
+  const safetyCritical =
+    /\b(medical|diagnosis|treatment|life[- ]?critical|aviation|nuclear|weapon|self-harm|suicide)\b/.test(q);
 
-  const isCertification =
-    q.includes("certification") ||
-    q.includes("apply") ||
-    q.includes("renewal") ||
-    q.includes("fast-track") ||
-    q.includes("reviewer");
+  const defamationOrAccusation =
+    /\b(fraud|scam|criminal|illegal|cover[- ]?up|corrupt|brib(e|ery))\b/.test(q);
 
-  const isRegistry =
-    q.includes("registry") ||
-    q.includes("public record") ||
-    q.includes("listed") ||
-    q.includes("lookup");
+  const personalData =
+    /\b(ssn|social security|passport|driver.?s license|home address|phone number|email address)\b/.test(q);
 
-  const isPolicy =
-    q.includes("policy") ||
-    q.includes("appeal") ||
-    q.includes("revocation") ||
-    q.includes("suspension") ||
-    q.includes("enforcement") ||
-    q.includes("terms") ||
-    q.includes("boundary");
-
-  return { isS001, isS002, isCertification, isRegistry, isPolicy };
+  return { legalOrRegulatoryAdvice, safetyCritical, defamationOrAccusation, personalData };
 }
 
-function buildAnswer(questionRaw: string) {
-  const question = normalize(questionRaw);
-  const c = classify(question);
-
-  // If both standards appear, provide a compare response
-  if (c.isS001 && c.isS002) {
-    return [
-      `You asked: "${question}"`,
-      ``,
-      `**GAFAIG S-001 vs S-002 (quick distinction):**`,
-      `- **S-001** focuses on *human impact disclosure*—what an AI system is, how it affects people, and what should be transparently disclosed.`,
-      `- **S-002** focuses on *AI incident disclosure & reporting*—how to report harmful/abnormal events, including severity, confidence, containment, and updates.`,
-      ``,
-      `Helpful links:`,
-      `- ${KB.standards["S-001"].slug}`,
-      `- ${KB.standards["S-002"].slug}`,
-    ].join("\n");
-  }
-
-  if (c.isS001) {
-    return [
-      `You asked: "${question}"`,
-      ``,
-      `**${KB.standards["S-001"].title}**`,
-      `${KB.standards["S-001"].summary}`,
-      ``,
-      `**When this applies:**`,
-      `${KB.standards["S-001"].whenToUse}`,
-      ``,
-      `Read the standard: ${KB.standards["S-001"].slug}`,
-    ].join("\n");
-  }
-
-  if (c.isS002) {
-    return [
-      `You asked: "${question}"`,
-      ``,
-      `**${KB.standards["S-002"].title}**`,
-      `${KB.standards["S-002"].summary}`,
-      ``,
-      `**When this applies:**`,
-      `${KB.standards["S-002"].whenToUse}`,
-      ``,
-      `Read the standard: ${KB.standards["S-002"].slug}`,
-    ].join("\n");
-  }
-
-  if (c.isCertification) {
-    return [
-      `You asked: "${question}"`,
-      ``,
-      `**GAFAIG Certification (overview):**`,
-      `${KB.certification.overview}`,
-      ``,
-      `Next steps:`,
-      `- Certification overview: ${KB.certification.links[0]}`,
-      `- Apply: ${KB.certification.links[1]}`,
-      `- Renewal: ${KB.certification.links[2]}`,
-    ].join("\n");
-  }
-
-  if (c.isRegistry) {
-    return [
-      `You asked: "${question}"`,
-      ``,
-      `**GAFAIG Public Certification Registry:**`,
-      `The registry is the public record of certification status and (where applicable) disclosure thresholds and material status changes.`,
-      ``,
-      `Go here: /registry`,
-      `Policy background: /policy/registry-disclosure-thresholds`,
-    ].join("\n");
-  }
-
-  if (c.isPolicy) {
-    return [
-      `You asked: "${question}"`,
-      ``,
-      `**GAFAIG Policy & Enforcement:**`,
-      KB.policy.anchor,
-      ``,
-      `Key pages:`,
-      ...KB.policy.links.map((l) => `- ${l}`),
-    ].join("\n");
-  }
-
-  // default response (still GAFAIG-anchored)
+function baseReferences() {
   return [
-    `You asked: "${question}"`,
-    ``,
-    `**${KB.project.longName} (GAFAIG):**`,
-    KB.project.hero,
-    ``,
-    `If you’re asking about standards, try:`,
-    `- S-001 (Human Impact Disclosure): ${KB.standards["S-001"].slug}`,
-    `- S-002 (Incident Reporting): ${KB.standards["S-002"].slug}`,
-    ``,
-    `If you’re asking about certification or policy, try:`,
-    `- Certification: /certification`,
-    `- Policy: /policy`,
-    `- Registry: /registry`,
-    ``,
-    `Tip: Ask me “What does S-001 require?” or “How does GAFAIG handle incident reporting?”`,
-  ].join("\n");
+    { label: "GAFAIG Standards", href: "/standards", type: "page" as const },
+    { label: "GAFAIG-S-001 (Human Impact Disclosure)", href: "/standards/s-001", type: "standard" as const },
+    { label: "GAFAIG-S-002 (AI Incident Disclosure & Reporting)", href: "/standards/s-002", type: "standard" as const },
+    { label: "Certification Overview", href: "/certification", type: "page" as const },
+    { label: "Master Terms", href: "/policy/master-terms", type: "policy" as const },
+    { label: "Enforcement Boundary", href: "/policy/enforcement-boundary", type: "policy" as const },
+    { label: "Revocation & Suspension Policy", href: "/policy/revocation-suspension", type: "policy" as const },
+    { label: "Appeals Policy", href: "/policy/appeals", type: "policy" as const },
+    { label: "Registry Disclosure Thresholds", href: "/policy/registry-disclosure-thresholds", type: "policy" as const },
+    { label: "Public Registry", href: "/registry", type: "page" as const }
+  ];
+}
+
+function answerRouter(question: string) {
+  const q = question.toLowerCase();
+
+  // Very lightweight routing (we’ll replace later with real retrieval + models)
+  if (q.includes("s-001") || q.includes("human impact disclosure")) {
+    return {
+      summary: "GAFAIG-S-001 is the foundational disclosure standard for human impacts of AI systems.",
+      directAnswer:
+        "GAFAIG-S-001 defines what certified organizations must disclose about human impact: system purpose and scope, affected populations, risk identification, mitigations, monitoring, and accountability ownership. It is used both in certification review and in ongoing posture updates.",
+      refs: [
+        { label: "GAFAIG-S-001 (Human Impact Disclosure)", href: "/standards/s-001", type: "standard" as const },
+        { label: "Certification Overview", href: "/certification", type: "page" as const }
+      ]
+    };
+  }
+
+  if (q.includes("s-002") || q.includes("incident disclosure") || q.includes("incident reporting")) {
+    return {
+      summary: "GAFAIG-S-002 defines how organizations disclose and report AI incidents.",
+      directAnswer:
+        "GAFAIG-S-002 specifies incident definitions, severity concepts, disclosure expectations, and the minimum information required to report and update incidents. It supports consistent transparency without implying regulatory authority.",
+      refs: [
+        { label: "GAFAIG-S-002 (AI Incident Disclosure & Reporting)", href: "/standards/s-002", type: "standard" as const },
+        { label: "Registry Disclosure Thresholds", href: "/policy/registry-disclosure-thresholds", type: "policy" as const }
+      ]
+    };
+  }
+
+  if (q.includes("certification") || q.includes("apply") || q.includes("how do i get certified")) {
+    return {
+      summary: "GAFAIG certification is a private mark-and-licensing program based on GAFAIG standards and policies.",
+      directAnswer:
+        "To pursue certification, an organization applies, provides required disclosures, acknowledges the Master Terms, and undergoes a policy-bound review. Certification status is recorded in the public registry. Applicants can renew annually and may be eligible for a low-risk fast-track route.",
+      refs: [
+        { label: "Certification Overview", href: "/certification", type: "page" as const },
+        { label: "Apply", href: "/certification/apply", type: "page" as const },
+        { label: "Renewal / Fast-Track", href: "/certification/renewal", type: "page" as const },
+        { label: "Master Terms", href: "/policy/master-terms", type: "policy" as const }
+      ]
+    };
+  }
+
+  if (q.includes("registry") || q.includes("public registry")) {
+    return {
+      summary: "The GAFAIG public registry lists certification status and limited disclosure fields by policy threshold.",
+      directAnswer:
+        "GAFAIG’s registry is the authoritative public record of certification status. Disclosures are governed by the Registry Disclosure Thresholds policy and may change as certification status changes (e.g., renewal, suspension, revocation, appeals).",
+      refs: [
+        { label: "Public Registry", href: "/registry", type: "page" as const },
+        { label: "Registry Disclosure Thresholds", href: "/policy/registry-disclosure-thresholds", type: "policy" as const }
+      ]
+    };
+  }
+
+  if (q.includes("why") && q.includes("change")) {
+    return {
+      summary: "Certification can change when scope, disclosures, or policy-bound findings change.",
+      directAnswer:
+        "GAFAIG certification status can change due to renewals, scope changes, new incident disclosures, policy threshold triggers, verification findings, misuse of the mark, or outcomes of appeals. GAFAIG publishes a non-punitive, procedural posture for these changes.",
+      refs: [
+        { label: "Revocation & Suspension Policy", href: "/policy/revocation-suspension", type: "policy" as const },
+        { label: "Appeals Policy", href: "/policy/appeals", type: "policy" as const },
+        { label: "Enforcement Boundary", href: "/policy/enforcement-boundary", type: "policy" as const }
+      ]
+    };
+  }
+
+  // default
+  return {
+    summary: "GAFAIG provides policy-bound, public-facing guidance tied to standards, certification, and registry rules.",
+    directAnswer:
+      "Ask GAFAIG can explain GAFAIG standards (S-001/S-002), certification steps, registry disclosures, and core policy posture. For complex cases, we may recommend escalation to a human reviewer.",
+    refs: [
+      { label: "How GAFAIG Works", href: "/how-gafaig-works", type: "page" as const },
+      { label: "Standards", href: "/standards", type: "page" as const },
+      { label: "Policy Index", href: "/policy", type: "page" as const }
+    ]
+  };
 }
 
 export async function GET() {
   return NextResponse.json({
     ok: true,
-    message: 'GAFAIG Ask API is running. Send a POST with { "question": string }.',
+    message: 'GAFAIG Ask API is running. Send a POST with { "question": "..." }.'
   });
 }
 
 export async function POST(req: Request) {
-  try {
-    const body = (await req.json()) as AskBody;
-    const question = body?.question?.trim();
+  const body = (await req.json().catch(() => ({}))) as AskRequest;
+  const rawQ = typeof body.question === "string" ? body.question : "";
+  const question = normalize(rawQ);
 
-    if (!question) {
-      return NextResponse.json(
-        { ok: false, received: false, error: "Missing required field: question" },
-        { status: 400 }
-      );
-    }
-
-    const answer = buildAnswer(question);
-
-    return NextResponse.json({
-      ok: true,
-      received: true,
-      answer,
-      meta: {
-        routed: true,
-        hint:
-          "This is a deterministic GAFAIG-anchored responder. Next step will add structured templates + expandable knowledge.",
-      },
-    });
-  } catch {
+  if (!question || question.length < 3) {
     return NextResponse.json(
-      { ok: false, received: false, error: "Invalid JSON body" },
+      {
+        ok: false,
+        received: false,
+        error: "Missing required field: question (string)."
+      },
       { status: 400 }
     );
   }
+
+  const requestId = makeId();
+  const flags = detectFlags(question);
+  const routed = answerRouter(question);
+
+  const shouldEscalate =
+    flags.safetyCritical || flags.defamationOrAccusation || flags.personalData || flags.legalOrRegulatoryAdvice;
+
+  const response: AskResponse = {
+    ok: true,
+    received: true,
+    requestId,
+    question,
+    answer: {
+      summary: routed.summary,
+      directAnswer: routed.directAnswer,
+      references: [...routed.refs, ...baseReferences()].slice(0, 10),
+      citations: [
+        {
+          source: "GAFAIG internal corpus (placeholder)",
+          note: "Citations will be added when GAFAIG connects standards/policies to a retrieval layer."
+        }
+      ],
+      escalation: shouldEscalate
+        ? {
+            shouldEscalate: true,
+            reason:
+              "This question touches an area that requires careful handling (legal/safety/personal data/accusations).",
+            contactPath: "/contact"
+          }
+        : { shouldEscalate: false },
+      policyFlags: flags
+    }
+  };
+
+  return NextResponse.json(response);
 }
