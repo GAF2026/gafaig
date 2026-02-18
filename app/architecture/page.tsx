@@ -121,8 +121,7 @@ export default function ArchitecturePage() {
             flexWrap: "wrap",
           }}
         >
-          <span>Release: dev</span>
-          <span>Governance engine powered by Snowflake Cortex</span>
+
         </div>
       </section>
     </main>
