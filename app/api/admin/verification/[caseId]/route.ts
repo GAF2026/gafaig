@@ -1,57 +1,52 @@
 import { NextResponse } from "next/server";
 import { executeQuery } from "@/lib/snowflake";
 
+export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const COOKIE_NAME = "gafaig_admin";
+function jsonError(message: string, status = 500) {
+  return NextResponse.json({ ok: false, error: message }, { status });
+}
 
-function isAuthed(req: Request) {
-  const cookieHeader = req.headers.get("cookie") || "";
-  return cookieHeader.includes(`${COOKIE_NAME}=1`);
+function normalizeRows<T = any>(result: any): T[] {
+  if (!result) return [];
+  if (Array.isArray(result)) return result;
+  if (Array.isArray(result.rows)) return result.rows;
+  return [];
 }
 
 export async function GET(
-  req: Request,
+  _req: Request,
   { params }: { params: { caseId: string } }
 ) {
   try {
-    if (!isAuthed(req)) {
-      return NextResponse.json({ ok: false, error: "Unauthorized" }, { status: 401 });
-    }
-
-    const caseId = params?.caseId;
-    if (!caseId) {
-      return NextResponse.json({ ok: false, error: "Missing caseId" }, { status: 400 });
-    }
+    const caseId = String(params?.caseId || "").trim();
+    if (!caseId) return jsonError("Missing caseId", 400);
 
     const sql = `
       SELECT
-        CASE_ID            AS "caseId",
-        PARTICIPANT_ID     AS "participantId",
-        ENTITY_NAME        AS "entityName",
-        VERIFICATION_TYPE  AS "verificationType",
-        STANDARD_CODE      AS "standardCode",
-        STANDARD_VERSION   AS "standardVersion",
-        STATUS             AS "status",
-        PRIORITY           AS "priority",
-        SUBMITTED_AT       AS "submittedAt",
-        CREATED_AT         AS "createdAt",
-        UPDATED_AT         AS "updatedAt"
-      FROM CORE.VERIFICATION_CASES
-      WHERE CASE_ID = ?
+        case_id            AS "caseId",
+        entity_name        AS "entityName",
+        verification_type  AS "verificationType",
+        status             AS "status",
+        priority           AS "priority",
+        created_at         AS "createdAt",
+        updated_at         AS "updatedAt"
+      FROM GAFAIG_DB.CORE.VERIFICATION_CASES
+      WHERE case_id = ?
       LIMIT 1
     `;
 
-    const rows = await executeQuery(sql, [caseId]);
-    if (!rows || rows.length === 0) {
+    const result = await executeQuery(sql, [caseId]);
+    const rows = normalizeRows<any>(result);
+    const row = rows[0] ?? null;
+
+    if (!row) {
       return NextResponse.json({ ok: false, error: "Not found" }, { status: 404 });
     }
 
-    return NextResponse.json({ ok: true, row: rows[0] });
+    return NextResponse.json({ ok: true, row });
   } catch (e: any) {
-    return NextResponse.json(
-      { ok: false, error: e?.message || String(e) },
-      { status: 500 }
-    );
+    return jsonError(e?.message ?? "Failed to load case");
   }
 }

@@ -1,6 +1,7 @@
 // lib/snowflake.ts
-// Server-only helper. Safe for Vercel build because it only exports functions.
-// Make sure you only call these from server routes / server components.
+// Server-only helper. Returns ARRAYS for compatibility with existing routes.
+
+import "server-only";
 
 export type SnowflakeQueryResult<Row = any> = {
   ok: boolean;
@@ -8,25 +9,27 @@ export type SnowflakeQueryResult<Row = any> = {
   error?: string;
 };
 
-// If you already have another function name in your project,
-// keep this as the canonical export used everywhere.
-export async function sfQuery<Row = any>(
+/**
+ * Low-level helper that returns { ok, rows, error }.
+ */
+export async function sfQueryResult<Row = any>(
   sql: string,
   binds: any[] = []
 ): Promise<SnowflakeQueryResult<Row>> {
   try {
-    // IMPORTANT:
-    // This file assumes you’re calling a Snowflake HTTP endpoint you already built,
-    // OR you’re using a server-side connector somewhere else.
-    //
-    // If you have an existing implementation, paste it here.
-    //
-    // For now, this version expects you to provide a server route that actually runs SQL.
-    // If you DO already run Snowflake directly in Node, replace this body with your existing logic.
+    const endpoint = process.env.SNOWFLAKE_QUERY_ENDPOINT;
 
-    // Example pattern: call your existing internal API route that runs SQL
-    // (Update the endpoint if yours differs.)
-    const r = await fetch(process.env.SNOWFLAKE_QUERY_ENDPOINT || "", {
+    // Build must still succeed even if Snowflake isn't configured.
+    if (!endpoint) {
+      return {
+        ok: false,
+        rows: [],
+        error:
+          "SNOWFLAKE_QUERY_ENDPOINT is not set (Snowflake not configured).",
+      };
+    }
+
+    const r = await fetch(endpoint, {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ sql, binds }),
@@ -35,19 +38,58 @@ export async function sfQuery<Row = any>(
 
     if (!r.ok) {
       const text = await r.text().catch(() => "");
-      return { ok: false, rows: [], error: `Snowflake query failed (${r.status}): ${text}` };
+      return {
+        ok: false,
+        rows: [],
+        error: `Snowflake query failed (${r.status}): ${text}`,
+      };
     }
 
     const data = (await r.json()) as any;
-    return { ok: true, rows: (data.rows || []) as Row[] };
+    const rows = (data?.rows ?? []) as Row[];
+
+    return { ok: true, rows };
   } catch (e: any) {
-    return { ok: false, rows: [], error: e?.message || "Unknown Snowflake error" };
+    return {
+      ok: false,
+      rows: [],
+      error: e?.message || "Unknown Snowflake error",
+    };
   }
 }
 
 /**
- * Back-compat aliases (in case older code imports different names).
- * Keep these if you’ve referenced other names in prior commits.
+ * Primary helper used by most routes:
+ * ✅ returns Row[] so routes can do rows[0], rows.length, etc.
  */
-export const query = sfQuery;
-export const snowflakeQuery = sfQuery;
+export async function sfQuery<Row = any>(
+  sql: string,
+  binds: any[] = []
+): Promise<Row[]> {
+  const result = await sfQueryResult<Row>(sql, binds);
+  return Array.isArray(result?.rows) ? result.rows : [];
+}
+
+/**
+ * Backwards-compatible exports used throughout your API routes.
+ * ✅ These return Promise<Row[]> (arrays) — never SnowflakeQueryResult.
+ * ✅ Properly generic so TypeScript does not lose the Row type.
+ */
+
+export const executeQuery = async <Row = any>(
+  sql: string,
+  binds: any[] = []
+): Promise<Row[]> => {
+  return sfQuery<Row>(sql, binds);
+};
+
+export const querySnowflake = async <Row = any>(
+  sql: string,
+  binds: any[] = []
+): Promise<Row[]> => {
+  return sfQuery<Row>(sql, binds);
+};
+
+// Optional aliases (safe)
+export const query = executeQuery;
+export const snowflakeQuery = executeQuery;

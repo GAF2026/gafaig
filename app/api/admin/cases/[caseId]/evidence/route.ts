@@ -82,7 +82,10 @@ export async function POST(req: Request, { params }: { params: { caseId: string 
       [evidenceId]
     );
 
-    return NextResponse.json({ ok: true, evidenceId, row: rows?.[0] ?? null });
+    const firstRow =
+  (Array.isArray(rows) ? rows[0] : (rows as any)?.rows?.[0]) ?? null;
+
+return NextResponse.json({ ok: true, evidenceId, row: firstRow });
   } catch (e: any) {
     return jsonError(e?.message ?? "Insert failed", 500);
   }

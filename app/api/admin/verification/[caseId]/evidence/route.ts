@@ -1,162 +1,103 @@
 import { NextResponse } from "next/server";
 import { executeQuery } from "@/lib/snowflake";
 
+export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const COOKIE_NAME = "gafaig_admin";
-
-function isAuthed(req: Request) {
-  const cookieHeader = req.headers.get("cookie") || "";
-  return cookieHeader.includes(`${COOKIE_NAME}=1`);
+function jsonError(message: string, status = 500) {
+  return NextResponse.json({ ok: false, error: message }, { status });
 }
 
-function asInt(v: string | null, fallback: number) {
-  const n = Number(v);
-  return Number.isFinite(n) && n > 0 ? Math.floor(n) : fallback;
+function normalizeRows<T = any>(result: any): T[] {
+  if (!result) return [];
+  if (Array.isArray(result)) return result;
+  if (Array.isArray(result.rows)) return result.rows;
+  return [];
 }
 
-function genId(prefix: string) {
-  return `${prefix}-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`;
-}
-
-function safeString(v: any) {
-  return v == null ? "" : String(v);
-}
-
-function tryParseJson(raw: string) {
+export async function GET(
+  req: Request,
+  { params }: { params: { caseId: string } }
+) {
   try {
-    return JSON.parse(raw);
-  } catch {
-    return null;
-  }
-}
-
-/**
- * GET /api/admin/verification/[caseId]/evidence?page=1&pageSize=20
- * Returns evidence rows for a case.
- */
-export async function GET(req: Request, { params }: { params: { caseId: string } }) {
-  try {
-    if (!isAuthed(req)) {
-      return NextResponse.json({ ok: false, error: "Unauthorized" }, { status: 401 });
-    }
-
-    const caseId = params?.caseId;
-    if (!caseId) {
-      return NextResponse.json({ ok: false, error: "Missing caseId" }, { status: 400 });
-    }
+    const caseId = String(params?.caseId || "").trim();
+    if (!caseId) return jsonError("Missing caseId", 400);
 
     const { searchParams } = new URL(req.url);
-    const page = asInt(searchParams.get("page"), 1);
-    const pageSize = Math.min(asInt(searchParams.get("pageSize"), 20), 100);
+    const page = Math.max(1, Number(searchParams.get("page") || 1));
+    const pageSize = Math.min(100, Math.max(1, Number(searchParams.get("pageSize") || 20)));
     const offset = (page - 1) * pageSize;
 
+    // Total count
     const countSql = `
-      SELECT COUNT(*) AS TOTAL
-      FROM CORE.VERIFICATION_EVIDENCE
-      WHERE CASE_ID = ?
+      SELECT COUNT(*)::INTEGER AS TOTAL
+      FROM GAFAIG_DB.CORE.EVIDENCE
+      WHERE case_id = ?
     `;
-    const totalRows = await executeQuery(countSql, [caseId]);
-    const total = Number(totalRows?.[0]?.TOTAL || 0);
+    const totalResult = await executeQuery(countSql, [caseId]);
+    const totalRows = normalizeRows<any>(totalResult);
+    const total = Number(totalRows?.[0]?.TOTAL ?? 0);
 
+    // List
     const listSql = `
       SELECT
-        EVIDENCE_ID   AS "evidenceId",
-        CASE_ID       AS "caseId",
-        EVIDENCE_TYPE AS "evidenceType",
-        TITLE         AS "title",
-        DESCRIPTION   AS "description",
-        SOURCE_URL    AS "sourceUrl",
-        STORAGE_REF   AS "storageRef",
-        SUBMITTED_BY  AS "submittedBy",
-        SUBMITTED_AT  AS "submittedAt",
-        CREATED_AT    AS "createdAt",
-        UPDATED_AT    AS "updatedAt"
-      FROM CORE.VERIFICATION_EVIDENCE
-      WHERE CASE_ID = ?
-      ORDER BY SUBMITTED_AT DESC
-      LIMIT ?
-      OFFSET ?
+        evidence_id   AS "evidenceId",
+        case_id       AS "caseId",
+        evidence_type AS "evidenceType",
+        title         AS "title",
+        description   AS "description",
+        source_url    AS "sourceUrl",
+        storage_ref   AS "storageRef",
+        submitted_by  AS "submittedBy",
+        submitted_at  AS "submittedAt",
+        created_at    AS "createdAt"
+      FROM GAFAIG_DB.CORE.EVIDENCE
+      WHERE case_id = ?
+      ORDER BY created_at DESC
+      LIMIT ? OFFSET ?
     `;
+    const listResult = await executeQuery(listSql, [caseId, pageSize, offset]);
+    const rows = normalizeRows<any>(listResult);
 
-    const rows = await executeQuery(listSql, [caseId, pageSize, offset]);
-
-    return NextResponse.json({ ok: true, rows, total, page, pageSize });
+    return NextResponse.json({
+      ok: true,
+      rows,
+      total,
+      page,
+      pageSize,
+    });
   } catch (e: any) {
-    return NextResponse.json({ ok: false, error: e?.message || String(e) }, { status: 500 });
+    return jsonError(e?.message ?? "Failed to load case evidence");
   }
 }
 
-/**
- * POST /api/admin/verification/[caseId]/evidence
- * Body: { evidenceType, title, description?, sourceUrl?, storageRef?, submittedBy? }
- */
-export async function POST(req: Request, { params }: { params: { caseId: string } }) {
+export async function POST(
+  req: Request,
+  { params }: { params: { caseId: string } }
+) {
   try {
-    if (!isAuthed(req)) {
-      return NextResponse.json({ ok: false, error: "Unauthorized" }, { status: 401 });
-    }
+    const caseId = String(params?.caseId || "").trim();
+    if (!caseId) return jsonError("Missing caseId", 400);
 
-    const caseId = params?.caseId;
-    if (!caseId) {
-      return NextResponse.json({ ok: false, error: "Missing caseId" }, { status: 400 });
-    }
+    const body = await req.json().catch(() => null);
 
-    // IMPORTANT: parse body via raw text first to avoid req.json() stream issues
-    const contentType = req.headers.get("content-type") || "";
-    const raw = await req.text();
-    const body = raw ? (tryParseJson(raw) ?? {}) : {};
+    const evidenceType = String(body?.evidenceType || "link").trim();
+    const title = String(body?.title || "").trim();
+    const description = body?.description == null ? null : String(body.description);
+    const sourceUrl = body?.sourceUrl == null ? null : String(body.sourceUrl);
+    const storageRef = body?.storageRef == null ? null : String(body.storageRef);
+    const submittedBy = body?.submittedBy == null ? null : String(body.submittedBy);
 
-    const evidenceType = safeString((body as any)?.evidenceType).trim();
-    const title = safeString((body as any)?.title).trim();
-
-    const description = (body as any)?.description != null ? String((body as any).description) : null;
-    const sourceUrl = (body as any)?.sourceUrl != null ? String((body as any).sourceUrl) : null;
-    const storageRef = (body as any)?.storageRef != null ? String((body as any).storageRef) : null;
-    const submittedBy = (body as any)?.submittedBy != null ? String((body as any).submittedBy) : null;
-
-    if (!evidenceType) {
-      return NextResponse.json(
-        {
-          ok: false,
-          error: "Missing evidenceType",
-          debug: {
-            contentType,
-            rawLength: raw.length,
-            rawPreview: raw.slice(0, 200),
-            parsedKeys: Object.keys(body as any),
-          },
-        },
-        { status: 400 }
-      );
-    }
-    if (!title) {
-      return NextResponse.json(
-        {
-          ok: false,
-          error: "Missing title",
-          debug: {
-            contentType,
-            rawLength: raw.length,
-            rawPreview: raw.slice(0, 200),
-            parsedKeys: Object.keys(body as any),
-          },
-        },
-        { status: 400 }
-      );
-    }
-
-    const evidenceId = genId("EVD");
+    if (!title) return jsonError("Missing title", 400);
 
     const insertSql = `
-      INSERT INTO CORE.VERIFICATION_EVIDENCE
-      (EVIDENCE_ID, CASE_ID, EVIDENCE_TYPE, TITLE, DESCRIPTION, SOURCE_URL, STORAGE_REF, SUBMITTED_BY, SUBMITTED_AT, CREATED_AT, UPDATED_AT)
+      INSERT INTO GAFAIG_DB.CORE.EVIDENCE
+        (case_id, evidence_type, title, description, source_url, storage_ref, submitted_by, submitted_at)
       VALUES
-      (?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP(), CURRENT_TIMESTAMP(), CURRENT_TIMESTAMP())
+        (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP())
     `;
 
     await executeQuery(insertSql, [
-      evidenceId,
       caseId,
       evidenceType,
       title,
@@ -166,29 +107,30 @@ export async function POST(req: Request, { params }: { params: { caseId: string 
       submittedBy,
     ]);
 
-    const detailsJson = JSON.stringify({ evidenceId, evidenceType, title });
-
-    const eventSql = `
-      INSERT INTO CORE.VERIFICATION_EVENTS
-      (EVENT_ID, CASE_ID, EVENT_TYPE, ACTOR, DETAILS, CREATED_AT)
+    // Return refreshed page 1 data for convenience
+    const listSql = `
       SELECT
-        ?,
-        ?,
-        'evidence_added',
-        ?,
-        PARSE_JSON(?),
-        CURRENT_TIMESTAMP()
+        evidence_id   AS "evidenceId",
+        case_id       AS "caseId",
+        evidence_type AS "evidenceType",
+        title         AS "title",
+        description   AS "description",
+        source_url    AS "sourceUrl",
+        storage_ref   AS "storageRef",
+        submitted_by  AS "submittedBy",
+        submitted_at  AS "submittedAt",
+        created_at    AS "createdAt"
+      FROM GAFAIG_DB.CORE.EVIDENCE
+      WHERE case_id = ?
+      ORDER BY created_at DESC
+      LIMIT 20 OFFSET 0
     `;
 
-    await executeQuery(eventSql, [
-      genId("EVT"),
-      caseId,
-      submittedBy || "admin",
-      detailsJson,
-    ]);
+    const listResult = await executeQuery(listSql, [caseId]);
+    const rows = normalizeRows<any>(listResult);
 
-    return NextResponse.json({ ok: true, evidenceId });
+    return NextResponse.json({ ok: true, rows });
   } catch (e: any) {
-    return NextResponse.json({ ok: false, error: e?.message || String(e) }, { status: 500 });
+    return jsonError(e?.message ?? "Failed to add evidence");
   }
 }

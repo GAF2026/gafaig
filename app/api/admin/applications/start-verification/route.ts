@@ -36,7 +36,10 @@ export async function POST(req: Request) {
       [requestId]
     );
 
-    const app = appRows?.[0];
+   const firstRow =
+  (Array.isArray(appRows) ? appRows[0] : (appRows as any)?.rows?.[0]) ?? null;
+
+const app = firstRow;
     if (!app) {
       return NextResponse.json({ ok: false, error: "Application not found" }, { status: 404 });
     }

@@ -56,7 +56,7 @@ export async function GET(req: Request) {
       (desc || [])
         .map((r: any) => getColName(r))
         .filter(Boolean)
-        .map((c: string) => c.toUpperCase())
+  .map((c) => String(c).toUpperCase())
     );
 
     // Required mappings

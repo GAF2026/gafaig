@@ -22,13 +22,13 @@ type ApiResponse =
     }
   | { ok: false; error: string };
 
-function truncateMiddle(s, left = 14, right = 6) {
+function truncateMiddle(s: string, left = 14, right = 6) {
   const v = String(s || "");
   if (v.length <= left + right + 1) return v;
   return `${v.slice(0, left)}…${v.slice(-right)}`;
 }
 
-async function copyText(text) {
+async function copyText(text: string) {
   try {
     await navigator.clipboard.writeText(text);
     return true;
@@ -51,7 +51,7 @@ async function copyText(text) {
   }
 }
 
-function statusPill(status) {
+function statusPill(status: string) {
   const s = String(status || "").toLowerCase();
   if (s === "approved") return "pill approved";
   if (s === "rejected") return "pill rejected";
@@ -67,18 +67,21 @@ export default function AdminVerificationPage() {
   const [status, setStatus] = useState("all");
   const [verificationType, setVerificationType] = useState("all");
 
-  const [rows, setRows] = useState([]);
+  const [rows, setRows] = useState<VerificationCaseRow[]>([]);
   const [total, setTotal] = useState(0);
 
   const [page, setPage] = useState(1);
   const pageSize = 20;
 
   const [loading, setLoading] = useState(false);
-  const [err, setErr] = useState(null);
+  const [err, setErr] = useState<string | null>(null);
 
-  const showingText = useMemo(() => `Showing ${rows.length} of ${total}`, [rows.length, total]);
+  const showingText = useMemo(
+    () => `Showing ${rows.length} of ${total}`,
+    [rows.length, total]
+  );
 
-  async function load(nextPage) {
+  async function load(nextPage?: number) {
     const targetPage = nextPage ?? page;
     setLoading(true);
     setErr(null);
@@ -99,23 +102,31 @@ export default function AdminVerificationPage() {
 
       const text = await res.text();
 
-      let data;
+      let data: ApiResponse | any;
       try {
         data = JSON.parse(text);
       } catch {
-        throw new Error(`Unexpected response (not JSON). First chars: ${text.slice(0, 80)}`);
+        throw new Error(
+          `Unexpected response (not JSON). First chars: ${text.slice(0, 80)}`
+        );
       }
 
       if (!("ok" in data) || data.ok === false) {
         throw new Error(data?.error || "Unknown error loading verification cases.");
       }
 
-      setRows(data.rows || []);
-      setTotal(data.total ?? 0);
-    } catch (e) {
+      setRows(Array.isArray(data.rows) ? data.rows : []);
+      setTotal(typeof data.total === "number" ? data.total : 0);
+    } catch (e: unknown) {
       setRows([]);
       setTotal(0);
-      setErr(e?.message || "Failed to load verification cases.");
+
+      const msg =
+        e && typeof e === "object" && "message" in e
+          ? String((e as any).message)
+          : "";
+
+      setErr(msg || "Failed to load verification cases.");
     } finally {
       setLoading(false);
     }
@@ -131,7 +142,7 @@ export default function AdminVerificationPage() {
     load(1);
   }
 
-  function onSearchKeyDown(e) {
+  function onSearchKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
     if (e.key === "Enter") {
       setPage(1);
       load(1);
@@ -142,7 +153,9 @@ export default function AdminVerificationPage() {
     <main className="wrap">
       <header className="header">
         <h1 className="title">Admin — Verification</h1>
-        <p className="subtitle">Track verification cases for submissions and registry participants.</p>
+        <p className="subtitle">
+          Track verification cases for submissions and registry participants.
+        </p>
       </header>
 
       <section className="filters" aria-label="Filters">
@@ -165,7 +178,12 @@ export default function AdminVerificationPage() {
           <label className="label" htmlFor="status">
             Status
           </label>
-          <select id="status" className="control" value={status} onChange={(e) => setStatus(e.target.value)}>
+          <select
+            id="status"
+            className="control"
+            value={status}
+            onChange={(e) => setStatus(e.target.value)}
+          >
             <option value="all">All</option>
             <option value="received">received</option>
             <option value="in_review">in_review</option>
@@ -194,7 +212,7 @@ export default function AdminVerificationPage() {
           </select>
         </div>
 
-        <button className="refresh" onClick={onRefresh} disabled={loading}>
+        <button className="refresh" onClick={onRefresh} disabled={loading} type="button">
           {loading ? "Loading…" : "Refresh"}
         </button>
       </section>
@@ -227,7 +245,12 @@ export default function AdminVerificationPage() {
                   <a className="caseLink mono" href={href} title={r.caseId}>
                     {truncateMiddle(r.caseId)}
                   </a>
-                  <button className="copyBtn" onClick={() => copyText(r.caseId)} title="Copy Case ID">
+                  <button
+                    className="copyBtn"
+                    onClick={() => copyText(r.caseId)}
+                    title="Copy Case ID"
+                    type="button"
+                  >
                     Copy
                   </button>
                 </div>
@@ -253,11 +276,21 @@ export default function AdminVerificationPage() {
 
       <footer className="footer">
         <div className="pager">
-          <button className="pagerBtn" onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page <= 1 || loading}>
+          <button
+            className="pagerBtn"
+            onClick={() => setPage((p) => Math.max(1, p - 1))}
+            disabled={page <= 1 || loading}
+            type="button"
+          >
             Prev
           </button>
           <div className="pagerText">Page {page}</div>
-          <button className="pagerBtn" onClick={() => setPage((p) => p + 1)} disabled={loading || rows.length < pageSize}>
+          <button
+            className="pagerBtn"
+            onClick={() => setPage((p) => p + 1)}
+            disabled={loading || rows.length < pageSize}
+            type="button"
+          >
             Next
           </button>
         </div>
@@ -437,8 +470,8 @@ export default function AdminVerificationPage() {
         }
 
         .mono {
-          font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New",
-            monospace;
+          font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+            "Liberation Mono", "Courier New", monospace;
           font-size: 13px;
         }
 
@@ -449,7 +482,7 @@ export default function AdminVerificationPage() {
           min-width: 0;
           overflow: hidden;
           text-overflow: ellipsis;
-          white-space: nowrap; /* keeps the link on one line */
+          white-space: nowrap;
         }
 
         .copyBtn {

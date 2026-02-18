@@ -1,80 +1,81 @@
 import { NextResponse } from "next/server";
-import { querySnowflake } from "@/lib/snowflake";
+import { executeQuery } from "@/lib/snowflake";
 
-const COOKIE_NAME = "gafaig_admin";
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
-function isAdminAuthed(req: Request) {
-  const cookieHeader = req.headers.get("cookie") || "";
-  return cookieHeader.includes(`${COOKIE_NAME}=1`);
+/**
+ * Normalizes different Snowflake return shapes into a plain array.
+ * Supports:
+ *  - T[]
+ *  - { rows: T[] }
+ *  - SnowflakeQueryResult-like objects
+ */
+function normalizeRows<T = any>(result: any): T[] {
+  if (!result) return [];
+  if (Array.isArray(result)) return result;
+  if (Array.isArray(result.rows)) return result.rows;
+  return [];
 }
 
-export async function GET(req: Request) {
-  try {
-    if (!isAdminAuthed(req)) {
-      return NextResponse.json({ ok: false, error: "Unauthorized" }, { status: 401 });
-    }
+function toNumber(v: any, fallback = 0) {
+  const n = Number(v);
+  return Number.isFinite(n) ? n : fallback;
+}
 
-    // Submissions metrics
-    const totalSql = `
-      SELECT COUNT(*)::NUMBER AS "total"
-      FROM GAFAIG_DB.CORE.SUBMISSIONS
+export async function GET() {
+  try {
+    // NOTE: If your table/view names differ, adjust ONLY the SQL strings below.
+    const totalCasesSql = `
+      SELECT COUNT(*) AS TOTAL
+      FROM CORE.VERIFICATION_CASES
     `;
 
     const byStatusSql = `
-      SELECT
-        STATUS as "status",
-        COUNT(*)::NUMBER as "count"
-      FROM GAFAIG_DB.CORE.SUBMISSIONS
+      SELECT STATUS, COUNT(*) AS COUNT
+      FROM CORE.VERIFICATION_CASES
       GROUP BY STATUS
     `;
 
-    // This month submissions
-    const thisMonthSql = `
-      SELECT COUNT(*)::NUMBER AS "count"
-      FROM GAFAIG_DB.CORE.SUBMISSIONS
-      WHERE DATE_TRUNC('month', CREATED_AT) = DATE_TRUNC('month', CURRENT_TIMESTAMP())
-    `;
-
-    // Participants metric (verified only)
     const verifiedParticipantsSql = `
-      SELECT COUNT(*)::NUMBER AS "count"
-      FROM GAFAIG_DB.CORE.PARTICIPANTS
-      WHERE VERIFICATION_STATUS = 'verified'
+      SELECT COUNT(*) AS TOTAL
+      FROM CORE.PARTICIPANTS
+      WHERE LOWER(COALESCE(STATUS, '')) IN ('verified','approved')
     `;
 
-    const totalRows = await querySnowflake(totalSql);
-    const byStatusRows = await querySnowflake(byStatusSql);
-    const thisMonthRows = await querySnowflake(thisMonthSql);
-    const verifiedRows = await querySnowflake(verifiedParticipantsSql);
+    const totalResult = await executeQuery(totalCasesSql);
+    const totalRows = normalizeRows<any>(totalResult);
+    const total = toNumber(totalRows[0]?.TOTAL ?? totalRows[0]?.total ?? 0);
 
-    const total = Number(totalRows?.[0]?.total ?? 0);
+    const statusResult = await executeQuery(byStatusSql);
+    const statusRows = normalizeRows<any>(statusResult);
 
     const byStatus: Record<string, number> = {
       received: 0,
       in_review: 0,
+      needs_more_info: 0,
       approved: 0,
       rejected: 0,
+      suspended: 0,
     };
 
-    for (const r of byStatusRows ?? []) {
-      const key = String((r as any).status ?? "");
-      const val = Number((r as any).count ?? 0);
-      if (key in byStatus) byStatus[key] = val;
+    for (const r of statusRows) {
+      const key = String(r.STATUS ?? r.status ?? "").toLowerCase();
+      const count = toNumber(r.COUNT ?? r.count ?? 0);
+      if (key) byStatus[key] = (byStatus[key] ?? 0) + count;
     }
 
-    const thisMonth = Number(thisMonthRows?.[0]?.count ?? 0);
-    const verifiedParticipants = Number(verifiedRows?.[0]?.count ?? 0);
+    const verifiedResult = await executeQuery(verifiedParticipantsSql);
+    const verifiedRows = normalizeRows<any>(verifiedResult);
+    const verifiedParticipants = toNumber(
+      verifiedRows[0]?.TOTAL ?? verifiedRows[0]?.total ?? 0
+    );
 
     return NextResponse.json({
       ok: true,
-      metrics: {
-        // submissions
-        total,
-        byStatus,
-        thisMonth,
-        // participants
-        verifiedParticipants,
-      },
+      total,
+      byStatus,
+      verifiedParticipants,
     });
   } catch (e: any) {
     return NextResponse.json(

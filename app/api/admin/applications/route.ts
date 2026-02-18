@@ -40,8 +40,18 @@ export async function GET(req: Request) {
       ${whereSql}
     `;
 
-    const totalRows = await executeQuery(countSql, binds);
-    const total = Number(totalRows?.[0]?.TOTAL || 0);
+const totalRows = await executeQuery(countSql, binds);
+
+// executeQuery may return either an array of rows OR an object containing rows.
+// Make the total extraction tolerant of both shapes.
+const firstRow =
+  (Array.isArray(totalRows) ? totalRows[0] : (totalRows as any)?.rows?.[0]) ?? null;
+
+const total = Number(
+  (firstRow as any)?.TOTAL ??
+  (firstRow as any)?.total ??
+  0
+);
 
     const offset = (page - 1) * pageSize;
 
