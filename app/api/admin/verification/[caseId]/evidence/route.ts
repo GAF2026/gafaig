@@ -1,136 +1,176 @@
 import { NextResponse } from "next/server";
-import { executeQuery } from "@/lib/snowflake";
+import path from "path";
+import { promises as fs } from "fs";
 
-export const runtime = "nodejs";
-export const dynamic = "force-dynamic";
+type EvidenceRow = {
+  evidenceId: string;
+  caseId: string;
+  evidenceType: string;
+  title: string;
+  description?: string | null;
+  sourceUrl?: string | null;
+  storageRef?: string | null;
+  submittedBy?: string | null;
+  submittedAt?: string | null;
+  createdAt?: string | null;
+};
 
-function jsonError(message: string, status = 500) {
-  return NextResponse.json({ ok: false, error: message }, { status });
+const DATA_DIR = path.join(process.cwd(), "data");
+const EVIDENCE_FILE = path.join(DATA_DIR, "evidence.json");
+
+async function ensureDataDir() {
+  await fs.mkdir(DATA_DIR, { recursive: true });
 }
 
-function normalizeRows<T = any>(result: any): T[] {
-  if (!result) return [];
-  if (Array.isArray(result)) return result;
-  if (Array.isArray(result.rows)) return result.rows;
-  return [];
+async function readAllEvidence(): Promise<EvidenceRow[]> {
+  try {
+    const raw = await fs.readFile(EVIDENCE_FILE, "utf8");
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed)) return parsed as EvidenceRow[];
+    return [];
+  } catch (e: any) {
+    if (e?.code === "ENOENT") return [];
+    // If JSON is invalid, fail loudly (better than silent hangs)
+    throw e;
+  }
+}
+
+async function writeAllEvidence(rows: EvidenceRow[]) {
+  await ensureDataDir();
+  await fs.writeFile(EVIDENCE_FILE, JSON.stringify(rows, null, 2), "utf8");
+}
+
+function nowTs() {
+  return new Date().toISOString();
 }
 
 export async function GET(
-  req: Request,
-  { params }: { params: { caseId: string } }
+  _req: Request,
+  ctx: { params: { caseId: string } }
 ) {
   try {
-    const caseId = String(params?.caseId || "").trim();
-    if (!caseId) return jsonError("Missing caseId", 400);
-
-    const { searchParams } = new URL(req.url);
-    const page = Math.max(1, Number(searchParams.get("page") || 1));
-    const pageSize = Math.min(100, Math.max(1, Number(searchParams.get("pageSize") || 20)));
-    const offset = (page - 1) * pageSize;
-
-    // Total count
-    const countSql = `
-      SELECT COUNT(*)::INTEGER AS TOTAL
-      FROM GAFAIG_DB.CORE.EVIDENCE
-      WHERE case_id = ?
-    `;
-    const totalResult = await executeQuery(countSql, [caseId]);
-    const totalRows = normalizeRows<any>(totalResult);
-    const total = Number(totalRows?.[0]?.TOTAL ?? 0);
-
-    // List
-    const listSql = `
-      SELECT
-        evidence_id   AS "evidenceId",
-        case_id       AS "caseId",
-        evidence_type AS "evidenceType",
-        title         AS "title",
-        description   AS "description",
-        source_url    AS "sourceUrl",
-        storage_ref   AS "storageRef",
-        submitted_by  AS "submittedBy",
-        submitted_at  AS "submittedAt",
-        created_at    AS "createdAt"
-      FROM GAFAIG_DB.CORE.EVIDENCE
-      WHERE case_id = ?
-      ORDER BY created_at DESC
-      LIMIT ? OFFSET ?
-    `;
-    const listResult = await executeQuery(listSql, [caseId, pageSize, offset]);
-    const rows = normalizeRows<any>(listResult);
+    const caseId = ctx.params.caseId;
+    const all = await readAllEvidence();
+    const rows = all.filter((r) => r.caseId === caseId);
 
     return NextResponse.json({
       ok: true,
       rows,
-      total,
-      page,
-      pageSize,
+      total: rows.length,
+      page: 1,
+      pageSize: 20,
     });
   } catch (e: any) {
-    return jsonError(e?.message ?? "Failed to load case evidence");
+    return NextResponse.json(
+      { ok: false, error: e?.message || "GET evidence failed" },
+      { status: 500 }
+    );
   }
 }
 
 export async function POST(
   req: Request,
-  { params }: { params: { caseId: string } }
+  ctx: { params: { caseId: string } }
 ) {
   try {
-    const caseId = String(params?.caseId || "").trim();
-    if (!caseId) return jsonError("Missing caseId", 400);
+    const caseId = ctx.params.caseId;
+    const body = await req.json().catch(() => ({}));
 
-    const body = await req.json().catch(() => null);
-
-    const evidenceType = String(body?.evidenceType || "link").trim();
+    const evidenceType = String(body?.evidenceType || "document");
     const title = String(body?.title || "").trim();
-    const description = body?.description == null ? null : String(body.description);
-    const sourceUrl = body?.sourceUrl == null ? null : String(body.sourceUrl);
-    const storageRef = body?.storageRef == null ? null : String(body.storageRef);
-    const submittedBy = body?.submittedBy == null ? null : String(body.submittedBy);
+    const description =
+      body?.description === undefined ? null : String(body.description);
+    const sourceUrl = body?.sourceUrl === undefined ? null : String(body.sourceUrl);
 
-    if (!title) return jsonError("Missing title", 400);
+    if (!title) {
+      return NextResponse.json(
+        { ok: false, error: "Missing title" },
+        { status: 400 }
+      );
+    }
 
-    const insertSql = `
-      INSERT INTO GAFAIG_DB.CORE.EVIDENCE
-        (case_id, evidence_type, title, description, source_url, storage_ref, submitted_by, submitted_at)
-      VALUES
-        (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP())
-    `;
+    const all = await readAllEvidence();
 
-    await executeQuery(insertSql, [
+    const row: EvidenceRow = {
+      evidenceId: `EVD-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`,
       caseId,
       evidenceType,
       title,
       description,
       sourceUrl,
-      storageRef,
-      submittedBy,
-    ]);
+      storageRef: null,
+      submittedBy: null,
+      submittedAt: nowTs(),
+      createdAt: nowTs(),
+    };
 
-    // Return refreshed page 1 data for convenience
-    const listSql = `
-      SELECT
-        evidence_id   AS "evidenceId",
-        case_id       AS "caseId",
-        evidence_type AS "evidenceType",
-        title         AS "title",
-        description   AS "description",
-        source_url    AS "sourceUrl",
-        storage_ref   AS "storageRef",
-        submitted_by  AS "submittedBy",
-        submitted_at  AS "submittedAt",
-        created_at    AS "createdAt"
-      FROM GAFAIG_DB.CORE.EVIDENCE
-      WHERE case_id = ?
-      ORDER BY created_at DESC
-      LIMIT 20 OFFSET 0
-    `;
+    all.push(row);
+    await writeAllEvidence(all);
 
-    const listResult = await executeQuery(listSql, [caseId]);
-    const rows = normalizeRows<any>(listResult);
+    const rows = all.filter((r) => r.caseId === caseId);
 
-    return NextResponse.json({ ok: true, rows });
+    return NextResponse.json({
+      ok: true,
+      row,
+      rows,
+      total: rows.length,
+      page: 1,
+      pageSize: 20,
+    });
   } catch (e: any) {
-    return jsonError(e?.message ?? "Failed to add evidence");
+    return NextResponse.json(
+      { ok: false, error: e?.message || "POST evidence failed" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function DELETE(
+  req: Request,
+  ctx: { params: { caseId: string } }
+) {
+  try {
+    const caseId = ctx.params.caseId;
+
+    const { searchParams } = new URL(req.url);
+    const evidenceId = searchParams.get("evidenceId")?.trim();
+
+    if (!evidenceId) {
+      return NextResponse.json(
+        { ok: false, error: "Missing query param: evidenceId" },
+        { status: 400 }
+      );
+    }
+
+    const all = await readAllEvidence();
+    const before = all.length;
+
+    const next = all.filter(
+      (r) => !(r.caseId === caseId && r.evidenceId === evidenceId)
+    );
+
+    if (next.length === before) {
+      return NextResponse.json(
+        { ok: false, error: "Evidence not found" },
+        { status: 404 }
+      );
+    }
+
+    await writeAllEvidence(next);
+
+    const rows = next.filter((r) => r.caseId === caseId);
+
+    return NextResponse.json({
+      ok: true,
+      rows,
+      total: rows.length,
+      page: 1,
+      pageSize: 20,
+    });
+  } catch (e: any) {
+    return NextResponse.json(
+      { ok: false, error: e?.message || "DELETE evidence failed" },
+      { status: 500 }
+    );
   }
 }

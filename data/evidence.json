@@ -1,0 +1,26 @@
+[
+  {
+    "evidenceId": "EVD-1771455526839-29a62e",
+    "caseId": "CASE-0001",
+    "evidenceType": "document",
+    "title": "Model Card",
+    "description": "Submitted model documentation",
+    "sourceUrl": "https://example.com",
+    "storageRef": null,
+    "submittedBy": null,
+    "submittedAt": "2026-02-18T22:58:46.839Z",
+    "createdAt": "2026-02-18T22:58:46.839Z"
+  },
+  {
+    "evidenceId": "EVD-1771455606974-527709",
+    "caseId": "CASE-0001",
+    "evidenceType": "link",
+    "title": "Safety Evaluation",
+    "description": "Third-party evaluation summary",
+    "sourceUrl": "https://example.com",
+    "storageRef": null,
+    "submittedBy": null,
+    "submittedAt": "2026-02-18T23:00:06.974Z",
+    "createdAt": "2026-02-18T23:00:06.974Z"
+  }
+]
