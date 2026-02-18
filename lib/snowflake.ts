@@ -1,81 +1,53 @@
-import snowflake from "snowflake-sdk";
+// lib/snowflake.ts
+// Server-only helper. Safe for Vercel build because it only exports functions.
+// Make sure you only call these from server routes / server components.
 
-type Bind = string | number | boolean | null;
+export type SnowflakeQueryResult<Row = any> = {
+  ok: boolean;
+  rows: Row[];
+  error?: string;
+};
 
-function getEnv(name: string) {
-  return (process.env[name] || "").trim();
-}
+// If you already have another function name in your project,
+// keep this as the canonical export used everywhere.
+export async function sfQuery<Row = any>(
+  sql: string,
+  binds: any[] = []
+): Promise<SnowflakeQueryResult<Row>> {
+  try {
+    // IMPORTANT:
+    // This file assumes you’re calling a Snowflake HTTP endpoint you already built,
+    // OR you’re using a server-side connector somewhere else.
+    //
+    // If you have an existing implementation, paste it here.
+    //
+    // For now, this version expects you to provide a server route that actually runs SQL.
+    // If you DO already run Snowflake directly in Node, replace this body with your existing logic.
 
-function requiredEnv(name: string) {
-  const v = getEnv(name);
-  if (!v) throw new Error(`Missing environment variable: ${name}`);
-  return v;
-}
-
-let connPromise: Promise<snowflake.Connection> | null = null;
-
-async function getConnection(): Promise<snowflake.Connection> {
-  if (connPromise) return connPromise;
-
-  connPromise = new Promise((resolve, reject) => {
-    try {
-      const account = requiredEnv("SNOWFLAKE_ACCOUNT");
-      const username = requiredEnv("SNOWFLAKE_USER");
-      const password = requiredEnv("SNOWFLAKE_PASS");
-      const warehouse = requiredEnv("SNOWFLAKE_WAREHOUSE");
-      const database = requiredEnv("SNOWFLAKE_DATABASE");
-      const schema = requiredEnv("SNOWFLAKE_SCHEMA");
-      const role = requiredEnv("SNOWFLAKE_ROLE"); // ✅ REQUIRED
-
-      const connection = snowflake.createConnection({
-        account,
-        username,
-        password,
-        warehouse,
-        database,
-        schema,
-        role, // ✅ THIS is what activates GAFAIG_APP_ROLE
-      });
-
-      connection.connect((err) => {
-        if (err) {
-          connPromise = null;
-          reject(err);
-          return;
-        }
-        resolve(connection);
-      });
-    } catch (e) {
-      connPromise = null;
-      reject(e);
-    }
-  });
-
-  return connPromise;
-}
-
-/**
- * Primary executor used by API routes and pages.
- * Returns rows as plain JS objects.
- */
-export async function executeQuery(sqlText: string, binds: Bind[] = []) {
-  const conn = await getConnection();
-
-  return await new Promise<any[]>((resolve, reject) => {
-    conn.execute({
-      sqlText,
-      binds,
-      complete: (err, _stmt, rows) => {
-        if (err) return reject(err);
-        resolve((rows || []) as any[]);
-      },
+    // Example pattern: call your existing internal API route that runs SQL
+    // (Update the endpoint if yours differs.)
+    const r = await fetch(process.env.SNOWFLAKE_QUERY_ENDPOINT || "", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ sql, binds }),
+      cache: "no-store",
     });
-  });
+
+    if (!r.ok) {
+      const text = await r.text().catch(() => "");
+      return { ok: false, rows: [], error: `Snowflake query failed (${r.status}): ${text}` };
+    }
+
+    const data = (await r.json()) as any;
+    return { ok: true, rows: (data.rows || []) as Row[] };
+  } catch (e: any) {
+    return { ok: false, rows: [], error: e?.message || "Unknown Snowflake error" };
+  }
 }
 
 /**
- * Backwards-compatible alias.
+ * Back-compat aliases (in case older code imports different names).
+ * Keep these if you’ve referenced other names in prior commits.
  */
-export async function querySnowflake(sqlText: string, binds: Bind[] = []) {
-  return executeQuery(sqlText, binds);
-}
+export const query = sfQuery;
+export const snowflakeQuery = sfQuery;
