@@ -22,5 +22,29 @@
     "submittedBy": null,
     "submittedAt": "2026-02-18T23:00:06.974Z",
     "createdAt": "2026-02-18T23:00:06.974Z"
+  },
+  {
+    "evidenceId": "EVD-1771456501472-91a5de",
+    "caseId": "CASE-0001",
+    "evidenceType": "document",
+    "title": "Model Card",
+    "description": "Submitted model documentation",
+    "sourceUrl": "https://example.com",
+    "storageRef": null,
+    "submittedBy": null,
+    "submittedAt": "2026-02-18T23:15:01.472Z",
+    "createdAt": "2026-02-18T23:15:01.472Z"
+  },
+  {
+    "evidenceId": "EVD-1771456512955-131c2f",
+    "caseId": "CASE-0001",
+    "evidenceType": "link",
+    "title": "Safety Evaluation",
+    "description": "Third-party evaluation summary",
+    "sourceUrl": "https://example.com",
+    "storageRef": null,
+    "submittedBy": null,
+    "submittedAt": "2026-02-18T23:15:12.955Z",
+    "createdAt": "2026-02-18T23:15:12.955Z"
   }
 ]
