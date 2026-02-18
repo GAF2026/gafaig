@@ -52,8 +52,10 @@ export default function DemoQuickstartPage() {
       </h1>
 
       <p style={{ marginTop: "1rem", fontSize: 18, opacity: 0.9, maxWidth: 820 }}>
-        This demo shows a practical governance workflow: evidence intake → linkage to findings →
-        decision support — with AI summaries generated and stored in an auditable data layer.
+        This demo shows how GAFAIG converts AI governance into structured,
+        auditable data. Evidence is submitted, persisted, exposed through
+        APIs, and designed to map directly into Snowflake tables for scalable
+        oversight and analytics.
       </p>
 
       <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap", marginTop: "1.5rem" }}>
@@ -73,17 +75,16 @@ export default function DemoQuickstartPage() {
           <div style={{ fontWeight: 900, marginBottom: 6 }}>What to do (60 seconds)</div>
           <ol style={{ margin: 0, paddingLeft: "1.25rem", opacity: 0.9 }}>
             <li>
-              Open <strong>CASE-0001 → Evidence</strong> and confirm evidence items load.
+              Open <strong>CASE-0001 → Evidence</strong>.
             </li>
             <li>
-              Click <strong>Regenerate all</strong> to generate and store summaries.
+              Confirm that evidence records load and display in structured form.
             </li>
             <li>
-              Confirm: each item shows <strong>Stored summary found</strong>.
+              Use the search field to filter evidence.
             </li>
             <li>
-              Optional: create a link between <strong>Evidence</strong> and a{" "}
-              <strong>Finding</strong>.
+              Open the evidence API endpoint to view structured JSON data.
             </li>
           </ol>
         </div>
@@ -92,22 +93,26 @@ export default function DemoQuickstartPage() {
           <div style={{ fontWeight: 900, marginBottom: 6 }}>What this proves (Snowflake)</div>
           <ul style={{ margin: 0, paddingLeft: "1.25rem", opacity: 0.9 }}>
             <li>
-              Summaries are generated via <strong>Snowflake Cortex</strong> (model configurable).
+              Governance artifacts are stored as structured, queryable data.
             </li>
             <li>
-              Outputs are persisted into a table for auditability and repeatable review.
+              Each verification case maps cleanly to relational data entities.
             </li>
             <li>
-              The “regenerate” path demonstrates deterministic governance workflows over time.
+              The API layer exposes datasets suitable for Snowflake ingestion.
+            </li>
+            <li>
+              This enables scalable auditability, analytics, and certification reporting.
             </li>
           </ul>
         </div>
 
         <div style={card}>
-          <div style={{ fontWeight: 900, marginBottom: 6 }}>If something looks empty</div>
+          <div style={{ fontWeight: 900, marginBottom: 6 }}>Architecture alignment</div>
           <p style={{ margin: 0, opacity: 0.9 }}>
-            If you land on a page and see “Unauthorized”, make sure your demo cookie is set (as you
-            already did). Then refresh and rerun <strong>Regenerate all</strong>.
+            GAFAIG’s data model — cases, evidence, findings, and decisions —
+            is designed to integrate with Snowflake as the governance data backbone,
+            enabling cross-case analytics and long-term oversight at scale.
           </p>
         </div>
       </div>
