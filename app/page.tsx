@@ -44,22 +44,7 @@ export default function HomePage() {
   };
 
   return (
-    <main
-      style={{
-        maxWidth: 980,
-        margin: "0 auto",
-        padding: "2.25rem 1.25rem 4rem",
-      }}
-    >
-      {/* Logo lockup */}
-      <header style={{ display: "flex", justifyContent: "center", marginBottom: "1.25rem" }}>
-        <img
-          src="/images/gafaig-lockup.png"
-          alt="GAFAIG"
-          style={{ width: "min(360px, 72vw)", height: "auto", display: "block" }}
-        />
-      </header>
-
+    <main style={{ maxWidth: 980, margin: "0 auto", padding: "2.25rem 1.25rem 4rem" }}>
       <div
         style={{
           fontSize: 12,
@@ -73,24 +58,14 @@ export default function HomePage() {
       </div>
 
       <h1 style={{ fontSize: 44, lineHeight: 1.1, margin: 0, letterSpacing: "-0.02em" }}>
-        Human-centered AI governance at planetary scale.
+        Structured and auditable oversight of AI systems.
       </h1>
 
-      <p
-        style={{
-          marginTop: "1.25rem",
-          fontSize: 18,
-          lineHeight: 1.7,
-          opacity: 0.9,
-          maxWidth: 760,
-        }}
-      >
-        GAFAIG is a global framework for human-centered AI governance, enabling transparent oversight,
-        meaningful participation, and clear accountability as AI capabilities rapidly advance.
-      </p>
-
-      <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap", marginTop: "1.75rem" }}>
-        <a style={buttonPrimary} href="/mission">
+      <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap", marginTop: "1.5rem" }}>
+        <a style={buttonPrimary} href="/demo">
+          Open the demo
+        </a>
+        <a style={buttonSecondary} href="/mission">
           Read the mission
         </a>
         <a style={buttonSecondary} href="/framework">
@@ -136,27 +111,6 @@ export default function HomePage() {
       </div>
 
       <h2 style={{ marginTop: "3.25rem", fontSize: 22, letterSpacing: "-0.01em" }}>
-        What GAFAIG enables
-      </h2>
-
-      <ul
-        style={{
-          marginTop: "0.75rem",
-          paddingLeft: "1.25rem",
-          lineHeight: 1.75,
-          opacity: 0.9,
-          maxWidth: 860,
-        }}
-      >
-        <li>A shared governance framework and standards for high-impact AI systems.</li>
-        <li>Audit and reporting expectations that can be implemented and measured.</li>
-        <li>Pathways for public comment and structured global input across jurisdictions.</li>
-        <li>
-          Interoperable governance that supports coordination without capture by any single actor.
-        </li>
-      </ul>
-
-      <h2 style={{ marginTop: "3.25rem", fontSize: 22, letterSpacing: "-0.01em" }}>
         Get involved
       </h2>
 
@@ -189,7 +143,6 @@ export default function HomePage() {
           </p>
         </div>
 
-        {/* NEW: Organizations & governments */}
         <a href="/participants" style={cardStyle}>
           <div style={cardTitle}>For organizations &amp; governments</div>
           <p style={{ margin: 0, lineHeight: 1.65, opacity: 0.88 }}>
@@ -212,19 +165,7 @@ export default function HomePage() {
         }}
       >
         <span>Release: dev</span>
-        <span>
-          <a style={{ color: "inherit" }} href="/contact">
-            Contact
-          </a>{" "}
-          ·{" "}
-          <a style={{ color: "inherit" }} href="/mission">
-            Mission
-          </a>{" "}
-          ·{" "}
-          <a style={{ color: "inherit" }} href="/governance">
-            Governance
-          </a>
-        </span>
+        <span>Governance engine powered by Snowflake Cortex</span>
       </div>
     </main>
   );

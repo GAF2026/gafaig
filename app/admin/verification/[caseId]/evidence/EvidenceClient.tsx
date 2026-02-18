@@ -1,685 +1,946 @@
 "use client";
 
-import * as React from "react";
-import Link from "next/link";
+import React, { useEffect, useMemo, useState } from "react";
 
-type Finding = {
-  findingId: string;
-  caseId: string;
-  controlId?: string | null;
-  controlTitle?: string | null;
-  result?: string | null;
-  severity?: string | null;
-  rationale?: string | null;
-  createdAt?: string | null;
-  updatedAt?: string | null;
-};
-
-type Evidence = {
+type EvidenceRow = {
   evidenceId: string;
   caseId: string;
-  evidenceType?: string | null;
-  title?: string | null;
+  evidenceType: string; // link | document | policy | ...
+  title: string;
   description?: string | null;
   sourceUrl?: string | null;
   storageRef?: string | null;
   submittedBy?: string | null;
   submittedAt?: string | null;
   createdAt?: string | null;
-  updatedAt?: string | null;
+};
+
+type FindingRow = {
+  findingId: string;
+  caseId: string;
+  title: string;
+  decision?: string | null;
+  severity?: string | null;
+  createdAt?: string | null;
 };
 
 type LinkRow = {
   findingId: string;
   evidenceId: string;
-  caseId?: string | null;
   createdAt?: string | null;
 };
 
-async function fetchJson(url: string, init?: RequestInit) {
-  const res = await fetch(url, {
-    cache: "no-store",
-    ...init,
-    headers: {
-      ...(init?.headers || {}),
-    },
-  });
+type SummaryRow = {
+  evidenceId: string;
+  style: string;
+  model: string;
+  summary: string;
+  createdAt?: string | null;
+  updatedAt?: string | null;
+};
 
+function clsx(...xs: Array<string | false | null | undefined>) {
+  return xs.filter(Boolean).join(" ");
+}
+
+async function safeJson(res: Response) {
   const text = await res.text();
-  let data: any = null;
   try {
-    data = JSON.parse(text);
+    return JSON.parse(text);
   } catch {
-    data = { ok: false, error: `Non-JSON response (${res.status})`, raw: text };
-  }
-  return { res, data };
-}
-
-function cx(...parts: Array<string | false | null | undefined>) {
-  return parts.filter(Boolean).join(" ");
-}
-
-function pillClass(value?: string | null) {
-  const v = (value || "").toLowerCase();
-  if (v === "approved" || v === "pass") return "bg-green-50 text-green-800 border-green-200";
-  if (v === "in_review") return "bg-blue-50 text-blue-800 border-blue-200";
-  if (v === "needs_more_info") return "bg-amber-50 text-amber-900 border-amber-200";
-  if (v === "suspended" || v === "fail") return "bg-red-50 text-red-900 border-red-200";
-  return "bg-gray-50 text-gray-800 border-gray-200";
-}
-
-function formatMaybe(dt?: string | null) {
-  if (!dt) return "";
-  return dt;
-}
-
-function shortId(id: string) {
-  if (!id) return "";
-  if (id.length <= 14) return id;
-  return `${id.slice(0, 6)}…${id.slice(-6)}`;
-}
-
-async function copyToClipboard(text: string) {
-  try {
-    await navigator.clipboard.writeText(text);
-    return true;
-  } catch {
-    // Fallback
-    try {
-      const ta = document.createElement("textarea");
-      ta.value = text;
-      ta.style.position = "fixed";
-      ta.style.left = "-9999px";
-      ta.style.top = "-9999px";
-      document.body.appendChild(ta);
-      ta.focus();
-      ta.select();
-      const ok = document.execCommand("copy");
-      document.body.removeChild(ta);
-      return ok;
-    } catch {
-      return false;
-    }
+    return { ok: false, error: text || `HTTP ${res.status}` };
   }
 }
 
-function CopyButton({
-  label,
-  value,
-  onCopied,
-  className,
-}: {
-  label: string;
-  value: string;
-  onCopied?: () => void;
-  className?: string;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={async () => {
-        const ok = await copyToClipboard(value);
-        if (ok) onCopied?.();
-      }}
-      className={cx(
-        "inline-flex items-center justify-center rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs shadow-sm hover:bg-gray-50",
-        className
-      )}
-      title="Copies the full value"
-    >
-      {label}
-    </button>
+function chunk<T>(arr: T[], size: number) {
+  const out: T[][] = [];
+  for (let i = 0; i < arr.length; i += size) out.push(arr.slice(i, i + size));
+  return out;
+}
+
+function keyFor(evidenceId: string, style: string, model: string) {
+  return `${evidenceId}||${style}||${model}`;
+}
+
+export default function EvidenceClient(props: any) {
+  const caseId: string =
+    props.caseId || props.params?.caseId || props?.case?.caseId || "CASE-0001";
+
+  const initialEvidence: EvidenceRow[] =
+    (Array.isArray(props.evidence) && props.evidence) ||
+    (Array.isArray(props.items) && props.items) ||
+    (Array.isArray(props.rows) && props.rows) ||
+    (Array.isArray(props.initialEvidence) && props.initialEvidence) ||
+    [];
+
+  const [loading, setLoading] = useState(false);
+  const [loadError, setLoadError] = useState<string>("");
+
+  const [evidence, setEvidence] = useState<EvidenceRow[]>(initialEvidence);
+  const [findings, setFindings] = useState<FindingRow[]>([]);
+  const [links, setLinks] = useState<LinkRow[]>([]);
+
+  // Add evidence form
+  const [evType, setEvType] = useState<string>("link");
+  const [evTitle, setEvTitle] = useState<string>("");
+  const [evDesc, setEvDesc] = useState<string>("");
+  const [evSourceUrl, setEvSourceUrl] = useState<string>("");
+  const [evStorageRef, setEvStorageRef] = useState<string>("");
+
+  // Link evidence to finding form
+  const [selectedEvidenceId, setSelectedEvidenceId] = useState<string>("");
+  const [selectedFindingId, setSelectedFindingId] = useState<string>("");
+
+  // AI Summary defaults + per-item overrides
+  const [defaultSummaryStyle, setDefaultSummaryStyle] = useState<string>("bullets");
+  const [defaultSummaryModel, setDefaultSummaryModel] = useState<string>("snowflake-arctic");
+
+  const [summaryStyleByEvidenceId, setSummaryStyleByEvidenceId] = useState<Record<string, string>>(
+    {}
   );
-}
+  const [summaryModelByEvidenceId, setSummaryModelByEvidenceId] = useState<Record<string, string>>(
+    {}
+  );
 
-export default function EvidenceClient({ caseId }: { caseId: string }) {
-  const [loading, setLoading] = React.useState(true);
-  const [error, setError] = React.useState<string | null>(null);
+  // Summary state
+  const [summaryLoadingId, setSummaryLoadingId] = useState<string | null>(null);
 
-  const [findings, setFindings] = React.useState<Finding[]>([]);
-  const [evidence, setEvidence] = React.useState<Evidence[]>([]);
-  const [links, setLinks] = React.useState<LinkRow[]>([]);
+  // “Generated in session” summary text (keyed by evidence/style/model)
+  const [summaryByKey, setSummaryByKey] = useState<Record<string, string>>({});
+  const [summaryErrByEvidenceId, setSummaryErrByEvidenceId] = useState<Record<string, string>>({});
 
-  const [selectedEvidenceId, setSelectedEvidenceId] = React.useState<string>("");
-  const [selectedFindingId, setSelectedFindingId] = React.useState<string>("");
-  const [linkBusy, setLinkBusy] = React.useState(false);
-  const [toast, setToast] = React.useState<string | null>(null);
+  // “Persisted in Snowflake” summary text (keyed by evidence/style/model)
+  const [storedByKey, setStoredByKey] = useState<Record<string, SummaryRow>>({});
+  const [storedSummaryLoadErr, setStoredSummaryLoadErr] = useState<string>("");
 
-  // Add Evidence form (Option A “real workflow”)
-  const [addBusy, setAddBusy] = React.useState(false);
-  const [newEvidenceType, setNewEvidenceType] = React.useState<string>("link");
-  const [newTitle, setNewTitle] = React.useState<string>("");
-  const [newDescription, setNewDescription] = React.useState<string>("");
-  const [newSourceUrl, setNewSourceUrl] = React.useState<string>("");
-  const [newStorageRef, setNewStorageRef] = React.useState<string>("");
+  // Bulk actions
+  const [bulkRunning, setBulkRunning] = useState<null | "missing" | "regen">(null);
+  const [bulkProgress, setBulkProgress] = useState<{ done: number; total: number; current?: string }>(
+    { done: 0, total: 0 }
+  );
+  const [bulkErr, setBulkErr] = useState<string>("");
 
-  const [showDebug, setShowDebug] = React.useState(false);
-  const [debugPayloads, setDebugPayloads] = React.useState<any>(null);
+  const counts = useMemo(
+    () => ({
+      evidence: evidence?.length || 0,
+      findings: findings?.length || 0,
+      links: links?.length || 0,
+    }),
+    [evidence, findings, links]
+  );
 
-  const linkedFindingIdsByEvidence = React.useMemo(() => {
-    const map = new Map<string, Set<string>>();
-    for (const l of links) {
-      if (!map.has(l.evidenceId)) map.set(l.evidenceId, new Set());
-      map.get(l.evidenceId)!.add(l.findingId);
-    }
-    return map;
-  }, [links]);
-
-  const findingsById = React.useMemo(() => {
-    const m = new Map<string, Finding>();
-    for (const f of findings) m.set(f.findingId, f);
-    return m;
-  }, [findings]);
-
-  function showToast(msg: string) {
-    setToast(msg);
-    window.clearTimeout((showToast as any)._t);
-    (showToast as any)._t = window.setTimeout(() => setToast(null), 2500);
+  function linkedFindingIdsForEvidence(evidenceId: string) {
+    return links.filter((l) => l.evidenceId === evidenceId).map((l) => l.findingId);
   }
 
-  async function loadAll() {
+  function findingById(id: string) {
+    return findings.find((f) => f.findingId === id);
+  }
+
+  function getStyleForEvidence(evidenceId: string) {
+    return summaryStyleByEvidenceId[evidenceId] || defaultSummaryStyle;
+  }
+
+  function getModelForEvidence(evidenceId: string) {
+    return summaryModelByEvidenceId[evidenceId] || defaultSummaryModel;
+  }
+
+  function getStored(evidenceId: string, style: string, model: string): SummaryRow | null {
+    const k = keyFor(evidenceId, style, model);
+    return storedByKey[k] || null;
+  }
+
+  async function refreshAll() {
     setLoading(true);
-    setError(null);
+    setLoadError("");
+    setBulkErr("");
 
     try {
-      const findingsUrl = `/api/admin/verification/${encodeURIComponent(caseId)}/findings`;
-      const evidenceUrl = `/api/admin/verification/evidence?caseId=${encodeURIComponent(caseId)}`;
-      const linksUrl = `/api/admin/verification/finding-evidence?caseId=${encodeURIComponent(caseId)}`;
-
-      const [f, e, l] = await Promise.all([fetchJson(findingsUrl), fetchJson(evidenceUrl), fetchJson(linksUrl)]);
-
-      if (!f.data?.ok) throw new Error(f.data?.error || "Failed to load findings");
-
-      if (!e.data?.ok) {
-        if (e.res.status === 401) {
-          throw new Error(
-            "Unauthorized loading evidence. Set cookie gafaig_admin=1 (DevTools console: document.cookie='gafaig_admin=1; path=/' ) then refresh."
-          );
-        }
-        throw new Error(e.data?.error || "Failed to load evidence");
+      const evRes = await fetch(
+        `/api/admin/verification/evidence?caseId=${encodeURIComponent(caseId)}`,
+        { credentials: "include" }
+      );
+      const evJson = await safeJson(evRes);
+      if (!evRes.ok || !evJson?.ok) {
+        throw new Error(evJson?.error || `Evidence fetch failed (HTTP ${evRes.status})`);
       }
+      const evRows: EvidenceRow[] = Array.isArray(evJson.rows) ? evJson.rows : [];
+      setEvidence(evRows);
 
-      if (!l.data?.ok) throw new Error(l.data?.error || "Failed to load links");
+      const fRes = await fetch(`/api/admin/verification/${encodeURIComponent(caseId)}/findings`, {
+        credentials: "include",
+      });
+      const fJson = await safeJson(fRes);
+      setFindings(!fRes.ok || !fJson?.ok ? [] : Array.isArray(fJson.rows) ? fJson.rows : []);
 
-      const fRows = Array.isArray(f.data.rows) ? f.data.rows : [];
-      const eRows = Array.isArray(e.data.rows) ? e.data.rows : [];
-      const lRows = Array.isArray(l.data.rows) ? l.data.rows : [];
+      const lRes = await fetch(
+        `/api/admin/verification/finding-evidence?caseId=${encodeURIComponent(caseId)}`,
+        { credentials: "include" }
+      );
+      const lJson = await safeJson(lRes);
+      setLinks(!lRes.ok || !lJson?.ok ? [] : Array.isArray(lJson.rows) ? lJson.rows : []);
 
-      setFindings(fRows);
-      setEvidence(eRows);
-      setLinks(lRows);
-
-      setDebugPayloads({ findings: f.data, evidence: e.data, links: l.data });
-    } catch (err: any) {
-      setError(err?.message || String(err));
+      await loadStoredSummaries(evRows.map((r) => r.evidenceId));
+    } catch (e: any) {
+      setLoadError(e?.message || "Failed to load case evidence.");
     } finally {
       setLoading(false);
     }
   }
 
-  React.useEffect(() => {
-    loadAll();
+  async function loadStoredSummaries(evidenceIds: string[]) {
+    setStoredSummaryLoadErr("");
+    if (!evidenceIds || evidenceIds.length === 0) return;
+
+    try {
+      const batches = chunk(evidenceIds, 30);
+      const next: Record<string, SummaryRow> = {};
+
+      for (const b of batches) {
+        const qs =
+          `caseId=${encodeURIComponent(caseId)}` +
+          `&evidenceIds=${encodeURIComponent(b.join(","))}`;
+
+        const res = await fetch(`/api/admin/verification/evidence/summary?${qs}`, {
+          credentials: "include",
+        });
+
+        const json = await safeJson(res);
+        if (!res.ok || !json?.ok) {
+          // If not implemented or unauthorized, don't break the page
+          continue;
+        }
+
+        const rows: any[] = Array.isArray(json.rows) ? json.rows : [];
+        for (const r of rows) {
+          const evidenceId = String(r.evidenceId ?? r.EVIDENCE_ID ?? "").trim();
+          const style = String(r.style ?? r.STYLE ?? "").trim();
+          const model = String(r.model ?? r.MODEL ?? "").trim();
+          const summary = String(r.summary ?? r.SUMMARY ?? "").trim();
+          if (!evidenceId || !style || !model) continue;
+
+          next[keyFor(evidenceId, style, model)] = {
+            evidenceId,
+            style,
+            model,
+            summary,
+            createdAt: r.createdAt ?? r.CREATED_AT ?? null,
+            updatedAt: r.updatedAt ?? r.UPDATED_AT ?? null,
+          };
+        }
+      }
+
+      setStoredByKey((prev) => ({ ...prev, ...next }));
+    } catch (e: any) {
+      setStoredSummaryLoadErr(e?.message || "Failed to load stored summaries.");
+    }
+  }
+
+  useEffect(() => {
+    refreshAll();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [caseId]);
 
-  async function createLink() {
-    if (!selectedEvidenceId || !selectedFindingId) return;
-    setLinkBusy(true);
-    setError(null);
+  async function addEvidence() {
+    setLoadError("");
 
-    try {
-      const payload = {
-        caseId,
-        findingId: selectedFindingId,
-        evidenceId: selectedEvidenceId,
-      };
-
-      const r = await fetchJson(`/api/admin/verification/finding-evidence`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-
-      if (!r.data?.ok) throw new Error(r.data?.error || "Failed to create link");
-
-      showToast(r.data?.alreadyLinked ? "Already linked" : "Link created");
-      setSelectedEvidenceId("");
-      setSelectedFindingId("");
-      await loadAll();
-    } catch (e: any) {
-      setError(e?.message || String(e));
-    } finally {
-      setLinkBusy(false);
+    if (!evTitle.trim()) {
+      setLoadError("Title is required.");
+      return;
     }
+    if (!evSourceUrl.trim() && !evStorageRef.trim()) {
+      setLoadError("Provide at least one of Source URL or Storage ref.");
+      return;
+    }
+
+    const res = await fetch(`/api/admin/verification/evidence`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({
+        caseId,
+        evidenceType: evType,
+        title: evTitle.trim(),
+        description: evDesc.trim() || null,
+        sourceUrl: evSourceUrl.trim() || null,
+        storageRef: evStorageRef.trim() || null,
+      }),
+    });
+
+    const json = await safeJson(res);
+    if (!res.ok || !json?.ok) {
+      setLoadError(json?.error || `Add evidence failed (HTTP ${res.status})`);
+      return;
+    }
+
+    setEvTitle("");
+    setEvDesc("");
+    setEvSourceUrl("");
+    setEvStorageRef("");
+    await refreshAll();
+  }
+
+  async function createLink() {
+    setLoadError("");
+
+    if (!selectedEvidenceId || !selectedFindingId) {
+      setLoadError("Select both an evidence item and a finding.");
+      return;
+    }
+
+    const res = await fetch(`/api/admin/verification/finding-evidence`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({
+        caseId,
+        evidenceId: selectedEvidenceId,
+        findingId: selectedFindingId,
+      }),
+    });
+
+    const json = await safeJson(res);
+    if (!res.ok || !json?.ok) {
+      setLoadError(json?.error || `Create link failed (HTTP ${res.status})`);
+      return;
+    }
+
+    setSelectedEvidenceId("");
+    setSelectedFindingId("");
+    await refreshAll();
   }
 
   async function removeLink(findingId: string, evidenceId: string) {
-    setLinkBusy(true);
-    setError(null);
+    setLoadError("");
 
-    try {
-      const url =
-        `/api/admin/verification/finding-evidence?` +
-        `caseId=${encodeURIComponent(caseId)}` +
-        `&findingId=${encodeURIComponent(findingId)}` +
-        `&evidenceId=${encodeURIComponent(evidenceId)}`;
+    const url = `/api/admin/verification/finding-evidence?caseId=${encodeURIComponent(
+      caseId
+    )}&findingId=${encodeURIComponent(findingId)}&evidenceId=${encodeURIComponent(evidenceId)}`;
 
-      const r = await fetchJson(url, { method: "DELETE" });
-      if (!r.data?.ok) throw new Error(r.data?.error || "Failed to remove link");
-
-      const deletedCount =
-        typeof r.data?.deletedCount === "number"
-          ? r.data.deletedCount
-          : r.data?.deleted
-          ? 1
-          : 0;
-
-      showToast(deletedCount > 0 ? "Link removed" : "No link to remove");
-      await loadAll();
-    } catch (e: any) {
-      setError(e?.message || String(e));
-    } finally {
-      setLinkBusy(false);
+    const res = await fetch(url, {
+      method: "DELETE",
+      credentials: "include",
+    });
+    const json = await safeJson(res);
+    if (!res.ok || !json?.ok) {
+      setLoadError(json?.error || `Remove link failed (HTTP ${res.status})`);
+      return;
     }
+
+    await refreshAll();
   }
 
-  async function addEvidence() {
-    setError(null);
-
-    const title = newTitle.trim();
-    const description = newDescription.trim();
-    const sourceUrl = newSourceUrl.trim();
-    const storageRef = newStorageRef.trim();
-    const evidenceType = (newEvidenceType || "link").trim();
-
-    if (!title) {
-      setError("Add Evidence: title is required");
-      return;
-    }
-    if (!sourceUrl && !storageRef) {
-      setError("Add Evidence: provide either Source URL or Storage Ref");
-      return;
-    }
-
-    setAddBusy(true);
-    try {
-      const payload = {
+  async function callSummaryApi(args: {
+    evidenceId: string;
+    style: string;
+    model: string;
+    force: boolean;
+  }): Promise<string> {
+    const res = await fetch(`/api/admin/verification/evidence/summary`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({
+        evidenceId: args.evidenceId,
         caseId,
-        evidenceType,
-        title,
-        description: description ? description : null,
-        sourceUrl: sourceUrl ? sourceUrl : null,
-        storageRef: storageRef ? storageRef : null,
-        submittedBy: "admin@gafaig.com",
-      };
+        style: args.style,
+        model: args.model,
+        persist: true,
+        force: args.force,
+      }),
+    });
 
-      const r = await fetchJson(`/api/admin/verification/evidence`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+    const json = await safeJson(res);
+    if (!res.ok || !json?.ok) {
+      throw new Error(json?.error || `HTTP ${res.status}`);
+    }
+    return String(json.summary || "").trim();
+  }
+
+  async function runAiSummary(evidenceId: string, opts?: { force?: boolean }) {
+    setSummaryLoadingId(evidenceId);
+    setSummaryErrByEvidenceId((prev) => ({ ...prev, [evidenceId]: "" }));
+
+    const style = getStyleForEvidence(evidenceId);
+    const model = getModelForEvidence(evidenceId);
+    const k = keyFor(evidenceId, style, model);
+
+    try {
+      const s = await callSummaryApi({
+        evidenceId,
+        style,
+        model,
+        force: !!opts?.force,
       });
 
-      if (!r.data?.ok) throw new Error(r.data?.error || "Failed to add evidence");
-
-      showToast("Evidence added");
-      setNewTitle("");
-      setNewDescription("");
-      setNewSourceUrl("");
-      setNewStorageRef("");
-      setNewEvidenceType("link");
-      await loadAll();
+      setSummaryByKey((prev) => ({ ...prev, [k]: s }));
+      setStoredByKey((prev) => ({
+        ...prev,
+        [k]: {
+          evidenceId,
+          style,
+          model,
+          summary: s,
+          updatedAt: new Date().toISOString(),
+        },
+      }));
     } catch (e: any) {
-      setError(e?.message || String(e));
+      setSummaryErrByEvidenceId((prev) => ({
+        ...prev,
+        [evidenceId]: e?.message || "Summary failed",
+      }));
     } finally {
-      setAddBusy(false);
+      setSummaryLoadingId(null);
     }
   }
 
-  const counts = {
-    evidence: evidence.length,
-    findings: findings.length,
-    links: links.length,
-  };
+  async function summarizeAllMissing() {
+    if (bulkRunning) return;
+    setBulkRunning("missing");
+    setBulkErr("");
 
-  const selectClass =
-    "mt-1 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm " +
-    "focus:border-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-200";
+    try {
+      const targets = evidence
+        .map((e) => {
+          const style = getStyleForEvidence(e.evidenceId);
+          const model = getModelForEvidence(e.evidenceId);
+          const stored = getStored(e.evidenceId, style, model);
+          return { evidenceId: e.evidenceId, style, model, hasStored: !!stored };
+        })
+        .filter((t) => !t.hasStored);
 
-  const inputClass =
-    "mt-1 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm " +
-    "focus:border-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-200";
+      setBulkProgress({ done: 0, total: targets.length });
+
+      for (let i = 0; i < targets.length; i++) {
+        const t = targets[i];
+        setBulkProgress({ done: i, total: targets.length, current: t.evidenceId });
+
+        const k = keyFor(t.evidenceId, t.style, t.model);
+        setSummaryErrByEvidenceId((prev) => ({ ...prev, [t.evidenceId]: "" }));
+
+        try {
+          const s = await callSummaryApi({
+            evidenceId: t.evidenceId,
+            style: t.style,
+            model: t.model,
+            force: false,
+          });
+
+          setSummaryByKey((prev) => ({ ...prev, [k]: s }));
+          setStoredByKey((prev) => ({
+            ...prev,
+            [k]: {
+              evidenceId: t.evidenceId,
+              style: t.style,
+              model: t.model,
+              summary: s,
+              updatedAt: new Date().toISOString(),
+            },
+          }));
+        } catch (e: any) {
+          setSummaryErrByEvidenceId((prev) => ({
+            ...prev,
+            [t.evidenceId]: e?.message || "Summary failed",
+          }));
+        }
+      }
+
+      setBulkProgress((p) => ({ ...p, done: p.total, current: undefined }));
+    } catch (e: any) {
+      setBulkErr(e?.message || "Bulk summarize failed");
+    } finally {
+      setBulkRunning(null);
+    }
+  }
+
+  async function regenerateAll() {
+    if (bulkRunning) return;
+    setBulkRunning("regen");
+    setBulkErr("");
+
+    try {
+      const targets = evidence.map((e) => {
+        const style = getStyleForEvidence(e.evidenceId);
+        const model = getModelForEvidence(e.evidenceId);
+        return { evidenceId: e.evidenceId, style, model };
+      });
+
+      setBulkProgress({ done: 0, total: targets.length });
+
+      for (let i = 0; i < targets.length; i++) {
+        const t = targets[i];
+        setBulkProgress({ done: i, total: targets.length, current: t.evidenceId });
+
+        const k = keyFor(t.evidenceId, t.style, t.model);
+        setSummaryErrByEvidenceId((prev) => ({ ...prev, [t.evidenceId]: "" }));
+
+        try {
+          const s = await callSummaryApi({
+            evidenceId: t.evidenceId,
+            style: t.style,
+            model: t.model,
+            force: true,
+          });
+
+          setSummaryByKey((prev) => ({ ...prev, [k]: s }));
+          setStoredByKey((prev) => ({
+            ...prev,
+            [k]: {
+              evidenceId: t.evidenceId,
+              style: t.style,
+              model: t.model,
+              summary: s,
+              updatedAt: new Date().toISOString(),
+            },
+          }));
+        } catch (e: any) {
+          setSummaryErrByEvidenceId((prev) => ({
+            ...prev,
+            [t.evidenceId]: e?.message || "Summary failed",
+          }));
+        }
+      }
+
+      setBulkProgress((p) => ({ ...p, done: p.total, current: undefined }));
+    } catch (e: any) {
+      setBulkErr(e?.message || "Bulk regenerate failed");
+    } finally {
+      setBulkRunning(null);
+    }
+  }
+
+  const missingCount = useMemo(() => {
+    let n = 0;
+    for (const e of evidence) {
+      const style = getStyleForEvidence(e.evidenceId);
+      const model = getModelForEvidence(e.evidenceId);
+      if (!getStored(e.evidenceId, style, model)) n++;
+    }
+    return n;
+  }, [evidence, summaryStyleByEvidenceId, summaryModelByEvidenceId, defaultSummaryStyle, defaultSummaryModel, storedByKey]);
 
   return (
-    <div className="min-h-screen bg-white text-gray-900">
-      <div className="mx-auto max-w-6xl px-6 py-10">
-        {/* Top bar */}
-        <div className="mb-8 flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <Link href="/admin/verification" className="text-sm text-gray-600 hover:text-gray-900 underline">
-              Admin
-            </Link>
-            <span className="text-sm text-gray-400">•</span>
-            <Link
-              href={`/admin/verification/${encodeURIComponent(caseId)}`}
-              className="text-sm text-gray-600 hover:text-gray-900 underline"
+    <div className="space-y-6">
+      {loadError ? (
+        <div className="border border-red-300 bg-red-50 text-red-700 rounded p-3 text-sm">
+          {loadError}
+        </div>
+      ) : null}
+
+      {storedSummaryLoadErr ? (
+        <div className="border border-amber-300 bg-amber-50 text-amber-900 rounded p-3 text-sm">
+          {storedSummaryLoadErr}
+        </div>
+      ) : null}
+
+      {bulkErr ? (
+        <div className="border border-red-300 bg-red-50 text-red-700 rounded p-3 text-sm">
+          {bulkErr}
+        </div>
+      ) : null}
+
+      <div className="flex items-center gap-3">
+        <button
+          className="px-3 py-1 border rounded text-sm bg-white hover:bg-gray-50"
+          onClick={refreshAll}
+          disabled={loading || !!bulkRunning}
+        >
+          {loading ? "Refreshing..." : "Refresh"}
+        </button>
+
+        <div className="flex items-center gap-2">
+          <button
+            onClick={summarizeAllMissing}
+            className="px-3 py-1 border rounded text-sm bg-white hover:bg-gray-50"
+            disabled={loading || !!bulkRunning || evidence.length === 0 || missingCount === 0}
+            title="Generate and persist summaries for items that don’t yet have a stored summary (for their current style/model)"
+          >
+            {bulkRunning === "missing" ? "Summarizing..." : `Summarize all missing (${missingCount})`}
+          </button>
+
+          <button
+            onClick={regenerateAll}
+            className="px-3 py-1 border rounded text-sm bg-white hover:bg-gray-50"
+            disabled={loading || !!bulkRunning || evidence.length === 0}
+            title="Force regenerate and persist summaries for all evidence items (for their current style/model)"
+          >
+            {bulkRunning === "regen" ? "Regenerating..." : "Regenerate all"}
+          </button>
+
+          {bulkRunning ? (
+            <div className="text-xs text-gray-600">
+              {bulkProgress.done}/{bulkProgress.total}
+              {bulkProgress.current ? ` • ${bulkProgress.current}` : ""}
+            </div>
+          ) : null}
+        </div>
+
+        <div className="ml-auto flex gap-3 text-sm">
+          <div className="border rounded px-3 py-2 min-w-[140px]">
+            <div className="text-[11px] text-gray-500">EVIDENCE ITEMS</div>
+            <div className="text-lg font-semibold">{counts.evidence}</div>
+          </div>
+          <div className="border rounded px-3 py-2 min-w-[140px]">
+            <div className="text-[11px] text-gray-500">FINDINGS</div>
+            <div className="text-lg font-semibold">{counts.findings}</div>
+          </div>
+          <div className="border rounded px-3 py-2 min-w-[140px]">
+            <div className="text-[11px] text-gray-500">LINKS</div>
+            <div className="text-lg font-semibold">{counts.links}</div>
+          </div>
+        </div>
+      </div>
+
+      <div className="border rounded-lg p-4 space-y-3">
+        <div className="font-semibold">AI Summary defaults</div>
+        <div className="text-xs text-gray-500">
+          Used when you click “AI Summary” unless you override style/model per evidence item.
+          Summaries are persisted when generated.
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div>
+            <label className="block text-xs text-gray-600 mb-1">Default style</label>
+            <select
+              className="w-full border rounded px-2 py-2 text-sm"
+              value={defaultSummaryStyle}
+              onChange={(e) => setDefaultSummaryStyle(e.target.value)}
+              disabled={!!bulkRunning}
             >
-              Verification/{caseId}
-            </Link>
-            <span className="text-sm text-gray-400">•</span>
-            <span className="text-sm text-gray-800">Evidence</span>
+              <option value="bullets">bullets</option>
+              <option value="short">short</option>
+              <option value="detailed">detailed</option>
+            </select>
           </div>
 
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => loadAll()}
-              className="inline-flex items-center justify-center rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm shadow-sm hover:bg-gray-50"
+          <div>
+            <label className="block text-xs text-gray-600 mb-1">Default model</label>
+            <input
+              className="w-full border rounded px-2 py-2 text-sm"
+              value={defaultSummaryModel}
+              onChange={(e) => setDefaultSummaryModel(e.target.value)}
+              placeholder="e.g., snowflake-arctic"
+              disabled={!!bulkRunning}
+            />
+          </div>
+        </div>
+      </div>
+
+      <div className="border rounded-lg p-4 space-y-3">
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="font-semibold">Add evidence</div>
+            <div className="text-xs text-gray-500">
+              Creates a real evidence row in Snowflake for this case.
+            </div>
+          </div>
+          <button
+            onClick={addEvidence}
+            className="px-3 py-1.5 rounded text-sm bg-black text-white hover:bg-gray-800"
+            disabled={!!bulkRunning}
+          >
+            Add evidence
+          </button>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div>
+            <label className="block text-xs text-gray-600 mb-1">Evidence type</label>
+            <select
+              className="w-full border rounded px-2 py-2 text-sm"
+              value={evType}
+              onChange={(e) => setEvType(e.target.value)}
+              disabled={!!bulkRunning}
             >
-              Refresh
-            </button>
-            <Link
-              href={`/admin/verification/${encodeURIComponent(caseId)}`}
-              className="inline-flex items-center justify-center rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm shadow-sm hover:bg-gray-50"
-            >
-              Back to Case
-            </Link>
+              <option value="link">link</option>
+              <option value="document">document</option>
+              <option value="policy">policy</option>
+              <option value="other">other</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-xs text-gray-600 mb-1">Title (required)</label>
+            <input
+              className="w-full border rounded px-2 py-2 text-sm"
+              value={evTitle}
+              onChange={(e) => setEvTitle(e.target.value)}
+              placeholder="e.g., Human Governance Policy v1.0"
+              disabled={!!bulkRunning}
+            />
           </div>
         </div>
 
-        {/* Header */}
-        <div className="mb-10">
-          <div className="text-xs uppercase tracking-wide text-gray-500">Admin • Verification • {caseId} • Evidence</div>
-          <h1 className="mt-3 text-4xl font-semibold tracking-tight">Case Evidence</h1>
-          <p className="mt-3 max-w-2xl text-base leading-relaxed text-gray-600">
-            Evidence items, findings, and the links between them.
-          </p>
+        <div>
+          <label className="block text-xs text-gray-600 mb-1">Description (optional)</label>
+          <input
+            className="w-full border rounded px-2 py-2 text-sm"
+            value={evDesc}
+            onChange={(e) => setEvDesc(e.target.value)}
+            placeholder="Short note about what this evidence supports..."
+            disabled={!!bulkRunning}
+          />
         </div>
 
-        {toast && (
-          <div className="mb-5 rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-900 shadow-sm">
-            {toast}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div>
+            <label className="block text-xs text-gray-600 mb-1">Source URL (optional)</label>
+            <input
+              className="w-full border rounded px-2 py-2 text-sm"
+              value={evSourceUrl}
+              onChange={(e) => setEvSourceUrl(e.target.value)}
+              placeholder="https://..."
+              disabled={!!bulkRunning}
+            />
           </div>
-        )}
-
-        {error && (
-          <div className="mb-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-900 shadow-sm">
-            <div className="font-medium">Error</div>
-            <div className="mt-1 whitespace-pre-wrap">{error}</div>
-          </div>
-        )}
-
-        <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
-          <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
-            <div className="text-xs uppercase tracking-wide text-gray-500">Evidence items</div>
-            <div className="mt-1 text-3xl font-semibold">{counts.evidence}</div>
-          </div>
-          <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
-            <div className="text-xs uppercase tracking-wide text-gray-500">Findings</div>
-            <div className="mt-1 text-3xl font-semibold">{counts.findings}</div>
-          </div>
-          <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
-            <div className="text-xs uppercase tracking-wide text-gray-500">Links</div>
-            <div className="mt-1 text-3xl font-semibold">{counts.links}</div>
+          <div>
+            <label className="block text-xs text-gray-600 mb-1">Storage ref (optional)</label>
+            <input
+              className="w-full border rounded px-2 py-2 text-sm"
+              value={evStorageRef}
+              onChange={(e) => setEvStorageRef(e.target.value)}
+              placeholder="@STAGE/path/file.pdf or local ref"
+              disabled={!!bulkRunning}
+            />
           </div>
         </div>
 
-        {/* Add Evidence */}
-        <div className="mb-10 rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
-          <div className="flex flex-wrap items-start justify-between gap-3">
-            <div>
-              <div className="text-sm font-medium">Add evidence</div>
-              <div className="mt-1 text-sm text-gray-600">Creates a real evidence row in Snowflake for this case.</div>
+        <div className="text-xs text-gray-500">
+          Note: you must provide at least one of Source URL or Storage ref.
+        </div>
+      </div>
+
+      <div className="border rounded-lg p-4 space-y-3">
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="font-semibold">Link evidence to a finding</div>
+            <div className="text-xs text-gray-500">
+              Select an evidence item and a finding, then create the link.
             </div>
+          </div>
+          <button
+            onClick={createLink}
+            className="px-3 py-1.5 rounded text-sm border bg-white hover:bg-gray-50"
+            disabled={!!bulkRunning}
+          >
+            Create link
+          </button>
+        </div>
 
-            <button
-              onClick={addEvidence}
-              disabled={addBusy}
-              className={cx(
-                "inline-flex items-center justify-center rounded-xl px-4 py-2 text-sm font-medium shadow-sm",
-                addBusy ? "bg-gray-100 text-gray-400" : "bg-gray-900 text-white hover:bg-gray-800"
-              )}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div>
+            <label className="block text-xs text-gray-600 mb-1">Evidence</label>
+            <select
+              className="w-full border rounded px-2 py-2 text-sm"
+              value={selectedEvidenceId}
+              onChange={(e) => setSelectedEvidenceId(e.target.value)}
+              disabled={!!bulkRunning}
             >
-              {addBusy ? "Adding…" : "Add evidence"}
-            </button>
+              <option value="">Select evidence...</option>
+              {evidence.map((e) => (
+                <option key={e.evidenceId} value={e.evidenceId}>
+                  {e.title} ({e.evidenceType})
+                </option>
+              ))}
+            </select>
           </div>
 
-          <div className="mt-5 grid grid-cols-1 gap-4 md:grid-cols-2">
-            <div>
-              <label className="text-xs font-medium text-gray-600">Evidence type</label>
-              <select value={newEvidenceType} onChange={(e) => setNewEvidenceType(e.target.value)} className={selectClass}>
-                <option value="link">link</option>
-                <option value="policy">policy</option>
-                <option value="report">report</option>
-                <option value="log">log</option>
-                <option value="screenshot">screenshot</option>
-                <option value="attestation">attestation</option>
-                <option value="dataset">dataset</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="text-xs font-medium text-gray-600">Title (required)</label>
-              <input
-                value={newTitle}
-                onChange={(e) => setNewTitle(e.target.value)}
-                className={inputClass}
-                placeholder="e.g., Human Governance Policy v1.0"
-              />
-            </div>
-
-            <div className="md:col-span-2">
-              <label className="text-xs font-medium text-gray-600">Description (optional)</label>
-              <input
-                value={newDescription}
-                onChange={(e) => setNewDescription(e.target.value)}
-                className={inputClass}
-                placeholder="Short note about what this evidence supports…"
-              />
-            </div>
-
-            <div>
-              <label className="text-xs font-medium text-gray-600">Source URL (optional)</label>
-              <input value={newSourceUrl} onChange={(e) => setNewSourceUrl(e.target.value)} className={inputClass} placeholder="https://…" />
-            </div>
-
-            <div>
-              <label className="text-xs font-medium text-gray-600">Storage ref (optional)</label>
-              <input
-                value={newStorageRef}
-                onChange={(e) => setNewStorageRef(e.target.value)}
-                className={inputClass}
-                placeholder="@STAGE/path/file.pdf or local ref"
-              />
-            </div>
-
-            <div className="md:col-span-2 text-xs text-gray-500">Note: you must provide at least one of Source URL or Storage ref.</div>
-          </div>
-        </div>
-
-        {/* Link evidence to finding */}
-        <div className="mb-10 rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
-          <div className="flex flex-wrap items-start justify-between gap-3">
-            <div>
-              <div className="text-sm font-medium">Link evidence to a finding</div>
-              <div className="mt-1 text-sm text-gray-600">Select an evidence item and a finding, then create the link.</div>
-            </div>
-
-            <button
-              onClick={createLink}
-              disabled={!selectedEvidenceId || !selectedFindingId || linkBusy}
-              className={cx(
-                "inline-flex items-center justify-center rounded-xl px-4 py-2 text-sm font-medium shadow-sm",
-                !selectedEvidenceId || !selectedFindingId || linkBusy ? "bg-gray-100 text-gray-400" : "bg-gray-900 text-white hover:bg-gray-800"
-              )}
+          <div>
+            <label className="block text-xs text-gray-600 mb-1">Finding</label>
+            <select
+              className="w-full border rounded px-2 py-2 text-sm"
+              value={selectedFindingId}
+              onChange={(e) => setSelectedFindingId(e.target.value)}
+              disabled={!!bulkRunning}
             >
-              {linkBusy ? "Working…" : "Create link"}
-            </button>
+              <option value="">Select finding...</option>
+              {findings.map((f) => (
+                <option key={f.findingId} value={f.findingId}>
+                  {f.title}
+                </option>
+              ))}
+            </select>
           </div>
+        </div>
+      </div>
 
-          <div className="mt-5 grid grid-cols-1 gap-4 md:grid-cols-2">
-            <div>
-              <label className="text-xs font-medium text-gray-600">Evidence</label>
-              <select value={selectedEvidenceId} onChange={(e) => setSelectedEvidenceId(e.target.value)} className={selectClass}>
-                <option value="">Select evidence…</option>
-                {evidence.map((ev) => (
-                  <option key={ev.evidenceId} value={ev.evidenceId}>
-                    {ev.title || "(untitled)"} • {ev.evidenceType || "unknown"} • {shortId(ev.evidenceId)}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="text-xs font-medium text-gray-600">Finding</label>
-              <select value={selectedFindingId} onChange={(e) => setSelectedFindingId(e.target.value)} className={selectClass}>
-                <option value="">Select finding…</option>
-                {findings.map((f) => (
-                  <option key={f.findingId} value={f.findingId}>
-                    {(f.controlId || "Control") + " — " + (f.controlTitle || "(no title)")} • {shortId(f.findingId)}
-                  </option>
-                ))}
-              </select>
-            </div>
+      <div className="border rounded-lg">
+        <div className="border-b p-3">
+          <div className="font-semibold">Evidence items</div>
+          <div className="text-xs text-gray-500">
+            Each evidence item shows which findings it’s linked to.
           </div>
         </div>
 
-        {/* Evidence list */}
-        <div className="rounded-xl border border-gray-200 bg-white shadow-sm">
-          <div className="border-b border-gray-200 px-5 py-4">
-            <div className="text-sm font-medium">Evidence items</div>
-            <div className="mt-1 text-sm text-gray-600">Each evidence item shows which findings it’s linked to.</div>
-          </div>
-
-          {loading ? (
-            <div className="px-5 py-8 text-sm text-gray-600">Loading…</div>
-          ) : evidence.length === 0 ? (
-            <div className="px-5 py-8 text-sm text-gray-600">No evidence found for this case.</div>
+        <div className="p-3 space-y-3">
+          {evidence.length === 0 ? (
+            <div className="text-sm text-gray-600">No evidence found for this case.</div>
           ) : (
-            <div className="divide-y divide-gray-200">
-              {evidence.map((ev) => {
-                const linkedIds = linkedFindingIdsByEvidence.get(ev.evidenceId) || new Set<string>();
-                const linkedList = Array.from(linkedIds)
-                  .map((id) => findingsById.get(id))
-                  .filter(Boolean) as Finding[];
+            evidence.map((e) => {
+              const linkedIds = linkedFindingIdsForEvidence(e.evidenceId);
 
-                return (
-                  <div key={ev.evidenceId} className="px-5 py-5">
-                    <div className="flex flex-wrap items-start justify-between gap-4">
-                      <div className="min-w-0">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <div className="text-sm font-semibold text-gray-900">{ev.title || "(untitled evidence)"}</div>
-                          <span className={cx("inline-flex items-center rounded-full border px-2 py-0.5 text-xs", pillClass(ev.evidenceType || ""))}>
-                            {(ev.evidenceType || "unknown").toLowerCase()}
-                          </span>
-                          <span className="text-xs text-gray-400">•</span>
-                          <span className="text-xs text-gray-700 font-medium" title={ev.evidenceId}>
-                            {shortId(ev.evidenceId)}
-                          </span>
+              const style = getStyleForEvidence(e.evidenceId);
+              const model = getModelForEvidence(e.evidenceId);
+              const k = keyFor(e.evidenceId, style, model);
 
-                          {/* ✅ Copy full ID (always copies the full string) */}
-                          <CopyButton
-                            label="Copy ID"
-                            value={ev.evidenceId}
-                            onCopied={() => showToast("Evidence ID copied")}
-                            className="ml-2"
-                          />
-                        </div>
+              const stored = getStored(e.evidenceId, style, model);
+              const current = summaryByKey[k] || "";
+              const displayedSummary = current || stored?.summary || "";
 
-                        {/* ✅ Full ID shown (monospace, wraps, no truncation) */}
-                        <div className="mt-2 text-xs text-gray-600">
-                          <span className="text-gray-500">Evidence ID:</span>{" "}
-                          <span className="font-mono break-all">{ev.evidenceId}</span>
-                        </div>
-
-                        {ev.description ? <div className="mt-2 text-sm text-gray-700">{ev.description}</div> : null}
-
-                        <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-gray-600">
-                          {ev.submittedBy ? (
-                            <div>
-                              <span className="text-gray-500">Submitted by:</span> {ev.submittedBy}
-                            </div>
-                          ) : null}
-                          {ev.submittedAt ? (
-                            <div>
-                              <span className="text-gray-500">Submitted:</span> {formatMaybe(ev.submittedAt)}
-                            </div>
-                          ) : null}
-                          {ev.sourceUrl ? (
-                            <div className="flex items-center gap-2 max-w-[720px]">
-                              <span className="text-gray-500">Source URL:</span>{" "}
-                              <a className="underline truncate max-w-[520px]" href={ev.sourceUrl} target="_blank" rel="noreferrer">
-                                {ev.sourceUrl}
-                              </a>
-                              <CopyButton label="Copy URL" value={ev.sourceUrl} onCopied={() => showToast("Source URL copied")} />
-                            </div>
-                          ) : null}
-                          {ev.storageRef ? (
-                            <div className="max-w-[720px] truncate">
-                              <span className="text-gray-500">Storage:</span> {ev.storageRef}
-                            </div>
-                          ) : null}
-                        </div>
+              return (
+                <div key={e.evidenceId} className="border rounded-lg p-3 space-y-2">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <div className="font-semibold truncate">{e.title}</div>
+                      <div className="text-xs text-gray-500">Evidence ID: {e.evidenceId}</div>
+                      <div className="text-xs text-gray-500">
+                        Submitted by: {e.submittedBy || "—"}{" "}
+                        {e.submittedAt ? `• Submitted: ${e.submittedAt}` : ""}
                       </div>
 
-                      <div className="shrink-0 text-right">
-                        <div className="text-xs uppercase tracking-wide text-gray-500">Linked findings</div>
-                        <div className="mt-1 text-2xl font-semibold text-gray-900">{linkedList.length}</div>
-                      </div>
+                      {e.sourceUrl ? (
+                        <div className="text-xs text-gray-500">
+                          Source URL:{" "}
+                          <a className="underline" href={e.sourceUrl} target="_blank" rel="noreferrer">
+                            {e.sourceUrl}
+                          </a>
+                        </div>
+                      ) : null}
+
+                      {e.storageRef ? (
+                        <div className="text-xs text-gray-500">Storage: {e.storageRef}</div>
+                      ) : null}
                     </div>
 
-                    <div className="mt-4 rounded-xl border border-gray-200 bg-gray-50 p-4">
-                      {linkedList.length === 0 ? (
-                        <div className="text-sm text-gray-600">None</div>
-                      ) : (
-                        <div className="space-y-3">
-                          {linkedList.map((f) => (
-                            <div key={f.findingId} className="flex items-start justify-between gap-3">
-                              <div className="min-w-0">
-                                <div className="flex flex-wrap items-center gap-2">
-                                  <div className="text-sm font-medium text-gray-900">
-                                    {f.controlId || "Control"} — {f.controlTitle || "(no title)"}
-                                  </div>
-                                  <span className={cx("inline-flex items-center rounded-full border px-2 py-0.5 text-xs", pillClass(f.result || ""))}>
-                                    {(f.result || "unknown").toLowerCase()}
-                                  </span>
-                                  {f.severity ? <span className="text-xs text-gray-600">{(f.severity || "").toLowerCase()}</span> : null}
-                                </div>
-
-                                {f.rationale ? <div className="mt-1 text-xs text-gray-600">{f.rationale}</div> : null}
-                                <div className="mt-1 text-xs text-gray-500 font-mono break-all">{f.findingId}</div>
-                              </div>
-
-                              <button
-                                onClick={() => removeLink(f.findingId, ev.evidenceId)}
-                                disabled={linkBusy}
-                                className={cx(
-                                  "inline-flex items-center justify-center rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs shadow-sm",
-                                  linkBusy ? "text-gray-400" : "hover:bg-gray-50"
-                                )}
-                              >
-                                Remove
-                              </button>
-                            </div>
-                          ))}
-                        </div>
-                      )}
+                    <div className="text-right">
+                      <div className="text-[11px] text-gray-500">LINKED FINDINGS</div>
+                      <div className="text-lg font-semibold">{linkedIds.length}</div>
                     </div>
                   </div>
-                );
-              })}
-            </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs text-gray-600 mb-1">Style</label>
+                      <select
+                        className="w-full border rounded px-2 py-2 text-sm"
+                        value={style}
+                        onChange={(ev) =>
+                          setSummaryStyleByEvidenceId((prev) => ({
+                            ...prev,
+                            [e.evidenceId]: ev.target.value,
+                          }))
+                        }
+                        disabled={!!bulkRunning}
+                      >
+                        <option value="bullets">bullets</option>
+                        <option value="short">short</option>
+                        <option value="detailed">detailed</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs text-gray-600 mb-1">Model</label>
+                      <input
+                        className="w-full border rounded px-2 py-2 text-sm"
+                        value={model}
+                        onChange={(ev) =>
+                          setSummaryModelByEvidenceId((prev) => ({
+                            ...prev,
+                            [e.evidenceId]: ev.target.value,
+                          }))
+                        }
+                        placeholder="snowflake-arctic"
+                        disabled={!!bulkRunning}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <button
+                      onClick={() => runAiSummary(e.evidenceId, { force: false })}
+                      className="px-3 py-1 border rounded text-sm bg-white hover:bg-gray-50"
+                      disabled={summaryLoadingId === e.evidenceId || !!bulkRunning}
+                    >
+                      {summaryLoadingId === e.evidenceId ? "Generating..." : "AI Summary"}
+                    </button>
+
+                    <button
+                      onClick={() => runAiSummary(e.evidenceId, { force: true })}
+                      className="px-3 py-1 border rounded text-sm bg-white hover:bg-gray-50"
+                      disabled={summaryLoadingId === e.evidenceId || !!bulkRunning}
+                      title="Force regenerate and persist"
+                    >
+                      Regenerate
+                    </button>
+
+                    <div className="text-xs text-gray-500">
+                      Powered by Snowflake Cortex (fallback available)
+                    </div>
+
+                    <div className="text-xs text-gray-500">
+                      {stored?.summary ? "• Stored summary found" : "• No stored summary found"}
+                    </div>
+                  </div>
+
+                  {summaryErrByEvidenceId[e.evidenceId] ? (
+                    <div className="border border-red-300 bg-red-50 text-red-700 rounded p-2 text-sm">
+                      {summaryErrByEvidenceId[e.evidenceId]}
+                    </div>
+                  ) : null}
+
+                  <div className="border rounded p-3 bg-gray-50 text-sm whitespace-pre-wrap">
+                    {displayedSummary || "None"}
+                  </div>
+
+                  <div className="space-y-2">
+                    {linkedIds.length === 0 ? (
+                      <div className="text-sm text-gray-600">None</div>
+                    ) : (
+                      linkedIds.map((fid) => {
+                        const f = findingById(fid);
+                        return (
+                          <div
+                            key={`${fid}-${e.evidenceId}`}
+                            className="flex items-center justify-between gap-2 border rounded p-2"
+                          >
+                            <div className="text-sm">
+                              <span className="font-semibold">{f?.title || fid}</span>{" "}
+                              {f?.decision ? (
+                                <span
+                                  className={clsx(
+                                    "ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs",
+                                    f.decision === "pass"
+                                      ? "bg-green-100 text-green-800"
+                                      : f.decision === "fail"
+                                      ? "bg-red-100 text-red-800"
+                                      : "bg-gray-100 text-gray-800"
+                                  )}
+                                >
+                                  {f.decision}
+                                </span>
+                              ) : null}
+                              {f?.severity ? (
+                                <span className="ml-2 text-xs text-gray-600">{f.severity}</span>
+                              ) : null}
+                              <div className="text-xs text-gray-500">{fid}</div>
+                            </div>
+
+                            <button
+                              className="px-3 py-1 border rounded text-sm bg-white hover:bg-gray-50"
+                              onClick={() => removeLink(fid, e.evidenceId)}
+                              disabled={!!bulkRunning}
+                            >
+                              Remove
+                            </button>
+                          </div>
+                        );
+                      })
+                    )}
+                  </div>
+                </div>
+              );
+            })
           )}
-
-          <div className="border-t border-gray-200 px-5 py-4">
-            <button onClick={() => setShowDebug((s) => !s)} className="text-sm underline text-gray-700 hover:text-gray-900">
-              {showDebug ? "Hide" : "Show"} debug payloads
-            </button>
-
-            {showDebug && (
-              <pre className="mt-3 max-h-[420px] overflow-auto rounded-xl border border-gray-200 bg-gray-50 p-4 text-xs text-gray-800 whitespace-pre-wrap">
-                {JSON.stringify(debugPayloads, null, 2)}
-              </pre>
-            )}
-          </div>
         </div>
       </div>
     </div>
