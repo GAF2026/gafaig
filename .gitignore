@@ -40,5 +40,9 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# Local logssnowflake.log
+# Local logs
+snowflake.log
+*.log
 
+# Local scratch
+gafaig_diff.txt

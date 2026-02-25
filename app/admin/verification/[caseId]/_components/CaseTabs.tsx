@@ -1,52 +1,52 @@
+// app/admin/verification/[caseId]/_components/CaseTabs.tsx
+"use client";
+
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
-type TabKey =
-  | "overview"
-  | "evidence"
-  | "findings"
-  | "assignments"
-  | "events"
-  | "decision"
-  | "status";
+function cx(...classes: Array<string | false | null | undefined>) {
+  return classes.filter(Boolean).join(" ");
+}
 
-export default function CaseTabs({
-  caseId,
-  active,
-}: {
-  caseId: string;
-  active?: TabKey;
-}) {
-  const base = `/admin/verification/${encodeURIComponent(caseId)}`;
+type Tab = { label: string; href: string };
 
-  const tabs: { key: TabKey; label: string; href: string }[] = [
-    { key: "overview", label: "Overview", href: `${base}` },
-    { key: "evidence", label: "Evidence", href: `${base}/evidence` },
-    { key: "findings", label: "Findings", href: `${base}/findings` },
-    { key: "assignments", label: "Assignments", href: `${base}/assignments` },
-    { key: "events", label: "Events", href: `${base}/events` },
-    { key: "decision", label: "Decision", href: `${base}/decisions` },
-    { key: "status", label: "Status", href: `${base}/status` },
+export default function CaseTabs({ caseId }: { caseId: string }) {
+  const pathname = usePathname() || "";
+  const base = `/admin/verification/${caseId}`;
+
+  const tabs: Tab[] = [
+    { label: "Overview", href: base },
+    { label: "Status", href: `${base}/status` },
+    { label: "Evidence", href: `${base}/evidence` },
+    { label: "Findings", href: `${base}/findings` },
+    { label: "Decisions", href: `${base}/decisions` },
+    { label: "Events", href: `${base}/events` },
+    { label: "Assignments", href: `${base}/assignments` },
+    { label: "Score", href: `${base}/score` }, // ✅ new
   ];
 
   return (
-    <div className="flex flex-wrap gap-2">
-      {tabs.map((t) => {
-        const isActive = active === t.key;
-        return (
-          <Link
-            key={t.key}
-            href={t.href}
-            className={[
-              "px-4 py-2 rounded-full text-sm font-semibold border",
-              isActive
-                ? "border-black bg-black text-white"
-                : "border-black/15 bg-white text-black hover:bg-black/[0.04] hover:border-black/25",
-            ].join(" ")}
-          >
-            {t.label}
-          </Link>
-        );
-      })}
+    <div className="border-b">
+      <div className="flex flex-wrap gap-2 py-3">
+        {tabs.map((t) => {
+          const active =
+            pathname === t.href || (t.href !== base && pathname.startsWith(t.href));
+          return (
+            <Link
+              key={t.href}
+              href={t.href}
+              className={cx(
+                "rounded-md px-3 py-1.5 text-sm transition",
+                active
+                  ? "bg-black text-white"
+                  : "bg-neutral-100 text-neutral-800 hover:bg-neutral-200"
+              )}
+            >
+              {t.label}
+            </Link>
+          );
+        })}
+      </div>
     </div>
   );
 }
