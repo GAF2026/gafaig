@@ -1,95 +1,119 @@
 // lib/snowflake.ts
-// Server-only helper. Returns ARRAYS for compatibility with existing routes.
+import snowflake from "snowflake-sdk";
 
-import "server-only";
+// IMPORTANT: Next.js App Router API routes run on Node runtime for snowflake-sdk.
+// This file must only be used from Node runtime route handlers.
 
-export type SnowflakeQueryResult<Row = any> = {
-  ok: boolean;
-  rows: Row[];
-  error?: string;
+type SfEnv = {
+  account: string;
+  username: string;
+  password: string;
+  warehouse?: string;
+  database?: string;
+  schema?: string;
+  role?: string;
 };
 
-/**
- * Low-level helper that returns { ok, rows, error }.
- */
-export async function sfQueryResult<Row = any>(
-  sql: string,
-  binds: any[] = []
-): Promise<SnowflakeQueryResult<Row>> {
-  try {
-    const endpoint = process.env.SNOWFLAKE_QUERY_ENDPOINT;
-
-    // Build must still succeed even if Snowflake isn't configured.
-    if (!endpoint) {
-      return {
-        ok: false,
-        rows: [],
-        error:
-          "SNOWFLAKE_QUERY_ENDPOINT is not set (Snowflake not configured).",
-      };
-    }
-
-    const r = await fetch(endpoint, {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ sql, binds }),
-      cache: "no-store",
-    });
-
-    if (!r.ok) {
-      const text = await r.text().catch(() => "");
-      return {
-        ok: false,
-        rows: [],
-        error: `Snowflake query failed (${r.status}): ${text}`,
-      };
-    }
-
-    const data = (await r.json()) as any;
-    const rows = (data?.rows ?? []) as Row[];
-
-    return { ok: true, rows };
-  } catch (e: any) {
-    return {
-      ok: false,
-      rows: [],
-      error: e?.message || "Unknown Snowflake error",
-    };
+function getEnv(name: string, required = true): string | undefined {
+  const v = process.env[name];
+  if (required && (!v || !v.trim())) {
+    throw new Error(`Missing required env var: ${name}`);
   }
+  return v?.trim();
+}
+
+function getSnowflakeEnv(): SfEnv {
+  return {
+    account: getEnv("SNOWFLAKE_ACCOUNT")!,
+    username: getEnv("SNOWFLAKE_USERNAME")!,
+    password: getEnv("SNOWFLAKE_PASSWORD")!,
+    warehouse: getEnv("SNOWFLAKE_WAREHOUSE", false),
+    database: getEnv("SNOWFLAKE_DATABASE", false),
+    schema: getEnv("SNOWFLAKE_SCHEMA", false),
+    role: getEnv("SNOWFLAKE_ROLE", false),
+  };
+}
+
+type QueryResult<T = any> = {
+  rows: T[];
+  statement?: any;
+};
+
+declare global {
+  // eslint-disable-next-line no-var
+  var __gafaig_sf_conn_ready__: Promise<snowflake.Connection> | undefined;
 }
 
 /**
- * Primary helper used by most routes:
- * ✅ returns Row[] so routes can do rows[0], rows.length, etc.
+ * Creates (and reuses) a single Snowflake connection across hot reloads.
  */
-export async function sfQuery<Row = any>(
-  sql: string,
-  binds: any[] = []
-): Promise<Row[]> {
-  const result = await sfQueryResult<Row>(sql, binds);
-  return Array.isArray(result?.rows) ? result.rows : [];
+async function connectOnce(): Promise<snowflake.Connection> {
+  if (global.__gafaig_sf_conn_ready__) return global.__gafaig_sf_conn_ready__;
+
+  global.__gafaig_sf_conn_ready__ = new Promise((resolve, reject) => {
+    try {
+      const env = getSnowflakeEnv();
+
+      const conn = snowflake.createConnection({
+        account: env.account,
+        username: env.username,
+        password: env.password,
+        warehouse: env.warehouse,
+        database: env.database,
+        schema: env.schema,
+        role: env.role,
+      });
+
+      conn.connect((err) => {
+        if (err) return reject(err);
+        resolve(conn);
+      });
+    } catch (e) {
+      reject(e);
+    }
+  });
+
+  return global.__gafaig_sf_conn_ready__;
 }
 
 /**
- * Backwards-compatible exports used throughout your API routes.
- * ✅ These return Promise<Row[]> (arrays) — never SnowflakeQueryResult.
- * ✅ Properly generic so TypeScript does not lose the Row type.
+ * The canonical query helper used everywhere:
+ *   import { sfQuery } from "@/lib/snowflake";
  */
-
-export const executeQuery = async <Row = any>(
-  sql: string,
+export async function sfQuery<T = any>(
+  sqlText: string,
   binds: any[] = []
-): Promise<Row[]> => {
-  return sfQuery<Row>(sql, binds);
-};
+): Promise<QueryResult<T>> {
+  const conn = await connectOnce();
 
-export const querySnowflake = async <Row = any>(
-  sql: string,
-  binds: any[] = []
-): Promise<Row[]> => {
-  return sfQuery<Row>(sql, binds);
-};
+  return await new Promise<QueryResult<T>>((resolve, reject) => {
+    conn.execute({
+      sqlText,
+      binds,
+      complete: (err, stmt, rows) => {
+        if (err) return reject(err);
+        resolve({ rows: (rows ?? []) as T[], statement: stmt });
+      },
+    });
+  });
+}
 
-// Optional aliases (safe)
-export const query = executeQuery;
-export const snowflakeQuery = executeQuery;
+/**
+ * Back-compat aliases to stop import errors in older routes.
+ * (Safe to keep even if you later migrate everything to sfQuery.)
+ */
+export const executeQuery = sfQuery;
+
+/**
+ * Small helper that returns the current Snowflake session context.
+ */
+export async function snowflakeCtx(): Promise<{ u: string; r: string }> {
+  const { rows } = await sfQuery<{ U: string; R: string }>(
+    `SELECT CURRENT_USER() AS U, CURRENT_ROLE() AS R`
+  );
+  const first = rows?.[0];
+  return {
+    u: first?.U ?? "UNKNOWN_USER",
+    r: first?.R ?? "UNKNOWN_ROLE",
+  };
+}

@@ -4256,3 +4256,521 @@
 {"level":"INFO","message":"[10:10:38.076 AM]: Connection[id: 9997ff72-7dfa-4974-866d-c15e6f21c585] - connecting. Associated Snowflake domain: GLOBAL"}
 {"level":"INFO","message":"[10:10:38.079 AM]: Connection[id: 9997ff72-7dfa-4974-866d-c15e6f21c585] - authentication successful using: SNOWFLAKE"}
 {"level":"INFO","message":"[10:10:39.460 AM]: Connection[id: 9997ff72-7dfa-4974-866d-c15e6f21c585] - connection established successfully after 1384.57 milliseconds"}
+{"level":"INFO","message":"[4:56:15.847 AM]: Creating new connection object"}
+{"level":"INFO","message":"[4:56:15.873 AM]: Creating Connection[id: c48fd8af-0015-4eee-b43b-b2182f2c6626] with host: duglhtd-cm14952.snowflakecomputing.com, account: duglhtd-cm14952, accessUrl: https://duglhtd-cm14952.snowflakecomputing.com, user: GAFAIG_APP_USER, role: undefined, database: GAFAIG_DB, schema: CORE, warehouse: GAFAIG_WH, proxy was not configured, password is not provided, region: undefined, authenticator: SNOWFLAKE_JWT, ocsp mode: FAIL_OPEN, os: win32, os version: 10.0.26200"}
+{"level":"INFO","message":"[4:56:15.874 AM]: Connection[id: c48fd8af-0015-4eee-b43b-b2182f2c6626] additional details: passcode in password is provided, passcode is not provided, private key is provided, application: undefined, client name: snowflake-sdk, client version: 2.3.4, retry timeout: 300, private key path: undefined, private key pass is not provided, client store temporary credential: false, browser response timeout: 120000"}
+{"level":"INFO","message":"[4:56:15.875 AM]: Connection[id: c48fd8af-0015-4eee-b43b-b2182f2c6626] - connection object created successfully."}
+{"level":"INFO","message":"[4:56:15.875 AM]: Connection[id: c48fd8af-0015-4eee-b43b-b2182f2c6626] - connecting. Associated Snowflake domain: GLOBAL"}
+{"level":"INFO","message":"[4:56:15.882 AM]: Connection[id: c48fd8af-0015-4eee-b43b-b2182f2c6626] - authentication successful using: SNOWFLAKE_JWT"}
+{"level":"INFO","message":"[4:56:15.883 AM]: Trying to initialize Easy Logging"}
+{"level":"INFO","message":"[4:56:15.885 AM]: No client config detected."}
+{"level":"INFO","message":"[4:56:15.886 AM]: No config file path found. Client config will not be used."}
+{"level":"INFO","message":"[4:56:15.886 AM]: Easy Logging is disabled as no config has been found"}
+{"level":"INFO","message":"[4:56:17.093 AM]: Connection[id: c48fd8af-0015-4eee-b43b-b2182f2c6626] - connection established successfully after 1218 milliseconds"}
+{"level":"INFO","message":"[4:57:00.606 AM]: Creating new connection object"}
+{"level":"INFO","message":"[4:57:00.608 AM]: Creating Connection[id: 0478c025-594e-45d6-89f9-fd5e4ea5acd6] with host: duglhtd-cm14952.snowflakecomputing.com, account: duglhtd-cm14952, accessUrl: https://duglhtd-cm14952.snowflakecomputing.com, user: GAFAIG_APP_USER, role: undefined, database: GAFAIG_DB, schema: CORE, warehouse: GAFAIG_WH, proxy was not configured, password is not provided, region: undefined, authenticator: SNOWFLAKE_JWT, ocsp mode: FAIL_OPEN, os: win32, os version: 10.0.26200"}
+{"level":"INFO","message":"[4:57:00.608 AM]: Connection[id: 0478c025-594e-45d6-89f9-fd5e4ea5acd6] additional details: passcode in password is provided, passcode is not provided, private key is provided, application: undefined, client name: snowflake-sdk, client version: 2.3.4, retry timeout: 300, private key path: undefined, private key pass is not provided, client store temporary credential: false, browser response timeout: 120000"}
+{"level":"INFO","message":"[4:57:00.609 AM]: Connection[id: 0478c025-594e-45d6-89f9-fd5e4ea5acd6] - connection object created successfully."}
+{"level":"INFO","message":"[4:57:00.609 AM]: Connection[id: 0478c025-594e-45d6-89f9-fd5e4ea5acd6] - connecting. Associated Snowflake domain: GLOBAL"}
+{"level":"INFO","message":"[4:57:00.614 AM]: Connection[id: 0478c025-594e-45d6-89f9-fd5e4ea5acd6] - authentication successful using: SNOWFLAKE_JWT"}
+{"level":"INFO","message":"[4:57:00.728 AM]: Connection[id: 0478c025-594e-45d6-89f9-fd5e4ea5acd6] - connection established successfully after 118.36 milliseconds"}
+{"level":"INFO","message":"[5:21:07.070 AM]: Creating new connection object"}
+{"level":"INFO","message":"[5:21:07.072 AM]: Creating Connection[id: e0fe8882-91f4-4e66-a657-64b56ebb493a] with host: duglhtd-cm14952.snowflakecomputing.com, account: duglhtd-cm14952, accessUrl: https://duglhtd-cm14952.snowflakecomputing.com, user: GAFAIG_APP_USER, role: undefined, database: GAFAIG_DB, schema: CORE, warehouse: GAFAIG_WH, proxy was not configured, password is not provided, region: undefined, authenticator: SNOWFLAKE_JWT, ocsp mode: FAIL_OPEN, os: win32, os version: 10.0.26200"}
+{"level":"INFO","message":"[5:21:07.073 AM]: Connection[id: e0fe8882-91f4-4e66-a657-64b56ebb493a] additional details: passcode in password is provided, passcode is not provided, private key is provided, application: undefined, client name: snowflake-sdk, client version: 2.3.4, retry timeout: 300, private key path: undefined, private key pass is not provided, client store temporary credential: false, browser response timeout: 120000"}
+{"level":"INFO","message":"[5:21:07.073 AM]: Connection[id: e0fe8882-91f4-4e66-a657-64b56ebb493a] - connection object created successfully."}
+{"level":"INFO","message":"[5:21:07.073 AM]: Connection[id: e0fe8882-91f4-4e66-a657-64b56ebb493a] - connecting. Associated Snowflake domain: GLOBAL"}
+{"level":"INFO","message":"[5:21:07.077 AM]: Connection[id: e0fe8882-91f4-4e66-a657-64b56ebb493a] - authentication successful using: SNOWFLAKE_JWT"}
+{"level":"INFO","message":"[5:21:07.522 AM]: Connection[id: e0fe8882-91f4-4e66-a657-64b56ebb493a] - connection established successfully after 448.56 milliseconds"}
+{"level":"INFO","message":"[12:13:55.250 PM]: Creating new connection object"}
+{"level":"INFO","message":"[12:13:55.255 PM]: Creating Connection[id: 3c6235df-f867-4241-867e-b19a99e1e9a2] with host: duglhtd-cm14952.snowflakecomputing.com, account: duglhtd-cm14952, accessUrl: https://duglhtd-cm14952.snowflakecomputing.com, user: GAFAIG_APP_USER, role: undefined, database: GAFAIG_DB, schema: CORE, warehouse: GAFAIG_WH, proxy was not configured, password is not provided, region: undefined, authenticator: SNOWFLAKE_JWT, ocsp mode: FAIL_OPEN, os: win32, os version: 10.0.26200"}
+{"level":"INFO","message":"[12:13:55.255 PM]: Connection[id: 3c6235df-f867-4241-867e-b19a99e1e9a2] additional details: passcode in password is provided, passcode is not provided, private key is provided, application: undefined, client name: snowflake-sdk, client version: 2.3.4, retry timeout: 300, private key path: undefined, private key pass is not provided, client store temporary credential: false, browser response timeout: 120000"}
+{"level":"INFO","message":"[12:13:55.256 PM]: Connection[id: 3c6235df-f867-4241-867e-b19a99e1e9a2] - connection object created successfully."}
+{"level":"INFO","message":"[12:13:55.256 PM]: Connection[id: 3c6235df-f867-4241-867e-b19a99e1e9a2] - connecting. Associated Snowflake domain: GLOBAL"}
+{"level":"INFO","message":"[12:13:55.259 PM]: Connection[id: 3c6235df-f867-4241-867e-b19a99e1e9a2] - authentication successful using: SNOWFLAKE_JWT"}
+{"level":"INFO","message":"[12:13:56.700 PM]: Connection[id: 3c6235df-f867-4241-867e-b19a99e1e9a2] - connection established successfully after 1444.2 milliseconds"}
+{"level":"INFO","message":"[1:44:47.309 PM]: Creating new connection object"}
+{"level":"INFO","message":"[1:44:47.311 PM]: Creating Connection[id: 09ad9200-636c-446c-9e65-3ab3d4697652] with host: duglhtd-cm14952.snowflakecomputing.com, account: duglhtd-cm14952, accessUrl: https://duglhtd-cm14952.snowflakecomputing.com, user: GAFAIG_APP_USER, role: undefined, database: GAFAIG_DB, schema: CORE, warehouse: GAFAIG_WH, proxy was not configured, password is not provided, region: undefined, authenticator: SNOWFLAKE_JWT, ocsp mode: FAIL_OPEN, os: win32, os version: 10.0.26200"}
+{"level":"INFO","message":"[1:44:47.311 PM]: Connection[id: 09ad9200-636c-446c-9e65-3ab3d4697652] additional details: passcode in password is provided, passcode is not provided, private key is provided, application: undefined, client name: snowflake-sdk, client version: 2.3.4, retry timeout: 300, private key path: undefined, private key pass is not provided, client store temporary credential: false, browser response timeout: 120000"}
+{"level":"INFO","message":"[1:44:47.312 PM]: Connection[id: 09ad9200-636c-446c-9e65-3ab3d4697652] - connection object created successfully."}
+{"level":"INFO","message":"[1:44:47.312 PM]: Connection[id: 09ad9200-636c-446c-9e65-3ab3d4697652] - connecting. Associated Snowflake domain: GLOBAL"}
+{"level":"INFO","message":"[1:44:47.319 PM]: Connection[id: 09ad9200-636c-446c-9e65-3ab3d4697652] - authentication successful using: SNOWFLAKE_JWT"}
+{"level":"INFO","message":"[1:44:47.739 PM]: Connection[id: 09ad9200-636c-446c-9e65-3ab3d4697652] - connection established successfully after 427.06 milliseconds"}
+{"level":"INFO","message":"[2:30:08.402 PM]: Creating new connection object"}
+{"level":"INFO","message":"[2:30:08.405 PM]: Creating Connection[id: e90a2cb4-b2f5-4485-9d2b-7e9557994eaa] with host: duglhtd-cm14952.snowflakecomputing.com, account: duglhtd-cm14952, accessUrl: https://duglhtd-cm14952.snowflakecomputing.com, user: GAFAIG_APP_USER, role: undefined, database: GAFAIG_DB, schema: CORE, warehouse: GAFAIG_WH, proxy was not configured, password is not provided, region: undefined, authenticator: SNOWFLAKE_JWT, ocsp mode: FAIL_OPEN, os: win32, os version: 10.0.26200"}
+{"level":"INFO","message":"[2:30:08.405 PM]: Connection[id: e90a2cb4-b2f5-4485-9d2b-7e9557994eaa] additional details: passcode in password is provided, passcode is not provided, private key is provided, application: undefined, client name: snowflake-sdk, client version: 2.3.4, retry timeout: 300, private key path: undefined, private key pass is not provided, client store temporary credential: false, browser response timeout: 120000"}
+{"level":"INFO","message":"[2:30:08.405 PM]: Connection[id: e90a2cb4-b2f5-4485-9d2b-7e9557994eaa] - connection object created successfully."}
+{"level":"INFO","message":"[2:30:08.406 PM]: Connection[id: e90a2cb4-b2f5-4485-9d2b-7e9557994eaa] - connecting. Associated Snowflake domain: GLOBAL"}
+{"level":"INFO","message":"[2:30:08.410 PM]: Connection[id: e90a2cb4-b2f5-4485-9d2b-7e9557994eaa] - authentication successful using: SNOWFLAKE_JWT"}
+{"level":"INFO","message":"[2:30:08.780 PM]: Connection[id: e90a2cb4-b2f5-4485-9d2b-7e9557994eaa] - connection established successfully after 373.77 milliseconds"}
+{"level":"INFO","message":"[4:55:05.114 PM]: Creating new connection object"}
+{"level":"INFO","message":"[4:55:05.134 PM]: Creating Connection[id: fc29b660-7c20-4d6a-a366-0c8820c68804] with host: duglhtd-cm14952.snowflakecomputing.com, account: duglhtd-cm14952, accessUrl: https://duglhtd-cm14952.snowflakecomputing.com, user: GAFAIG_APP_USER, role: undefined, database: GAFAIG_DB, schema: CORE, warehouse: GAFAIG_WH, proxy was not configured, password is not provided, region: undefined, authenticator: SNOWFLAKE_JWT, ocsp mode: FAIL_OPEN, os: win32, os version: 10.0.26200"}
+{"level":"INFO","message":"[4:55:05.136 PM]: Connection[id: fc29b660-7c20-4d6a-a366-0c8820c68804] additional details: passcode in password is provided, passcode is not provided, private key is provided, application: undefined, client name: snowflake-sdk, client version: 2.3.4, retry timeout: 300, private key path: undefined, private key pass is not provided, client store temporary credential: false, browser response timeout: 120000"}
+{"level":"INFO","message":"[4:55:05.138 PM]: Connection[id: fc29b660-7c20-4d6a-a366-0c8820c68804] - connection object created successfully."}
+{"level":"INFO","message":"[4:55:05.139 PM]: Connection[id: fc29b660-7c20-4d6a-a366-0c8820c68804] - connecting. Associated Snowflake domain: GLOBAL"}
+{"level":"INFO","message":"[4:55:05.159 PM]: Connection[id: fc29b660-7c20-4d6a-a366-0c8820c68804] - authentication successful using: SNOWFLAKE_JWT"}
+{"level":"INFO","message":"[4:55:05.161 PM]: Trying to initialize Easy Logging"}
+{"level":"INFO","message":"[4:55:05.165 PM]: No client config detected."}
+{"level":"INFO","message":"[4:55:05.166 PM]: No config file path found. Client config will not be used."}
+{"level":"INFO","message":"[4:55:05.167 PM]: Easy Logging is disabled as no config has been found"}
+{"level":"INFO","message":"[4:55:06.059 PM]: Connection[id: fc29b660-7c20-4d6a-a366-0c8820c68804] - connection established successfully after 919.55 milliseconds"}
+{"level":"INFO","message":"[4:56:21.159 PM]: Creating new connection object"}
+{"level":"INFO","message":"[4:56:21.163 PM]: Creating Connection[id: f4298f3c-116a-406d-89bf-a36c253fe065] with host: duglhtd-cm14952.snowflakecomputing.com, account: duglhtd-cm14952, accessUrl: https://duglhtd-cm14952.snowflakecomputing.com, user: GAFAIG_APP_USER, role: undefined, database: GAFAIG_DB, schema: CORE, warehouse: GAFAIG_WH, proxy was not configured, password is not provided, region: undefined, authenticator: SNOWFLAKE_JWT, ocsp mode: FAIL_OPEN, os: win32, os version: 10.0.26200"}
+{"level":"INFO","message":"[4:56:21.165 PM]: Connection[id: f4298f3c-116a-406d-89bf-a36c253fe065] additional details: passcode in password is provided, passcode is not provided, private key is provided, application: undefined, client name: snowflake-sdk, client version: 2.3.4, retry timeout: 300, private key path: undefined, private key pass is not provided, client store temporary credential: false, browser response timeout: 120000"}
+{"level":"INFO","message":"[4:56:21.167 PM]: Connection[id: f4298f3c-116a-406d-89bf-a36c253fe065] - connection object created successfully."}
+{"level":"INFO","message":"[4:56:21.168 PM]: Connection[id: f4298f3c-116a-406d-89bf-a36c253fe065] - connecting. Associated Snowflake domain: GLOBAL"}
+{"level":"INFO","message":"[4:56:21.185 PM]: Connection[id: f4298f3c-116a-406d-89bf-a36c253fe065] - authentication successful using: SNOWFLAKE_JWT"}
+{"level":"INFO","message":"[4:56:21.421 PM]: Connection[id: f4298f3c-116a-406d-89bf-a36c253fe065] - connection established successfully after 253.12 milliseconds"}
+{"level":"INFO","message":"[5:16:56.474 PM]: Creating new connection object"}
+{"level":"INFO","message":"[5:16:56.494 PM]: Creating Connection[id: 48581cf8-291c-4566-b3dd-5d006e8e568f] with host: duglhtd-cm14952.snowflakecomputing.com, account: duglhtd-cm14952, accessUrl: https://duglhtd-cm14952.snowflakecomputing.com, user: GAFAIG_APP_USER, role: undefined, database: GAFAIG_DB, schema: CORE, warehouse: GAFAIG_WH, proxy was not configured, password is not provided, region: undefined, authenticator: SNOWFLAKE_JWT, ocsp mode: FAIL_OPEN, os: win32, os version: 10.0.26200"}
+{"level":"INFO","message":"[5:16:56.498 PM]: Connection[id: 48581cf8-291c-4566-b3dd-5d006e8e568f] additional details: passcode in password is provided, passcode is not provided, private key is provided, application: undefined, client name: snowflake-sdk, client version: 2.3.4, retry timeout: 300, private key path: undefined, private key pass is not provided, client store temporary credential: false, browser response timeout: 120000"}
+{"level":"INFO","message":"[5:16:56.500 PM]: Connection[id: 48581cf8-291c-4566-b3dd-5d006e8e568f] - connection object created successfully."}
+{"level":"INFO","message":"[5:16:56.501 PM]: Connection[id: 48581cf8-291c-4566-b3dd-5d006e8e568f] - connecting. Associated Snowflake domain: GLOBAL"}
+{"level":"INFO","message":"[5:16:56.572 PM]: Connection[id: 48581cf8-291c-4566-b3dd-5d006e8e568f] - authentication successful using: SNOWFLAKE_JWT"}
+{"level":"INFO","message":"[5:16:56.578 PM]: Trying to initialize Easy Logging"}
+{"level":"INFO","message":"[5:16:56.611 PM]: No client config detected."}
+{"level":"INFO","message":"[5:16:56.621 PM]: No config file path found. Client config will not be used."}
+{"level":"INFO","message":"[5:16:56.630 PM]: Easy Logging is disabled as no config has been found"}
+{"level":"INFO","message":"[5:16:58.826 PM]: Connection[id: 48581cf8-291c-4566-b3dd-5d006e8e568f] - connection established successfully after 2324.82 milliseconds"}
+{"level":"INFO","message":"[5:18:43.972 PM]: Creating new connection object"}
+{"level":"INFO","message":"[5:18:43.976 PM]: Creating Connection[id: 12b37271-1acb-4318-9a2f-51c3df16d8aa] with host: duglhtd-cm14952.snowflakecomputing.com, account: duglhtd-cm14952, accessUrl: https://duglhtd-cm14952.snowflakecomputing.com, user: GAFAIG_APP_USER, role: undefined, database: GAFAIG_DB, schema: CORE, warehouse: GAFAIG_WH, proxy was not configured, password is not provided, region: undefined, authenticator: SNOWFLAKE_JWT, ocsp mode: FAIL_OPEN, os: win32, os version: 10.0.26200"}
+{"level":"INFO","message":"[5:18:43.979 PM]: Connection[id: 12b37271-1acb-4318-9a2f-51c3df16d8aa] additional details: passcode in password is provided, passcode is not provided, private key is provided, application: undefined, client name: snowflake-sdk, client version: 2.3.4, retry timeout: 300, private key path: undefined, private key pass is not provided, client store temporary credential: false, browser response timeout: 120000"}
+{"level":"INFO","message":"[5:18:43.979 PM]: Connection[id: 12b37271-1acb-4318-9a2f-51c3df16d8aa] - connection object created successfully."}
+{"level":"INFO","message":"[5:18:43.981 PM]: Connection[id: 12b37271-1acb-4318-9a2f-51c3df16d8aa] - connecting. Associated Snowflake domain: GLOBAL"}
+{"level":"INFO","message":"[5:18:43.995 PM]: Connection[id: 12b37271-1acb-4318-9a2f-51c3df16d8aa] - authentication successful using: SNOWFLAKE_JWT"}
+{"level":"INFO","message":"[5:18:44.147 PM]: Connection[id: 12b37271-1acb-4318-9a2f-51c3df16d8aa] - connection established successfully after 166.16 milliseconds"}
+{"level":"INFO","message":"[8:59:37.031 PM]: Creating new connection object"}
+{"level":"INFO","message":"[8:59:37.034 PM]: Creating Connection[id: 68e7221b-e3cd-4534-a41a-500f4a6e694f] with host: duglhtd-cm14952.snowflakecomputing.com, account: duglhtd-cm14952, accessUrl: https://duglhtd-cm14952.snowflakecomputing.com, user: GAFAIG_APP_USER, role: undefined, database: GAFAIG_DB, schema: CORE, warehouse: GAFAIG_WH, proxy was not configured, password is not provided, region: undefined, authenticator: SNOWFLAKE_JWT, ocsp mode: FAIL_OPEN, os: win32, os version: 10.0.26200"}
+{"level":"INFO","message":"[8:59:37.035 PM]: Connection[id: 68e7221b-e3cd-4534-a41a-500f4a6e694f] additional details: passcode in password is provided, passcode is not provided, private key is provided, application: undefined, client name: snowflake-sdk, client version: 2.3.4, retry timeout: 300, private key path: undefined, private key pass is not provided, client store temporary credential: false, browser response timeout: 120000"}
+{"level":"INFO","message":"[8:59:37.036 PM]: Connection[id: 68e7221b-e3cd-4534-a41a-500f4a6e694f] - connection object created successfully."}
+{"level":"INFO","message":"[8:59:37.036 PM]: Connection[id: 68e7221b-e3cd-4534-a41a-500f4a6e694f] - connecting. Associated Snowflake domain: GLOBAL"}
+{"level":"INFO","message":"[8:59:37.045 PM]: Connection[id: 68e7221b-e3cd-4534-a41a-500f4a6e694f] - authentication successful using: SNOWFLAKE_JWT"}
+{"level":"INFO","message":"[8:59:37.578 PM]: Connection[id: 68e7221b-e3cd-4534-a41a-500f4a6e694f] - connection established successfully after 541.29 milliseconds"}
+{"level":"INFO","message":"[9:19:46.215 PM]: Creating new connection object"}
+{"level":"INFO","message":"[9:19:46.216 PM]: Creating Connection[id: 89fca4e3-cebc-4cb9-b1eb-29eddbdc1182] with host: duglhtd-cm14952.snowflakecomputing.com, account: duglhtd-cm14952, accessUrl: https://duglhtd-cm14952.snowflakecomputing.com, user: GAFAIG_APP_USER, role: undefined, database: GAFAIG_DB, schema: CORE, warehouse: GAFAIG_WH, proxy was not configured, password is not provided, region: undefined, authenticator: SNOWFLAKE_JWT, ocsp mode: FAIL_OPEN, os: win32, os version: 10.0.26200"}
+{"level":"INFO","message":"[9:19:46.216 PM]: Connection[id: 89fca4e3-cebc-4cb9-b1eb-29eddbdc1182] additional details: passcode in password is provided, passcode is not provided, private key is provided, application: undefined, client name: snowflake-sdk, client version: 2.3.4, retry timeout: 300, private key path: undefined, private key pass is not provided, client store temporary credential: false, browser response timeout: 120000"}
+{"level":"INFO","message":"[9:19:46.217 PM]: Connection[id: 89fca4e3-cebc-4cb9-b1eb-29eddbdc1182] - connection object created successfully."}
+{"level":"INFO","message":"[9:19:46.217 PM]: Connection[id: 89fca4e3-cebc-4cb9-b1eb-29eddbdc1182] - connecting. Associated Snowflake domain: GLOBAL"}
+{"level":"INFO","message":"[9:19:46.218 PM]: Connection[id: 89fca4e3-cebc-4cb9-b1eb-29eddbdc1182] - authentication successful using: SNOWFLAKE_JWT"}
+{"level":"INFO","message":"[9:19:46.698 PM]: Connection[id: 89fca4e3-cebc-4cb9-b1eb-29eddbdc1182] - connection established successfully after 481.29 milliseconds"}
+{"level":"INFO","message":"[9:28:23.530 PM]: Creating new connection object"}
+{"level":"INFO","message":"[9:28:23.532 PM]: Creating Connection[id: 64dd1693-6562-408a-92db-cc59ae8e9a20] with host: duglhtd-cm14952.snowflakecomputing.com, account: duglhtd-cm14952, accessUrl: https://duglhtd-cm14952.snowflakecomputing.com, user: GAFAIG_APP_USER, role: undefined, database: GAFAIG_DB, schema: CORE, warehouse: GAFAIG_WH, proxy was not configured, password is not provided, region: undefined, authenticator: SNOWFLAKE_JWT, ocsp mode: FAIL_OPEN, os: win32, os version: 10.0.26200"}
+{"level":"INFO","message":"[9:28:23.532 PM]: Connection[id: 64dd1693-6562-408a-92db-cc59ae8e9a20] additional details: passcode in password is provided, passcode is not provided, private key is provided, application: undefined, client name: snowflake-sdk, client version: 2.3.4, retry timeout: 300, private key path: undefined, private key pass is not provided, client store temporary credential: false, browser response timeout: 120000"}
+{"level":"INFO","message":"[9:28:23.533 PM]: Connection[id: 64dd1693-6562-408a-92db-cc59ae8e9a20] - connection object created successfully."}
+{"level":"INFO","message":"[9:28:23.533 PM]: Connection[id: 64dd1693-6562-408a-92db-cc59ae8e9a20] - connecting. Associated Snowflake domain: GLOBAL"}
+{"level":"INFO","message":"[9:28:23.537 PM]: Connection[id: 64dd1693-6562-408a-92db-cc59ae8e9a20] - authentication successful using: SNOWFLAKE_JWT"}
+{"level":"INFO","message":"[9:28:23.654 PM]: Connection[id: 64dd1693-6562-408a-92db-cc59ae8e9a20] - connection established successfully after 121.25 milliseconds"}
+{"level":"INFO","message":"[9:30:51.361 PM]: Creating new connection object"}
+{"level":"INFO","message":"[9:30:51.364 PM]: Creating Connection[id: 119c2a60-0f62-407f-92b0-0eed9fd9405b] with host: duglhtd-cm14952.snowflakecomputing.com, account: duglhtd-cm14952, accessUrl: https://duglhtd-cm14952.snowflakecomputing.com, user: GAFAIG_APP_USER, role: undefined, database: GAFAIG_DB, schema: CORE, warehouse: GAFAIG_WH, proxy was not configured, password is not provided, region: undefined, authenticator: SNOWFLAKE_JWT, ocsp mode: FAIL_OPEN, os: win32, os version: 10.0.26200"}
+{"level":"INFO","message":"[9:30:51.365 PM]: Connection[id: 119c2a60-0f62-407f-92b0-0eed9fd9405b] additional details: passcode in password is provided, passcode is not provided, private key is provided, application: undefined, client name: snowflake-sdk, client version: 2.3.4, retry timeout: 300, private key path: undefined, private key pass is not provided, client store temporary credential: false, browser response timeout: 120000"}
+{"level":"INFO","message":"[9:30:51.365 PM]: Connection[id: 119c2a60-0f62-407f-92b0-0eed9fd9405b] - connection object created successfully."}
+{"level":"INFO","message":"[9:30:51.366 PM]: Connection[id: 119c2a60-0f62-407f-92b0-0eed9fd9405b] - connecting. Associated Snowflake domain: GLOBAL"}
+{"level":"INFO","message":"[9:30:51.372 PM]: Connection[id: 119c2a60-0f62-407f-92b0-0eed9fd9405b] - authentication successful using: SNOWFLAKE_JWT"}
+{"level":"INFO","message":"[9:30:52.141 PM]: Connection[id: 119c2a60-0f62-407f-92b0-0eed9fd9405b] - connection established successfully after 775.32 milliseconds"}
+{"level":"INFO","message":"[9:33:13.803 PM]: Creating new connection object"}
+{"level":"INFO","message":"[9:33:13.804 PM]: Creating Connection[id: 6e98bf5e-0f6c-4a8e-b724-b138018c6b77] with host: duglhtd-cm14952.snowflakecomputing.com, account: duglhtd-cm14952, accessUrl: https://duglhtd-cm14952.snowflakecomputing.com, user: GAFAIG_APP_USER, role: undefined, database: GAFAIG_DB, schema: CORE, warehouse: GAFAIG_WH, proxy was not configured, password is not provided, region: undefined, authenticator: SNOWFLAKE_JWT, ocsp mode: FAIL_OPEN, os: win32, os version: 10.0.26200"}
+{"level":"INFO","message":"[9:33:13.804 PM]: Connection[id: 6e98bf5e-0f6c-4a8e-b724-b138018c6b77] additional details: passcode in password is provided, passcode is not provided, private key is provided, application: undefined, client name: snowflake-sdk, client version: 2.3.4, retry timeout: 300, private key path: undefined, private key pass is not provided, client store temporary credential: false, browser response timeout: 120000"}
+{"level":"INFO","message":"[9:33:13.804 PM]: Connection[id: 6e98bf5e-0f6c-4a8e-b724-b138018c6b77] - connection object created successfully."}
+{"level":"INFO","message":"[9:33:13.804 PM]: Connection[id: 6e98bf5e-0f6c-4a8e-b724-b138018c6b77] - connecting. Associated Snowflake domain: GLOBAL"}
+{"level":"INFO","message":"[9:33:13.806 PM]: Connection[id: 6e98bf5e-0f6c-4a8e-b724-b138018c6b77] - authentication successful using: SNOWFLAKE_JWT"}
+{"level":"INFO","message":"[9:33:13.885 PM]: Connection[id: 6e98bf5e-0f6c-4a8e-b724-b138018c6b77] - connection established successfully after 80.83 milliseconds"}
+{"level":"INFO","message":"[9:38:15.456 PM]: Creating new connection object"}
+{"level":"INFO","message":"[9:38:15.457 PM]: Creating Connection[id: ae83f8a8-b84e-4db3-94cd-faccffee9699] with host: duglhtd-cm14952.snowflakecomputing.com, account: duglhtd-cm14952, accessUrl: https://duglhtd-cm14952.snowflakecomputing.com, user: GAFAIG_APP_USER, role: undefined, database: GAFAIG_DB, schema: CORE, warehouse: GAFAIG_WH, proxy was not configured, password is not provided, region: undefined, authenticator: SNOWFLAKE_JWT, ocsp mode: FAIL_OPEN, os: win32, os version: 10.0.26200"}
+{"level":"INFO","message":"[9:38:15.457 PM]: Connection[id: ae83f8a8-b84e-4db3-94cd-faccffee9699] additional details: passcode in password is provided, passcode is not provided, private key is provided, application: undefined, client name: snowflake-sdk, client version: 2.3.4, retry timeout: 300, private key path: undefined, private key pass is not provided, client store temporary credential: false, browser response timeout: 120000"}
+{"level":"INFO","message":"[9:38:15.458 PM]: Connection[id: ae83f8a8-b84e-4db3-94cd-faccffee9699] - connection object created successfully."}
+{"level":"INFO","message":"[9:38:15.459 PM]: Connection[id: ae83f8a8-b84e-4db3-94cd-faccffee9699] - connecting. Associated Snowflake domain: GLOBAL"}
+{"level":"INFO","message":"[9:38:15.461 PM]: Connection[id: ae83f8a8-b84e-4db3-94cd-faccffee9699] - authentication successful using: SNOWFLAKE_JWT"}
+{"level":"INFO","message":"[9:38:15.914 PM]: Connection[id: ae83f8a8-b84e-4db3-94cd-faccffee9699] - connection established successfully after 455.11 milliseconds"}
+{"level":"INFO","message":"[10:14:49.293 PM]: Creating new connection object"}
+{"level":"INFO","message":"[10:14:49.302 PM]: Creating Connection[id: b33d6093-6c5a-47e0-9ca6-5b59e57161ae] with host: duglhtd-cm14952.snowflakecomputing.com, account: duglhtd-cm14952, accessUrl: https://duglhtd-cm14952.snowflakecomputing.com, user: GAFAIG_APP_USER, role: undefined, database: GAFAIG_DB, schema: CORE, warehouse: GAFAIG_WH, proxy was not configured, password is not provided, region: undefined, authenticator: SNOWFLAKE_JWT, ocsp mode: FAIL_OPEN, os: win32, os version: 10.0.26200"}
+{"level":"INFO","message":"[10:14:49.303 PM]: Connection[id: b33d6093-6c5a-47e0-9ca6-5b59e57161ae] additional details: passcode in password is provided, passcode is not provided, private key is provided, application: undefined, client name: snowflake-sdk, client version: 2.3.4, retry timeout: 300, private key path: undefined, private key pass is not provided, client store temporary credential: false, browser response timeout: 120000"}
+{"level":"INFO","message":"[10:14:49.304 PM]: Connection[id: b33d6093-6c5a-47e0-9ca6-5b59e57161ae] - connection object created successfully."}
+{"level":"INFO","message":"[10:14:49.304 PM]: Connection[id: b33d6093-6c5a-47e0-9ca6-5b59e57161ae] - connecting. Associated Snowflake domain: GLOBAL"}
+{"level":"INFO","message":"[10:14:49.310 PM]: Connection[id: b33d6093-6c5a-47e0-9ca6-5b59e57161ae] - authentication successful using: SNOWFLAKE_JWT"}
+{"level":"INFO","message":"[10:14:49.311 PM]: Trying to initialize Easy Logging"}
+{"level":"INFO","message":"[10:14:49.313 PM]: No client config detected."}
+{"level":"INFO","message":"[10:14:49.314 PM]: No config file path found. Client config will not be used."}
+{"level":"INFO","message":"[10:14:49.315 PM]: Easy Logging is disabled as no config has been found"}
+{"level":"INFO","message":"[10:14:49.855 PM]: Connection[id: b33d6093-6c5a-47e0-9ca6-5b59e57161ae] - connection established successfully after 550.94 milliseconds"}
+{"level":"INFO","message":"[10:15:01.603 PM]: Creating new connection object"}
+{"level":"INFO","message":"[10:15:01.604 PM]: Creating Connection[id: c55f291c-e606-421c-b629-1cb9ec577875] with host: duglhtd-cm14952.snowflakecomputing.com, account: duglhtd-cm14952, accessUrl: https://duglhtd-cm14952.snowflakecomputing.com, user: GAFAIG_APP_USER, role: undefined, database: GAFAIG_DB, schema: CORE, warehouse: GAFAIG_WH, proxy was not configured, password is not provided, region: undefined, authenticator: SNOWFLAKE_JWT, ocsp mode: FAIL_OPEN, os: win32, os version: 10.0.26200"}
+{"level":"INFO","message":"[10:15:01.604 PM]: Connection[id: c55f291c-e606-421c-b629-1cb9ec577875] additional details: passcode in password is provided, passcode is not provided, private key is provided, application: undefined, client name: snowflake-sdk, client version: 2.3.4, retry timeout: 300, private key path: undefined, private key pass is not provided, client store temporary credential: false, browser response timeout: 120000"}
+{"level":"INFO","message":"[10:15:01.604 PM]: Connection[id: c55f291c-e606-421c-b629-1cb9ec577875] - connection object created successfully."}
+{"level":"INFO","message":"[10:15:01.605 PM]: Connection[id: c55f291c-e606-421c-b629-1cb9ec577875] - connecting. Associated Snowflake domain: GLOBAL"}
+{"level":"INFO","message":"[10:15:01.607 PM]: Connection[id: c55f291c-e606-421c-b629-1cb9ec577875] - authentication successful using: SNOWFLAKE_JWT"}
+{"level":"INFO","message":"[10:15:01.699 PM]: Connection[id: c55f291c-e606-421c-b629-1cb9ec577875] - connection established successfully after 94.42 milliseconds"}
+{"level":"INFO","message":"[10:59:08.832 PM]: Creating new connection object"}
+{"level":"INFO","message":"[10:59:08.841 PM]: Creating Connection[id: 06f865e3-8503-46a0-aa20-7aee8d67f09f] with host: duglhtd-cm14952.snowflakecomputing.com, account: duglhtd-cm14952, accessUrl: https://duglhtd-cm14952.snowflakecomputing.com, user: GAFAIG_APP_USER, role: undefined, database: GAFAIG_DB, schema: CORE, warehouse: GAFAIG_WH, proxy was not configured, password is not provided, region: undefined, authenticator: SNOWFLAKE_JWT, ocsp mode: FAIL_OPEN, os: win32, os version: 10.0.26200"}
+{"level":"INFO","message":"[10:59:08.842 PM]: Connection[id: 06f865e3-8503-46a0-aa20-7aee8d67f09f] additional details: passcode in password is provided, passcode is not provided, private key is provided, application: undefined, client name: snowflake-sdk, client version: 2.3.4, retry timeout: 300, private key path: undefined, private key pass is not provided, client store temporary credential: false, browser response timeout: 120000"}
+{"level":"INFO","message":"[10:59:08.843 PM]: Connection[id: 06f865e3-8503-46a0-aa20-7aee8d67f09f] - connection object created successfully."}
+{"level":"INFO","message":"[10:59:08.843 PM]: Connection[id: 06f865e3-8503-46a0-aa20-7aee8d67f09f] - connecting. Associated Snowflake domain: GLOBAL"}
+{"level":"INFO","message":"[10:59:08.850 PM]: Connection[id: 06f865e3-8503-46a0-aa20-7aee8d67f09f] - authentication successful using: SNOWFLAKE_JWT"}
+{"level":"INFO","message":"[10:59:08.851 PM]: Trying to initialize Easy Logging"}
+{"level":"INFO","message":"[10:59:08.853 PM]: No client config detected."}
+{"level":"INFO","message":"[10:59:08.853 PM]: No config file path found. Client config will not be used."}
+{"level":"INFO","message":"[10:59:08.854 PM]: Easy Logging is disabled as no config has been found"}
+{"level":"INFO","message":"[10:59:09.328 PM]: Connection[id: 06f865e3-8503-46a0-aa20-7aee8d67f09f] - connection established successfully after 484.51 milliseconds"}
+{"level":"INFO","message":"[11:03:46.624 PM]: Creating new connection object"}
+{"level":"INFO","message":"[11:03:46.626 PM]: Creating Connection[id: 57847173-25cc-4699-8e39-41450f95698f] with host: duglhtd-cm14952.snowflakecomputing.com, account: duglhtd-cm14952, accessUrl: https://duglhtd-cm14952.snowflakecomputing.com, user: GAFAIG_APP_USER, role: undefined, database: GAFAIG_DB, schema: CORE, warehouse: GAFAIG_WH, proxy was not configured, password is not provided, region: undefined, authenticator: SNOWFLAKE_JWT, ocsp mode: FAIL_OPEN, os: win32, os version: 10.0.26200"}
+{"level":"INFO","message":"[11:03:46.627 PM]: Connection[id: 57847173-25cc-4699-8e39-41450f95698f] additional details: passcode in password is provided, passcode is not provided, private key is provided, application: undefined, client name: snowflake-sdk, client version: 2.3.4, retry timeout: 300, private key path: undefined, private key pass is not provided, client store temporary credential: false, browser response timeout: 120000"}
+{"level":"INFO","message":"[11:03:46.627 PM]: Connection[id: 57847173-25cc-4699-8e39-41450f95698f] - connection object created successfully."}
+{"level":"INFO","message":"[11:03:46.627 PM]: Connection[id: 57847173-25cc-4699-8e39-41450f95698f] - connecting. Associated Snowflake domain: GLOBAL"}
+{"level":"INFO","message":"[11:03:46.632 PM]: Connection[id: 57847173-25cc-4699-8e39-41450f95698f] - authentication successful using: SNOWFLAKE_JWT"}
+{"level":"INFO","message":"[11:03:46.760 PM]: Connection[id: 57847173-25cc-4699-8e39-41450f95698f] - connection established successfully after 132.3 milliseconds"}
+{"level":"INFO","message":"[5:17:20.281 PM]: Creating new connection object"}
+{"level":"INFO","message":"[5:17:20.303 PM]: Creating Connection[id: 771f3a04-4f0b-41e2-97a6-73460b9eee21] with host: duglhtd-cm14952.snowflakecomputing.com, account: duglhtd-cm14952, accessUrl: https://duglhtd-cm14952.snowflakecomputing.com, user: GAFAIG_APP_USER, role: undefined, database: GAFAIG_DB, schema: CORE, warehouse: GAFAIG_WH, proxy was not configured, password is not provided, region: undefined, authenticator: SNOWFLAKE_JWT, ocsp mode: FAIL_OPEN, os: win32, os version: 10.0.26200"}
+{"level":"INFO","message":"[5:17:20.303 PM]: Connection[id: 771f3a04-4f0b-41e2-97a6-73460b9eee21] additional details: passcode in password is provided, passcode is not provided, private key is provided, application: undefined, client name: snowflake-sdk, client version: 2.3.4, retry timeout: 300, private key path: undefined, private key pass is not provided, client store temporary credential: false, browser response timeout: 120000"}
+{"level":"INFO","message":"[5:17:20.304 PM]: Connection[id: 771f3a04-4f0b-41e2-97a6-73460b9eee21] - connection object created successfully."}
+{"level":"INFO","message":"[5:17:20.305 PM]: Connection[id: 771f3a04-4f0b-41e2-97a6-73460b9eee21] - connecting. Associated Snowflake domain: GLOBAL"}
+{"level":"INFO","message":"[5:17:20.313 PM]: Connection[id: 771f3a04-4f0b-41e2-97a6-73460b9eee21] - authentication successful using: SNOWFLAKE_JWT"}
+{"level":"INFO","message":"[5:17:20.313 PM]: Trying to initialize Easy Logging"}
+{"level":"INFO","message":"[5:17:20.315 PM]: No client config detected."}
+{"level":"INFO","message":"[5:17:20.316 PM]: No config file path found. Client config will not be used."}
+{"level":"INFO","message":"[5:17:20.316 PM]: Easy Logging is disabled as no config has been found"}
+{"level":"INFO","message":"[5:17:21.352 PM]: Connection[id: 771f3a04-4f0b-41e2-97a6-73460b9eee21] - connection established successfully after 1047.6 milliseconds"}
+{"level":"ERROR","message":"[6:19:59.250 PM]: Error issuing heartbeat call: getaddrinfo ENOTFOUND duglhtd-cm14952.snowflakecomputing.com"}
+{"level":"INFO","message":"[6:46:21.219 PM]: Creating new connection object"}
+{"level":"INFO","message":"[6:46:21.227 PM]: Creating Connection[id: 445b3718-7631-46df-8839-3b3814d4d3e3] with host: duglhtd-cm14952.snowflakecomputing.com, account: duglhtd-cm14952, accessUrl: https://duglhtd-cm14952.snowflakecomputing.com, user: GAFAIG_APP_USER, role: undefined, database: GAFAIG_DB, schema: CORE, warehouse: GAFAIG_WH, proxy was not configured, password is not provided, region: undefined, authenticator: SNOWFLAKE_JWT, ocsp mode: FAIL_OPEN, os: win32, os version: 10.0.26200"}
+{"level":"INFO","message":"[6:46:21.227 PM]: Connection[id: 445b3718-7631-46df-8839-3b3814d4d3e3] additional details: passcode in password is provided, passcode is not provided, private key is provided, application: undefined, client name: snowflake-sdk, client version: 2.3.4, retry timeout: 300, private key path: undefined, private key pass is not provided, client store temporary credential: false, browser response timeout: 120000"}
+{"level":"INFO","message":"[6:46:21.228 PM]: Connection[id: 445b3718-7631-46df-8839-3b3814d4d3e3] - connection object created successfully."}
+{"level":"INFO","message":"[6:46:21.228 PM]: Connection[id: 445b3718-7631-46df-8839-3b3814d4d3e3] - connecting. Associated Snowflake domain: GLOBAL"}
+{"level":"INFO","message":"[6:46:21.236 PM]: Creating new connection object"}
+{"level":"INFO","message":"[6:46:21.237 PM]: Creating Connection[id: 4adee284-203d-44f2-8378-991dd6851e13] with host: duglhtd-cm14952.snowflakecomputing.com, account: duglhtd-cm14952, accessUrl: https://duglhtd-cm14952.snowflakecomputing.com, user: GAFAIG_APP_USER, role: undefined, database: GAFAIG_DB, schema: CORE, warehouse: GAFAIG_WH, proxy was not configured, password is not provided, region: undefined, authenticator: SNOWFLAKE_JWT, ocsp mode: FAIL_OPEN, os: win32, os version: 10.0.26200"}
+{"level":"INFO","message":"[6:46:21.237 PM]: Connection[id: 4adee284-203d-44f2-8378-991dd6851e13] additional details: passcode in password is provided, passcode is not provided, private key is provided, application: undefined, client name: snowflake-sdk, client version: 2.3.4, retry timeout: 300, private key path: undefined, private key pass is not provided, client store temporary credential: false, browser response timeout: 120000"}
+{"level":"INFO","message":"[6:46:21.238 PM]: Connection[id: 4adee284-203d-44f2-8378-991dd6851e13] - connection object created successfully."}
+{"level":"INFO","message":"[6:46:21.238 PM]: Connection[id: 4adee284-203d-44f2-8378-991dd6851e13] - connecting. Associated Snowflake domain: GLOBAL"}
+{"level":"INFO","message":"[6:46:21.241 PM]: Connection[id: 445b3718-7631-46df-8839-3b3814d4d3e3] - authentication successful using: SNOWFLAKE_JWT"}
+{"level":"INFO","message":"[6:46:21.241 PM]: Trying to initialize Easy Logging"}
+{"level":"INFO","message":"[6:46:21.242 PM]: Connection[id: 4adee284-203d-44f2-8378-991dd6851e13] - authentication successful using: SNOWFLAKE_JWT"}
+{"level":"INFO","message":"[6:46:21.242 PM]: Trying to initialize Easy Logging"}
+{"level":"INFO","message":"[6:46:21.266 PM]: No client config detected."}
+{"level":"INFO","message":"[6:46:21.267 PM]: No config file path found. Client config will not be used."}
+{"level":"INFO","message":"[6:46:21.267 PM]: Easy Logging is disabled as no config has been found"}
+{"level":"INFO","message":"[6:46:21.278 PM]: No client config detected."}
+{"level":"INFO","message":"[6:46:21.278 PM]: No config file path found. Client config will not be used."}
+{"level":"INFO","message":"[6:46:21.279 PM]: Easy Logging is disabled as no config has been found"}
+{"level":"INFO","message":"[6:46:21.859 PM]: Connection[id: 4adee284-203d-44f2-8378-991dd6851e13] - connection established successfully after 620.72 milliseconds"}
+{"level":"INFO","message":"[6:46:21.864 PM]: Connection[id: 445b3718-7631-46df-8839-3b3814d4d3e3] - connection established successfully after 635.45 milliseconds"}
+{"level":"INFO","message":"[6:47:04.873 PM]: Creating new connection object"}
+{"level":"INFO","message":"[6:47:04.874 PM]: Creating Connection[id: 8a662814-5458-42bc-8a17-a1e52d4cf0c4] with host: duglhtd-cm14952.snowflakecomputing.com, account: duglhtd-cm14952, accessUrl: https://duglhtd-cm14952.snowflakecomputing.com, user: GAFAIG_APP_USER, role: undefined, database: GAFAIG_DB, schema: CORE, warehouse: GAFAIG_WH, proxy was not configured, password is not provided, region: undefined, authenticator: SNOWFLAKE_JWT, ocsp mode: FAIL_OPEN, os: win32, os version: 10.0.26200"}
+{"level":"INFO","message":"[6:47:04.875 PM]: Connection[id: 8a662814-5458-42bc-8a17-a1e52d4cf0c4] additional details: passcode in password is provided, passcode is not provided, private key is provided, application: undefined, client name: snowflake-sdk, client version: 2.3.4, retry timeout: 300, private key path: undefined, private key pass is not provided, client store temporary credential: false, browser response timeout: 120000"}
+{"level":"INFO","message":"[6:47:04.875 PM]: Connection[id: 8a662814-5458-42bc-8a17-a1e52d4cf0c4] - connection object created successfully."}
+{"level":"INFO","message":"[6:47:04.876 PM]: Connection[id: 8a662814-5458-42bc-8a17-a1e52d4cf0c4] - connecting. Associated Snowflake domain: GLOBAL"}
+{"level":"INFO","message":"[6:47:04.877 PM]: Connection[id: 8a662814-5458-42bc-8a17-a1e52d4cf0c4] - authentication successful using: SNOWFLAKE_JWT"}
+{"level":"INFO","message":"[6:47:05.005 PM]: Connection[id: 8a662814-5458-42bc-8a17-a1e52d4cf0c4] - connection established successfully after 129.86 milliseconds"}
+{"level":"INFO","message":"[6:50:10.133 PM]: Creating new connection object"}
+{"level":"INFO","message":"[6:50:10.135 PM]: Creating Connection[id: 8e8aa327-ff89-4f93-8156-4a0dc41fa633] with host: duglhtd-cm14952.snowflakecomputing.com, account: duglhtd-cm14952, accessUrl: https://duglhtd-cm14952.snowflakecomputing.com, user: GAFAIG_APP_USER, role: undefined, database: GAFAIG_DB, schema: CORE, warehouse: GAFAIG_WH, proxy was not configured, password is not provided, region: undefined, authenticator: SNOWFLAKE_JWT, ocsp mode: FAIL_OPEN, os: win32, os version: 10.0.26200"}
+{"level":"INFO","message":"[6:50:10.135 PM]: Connection[id: 8e8aa327-ff89-4f93-8156-4a0dc41fa633] additional details: passcode in password is provided, passcode is not provided, private key is provided, application: undefined, client name: snowflake-sdk, client version: 2.3.4, retry timeout: 300, private key path: undefined, private key pass is not provided, client store temporary credential: false, browser response timeout: 120000"}
+{"level":"INFO","message":"[6:50:10.135 PM]: Connection[id: 8e8aa327-ff89-4f93-8156-4a0dc41fa633] - connection object created successfully."}
+{"level":"INFO","message":"[6:50:10.136 PM]: Connection[id: 8e8aa327-ff89-4f93-8156-4a0dc41fa633] - connecting. Associated Snowflake domain: GLOBAL"}
+{"level":"INFO","message":"[6:50:10.138 PM]: Creating new connection object"}
+{"level":"INFO","message":"[6:50:10.139 PM]: Creating Connection[id: 6c56463c-edf6-44ec-9110-438ac19c58f8] with host: duglhtd-cm14952.snowflakecomputing.com, account: duglhtd-cm14952, accessUrl: https://duglhtd-cm14952.snowflakecomputing.com, user: GAFAIG_APP_USER, role: undefined, database: GAFAIG_DB, schema: CORE, warehouse: GAFAIG_WH, proxy was not configured, password is not provided, region: undefined, authenticator: SNOWFLAKE_JWT, ocsp mode: FAIL_OPEN, os: win32, os version: 10.0.26200"}
+{"level":"INFO","message":"[6:50:10.139 PM]: Connection[id: 6c56463c-edf6-44ec-9110-438ac19c58f8] additional details: passcode in password is provided, passcode is not provided, private key is provided, application: undefined, client name: snowflake-sdk, client version: 2.3.4, retry timeout: 300, private key path: undefined, private key pass is not provided, client store temporary credential: false, browser response timeout: 120000"}
+{"level":"INFO","message":"[6:50:10.140 PM]: Connection[id: 6c56463c-edf6-44ec-9110-438ac19c58f8] - connection object created successfully."}
+{"level":"INFO","message":"[6:50:10.140 PM]: Connection[id: 6c56463c-edf6-44ec-9110-438ac19c58f8] - connecting. Associated Snowflake domain: GLOBAL"}
+{"level":"INFO","message":"[6:50:10.142 PM]: Connection[id: 8e8aa327-ff89-4f93-8156-4a0dc41fa633] - authentication successful using: SNOWFLAKE_JWT"}
+{"level":"INFO","message":"[6:50:10.142 PM]: Connection[id: 6c56463c-edf6-44ec-9110-438ac19c58f8] - authentication successful using: SNOWFLAKE_JWT"}
+{"level":"INFO","message":"[6:50:10.674 PM]: Connection[id: 6c56463c-edf6-44ec-9110-438ac19c58f8] - connection established successfully after 533.18 milliseconds"}
+{"level":"INFO","message":"[6:50:10.750 PM]: Connection[id: 8e8aa327-ff89-4f93-8156-4a0dc41fa633] - connection established successfully after 614.38 milliseconds"}
+{"level":"INFO","message":"[6:51:14.021 PM]: Creating new connection object"}
+{"level":"INFO","message":"[6:51:14.021 PM]: Creating Connection[id: a1a401d5-7170-44ed-8310-16be460e1e96] with host: duglhtd-cm14952.snowflakecomputing.com, account: duglhtd-cm14952, accessUrl: https://duglhtd-cm14952.snowflakecomputing.com, user: GAFAIG_APP_USER, role: undefined, database: GAFAIG_DB, schema: CORE, warehouse: GAFAIG_WH, proxy was not configured, password is not provided, region: undefined, authenticator: SNOWFLAKE_JWT, ocsp mode: FAIL_OPEN, os: win32, os version: 10.0.26200"}
+{"level":"INFO","message":"[6:51:14.022 PM]: Connection[id: a1a401d5-7170-44ed-8310-16be460e1e96] additional details: passcode in password is provided, passcode is not provided, private key is provided, application: undefined, client name: snowflake-sdk, client version: 2.3.4, retry timeout: 300, private key path: undefined, private key pass is not provided, client store temporary credential: false, browser response timeout: 120000"}
+{"level":"INFO","message":"[6:51:14.022 PM]: Connection[id: a1a401d5-7170-44ed-8310-16be460e1e96] - connection object created successfully."}
+{"level":"INFO","message":"[6:51:14.023 PM]: Connection[id: a1a401d5-7170-44ed-8310-16be460e1e96] - connecting. Associated Snowflake domain: GLOBAL"}
+{"level":"INFO","message":"[6:51:14.024 PM]: Connection[id: a1a401d5-7170-44ed-8310-16be460e1e96] - authentication successful using: SNOWFLAKE_JWT"}
+{"level":"INFO","message":"[6:51:14.130 PM]: Connection[id: a1a401d5-7170-44ed-8310-16be460e1e96] - connection established successfully after 107.83 milliseconds"}
+{"level":"INFO","message":"[6:53:58.321 PM]: Creating new connection object"}
+{"level":"INFO","message":"[6:53:58.330 PM]: Creating Connection[id: 2a687678-bd22-4c25-a4f1-b8fa4e0fd96e] with host: duglhtd-cm14952.snowflakecomputing.com, account: duglhtd-cm14952, accessUrl: https://duglhtd-cm14952.snowflakecomputing.com, user: GAFAIG_APP_USER, role: undefined, database: GAFAIG_DB, schema: CORE, warehouse: GAFAIG_WH, proxy was not configured, password is not provided, region: undefined, authenticator: SNOWFLAKE_JWT, ocsp mode: FAIL_OPEN, os: win32, os version: 10.0.26200"}
+{"level":"INFO","message":"[6:53:58.331 PM]: Connection[id: 2a687678-bd22-4c25-a4f1-b8fa4e0fd96e] additional details: passcode in password is provided, passcode is not provided, private key is provided, application: undefined, client name: snowflake-sdk, client version: 2.3.4, retry timeout: 300, private key path: undefined, private key pass is not provided, client store temporary credential: false, browser response timeout: 120000"}
+{"level":"INFO","message":"[6:53:58.333 PM]: Connection[id: 2a687678-bd22-4c25-a4f1-b8fa4e0fd96e] - connection object created successfully."}
+{"level":"INFO","message":"[6:53:58.335 PM]: Connection[id: 2a687678-bd22-4c25-a4f1-b8fa4e0fd96e] - connecting. Associated Snowflake domain: GLOBAL"}
+{"level":"INFO","message":"[6:53:58.339 PM]: Creating new connection object"}
+{"level":"INFO","message":"[6:53:58.340 PM]: Creating Connection[id: 94172f19-babd-4433-8b47-7dfa7e07b0e6] with host: duglhtd-cm14952.snowflakecomputing.com, account: duglhtd-cm14952, accessUrl: https://duglhtd-cm14952.snowflakecomputing.com, user: GAFAIG_APP_USER, role: undefined, database: GAFAIG_DB, schema: CORE, warehouse: GAFAIG_WH, proxy was not configured, password is not provided, region: undefined, authenticator: SNOWFLAKE_JWT, ocsp mode: FAIL_OPEN, os: win32, os version: 10.0.26200"}
+{"level":"INFO","message":"[6:53:58.341 PM]: Connection[id: 94172f19-babd-4433-8b47-7dfa7e07b0e6] additional details: passcode in password is provided, passcode is not provided, private key is provided, application: undefined, client name: snowflake-sdk, client version: 2.3.4, retry timeout: 300, private key path: undefined, private key pass is not provided, client store temporary credential: false, browser response timeout: 120000"}
+{"level":"INFO","message":"[6:53:58.341 PM]: Connection[id: 94172f19-babd-4433-8b47-7dfa7e07b0e6] - connection object created successfully."}
+{"level":"INFO","message":"[6:53:58.341 PM]: Connection[id: 94172f19-babd-4433-8b47-7dfa7e07b0e6] - connecting. Associated Snowflake domain: GLOBAL"}
+{"level":"INFO","message":"[6:53:58.345 PM]: Connection[id: 2a687678-bd22-4c25-a4f1-b8fa4e0fd96e] - authentication successful using: SNOWFLAKE_JWT"}
+{"level":"INFO","message":"[6:53:58.346 PM]: Trying to initialize Easy Logging"}
+{"level":"INFO","message":"[6:53:58.346 PM]: Connection[id: 94172f19-babd-4433-8b47-7dfa7e07b0e6] - authentication successful using: SNOWFLAKE_JWT"}
+{"level":"INFO","message":"[6:53:58.347 PM]: Trying to initialize Easy Logging"}
+{"level":"INFO","message":"[6:53:58.349 PM]: No client config detected."}
+{"level":"INFO","message":"[6:53:58.349 PM]: No config file path found. Client config will not be used."}
+{"level":"INFO","message":"[6:53:58.349 PM]: Easy Logging is disabled as no config has been found"}
+{"level":"INFO","message":"[6:53:58.362 PM]: No client config detected."}
+{"level":"INFO","message":"[6:53:58.362 PM]: No config file path found. Client config will not be used."}
+{"level":"INFO","message":"[6:53:58.363 PM]: Easy Logging is disabled as no config has been found"}
+{"level":"INFO","message":"[6:53:58.947 PM]: Connection[id: 94172f19-babd-4433-8b47-7dfa7e07b0e6] - connection established successfully after 605.72 milliseconds"}
+{"level":"INFO","message":"[6:53:58.955 PM]: Connection[id: 2a687678-bd22-4c25-a4f1-b8fa4e0fd96e] - connection established successfully after 620.4 milliseconds"}
+{"level":"INFO","message":"[6:54:46.563 PM]: Creating new connection object"}
+{"level":"INFO","message":"[6:54:46.564 PM]: Creating Connection[id: 06f9bc83-d583-4261-be7d-5031fd9a45f7] with host: duglhtd-cm14952.snowflakecomputing.com, account: duglhtd-cm14952, accessUrl: https://duglhtd-cm14952.snowflakecomputing.com, user: GAFAIG_APP_USER, role: undefined, database: GAFAIG_DB, schema: CORE, warehouse: GAFAIG_WH, proxy was not configured, password is not provided, region: undefined, authenticator: SNOWFLAKE_JWT, ocsp mode: FAIL_OPEN, os: win32, os version: 10.0.26200"}
+{"level":"INFO","message":"[6:54:46.564 PM]: Connection[id: 06f9bc83-d583-4261-be7d-5031fd9a45f7] additional details: passcode in password is provided, passcode is not provided, private key is provided, application: undefined, client name: snowflake-sdk, client version: 2.3.4, retry timeout: 300, private key path: undefined, private key pass is not provided, client store temporary credential: false, browser response timeout: 120000"}
+{"level":"INFO","message":"[6:54:46.564 PM]: Connection[id: 06f9bc83-d583-4261-be7d-5031fd9a45f7] - connection object created successfully."}
+{"level":"INFO","message":"[6:54:46.564 PM]: Connection[id: 06f9bc83-d583-4261-be7d-5031fd9a45f7] - connecting. Associated Snowflake domain: GLOBAL"}
+{"level":"INFO","message":"[6:54:46.566 PM]: Connection[id: 06f9bc83-d583-4261-be7d-5031fd9a45f7] - authentication successful using: SNOWFLAKE_JWT"}
+{"level":"INFO","message":"[6:54:46.650 PM]: Connection[id: 06f9bc83-d583-4261-be7d-5031fd9a45f7] - connection established successfully after 85.2 milliseconds"}
+{"level":"INFO","message":"[6:54:47.586 PM]: Creating new connection object"}
+{"level":"INFO","message":"[6:54:47.587 PM]: Creating Connection[id: bf8f7e48-0fc9-484c-8c5c-72b9c2378761] with host: duglhtd-cm14952.snowflakecomputing.com, account: duglhtd-cm14952, accessUrl: https://duglhtd-cm14952.snowflakecomputing.com, user: GAFAIG_APP_USER, role: undefined, database: GAFAIG_DB, schema: CORE, warehouse: GAFAIG_WH, proxy was not configured, password is not provided, region: undefined, authenticator: SNOWFLAKE_JWT, ocsp mode: FAIL_OPEN, os: win32, os version: 10.0.26200"}
+{"level":"INFO","message":"[6:54:47.587 PM]: Connection[id: bf8f7e48-0fc9-484c-8c5c-72b9c2378761] additional details: passcode in password is provided, passcode is not provided, private key is provided, application: undefined, client name: snowflake-sdk, client version: 2.3.4, retry timeout: 300, private key path: undefined, private key pass is not provided, client store temporary credential: false, browser response timeout: 120000"}
+{"level":"INFO","message":"[6:54:47.587 PM]: Connection[id: bf8f7e48-0fc9-484c-8c5c-72b9c2378761] - connection object created successfully."}
+{"level":"INFO","message":"[6:54:47.588 PM]: Connection[id: bf8f7e48-0fc9-484c-8c5c-72b9c2378761] - connecting. Associated Snowflake domain: GLOBAL"}
+{"level":"INFO","message":"[6:54:47.589 PM]: Connection[id: bf8f7e48-0fc9-484c-8c5c-72b9c2378761] - authentication successful using: SNOWFLAKE_JWT"}
+{"level":"INFO","message":"[6:54:47.678 PM]: Connection[id: bf8f7e48-0fc9-484c-8c5c-72b9c2378761] - connection established successfully after 90.56 milliseconds"}
+{"level":"INFO","message":"[7:01:10.920 PM]: Creating new connection object"}
+{"level":"INFO","message":"[7:01:10.922 PM]: Creating Connection[id: af7c9244-bb85-46e6-b884-f47ba75db553] with host: duglhtd-cm14952.snowflakecomputing.com, account: duglhtd-cm14952, accessUrl: https://duglhtd-cm14952.snowflakecomputing.com, user: GAFAIG_APP_USER, role: undefined, database: GAFAIG_DB, schema: CORE, warehouse: GAFAIG_WH, proxy was not configured, password is not provided, region: undefined, authenticator: SNOWFLAKE_JWT, ocsp mode: FAIL_OPEN, os: win32, os version: 10.0.26200"}
+{"level":"INFO","message":"[7:01:10.922 PM]: Connection[id: af7c9244-bb85-46e6-b884-f47ba75db553] additional details: passcode in password is provided, passcode is not provided, private key is provided, application: undefined, client name: snowflake-sdk, client version: 2.3.4, retry timeout: 300, private key path: undefined, private key pass is not provided, client store temporary credential: false, browser response timeout: 120000"}
+{"level":"INFO","message":"[7:01:10.923 PM]: Connection[id: af7c9244-bb85-46e6-b884-f47ba75db553] - connection object created successfully."}
+{"level":"INFO","message":"[7:01:10.924 PM]: Connection[id: af7c9244-bb85-46e6-b884-f47ba75db553] - connecting. Associated Snowflake domain: GLOBAL"}
+{"level":"INFO","message":"[7:01:10.928 PM]: Connection[id: af7c9244-bb85-46e6-b884-f47ba75db553] - authentication successful using: SNOWFLAKE_JWT"}
+{"level":"INFO","message":"[7:01:12.198 PM]: Connection[id: af7c9244-bb85-46e6-b884-f47ba75db553] - connection established successfully after 1274.53 milliseconds"}
+{"level":"INFO","message":"[7:09:02.187 PM]: Creating new connection object"}
+{"level":"INFO","message":"[7:09:02.201 PM]: Creating Connection[id: e706269a-2b70-4b3e-83e1-8ddfda1515cf] with host: duglhtd-cm14952.snowflakecomputing.com, account: duglhtd-cm14952, accessUrl: https://duglhtd-cm14952.snowflakecomputing.com, user: GAFAIG_APP_USER, role: GAFAIG_APP_ROLE, database: GAFAIG_DB, schema: CORE, warehouse: GAFAIG_WH, proxy was not configured, password is not provided, region: undefined, authenticator: SNOWFLAKE_JWT, ocsp mode: FAIL_OPEN, os: win32, os version: 10.0.26200"}
+{"level":"INFO","message":"[7:09:02.202 PM]: Connection[id: e706269a-2b70-4b3e-83e1-8ddfda1515cf] additional details: passcode in password is provided, passcode is not provided, private key is provided, application: GAFAIG, client name: snowflake-sdk, client version: 2.3.4, retry timeout: 300, private key path: undefined, private key pass is not provided, client store temporary credential: false, browser response timeout: 120000"}
+{"level":"INFO","message":"[7:09:02.203 PM]: Connection[id: e706269a-2b70-4b3e-83e1-8ddfda1515cf] - connection object created successfully."}
+{"level":"INFO","message":"[7:09:02.203 PM]: Connection[id: e706269a-2b70-4b3e-83e1-8ddfda1515cf] - connecting. Associated Snowflake domain: GLOBAL"}
+{"level":"INFO","message":"[7:09:02.209 PM]: Connection[id: e706269a-2b70-4b3e-83e1-8ddfda1515cf] - authentication successful using: SNOWFLAKE_JWT"}
+{"level":"INFO","message":"[7:09:02.210 PM]: Trying to initialize Easy Logging"}
+{"level":"INFO","message":"[7:09:02.244 PM]: No client config detected."}
+{"level":"INFO","message":"[7:09:02.245 PM]: No config file path found. Client config will not be used."}
+{"level":"INFO","message":"[7:09:02.245 PM]: Easy Logging is disabled as no config has been found"}
+{"level":"INFO","message":"[7:09:02.781 PM]: Connection[id: e706269a-2b70-4b3e-83e1-8ddfda1515cf] - connection established successfully after 577.29 milliseconds"}
+{"level":"INFO","message":"[8:38:13.870 PM]: Creating new connection object"}
+{"level":"INFO","message":"[8:38:13.884 PM]: Creating Connection[id: 4761047d-05f7-4e3e-b92d-48afc71d9b64] with host: duglhtd-cm14952.snowflakecomputing.com, account: duglhtd-cm14952, accessUrl: https://duglhtd-cm14952.snowflakecomputing.com, user: GAFAIG_APP_USER, role: GAFAIG_APP_ROLE, database: GAFAIG_DB, schema: CORE, warehouse: GAFAIG_WH, proxy was not configured, password is not provided, region: undefined, authenticator: SNOWFLAKE_JWT, ocsp mode: FAIL_OPEN, os: win32, os version: 10.0.26200"}
+{"level":"INFO","message":"[8:38:13.885 PM]: Connection[id: 4761047d-05f7-4e3e-b92d-48afc71d9b64] additional details: passcode in password is provided, passcode is not provided, private key is provided, application: GAFAIG, client name: snowflake-sdk, client version: 2.3.4, retry timeout: 300, private key path: undefined, private key pass is not provided, client store temporary credential: false, browser response timeout: 120000"}
+{"level":"INFO","message":"[8:38:13.886 PM]: Connection[id: 4761047d-05f7-4e3e-b92d-48afc71d9b64] - connection object created successfully."}
+{"level":"INFO","message":"[8:38:13.887 PM]: Connection[id: 4761047d-05f7-4e3e-b92d-48afc71d9b64] - connecting. Associated Snowflake domain: GLOBAL"}
+{"level":"INFO","message":"[8:38:13.898 PM]: Connection[id: 4761047d-05f7-4e3e-b92d-48afc71d9b64] - authentication successful using: SNOWFLAKE_JWT"}
+{"level":"INFO","message":"[8:38:13.900 PM]: Trying to initialize Easy Logging"}
+{"level":"INFO","message":"[8:38:13.913 PM]: No client config detected."}
+{"level":"INFO","message":"[8:38:13.914 PM]: No config file path found. Client config will not be used."}
+{"level":"INFO","message":"[8:38:13.914 PM]: Easy Logging is disabled as no config has been found"}
+{"level":"INFO","message":"[8:38:14.659 PM]: Connection[id: 4761047d-05f7-4e3e-b92d-48afc71d9b64] - connection established successfully after 772.31 milliseconds"}
+{"level":"INFO","message":"[8:43:36.879 PM]: Creating new connection object"}
+{"level":"INFO","message":"[8:43:36.893 PM]: Creating Connection[id: 2bc8e94b-499f-495f-8fa3-3e962bafa356] with host: duglhtd-cm14952.snowflakecomputing.com, account: duglhtd-cm14952, accessUrl: https://duglhtd-cm14952.snowflakecomputing.com, user: GAFAIG_APP_USER, role: GAFAIG_APP_ROLE, database: GAFAIG_DB, schema: CORE, warehouse: GAFAIG_WH, proxy was not configured, password is not provided, region: undefined, authenticator: SNOWFLAKE_JWT, ocsp mode: FAIL_OPEN, os: win32, os version: 10.0.26200"}
+{"level":"INFO","message":"[8:43:36.894 PM]: Connection[id: 2bc8e94b-499f-495f-8fa3-3e962bafa356] additional details: passcode in password is provided, passcode is not provided, private key is provided, application: GAFAIG, client name: snowflake-sdk, client version: 2.3.4, retry timeout: 300, private key path: undefined, private key pass is not provided, client store temporary credential: false, browser response timeout: 120000"}
+{"level":"INFO","message":"[8:43:36.895 PM]: Connection[id: 2bc8e94b-499f-495f-8fa3-3e962bafa356] - connection object created successfully."}
+{"level":"INFO","message":"[8:43:36.896 PM]: Connection[id: 2bc8e94b-499f-495f-8fa3-3e962bafa356] - connecting. Associated Snowflake domain: GLOBAL"}
+{"level":"INFO","message":"[8:43:36.904 PM]: Connection[id: 2bc8e94b-499f-495f-8fa3-3e962bafa356] - authentication successful using: SNOWFLAKE_JWT"}
+{"level":"INFO","message":"[8:43:36.905 PM]: Trying to initialize Easy Logging"}
+{"level":"INFO","message":"[8:43:36.911 PM]: No client config detected."}
+{"level":"INFO","message":"[8:43:36.912 PM]: No config file path found. Client config will not be used."}
+{"level":"INFO","message":"[8:43:36.913 PM]: Easy Logging is disabled as no config has been found"}
+{"level":"INFO","message":"[8:43:37.554 PM]: Connection[id: 2bc8e94b-499f-495f-8fa3-3e962bafa356] - connection established successfully after 658 milliseconds"}
+{"level":"INFO","message":"[8:52:43.870 PM]: Creating new connection object"}
+{"level":"INFO","message":"[8:52:43.886 PM]: Creating Connection[id: 73a788cc-da9e-4c36-95f8-2bde72504e24] with host: duglhtd-cm14952.snowflakecomputing.com, account: duglhtd-cm14952, accessUrl: https://duglhtd-cm14952.snowflakecomputing.com, user: GAFAIG_APP_USER, role: GAFAIG_APP_ROLE, database: GAFAIG_DB, schema: CORE, warehouse: GAFAIG_WH, proxy was not configured, password is not provided, region: undefined, authenticator: SNOWFLAKE_JWT, ocsp mode: FAIL_OPEN, os: win32, os version: 10.0.26200"}
+{"level":"INFO","message":"[8:52:43.887 PM]: Connection[id: 73a788cc-da9e-4c36-95f8-2bde72504e24] additional details: passcode in password is provided, passcode is not provided, private key is provided, application: GAFAIG, client name: snowflake-sdk, client version: 2.3.4, retry timeout: 300, private key path: undefined, private key pass is not provided, client store temporary credential: false, browser response timeout: 120000"}
+{"level":"INFO","message":"[8:52:43.888 PM]: Connection[id: 73a788cc-da9e-4c36-95f8-2bde72504e24] - connection object created successfully."}
+{"level":"INFO","message":"[8:52:43.890 PM]: Connection[id: 73a788cc-da9e-4c36-95f8-2bde72504e24] - connecting. Associated Snowflake domain: GLOBAL"}
+{"level":"INFO","message":"[8:52:43.897 PM]: Connection[id: 73a788cc-da9e-4c36-95f8-2bde72504e24] - authentication successful using: SNOWFLAKE_JWT"}
+{"level":"INFO","message":"[8:52:43.899 PM]: Trying to initialize Easy Logging"}
+{"level":"INFO","message":"[8:52:43.968 PM]: No client config detected."}
+{"level":"INFO","message":"[8:52:43.980 PM]: No config file path found. Client config will not be used."}
+{"level":"INFO","message":"[8:52:43.981 PM]: Easy Logging is disabled as no config has been found"}
+{"level":"INFO","message":"[8:52:44.657 PM]: Connection[id: 73a788cc-da9e-4c36-95f8-2bde72504e24] - connection established successfully after 766.8 milliseconds"}
+{"level":"INFO","message":"[9:50:36.975 PM]: Creating new connection object"}
+{"level":"INFO","message":"[9:50:36.997 PM]: Creating Connection[id: 5d999e50-e37e-4d04-a761-2b8ad343af21] with host: duglhtd-cm14952.snowflakecomputing.com, account: duglhtd-cm14952, accessUrl: https://duglhtd-cm14952.snowflakecomputing.com, user: GAFAIG_APP_USER, role: GAFAIG_APP_ROLE, database: GAFAIG_DB, schema: CORE, warehouse: GAFAIG_WH, proxy was not configured, password is not provided, region: undefined, authenticator: SNOWFLAKE_JWT, ocsp mode: FAIL_OPEN, os: win32, os version: 10.0.26200"}
+{"level":"INFO","message":"[9:50:36.998 PM]: Connection[id: 5d999e50-e37e-4d04-a761-2b8ad343af21] additional details: passcode in password is provided, passcode is not provided, private key is provided, application: GAFAIG, client name: snowflake-sdk, client version: 2.3.4, retry timeout: 300, private key path: undefined, private key pass is not provided, client store temporary credential: false, browser response timeout: 120000"}
+{"level":"INFO","message":"[9:50:36.999 PM]: Connection[id: 5d999e50-e37e-4d04-a761-2b8ad343af21] - connection object created successfully."}
+{"level":"INFO","message":"[9:50:37.000 PM]: Connection[id: 5d999e50-e37e-4d04-a761-2b8ad343af21] - connecting. Associated Snowflake domain: GLOBAL"}
+{"level":"INFO","message":"[9:50:37.008 PM]: Connection[id: 5d999e50-e37e-4d04-a761-2b8ad343af21] - authentication successful using: SNOWFLAKE_JWT"}
+{"level":"INFO","message":"[9:50:37.009 PM]: Trying to initialize Easy Logging"}
+{"level":"INFO","message":"[9:50:37.030 PM]: No client config detected."}
+{"level":"INFO","message":"[9:50:37.031 PM]: No config file path found. Client config will not be used."}
+{"level":"INFO","message":"[9:50:37.031 PM]: Easy Logging is disabled as no config has been found"}
+{"level":"INFO","message":"[9:50:37.674 PM]: Connection[id: 5d999e50-e37e-4d04-a761-2b8ad343af21] - connection established successfully after 674.08 milliseconds"}
+{"level":"INFO","message":"[4:29:56.476 AM]: Creating new connection object"}
+{"level":"INFO","message":"[4:29:56.489 AM]: Creating Connection[id: 21313bfd-2054-4029-80e8-5989792b4afc] with host: duglhtd-cm14952.snowflakecomputing.com, account: duglhtd-cm14952, accessUrl: https://duglhtd-cm14952.snowflakecomputing.com, user: GAFAIG_APP_USER, role: GAFAIG_APP_ROLE, database: GAFAIG_DB, schema: CORE, warehouse: GAFAIG_WH, proxy was not configured, password is not provided, region: undefined, authenticator: SNOWFLAKE_JWT, ocsp mode: FAIL_OPEN, os: win32, os version: 10.0.26200"}
+{"level":"INFO","message":"[4:29:56.491 AM]: Connection[id: 21313bfd-2054-4029-80e8-5989792b4afc] additional details: passcode in password is provided, passcode is not provided, private key is provided, application: GAFAIG, client name: snowflake-sdk, client version: 2.3.4, retry timeout: 300, private key path: undefined, private key pass is not provided, client store temporary credential: false, browser response timeout: 120000"}
+{"level":"INFO","message":"[4:29:56.491 AM]: Connection[id: 21313bfd-2054-4029-80e8-5989792b4afc] - connection object created successfully."}
+{"level":"INFO","message":"[4:29:56.492 AM]: Connection[id: 21313bfd-2054-4029-80e8-5989792b4afc] - connecting. Associated Snowflake domain: GLOBAL"}
+{"level":"INFO","message":"[4:29:56.497 AM]: Connection[id: 21313bfd-2054-4029-80e8-5989792b4afc] - authentication successful using: SNOWFLAKE_JWT"}
+{"level":"INFO","message":"[4:29:56.497 AM]: Trying to initialize Easy Logging"}
+{"level":"INFO","message":"[4:29:56.502 AM]: No client config detected."}
+{"level":"INFO","message":"[4:29:56.529 AM]: No config file path found. Client config will not be used."}
+{"level":"INFO","message":"[4:29:56.534 AM]: Easy Logging is disabled as no config has been found"}
+{"level":"INFO","message":"[4:29:57.194 AM]: Connection[id: 21313bfd-2054-4029-80e8-5989792b4afc] - connection established successfully after 701.86 milliseconds"}
+{"level":"INFO","message":"[4:55:49.454 AM]: Creating new connection object"}
+{"level":"INFO","message":"[4:55:49.467 AM]: Creating Connection[id: 8aa984d3-29ad-42fd-90e0-1f552c45d765] with host: duglhtd-cm14952.snowflakecomputing.com, account: duglhtd-cm14952, accessUrl: https://duglhtd-cm14952.snowflakecomputing.com, user: GAFAIG_APP_USER, role: GAFAIG_APP_ROLE, database: GAFAIG_DB, schema: CORE, warehouse: GAFAIG_WH, proxy was not configured, password is not provided, region: undefined, authenticator: SNOWFLAKE_JWT, ocsp mode: FAIL_OPEN, os: win32, os version: 10.0.26200"}
+{"level":"INFO","message":"[4:55:49.468 AM]: Connection[id: 8aa984d3-29ad-42fd-90e0-1f552c45d765] additional details: passcode in password is provided, passcode is not provided, private key is provided, application: GAFAIG, client name: snowflake-sdk, client version: 2.3.4, retry timeout: 300, private key path: undefined, private key pass is not provided, client store temporary credential: false, browser response timeout: 120000"}
+{"level":"INFO","message":"[4:55:49.470 AM]: Connection[id: 8aa984d3-29ad-42fd-90e0-1f552c45d765] - connection object created successfully."}
+{"level":"INFO","message":"[4:55:49.471 AM]: Connection[id: 8aa984d3-29ad-42fd-90e0-1f552c45d765] - connecting. Associated Snowflake domain: GLOBAL"}
+{"level":"INFO","message":"[4:55:49.479 AM]: Connection[id: 8aa984d3-29ad-42fd-90e0-1f552c45d765] - authentication successful using: SNOWFLAKE_JWT"}
+{"level":"INFO","message":"[4:55:49.481 AM]: Trying to initialize Easy Logging"}
+{"level":"INFO","message":"[4:55:49.485 AM]: No client config detected."}
+{"level":"INFO","message":"[4:55:49.485 AM]: No config file path found. Client config will not be used."}
+{"level":"INFO","message":"[4:55:49.486 AM]: Easy Logging is disabled as no config has been found"}
+{"level":"INFO","message":"[4:55:50.121 AM]: Connection[id: 8aa984d3-29ad-42fd-90e0-1f552c45d765] - connection established successfully after 650.24 milliseconds"}
+{"level":"INFO","message":"[5:25:51.926 AM]: Creating new connection object"}
+{"level":"INFO","message":"[5:25:51.941 AM]: Creating Connection[id: a5437297-706c-4c31-a8a5-bc8a118333f0] with host: duglhtd-cm14952.snowflakecomputing.com, account: duglhtd-cm14952, accessUrl: https://duglhtd-cm14952.snowflakecomputing.com, user: GAFAIG_APP_USER, role: GAFAIG_APP_ROLE, database: GAFAIG_DB, schema: CORE, warehouse: GAFAIG_WH, proxy was not configured, password is not provided, region: undefined, authenticator: SNOWFLAKE_JWT, ocsp mode: FAIL_OPEN, os: win32, os version: 10.0.26200"}
+{"level":"INFO","message":"[5:25:51.942 AM]: Connection[id: a5437297-706c-4c31-a8a5-bc8a118333f0] additional details: passcode in password is provided, passcode is not provided, private key is provided, application: GAFAIG, client name: snowflake-sdk, client version: 2.3.4, retry timeout: 300, private key path: undefined, private key pass is not provided, client store temporary credential: false, browser response timeout: 120000"}
+{"level":"INFO","message":"[5:25:51.943 AM]: Connection[id: a5437297-706c-4c31-a8a5-bc8a118333f0] - connection object created successfully."}
+{"level":"INFO","message":"[5:25:51.948 AM]: Connection[id: a5437297-706c-4c31-a8a5-bc8a118333f0] - connecting. Associated Snowflake domain: GLOBAL"}
+{"level":"INFO","message":"[5:25:51.957 AM]: Connection[id: a5437297-706c-4c31-a8a5-bc8a118333f0] - authentication successful using: SNOWFLAKE_JWT"}
+{"level":"INFO","message":"[5:25:51.959 AM]: Trying to initialize Easy Logging"}
+{"level":"INFO","message":"[5:25:51.968 AM]: No client config detected."}
+{"level":"INFO","message":"[5:25:51.969 AM]: No config file path found. Client config will not be used."}
+{"level":"INFO","message":"[5:25:51.971 AM]: Easy Logging is disabled as no config has been found"}
+{"level":"INFO","message":"[5:25:52.603 AM]: Connection[id: a5437297-706c-4c31-a8a5-bc8a118333f0] - connection established successfully after 654.96 milliseconds"}
+{"level":"INFO","message":"[5:29:15.178 AM]: Creating new connection object"}
+{"level":"INFO","message":"[5:29:15.191 AM]: Creating Connection[id: 89a3cafd-945c-46f7-b9bd-73259f34ff78] with host: duglhtd-cm14952.snowflakecomputing.com, account: duglhtd-cm14952, accessUrl: https://duglhtd-cm14952.snowflakecomputing.com, user: GAFAIG_APP_USER, role: GAFAIG_APP_ROLE, database: GAFAIG_DB, schema: CORE, warehouse: GAFAIG_WH, proxy was not configured, password is not provided, region: undefined, authenticator: SNOWFLAKE_JWT, ocsp mode: FAIL_OPEN, os: win32, os version: 10.0.26200"}
+{"level":"INFO","message":"[5:29:15.193 AM]: Connection[id: 89a3cafd-945c-46f7-b9bd-73259f34ff78] additional details: passcode in password is provided, passcode is not provided, private key is provided, application: GAFAIG, client name: snowflake-sdk, client version: 2.3.4, retry timeout: 300, private key path: undefined, private key pass is not provided, client store temporary credential: false, browser response timeout: 120000"}
+{"level":"INFO","message":"[5:29:15.195 AM]: Connection[id: 89a3cafd-945c-46f7-b9bd-73259f34ff78] - connection object created successfully."}
+{"level":"INFO","message":"[5:29:15.196 AM]: Connection[id: 89a3cafd-945c-46f7-b9bd-73259f34ff78] - connecting. Associated Snowflake domain: GLOBAL"}
+{"level":"INFO","message":"[5:29:15.203 AM]: Connection[id: 89a3cafd-945c-46f7-b9bd-73259f34ff78] - authentication successful using: SNOWFLAKE_JWT"}
+{"level":"INFO","message":"[5:29:15.204 AM]: Trying to initialize Easy Logging"}
+{"level":"INFO","message":"[5:29:15.229 AM]: No client config detected."}
+{"level":"INFO","message":"[5:29:15.229 AM]: No config file path found. Client config will not be used."}
+{"level":"INFO","message":"[5:29:15.230 AM]: Easy Logging is disabled as no config has been found"}
+{"level":"INFO","message":"[5:29:15.728 AM]: Connection[id: 89a3cafd-945c-46f7-b9bd-73259f34ff78] - connection established successfully after 532.13 milliseconds"}
+{"level":"INFO","message":"[8:26:05.191 AM]: Creating new connection object"}
+{"level":"INFO","message":"[8:26:05.207 AM]: Creating Connection[id: e5b8af71-baa4-4719-a531-62fb807915e9] with host: duglhtd-cm14952.snowflakecomputing.com, account: duglhtd-cm14952, accessUrl: https://duglhtd-cm14952.snowflakecomputing.com, user: GAFAIG_APP_USER, role: GAFAIG_APP_ROLE, database: GAFAIG_DB, schema: CORE, warehouse: GAFAIG_WH, proxy was not configured, password is not provided, region: undefined, authenticator: SNOWFLAKE_JWT, ocsp mode: FAIL_OPEN, os: win32, os version: 10.0.26200"}
+{"level":"INFO","message":"[8:26:05.208 AM]: Connection[id: e5b8af71-baa4-4719-a531-62fb807915e9] additional details: passcode in password is provided, passcode is not provided, private key is provided, application: GAFAIG, client name: snowflake-sdk, client version: 2.3.4, retry timeout: 300, private key path: undefined, private key pass is not provided, client store temporary credential: false, browser response timeout: 120000"}
+{"level":"INFO","message":"[8:26:05.209 AM]: Connection[id: e5b8af71-baa4-4719-a531-62fb807915e9] - connection object created successfully."}
+{"level":"INFO","message":"[8:26:05.210 AM]: Connection[id: e5b8af71-baa4-4719-a531-62fb807915e9] - connecting. Associated Snowflake domain: GLOBAL"}
+{"level":"INFO","message":"[8:26:05.219 AM]: Connection[id: e5b8af71-baa4-4719-a531-62fb807915e9] - authentication successful using: SNOWFLAKE_JWT"}
+{"level":"INFO","message":"[8:26:05.220 AM]: Trying to initialize Easy Logging"}
+{"level":"INFO","message":"[8:26:05.237 AM]: No client config detected."}
+{"level":"INFO","message":"[8:26:05.238 AM]: No config file path found. Client config will not be used."}
+{"level":"INFO","message":"[8:26:05.239 AM]: Easy Logging is disabled as no config has been found"}
+{"level":"INFO","message":"[8:26:06.059 AM]: Connection[id: e5b8af71-baa4-4719-a531-62fb807915e9] - connection established successfully after 848.43 milliseconds"}
+{"level":"INFO","message":"[8:38:45.843 AM]: Creating new connection object"}
+{"level":"INFO","message":"[8:38:45.850 AM]: Creating Connection[id: d6e64eb3-de95-4aa5-b3ef-a66f836d5a66] with host: duglhtd-cm14952.snowflakecomputing.com, account: duglhtd-cm14952, accessUrl: https://duglhtd-cm14952.snowflakecomputing.com, user: GAFAIG_APP_USER, role: GAFAIG_APP_ROLE, database: GAFAIG_DB, schema: CORE, warehouse: GAFAIG_WH, proxy was not configured, password is not provided, region: undefined, authenticator: SNOWFLAKE_JWT, ocsp mode: FAIL_OPEN, os: win32, os version: 10.0.26200"}
+{"level":"INFO","message":"[8:38:45.850 AM]: Connection[id: d6e64eb3-de95-4aa5-b3ef-a66f836d5a66] additional details: passcode in password is provided, passcode is not provided, private key is provided, application: GAFAIG, client name: snowflake-sdk, client version: 2.3.4, retry timeout: 300, private key path: undefined, private key pass is not provided, client store temporary credential: false, browser response timeout: 120000"}
+{"level":"INFO","message":"[8:38:45.850 AM]: Connection[id: d6e64eb3-de95-4aa5-b3ef-a66f836d5a66] - connection object created successfully."}
+{"level":"INFO","message":"[8:38:45.851 AM]: Connection[id: d6e64eb3-de95-4aa5-b3ef-a66f836d5a66] - connecting. Associated Snowflake domain: GLOBAL"}
+{"level":"INFO","message":"[8:38:45.855 AM]: Connection[id: d6e64eb3-de95-4aa5-b3ef-a66f836d5a66] - authentication successful using: SNOWFLAKE_JWT"}
+{"level":"INFO","message":"[8:38:45.855 AM]: Trying to initialize Easy Logging"}
+{"level":"INFO","message":"[8:38:45.870 AM]: No client config detected."}
+{"level":"INFO","message":"[8:38:45.871 AM]: No config file path found. Client config will not be used."}
+{"level":"INFO","message":"[8:38:45.871 AM]: Easy Logging is disabled as no config has been found"}
+{"level":"INFO","message":"[8:38:46.385 AM]: Connection[id: d6e64eb3-de95-4aa5-b3ef-a66f836d5a66] - connection established successfully after 533.78 milliseconds"}
+{"level":"INFO","message":"[9:13:12.859 AM]: Creating new connection object"}
+{"level":"INFO","message":"[9:13:12.872 AM]: Creating Connection[id: b7fc17d3-676d-4d9f-b3fd-1e169cbca529] with host: duglhtd-cm14952.snowflakecomputing.com, account: duglhtd-cm14952, accessUrl: https://duglhtd-cm14952.snowflakecomputing.com, user: GAFAIG_APP_USER, role: GAFAIG_APP_ROLE, database: GAFAIG_DB, schema: CORE, warehouse: GAFAIG_WH, proxy was not configured, password is not provided, region: undefined, authenticator: SNOWFLAKE_JWT, ocsp mode: FAIL_OPEN, os: win32, os version: 10.0.26200"}
+{"level":"INFO","message":"[9:13:12.873 AM]: Connection[id: b7fc17d3-676d-4d9f-b3fd-1e169cbca529] additional details: passcode in password is provided, passcode is not provided, private key is provided, application: GAFAIG, client name: snowflake-sdk, client version: 2.3.4, retry timeout: 300, private key path: undefined, private key pass is not provided, client store temporary credential: false, browser response timeout: 120000"}
+{"level":"INFO","message":"[9:13:12.874 AM]: Connection[id: b7fc17d3-676d-4d9f-b3fd-1e169cbca529] - connection object created successfully."}
+{"level":"INFO","message":"[9:13:12.875 AM]: Connection[id: b7fc17d3-676d-4d9f-b3fd-1e169cbca529] - connecting. Associated Snowflake domain: GLOBAL"}
+{"level":"INFO","message":"[9:13:12.884 AM]: Connection[id: b7fc17d3-676d-4d9f-b3fd-1e169cbca529] - authentication successful using: SNOWFLAKE_JWT"}
+{"level":"INFO","message":"[9:13:12.885 AM]: Trying to initialize Easy Logging"}
+{"level":"INFO","message":"[9:13:12.889 AM]: No client config detected."}
+{"level":"INFO","message":"[9:13:12.889 AM]: No config file path found. Client config will not be used."}
+{"level":"INFO","message":"[9:13:12.890 AM]: Easy Logging is disabled as no config has been found"}
+{"level":"INFO","message":"[9:13:13.490 AM]: Connection[id: b7fc17d3-676d-4d9f-b3fd-1e169cbca529] - connection established successfully after 615.32 milliseconds"}
+{"level":"INFO","message":"[11:35:35.861 AM]: Creating new connection object"}
+{"level":"INFO","message":"[11:35:35.874 AM]: Creating Connection[id: 620f3e1c-25b6-4ebd-bb2a-6b77e5f5e2f9] with host: duglhtd-cm14952.snowflakecomputing.com, account: duglhtd-cm14952, accessUrl: https://duglhtd-cm14952.snowflakecomputing.com, user: GAFAIG_APP_USER, role: GAFAIG_APP_ROLE, database: GAFAIG_DB, schema: CORE, warehouse: GAFAIG_WH, proxy was not configured, password is not provided, region: undefined, authenticator: SNOWFLAKE_JWT, ocsp mode: FAIL_OPEN, os: win32, os version: 10.0.26200"}
+{"level":"INFO","message":"[11:35:35.875 AM]: Connection[id: 620f3e1c-25b6-4ebd-bb2a-6b77e5f5e2f9] additional details: passcode in password is provided, passcode is not provided, private key is provided, application: GAFAIG, client name: snowflake-sdk, client version: 2.3.4, retry timeout: 300, private key path: undefined, private key pass is not provided, client store temporary credential: false, browser response timeout: 120000"}
+{"level":"INFO","message":"[11:35:35.878 AM]: Connection[id: 620f3e1c-25b6-4ebd-bb2a-6b77e5f5e2f9] - connection object created successfully."}
+{"level":"INFO","message":"[11:35:35.880 AM]: Connection[id: 620f3e1c-25b6-4ebd-bb2a-6b77e5f5e2f9] - connecting. Associated Snowflake domain: GLOBAL"}
+{"level":"INFO","message":"[11:35:35.886 AM]: Connection[id: 620f3e1c-25b6-4ebd-bb2a-6b77e5f5e2f9] - authentication successful using: SNOWFLAKE_JWT"}
+{"level":"INFO","message":"[11:35:35.889 AM]: Trying to initialize Easy Logging"}
+{"level":"INFO","message":"[11:35:35.891 AM]: No client config detected."}
+{"level":"INFO","message":"[11:35:35.892 AM]: No config file path found. Client config will not be used."}
+{"level":"INFO","message":"[11:35:35.892 AM]: Easy Logging is disabled as no config has been found"}
+{"level":"INFO","message":"[11:35:36.561 AM]: Connection[id: 620f3e1c-25b6-4ebd-bb2a-6b77e5f5e2f9] - connection established successfully after 681.32 milliseconds"}
+{"level":"INFO","message":"[11:50:35.349 AM]: Creating new connection object"}
+{"level":"INFO","message":"[11:50:35.361 AM]: Creating Connection[id: c2c32558-0e96-44d3-9a44-904946d2238a] with host: duglhtd-cm14952.snowflakecomputing.com, account: duglhtd-cm14952, accessUrl: https://duglhtd-cm14952.snowflakecomputing.com, user: GAFAIG_APP_USER, role: GAFAIG_APP_ROLE, database: GAFAIG_DB, schema: CORE, warehouse: GAFAIG_WH, proxy was not configured, password is not provided, region: undefined, authenticator: SNOWFLAKE_JWT, ocsp mode: FAIL_OPEN, os: win32, os version: 10.0.26200"}
+{"level":"INFO","message":"[11:50:35.362 AM]: Connection[id: c2c32558-0e96-44d3-9a44-904946d2238a] additional details: passcode in password is provided, passcode is not provided, private key is provided, application: GAFAIG, client name: snowflake-sdk, client version: 2.3.4, retry timeout: 300, private key path: undefined, private key pass is not provided, client store temporary credential: false, browser response timeout: 120000"}
+{"level":"INFO","message":"[11:50:35.363 AM]: Connection[id: c2c32558-0e96-44d3-9a44-904946d2238a] - connection object created successfully."}
+{"level":"INFO","message":"[11:50:35.363 AM]: Connection[id: c2c32558-0e96-44d3-9a44-904946d2238a] - connecting. Associated Snowflake domain: GLOBAL"}
+{"level":"INFO","message":"[11:50:35.369 AM]: Connection[id: c2c32558-0e96-44d3-9a44-904946d2238a] - authentication successful using: SNOWFLAKE_JWT"}
+{"level":"INFO","message":"[11:50:35.370 AM]: Trying to initialize Easy Logging"}
+{"level":"INFO","message":"[11:50:35.373 AM]: No client config detected."}
+{"level":"INFO","message":"[11:50:35.373 AM]: No config file path found. Client config will not be used."}
+{"level":"INFO","message":"[11:50:35.373 AM]: Easy Logging is disabled as no config has been found"}
+{"level":"INFO","message":"[11:50:36.002 AM]: Connection[id: c2c32558-0e96-44d3-9a44-904946d2238a] - connection established successfully after 638.98 milliseconds"}
+{"level":"INFO","message":"[12:31:41.324 PM]: Creating new connection object"}
+{"level":"INFO","message":"[12:31:41.334 PM]: Creating Connection[id: 205f367f-838b-4092-85e7-92a3aefec5d0] with host: duglhtd-cm14952.snowflakecomputing.com, account: duglhtd-cm14952, accessUrl: https://duglhtd-cm14952.snowflakecomputing.com, user: GAFAIG_APP_USER, role: GAFAIG_APP_ROLE, database: GAFAIG_DB, schema: CORE, warehouse: GAFAIG_WH, proxy was not configured, password is not provided, region: undefined, authenticator: SNOWFLAKE_JWT, ocsp mode: FAIL_OPEN, os: win32, os version: 10.0.26200"}
+{"level":"INFO","message":"[12:31:41.335 PM]: Connection[id: 205f367f-838b-4092-85e7-92a3aefec5d0] additional details: passcode in password is provided, passcode is not provided, private key is provided, application: GAFAIG, client name: snowflake-sdk, client version: 2.3.4, retry timeout: 300, private key path: undefined, private key pass is not provided, client store temporary credential: false, browser response timeout: 120000"}
+{"level":"INFO","message":"[12:31:41.336 PM]: Connection[id: 205f367f-838b-4092-85e7-92a3aefec5d0] - connection object created successfully."}
+{"level":"INFO","message":"[12:31:41.336 PM]: Connection[id: 205f367f-838b-4092-85e7-92a3aefec5d0] - connecting. Associated Snowflake domain: GLOBAL"}
+{"level":"INFO","message":"[12:31:41.342 PM]: Connection[id: 205f367f-838b-4092-85e7-92a3aefec5d0] - authentication successful using: SNOWFLAKE_JWT"}
+{"level":"INFO","message":"[12:31:41.343 PM]: Trying to initialize Easy Logging"}
+{"level":"INFO","message":"[12:31:41.345 PM]: No client config detected."}
+{"level":"INFO","message":"[12:31:41.346 PM]: No config file path found. Client config will not be used."}
+{"level":"INFO","message":"[12:31:41.346 PM]: Easy Logging is disabled as no config has been found"}
+{"level":"INFO","message":"[12:31:41.982 PM]: Connection[id: 205f367f-838b-4092-85e7-92a3aefec5d0] - connection established successfully after 645.63 milliseconds"}
+{"level":"INFO","message":"[3:55:51.580 PM]: Creating new connection object"}
+{"level":"INFO","message":"[3:55:51.589 PM]: Creating Connection[id: f048d356-0106-4f9f-8984-a5bcbf020980] with host: duglhtd-cm14952.snowflakecomputing.com, account: duglhtd-cm14952, accessUrl: https://duglhtd-cm14952.snowflakecomputing.com, user: GAFAIG_APP_USER, role: GAFAIG_APP_ROLE, database: GAFAIG_DB, schema: CORE, warehouse: GAFAIG_WH, proxy was not configured, password is provided, region: undefined, authenticator: SNOWFLAKE, ocsp mode: FAIL_OPEN, os: win32, os version: 10.0.26200"}
+{"level":"INFO","message":"[3:55:51.590 PM]: Connection[id: f048d356-0106-4f9f-8984-a5bcbf020980] additional details: passcode in password is provided, passcode is not provided, private key is not provided, application: undefined, client name: snowflake-sdk, client version: 2.3.4, retry timeout: 300, private key path: undefined, private key pass is not provided, client store temporary credential: false, browser response timeout: 120000"}
+{"level":"INFO","message":"[3:55:51.590 PM]: Connection[id: f048d356-0106-4f9f-8984-a5bcbf020980] - connection object created successfully."}
+{"level":"INFO","message":"[3:55:51.591 PM]: Connection[id: f048d356-0106-4f9f-8984-a5bcbf020980] - connecting. Associated Snowflake domain: GLOBAL"}
+{"level":"INFO","message":"[3:55:51.592 PM]: Connection[id: f048d356-0106-4f9f-8984-a5bcbf020980] - authentication successful using: SNOWFLAKE"}
+{"level":"INFO","message":"[3:55:51.593 PM]: Trying to initialize Easy Logging"}
+{"level":"INFO","message":"[3:55:51.595 PM]: No client config detected."}
+{"level":"INFO","message":"[3:55:51.595 PM]: No config file path found. Client config will not be used."}
+{"level":"INFO","message":"[3:55:51.596 PM]: Easy Logging is disabled as no config has been found"}
+{"level":"INFO","message":"[3:55:52.897 PM]: Connection[id: f048d356-0106-4f9f-8984-a5bcbf020980] - connection established successfully after 1306.41 milliseconds"}
+{"level":"INFO","message":"[4:19:03.946 PM]: Creating new connection object"}
+{"level":"INFO","message":"[4:19:03.957 PM]: Creating Connection[id: 4983cd56-f549-4084-a9de-3a6ef300c4ac] with host: duglhtd-cm14952.snowflakecomputing.com, account: duglhtd-cm14952, accessUrl: https://duglhtd-cm14952.snowflakecomputing.com, user: GAFAIG_APP_USER, role: GAFAIG_APP_ROLE, database: GAFAIG_DB, schema: CORE, warehouse: GAFAIG_WH, proxy was not configured, password is provided, region: undefined, authenticator: SNOWFLAKE, ocsp mode: FAIL_OPEN, os: win32, os version: 10.0.26200"}
+{"level":"INFO","message":"[4:19:03.958 PM]: Connection[id: 4983cd56-f549-4084-a9de-3a6ef300c4ac] additional details: passcode in password is provided, passcode is not provided, private key is not provided, application: undefined, client name: snowflake-sdk, client version: 2.3.4, retry timeout: 300, private key path: undefined, private key pass is not provided, client store temporary credential: false, browser response timeout: 120000"}
+{"level":"INFO","message":"[4:19:03.959 PM]: Connection[id: 4983cd56-f549-4084-a9de-3a6ef300c4ac] - connection object created successfully."}
+{"level":"INFO","message":"[4:19:03.960 PM]: Connection[id: 4983cd56-f549-4084-a9de-3a6ef300c4ac] - connecting. Associated Snowflake domain: GLOBAL"}
+{"level":"INFO","message":"[4:19:03.961 PM]: Connection[id: 4983cd56-f549-4084-a9de-3a6ef300c4ac] - authentication successful using: SNOWFLAKE"}
+{"level":"INFO","message":"[4:19:03.961 PM]: Trying to initialize Easy Logging"}
+{"level":"INFO","message":"[4:19:03.965 PM]: No client config detected."}
+{"level":"INFO","message":"[4:19:03.965 PM]: No config file path found. Client config will not be used."}
+{"level":"INFO","message":"[4:19:03.966 PM]: Easy Logging is disabled as no config has been found"}
+{"level":"INFO","message":"[4:19:05.359 PM]: Connection[id: 4983cd56-f549-4084-a9de-3a6ef300c4ac] - connection established successfully after 1399.44 milliseconds"}
+{"level":"INFO","message":"[4:33:37.858 PM]: Creating new connection object"}
+{"level":"INFO","message":"[4:33:37.869 PM]: Creating Connection[id: 32fc45ba-30c8-4a09-9e93-caa5605d7375] with host: duglhtd-cm14952.snowflakecomputing.com, account: duglhtd-cm14952, accessUrl: https://duglhtd-cm14952.snowflakecomputing.com, user: GAFAIG_APP_USER, role: GAFAIG_APP_ROLE, database: GAFAIG_DB, schema: CORE, warehouse: GAFAIG_WH, proxy was not configured, password is provided, region: undefined, authenticator: SNOWFLAKE, ocsp mode: FAIL_OPEN, os: win32, os version: 10.0.26200"}
+{"level":"INFO","message":"[4:33:37.870 PM]: Connection[id: 32fc45ba-30c8-4a09-9e93-caa5605d7375] additional details: passcode in password is provided, passcode is not provided, private key is not provided, application: undefined, client name: snowflake-sdk, client version: 2.3.4, retry timeout: 300, private key path: undefined, private key pass is not provided, client store temporary credential: false, browser response timeout: 120000"}
+{"level":"INFO","message":"[4:33:37.871 PM]: Connection[id: 32fc45ba-30c8-4a09-9e93-caa5605d7375] - connection object created successfully."}
+{"level":"INFO","message":"[4:33:37.871 PM]: Connection[id: 32fc45ba-30c8-4a09-9e93-caa5605d7375] - connecting. Associated Snowflake domain: GLOBAL"}
+{"level":"INFO","message":"[4:33:37.872 PM]: Connection[id: 32fc45ba-30c8-4a09-9e93-caa5605d7375] - authentication successful using: SNOWFLAKE"}
+{"level":"INFO","message":"[4:33:37.872 PM]: Trying to initialize Easy Logging"}
+{"level":"INFO","message":"[4:33:37.874 PM]: No client config detected."}
+{"level":"INFO","message":"[4:33:37.875 PM]: No config file path found. Client config will not be used."}
+{"level":"INFO","message":"[4:33:37.875 PM]: Easy Logging is disabled as no config has been found"}
+{"level":"INFO","message":"[4:33:39.156 PM]: Connection[id: 32fc45ba-30c8-4a09-9e93-caa5605d7375] - connection established successfully after 1284.67 milliseconds"}
+{"level":"INFO","message":"[5:21:58.952 PM]: Creating new connection object"}
+{"level":"INFO","message":"[5:21:58.965 PM]: Creating Connection[id: 69f5a942-4e2a-464f-94c4-cdd006032ebf] with host: duglhtd-cm14952.snowflakecomputing.com, account: duglhtd-cm14952, accessUrl: https://duglhtd-cm14952.snowflakecomputing.com, user: GAFAIG_APP_USER, role: GAFAIG_APP_ROLE, database: GAFAIG_DB, schema: CORE, warehouse: GAFAIG_WH, proxy was not configured, password is provided, region: undefined, authenticator: SNOWFLAKE, ocsp mode: FAIL_OPEN, os: win32, os version: 10.0.26200"}
+{"level":"INFO","message":"[5:21:58.966 PM]: Connection[id: 69f5a942-4e2a-464f-94c4-cdd006032ebf] additional details: passcode in password is provided, passcode is not provided, private key is not provided, application: undefined, client name: snowflake-sdk, client version: 2.3.4, retry timeout: 300, private key path: undefined, private key pass is not provided, client store temporary credential: false, browser response timeout: 120000"}
+{"level":"INFO","message":"[5:21:58.967 PM]: Connection[id: 69f5a942-4e2a-464f-94c4-cdd006032ebf] - connection object created successfully."}
+{"level":"INFO","message":"[5:21:58.967 PM]: Connection[id: 69f5a942-4e2a-464f-94c4-cdd006032ebf] - connecting. Associated Snowflake domain: GLOBAL"}
+{"level":"INFO","message":"[5:21:58.970 PM]: Connection[id: 69f5a942-4e2a-464f-94c4-cdd006032ebf] - authentication successful using: SNOWFLAKE"}
+{"level":"INFO","message":"[5:21:58.971 PM]: Trying to initialize Easy Logging"}
+{"level":"INFO","message":"[5:21:58.973 PM]: No client config detected."}
+{"level":"INFO","message":"[5:21:58.974 PM]: No config file path found. Client config will not be used."}
+{"level":"INFO","message":"[5:21:58.974 PM]: Easy Logging is disabled as no config has been found"}
+{"level":"INFO","message":"[5:22:01.033 PM]: Connection[id: 69f5a942-4e2a-464f-94c4-cdd006032ebf] - connection established successfully after 2065.29 milliseconds"}
+{"level":"INFO","message":"[5:39:33.002 PM]: Creating new connection object"}
+{"level":"INFO","message":"[5:39:33.009 PM]: Creating Connection[id: b0bc1f99-636d-4ec9-8945-2d45d708f804] with host: duglhtd-cm14952.snowflakecomputing.com, account: duglhtd-cm14952, accessUrl: https://duglhtd-cm14952.snowflakecomputing.com, user: GAFAIG_APP_USER, role: GAFAIG_APP_ROLE, database: GAFAIG_DB, schema: CORE, warehouse: GAFAIG_WH, proxy was not configured, password is provided, region: undefined, authenticator: SNOWFLAKE, ocsp mode: FAIL_OPEN, os: win32, os version: 10.0.26200"}
+{"level":"INFO","message":"[5:39:33.009 PM]: Connection[id: b0bc1f99-636d-4ec9-8945-2d45d708f804] additional details: passcode in password is provided, passcode is not provided, private key is not provided, application: undefined, client name: snowflake-sdk, client version: 2.3.4, retry timeout: 300, private key path: undefined, private key pass is not provided, client store temporary credential: false, browser response timeout: 120000"}
+{"level":"INFO","message":"[5:39:33.009 PM]: Connection[id: b0bc1f99-636d-4ec9-8945-2d45d708f804] - connection object created successfully."}
+{"level":"INFO","message":"[5:39:33.010 PM]: Connection[id: b0bc1f99-636d-4ec9-8945-2d45d708f804] - connecting. Associated Snowflake domain: GLOBAL"}
+{"level":"INFO","message":"[5:39:33.011 PM]: Connection[id: b0bc1f99-636d-4ec9-8945-2d45d708f804] - authentication successful using: SNOWFLAKE"}
+{"level":"INFO","message":"[5:39:33.011 PM]: Trying to initialize Easy Logging"}
+{"level":"INFO","message":"[5:39:33.013 PM]: No client config detected."}
+{"level":"INFO","message":"[5:39:33.014 PM]: No config file path found. Client config will not be used."}
+{"level":"INFO","message":"[5:39:33.014 PM]: Easy Logging is disabled as no config has been found"}
+{"level":"INFO","message":"[5:39:34.335 PM]: Connection[id: b0bc1f99-636d-4ec9-8945-2d45d708f804] - connection established successfully after 1324.85 milliseconds"}
+{"level":"INFO","message":"[5:51:32.321 PM]: Creating new connection object"}
+{"level":"INFO","message":"[5:51:32.327 PM]: Creating Connection[id: 5d7e6d67-c4f0-4c2c-89fb-8d6bf7f5b100] with host: duglhtd-cm14952.snowflakecomputing.com, account: duglhtd-cm14952, accessUrl: https://duglhtd-cm14952.snowflakecomputing.com, user: GAFAIG_APP_USER, role: GAFAIG_APP_ROLE, database: GAFAIG_DB, schema: CORE, warehouse: GAFAIG_WH, proxy was not configured, password is provided, region: undefined, authenticator: SNOWFLAKE, ocsp mode: FAIL_OPEN, os: win32, os version: 10.0.26200"}
+{"level":"INFO","message":"[5:51:32.328 PM]: Connection[id: 5d7e6d67-c4f0-4c2c-89fb-8d6bf7f5b100] additional details: passcode in password is provided, passcode is not provided, private key is not provided, application: undefined, client name: snowflake-sdk, client version: 2.3.4, retry timeout: 300, private key path: undefined, private key pass is not provided, client store temporary credential: false, browser response timeout: 120000"}
+{"level":"INFO","message":"[5:51:32.329 PM]: Connection[id: 5d7e6d67-c4f0-4c2c-89fb-8d6bf7f5b100] - connection object created successfully."}
+{"level":"INFO","message":"[5:51:32.329 PM]: Connection[id: 5d7e6d67-c4f0-4c2c-89fb-8d6bf7f5b100] - connecting. Associated Snowflake domain: GLOBAL"}
+{"level":"INFO","message":"[5:51:32.330 PM]: Connection[id: 5d7e6d67-c4f0-4c2c-89fb-8d6bf7f5b100] - authentication successful using: SNOWFLAKE"}
+{"level":"INFO","message":"[5:51:32.331 PM]: Trying to initialize Easy Logging"}
+{"level":"INFO","message":"[5:51:32.334 PM]: No client config detected."}
+{"level":"INFO","message":"[5:51:32.335 PM]: No config file path found. Client config will not be used."}
+{"level":"INFO","message":"[5:51:32.335 PM]: Easy Logging is disabled as no config has been found"}
+{"level":"INFO","message":"[5:51:33.688 PM]: Connection[id: 5d7e6d67-c4f0-4c2c-89fb-8d6bf7f5b100] - connection established successfully after 1358.6 milliseconds"}
+{"level":"INFO","message":"[8:01:51.905 PM]: Creating new connection object"}
+{"level":"INFO","message":"[8:01:51.912 PM]: Creating Connection[id: 8c90bf5d-b4fb-4463-8107-04f7d33b00dc] with host: duglhtd-cm14952.snowflakecomputing.com, account: duglhtd-cm14952, accessUrl: https://duglhtd-cm14952.snowflakecomputing.com, user: GAFAIG_APP_USER, role: GAFAIG_APP_ROLE, database: GAFAIG_DB, schema: CORE, warehouse: GAFAIG_WH, proxy was not configured, password is provided, region: undefined, authenticator: SNOWFLAKE, ocsp mode: FAIL_OPEN, os: win32, os version: 10.0.26200"}
+{"level":"INFO","message":"[8:01:51.912 PM]: Connection[id: 8c90bf5d-b4fb-4463-8107-04f7d33b00dc] additional details: passcode in password is provided, passcode is not provided, private key is not provided, application: undefined, client name: snowflake-sdk, client version: 2.3.4, retry timeout: 300, private key path: undefined, private key pass is not provided, client store temporary credential: false, browser response timeout: 120000"}
+{"level":"INFO","message":"[8:01:51.913 PM]: Connection[id: 8c90bf5d-b4fb-4463-8107-04f7d33b00dc] - connection object created successfully."}
+{"level":"INFO","message":"[8:01:51.913 PM]: Connection[id: 8c90bf5d-b4fb-4463-8107-04f7d33b00dc] - connecting. Associated Snowflake domain: GLOBAL"}
+{"level":"INFO","message":"[8:01:51.914 PM]: Connection[id: 8c90bf5d-b4fb-4463-8107-04f7d33b00dc] - authentication successful using: SNOWFLAKE"}
+{"level":"INFO","message":"[8:01:51.915 PM]: Trying to initialize Easy Logging"}
+{"level":"INFO","message":"[8:01:51.917 PM]: No client config detected."}
+{"level":"INFO","message":"[8:01:51.917 PM]: No config file path found. Client config will not be used."}
+{"level":"INFO","message":"[8:01:51.917 PM]: Easy Logging is disabled as no config has been found"}
+{"level":"INFO","message":"[8:01:53.257 PM]: Connection[id: 8c90bf5d-b4fb-4463-8107-04f7d33b00dc] - connection established successfully after 1343.55 milliseconds"}
+{"level":"INFO","message":"[7:27:00.539 AM]: Creating new connection object"}
+{"level":"INFO","message":"[7:27:00.556 AM]: Creating Connection[id: 03d6dd8e-7048-4a9c-9f34-08462580840e] with host: duglhtd-cm14952.snowflakecomputing.com, account: duglhtd-cm14952, accessUrl: https://duglhtd-cm14952.snowflakecomputing.com, user: GAFAIG_APP_USER, role: GAFAIG_APP_ROLE, database: GAFAIG_DB, schema: CORE, warehouse: GAFAIG_WH, proxy was not configured, password is provided, region: undefined, authenticator: SNOWFLAKE, ocsp mode: FAIL_OPEN, os: win32, os version: 10.0.26200"}
+{"level":"INFO","message":"[7:27:00.557 AM]: Connection[id: 03d6dd8e-7048-4a9c-9f34-08462580840e] additional details: passcode in password is provided, passcode is not provided, private key is not provided, application: undefined, client name: snowflake-sdk, client version: 2.3.4, retry timeout: 300, private key path: undefined, private key pass is not provided, client store temporary credential: false, browser response timeout: 120000"}
+{"level":"INFO","message":"[7:27:00.559 AM]: Connection[id: 03d6dd8e-7048-4a9c-9f34-08462580840e] - connection object created successfully."}
+{"level":"INFO","message":"[7:27:00.561 AM]: Connection[id: 03d6dd8e-7048-4a9c-9f34-08462580840e] - connecting. Associated Snowflake domain: GLOBAL"}
+{"level":"INFO","message":"[7:27:00.564 AM]: Connection[id: 03d6dd8e-7048-4a9c-9f34-08462580840e] - authentication successful using: SNOWFLAKE"}
+{"level":"INFO","message":"[7:27:00.565 AM]: Trying to initialize Easy Logging"}
+{"level":"INFO","message":"[7:27:00.570 AM]: No client config detected."}
+{"level":"INFO","message":"[7:27:00.573 AM]: No config file path found. Client config will not be used."}
+{"level":"INFO","message":"[7:27:00.573 AM]: Easy Logging is disabled as no config has been found"}
+{"level":"INFO","message":"[7:27:03.341 AM]: Connection[id: 03d6dd8e-7048-4a9c-9f34-08462580840e] - connection established successfully after 2779.82 milliseconds"}

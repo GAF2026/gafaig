@@ -64,7 +64,7 @@ export default function CaseOverviewPage({ params }: { params: { caseId: string 
     setError(null);
 
     try {
-      const evidenceUrl = `/api/admin/verification/evidence?caseId=${encodeURIComponent(caseId)}`;
+      const evidenceUrl = `/api/admin/verification/${encodeURIComponent(caseId)}/evidence`;
       const findingsUrl = `/api/admin/verification/findings?caseId=${encodeURIComponent(caseId)}`;
       const decisionUrl = `/api/admin/verification/decisions?caseId=${encodeURIComponent(caseId)}`;
 

@@ -48,22 +48,27 @@ export default function DemoQuickstartPage() {
       </div>
 
       <h1 style={{ fontSize: 42, lineHeight: 1.1, margin: 0, letterSpacing: "-0.02em" }}>
-        GAFAIG governance workflow demo
+        GAFAIG governance registry demo
       </h1>
 
       <p style={{ marginTop: "1rem", fontSize: 18, opacity: 0.9, maxWidth: 820 }}>
-        This demo shows how GAFAIG converts AI governance into structured,
-        auditable data. Evidence is submitted, persisted, exposed through
-        APIs, and designed to map directly into Snowflake tables for scalable
-        oversight and analytics.
+        This demo shows GAFAIG as a governance registry platform: governance artifacts are registered under a case,
+        persisted as structured data, and exposed via an API designed to map directly into Snowflake tables for
+        auditability and analytics at scale.
       </p>
 
       <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap", marginTop: "1.5rem" }}>
         <Link href="/admin/verification/CASE-0001/evidence" style={primary}>
           Start demo (CASE-0001)
         </Link>
-        <Link href="/admin/login" style={pill} title="Admin entry (if needed)">
-          Admin login
+        <Link href="/mission" style={pill}>
+          Mission
+        </Link>
+        <Link href="/framework" style={pill}>
+          Framework
+        </Link>
+        <Link href="/architecture" style={pill}>
+          Architecture
         </Link>
         <Link href="/" style={pill}>
           Back to home
@@ -75,16 +80,16 @@ export default function DemoQuickstartPage() {
           <div style={{ fontWeight: 900, marginBottom: 6 }}>What to do (60 seconds)</div>
           <ol style={{ margin: 0, paddingLeft: "1.25rem", opacity: 0.9 }}>
             <li>
-              Open <strong>CASE-0001 → Evidence</strong>.
+              Click <strong>Start demo (CASE-0001)</strong> to open the Evidence registry page.
             </li>
             <li>
-              Confirm that evidence records load and display in structured form.
+              Confirm the case artifact log loads and shows registered governance artifacts.
             </li>
             <li>
-              Use the search field to filter evidence.
+              Use the search field to filter artifacts (e.g., “audit”, “model”, “incident”).
             </li>
             <li>
-              Open the evidence API endpoint to view structured JSON data.
+              Click <strong>View JSON endpoint</strong> at the bottom of the Evidence page to see structured data.
             </li>
           </ol>
         </div>
@@ -92,27 +97,17 @@ export default function DemoQuickstartPage() {
         <div style={card}>
           <div style={{ fontWeight: 900, marginBottom: 6 }}>What this proves (Snowflake)</div>
           <ul style={{ margin: 0, paddingLeft: "1.25rem", opacity: 0.9 }}>
-            <li>
-              Governance artifacts are stored as structured, queryable data.
-            </li>
-            <li>
-              Each verification case maps cleanly to relational data entities.
-            </li>
-            <li>
-              The API layer exposes datasets suitable for Snowflake ingestion.
-            </li>
-            <li>
-              This enables scalable auditability, analytics, and certification reporting.
-            </li>
+            <li>Governance artifacts are captured as structured, timestamped records.</li>
+            <li>Case-level registry data maps cleanly to relational tables (cases, evidence, findings, decisions).</li>
+            <li>The API exposes datasets suitable for Snowflake ingestion and cross-case analytics.</li>
+            <li>This enables auditability, reporting, and governance oversight at scale.</li>
           </ul>
         </div>
 
         <div style={card}>
-          <div style={{ fontWeight: 900, marginBottom: 6 }}>Architecture alignment</div>
+          <div style={{ fontWeight: 900, marginBottom: 6 }}>Recommended demo flow (5 minutes)</div>
           <p style={{ margin: 0, opacity: 0.9 }}>
-            GAFAIG’s data model — cases, evidence, findings, and decisions —
-            is designed to integrate with Snowflake as the governance data backbone,
-            enabling cross-case analytics and long-term oversight at scale.
+            Home → Mission → Framework → Architecture → Demo → Evidence → JSON endpoint → Close.
           </p>
         </div>
       </div>

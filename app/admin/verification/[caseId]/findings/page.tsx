@@ -29,8 +29,8 @@ type EvidenceRow = {
   linkedAt?: string;
 };
 
-type ApiList = { ok: true; rows: FindingRow[] } | { ok: false; error: string };
-type ApiEvidence = { ok: true; rows: EvidenceRow[] } | { ok: false; error: string };
+type ApiList = { ok: true; rows: any[] } | { ok: false; error: string };
+type ApiEvidence = { ok: true; rows: any[] } | { ok: false; error: string };
 type ApiPost = { ok: true; findingId: string } | { ok: false; error: string };
 
 function fmt(v?: string | null) {
@@ -82,6 +82,71 @@ function pillTone(value?: string) {
   return "border-gray-200 bg-gray-50 text-gray-800";
 }
 
+async function safeJson<T>(res: Response): Promise<T> {
+  const text = await res.text();
+  try {
+    return JSON.parse(text) as T;
+  } catch {
+    throw new Error(`Non-JSON response (status ${res.status}). First chars: ${text.slice(0, 120)}`);
+  }
+}
+
+/**
+ * Normalize keys so the UI works whether the API returns:
+ *  - camelCase (findingId) OR
+ *  - Snowflake-style (FINDING_ID) OR
+ *  - mixed case
+ */
+function normalizeFindingRow(raw: any): FindingRow {
+  const findingId = String(raw.findingId ?? raw.FINDING_ID ?? raw.finding_id ?? "");
+  const caseId = String(raw.caseId ?? raw.CASE_ID ?? raw.case_id ?? "");
+  const controlId = String(raw.controlId ?? raw.CONTROL_ID ?? raw.control_id ?? "");
+  const controlTitle = String(raw.controlTitle ?? raw.CONTROL_TITLE ?? raw.control_title ?? "");
+  const result = String(raw.result ?? raw.RESULT ?? raw.result ?? "");
+  const severity = String(raw.severity ?? raw.SEVERITY ?? raw.severity ?? "");
+  const rationale = (raw.rationale ?? raw.RATIONALE ?? raw.rationale ?? null) as string | null;
+  const createdAt = String(raw.createdAt ?? raw.CREATED_AT ?? raw.created_at ?? "");
+  const updatedAt = String(raw.updatedAt ?? raw.UPDATED_AT ?? raw.updated_at ?? createdAt);
+
+  return {
+    findingId,
+    caseId,
+    controlId,
+    controlTitle,
+    result,
+    severity,
+    rationale,
+    createdAt,
+    updatedAt,
+  };
+}
+
+function normalizeEvidenceRow(raw: any): EvidenceRow {
+  const evidenceId = String(raw.evidenceId ?? raw.EVIDENCE_ID ?? raw.evidence_id ?? "");
+  const caseId = String(raw.caseId ?? raw.CASE_ID ?? raw.case_id ?? "");
+  const evidenceType = String(raw.evidenceType ?? raw.EVIDENCE_TYPE ?? raw.evidence_type ?? "");
+  const title = String(raw.title ?? raw.TITLE ?? raw.title ?? "");
+  const description = (raw.description ?? raw.DESCRIPTION ?? raw.description ?? null) as string | null;
+  const sourceUrl = (raw.sourceUrl ?? raw.SOURCE_URL ?? raw.source_url ?? null) as string | null;
+  const storageRef = (raw.storageRef ?? raw.STORAGE_REF ?? raw.storage_ref ?? null) as string | null;
+  const submittedBy = (raw.submittedBy ?? raw.SUBMITTED_BY ?? raw.submitted_by ?? null) as string | null;
+  const submittedAt = String(raw.submittedAt ?? raw.SUBMITTED_AT ?? raw.submitted_at ?? "");
+  const linkedAt = (raw.linkedAt ?? raw.LINKED_AT ?? raw.linked_at ?? undefined) as string | undefined;
+
+  return {
+    evidenceId,
+    caseId,
+    evidenceType,
+    title,
+    description,
+    sourceUrl,
+    storageRef,
+    submittedBy,
+    submittedAt,
+    linkedAt,
+  };
+}
+
 export default function FindingsPage({ params }: { params: { caseId: string } }) {
   const caseId = params?.caseId || "";
 
@@ -93,6 +158,10 @@ export default function FindingsPage({ params }: { params: { caseId: string } })
   const [evidenceByFinding, setEvidenceByFinding] = React.useState<Record<string, EvidenceRow[]>>({});
   const [evidenceLoading, setEvidenceLoading] = React.useState<Record<string, boolean>>({});
 
+  // Debug panel
+  const [lastGet, setLastGet] = React.useState<any>(null);
+  const [lastPost, setLastPost] = React.useState<any>(null);
+
   // add finding form
   const [controlId, setControlId] = React.useState("");
   const [controlTitle, setControlTitle] = React.useState("");
@@ -101,6 +170,10 @@ export default function FindingsPage({ params }: { params: { caseId: string } })
   const [rationale, setRationale] = React.useState("");
 
   const backHref = React.useMemo(() => `/admin/verification/${encodeURIComponent(caseId)}`, [caseId]);
+  const evidencePageHref = React.useMemo(
+    () => `/admin/verification/${encodeURIComponent(caseId)}/evidence`,
+    [caseId]
+  );
 
   async function load() {
     if (!caseId) return;
@@ -108,25 +181,26 @@ export default function FindingsPage({ params }: { params: { caseId: string } })
     setErr(null);
 
     try {
-      const res = await fetch(`/api/admin/verification/findings?caseId=${encodeURIComponent(caseId)}`, {
+      const url = `/api/admin/verification/findings?caseId=${encodeURIComponent(caseId)}&t=${Date.now()}`;
+      const res = await fetch(url, {
         method: "GET",
         headers: { "Content-Type": "application/json" },
         cache: "no-store",
       });
 
-      const text = await res.text();
-      let data: ApiList;
-      try {
-        data = JSON.parse(text);
-      } catch {
-        throw new Error(`Unexpected response (not JSON). First chars: ${text.slice(0, 80)}`);
-      }
+      const data = await safeJson<ApiList>(res);
+      setLastGet({ url, status: res.status, data });
 
-      if (!("ok" in data) || data.ok === false) {
+      if (!res.ok) {
+        throw new Error((data as any)?.error || `GET failed (HTTP ${res.status})`);
+      }
+      if (!("ok" in data) || (data as any).ok === false) {
         throw new Error((data as any)?.error || "Failed to load findings.");
       }
 
-      setRows(data.rows || []);
+      const rawRows = (data as any).rows || [];
+      const normalized = rawRows.map(normalizeFindingRow).filter((x: FindingRow) => !!x.findingId);
+      setRows(normalized);
     } catch (e: any) {
       setErr(e?.message || "Failed to load findings.");
       setRows([]);
@@ -141,25 +215,25 @@ export default function FindingsPage({ params }: { params: { caseId: string } })
 
     setEvidenceLoading((m) => ({ ...m, [findingId]: true }));
     try {
-      const res = await fetch(`/api/admin/verification/finding-evidence?findingId=${encodeURIComponent(findingId)}`, {
+      const url = `/api/admin/verification/finding-evidence?findingId=${encodeURIComponent(findingId)}&t=${Date.now()}`;
+      const res = await fetch(url, {
         method: "GET",
         headers: { "Content-Type": "application/json" },
         cache: "no-store",
       });
 
-      const text = await res.text();
-      let data: ApiEvidence;
-      try {
-        data = JSON.parse(text);
-      } catch {
-        throw new Error(`Unexpected response (not JSON). First chars: ${text.slice(0, 80)}`);
-      }
+      const data = await safeJson<ApiEvidence>(res);
 
-      if (!("ok" in data) || data.ok === false) {
+      if (!res.ok) {
+        throw new Error((data as any)?.error || `Evidence GET failed (HTTP ${res.status})`);
+      }
+      if (!("ok" in data) || (data as any).ok === false) {
         throw new Error((data as any)?.error || "Failed to load finding evidence.");
       }
 
-      setEvidenceByFinding((m) => ({ ...m, [findingId]: data.rows || [] }));
+      const rawRows = (data as any).rows || [];
+      const normalized = rawRows.map(normalizeEvidenceRow).filter((x: EvidenceRow) => !!x.evidenceId);
+      setEvidenceByFinding((m) => ({ ...m, [findingId]: normalized }));
     } catch (e: any) {
       setErr(e?.message || "Failed to load finding evidence.");
       setEvidenceByFinding((m) => ({ ...m, [findingId]: [] }));
@@ -203,21 +277,24 @@ export default function FindingsPage({ params }: { params: { caseId: string } })
         body: JSON.stringify(payload),
       });
 
-      const text = await res.text();
-      let data: ApiPost;
-      try {
-        data = JSON.parse(text);
-      } catch {
-        throw new Error(`Unexpected response (not JSON). First chars: ${text.slice(0, 80)}`);
-      }
+      const data = await safeJson<ApiPost>(res);
+      setLastPost({ status: res.status, payload, data });
 
-      if (!("ok" in data) || data.ok === false) {
+      if (!res.ok) {
+        throw new Error((data as any)?.error || `POST failed (HTTP ${res.status})`);
+      }
+      if (!("ok" in data) || (data as any).ok === false) {
         throw new Error((data as any)?.error || "Failed to add finding.");
       }
 
       setControlId("");
       setControlTitle("");
       setRationale("");
+
+      setExpanded({});
+      setEvidenceByFinding({});
+      setEvidenceLoading({});
+
       await load();
     } catch (e: any) {
       setErr(e?.message || "Failed to add finding.");
@@ -246,11 +323,6 @@ export default function FindingsPage({ params }: { params: { caseId: string } })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [caseId]);
 
-  /**
-   * POLISH:
-   * Widen ACTIONS column a bit and prevent buttons from wrapping/shrinking.
-   * This fixes "Copy all IDs" splitting into multiple lines at 100% zoom.
-   */
   const gridCols = "grid-cols-[150px_1fr_120px_120px_160px_260px_220px] min-w-[1180px]";
   const cellPad = "px-5 py-4";
 
@@ -259,7 +331,6 @@ export default function FindingsPage({ params }: { params: { caseId: string } })
 
   return (
     <AdminShell title={`Admin • Verification • Findings • ${caseId}`}>
-      {/* Page header */}
       <div className="mb-6 flex flex-wrap items-start justify-between gap-3">
         <div>
           <div className="text-3xl font-semibold tracking-tight">Findings</div>
@@ -275,6 +346,14 @@ export default function FindingsPage({ params }: { params: { caseId: string } })
           >
             ← Back
           </Link>
+
+          <Link
+            href={evidencePageHref}
+            className="inline-flex h-11 items-center justify-center rounded-xl border border-gray-200 bg-white px-4 text-sm font-semibold shadow-sm hover:bg-gray-50"
+          >
+            Evidence →
+          </Link>
+
           <button
             className="inline-flex h-11 items-center justify-center rounded-xl border border-gray-200 bg-white px-4 text-sm font-semibold shadow-sm hover:bg-gray-50 disabled:opacity-60"
             onClick={load}
@@ -292,7 +371,20 @@ export default function FindingsPage({ params }: { params: { caseId: string } })
         </div>
       ) : null}
 
-      {/* Add finding */}
+      <details className="mb-6 rounded-2xl border border-gray-200 bg-white p-4 text-sm shadow-sm">
+        <summary className="cursor-pointer select-none font-semibold">Debug (last API responses)</summary>
+        <div className="mt-3 grid gap-3 lg:grid-cols-2">
+          <div className="rounded-xl border border-gray-200 bg-gray-50 p-3">
+            <div className="mb-2 font-semibold">Last POST /findings</div>
+            <pre className="whitespace-pre-wrap break-words text-xs">{JSON.stringify(lastPost, null, 2)}</pre>
+          </div>
+          <div className="rounded-xl border border-gray-200 bg-gray-50 p-3">
+            <div className="mb-2 font-semibold">Last GET /findings?caseId=…</div>
+            <pre className="whitespace-pre-wrap break-words text-xs">{JSON.stringify(lastGet, null, 2)}</pre>
+          </div>
+        </div>
+      </details>
+
       <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
         <div className="mb-4">
           <div className="text-base font-semibold">Add finding</div>
@@ -369,7 +461,6 @@ export default function FindingsPage({ params }: { params: { caseId: string } })
         </div>
       </section>
 
-      {/* Findings table */}
       <section className="mt-6 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
         <div className="mb-4">
           <div className="text-lg font-semibold">Findings ({rows.length})</div>
@@ -377,7 +468,6 @@ export default function FindingsPage({ params }: { params: { caseId: string } })
         </div>
 
         <div className="overflow-auto rounded-2xl border border-gray-200">
-          {/* Header */}
           <div className={`grid ${gridCols} bg-gray-50 text-xs font-semibold tracking-wider text-gray-600`}>
             <div className={cellPad}>CONTROL ID</div>
             <div className={cellPad}>CONTROL TITLE</div>
@@ -399,7 +489,6 @@ export default function FindingsPage({ params }: { params: { caseId: string } })
 
               return (
                 <div key={r.findingId} className="border-t border-gray-100">
-                  {/* Row */}
                   <button
                     type="button"
                     onClick={() => onToggle(r.findingId)}
@@ -436,7 +525,6 @@ export default function FindingsPage({ params }: { params: { caseId: string } })
                       </span>
                     </div>
 
-                    {/* Actions: NO WRAP + NO SHRINK */}
                     <div className={`${cellPad} flex items-center gap-2 flex-nowrap`}>
                       <button
                         type="button"
@@ -466,7 +554,6 @@ export default function FindingsPage({ params }: { params: { caseId: string } })
                     </div>
                   </button>
 
-                  {/* Expanded evidence */}
                   {isOpen ? (
                     <div className="bg-gray-50 px-5 py-5">
                       <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
@@ -479,7 +566,13 @@ export default function FindingsPage({ params }: { params: { caseId: string } })
                       {evLoading ? (
                         <div className="text-sm text-gray-700">Loading evidence…</div>
                       ) : evRows.length === 0 ? (
-                        <div className="text-sm text-gray-700">No evidence linked to this finding yet.</div>
+                        <div className="text-sm text-gray-700">
+                          No evidence linked to this finding yet.{" "}
+                          <Link className="underline" href={evidencePageHref}>
+                            Go to Evidence
+                          </Link>{" "}
+                          to link items.
+                        </div>
                       ) : (
                         <div className="grid gap-3">
                           {evRows.map((e) => (

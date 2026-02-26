@@ -1,4 +1,6 @@
-import { NextResponse } from "next/server";
+// app/api/admin/verification/events/route.ts
+import { NextRequest, NextResponse } from "next/server";
+import { requireAdmin } from "@/lib/auth/admin";
 import { executeQuery } from "@/lib/snowflake";
 
 export const dynamic = "force-dynamic";
@@ -20,7 +22,22 @@ function pickStr(v: any) {
   return String(v);
 }
 
-export async function GET(req: Request) {
+function inferActor(req: NextRequest): string {
+  // Today we only have a cookie-based admin model.
+  // Middleware + login set gafaig_admin to "demo" or "1".
+  // For now we record the cookie value in actor.
+  const v = req.cookies.get("gafaig_admin")?.value;
+  if (v === "1") return "admin";
+  if (v === "demo") return "demo";
+  return "unknown";
+}
+
+export async function GET(req: NextRequest) {
+  // Demo allowed: cookie "demo" or "1"
+  if (!requireAdmin(req, true)) {
+    return jsonError("Unauthorized", 401);
+  }
+
   try {
     const { searchParams } = new URL(req.url);
     const caseId = (searchParams.get("caseId") || "").trim();
@@ -41,7 +58,6 @@ export async function GET(req: Request) {
     `;
 
     const rows = await executeQuery(sql, [caseId]);
-
     return NextResponse.json({ ok: true, rows: rows || [] });
   } catch (e: any) {
     return NextResponse.json(
@@ -51,7 +67,12 @@ export async function GET(req: Request) {
   }
 }
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
+  // Demo allowed: cookie "demo" or "1"
+  if (!requireAdmin(req, true)) {
+    return jsonError("Unauthorized", 401);
+  }
+
   try {
     const bodyText = await req.text();
     const parsed = safeJsonParse(bodyText);
@@ -61,13 +82,15 @@ export async function POST(req: Request) {
 
     const cid = pickStr(caseId).trim();
     const et = pickStr(eventType).trim();
-    const act = pickStr(actor).trim();
+    const actInput = pickStr(actor).trim();
 
     if (!cid) return jsonError("Missing required field: caseId", 400);
     if (!et) return jsonError("Missing required field: eventType", 400);
 
-    // DETAILS is VARIANT. Safest: pass a JS object as JSON string and PARSE_JSON it in SELECT-only contexts.
-    // For INSERT, we'll store as a JSON string and cast to VARIANT using TO_VARIANT(PARSE_JSON(?)).
+    // If actor not provided, infer from cookie
+    const act = actInput || inferActor(req);
+
+    // DETAILS is VARIANT. We'll store it as JSON -> PARSE_JSON -> VARIANT.
     const detailsJson = details === undefined ? null : JSON.stringify(details);
 
     const eventId = `EVT-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`;
