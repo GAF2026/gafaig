@@ -1,116 +1,104 @@
 import Link from "next/link";
 
-export default function DemoQuickstartPage() {
-  const pill: React.CSSProperties = {
-    display: "inline-block",
-    padding: "0.85rem 1.1rem",
-    borderRadius: 14,
-    border: "1px solid rgba(0,0,0,0.18)",
-    background: "white",
-    color: "#000",
-    fontWeight: 800,
-    textDecoration: "none",
-  };
-
-  const primary: React.CSSProperties = {
-    ...pill,
-    border: "1px solid #000",
-    background: "#000",
-    color: "#fff",
-  };
-
-  const card: React.CSSProperties = {
-    border: "1px solid rgba(0,0,0,0.12)",
-    borderRadius: 16,
-    padding: "1.25rem",
-    background: "#fff",
-  };
-
+export default function DemoPage() {
   return (
-    <main
-      style={{
-        maxWidth: 980,
-        margin: "0 auto",
-        padding: "3.25rem 1.25rem 4rem",
-        lineHeight: 1.7,
-      }}
-    >
-      <div
-        style={{
-          fontSize: 12,
-          letterSpacing: "0.12em",
-          textTransform: "uppercase",
-          opacity: 0.7,
-          marginBottom: "0.75rem",
-        }}
-      >
-        Demo
-      </div>
+    <main className="mx-auto max-w-4xl px-6 py-14">
+      <header className="space-y-3">
+        <h1 className="text-4xl font-semibold tracking-tight">Demo</h1>
+        <p className="text-sm text-gray-600 leading-relaxed">
+          This demo shows GAFAIG’s evidence-based verification workflow and how it produces publishable,
+          auditable outcomes—backed by Snowflake as the system of record.
+        </p>
+      </header>
 
-      <h1 style={{ fontSize: 42, lineHeight: 1.1, margin: 0, letterSpacing: "-0.02em" }}>
-        GAFAIG governance registry demo
-      </h1>
+      <section className="mt-12 space-y-10">
+        <div className="space-y-3">
+          <h2 className="text-2xl font-semibold">Public vs. private layers</h2>
+          <div className="mt-4 grid gap-4">
+            <div className="border rounded-xl p-5">
+              <h3 className="font-semibold">Public Registry</h3>
+              <p className="mt-1 text-sm text-gray-700 leading-relaxed">
+                The public view of participation status and outcomes.
+              </p>
+              <div className="mt-3">
+                <Link className="text-sm underline" href="/registry">
+                  Open the Registry →
+                </Link>
+              </div>
+            </div>
 
-      <p style={{ marginTop: "1rem", fontSize: 18, opacity: 0.9, maxWidth: 820 }}>
-        This demo shows GAFAIG as a governance registry platform: governance artifacts are registered under a case,
-        persisted as structured data, and exposed via an API designed to map directly into Snowflake tables for
-        auditability and analytics at scale.
-      </p>
-
-      <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap", marginTop: "1.5rem" }}>
-        <Link href="/admin/verification/CASE-0001/evidence" style={primary}>
-          Start demo (CASE-0001)
-        </Link>
-        <Link href="/mission" style={pill}>
-          Mission
-        </Link>
-        <Link href="/framework" style={pill}>
-          Framework
-        </Link>
-        <Link href="/architecture" style={pill}>
-          Architecture
-        </Link>
-        <Link href="/" style={pill}>
-          Back to home
-        </Link>
-      </div>
-
-      <div style={{ marginTop: "2rem", display: "grid", gap: "1rem" }}>
-        <div style={card}>
-          <div style={{ fontWeight: 900, marginBottom: 6 }}>What to do (60 seconds)</div>
-          <ol style={{ margin: 0, paddingLeft: "1.25rem", opacity: 0.9 }}>
-            <li>
-              Click <strong>Start demo (CASE-0001)</strong> to open the Evidence registry page.
-            </li>
-            <li>
-              Confirm the case artifact log loads and shows registered governance artifacts.
-            </li>
-            <li>
-              Use the search field to filter artifacts (e.g., “audit”, “model”, “incident”).
-            </li>
-            <li>
-              Click <strong>View JSON endpoint</strong> at the bottom of the Evidence page to see structured data.
-            </li>
-          </ol>
+            <div className="border rounded-xl p-5">
+              <h3 className="font-semibold">Private Verification</h3>
+              <p className="mt-1 text-sm text-gray-700 leading-relaxed">
+                Evidence, findings, scoring, and decisions—restricted to authorized reviewers.
+              </p>
+              <div className="mt-3">
+                <Link className="text-sm underline" href="/admin/login">
+                  Open the Admin demo login →
+                </Link>
+              </div>
+            </div>
+          </div>
         </div>
 
-        <div style={card}>
-          <div style={{ fontWeight: 900, marginBottom: 6 }}>What this proves (Snowflake)</div>
-          <ul style={{ margin: 0, paddingLeft: "1.25rem", opacity: 0.9 }}>
-            <li>Governance artifacts are captured as structured, timestamped records.</li>
-            <li>Case-level registry data maps cleanly to relational tables (cases, evidence, findings, decisions).</li>
-            <li>The API exposes datasets suitable for Snowflake ingestion and cross-case analytics.</li>
-            <li>This enables auditability, reporting, and governance oversight at scale.</li>
+        <div className="space-y-3">
+          <h2 className="text-2xl font-semibold">Reviewer workflow</h2>
+          <p className="text-sm text-gray-600">
+            Use the Admin demo cookie to enter the reviewer interface. Then follow the workflow in order:
+          </p>
+
+          <div className="mt-4 grid gap-4">
+            <div className="border rounded-xl p-5">
+              <h3 className="font-semibold">1) Enable demo access</h3>
+              <p className="mt-1 text-sm text-gray-700 leading-relaxed">
+                Visit the Admin login page and click “Enable demo access” to set the short-lived demo cookie.
+              </p>
+              <div className="mt-3">
+                <Link className="text-sm underline" href="/admin/login">
+                  /admin/login →
+                </Link>
+              </div>
+            </div>
+
+            <div className="border rounded-xl p-5">
+              <h3 className="font-semibold">2) Review Applications</h3>
+              <p className="mt-1 text-sm text-gray-700 leading-relaxed">
+                Applications load from Snowflake-backed views and support filtering and paging.
+              </p>
+              <div className="mt-3">
+                <Link className="text-sm underline" href="/admin/applications">
+                  /admin/applications →
+                </Link>
+              </div>
+            </div>
+
+            <div className="border rounded-xl p-5">
+              <h3 className="font-semibold">3) Open a verification case</h3>
+              <p className="mt-1 text-sm text-gray-700 leading-relaxed">
+                Evidence, findings, scoring, decisions, and summaries live under a case.
+              </p>
+              <div className="mt-3 flex flex-wrap gap-4">
+                <Link className="text-sm underline" href="/admin/verification">
+                  /admin/verification →
+                </Link>
+                <Link className="text-sm underline" href="/admin/verification/CASE-0001/evidence">
+                  CASE-0001 evidence →
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="space-y-3">
+          <h2 className="text-2xl font-semibold">What to look for</h2>
+          <ul className="mt-3 text-sm text-gray-700 list-disc pl-5 space-y-1">
+            <li>Evidence records captured with metadata</li>
+            <li>Findings mapped to controls with rationale</li>
+            <li>Deterministic scoring and a recorded decision</li>
+            <li>Summaries generated for consistent reporting</li>
           </ul>
         </div>
-
-        <div style={card}>
-          <div style={{ fontWeight: 900, marginBottom: 6 }}>Recommended demo flow (5 minutes)</div>
-          <p style={{ margin: 0, opacity: 0.9 }}>
-            Home → Mission → Framework → Architecture → Demo → Evidence → JSON endpoint → Close.
-          </p>
-        </div>
-      </div>
+      </section>
     </main>
   );
 }
