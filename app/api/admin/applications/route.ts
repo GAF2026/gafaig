@@ -1,89 +1,98 @@
 import { NextResponse } from "next/server";
-import { executeQuery } from "@/lib/snowflake";
+import type { NextRequest } from "next/server";
+import { requireAdmin } from "@/lib/auth/require";
+import { sfQuery } from "@/lib/snowflake";
 
 export const dynamic = "force-dynamic";
 
-function asInt(v: string | null, fallback: number) {
-  const n = Number(v);
-  return Number.isFinite(n) && n > 0 ? Math.floor(n) : fallback;
+function json(data: any, status = 200) {
+  return NextResponse.json(data, { status });
 }
 
-export async function GET(req: Request) {
+function asInt(v: string | null, def: number, min: number, max: number) {
+  const n = Number(v ?? "");
+  if (!Number.isFinite(n)) return def;
+  return Math.max(min, Math.min(max, Math.trunc(n)));
+}
+
+// This is the view you confirmed is working
+const VIEW_NAME = "GAFAIG_DB.CORE.V_ADMIN_SUBMISSIONS";
+
+export async function GET(req: NextRequest) {
   try {
-    const { searchParams } = new URL(req.url);
+    const auth = await requireAdmin(req);
+    if (!auth.ok) {
+      return json({ ok: false, error: auth.error ?? "Unauthorized" }, auth.status ?? 401);
+    }
 
-    const page = asInt(searchParams.get("page"), 1);
-    const pageSize = Math.min(asInt(searchParams.get("pageSize"), 20), 100);
-
-    const status = (searchParams.get("status") || "all").toLowerCase();
-    const search = (searchParams.get("search") || "").trim();
+    const url = new URL(req.url);
+    const page = asInt(url.searchParams.get("page"), 1, 1, 5000);
+    const pageSize = asInt(url.searchParams.get("pageSize"), 10, 1, 100);
+    const status = String(url.searchParams.get("status") ?? "all").trim();
+    const q = String(url.searchParams.get("q") ?? "").trim();
 
     const where: string[] = [];
     const binds: any[] = [];
 
-    if (status !== "all") {
-      where.push(`STATUS = ?`);
+    // Only applications on this page
+    where.push(`TYPE = 'application'`);
+
+    if (status && status.toLowerCase() !== "all") {
+      where.push(`UPPER(COALESCE(STATUS, '')) = UPPER(?)`);
       binds.push(status);
     }
 
-    if (search.length > 0) {
-      where.push(`(REQUEST_ID ILIKE ? OR ORG_NAME ILIKE ? OR EMAIL ILIKE ?)`);
-      const like = `%${search}%`;
-      binds.push(like, like, like);
+    if (q) {
+      where.push(
+        `(
+          ILIKE(COALESCE(REQUEST_ID::string, ''), '%' || ? || '%')
+          OR ILIKE(COALESCE(ORG_NAME::string, ''), '%' || ? || '%')
+          OR ILIKE(COALESCE(CONTACT_EMAIL::string, ''), '%' || ? || '%')
+          OR ILIKE(COALESCE(SOURCE_TABLE::string, ''), '%' || ? || '%')
+        )`
+      );
+      binds.push(q, q, q, q);
     }
 
-    const whereSql = where.length ? `WHERE ${where.join(" AND ")}` : "";
-
-    const countSql = `
-      SELECT COUNT(*) AS TOTAL
-      FROM CORE.APPLICATIONS
-      ${whereSql}
-    `;
-
-const totalRows = await executeQuery(countSql, binds);
-
-// executeQuery may return either an array of rows OR an object containing rows.
-// Make the total extraction tolerant of both shapes.
-const firstRow =
-  (Array.isArray(totalRows) ? totalRows[0] : (totalRows as any)?.rows?.[0]) ?? null;
-
-const total = Number(
-  (firstRow as any)?.TOTAL ??
-  (firstRow as any)?.total ??
-  0
-);
-
+    const whereSql = `WHERE ${where.join(" AND ")}`;
     const offset = (page - 1) * pageSize;
 
-    const listSql = `
-      SELECT
-        REQUEST_ID AS "requestId",
-        TYPE       AS "type",
-        STATUS     AS "status",
-        ORG_NAME   AS "orgName",
-        EMAIL      AS "email",
-        UPDATED_AT AS "updatedAt"
-      FROM CORE.APPLICATIONS
+    // Count
+    const countSql = `
+      SELECT COUNT(*)::NUMBER AS TOTAL
+      FROM ${VIEW_NAME}
       ${whereSql}
-      ORDER BY UPDATED_AT DESC
-      LIMIT ?
-      OFFSET ?
+    `;
+    const countRows = await sfQuery<{ TOTAL: number }>(countSql, binds);
+    const total = Number((countRows?.[0] as any)?.TOTAL ?? 0);
+
+    // Rows (IMPORTANT: alias columns to the UI-friendly names)
+    const rowsSql = `
+      SELECT
+        REQUEST_ID      AS "requestId",
+        ORG_NAME        AS "org",
+        CONTACT_EMAIL   AS "email",
+        STATUS          AS "status",
+        SOURCE_TABLE    AS "source",
+        UPDATED_AT      AS "updatedAt"
+      FROM ${VIEW_NAME}
+      ${whereSql}
+      ORDER BY UPDATED_AT DESC NULLS LAST
+      LIMIT ? OFFSET ?
     `;
 
-    const rows = await executeQuery(listSql, [...binds, pageSize, offset]);
+    const rows = await sfQuery<any>(rowsSql, [...binds, pageSize, offset]);
 
-    return NextResponse.json({
+    return json({
       ok: true,
-      rows: rows || [],
-      total,
       page,
       pageSize,
-      filters: { status, search },
+      total,
+      rows: rows ?? [],
+      view: VIEW_NAME,
     });
   } catch (e: any) {
-    return NextResponse.json(
-      { ok: false, error: e?.message || String(e) },
-      { status: 500 }
-    );
+    const msg = String(e?.message ?? e ?? "Unknown error");
+    return json({ ok: false, error: msg }, 500);
   }
 }
