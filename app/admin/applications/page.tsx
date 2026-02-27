@@ -1,266 +1,248 @@
 "use client";
 
-import React from "react";
-import AdminShell from "../_components/AdminShell";
+import { useEffect, useMemo, useState } from "react";
 
 type Row = {
-  requestId: string;
-  submissionType?: string | null;
-  type?: string | null;
-  status: string;
-  orgName: string;
-  contactEmail: string;
-  requestedTier?: string | null;
-  renewalPeriod?: string | null;
-  createdAt?: string | null;
-  updatedAt?: string | null;
-  sourceTable?: string | null;
+  requestId?: string;
+  org?: string;
+  email?: string;
+  status?: string;
+  source?: string;
+  updatedAt?: string;
+
+  // tolerate other shapes too
+  REQUEST_ID?: string;
+  ORG_NAME?: string;
+  CONTACT_EMAIL?: string;
+  STATUS?: string;
+  SOURCE_TABLE?: string;
+  UPDATED_AT?: string;
 };
 
-function Badge({ children }: { children: React.ReactNode }) {
-  return (
-    <span className="inline-flex items-center rounded-full border border-gray-200 bg-white px-2 py-0.5 text-xs font-medium text-gray-700">
-      {children}
-    </span>
-  );
+function normRow(r: Row) {
+  return {
+    requestId: r.requestId ?? r.REQUEST_ID ?? "",
+    org: r.org ?? r.ORG_NAME ?? "",
+    email: r.email ?? r.CONTACT_EMAIL ?? "",
+    status: r.status ?? r.STATUS ?? "",
+    source: r.source ?? r.SOURCE_TABLE ?? "",
+    updatedAt: r.updatedAt ?? r.UPDATED_AT ?? "",
+  };
 }
 
-export default function ApplicationsPage() {
-  const [rows, setRows] = React.useState<Row[]>([]);
-  const [total, setTotal] = React.useState<number>(0);
-  const [page, setPage] = React.useState<number>(1);
-  const [pageSize, setPageSize] = React.useState<number>(10);
-  const [status, setStatus] = React.useState<string>("all");
-  const [search, setSearch] = React.useState<string>("");
+export default function AdminApplicationsPage() {
+  const [q, setQ] = useState("");
+  const [status, setStatus] = useState("all");
+  const [pageSize, setPageSize] = useState(10);
+  const [page, setPage] = useState(1);
 
-  const [loading, setLoading] = React.useState<boolean>(true);
-  const [error, setError] = React.useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const [rows, setRows] = useState<Row[]>([]);
+  const [total, setTotal] = useState(0);
+
+  const totalPages = useMemo(() => {
+    return Math.max(1, Math.ceil((total || 0) / (pageSize || 10)));
+  }, [total, pageSize]);
 
   async function load() {
     setLoading(true);
     setError(null);
+
     try {
-      const qs = new URLSearchParams();
-      qs.set("page", String(page));
-      qs.set("pageSize", String(pageSize));
-      qs.set("status", status);
-      if (search.trim()) qs.set("search", search.trim());
+      const params = new URLSearchParams();
+      params.set("page", String(page));
+      params.set("pageSize", String(pageSize));
+      params.set("status", status || "all");
+      if (q.trim()) params.set("q", q.trim());
 
-      const res = await fetch(`/api/admin/submissions?${qs.toString()}`, {
-        cache: "no-store",
-      });
-      const data = await res.json();
+      // ✅ IMPORTANT: Applications page must call /api/admin/applications (not submissions)
+      const url = `/api/admin/applications?${params.toString()}`;
 
-      if (!data?.ok) throw new Error(data?.error || "Failed to load submissions");
-      setRows(data.rows || []);
-      setTotal(Number(data.total || 0));
+      const r = await fetch(url, { credentials: "include" });
+      const text = await r.text();
+      let data: any = null;
+      try {
+        data = JSON.parse(text);
+      } catch {
+        throw new Error(`Non-JSON response (${r.status}): ${text.slice(0, 200)}`);
+      }
+
+      if (!r.ok || !data?.ok) {
+        throw new Error(data?.error ?? `Request failed (${r.status})`);
+      }
+
+      setRows(Array.isArray(data.rows) ? data.rows : []);
+      setTotal(Number(data.total ?? 0));
     } catch (e: any) {
-      setError(e?.message ?? "Failed to load submissions");
+      setRows([]);
+      setTotal(0);
+      setError(String(e?.message ?? e ?? "Unknown error"));
     } finally {
       setLoading(false);
     }
   }
 
-  React.useEffect(() => {
+  // load on first render + when paging changes
+  useEffect(() => {
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, pageSize, status]);
 
-  const totalPages = Math.max(1, Math.ceil(total / pageSize));
-  const showingFrom = total === 0 ? 0 : (page - 1) * pageSize + 1;
-  const showingTo = Math.min(page * pageSize, total);
+  const shownFrom = total === 0 ? 0 : (page - 1) * pageSize + 1;
+  const shownTo = Math.min(page * pageSize, total);
+
+  const normalized = rows.map(normRow);
 
   return (
-    <AdminShell title="Admin • Applications">
-      <div className="space-y-6">
-        {/* Filters */}
-        <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-          <div className="flex flex-col gap-2 md:flex-row md:items-center">
-            <div className="w-full md:w-80">
-              <label className="mb-1 block text-sm font-medium text-gray-700">
-                Search
-              </label>
-              <input
-                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm outline-none focus:border-gray-400"
-                placeholder="requestId, org, email…"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-              />
-            </div>
+    <div className="mx-auto max-w-5xl px-4 py-10">
+      <div className="mb-6">
+        <h1 className="text-3xl font-semibold">Admin • Applications</h1>
+        <div className="mt-2 text-sm text-gray-600">
+          {loading ? "Loading…" : `Showing ${shownFrom} to ${shownTo} of ${total}`}
+        </div>
+      </div>
 
-            <div className="w-full md:w-56">
-              <label className="mb-1 block text-sm font-medium text-gray-700">
-                Status
-              </label>
-              <select
-                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm outline-none focus:border-gray-400"
-                value={status}
-                onChange={(e) => {
-                  setPage(1);
-                  setStatus(e.target.value);
-                }}
-              >
-                <option value="all">All</option>
-                <option value="submitted">submitted</option>
-                <option value="in_review">in_review</option>
-                <option value="approved">approved</option>
-                <option value="rejected">rejected</option>
-                <option value="needs_more_info">needs_more_info</option>
-              </select>
-            </div>
-
-            <div className="w-full md:w-40">
-              <label className="mb-1 block text-sm font-medium text-gray-700">
-                Page size
-              </label>
-              <select
-                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm outline-none focus:border-gray-400"
-                value={pageSize}
-                onChange={(e) => {
-                  setPage(1);
-                  setPageSize(Number(e.target.value));
-                }}
-              >
-                <option value={10}>10</option>
-                <option value={20}>20</option>
-                <option value={50}>50</option>
-              </select>
-            </div>
-          </div>
-
-          <div className="flex gap-2">
-            <button
-              className="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm hover:bg-gray-50"
-              onClick={() => {
-                setPage(1);
-                load();
-              }}
-            >
-              Refresh
-            </button>
-
-            <button
-              className="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm hover:bg-gray-50"
-              onClick={() => {
-                setSearch("");
-                setStatus("all");
-                setPage(1);
-                setPageSize(10);
-                setTimeout(load, 0);
-              }}
-            >
-              Clear
-            </button>
-          </div>
+      <div className="mb-4 flex flex-wrap items-end gap-3">
+        <div className="min-w-[240px]">
+          <div className="text-xs font-medium text-gray-600">Search</div>
+          <input
+            className="mt-1 w-full rounded-md border px-3 py-2 text-sm"
+            placeholder="requestId, org, email…"
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+          />
         </div>
 
-        {/* Status line */}
-        <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-          <div className="text-sm text-gray-700">
-            {loading ? (
-              <span>Loading…</span>
-            ) : (
-              <span>
-                Showing <span className="font-medium">{showingFrom}</span> to{" "}
-                <span className="font-medium">{showingTo}</span> of{" "}
-                <span className="font-medium">{total}</span>
-              </span>
-            )}
-          </div>
-
-          <div className="flex items-center gap-2">
-            <button
-              className="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm hover:bg-gray-50 disabled:opacity-50"
-              disabled={page <= 1 || loading}
-              onClick={() => setPage((p) => Math.max(1, p - 1))}
-            >
-              Prev
-            </button>
-            <Badge>
-              Page {page} / {totalPages}
-            </Badge>
-            <button
-              className="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm hover:bg-gray-50 disabled:opacity-50"
-              disabled={page >= totalPages || loading}
-              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-            >
-              Next
-            </button>
-          </div>
+        <div className="min-w-[160px]">
+          <div className="text-xs font-medium text-gray-600">Status</div>
+          <select
+            className="mt-1 w-full rounded-md border px-3 py-2 text-sm"
+            value={status}
+            onChange={(e) => {
+              setPage(1);
+              setStatus(e.target.value);
+            }}
+          >
+            <option value="all">All</option>
+            <option value="submitted">submitted</option>
+            <option value="in_review">in_review</option>
+            <option value="approved">approved</option>
+            <option value="rejected">rejected</option>
+          </select>
         </div>
 
-        {/* Table */}
-        <div className="overflow-hidden rounded-lg border border-gray-200">
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200 text-sm">
-              <thead className="bg-gray-50">
-                <tr className="text-left text-xs font-semibold uppercase tracking-wide text-gray-600">
-                  <th className="px-4 py-3">Request</th>
-                  <th className="px-4 py-3">Org</th>
-                  <th className="px-4 py-3">Email</th>
-                  <th className="px-4 py-3">Status</th>
-                  <th className="px-4 py-3">Source</th>
-                  <th className="px-4 py-3">Updated</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100 bg-white">
-                {error ? (
-                  <tr>
-                    <td className="px-4 py-6 text-red-600" colSpan={6}>
-                      {error}
-                    </td>
-                  </tr>
-                ) : loading ? (
-                  <tr>
-                    <td className="px-4 py-6 text-gray-600" colSpan={6}>
-                      Loading…
-                    </td>
-                  </tr>
-                ) : rows.length === 0 ? (
-                  <tr>
-                    <td className="px-4 py-6 text-gray-600" colSpan={6}>
-                      No submissions found.
-                    </td>
-                  </tr>
-                ) : (
-                  rows.map((r) => (
-                    <tr key={`${r.requestId}-${r.sourceTable ?? ""}`} className="hover:bg-gray-50">
-                      <td className="px-4 py-3 font-medium text-gray-900">
-                        {r.requestId}
-                      </td>
-                      <td className="px-4 py-3">{r.orgName}</td>
-                      <td className="px-4 py-3">{r.contactEmail}</td>
-                      <td className="px-4 py-3">
-                        <Badge>{r.status}</Badge>
-                      </td>
-                      <td className="px-4 py-3">
-                        <Badge>{r.sourceTable ?? "-"}</Badge>
-                      </td>
-                      <td className="px-4 py-3 text-gray-600">
-                        {r.updatedAt ?? r.createdAt ?? "-"}
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
+        <div className="min-w-[120px]">
+          <div className="text-xs font-medium text-gray-600">Page size</div>
+          <select
+            className="mt-1 w-full rounded-md border px-3 py-2 text-sm"
+            value={pageSize}
+            onChange={(e) => {
+              setPage(1);
+              setPageSize(Number(e.target.value));
+            }}
+          >
+            <option value={10}>10</option>
+            <option value={20}>20</option>
+            <option value={50}>50</option>
+          </select>
         </div>
 
-        {/* Search Apply */}
-        <div className="flex justify-end">
+        <div className="ml-auto flex gap-2">
           <button
-            className="rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-black disabled:opacity-50"
+            className="rounded-md border px-3 py-2 text-sm"
+            onClick={() => load()}
             disabled={loading}
+          >
+            Refresh
+          </button>
+          <button
+            className="rounded-md border px-3 py-2 text-sm"
+            onClick={() => {
+              setQ("");
+              setStatus("all");
+              setPageSize(10);
+              setPage(1);
+              // load will run from useEffect after state changes
+            }}
+            disabled={loading}
+          >
+            Clear
+          </button>
+          <button
+            className="rounded-md bg-black px-3 py-2 text-sm text-white"
             onClick={() => {
               setPage(1);
               load();
             }}
+            disabled={loading}
           >
             Apply search
           </button>
         </div>
       </div>
-    </AdminShell>
+
+      {error ? (
+        <div className="mb-4 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+          {error}
+        </div>
+      ) : null}
+
+      <div className="overflow-hidden rounded-lg border">
+        <table className="w-full table-fixed">
+          <thead className="bg-gray-50 text-left text-xs font-semibold text-gray-600">
+            <tr>
+              <th className="w-[180px] px-4 py-3">REQUEST</th>
+              <th className="px-4 py-3">ORG</th>
+              <th className="w-[240px] px-4 py-3">EMAIL</th>
+              <th className="w-[120px] px-4 py-3">STATUS</th>
+              <th className="w-[140px] px-4 py-3">SOURCE</th>
+              <th className="w-[190px] px-4 py-3">UPDATED</th>
+            </tr>
+          </thead>
+          <tbody className="text-sm">
+            {normalized.length === 0 ? (
+              <tr>
+                <td className="px-4 py-6 text-gray-500" colSpan={6}>
+                  {loading ? "Loading…" : "No applications found."}
+                </td>
+              </tr>
+            ) : (
+              normalized.map((r, idx) => (
+                <tr key={`${r.requestId}-${idx}`} className="border-t">
+                  <td className="px-4 py-3 font-mono text-xs">{r.requestId}</td>
+                  <td className="px-4 py-3">{r.org}</td>
+                  <td className="px-4 py-3">{r.email}</td>
+                  <td className="px-4 py-3">{r.status}</td>
+                  <td className="px-4 py-3">{r.source}</td>
+                  <td className="px-4 py-3">{r.updatedAt}</td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      <div className="mt-4 flex items-center justify-end gap-2 text-sm">
+        <button
+          className="rounded-md border px-3 py-2 disabled:opacity-50"
+          onClick={() => setPage((p) => Math.max(1, p - 1))}
+          disabled={loading || page <= 1}
+        >
+          Prev
+        </button>
+        <div className="rounded-md border px-3 py-2">
+          Page {page} / {totalPages}
+        </div>
+        <button
+          className="rounded-md border px-3 py-2 disabled:opacity-50"
+          onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+          disabled={loading || page >= totalPages}
+        >
+          Next
+        </button>
+      </div>
+    </div>
   );
 }
