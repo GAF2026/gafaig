@@ -1,119 +1,199 @@
 // lib/snowflake.ts
+// GAFAIG Snowflake server-only helper layer
+// Supports legacy and modern route handlers.
+
 import snowflake from "snowflake-sdk";
 
-// IMPORTANT: Next.js App Router API routes run on Node runtime for snowflake-sdk.
-// This file must only be used from Node runtime route handlers.
+type Bind = string | number | boolean | null;
+type Binds = Bind[] | Record<string, Bind>;
 
-type SfEnv = {
-  account: string;
-  username: string;
-  password: string;
-  warehouse?: string;
+export type SfQueryOk<T = any> = {
+  ok: true;
+  rows: T[];
+  rowCount: number;
+};
+
+export type SfQueryErr = {
+  ok: false;
+  error: string;
+};
+
+export type SfQueryResponse<T = any> = SfQueryOk<T> | SfQueryErr;
+
+export type SnowflakeCtx = {
+  account?: string;
   database?: string;
   schema?: string;
   role?: string;
+  warehouse?: string;
 };
 
-function getEnv(name: string, required = true): string | undefined {
-  const v = process.env[name];
-  if (required && (!v || !v.trim())) {
-    throw new Error(`Missing required env var: ${name}`);
+/**
+ * Normalize private key input.
+ */
+function readPrivateKey(): string | undefined {
+  const raw = process.env.SNOWFLAKE_PRIVATE_KEY;
+  if (!raw) return undefined;
+
+  // If PEM-like, normalize escaped newlines
+  if (raw.includes("BEGIN PRIVATE KEY")) {
+    return raw.replace(/\\n/g, "\n");
   }
-  return v?.trim();
+
+  // Try base64 decode
+  try {
+    const decoded = Buffer.from(raw, "base64").toString("utf8");
+    if (decoded.includes("BEGIN PRIVATE KEY")) {
+      return decoded;
+    }
+  } catch {
+    // ignore
+  }
+
+  return raw.replace(/\\n/g, "\n");
 }
 
-function getSnowflakeEnv(): SfEnv {
+function getConfig() {
+  const account = process.env.SNOWFLAKE_ACCOUNT;
+  const username = process.env.SNOWFLAKE_USERNAME;
+  const warehouse = process.env.SNOWFLAKE_WAREHOUSE;
+  const database = process.env.SNOWFLAKE_DATABASE;
+  const schema = process.env.SNOWFLAKE_SCHEMA;
+  const role = process.env.SNOWFLAKE_ROLE;
+
+  if (!account) throw new Error("Missing env: SNOWFLAKE_ACCOUNT");
+  if (!username) throw new Error("Missing env: SNOWFLAKE_USERNAME");
+
+  const privateKey = readPrivateKey();
+  const password = process.env.SNOWFLAKE_PASSWORD;
+
+  // Prefer key-pair authentication
+  if (privateKey) {
+    return {
+      account,
+      username,
+      warehouse,
+      database,
+      schema,
+      role,
+      authenticator: "SNOWFLAKE_JWT" as const,
+      privateKey,
+    };
+  }
+
+  // Fallback to password
+  if (!password) {
+    throw new Error(
+      "Missing Snowflake credentials. Provide SNOWFLAKE_PRIVATE_KEY or SNOWFLAKE_PASSWORD."
+    );
+  }
+
   return {
-    account: getEnv("SNOWFLAKE_ACCOUNT")!,
-    username: getEnv("SNOWFLAKE_USERNAME")!,
-    password: getEnv("SNOWFLAKE_PASSWORD")!,
-    warehouse: getEnv("SNOWFLAKE_WAREHOUSE", false),
-    database: getEnv("SNOWFLAKE_DATABASE", false),
-    schema: getEnv("SNOWFLAKE_SCHEMA", false),
-    role: getEnv("SNOWFLAKE_ROLE", false),
+    account,
+    username,
+    password,
+    warehouse,
+    database,
+    schema,
+    role,
   };
 }
 
-type QueryResult<T = any> = {
-  rows: T[];
-  statement?: any;
-};
-
+// Store the connection on globalThis so it survives hot reloads in dev
 declare global {
   // eslint-disable-next-line no-var
-  var __gafaig_sf_conn_ready__: Promise<snowflake.Connection> | undefined;
+  var __gafaig_sf_conn: snowflake.Connection | undefined;
 }
 
-/**
- * Creates (and reuses) a single Snowflake connection across hot reloads.
- */
-async function connectOnce(): Promise<snowflake.Connection> {
-  if (global.__gafaig_sf_conn_ready__) return global.__gafaig_sf_conn_ready__;
+async function getConnection(): Promise<snowflake.Connection> {
+  const g = globalThis as unknown as { __gafaig_sf_conn?: snowflake.Connection };
 
-  global.__gafaig_sf_conn_ready__ = new Promise((resolve, reject) => {
-    try {
-      const env = getSnowflakeEnv();
+  if (g.__gafaig_sf_conn) {
+    return g.__gafaig_sf_conn;
+  }
 
-      const conn = snowflake.createConnection({
-        account: env.account,
-        username: env.username,
-        password: env.password,
-        warehouse: env.warehouse,
-        database: env.database,
-        schema: env.schema,
-        role: env.role,
-      });
+  const cfg = getConfig();
 
-      conn.connect((err) => {
-        if (err) return reject(err);
-        resolve(conn);
-      });
-    } catch (e) {
-      reject(e);
-    }
+  const conn = snowflake.createConnection({
+    account: cfg.account,
+    username: cfg.username,
+    password: (cfg as any).password,
+    authenticator: (cfg as any).authenticator,
+    privateKey: (cfg as any).privateKey,
+    warehouse: cfg.warehouse,
+    database: cfg.database,
+    schema: cfg.schema,
+    role: cfg.role,
+    clientSessionKeepAlive: true,
   });
 
-  return global.__gafaig_sf_conn_ready__;
-}
-
-/**
- * The canonical query helper used everywhere:
- *   import { sfQuery } from "@/lib/snowflake";
- */
-export async function sfQuery<T = any>(
-  sqlText: string,
-  binds: any[] = []
-): Promise<QueryResult<T>> {
-  const conn = await connectOnce();
-
-  return await new Promise<QueryResult<T>>((resolve, reject) => {
-    conn.execute({
-      sqlText,
-      binds,
-      complete: (err, stmt, rows) => {
-        if (err) return reject(err);
-        resolve({ rows: (rows ?? []) as T[], statement: stmt });
-      },
+  await new Promise<void>((resolve, reject) => {
+    conn.connect((err) => {
+      if (err) reject(err);
+      else resolve();
     });
   });
+
+  g.__gafaig_sf_conn = conn;
+  return conn;
 }
 
 /**
- * Back-compat aliases to stop import errors in older routes.
- * (Safe to keep even if you later migrate everything to sfQuery.)
+ * Canonical rows-only query helper.
  */
-export const executeQuery = sfQuery;
+export async function sfQuery<T = any>(sqlText: string, binds?: Binds): Promise<T[]> {
+  const result = await sfQueryResult<T>(sqlText, binds);
+  if (!result.ok) throw new Error(result.error);
+  return result.rows;
+}
 
 /**
- * Small helper that returns the current Snowflake session context.
+ * Canonical structured query helper.
  */
-export async function snowflakeCtx(): Promise<{ u: string; r: string }> {
-  const { rows } = await sfQuery<{ U: string; R: string }>(
-    `SELECT CURRENT_USER() AS U, CURRENT_ROLE() AS R`
-  );
-  const first = rows?.[0];
+export async function sfQueryResult<T = any>(sqlText: string, binds?: Binds): Promise<SfQueryResponse<T>> {
+  try {
+    const conn = await getConnection();
+
+    const rows = await new Promise<T[]>((resolve, reject) => {
+      conn.execute({
+        sqlText,
+        binds: binds as any,
+        complete: (err, _stmt, rows) => {
+          if (err) return reject(err);
+          resolve((rows ?? []) as T[]);
+        },
+      });
+    });
+
+    return { ok: true, rows, rowCount: rows.length };
+  } catch (e: any) {
+    return { ok: false, error: e?.message ?? String(e) };
+  }
+}
+
+/**
+ * Backward compatibility alias.
+ */
+export async function querySnowflake<T = any>(sqlText: string, binds?: Binds): Promise<SfQueryResponse<T>> {
+  return sfQueryResult<T>(sqlText, binds);
+}
+
+/**
+ * Backward compatibility for older routes expecting rows only.
+ */
+export async function executeQuery<T = any>(sqlText: string, binds?: Binds): Promise<T[]> {
+  return sfQuery<T>(sqlText, binds);
+}
+
+/**
+ * Diagnostics context helper.
+ */
+export function snowflakeCtx(): SnowflakeCtx {
   return {
-    u: first?.U ?? "UNKNOWN_USER",
-    r: first?.R ?? "UNKNOWN_ROLE",
+    account: process.env.SNOWFLAKE_ACCOUNT,
+    database: process.env.SNOWFLAKE_DATABASE,
+    schema: process.env.SNOWFLAKE_SCHEMA,
+    role: process.env.SNOWFLAKE_ROLE,
+    warehouse: process.env.SNOWFLAKE_WAREHOUSE,
   };
 }
