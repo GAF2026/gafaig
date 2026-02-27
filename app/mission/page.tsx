@@ -35,49 +35,50 @@ export default function MissionPage() {
                 Findings → Evidence → Events → Scoring → Decision—implemented as a deterministic, auditable process.
               </p>
             </div>
+
             <div className="border rounded-xl p-5">
               <h3 className="font-semibold">A measurable signal of oversight</h3>
               <p className="mt-1 text-sm text-gray-700 leading-relaxed">
-                A clear tier/band outcome and score that communicates governance maturity without exposing private
-                evidence.
+                Clear tiers, bands, and scores that communicate the level of verified Human AI oversight without
+                exposing private evidence.
               </p>
             </div>
+
             <div className="border rounded-xl p-5">
-              <h3 className="font-semibold">A privacy-preserving transparency layer</h3>
+              <h3 className="font-semibold">Evidence-linked decisions</h3>
               <p className="mt-1 text-sm text-gray-700 leading-relaxed">
-                A public registry view for accountability, backed by a controlled verification layer for authorized
-                reviewers.
+                Every decision is traceable to evidence and findings, making it reviewable by authorized parties and
+                defensible over time.
+              </p>
+            </div>
+
+            <div className="border rounded-xl p-5">
+              <h3 className="font-semibold">A public registry layer</h3>
+              <p className="mt-1 text-sm text-gray-700 leading-relaxed">
+                A transparent view of participation and status—designed for comparability—while keeping sensitive
+                evidence in a controlled review layer.
               </p>
             </div>
           </div>
         </div>
 
-        {/* Principles */}
+        {/* What we believe */}
         <div className="space-y-3">
-          <h2 className="text-2xl font-semibold">Principles</h2>
+          <h2 className="text-2xl font-semibold">What we believe</h2>
           <ul className="mt-3 text-sm text-gray-700 list-disc pl-5 space-y-1">
-            <li>
-              <span className="font-semibold">Evidence first:</span> governance is demonstrated, not declared.
-            </li>
-            <li>
-              <span className="font-semibold">Deterministic outcomes:</span> scoring is reproducible and auditable.
-            </li>
-            <li>
-              <span className="font-semibold">Least privilege:</span> sensitive evidence stays private by default.
-            </li>
-            <li>
-              <span className="font-semibold">Interoperable standards:</span> designed to work across institutions and
-              jurisdictions.
-            </li>
+            <li>Oversight must be operational: evidence, findings, decisions—not slogans.</li>
+            <li>Governance must be auditable and repeatable across organizations and deployments.</li>
+            <li>Transparency should be real, while protecting legitimately sensitive details.</li>
+            <li>Renewal is essential: systems evolve, and oversight must stay current.</li>
           </ul>
         </div>
 
-        {/* What success looks like */}
+        {/* Outcome */}
         <div className="space-y-3">
-          <h2 className="text-2xl font-semibold">What success looks like</h2>
+          <h2 className="text-2xl font-semibold">The outcome</h2>
           <p className="text-sm text-gray-700 leading-relaxed">
-            A world where high-impact AI systems can be evaluated consistently—where oversight is legible, comparable,
-            and enforceable. GAFAIG is the trust infrastructure for making that possible at scale.
+            GAFAIG creates a durable signal of verified Human AI oversight—so governance becomes legible to the public,
+            meaningful to regulators, and actionable for organizations building and deploying high-impact AI.
           </p>
         </div>
       </section>
