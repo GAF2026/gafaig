@@ -1,71 +1,41 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { sendEmail } from "@/lib/email/mailer";
+import { requireAdmin } from "@/lib/auth/require";
 
-const COOKIE_NAME = "gafaig_admin";
+export const dynamic = "force-dynamic";
 
 function hasEnv(name: string): boolean {
-  const v = process.env[name];
-  return !!(v && String(v).trim().length > 0);
+  // TS-safe way to index process.env
+  const v = ((process.env as unknown) as Record<string, string | undefined>)[name];
+  return !!(v && v.trim().length > 0);
 }
 
-export async function POST(request: NextRequest) {
-  try {
-    // Admin auth check
-    const cookie = request.cookies.get(COOKIE_NAME)?.value;
-    if (cookie !== "1") {
-      return NextResponse.json({ ok: false, error: "Unauthorized" }, { status: 401 });
-    }
+export async function GET(req: NextRequest) {
+  // Admin-gated diagnostics endpoint
+  const auth = await requireAdmin(req);
+  if (!auth.ok) {
+  return NextResponse.json({ ok: false, error: auth.error }, { status: auth.status });
+}
 
-    // SAFE diagnostics: shows presence only (no secrets)
-    const envPresence = {
-      SMTP_HOST: hasEnv("SMTP_HOST"),
-      SMTP_PORT: hasEnv("SMTP_PORT"),
-      SMTP_USER: hasEnv("SMTP_USER"),
-      SMTP_PASS: hasEnv("SMTP_PASS"),
-      SMTP_FROM: hasEnv("SMTP_FROM"),
-    };
+  // Keep this list aligned with whatever your email utility expects
+  const required = [
+    "GAFAIG_ADMIN_PASSWORD",
+    "GAFAIG_SESSION_SECRET",
+    // add/remove as needed:
+    // "RESEND_API_KEY",
+    // "SMTP_HOST",
+    // "SMTP_USER",
+    // "SMTP_PASS",
+    // "EMAIL_FROM",
+  ];
 
-    // If missing, report exactly which key(s) Next sees as missing
-    const missing = Object.entries(envPresence)
-      .filter(([, ok]) => !ok)
-      .map(([k]) => k);
+  const present = required.filter(hasEnv);
+  const missing = required.filter((k) => !hasEnv(k));
 
-    if (missing.length > 0) {
-      return NextResponse.json(
-        {
-          ok: false,
-          error:
-            "SMTP is not configured. One or more required env vars are missing at runtime.",
-          missing,
-          envPresence,
-        },
-        { status: 400 }
-      );
-    }
-
-    const body = await request.json().catch(() => ({}));
-    const to = String(body?.to ?? "").trim();
-
-    if (!to) {
-      return NextResponse.json(
-        { ok: false, error: "Missing 'to' email address", envPresence },
-        { status: 400 }
-      );
-    }
-
-    await sendEmail({
-      to,
-      subject: "GAFAIG Test Email",
-      text: "This is a test email from the GAFAIG system.",
-      html: "<p>This is a <strong>test email</strong> from the GAFAIG system.</p>",
-    });
-
-    return NextResponse.json({ ok: true, message: "Test email sent", envPresence });
-  } catch (e: any) {
-    return NextResponse.json(
-      { ok: false, error: e?.message ?? "Failed to send test email" },
-      { status: 500 }
-    );
-  }
+  return NextResponse.json({
+    ok: true,
+    present,
+    missing,
+    notes: "This endpoint only checks env presence. It does not send email.",
+  });
 }

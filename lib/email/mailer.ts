@@ -1,54 +1,81 @@
-import nodemailer from "nodemailer";
+// lib/email/mailer.ts
+/**
+ * GAFAIG mail helper.
+ * - Strict TS safe (no process.env[string] without casting)
+ * - Exports expected by the app: sendEmail, isEmailConfigured
+ *
+ * NOTE: This uses nodemailer if available. If you haven't installed it,
+ * we fail gracefully with a controlled error.
+ */
 
-type MailSendArgs = {
+type EmailInput = {
   to: string;
   subject: string;
   text?: string;
   html?: string;
 };
 
-function env(name: string) {
-  return (process.env[name] ?? "").trim();
+function env(name: string): string {
+  const e = (process.env as unknown) as Record<string, string | undefined>;
+  return (e[name] ?? "").trim();
 }
 
-export function isEmailConfigured() {
+export function isEmailConfigured(): boolean {
   return (
-    env("SMTP_HOST").length > 0 &&
-    env("SMTP_PORT").length > 0 &&
-    env("SMTP_USER").length > 0 &&
-    env("SMTP_PASS").length > 0 &&
-    env("SMTP_FROM").length > 0
+    !!env("EMAIL_HOST") &&
+    !!env("EMAIL_PORT") &&
+    !!env("EMAIL_USER") &&
+    !!env("EMAIL_PASS") &&
+    !!env("EMAIL_FROM")
   );
 }
 
-function makeTransport() {
-  const host = env("SMTP_HOST");
-  const port = Number(env("SMTP_PORT") || "587");
-  const user = env("SMTP_USER");
-  const pass = env("SMTP_PASS");
-
-  return nodemailer.createTransport({
-    host,
-    port,
-    secure: port === 465,
-    auth: { user, pass },
-
-    // DEV ONLY: bypass TLS validation (fixes "self-signed certificate in certificate chain")
-    tls: { rejectUnauthorized: false },
-  });
+function getEmailConfig() {
+  return {
+    host: env("EMAIL_HOST"),
+    port: Number(env("EMAIL_PORT") || "0"),
+    user: env("EMAIL_USER"),
+    pass: env("EMAIL_PASS"),
+    from: env("EMAIL_FROM"),
+  };
 }
 
-export async function sendEmail(args: MailSendArgs) {
-  if (!isEmailConfigured()) throw new Error("SMTP is not configured.");
+export async function sendEmail(input: EmailInput): Promise<{ ok: true } | { ok: false; error: string }> {
+  if (!isEmailConfigured()) {
+    return { ok: false, error: "Email is not configured (missing EMAIL_* env vars)." };
+  }
 
-  const transporter = makeTransport();
-  const from = env("SMTP_FROM");
+  const cfg = getEmailConfig();
 
-  return transporter.sendMail({
-    from,
-    to: args.to,
-    subject: args.subject,
-    text: args.text,
-    html: args.html,
-  });
+  // Dynamically import so build won't fail if nodemailer isn't installed.
+  let nodemailer: any;
+  try {
+    nodemailer = await import("nodemailer");
+  } catch {
+    return { ok: false, error: "nodemailer is not installed. Install it or disable email sending." };
+  }
+
+  try {
+    const transporter = nodemailer.createTransport({
+      host: cfg.host,
+      port: cfg.port,
+      secure: cfg.port === 465, // common default
+      auth: {
+        user: cfg.user,
+        pass: cfg.pass,
+      },
+    });
+
+    await transporter.sendMail({
+      from: cfg.from,
+      to: input.to,
+      subject: input.subject,
+      text: input.text,
+      html: input.html,
+    });
+
+    return { ok: true };
+  } catch (e: any) {
+    return { ok: false, error: e?.message ?? String(e) };
+  }
 }
