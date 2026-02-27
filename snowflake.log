@@ -4818,3 +4818,25 @@
 {"level":"INFO","message":"[6:43:57.060 AM]: No config file path found. Client config will not be used."}
 {"level":"INFO","message":"[6:43:57.060 AM]: Easy Logging is disabled as no config has been found"}
 {"level":"INFO","message":"[6:43:57.685 AM]: Connection[id: 217ecede-add8-42ea-aeae-b533aa773790] - connection established successfully after 630.89 milliseconds"}
+{"level":"INFO","message":"[8:17:08.424 AM]: Creating new connection object"}
+{"level":"INFO","message":"[8:17:08.435 AM]: Creating Connection[id: f6381cec-6f9c-4ca2-af4f-982c10db1739] with host: duglhtd-cm14952.snowflakecomputing.com, account: duglhtd-cm14952, accessUrl: https://duglhtd-cm14952.snowflakecomputing.com, user: GAFAIG_APP_USER, role: GAFAIG_APP_ROLE, database: GAFAIG_DB, schema: CORE, warehouse: GAFAIG_WH, proxy was not configured, password is not provided, region: undefined, authenticator: SNOWFLAKE_JWT, ocsp mode: FAIL_OPEN, os: win32, os version: 10.0.26200"}
+{"level":"INFO","message":"[8:17:08.436 AM]: Connection[id: f6381cec-6f9c-4ca2-af4f-982c10db1739] additional details: passcode in password is provided, passcode is not provided, private key is provided, application: undefined, client name: snowflake-sdk, client version: 2.3.4, retry timeout: 300, private key path: undefined, private key pass is not provided, client store temporary credential: false, browser response timeout: 120000"}
+{"level":"INFO","message":"[8:17:08.436 AM]: Connection[id: f6381cec-6f9c-4ca2-af4f-982c10db1739] - connection object created successfully."}
+{"level":"INFO","message":"[8:17:08.437 AM]: Connection[id: f6381cec-6f9c-4ca2-af4f-982c10db1739] - connecting. Associated Snowflake domain: GLOBAL"}
+{"level":"INFO","message":"[8:17:08.447 AM]: Connection[id: f6381cec-6f9c-4ca2-af4f-982c10db1739] - authentication successful using: SNOWFLAKE_JWT"}
+{"level":"INFO","message":"[8:17:08.450 AM]: Trying to initialize Easy Logging"}
+{"level":"INFO","message":"[8:17:08.454 AM]: No client config detected."}
+{"level":"INFO","message":"[8:17:08.454 AM]: No config file path found. Client config will not be used."}
+{"level":"INFO","message":"[8:17:08.456 AM]: Easy Logging is disabled as no config has been found"}
+{"level":"INFO","message":"[8:17:09.175 AM]: Connection[id: f6381cec-6f9c-4ca2-af4f-982c10db1739] - connection established successfully after 738.05 milliseconds"}
+{"level":"INFO","message":"[8:33:17.673 AM]: Creating new connection object"}
+{"level":"INFO","message":"[8:33:17.685 AM]: Creating Connection[id: c4aa3544-3bd5-4620-bf84-df423b900153] with host: duglhtd-cm14952.snowflakecomputing.com, account: duglhtd-cm14952, accessUrl: https://duglhtd-cm14952.snowflakecomputing.com, user: GAFAIG_APP_USER, role: GAFAIG_APP_ROLE, database: GAFAIG_DB, schema: CORE, warehouse: GAFAIG_WH, proxy was not configured, password is not provided, region: undefined, authenticator: SNOWFLAKE_JWT, ocsp mode: FAIL_OPEN, os: win32, os version: 10.0.26200"}
+{"level":"INFO","message":"[8:33:17.686 AM]: Connection[id: c4aa3544-3bd5-4620-bf84-df423b900153] additional details: passcode in password is provided, passcode is not provided, private key is provided, application: undefined, client name: snowflake-sdk, client version: 2.3.4, retry timeout: 300, private key path: undefined, private key pass is not provided, client store temporary credential: false, browser response timeout: 120000"}
+{"level":"INFO","message":"[8:33:17.692 AM]: Connection[id: c4aa3544-3bd5-4620-bf84-df423b900153] - connection object created successfully."}
+{"level":"INFO","message":"[8:33:17.697 AM]: Connection[id: c4aa3544-3bd5-4620-bf84-df423b900153] - connecting. Associated Snowflake domain: GLOBAL"}
+{"level":"INFO","message":"[8:33:17.710 AM]: Connection[id: c4aa3544-3bd5-4620-bf84-df423b900153] - authentication successful using: SNOWFLAKE_JWT"}
+{"level":"INFO","message":"[8:33:17.714 AM]: Trying to initialize Easy Logging"}
+{"level":"INFO","message":"[8:33:17.718 AM]: No client config detected."}
+{"level":"INFO","message":"[8:33:17.721 AM]: No config file path found. Client config will not be used."}
+{"level":"INFO","message":"[8:33:17.722 AM]: Easy Logging is disabled as no config has been found"}
+{"level":"INFO","message":"[8:33:18.565 AM]: Connection[id: c4aa3544-3bd5-4620-bf84-df423b900153] - connection established successfully after 867.69 milliseconds"}

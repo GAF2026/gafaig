@@ -57,11 +57,12 @@ export default function AdminApplicationsPage() {
       params.set("status", status || "all");
       if (q.trim()) params.set("q", q.trim());
 
-      // ✅ IMPORTANT: Applications page must call /api/admin/applications (not submissions)
+      // ✅ Applications page calls /api/admin/applications
       const url = `/api/admin/applications?${params.toString()}`;
 
       const r = await fetch(url, { credentials: "include" });
       const text = await r.text();
+
       let data: any = null;
       try {
         data = JSON.parse(text);
@@ -84,7 +85,6 @@ export default function AdminApplicationsPage() {
     }
   }
 
-  // load on first render + when paging changes
   useEffect(() => {
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -164,7 +164,6 @@ export default function AdminApplicationsPage() {
               setStatus("all");
               setPageSize(10);
               setPage(1);
-              // load will run from useEffect after state changes
             }}
             disabled={loading}
           >
@@ -189,18 +188,20 @@ export default function AdminApplicationsPage() {
         </div>
       ) : null}
 
-      <div className="overflow-hidden rounded-lg border">
-        <table className="w-full table-fixed">
+      {/* Allow horizontal scroll so columns don’t get crushed */}
+      <div className="overflow-x-auto rounded-lg border">
+        <table className="min-w-[980px] w-full table-fixed">
           <thead className="bg-gray-50 text-left text-xs font-semibold text-gray-600">
             <tr>
-              <th className="w-[180px] px-4 py-3">REQUEST</th>
-              <th className="px-4 py-3">ORG</th>
-              <th className="w-[240px] px-4 py-3">EMAIL</th>
-              <th className="w-[120px] px-4 py-3">STATUS</th>
-              <th className="w-[140px] px-4 py-3">SOURCE</th>
-              <th className="w-[190px] px-4 py-3">UPDATED</th>
+              <th className="w-[160px] px-4 py-3">REQUEST</th>
+              <th className="w-[260px] px-4 py-3">ORG</th>
+              <th className="w-[300px] px-4 py-3">EMAIL</th>
+              <th className="w-[110px] px-4 py-3">STATUS</th>
+              <th className="w-[130px] px-4 py-3">SOURCE</th>
+              <th className="w-[180px] px-4 py-3">UPDATED</th>
             </tr>
           </thead>
+
           <tbody className="text-sm">
             {normalized.length === 0 ? (
               <tr>
@@ -211,12 +212,21 @@ export default function AdminApplicationsPage() {
             ) : (
               normalized.map((r, idx) => (
                 <tr key={`${r.requestId}-${idx}`} className="border-t">
-                  <td className="px-4 py-3 font-mono text-xs">{r.requestId}</td>
-                  <td className="px-4 py-3">{r.org}</td>
-                  <td className="px-4 py-3">{r.email}</td>
-                  <td className="px-4 py-3">{r.status}</td>
-                  <td className="px-4 py-3">{r.source}</td>
-                  <td className="px-4 py-3">{r.updatedAt}</td>
+                  <td className="px-4 py-3 font-mono text-xs align-top whitespace-nowrap">
+                    {r.requestId}
+                  </td>
+
+                  <td className="px-4 py-3 align-top">
+                    <div className="break-words leading-relaxed">{r.org}</div>
+                  </td>
+
+                  <td className="px-4 py-3 align-top">
+                    <div className="break-words leading-relaxed">{r.email}</div>
+                  </td>
+
+                  <td className="px-4 py-3 align-top whitespace-nowrap">{r.status}</td>
+                  <td className="px-4 py-3 align-top whitespace-nowrap">{r.source}</td>
+                  <td className="px-4 py-3 align-top whitespace-nowrap">{r.updatedAt}</td>
                 </tr>
               ))
             )}
