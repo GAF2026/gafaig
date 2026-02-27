@@ -103,12 +103,12 @@ export async function GET(req: NextRequest) {
 
     // Page rows
     const rowsSql = `
-      SELECT *
-      FROM ${viewName}
-      ${whereSql}
-      ORDER BY COALESCE(updated_at, created_at, submitted_at) DESC NULLS LAST
-      LIMIT ? OFFSET ?
-    `;
+  SELECT *
+  FROM ${viewName}
+  ${whereSql}
+  ORDER BY UPDATED_AT DESC NULLS LAST
+  LIMIT ? OFFSET ?
+`;
     const rows = await sfQuery<SubmissionRow>(rowsSql, [...binds, pageSize, offset]);
 
     return json({
