@@ -139,6 +139,96 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* Use cases */}
+      <section className="mt-10">
+        <div className="rounded-2xl border p-6 sm:p-7">
+          <div className="space-y-2">
+            <h2 className="text-xl font-semibold">Use cases</h2>
+            <p className="text-sm text-gray-600 leading-relaxed">
+              GAFAIG provides a consistent way to measure Human AI oversight across different operators, teams,
+              deployments, and high-impact contexts.
+            </p>
+          </div>
+
+          <div className="mt-6 grid gap-4 md:grid-cols-2">
+            <div className="border rounded-xl p-5">
+              <h3 className="font-semibold">Enterprise AI governance assurance</h3>
+              <p className="mt-1 text-sm text-gray-700 leading-relaxed">
+                Give boards, executives, and security teams a repeatable, evidence-based signal of oversight
+                maturity across business units and deployed systems.
+              </p>
+              <ul className="mt-3 text-sm text-gray-700 list-disc pl-5 space-y-1">
+                <li>System inventory + scope definition</li>
+                <li>Control mapping and documented findings</li>
+                <li>Deterministic scoring for comparability</li>
+              </ul>
+            </div>
+
+            <div className="border rounded-xl p-5">
+              <h3 className="font-semibold">Regulator-facing reporting</h3>
+              <p className="mt-1 text-sm text-gray-700 leading-relaxed">
+                Produce audit-ready narratives and structured disclosures that show what was reviewed, what
+                evidence supports claims, and what remediation is required.
+              </p>
+              <ul className="mt-3 text-sm text-gray-700 list-disc pl-5 space-y-1">
+                <li>Standardized disclosure summaries</li>
+                <li>Renewal cadence and material-change triggers</li>
+                <li>Redaction-friendly transparency layer</li>
+              </ul>
+            </div>
+
+            <div className="border rounded-xl p-5">
+              <h3 className="font-semibold">Vendor & platform risk evaluation</h3>
+              <p className="mt-1 text-sm text-gray-700 leading-relaxed">
+                Evaluate third-party AI vendors and multi-tenant platforms with a common workflow so risk can
+                be compared across suppliers and deployments.
+              </p>
+              <ul className="mt-3 text-sm text-gray-700 list-disc pl-5 space-y-1">
+                <li>Comparable tier/band outcomes</li>
+                <li>Evidence-backed procurement reviews</li>
+                <li>Cross-team consistency in oversight</li>
+              </ul>
+            </div>
+
+            <div className="border rounded-xl p-5">
+              <h3 className="font-semibold">Public trust signaling</h3>
+              <p className="mt-1 text-sm text-gray-700 leading-relaxed">
+                Publish registry participation and outcomes so stakeholders can see what governance is in
+                place—without disclosing sensitive artifacts.
+              </p>
+              <ul className="mt-3 text-sm text-gray-700 list-disc pl-5 space-y-1">
+                <li>Transparent participation levels</li>
+                <li>Outcome visibility with bounded disclosure</li>
+                <li>Independent review pathway</li>
+              </ul>
+            </div>
+          </div>
+
+          <div className="mt-6 flex flex-wrap items-center gap-3">
+            <Link
+              href="/registry"
+              className="px-4 py-2 rounded-full text-sm font-semibold border border-black hover:bg-black/[0.04]"
+            >
+              See the Registry
+            </Link>
+
+            <Link
+              href="/technology"
+              className="px-4 py-2 rounded-full text-sm font-semibold border border-black hover:bg-black/[0.04]"
+            >
+              How the tech works
+            </Link>
+
+            <Link
+              href="/demo"
+              className="px-4 py-2 rounded-full text-sm font-semibold border border-black bg-black text-white hover:bg-black/90"
+            >
+              Run the Demo
+            </Link>
+          </div>
+        </div>
+      </section>
+
       {/* Three tiles */}
       <section className="mt-10 grid gap-4 md:grid-cols-3">
         <div className="rounded-2xl border p-6">
