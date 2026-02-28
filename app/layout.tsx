@@ -61,6 +61,16 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                     >
                       Demo
                     </Link>
+
+                    {/* ✅ NEW: Demo Script */}
+                    <Link
+                      href="/demo-script"
+                      className="px-4 py-2 rounded-full text-sm font-semibold border border-transparent hover:border-black/15 hover:bg-black/[0.04] w-full md:w-auto text-center"
+                      title="Snowflake demo talk track"
+                    >
+                      Demo Script
+                    </Link>
+
                     <Link
                       href="/admin/login"
                       className="px-4 py-2 rounded-full text-sm font-semibold border border-black bg-black text-white hover:bg-black/90 w-full md:w-auto text-center"
