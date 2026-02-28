@@ -8,77 +8,76 @@ export const metadata: Metadata = {
   description: "Structured and auditable oversight of AI systems.",
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <body className="bg-white text-black">
+        {/* Full-height flex wrapper */}
         <div className="min-h-screen flex flex-col">
-          {/* Global header */}
+          {/* Global header (applies to ALL pages) */}
           <header className="sticky top-0 z-50 bg-white/90 backdrop-blur border-b border-black/10">
             <div className="mx-auto max-w-[1100px] px-6 py-3">
-              <div className="flex flex-wrap items-center gap-4">
-                
-                {/* Logo — prevent shrinking */}
-                <Link
-                  href="/"
-                  className="flex items-center gap-3 flex-shrink-0"
-                >
+              {/* Mobile: stack | Desktop: inline */}
+              <div className="flex flex-col gap-3 md:flex-row md:items-center md:gap-4">
+                {/* Clickable logo → Home */}
+                <Link href="/" className="flex items-center gap-3 shrink-0">
                   <img
                     src="/images/gafaig-lockup.png"
                     alt="GAFAIG"
-                    className="h-8 w-auto object-contain"
+                    className="h-8 w-auto shrink-0"
                   />
                 </Link>
 
-                {/* Navigation */}
-                <nav className="flex flex-wrap items-center gap-2 ml-auto">
-                  <Link
-                    href="/mission"
-                    className="px-3 py-1.5 rounded-full text-sm font-semibold border border-transparent hover:border-black/15 hover:bg-black/[0.04]"
-                  >
-                    Mission
-                  </Link>
+                {/* NAV: Mobile = grid rows, Desktop = inline */}
+                <nav className="md:ml-auto w-full md:w-auto">
+                  {/* Primary links */}
+                  <div className="grid grid-cols-3 gap-2 md:flex md:items-center md:gap-2 md:flex-wrap md:justify-end">
+                    <Link
+                      href="/mission"
+                      className="px-3 py-2 rounded-full text-sm font-semibold border border-transparent hover:border-black/15 hover:bg-black/[0.04] text-center md:text-left"
+                    >
+                      Mission
+                    </Link>
+                    <Link
+                      href="/framework"
+                      className="px-3 py-2 rounded-full text-sm font-semibold border border-transparent hover:border-black/15 hover:bg-black/[0.04] text-center md:text-left"
+                    >
+                      Framework
+                    </Link>
+                    <Link
+                      href="/registry"
+                      className="px-3 py-2 rounded-full text-sm font-semibold border border-transparent hover:border-black/15 hover:bg-black/[0.04] text-center md:text-left"
+                    >
+                      Registry
+                    </Link>
+                  </div>
 
-                  <Link
-                    href="/framework"
-                    className="px-3 py-1.5 rounded-full text-sm font-semibold border border-transparent hover:border-black/15 hover:bg-black/[0.04]"
-                  >
-                    Framework
-                  </Link>
-
-                  <Link
-                    href="/registry"
-                    className="px-3 py-1.5 rounded-full text-sm font-semibold border border-transparent hover:border-black/15 hover:bg-black/[0.04]"
-                  >
-                    Registry
-                  </Link>
-
-                  <Link
-                    href="/demo"
-                    className="px-3 py-1.5 rounded-full text-sm font-semibold border border-black hover:bg-black/[0.04]"
-                  >
-                    Demo
-                  </Link>
-
-                  <Link
-                    href="/admin/login"
-                    className="px-3 py-1.5 rounded-full text-sm font-semibold border border-black bg-black text-white hover:bg-black/90"
-                  >
-                    Admin
-                  </Link>
+                  {/* Action buttons */}
+                  <div className="mt-2 flex gap-2 md:mt-0 md:ml-2 md:inline-flex md:items-center">
+                    <Link
+                      href="/demo"
+                      className="px-4 py-2 rounded-full text-sm font-semibold border border-black hover:bg-black/[0.04] w-full md:w-auto text-center"
+                      title="Open the GAFAIG demo overview"
+                    >
+                      Demo
+                    </Link>
+                    <Link
+                      href="/admin/login"
+                      className="px-4 py-2 rounded-full text-sm font-semibold border border-black bg-black text-white hover:bg-black/90 w-full md:w-auto text-center"
+                      title="Open the GAFAIG admin login"
+                    >
+                      Admin
+                    </Link>
+                  </div>
                 </nav>
               </div>
             </div>
           </header>
 
-          {/* Page content */}
+          {/* Page content grows to fill remaining space */}
           <div className="flex-1">{children}</div>
 
-          {/* Footer */}
+          {/* Footer pinned to bottom */}
           <div className="mt-auto">
             <SiteFooter />
           </div>
