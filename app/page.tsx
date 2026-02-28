@@ -15,8 +15,14 @@ export default function HomePage() {
         </h1>
 
         <p className="text-base sm:text-lg text-gray-700 leading-relaxed">
-          GAFAIG is global governance assurance infrastructure for artificial intelligence — making Human AI
+          GAFAIG is governance assurance infrastructure for artificial intelligence — making Human AI
           oversight measurable, auditable, and visible at planetary scale.
+        </p>
+
+        {/* Snowflake architectural signal */}
+        <p className="text-sm text-gray-500 leading-relaxed">
+          Built on Snowflake as the system of record, GAFAIG stores evidence, findings, and scoring logic
+          in structured, auditable data workflows — ensuring deterministic outcomes and reproducible oversight.
         </p>
 
         {/* Primary CTAs */}
@@ -124,7 +130,6 @@ export default function HomePage() {
             <Link
               href="/demo-script"
               className="px-4 py-2 rounded-full text-sm font-semibold border border-black hover:bg-black/[0.04]"
-              title="Open the Snowflake demo talk track"
             >
               Demo Script
             </Link>
@@ -145,8 +150,14 @@ export default function HomePage() {
           <div className="space-y-2">
             <h2 className="text-xl font-semibold">Use cases</h2>
             <p className="text-sm text-gray-600 leading-relaxed">
-              GAFAIG provides a consistent way to measure Human AI oversight across different operators, teams,
-              deployments, and high-impact contexts.
+              GAFAIG provides a consistent way to measure Human AI oversight across different operators,
+              teams, deployments, and high-impact contexts.
+            </p>
+
+            {/* Why this matters */}
+            <p className="mt-2 text-sm text-gray-700 leading-relaxed">
+              AI systems now influence markets, infrastructure, and public decision-making.
+              Governance must be measurable — not declared.
             </p>
           </div>
 
@@ -154,53 +165,29 @@ export default function HomePage() {
             <div className="border rounded-xl p-5">
               <h3 className="font-semibold">Enterprise AI governance assurance</h3>
               <p className="mt-1 text-sm text-gray-700 leading-relaxed">
-                Give boards, executives, and security teams a repeatable, evidence-based signal of oversight
-                maturity across business units and deployed systems.
+                Give boards and executives a repeatable, evidence-based signal of oversight maturity.
               </p>
-              <ul className="mt-3 text-sm text-gray-700 list-disc pl-5 space-y-1">
-                <li>System inventory + scope definition</li>
-                <li>Control mapping and documented findings</li>
-                <li>Deterministic scoring for comparability</li>
-              </ul>
             </div>
 
             <div className="border rounded-xl p-5">
               <h3 className="font-semibold">Regulator-facing reporting</h3>
               <p className="mt-1 text-sm text-gray-700 leading-relaxed">
-                Produce audit-ready narratives and structured disclosures that show what was reviewed, what
-                evidence supports claims, and what remediation is required.
+                Produce audit-ready disclosures that show what was reviewed and how outcomes were determined.
               </p>
-              <ul className="mt-3 text-sm text-gray-700 list-disc pl-5 space-y-1">
-                <li>Standardized disclosure summaries</li>
-                <li>Renewal cadence and material-change triggers</li>
-                <li>Redaction-friendly transparency layer</li>
-              </ul>
             </div>
 
             <div className="border rounded-xl p-5">
               <h3 className="font-semibold">Vendor & platform risk evaluation</h3>
               <p className="mt-1 text-sm text-gray-700 leading-relaxed">
-                Evaluate third-party AI vendors and multi-tenant platforms with a common workflow so risk can
-                be compared across suppliers and deployments.
+                Compare third-party AI systems using deterministic governance scoring.
               </p>
-              <ul className="mt-3 text-sm text-gray-700 list-disc pl-5 space-y-1">
-                <li>Comparable tier/band outcomes</li>
-                <li>Evidence-backed procurement reviews</li>
-                <li>Cross-team consistency in oversight</li>
-              </ul>
             </div>
 
             <div className="border rounded-xl p-5">
               <h3 className="font-semibold">Public trust signaling</h3>
               <p className="mt-1 text-sm text-gray-700 leading-relaxed">
-                Publish registry participation and outcomes so stakeholders can see what governance is in
-                place—without disclosing sensitive artifacts.
+                Publish registry participation and outcomes without exposing sensitive artifacts.
               </p>
-              <ul className="mt-3 text-sm text-gray-700 list-disc pl-5 space-y-1">
-                <li>Transparent participation levels</li>
-                <li>Outcome visibility with bounded disclosure</li>
-                <li>Independent review pathway</li>
-              </ul>
             </div>
           </div>
 
