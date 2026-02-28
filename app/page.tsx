@@ -15,17 +15,11 @@ export default function HomePage() {
         </h1>
 
         <p className="text-base sm:text-lg text-gray-700 leading-relaxed">
-          GAFAIG is governance assurance infrastructure for artificial intelligence — making Human AI
+          GAFAIG is global governance assurance infrastructure for artificial intelligence — making Human AI
           oversight measurable, auditable, and visible at planetary scale.
         </p>
 
-        {/* Snowflake architectural signal */}
-        <p className="text-sm text-gray-500 leading-relaxed">
-          Built on Snowflake as the system of record, GAFAIG stores evidence, findings, and scoring logic
-          in structured, auditable data workflows — ensuring deterministic outcomes and reproducible oversight.
-        </p>
-
-        {/* Primary CTAs */}
+        {/* Primary CTAs (de-cluttered) */}
         <div className="flex flex-wrap items-center gap-3 pt-2">
           <Link
             href="/demo"
@@ -35,24 +29,10 @@ export default function HomePage() {
           </Link>
 
           <Link
-            href="/framework"
-            className="px-5 py-2 rounded-full text-sm font-semibold border border-black hover:bg-black/[0.04]"
-          >
-            View Framework
-          </Link>
-
-          <Link
             href="/registry"
             className="px-5 py-2 rounded-full text-sm font-semibold border border-black hover:bg-black/[0.04]"
           >
             View Registry
-          </Link>
-
-          <Link
-            href="/technology"
-            className="px-5 py-2 rounded-full text-sm font-semibold border border-black hover:bg-black/[0.04]"
-          >
-            Technology
           </Link>
 
           <Link
@@ -112,33 +92,19 @@ export default function HomePage() {
             </div>
           </div>
 
-          <div className="mt-5 flex flex-wrap items-center gap-3">
-            <Link
-              href="/technology"
-              className="px-4 py-2 rounded-full text-sm font-semibold border border-black hover:bg-black/[0.04]"
-            >
+          {/* Minimal supporting links (no pills) */}
+          <div className="mt-4 text-sm text-gray-700">
+            <span className="text-gray-500">Learn more:</span>{" "}
+            <Link href="/framework" className="font-semibold underline">
+              Framework
+            </Link>{" "}
+            <span className="text-gray-300">•</span>{" "}
+            <Link href="/technology" className="font-semibold underline">
               Technology
-            </Link>
-
-            <Link
-              href="/mission"
-              className="px-4 py-2 rounded-full text-sm font-semibold border border-black hover:bg-black/[0.04]"
-            >
+            </Link>{" "}
+            <span className="text-gray-300">•</span>{" "}
+            <Link href="/mission" className="font-semibold underline">
               Mission
-            </Link>
-
-            <Link
-              href="/demo-script"
-              className="px-4 py-2 rounded-full text-sm font-semibold border border-black hover:bg-black/[0.04]"
-            >
-              Demo Script
-            </Link>
-
-            <Link
-              href="/demo"
-              className="px-4 py-2 rounded-full text-sm font-semibold border border-black bg-black text-white hover:bg-black/90"
-            >
-              Run the Demo
             </Link>
           </div>
         </div>
@@ -150,14 +116,8 @@ export default function HomePage() {
           <div className="space-y-2">
             <h2 className="text-xl font-semibold">Use cases</h2>
             <p className="text-sm text-gray-600 leading-relaxed">
-              GAFAIG provides a consistent way to measure Human AI oversight across different operators,
-              teams, deployments, and high-impact contexts.
-            </p>
-
-            {/* Why this matters */}
-            <p className="mt-2 text-sm text-gray-700 leading-relaxed">
-              AI systems now influence markets, infrastructure, and public decision-making.
-              Governance must be measurable — not declared.
+              GAFAIG provides a consistent way to measure Human AI oversight across different operators, teams,
+              deployments, and high-impact contexts.
             </p>
           </div>
 
@@ -165,14 +125,14 @@ export default function HomePage() {
             <div className="border rounded-xl p-5">
               <h3 className="font-semibold">Enterprise AI governance assurance</h3>
               <p className="mt-1 text-sm text-gray-700 leading-relaxed">
-                Give boards and executives a repeatable, evidence-based signal of oversight maturity.
+                Give boards and executives a repeatable evidence-based signal of oversight and maturity.
               </p>
             </div>
 
             <div className="border rounded-xl p-5">
               <h3 className="font-semibold">Regulator-facing reporting</h3>
               <p className="mt-1 text-sm text-gray-700 leading-relaxed">
-                Produce audit-ready disclosures that show what was reviewed and how outcomes were determined.
+                Provide audit-ready disclosures that show what was reviewed and how outcomes were determined.
               </p>
             </div>
 
@@ -191,19 +151,12 @@ export default function HomePage() {
             </div>
           </div>
 
-          <div className="mt-6 flex flex-wrap items-center gap-3">
+          <div className="mt-5 flex flex-wrap items-center gap-3">
             <Link
               href="/registry"
               className="px-4 py-2 rounded-full text-sm font-semibold border border-black hover:bg-black/[0.04]"
             >
               See the Registry
-            </Link>
-
-            <Link
-              href="/technology"
-              className="px-4 py-2 rounded-full text-sm font-semibold border border-black hover:bg-black/[0.04]"
-            >
-              How the tech works
             </Link>
 
             <Link
