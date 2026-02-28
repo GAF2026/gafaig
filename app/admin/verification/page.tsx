@@ -51,15 +51,26 @@ async function copyText(text: string) {
   }
 }
 
-function statusPill(status: string) {
+function statusClasses(status: string) {
   const s = String(status || "").toLowerCase();
-  if (s === "approved") return "pill approved";
-  if (s === "rejected") return "pill rejected";
-  if (s === "suspended") return "pill suspended";
-  if (s === "in_review") return "pill review";
-  if (s === "received") return "pill received";
-  if (s === "needs_more_info") return "pill needs";
-  return "pill";
+
+  // Base pill styling (matches your overall look)
+  const base =
+    "inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold";
+
+  // Slightly tinted borders by status
+  if (s === "approved") return `${base} border-emerald-300 text-emerald-900`;
+  if (s === "rejected") return `${base} border-red-300 text-red-900`;
+  if (s === "suspended") return `${base} border-amber-300 text-amber-900`;
+  if (s === "in_review") return `${base} border-blue-300 text-blue-900`;
+  if (s === "received") return `${base} border-gray-300 text-gray-900`;
+  if (s === "needs_more_info") return `${base} border-purple-300 text-purple-900`;
+
+  return `${base} border-black/15 text-gray-900`;
+}
+
+function typeTagClasses() {
+  return "inline-flex items-center rounded-full border border-black/15 bg-white px-3 py-1 text-xs font-semibold text-gray-900";
 }
 
 export default function AdminVerificationPage() {
@@ -150,143 +161,168 @@ export default function AdminVerificationPage() {
   }
 
   return (
-    <main className="wrap">
-      <header className="header">
-        <h1 className="title">Admin — Verification</h1>
-        <p className="subtitle">
+    <main className="mx-auto max-w-[1100px] px-6 py-14">
+      {/* Header */}
+      <header className="space-y-3">
+        <h1 className="text-3xl font-semibold tracking-tight">Admin — Verification</h1>
+        <p className="text-sm text-gray-600 leading-relaxed">
           Track verification cases for submissions and registry participants.
         </p>
       </header>
 
-      <section className="filters" aria-label="Filters">
-        <div className="field search">
-          <label className="label" htmlFor="search">
-            Search
-          </label>
-          <input
-            id="search"
-            className="control"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            onKeyDown={onSearchKeyDown}
-            placeholder="Search entity, case ID…"
-            autoComplete="off"
-          />
+      {/* Filters */}
+      <section className="mt-8" aria-label="Filters">
+        <div className="grid gap-3 md:grid-cols-12 md:items-end">
+          <div className="md:col-span-6">
+            <div className="text-xs font-medium text-gray-600">Search</div>
+            <input
+              className="mt-1 w-full rounded-md border px-3 py-2 text-sm"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              onKeyDown={onSearchKeyDown}
+              placeholder="Search entity, case ID…"
+              autoComplete="off"
+            />
+          </div>
+
+          <div className="md:col-span-3">
+            <div className="text-xs font-medium text-gray-600">Status</div>
+            <select
+              className="mt-1 w-full rounded-md border px-3 py-2 text-sm"
+              value={status}
+              onChange={(e) => setStatus(e.target.value)}
+            >
+              <option value="all">All</option>
+              <option value="received">received</option>
+              <option value="in_review">in_review</option>
+              <option value="needs_more_info">needs_more_info</option>
+              <option value="approved">approved</option>
+              <option value="rejected">rejected</option>
+              <option value="suspended">suspended</option>
+            </select>
+          </div>
+
+          <div className="md:col-span-3">
+            <div className="text-xs font-medium text-gray-600">Verification type</div>
+            <select
+              className="mt-1 w-full rounded-md border px-3 py-2 text-sm"
+              value={verificationType}
+              onChange={(e) => setVerificationType(e.target.value)}
+            >
+              <option value="all">All</option>
+              <option value="participant">participant</option>
+              <option value="submission">submission</option>
+              <option value="renewal">renewal</option>
+              <option value="incident">incident</option>
+            </select>
+          </div>
         </div>
 
-        <div className="field">
-          <label className="label" htmlFor="status">
-            Status
-          </label>
-          <select
-            id="status"
-            className="control"
-            value={status}
-            onChange={(e) => setStatus(e.target.value)}
-          >
-            <option value="all">All</option>
-            <option value="received">received</option>
-            <option value="in_review">in_review</option>
-            <option value="needs_more_info">needs_more_info</option>
-            <option value="approved">approved</option>
-            <option value="rejected">rejected</option>
-            <option value="suspended">suspended</option>
-          </select>
-        </div>
-
-        <div className="field">
-          <label className="label" htmlFor="vtype">
-            Verification type
-          </label>
-          <select
-            id="vtype"
-            className="control"
-            value={verificationType}
-            onChange={(e) => setVerificationType(e.target.value)}
-          >
-            <option value="all">All</option>
-            <option value="participant">participant</option>
-            <option value="submission">submission</option>
-            <option value="renewal">renewal</option>
-            <option value="incident">incident</option>
-          </select>
-        </div>
-
-        <button className="refresh" onClick={onRefresh} disabled={loading} type="button">
-          {loading ? "Loading…" : "Refresh"}
-        </button>
-      </section>
-
-      <div className="meta">
-        <div className="small">{showingText}</div>
-      </div>
-
-      {err ? <div className="error">Error: {err}</div> : null}
-
-      <section className="tableWrap" aria-label="Verification cases table">
-        <div className="tableHead">
-          <div>Case ID</div>
-          <div>Entity</div>
-          <div>Type</div>
-          <div>Status</div>
-          <div>Priority</div>
-          <div>Updated</div>
-        </div>
-
-        {rows.length === 0 ? (
-          <div className="empty">{loading ? "Loading…" : "No verification cases found."}</div>
-        ) : (
-          rows.map((r) => {
-            const href = `/admin/verification/${encodeURIComponent(r.caseId)}`;
-            return (
-              <div className="row" key={r.caseId}>
-                {/* Case ID cell: fixed layout so Copy always aligns */}
-                <div className="cell caseCell">
-                  <a className="caseLink mono" href={href} title={r.caseId}>
-                    {truncateMiddle(r.caseId)}
-                  </a>
-                  <button
-                    className="copyBtn"
-                    onClick={() => copyText(r.caseId)}
-                    title="Copy Case ID"
-                    type="button"
-                  >
-                    Copy
-                  </button>
-                </div>
-
-                <div className="cell">{r.entityName}</div>
-
-                <div className="cell">
-                  <span className="tag">{r.verificationType}</span>
-                </div>
-
-                <div className="cell">
-                  <span className={statusPill(r.status)}>{r.status}</span>
-                </div>
-
-                <div className="cell">{r.priority || "—"}</div>
-
-                <div className="cell mono">{r.updatedAt}</div>
-              </div>
-            );
-          })
-        )}
-      </section>
-
-      <footer className="footer">
-        <div className="pager">
+        <div className="mt-3 flex items-center justify-end gap-2">
           <button
-            className="pagerBtn"
+            className="rounded-md border px-3 py-2 text-sm"
+            onClick={onRefresh}
+            disabled={loading}
+            type="button"
+          >
+            {loading ? "Loading…" : "Refresh"}
+          </button>
+        </div>
+
+        <div className="mt-3 flex justify-end">
+          <div className="text-sm text-gray-600">{showingText}</div>
+        </div>
+      </section>
+
+      {err ? (
+        <div className="mt-4 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+          Error: {err}
+        </div>
+      ) : null}
+
+      {/* Table */}
+      <section className="mt-5 overflow-hidden rounded-lg border" aria-label="Verification cases table">
+        <table className="w-full table-fixed">
+          <thead className="bg-gray-50 text-left text-xs font-semibold text-gray-600">
+            <tr>
+              <th className="w-[240px] px-4 py-3">CASE ID</th>
+              <th className="px-4 py-3">ENTITY</th>
+              <th className="w-[150px] px-4 py-3">TYPE</th>
+              <th className="w-[160px] px-4 py-3">STATUS</th>
+              <th className="w-[130px] px-4 py-3">PRIORITY</th>
+              <th className="w-[200px] px-4 py-3">UPDATED</th>
+            </tr>
+          </thead>
+
+          <tbody className="text-sm">
+            {rows.length === 0 ? (
+              <tr>
+                <td className="px-4 py-6 text-gray-500" colSpan={6}>
+                  {loading ? "Loading…" : "No verification cases found."}
+                </td>
+              </tr>
+            ) : (
+              rows.map((r) => {
+                const href = `/admin/verification/${encodeURIComponent(r.caseId)}`;
+                return (
+                  <tr key={r.caseId} className="border-t align-middle">
+                    <td className="px-4 py-3">
+                      <div className="grid grid-cols-[1fr_auto] items-center gap-2">
+                        <a
+                          className="min-w-0 overflow-hidden text-ellipsis whitespace-nowrap font-mono text-xs font-semibold underline"
+                          href={href}
+                          title={r.caseId}
+                        >
+                          {truncateMiddle(r.caseId)}
+                        </a>
+                        <button
+                          className="rounded-full border px-3 py-1 text-xs font-semibold hover:bg-black/[0.04]"
+                          onClick={() => copyText(r.caseId)}
+                          title="Copy Case ID"
+                          type="button"
+                        >
+                          Copy
+                        </button>
+                      </div>
+                    </td>
+
+                    <td className="px-4 py-3">
+                      <div className="min-w-0 break-words">{r.entityName}</div>
+                    </td>
+
+                    <td className="px-4 py-3">
+                      <span className={typeTagClasses()}>{r.verificationType}</span>
+                    </td>
+
+                    <td className="px-4 py-3">
+                      <span className={statusClasses(r.status)}>{r.status}</span>
+                    </td>
+
+                    <td className="px-4 py-3">{r.priority || "—"}</td>
+
+                    <td className="px-4 py-3 font-mono text-xs">{r.updatedAt}</td>
+                  </tr>
+                );
+              })
+            )}
+          </tbody>
+        </table>
+      </section>
+
+      {/* Footer */}
+      <footer className="mt-5 flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-2 text-sm">
+          <button
+            className="rounded-md border px-3 py-2 disabled:opacity-50"
             onClick={() => setPage((p) => Math.max(1, p - 1))}
             disabled={page <= 1 || loading}
             type="button"
           >
             Prev
           </button>
-          <div className="pagerText">Page {page}</div>
+          <div className="rounded-md border px-3 py-2">Page {page}</div>
           <button
-            className="pagerBtn"
+            className="rounded-md border px-3 py-2 disabled:opacity-50"
             onClick={() => setPage((p) => p + 1)}
             disabled={loading || rows.length < pageSize}
             type="button"
@@ -295,300 +331,18 @@ export default function AdminVerificationPage() {
           </button>
         </div>
 
-        <nav className="crumbs">
-          <a href="/" className="crumbLink">
+        <nav className="text-sm font-semibold">
+          <a href="/" className="underline">
             Home
           </a>
-          <span className="dot">·</span>
-          <a href="/admin/applications" className="crumbLink">
+          <span className="mx-2 text-gray-400">·</span>
+          <a href="/admin/applications" className="underline">
             Submissions
           </a>
-          <span className="dot">·</span>
+          <span className="mx-2 text-gray-400">·</span>
           <span>Verification</span>
         </nav>
       </footer>
-
-      <style jsx>{`
-        * {
-          box-sizing: border-box;
-        }
-
-        .wrap {
-          max-width: 1200px;
-          margin: 0 auto;
-          padding: 48px 24px;
-        }
-
-        .header {
-          margin-bottom: 14px;
-        }
-
-        .title {
-          font-size: 28px;
-          line-height: 1.15;
-          font-weight: 900;
-          margin: 0 0 8px 0;
-        }
-
-        .subtitle {
-          margin: 0;
-          font-size: 16px;
-          line-height: 1.6;
-          color: #374151;
-        }
-
-        .filters {
-          margin-top: 18px;
-          display: grid;
-          grid-template-columns: minmax(320px, 1fr) 240px 260px 180px;
-          gap: 14px;
-          align-items: end;
-        }
-
-        .field {
-          min-width: 0;
-        }
-
-        .label {
-          display: block;
-          font-size: 13px;
-          margin-bottom: 8px;
-          color: #374151;
-          font-weight: 800;
-        }
-
-        .control {
-          width: 100%;
-          height: 44px;
-          border-radius: 12px;
-          border: 1px solid rgba(0, 0, 0, 0.18);
-          padding: 10px 14px;
-          font-size: 15px;
-          outline: none;
-          background: #fff;
-        }
-
-        .refresh {
-          height: 44px;
-          width: 100%;
-          border-radius: 12px;
-          border: 1px solid rgba(0, 0, 0, 0.18);
-          background: #fff;
-          font-weight: 900;
-          cursor: pointer;
-          font-size: 15px;
-        }
-
-        .refresh:disabled {
-          opacity: 0.6;
-          cursor: not-allowed;
-        }
-
-        @media (max-width: 1100px) {
-          .filters {
-            grid-template-columns: 1fr 1fr;
-          }
-        }
-
-        @media (max-width: 720px) {
-          .filters {
-            grid-template-columns: 1fr;
-          }
-        }
-
-        .meta {
-          margin: 12px 0 0 0;
-          display: flex;
-          justify-content: flex-end;
-        }
-
-        .small {
-          font-size: 14px;
-          color: #374151;
-        }
-
-        .error {
-          margin-top: 12px;
-          color: #b91c1c;
-          font-weight: 900;
-          font-size: 16px;
-        }
-
-        .tableWrap {
-          margin-top: 18px;
-          border: 1px solid rgba(0, 0, 0, 0.12);
-          border-radius: 18px;
-          overflow: hidden;
-          background: #fff;
-        }
-
-        .tableHead {
-          display: grid;
-          grid-template-columns: 1.35fr 1.35fr 0.9fr 0.95fr 0.85fr 1fr;
-          padding: 14px 16px;
-          font-weight: 900;
-          font-size: 13px;
-          letter-spacing: 0.12em;
-          text-transform: uppercase;
-          color: #6b7280;
-          border-bottom: 1px solid rgba(0, 0, 0, 0.08);
-        }
-
-        .row {
-          display: grid;
-          grid-template-columns: 1.35fr 1.35fr 0.9fr 0.95fr 0.85fr 1fr;
-          padding: 14px 16px;
-          border-bottom: 1px solid rgba(0, 0, 0, 0.06);
-          align-items: center;
-          font-size: 14px;
-        }
-
-        .row:last-child {
-          border-bottom: none;
-        }
-
-        .cell {
-          min-width: 0;
-          display: flex;
-          align-items: center;
-          gap: 10px;
-        }
-
-        /* Key fix: stable layout for Case ID column */
-        .caseCell {
-          display: grid;
-          grid-template-columns: 1fr auto;
-          align-items: center;
-          gap: 10px;
-          min-width: 0;
-        }
-
-        .empty {
-          padding: 18px 16px;
-          font-size: 14px;
-          color: #111827;
-        }
-
-        .mono {
-          font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
-            "Liberation Mono", "Courier New", monospace;
-          font-size: 13px;
-        }
-
-        .caseLink {
-          text-decoration: underline;
-          font-weight: 900;
-          color: #111827;
-          min-width: 0;
-          overflow: hidden;
-          text-overflow: ellipsis;
-          white-space: nowrap;
-        }
-
-        .copyBtn {
-          height: 28px;
-          padding: 0 10px;
-          border-radius: 999px;
-          border: 1px solid rgba(0, 0, 0, 0.16);
-          background: #fff;
-          font-weight: 900;
-          font-size: 12px;
-          cursor: pointer;
-          flex: 0 0 auto;
-        }
-
-        .tag {
-          display: inline-flex;
-          align-items: center;
-          padding: 4px 8px;
-          border-radius: 999px;
-          border: 1px solid rgba(0, 0, 0, 0.14);
-          font-size: 12px;
-          font-weight: 900;
-          background: #fff;
-        }
-
-        .pill {
-          display: inline-flex;
-          align-items: center;
-          padding: 4px 10px;
-          border-radius: 999px;
-          border: 1px solid rgba(0, 0, 0, 0.16);
-          font-size: 12px;
-          font-weight: 900;
-          background: #fff;
-        }
-
-        .pill.approved {
-          border-color: rgba(16, 185, 129, 0.5);
-        }
-        .pill.rejected {
-          border-color: rgba(239, 68, 68, 0.5);
-        }
-        .pill.suspended {
-          border-color: rgba(245, 158, 11, 0.6);
-        }
-        .pill.review {
-          border-color: rgba(59, 130, 246, 0.6);
-        }
-        .pill.received {
-          border-color: rgba(107, 114, 128, 0.5);
-        }
-        .pill.needs {
-          border-color: rgba(147, 51, 234, 0.55);
-        }
-
-        .footer {
-          margin-top: 16px;
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          gap: 14px;
-          flex-wrap: wrap;
-        }
-
-        .pager {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-        }
-
-        .pagerBtn {
-          height: 40px;
-          padding: 0 14px;
-          border-radius: 12px;
-          border: 1px solid rgba(0, 0, 0, 0.18);
-          background: #fff;
-          font-weight: 900;
-          cursor: pointer;
-        }
-
-        .pagerBtn:disabled {
-          opacity: 0.5;
-          cursor: not-allowed;
-        }
-
-        .pagerText {
-          font-size: 14px;
-          color: #111827;
-          font-weight: 800;
-        }
-
-        .crumbs {
-          font-size: 14px;
-          color: #111827;
-          font-weight: 800;
-        }
-
-        .crumbLink {
-          text-decoration: underline;
-        }
-
-        .dot {
-          margin: 0 10px;
-          color: #6b7280;
-        }
-      `}</style>
     </main>
   );
 }
