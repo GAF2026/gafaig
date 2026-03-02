@@ -15,14 +15,17 @@ function asInt(v: string | null, def: number, min: number, max: number) {
   return Math.max(min, Math.min(max, Math.trunc(n)));
 }
 
-// This is the view you confirmed is working
+// View confirmed working
 const VIEW_NAME = "GAFAIG_DB.CORE.V_ADMIN_SUBMISSIONS";
 
 export async function GET(req: NextRequest) {
   try {
     const auth = await requireAdmin(req);
     if (!auth.ok) {
-      return json({ ok: false, error: auth.error ?? "Unauthorized" }, auth.status ?? 401);
+      return json(
+        { ok: false, error: auth.error ?? "Unauthorized" },
+        auth.status ?? 401
+      );
     }
 
     const url = new URL(req.url);
@@ -43,12 +46,13 @@ export async function GET(req: NextRequest) {
     }
 
     if (q) {
+      // Snowflake: ILIKE is an operator, not a function
       where.push(
         `(
-          ILIKE(COALESCE(REQUEST_ID::string, ''), '%' || ? || '%')
-          OR ILIKE(COALESCE(ORG_NAME::string, ''), '%' || ? || '%')
-          OR ILIKE(COALESCE(CONTACT_EMAIL::string, ''), '%' || ? || '%')
-          OR ILIKE(COALESCE(SOURCE_TABLE::string, ''), '%' || ? || '%')
+          COALESCE(REQUEST_ID::string, '')      ILIKE '%' || ? || '%'
+          OR COALESCE(ORG_NAME::string, '')     ILIKE '%' || ? || '%'
+          OR COALESCE(CONTACT_EMAIL::string, '') ILIKE '%' || ? || '%'
+          OR COALESCE(SOURCE_TABLE::string, '') ILIKE '%' || ? || '%'
         )`
       );
       binds.push(q, q, q, q);
@@ -66,7 +70,7 @@ export async function GET(req: NextRequest) {
     const countRows = await sfQuery<{ TOTAL: number }>(countSql, binds);
     const total = Number((countRows?.[0] as any)?.TOTAL ?? 0);
 
-    // Rows (IMPORTANT: alias columns to the UI-friendly names)
+    // Rows (alias columns to the UI-friendly names)
     const rowsSql = `
       SELECT
         REQUEST_ID      AS "requestId",

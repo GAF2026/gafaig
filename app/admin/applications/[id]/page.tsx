@@ -55,18 +55,19 @@ export default function AdminApplicationDetailPage() {
     setError("");
 
     try {
-      const res = await fetch(`/api/admin/submissions/${encodeURIComponent(id)}`, {
+      const res = await fetch(`/api/admin/applications/${encodeURIComponent(id)}`, {
         cache: "no-store",
+        credentials: "include",
       });
       const data = await res.json();
 
       if (!res.ok || !data?.ok) {
-        throw new Error(data?.error || `Failed to load submission (${res.status})`);
+        throw new Error(data?.error || `Failed to load application (${res.status})`);
       }
 
       setRow(data.row as Row);
     } catch (e: any) {
-      setError(e?.message ?? "Failed to load submission");
+      setError(e?.message ?? "Failed to load application");
       setRow(null);
     } finally {
       setLoading(false);
@@ -85,9 +86,10 @@ export default function AdminApplicationDetailPage() {
     setError("");
 
     try {
-      const res = await fetch("/api/admin/submissions/status", {
+      const res = await fetch("/api/admin/applications/status", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ requestId: row.requestId, status: nextStatus }),
       });
 
@@ -109,7 +111,7 @@ export default function AdminApplicationDetailPage() {
       <div>
         <AdminNav />
         <div style={{ padding: 24 }}>
-          <h1 style={{ fontSize: 22, fontWeight: 800 }}>Submission</h1>
+          <h1 style={{ fontSize: 22, fontWeight: 800 }}>Application</h1>
           <p style={{ marginTop: 12 }}>Loading…</p>
         </div>
       </div>
@@ -121,8 +123,8 @@ export default function AdminApplicationDetailPage() {
       <div>
         <AdminNav />
         <div style={{ padding: 24 }}>
-          <h1 style={{ fontSize: 22, fontWeight: 800 }}>Submission</h1>
-          <p style={{ marginTop: 12, color: "crimson" }}>Failed to load submission: {error}</p>
+          <h1 style={{ fontSize: 22, fontWeight: 800 }}>Application</h1>
+          <p style={{ marginTop: 12, color: "crimson" }}>Failed to load application: {error}</p>
         </div>
       </div>
     );
@@ -133,7 +135,7 @@ export default function AdminApplicationDetailPage() {
       <div>
         <AdminNav />
         <div style={{ padding: 24 }}>
-          <h1 style={{ fontSize: 22, fontWeight: 800 }}>Submission</h1>
+          <h1 style={{ fontSize: 22, fontWeight: 800 }}>Application</h1>
           <p style={{ marginTop: 12 }}>Not found.</p>
         </div>
       </div>
@@ -145,7 +147,7 @@ export default function AdminApplicationDetailPage() {
       <AdminNav />
 
       <div style={{ padding: 24 }}>
-        <h1 style={{ fontSize: 22, fontWeight: 800 }}>Submission</h1>
+        <h1 style={{ fontSize: 22, fontWeight: 800 }}>Application</h1>
 
         {error ? (
           <div style={{ marginTop: 12, padding: 12, border: "1px solid crimson", borderRadius: 8 }}>
@@ -240,7 +242,7 @@ export default function AdminApplicationDetailPage() {
 
         <div style={{ marginTop: 16 }}>
           <a href="/admin/applications" style={{ textDecoration: "underline" }}>
-            ← Back to submissions
+            ← Back to applications
           </a>
         </div>
       </div>
