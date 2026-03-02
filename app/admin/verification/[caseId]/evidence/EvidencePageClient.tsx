@@ -16,6 +16,7 @@ import React, { useEffect, useMemo, useState } from "react";
  * - GET        /api/admin/verification/[caseId]/findings
  * - GET/POST/DELETE /api/admin/verification/finding-evidence
  * - GET/POST   /api/admin/verification/evidence/summary
+ * - GET        /api/admin/verification/[caseId]/summaries   (latest/history)
  */
 
 type EvidenceRow = {
@@ -78,6 +79,12 @@ function keyFor(evidenceId: string, style: string, model: string) {
   return `${evidenceId}||${style}||${model}`;
 }
 
+function tsToNumber(ts?: string | null) {
+  if (!ts) return 0;
+  const n = Date.parse(ts);
+  return Number.isFinite(n) ? n : 0;
+}
+
 export default function EvidencePageClient(props: { caseId: string }) {
   const caseId = props.caseId;
 
@@ -134,6 +141,15 @@ export default function EvidencePageClient(props: { caseId: string }) {
     [evidence, findings, links]
   );
 
+  const storedEvidenceCount = useMemo(() => {
+    const set = new Set<string>();
+    for (const k of Object.keys(storedByKey)) {
+      const evidenceId = k.split("||")[0] || "";
+      if (evidenceId) set.add(evidenceId);
+    }
+    return set.size;
+  }, [storedByKey]);
+
   function linkedFindingIdsForEvidence(evidenceId: string) {
     return links.filter((l) => l.evidenceId === evidenceId).map((l) => l.findingId);
   }
@@ -155,10 +171,72 @@ export default function EvidencePageClient(props: { caseId: string }) {
     return storedByKey[k] || null;
   }
 
+  // If the current style/model doesn't match what's stored (seed-demo vs snowflake-arctic),
+  // still show the latest stored summary for that evidence.
+  function getAnyStoredForEvidence(evidenceId: string): SummaryRow | null {
+    let best: SummaryRow | null = null;
+    let bestTs = -1;
+
+    for (const [k, row] of Object.entries(storedByKey)) {
+      if (!k.startsWith(`${evidenceId}||`)) continue;
+      const t = Math.max(tsToNumber(row.updatedAt), tsToNumber(row.createdAt));
+      if (!best || t > bestTs) {
+        best = row;
+        bestTs = t;
+      }
+    }
+    return best;
+  }
+
+  // NEW: Load summaries from the canonical summaries endpoint:
+  // GET /api/admin/verification/[caseId]/summaries (mode=latest)
   async function loadStoredSummaries(evidenceIds: string[]) {
     setStoredSummaryLoadErr("");
     if (!evidenceIds || evidenceIds.length === 0) return;
 
+    // We only want summaries for evidence shown on this page
+    const allow = new Set(evidenceIds);
+
+    // 1) Try the new canonical endpoint (fast, single request)
+    try {
+      const res = await fetch(`/api/admin/verification/${encodeURIComponent(caseId)}/summaries`, {
+        method: "GET",
+        credentials: "include",
+        cache: "no-store",
+      });
+
+      const json = await safeJson(res);
+      if (res.ok && json?.ok && json?.summaries && typeof json.summaries === "object") {
+        const next: Record<string, SummaryRow> = {};
+        for (const [evidenceId, r] of Object.entries<any>(json.summaries)) {
+          const eid = String((r as any)?.evidenceId ?? evidenceId ?? "").trim();
+          if (!eid || !allow.has(eid)) continue;
+
+          const style = String((r as any)?.style ?? "bullets").trim() || "bullets";
+          const model = String((r as any)?.model ?? "unknown").trim() || "unknown";
+          const summary = String((r as any)?.summary ?? "").trim();
+
+          if (!summary) continue;
+
+          next[keyFor(eid, style, model)] = {
+            evidenceId: eid,
+            style,
+            model,
+            summary,
+            createdAt: (r as any)?.createdAt ?? null,
+            updatedAt: (r as any)?.updatedAt ?? null,
+          };
+        }
+
+        setStoredByKey((prev) => ({ ...prev, ...next }));
+        return; // ✅ done
+      }
+    } catch (e: any) {
+      // fall through to legacy loader
+      console.warn("loadStoredSummaries: canonical endpoint failed", e?.message || e);
+    }
+
+    // 2) Fallback: legacy GET route at /api/admin/verification/evidence/summary?caseId=...&evidenceIds=...
     try {
       const batches = chunk(evidenceIds, 30);
       const next: Record<string, SummaryRow> = {};
@@ -168,7 +246,6 @@ export default function EvidencePageClient(props: { caseId: string }) {
           `caseId=${encodeURIComponent(caseId)}` +
           `&evidenceIds=${encodeURIComponent(b.join(","))}`;
 
-        // NOTE: GET route lives at /api/admin/verification/evidence/summary
         const res = await fetch(`/api/admin/verification/evidence/summary?${qs}`, {
           credentials: "include",
           cache: "no-store",
@@ -180,10 +257,12 @@ export default function EvidencePageClient(props: { caseId: string }) {
         const rows: any[] = Array.isArray(json.rows) ? json.rows : [];
         for (const r of rows) {
           const evidenceId = String(r.evidenceId ?? r.EVIDENCE_ID ?? "").trim();
+          if (!evidenceId || !allow.has(evidenceId)) continue;
+
           const style = String(r.style ?? r.STYLE ?? "").trim();
           const model = String(r.model ?? r.MODEL ?? "").trim();
           const summary = String(r.summary ?? r.SUMMARY ?? "").trim();
-          if (!evidenceId || !style || !model) continue;
+          if (!style || !model || !summary) continue;
 
           next[keyFor(evidenceId, style, model)] = {
             evidenceId,
@@ -205,7 +284,7 @@ export default function EvidencePageClient(props: { caseId: string }) {
   async function refreshAll() {
     setLoading(true);
     setLoadError("");
-    setBulkErr(""); // ✅ fixed: remove duplicate call
+    setBulkErr("");
 
     try {
       const evRes = await fetch(
@@ -403,6 +482,7 @@ export default function EvidencePageClient(props: { caseId: string }) {
   }
 
   const missingCount = useMemo(() => {
+    // "Missing" for the CURRENT style/model, not "missing any summary"
     let n = 0;
     for (const e of evidence) {
       const style = getStyleForEvidence(e.evidenceId);
@@ -538,7 +618,7 @@ export default function EvidencePageClient(props: { caseId: string }) {
     <div className="space-y-6">
       {/* 🔎 Deterministic marker: proves THIS component is rendering */}
       <div className="mb-3 rounded border border-fuchsia-300 bg-fuchsia-50 px-3 py-2 text-xs text-fuchsia-900">
-        EVIDENCE_PAGE_CLIENT_RENDERED_2026_02_20
+        EVIDENCE_PAGE_CLIENT_RENDERED_2026_03_02
       </div>
 
       {/* Errors */}
@@ -566,9 +646,9 @@ export default function EvidencePageClient(props: { caseId: string }) {
           <MetricCard label="FINDINGS" value={counts.findings} />
           <MetricCard label="LINKS" value={counts.links} />
           <MetricCard
-            label="SUMMARIES STORED"
-            value={Object.keys(storedByKey).length || "—"}
-            sub="Auto-detected if endpoint exists"
+            label="EVIDENCE W/ SUMMARY"
+            value={storedEvidenceCount || "—"}
+            sub="Any stored summary for an evidenceId"
           />
           <MetricCard label="LAST SUMMARY UPDATE" value="—" sub="(computed client-side)" />
         </div>
@@ -647,9 +727,7 @@ export default function EvidencePageClient(props: { caseId: string }) {
         <div className="flex items-center justify-between gap-3">
           <div>
             <div className="font-semibold">Add evidence</div>
-            <div className="text-xs text-gray-600">
-              Creates a real evidence row in Snowflake for this case.
-            </div>
+            <div className="text-xs text-gray-600">Creates a real evidence row in Snowflake for this case.</div>
           </div>
 
           <button
@@ -720,9 +798,7 @@ export default function EvidencePageClient(props: { caseId: string }) {
           </div>
         </div>
 
-        <div className="text-[11px] text-gray-500">
-          Note: you must provide at least one of Source URL or Storage ref.
-        </div>
+        <div className="text-[11px] text-gray-500">Note: you must provide at least one of Source URL or Storage ref.</div>
       </div>
 
       {/* Link evidence to finding */}
@@ -730,9 +806,7 @@ export default function EvidencePageClient(props: { caseId: string }) {
         <div className="flex items-center justify-between gap-3">
           <div>
             <div className="font-semibold">Link evidence to a finding</div>
-            <div className="text-xs text-gray-600">
-              Select an evidence item and a finding, then create the link.
-            </div>
+            <div className="text-xs text-gray-600">Select an evidence item and a finding, then create the link.</div>
           </div>
 
           <button
@@ -782,9 +856,7 @@ export default function EvidencePageClient(props: { caseId: string }) {
       {/* Evidence list */}
       <div className="border rounded-2xl p-4 bg-white space-y-3">
         <div className="font-semibold">Evidence items</div>
-        <div className="text-xs text-gray-600">
-          Each evidence item shows which findings it’s linked to.
-        </div>
+        <div className="text-xs text-gray-600">Each evidence item shows which findings it’s linked to.</div>
 
         {evidence.length === 0 ? (
           <div className="text-sm text-gray-600">No evidence found for this case.</div>
@@ -794,7 +866,10 @@ export default function EvidencePageClient(props: { caseId: string }) {
               const style = getStyleForEvidence(e.evidenceId);
               const model = getModelForEvidence(e.evidenceId);
               const k = keyFor(e.evidenceId, style, model);
-              const stored = getStored(e.evidenceId, style, model);
+
+              const storedExact = getStored(e.evidenceId, style, model);
+              const storedAny = storedExact ? null : getAnyStoredForEvidence(e.evidenceId);
+
               const sessionSummary = summaryByKey[k];
               const err = summaryErrByEvidenceId[e.evidenceId];
               const linked = linkedFindingIdsForEvidence(e.evidenceId);
@@ -805,12 +880,8 @@ export default function EvidencePageClient(props: { caseId: string }) {
                     <div>
                       <div className="text-xs text-gray-500">{e.evidenceType}</div>
                       <div className="font-semibold">{e.title}</div>
-                      {e.description ? (
-                        <div className="text-sm text-gray-700 mt-1">{e.description}</div>
-                      ) : null}
-                      <div className="text-xs text-gray-500 mt-1 font-mono">
-                        ID: {e.evidenceId}
-                      </div>
+                      {e.description ? <div className="text-sm text-gray-700 mt-1">{e.description}</div> : null}
+                      <div className="text-xs text-gray-500 mt-1 font-mono">ID: {e.evidenceId}</div>
                     </div>
 
                     <div className="flex flex-col items-end gap-2">
@@ -902,23 +973,34 @@ export default function EvidencePageClient(props: { caseId: string }) {
                     <div className="text-xs font-semibold text-gray-700 mb-1">Stored summary</div>
 
                     {err ? (
-                      <div className="text-xs text-red-700 bg-red-50 border border-red-200 rounded p-2">
-                        {err}
-                      </div>
+                      <div className="text-xs text-red-700 bg-red-50 border border-red-200 rounded p-2">{err}</div>
                     ) : null}
 
-                    {stored?.summary ? (
-                      <div className="text-sm whitespace-pre-wrap border rounded p-3 bg-gray-50">
-                        {stored.summary}
-                      </div>
+                    {storedExact?.summary ? (
+                      <>
+                        <div className="text-[11px] text-gray-600 mb-1">
+                          Using selected style/model: <span className="font-mono">{style}</span> ·{" "}
+                          <span className="font-mono">{model}</span>
+                        </div>
+                        <div className="text-sm whitespace-pre-wrap border rounded p-3 bg-gray-50">
+                          {storedExact.summary}
+                        </div>
+                      </>
+                    ) : storedAny?.summary ? (
+                      <>
+                        <div className="text-[11px] text-amber-800 mb-1">
+                          Latest stored summary found (different style/model):{" "}
+                          <span className="font-mono">{storedAny.style}</span> ·{" "}
+                          <span className="font-mono">{storedAny.model}</span>
+                        </div>
+                        <div className="text-sm whitespace-pre-wrap border rounded p-3 bg-amber-50 border-amber-200">
+                          {storedAny.summary}
+                        </div>
+                      </>
                     ) : sessionSummary ? (
-                      <div className="text-sm whitespace-pre-wrap border rounded p-3 bg-gray-50">
-                        {sessionSummary}
-                      </div>
+                      <div className="text-sm whitespace-pre-wrap border rounded p-3 bg-gray-50">{sessionSummary}</div>
                     ) : (
-                      <div className="text-xs text-gray-500">
-                        No stored summary yet for this style/model.
-                      </div>
+                      <div className="text-xs text-gray-500">No stored summary yet for this evidence.</div>
                     )}
                   </div>
                 </div>
