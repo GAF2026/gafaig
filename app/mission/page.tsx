@@ -17,8 +17,8 @@ export default function MissionPage() {
         </h1>
 
         <p className="mt-5 text-[18px] leading-[1.75] text-black/80 max-w-[900px]">
-          GAFAIG certifies that an organization operates human oversight across its AI infrastructure. Certification
-          is organization-wide and voluntary. GAFAIG publishes certification outcomes as Tier + Status only.
+          GAFAIG certifies that an organization operates human oversight across its AI infrastructure.
+          Certification is organization-wide. GAFAIG publishes certification outcomes as GAFAIG Tier + Status.
         </p>
 
         <div className="mt-6 flex flex-wrap gap-2">
@@ -41,9 +41,10 @@ export default function MissionPage() {
       <section className="mt-6 pt-8 border-t border-black/10">
         <h2 className="text-[16px] font-semibold text-black">Why GAFAIG</h2>
         <p className="mt-3 text-[16px] leading-[1.8] text-black/80 max-w-[920px]">
-          Organizations increasingly rely on AI across products, operations, and decision support. Oversight is
-          often distributed across teams and tools. GAFAIG provides a consistent, evidence-based method to verify
-          that human oversight exists and operates as an organization-level program.
+          Organizations increasingly rely on AI across products, operations, and decision support.
+          Oversight is often distributed across teams and systems. GAFAIG provides a consistent,
+          evidence-based method to verify that human oversight exists and operates as an
+          organization-level program.
         </p>
       </section>
 
@@ -56,7 +57,7 @@ export default function MissionPage() {
             <li>Governance controls and documentation processes are maintained</li>
             <li>Oversight activity is evidenced and reviewable</li>
             <li>Outcomes are scored deterministically and reproducibly</li>
-            <li>Tier + Status is published to the public registry</li>
+            <li>GAFAIG Tier + Status is published to the public registry</li>
           </ul>
         </div>
 
@@ -67,7 +68,7 @@ export default function MissionPage() {
             <li>Public disclosure of internal evidence</li>
             <li>Risk-tiering of individual AI systems</li>
             <li>Disclosure of proprietary methods or datasets</li>
-            <li>External integration into AI systems (future capability)</li>
+            <li>External integration into AI systems</li>
           </ul>
         </div>
       </section>
@@ -79,15 +80,15 @@ export default function MissionPage() {
           <div className="border border-black/10 rounded-2xl p-5">
             <div className="font-semibold text-black">Scope</div>
             <p className="mt-2 text-[14px] leading-[1.7] text-black/75">
-              Organization-wide certification. Applies to any part of the organization that deploys or operates AI
-              infrastructure.
+              Certification is organization-wide. It applies to any part of the organization that
+              deploys or operates AI infrastructure.
             </p>
           </div>
 
           <div className="border border-black/10 rounded-2xl p-5">
             <div className="font-semibold text-black">Public output</div>
             <p className="mt-2 text-[14px] leading-[1.7] text-black/75">
-              Only Tier + Status is public. Internal evidence and any AI inventory remain private.
+              Only GAFAIG Tier + Status is public. Internal evidence and any AI inventory remain private.
             </p>
           </div>
 
@@ -100,12 +101,12 @@ export default function MissionPage() {
         </div>
       </section>
 
-      {/* Commercial model */}
+      {/* Participation */}
       <section className="mt-10 pt-8 border-t border-black/10">
         <h2 className="text-[16px] font-semibold text-black">Participation</h2>
         <p className="mt-3 text-[16px] leading-[1.8] text-black/80 max-w-[920px]">
-          GAFAIG is offered as an annual certification subscription. Organizations participate to obtain third-party
-          assurance and to publish certification status to the registry.
+          Organizations obtain certification to demonstrate independent verification of human
+          oversight across their AI infrastructure.
         </p>
       </section>
     </main>
