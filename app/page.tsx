@@ -18,7 +18,7 @@ export default function HomePage() {
           Independent Verification of Human Oversight for AI Systems
         </h1>
 
-        {/* Subheadline (refined) */}
+        {/* Subheadline */}
         <p className="mt-5 text-[18px] leading-[1.75] text-black/80 max-w-[880px]">
           GAFAIG certifies that an organization operates human oversight across its AI infrastructure.
         </p>
@@ -53,8 +53,7 @@ export default function HomePage() {
         <h2 className="text-[16px] font-semibold text-black">What GAFAIG Verifies</h2>
 
         <p className="mt-3 text-[16px] leading-[1.8] text-black/80 max-w-[920px]">
-          Certification is organization-wide and voluntary. GAFAIG evaluates evidence,
-          applies deterministic scoring, and publishes Tier + Status only.
+          GAFAIG certification is organization-wide, it evaluates evidence, applies deterministic scoring, and publishes GAFAIG Tier + Status.
         </p>
 
         <ul className="mt-4 space-y-2 text-[15px] leading-[1.7] text-black/80 list-disc pl-5">
@@ -62,7 +61,7 @@ export default function HomePage() {
           <li>Governance controls and documentation processes</li>
           <li>Evidence-based review of oversight operation</li>
           <li>Deterministic scoring and tier assignment</li>
-          <li>Public publication of Tier + Status only</li>
+          <li>Public publication of GAFAIG Tier + Status only</li>
         </ul>
       </section>
 
@@ -95,7 +94,7 @@ export default function HomePage() {
         <div className="border border-black/10 rounded-2xl p-5">
           <div className="font-semibold text-black">Registry</div>
           <p className="mt-2 text-[14px] leading-[1.7] text-black/75">
-            Public confirmation of Tier + Status — without exposing internal materials or AI inventories.
+            Public confirmation of GAFAIG Tier + Status — without exposing internal materials or AI inventories.
           </p>
           <div className="mt-4">
             <Link href="/registry" className="underline font-semibold">
@@ -108,8 +107,7 @@ export default function HomePage() {
       {/* Footer note */}
       <section className="mt-10 pt-8 border-t border-black/10">
         <p className="text-[16px] leading-[1.8] text-black/80 max-w-[920px]">
-          GAFAIG is voluntary. Organizations participate to obtain third-party governance assurance
-          for human oversight of AI systems.
+          Organizations participate to obtain third-party governance assurance for human oversight of AI systems.
         </p>
       </section>
     </main>
