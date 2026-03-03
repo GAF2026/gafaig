@@ -14,8 +14,20 @@ export default function AdminLoginPage() {
   return (
     <Suspense
       fallback={
-        <main style={{ maxWidth: 720, margin: "0 auto", padding: "4rem 1.25rem 4.5rem" }}>
-          <div style={{ fontSize: 14, opacity: 0.8 }}>Loading…</div>
+        <main className="mx-auto max-w-[1100px] px-6 pt-14 pb-16">
+          <section className="pt-2 pb-8">
+            <div className="text-[13px] tracking-[0.22em] uppercase text-black/60 font-semibold">
+              Admin
+            </div>
+
+            <h1 className="mt-4 text-[40px] leading-[1.15] font-semibold text-black max-w-[980px]">
+              Admin login
+            </h1>
+
+            <p className="mt-5 text-[18px] leading-[1.75] text-black/80 max-w-[880px]">
+              Loading…
+            </p>
+          </section>
         </main>
       }
     >

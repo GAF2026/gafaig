@@ -37,117 +37,80 @@ export default function LoginClient() {
   const [msg, setMsg] = useState<string | null>(null);
 
   function onSetDemoAccess() {
-    setCookie(cookieName.trim() || DEFAULT_COOKIE_NAME, cookieValue.trim() || DEFAULT_COOKIE_VALUE, 1);
+    setCookie(
+      cookieName.trim() || DEFAULT_COOKIE_NAME,
+      cookieValue.trim() || DEFAULT_COOKIE_VALUE,
+      1
+    );
     setMsg("Demo access cookie set. Redirecting…");
     // small delay so cookie is written before navigation
     setTimeout(() => router.push(nextUrl), 250);
   }
 
   return (
-    <main
-      style={{
-        maxWidth: 720,
-        margin: "0 auto",
-        padding: "4rem 1.25rem 4.5rem",
-        lineHeight: 1.7,
-      }}
-    >
-      <div
-        style={{
-          fontSize: 12,
-          letterSpacing: "0.12em",
-          textTransform: "uppercase",
-          opacity: 0.7,
-          marginBottom: "0.75rem",
-        }}
-      >
-        Admin Demo Access
-      </div>
+    <main className="mx-auto max-w-[1100px] px-6 pt-14 pb-16">
+      {/* Hero */}
+      <section className="pt-2 pb-8">
+        <div className="text-[13px] tracking-[0.22em] uppercase text-black/60 font-semibold">
+          Admin
+        </div>
 
-      <h1 style={{ fontSize: 34, lineHeight: 1.15, margin: 0 }}>GAFAIG — Admin Login</h1>
+        <h1 className="mt-4 text-[40px] leading-[1.15] font-semibold text-black max-w-[980px]">
+          Admin demo access
+        </h1>
 
-      <p style={{ marginTop: "1rem", fontSize: "1.05rem", opacity: 0.9 }}>
-        For the Snowflake demo, access is granted via a short-lived cookie.
-        Click below to enable demo access and continue.
-      </p>
+        <p className="mt-5 text-[18px] leading-[1.75] text-black/80 max-w-[880px]">
+          For the Snowflake demo, access is granted via a short-lived cookie. Enable demo access to
+          continue to the reviewer interface.
+        </p>
+      </section>
 
-      <div
-        style={{
-          marginTop: "1.5rem",
-          border: "1px solid rgba(0,0,0,0.12)",
-          borderRadius: 16,
-          background: "white",
-          padding: "1.25rem",
-        }}
-      >
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+      {/* Form */}
+      <section className="mt-2 border border-black/10 rounded-2xl p-5 max-w-[900px]">
+        <div className="grid gap-4 md:grid-cols-2">
           <div>
-            <label style={{ display: "block", fontSize: 13, fontWeight: 800, marginBottom: 8, color: "#374151" }}>
+            <label className="block text-[13px] font-semibold text-black mb-2">
               Cookie name
             </label>
             <input
               value={cookieName}
               onChange={(e) => setCookieName(e.target.value)}
               placeholder={DEFAULT_COOKIE_NAME}
-              style={{
-                width: "100%",
-                height: 44,
-                borderRadius: 12,
-                border: "1px solid rgba(0,0,0,0.18)",
-                padding: "10px 14px",
-                fontSize: 15,
-                outline: "none",
-              }}
+              className="w-full h-11 rounded-xl border border-black/20 px-4 text-[15px] outline-none focus:border-black/40"
             />
           </div>
 
           <div>
-            <label style={{ display: "block", fontSize: 13, fontWeight: 800, marginBottom: 8, color: "#374151" }}>
+            <label className="block text-[13px] font-semibold text-black mb-2">
               Cookie value
             </label>
             <input
               value={cookieValue}
               onChange={(e) => setCookieValue(e.target.value)}
               placeholder={DEFAULT_COOKIE_VALUE}
-              style={{
-                width: "100%",
-                height: 44,
-                borderRadius: 12,
-                border: "1px solid rgba(0,0,0,0.18)",
-                padding: "10px 14px",
-                fontSize: 15,
-                outline: "none",
-              }}
+              className="w-full h-11 rounded-xl border border-black/20 px-4 text-[15px] outline-none focus:border-black/40"
             />
           </div>
         </div>
 
-        <button
-          type="button"
-          onClick={onSetDemoAccess}
-          style={{
-            marginTop: 14,
-            height: 46,
-            padding: "0 16px",
-            borderRadius: 12,
-            border: "1px solid #000",
-            background: "#000",
-            color: "#fff",
-            fontWeight: 900,
-            cursor: "pointer",
-          }}
-        >
-          Enable demo access
-        </button>
+        <div className="mt-4 flex flex-wrap items-center gap-3">
+          <button
+            type="button"
+            onClick={onSetDemoAccess}
+            className="px-4 py-2 rounded-full text-sm font-semibold border border-black bg-black text-white hover:bg-black/90"
+          >
+            Enable demo access
+          </button>
 
-        <div style={{ marginTop: 10, fontSize: 13, opacity: 0.8 }}>
-          Next: <code>{nextUrl}</code>
+          <div className="text-[14px] text-black/70">
+            Next: <code className="text-black/80">{nextUrl}</code>
+          </div>
         </div>
 
         {msg ? (
-          <div style={{ marginTop: 10, fontSize: 14, fontWeight: 900 }}>{msg}</div>
+          <div className="mt-3 text-[14px] font-semibold text-black">{msg}</div>
         ) : null}
-      </div>
+      </section>
     </main>
   );
 }
