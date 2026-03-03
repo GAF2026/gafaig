@@ -12,13 +12,13 @@ export default function MissionPage() {
           Mission
         </div>
 
-        <h1 className="mt-4 text-[40px] leading-[1.15] font-semibold text-black max-w-[980px]">
-          Independent verification of human oversight for AI systems
+        <h1 className="mt-4 text-[40px] leading-[1.15] font-semibold text-black max-w-[900px]">
+          A governance assurance program for organizations operating AI
         </h1>
 
-        <p className="mt-5 text-[18px] leading-[1.75] text-black/80 max-w-[900px]">
+        <p className="mt-5 text-[18px] leading-[1.75] text-black/80 max-w-[880px]">
           GAFAIG certifies that an organization operates human oversight across its AI infrastructure.
-          Certification is organization-wide. GAFAIG publishes certification outcomes as GAFAIG Tier + Status.
+          Certification is organization-wide. GAFAIG publishes certification outcomes as Tier + Status only.
         </p>
 
         <div className="mt-6 flex flex-wrap gap-2">
@@ -42,9 +42,8 @@ export default function MissionPage() {
         <h2 className="text-[16px] font-semibold text-black">Why GAFAIG</h2>
         <p className="mt-3 text-[16px] leading-[1.8] text-black/80 max-w-[920px]">
           Organizations increasingly rely on AI across products, operations, and decision support.
-          Oversight is often distributed across teams and systems. GAFAIG provides a consistent,
-          evidence-based method to verify that human oversight exists and operates as an
-          organization-level program.
+          Internal governance is often fragmented across teams and tools. GAFAIG provides a consistent,
+          evidence-based method to certify that human oversight exists and operates as a defined program.
         </p>
       </section>
 
@@ -53,11 +52,11 @@ export default function MissionPage() {
         <div className="border border-black/10 rounded-2xl p-5">
           <div className="font-semibold text-black">What certification asserts</div>
           <ul className="mt-3 space-y-2 text-[15px] leading-[1.7] text-black/80 list-disc pl-5">
-            <li>Human oversight roles and accountability are defined</li>
-            <li>Governance controls and documentation processes are maintained</li>
-            <li>Oversight activity is evidenced and reviewable</li>
+            <li>Defined oversight roles and accountability exist</li>
+            <li>Governance controls and documentation are maintained</li>
+            <li>Oversight activities are evidenced and reviewable</li>
             <li>Outcomes are scored deterministically and reproducibly</li>
-            <li>GAFAIG Tier + Status is published to the public registry</li>
+            <li>Tier + Status is published to the public registry</li>
           </ul>
         </div>
 
@@ -68,7 +67,7 @@ export default function MissionPage() {
             <li>Public disclosure of internal evidence</li>
             <li>Risk-tiering of individual AI systems</li>
             <li>Disclosure of proprietary methods or datasets</li>
-            <li>External integration into AI systems</li>
+            <li>External integration into AI systems (future capability)</li>
           </ul>
         </div>
       </section>
@@ -80,22 +79,22 @@ export default function MissionPage() {
           <div className="border border-black/10 rounded-2xl p-5">
             <div className="font-semibold text-black">Scope</div>
             <p className="mt-2 text-[14px] leading-[1.7] text-black/75">
-              Certification is organization-wide. It applies to any part of the organization that
-              deploys or operates AI infrastructure.
+              Organization-wide certification. Applies to any part of the organization that deploys
+              or operates AI infrastructure.
             </p>
           </div>
 
           <div className="border border-black/10 rounded-2xl p-5">
             <div className="font-semibold text-black">Public output</div>
             <p className="mt-2 text-[14px] leading-[1.7] text-black/75">
-              Only GAFAIG Tier + Status is public. Internal evidence and any AI inventory remain private.
+              Only Tier + Status is public. Internal evidence and any AI inventory remain private.
             </p>
           </div>
 
           <div className="border border-black/10 rounded-2xl p-5">
             <div className="font-semibold text-black">Decision basis</div>
             <p className="mt-2 text-[14px] leading-[1.7] text-black/75">
-              Evidence is evaluated against program criteria. Scoring is deterministic and auditable.
+              Evidence is evaluated against defined requirements. Scoring is deterministic and auditable.
             </p>
           </div>
         </div>
@@ -105,8 +104,8 @@ export default function MissionPage() {
       <section className="mt-10 pt-8 border-t border-black/10">
         <h2 className="text-[16px] font-semibold text-black">Participation</h2>
         <p className="mt-3 text-[16px] leading-[1.8] text-black/80 max-w-[920px]">
-          Organizations obtain certification to demonstrate independent verification of human
-          oversight across their AI infrastructure.
+          GAFAIG is offered as an annual certification subscription. Organizations subscribe to obtain
+          third-party assurance and publish certification status to the registry.
         </p>
       </section>
     </main>

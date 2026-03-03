@@ -43,7 +43,7 @@ export default function HomePage() {
             href="/mission"
             className="px-4 py-2 rounded-full text-sm font-semibold border border-black hover:bg-black/[0.04]"
           >
-            Mission & Boundaries
+            Mission &amp; Boundaries
           </Link>
         </div>
       </section>
@@ -53,7 +53,8 @@ export default function HomePage() {
         <h2 className="text-[16px] font-semibold text-black">What GAFAIG Verifies</h2>
 
         <p className="mt-3 text-[16px] leading-[1.8] text-black/80 max-w-[920px]">
-          GAFAIG certification is organization-wide, it evaluates evidence, applies deterministic scoring, and publishes GAFAIG Tier + Status.
+          GAFAIG certification is organization-wide. It evaluates evidence, applies deterministic scoring,
+          and publishes GAFAIG Tier + Status.
         </p>
 
         <ul className="mt-4 space-y-2 text-[15px] leading-[1.7] text-black/80 list-disc pl-5">
@@ -61,7 +62,7 @@ export default function HomePage() {
           <li>Governance controls and documentation processes</li>
           <li>Evidence-based review of oversight operation</li>
           <li>Deterministic scoring and tier assignment</li>
-          <li>Public publication of GAFAIG Tier + Status only</li>
+          <li>Public publication of Tier + Status only</li>
         </ul>
       </section>
 
@@ -94,7 +95,7 @@ export default function HomePage() {
         <div className="border border-black/10 rounded-2xl p-5">
           <div className="font-semibold text-black">Registry</div>
           <p className="mt-2 text-[14px] leading-[1.7] text-black/75">
-            Public confirmation of GAFAIG Tier + Status — without exposing internal materials or AI inventories.
+            Public confirmation of Tier + Status — without exposing internal materials or AI inventories.
           </p>
           <div className="mt-4">
             <Link href="/registry" className="underline font-semibold">
