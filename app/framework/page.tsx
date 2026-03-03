@@ -1,173 +1,139 @@
 // app/framework/page.tsx
+import Link from "next/link";
+
+export const dynamic = "force-static";
 
 export default function FrameworkPage() {
   return (
-    <main className="mx-auto max-w-4xl px-6 py-14">
-      <header className="space-y-3">
-        <h1 className="text-4xl font-semibold tracking-tight">Framework</h1>
-        <p className="text-sm text-gray-600 leading-relaxed">
-          GAFAIG’s framework is a practical governance structure for high-impact AI systems—designed to be
-          transparent, measurable, and enforceable across jurisdictions. It turns governance claims into an
-          auditable record: standards → evidence → findings → scoring → decision → publication.
+    <main className="mx-auto max-w-[1100px] px-6 pt-14 pb-16">
+      {/* Hero */}
+      <section className="pt-2 pb-8">
+        <div className="text-[13px] tracking-[0.22em] uppercase text-black/60 font-semibold">
+          Framework
+        </div>
+
+        <h1 className="mt-4 text-[40px] leading-[1.15] font-semibold text-black max-w-[980px]">
+          How GAFAIG verifies human oversight for AI systems
+        </h1>
+
+        <p className="mt-5 text-[18px] leading-[1.75] text-black/80 max-w-[900px]">
+          GAFAIG evaluates evidence of human oversight using a repeatable workflow. Findings are
+          recorded, scoring is deterministic, and outcomes produce an organization-level Tier + Status.
         </p>
-      </header>
 
-      <section className="mt-12 space-y-12">
-        {/* Core components */}
-        <div className="space-y-3">
-          <h2 className="text-2xl font-semibold">Core components</h2>
-          <p className="text-sm text-gray-600">
-            The framework is organized around implementable requirements—expressed as controls that can be
-            evidenced, reviewed, and renewed over time.
-          </p>
+        <div className="mt-6 flex flex-wrap gap-2">
+          <Link
+            href="/registry"
+            className="px-4 py-2 rounded-full text-sm font-semibold border border-black bg-black text-white hover:bg-black/90"
+          >
+            View the Registry
+          </Link>
 
-          <div className="mt-4 grid gap-4">
-            <div className="border rounded-xl p-5">
-              <h3 className="font-semibold">Scope classification</h3>
-              <p className="mt-1 text-sm text-gray-700 leading-relaxed">
-                Defines which AI systems require heightened oversight based on impact, autonomy, scale, and
-                risk. Establishes what is “in scope” for evidence collection and review.
-              </p>
-            </div>
+          <Link
+            href="/mission"
+            className="px-4 py-2 rounded-full text-sm font-semibold border border-black hover:bg-black/[0.04]"
+          >
+            Mission & Boundaries
+          </Link>
 
-            <div className="border rounded-xl p-5">
-              <h3 className="font-semibold">Baseline requirements</h3>
-              <p className="mt-1 text-sm text-gray-700 leading-relaxed">
-                Minimum expectations for safety testing, data governance, monitoring, and incident response—
-                expressed as verifiable controls rather than vague principles.
-              </p>
-            </div>
+          <Link
+            href="/framework"
+            className="px-4 py-2 rounded-full text-sm font-semibold border border-black hover:bg-black/[0.04]"
+          >
+            Read the Framework
+          </Link>
+        </div>
+      </section>
 
-            <div className="border rounded-xl p-5">
-              <h3 className="font-semibold">Transparency & reporting</h3>
-              <p className="mt-1 text-sm text-gray-700 leading-relaxed">
-                Standardized disclosures and reporting so oversight outcomes can be compared across
-                participants, while allowing redaction for sensitive details.
-              </p>
-            </div>
+      {/* Core components */}
+      <section className="mt-6 pt-8 border-t border-black/10">
+        <h2 className="text-[16px] font-semibold text-black">Core components</h2>
 
-            <div className="border rounded-xl p-5">
-              <h3 className="font-semibold">Auditability</h3>
-              <p className="mt-1 text-sm text-gray-700 leading-relaxed">
-                Evidence must be attributable, reviewable, and linked to findings and decisions. Key claims
-                should be reproducible from the case record.
-              </p>
-            </div>
+        <p className="mt-3 text-[16px] leading-[1.8] text-black/80 max-w-[920px]">
+          Verification is evidence-based and organization-wide. Evidence remains private. Only Tier + Status is
+          published publicly.
+        </p>
 
-            <div className="border rounded-xl p-5">
-              <h3 className="font-semibold">Accountability chain</h3>
-              <p className="mt-1 text-sm text-gray-700 leading-relaxed">
-                Clarifies responsibility across developers, deployers, operators, and downstream integrators.
-                Ensures there is always an accountable owner for remediation and escalation.
-              </p>
-            </div>
+        <div className="mt-4 grid gap-4 md:grid-cols-2">
+          <div className="border border-black/10 rounded-2xl p-5">
+            <div className="font-semibold text-black">Program criteria</div>
+            <p className="mt-2 text-[14px] leading-[1.7] text-black/75">
+              GAFAIG applies program criteria consistently to evaluate whether human oversight exists and operates
+              across an organization’s AI infrastructure.
+            </p>
+          </div>
+
+          <div className="border border-black/10 rounded-2xl p-5">
+            <div className="font-semibold text-black">Evidence-based assessment</div>
+            <p className="mt-2 text-[14px] leading-[1.7] text-black/75">
+              Evidence is collected, linked to criteria, and reviewed. Internal materials remain private and are not
+              disclosed publicly.
+            </p>
+          </div>
+
+          <div className="border border-black/10 rounded-2xl p-5">
+            <div className="font-semibold text-black">Deterministic scoring</div>
+            <p className="mt-2 text-[14px] leading-[1.7] text-black/75">
+              Scoring is deterministic and auditable, implemented as reproducible Snowflake logic to produce an
+              organization-level Tier.
+            </p>
+          </div>
+
+          <div className="border border-black/10 rounded-2xl p-5">
+            <div className="font-semibold text-black">Public outcome</div>
+            <p className="mt-2 text-[14px] leading-[1.7] text-black/75">
+              The registry publishes Tier + Status only. Evidence and any AI inventory remain private.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Verification workflow */}
+      <section className="mt-10 pt-8 border-t border-black/10">
+        <h2 className="text-[16px] font-semibold text-black">Verification workflow</h2>
+
+        <div className="mt-4 grid gap-4 md:grid-cols-3">
+          <div className="border border-black/10 rounded-2xl p-5">
+            <div className="font-semibold text-black">1) Collect evidence</div>
+            <p className="mt-2 text-[14px] leading-[1.7] text-black/75">
+              Organizations provide governance artifacts and operational records that demonstrate oversight operation.
+            </p>
+          </div>
+
+          <div className="border border-black/10 rounded-2xl p-5">
+            <div className="font-semibold text-black">2) Record findings</div>
+            <p className="mt-2 text-[14px] leading-[1.7] text-black/75">
+              Evidence is evaluated against program criteria. Findings capture outcomes and are linked back to evidence.
+            </p>
+          </div>
+
+          <div className="border border-black/10 rounded-2xl p-5">
+            <div className="font-semibold text-black">3) Score + publish</div>
+            <p className="mt-2 text-[14px] leading-[1.7] text-black/75">
+              Deterministic scoring produces a Tier and a certification Status is recorded. The registry publishes
+              Tier + Status only.
+            </p>
           </div>
         </div>
 
-        {/* What good looks like */}
-        <div className="space-y-3">
-          <h2 className="text-2xl font-semibold">What “good” looks like</h2>
-          <p className="text-sm text-gray-600">
-            GAFAIG is built around observable outcomes. A governed AI system should be:
-          </p>
-
-          <div className="mt-4 grid gap-4">
-            <div className="border rounded-xl p-5">
-              <h3 className="font-semibold">Explainable to oversight bodies</h3>
-              <p className="mt-1 text-sm text-gray-700 leading-relaxed">
-                Not necessarily fully interpretable, but documentable, testable, and reviewable with clear
-                system boundaries and operating assumptions.
-              </p>
-            </div>
-
-            <div className="border rounded-xl p-5">
-              <h3 className="font-semibold">Continuously monitored</h3>
-              <p className="mt-1 text-sm text-gray-700 leading-relaxed">
-                With mechanisms to detect drift, misuse, and emergent risk as conditions change—plus defined
-                response playbooks and escalation triggers.
-              </p>
-            </div>
-
-            <div className="border rounded-xl p-5">
-              <h3 className="font-semibold">Auditable end-to-end</h3>
-              <p className="mt-1 text-sm text-gray-700 leading-relaxed">
-                With traceable evidence for key claims about safety, security, privacy, and performance—
-                linked to findings, scoring, and decisions.
-              </p>
-            </div>
-
-            <div className="border rounded-xl p-5">
-              <h3 className="font-semibold">Governed by enforceable rules</h3>
-              <p className="mt-1 text-sm text-gray-700 leading-relaxed">
-                Including remediation timelines and renewal requirements—so governance has operational
-                reality, not just policy intent.
-              </p>
-            </div>
+        <div className="mt-6 border border-black/10 rounded-2xl p-5">
+          <div className="font-semibold text-black">Workflow summary</div>
+          <div className="mt-2 text-[14px] leading-[1.7] text-black/75">
+            Evidence → Findings → Scoring → Decision → Registry
           </div>
         </div>
+      </section>
 
-        {/* Standards & artifacts */}
-        <div className="space-y-3">
-          <h2 className="text-2xl font-semibold">Standards & artifacts</h2>
-          <p className="text-sm text-gray-600">
-            GAFAIG produces reusable governance artifacts that organizations and oversight bodies can adopt.
-            Typical artifacts include:
-          </p>
-
-          <ul className="mt-3 text-sm text-gray-700 list-disc pl-5 space-y-1">
-            <li>Scope definitions and tiering for high-impact systems</li>
-            <li>Controls and evidence expectations for evaluation and audit</li>
-            <li>Disclosure templates (system card, data sheet, monitoring summary)</li>
-            <li>Incident response and reporting standards (playbooks + timelines)</li>
-            <li>Renewal triggers and change-management requirements</li>
-          </ul>
-        </div>
-
-        {/* Verification workflow */}
-        <div className="space-y-3">
-          <h2 className="text-2xl font-semibold">Verification workflow</h2>
-          <p className="text-sm text-gray-600">
-            The workflow turns “governance claims” into an auditable case record:
-          </p>
-
-          <div className="mt-4 grid gap-4">
-            <div className="border rounded-xl p-5">
-              <h3 className="font-semibold">Evidence intake</h3>
-              <p className="mt-1 text-sm text-gray-700 leading-relaxed">
-                Evidence items (links, documents, policies, dashboards) are captured with metadata and stored
-                as an auditable record.
-              </p>
-            </div>
-
-            <div className="border rounded-xl p-5">
-              <h3 className="font-semibold">Evidence-to-control mapping</h3>
-              <p className="mt-1 text-sm text-gray-700 leading-relaxed">
-                Reviewers map evidence to requirements and record findings with rationale (what passes, what
-                fails, what needs remediation).
-              </p>
-            </div>
-
-            <div className="border rounded-xl p-5">
-              <h3 className="font-semibold">Scoring + decision</h3>
-              <p className="mt-1 text-sm text-gray-700 leading-relaxed">
-                Deterministic scoring produces subscores and an overall tier/band classification. A decision
-                is recorded with renewal expectations and change triggers.
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Interoperability */}
-        <div className="space-y-3">
-          <h2 className="text-2xl font-semibold">Interoperable by design</h2>
-          <p className="text-sm text-gray-700 leading-relaxed">
-            AI governance will not succeed if every jurisdiction creates incompatible standards. GAFAIG is
-            built for interoperability so oversight can remain consistent while respecting local law,
-            culture, and institutional structure. The objective is a shared governance backbone: a common
-            language for evaluating high-impact AI systems and a practical pathway to transparent oversight
-            at planetary scale.
-          </p>
-        </div>
+      {/* Assurance properties */}
+      <section className="mt-10 pt-8 border-t border-black/10">
+        <h2 className="text-[16px] font-semibold text-black">Assurance properties</h2>
+        <ul className="mt-4 space-y-2 text-[15px] leading-[1.7] text-black/80 list-disc pl-5">
+          <li>Organization-wide scope</li>
+          <li>Evidence-linked decisions</li>
+          <li>Deterministic, auditable scoring</li>
+          <li>Private verification layer; public registry output</li>
+          <li>Public disclosure limited to Tier + Status</li>
+        </ul>
       </section>
     </main>
   );

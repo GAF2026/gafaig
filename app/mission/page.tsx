@@ -1,86 +1,112 @@
 // app/mission/page.tsx
+import Link from "next/link";
+
+export const dynamic = "force-static";
+
 export default function MissionPage() {
   return (
-    <main className="mx-auto max-w-4xl px-6 py-14">
-      <header className="space-y-3">
-        <h1 className="text-4xl font-semibold tracking-tight">Mission</h1>
-        <p className="text-sm text-gray-600 leading-relaxed">
-          AI is now embedded in institutions, infrastructure, and everyday decisions—yet oversight of high-impact
-          systems remains fragmented across organizations, teams, deployments, and operational contexts.
-        </p>
-        <p className="text-sm text-gray-600 leading-relaxed">
-          GAFAIG exists to make Human AI oversight measurable: a deterministic, evidence-based review and scoring
-          process that shows the public, regulators, and organizations what governance is actually in place.
-        </p>
-      </header>
-
-      <section className="mt-12 space-y-12">
-        {/* Why GAFAIG */}
-        <div className="space-y-3">
-          <h2 className="text-2xl font-semibold">Why GAFAIG</h2>
-          <p className="text-sm text-gray-700 leading-relaxed">
-            Today, “AI governance” often means policies, promises, or scattered documentation. GAFAIG turns governance
-            claims into an auditable record—evidence mapped to requirements, findings recorded with rationale, and
-            decisions made reproducible.
-          </p>
+    <main className="mx-auto max-w-[1100px] px-6 pt-14 pb-16">
+      {/* Hero */}
+      <section className="pt-2 pb-8">
+        <div className="text-[13px] tracking-[0.22em] uppercase text-black/60 font-semibold">
+          Mission
         </div>
 
-        {/* What we provide */}
-        <div className="space-y-3">
-          <h2 className="text-2xl font-semibold">What we provide</h2>
-          <div className="mt-4 grid gap-4">
-            <div className="border rounded-xl p-5">
-              <h3 className="font-semibold">A common verification workflow</h3>
-              <p className="mt-1 text-sm text-gray-700 leading-relaxed">
-                Findings → Evidence → Events → Scoring → Decision—implemented as a deterministic, auditable process.
-              </p>
-            </div>
+        <h1 className="mt-4 text-[40px] leading-[1.15] font-semibold text-black max-w-[980px]">
+          Independent verification of human oversight for AI systems
+        </h1>
 
-            <div className="border rounded-xl p-5">
-              <h3 className="font-semibold">A measurable signal of oversight</h3>
-              <p className="mt-1 text-sm text-gray-700 leading-relaxed">
-                Clear tiers, bands, and scores that communicate the level of verified Human AI oversight without
-                exposing private evidence.
-              </p>
-            </div>
+        <p className="mt-5 text-[18px] leading-[1.75] text-black/80 max-w-[900px]">
+          GAFAIG certifies that an organization operates human oversight across its AI infrastructure. Certification
+          is organization-wide and voluntary. GAFAIG publishes certification outcomes as Tier + Status only.
+        </p>
 
-            <div className="border rounded-xl p-5">
-              <h3 className="font-semibold">Evidence-linked decisions</h3>
-              <p className="mt-1 text-sm text-gray-700 leading-relaxed">
-                Every decision is traceable to evidence and findings, making it reviewable by authorized parties and
-                defensible over time.
-              </p>
-            </div>
-
-            <div className="border rounded-xl p-5">
-              <h3 className="font-semibold">A public registry layer</h3>
-              <p className="mt-1 text-sm text-gray-700 leading-relaxed">
-                A transparent view of participation and status—designed for comparability—while keeping sensitive
-                evidence in a controlled review layer.
-              </p>
-            </div>
-          </div>
+        <div className="mt-6 flex flex-wrap gap-2">
+          <Link
+            href="/framework"
+            className="px-4 py-2 rounded-full text-sm font-semibold border border-black hover:bg-black/[0.04]"
+          >
+            Read the Framework
+          </Link>
+          <Link
+            href="/registry"
+            className="px-4 py-2 rounded-full text-sm font-semibold border border-black bg-black text-white hover:bg-black/90"
+          >
+            View the Registry
+          </Link>
         </div>
+      </section>
 
-        {/* What we believe */}
-        <div className="space-y-3">
-          <h2 className="text-2xl font-semibold">What we believe</h2>
-          <ul className="mt-3 text-sm text-gray-700 list-disc pl-5 space-y-1">
-            <li>Oversight must be operational: evidence, findings, decisions—not slogans.</li>
-            <li>Governance must be auditable and repeatable across organizations and deployments.</li>
-            <li>Transparency should be real, while protecting legitimately sensitive details.</li>
-            <li>Renewal is essential: systems evolve, and oversight must stay current.</li>
+      {/* Why GAFAIG */}
+      <section className="mt-6 pt-8 border-t border-black/10">
+        <h2 className="text-[16px] font-semibold text-black">Why GAFAIG</h2>
+        <p className="mt-3 text-[16px] leading-[1.8] text-black/80 max-w-[920px]">
+          Organizations increasingly rely on AI across products, operations, and decision support. Oversight is
+          often distributed across teams and tools. GAFAIG provides a consistent, evidence-based method to verify
+          that human oversight exists and operates as an organization-level program.
+        </p>
+      </section>
+
+      {/* What certification asserts */}
+      <section className="mt-8 grid gap-4 md:grid-cols-2">
+        <div className="border border-black/10 rounded-2xl p-5">
+          <div className="font-semibold text-black">What certification asserts</div>
+          <ul className="mt-3 space-y-2 text-[15px] leading-[1.7] text-black/80 list-disc pl-5">
+            <li>Human oversight roles and accountability are defined</li>
+            <li>Governance controls and documentation processes are maintained</li>
+            <li>Oversight activity is evidenced and reviewable</li>
+            <li>Outcomes are scored deterministically and reproducibly</li>
+            <li>Tier + Status is published to the public registry</li>
           </ul>
         </div>
 
-        {/* Outcome */}
-        <div className="space-y-3">
-          <h2 className="text-2xl font-semibold">The outcome</h2>
-          <p className="text-sm text-gray-700 leading-relaxed">
-            GAFAIG creates a durable signal of verified Human AI oversight—so governance becomes legible to the public,
-            meaningful to regulators, and actionable for organizations building and deploying high-impact AI.
-          </p>
+        <div className="border border-black/10 rounded-2xl p-5">
+          <div className="font-semibold text-black">What certification does not require</div>
+          <ul className="mt-3 space-y-2 text-[15px] leading-[1.7] text-black/80 list-disc pl-5">
+            <li>Public disclosure of an AI inventory</li>
+            <li>Public disclosure of internal evidence</li>
+            <li>Risk-tiering of individual AI systems</li>
+            <li>Disclosure of proprietary methods or datasets</li>
+            <li>External integration into AI systems (future capability)</li>
+          </ul>
         </div>
+      </section>
+
+      {/* Boundaries */}
+      <section className="mt-10 pt-8 border-t border-black/10">
+        <h2 className="text-[16px] font-semibold text-black">Boundaries</h2>
+        <div className="mt-3 grid gap-4 md:grid-cols-3">
+          <div className="border border-black/10 rounded-2xl p-5">
+            <div className="font-semibold text-black">Scope</div>
+            <p className="mt-2 text-[14px] leading-[1.7] text-black/75">
+              Organization-wide certification. Applies to any part of the organization that deploys or operates AI
+              infrastructure.
+            </p>
+          </div>
+
+          <div className="border border-black/10 rounded-2xl p-5">
+            <div className="font-semibold text-black">Public output</div>
+            <p className="mt-2 text-[14px] leading-[1.7] text-black/75">
+              Only Tier + Status is public. Internal evidence and any AI inventory remain private.
+            </p>
+          </div>
+
+          <div className="border border-black/10 rounded-2xl p-5">
+            <div className="font-semibold text-black">Decision basis</div>
+            <p className="mt-2 text-[14px] leading-[1.7] text-black/75">
+              Evidence is evaluated against program criteria. Scoring is deterministic and auditable.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Commercial model */}
+      <section className="mt-10 pt-8 border-t border-black/10">
+        <h2 className="text-[16px] font-semibold text-black">Participation</h2>
+        <p className="mt-3 text-[16px] leading-[1.8] text-black/80 max-w-[920px]">
+          GAFAIG is offered as an annual certification subscription. Organizations participate to obtain third-party
+          assurance and to publish certification status to the registry.
+        </p>
       </section>
     </main>
   );

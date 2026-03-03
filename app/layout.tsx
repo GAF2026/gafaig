@@ -1,17 +1,23 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Inter } from "next/font/google";
 import "./globals.css";
 import SiteFooter from "./_components/SiteFooter";
 
+const inter = Inter({
+  subsets: ["latin"],
+  display: "swap",
+});
+
 export const metadata: Metadata = {
   title: "GAFAIG — Global Authority for AI Governance",
-  description: "Structured and auditable oversight of AI systems.",
+  description: "Structured human oversight for AI systems.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body className="bg-white text-black">
+      <body className={`${inter.className} bg-white text-black antialiased`}>
         <div className="min-h-screen flex flex-col">
           <header className="sticky top-0 z-50 bg-white/90 backdrop-blur border-b border-black/10">
             <div className="mx-auto max-w-[1100px] px-6 py-3">
@@ -49,7 +55,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                     </Link>
                   </div>
 
-                  {/* Action buttons (mobile: full width, centered; desktop: inline) */}
+                  {/* Action buttons */}
                   <div className="mt-2 flex flex-col gap-2 md:mt-0 md:ml-2 md:flex-row md:items-center">
                     <Link
                       href="/demo"
