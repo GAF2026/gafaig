@@ -1,13 +1,14 @@
+// app/api/admin/login/route.ts
 import { NextResponse } from "next/server";
-import crypto from "crypto";
 
+export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-function json(status: number, body: any) {
-  return NextResponse.json(body, { status });
-}
+const COOKIE_NAME = "gafaig_admin_demo";
+const COOKIE_MAX_AGE_SECONDS = 60 * 60; // 1 hour
 
-function safeEqual(a: string, b: string) {
+function timingSafeEqual(a: string, b: string) {
+  // Prevent trivial timing attacks (best-effort in JS)
   const aa = Buffer.from(a);
   const bb = Buffer.from(b);
   if (aa.length !== bb.length) return false;
@@ -15,48 +16,64 @@ function safeEqual(a: string, b: string) {
 }
 
 export async function POST(req: Request) {
-  const expected = process.env.GAFAIG_ADMIN_PASSWORD;
-
-  if (!expected || !expected.trim()) {
-    return json(500, {
-      ok: false,
-      error: "Server misconfigured: missing GAFAIG_ADMIN_PASSWORD",
-      code: "MISSING_ENV",
-    });
-  }
-
-  let payload: any = null;
   try {
-    payload = await req.json();
-  } catch {
-    // ignore
+    const expected = process.env.GAFAIG_ADMIN_PASSWORD;
+
+    if (!expected) {
+      return NextResponse.json(
+        { ok: false, error: "Server misconfigured: missing GAFAIG_ADMIN_PASSWORD" },
+        { status: 500 }
+      );
+    }
+
+    // Accept JSON body: { password: "..." }
+    let password = "";
+    try {
+      const body = await req.json();
+      password = String(body?.password ?? "");
+    } catch {
+      // If body isn't JSON, treat as empty; (LoginClient should send JSON)
+      password = "";
+    }
+
+    if (!password) {
+      return NextResponse.json(
+        { ok: false, error: "Missing password" },
+        { status: 400 }
+      );
+    }
+
+    const ok = timingSafeEqual(password, expected);
+    if (!ok) {
+      return NextResponse.json(
+        { ok: false, error: "Invalid password" },
+        { status: 401 }
+      );
+    }
+
+    const res = NextResponse.json({ ok: true }, { status: 200 });
+
+    // IMPORTANT:
+    // - In production, set domain to ".gafaig.com" so cookie works for both apex + www.
+    // - In dev (localhost), do NOT set domain (browsers will reject it).
+    const isProd = process.env.NODE_ENV === "production";
+
+    res.cookies.set({
+      name: COOKIE_NAME,
+      value: "1",
+      httpOnly: true,
+      secure: isProd,
+      sameSite: "lax",
+      path: "/",
+      maxAge: COOKIE_MAX_AGE_SECONDS,
+      ...(isProd ? { domain: ".gafaig.com" } : {}),
+    });
+
+    return res;
+  } catch (err: any) {
+    return NextResponse.json(
+      { ok: false, error: err?.message || "Unknown error" },
+      { status: 500 }
+    );
   }
-
-  const password = String(payload?.password ?? "").trim();
-  if (!password) {
-    return json(400, { ok: false, error: "Missing password", code: "MISSING_PASSWORD" });
-  }
-
-  if (!safeEqual(password, expected.trim())) {
-    return json(401, { ok: false, error: "Invalid password", code: "INVALID_PASSWORD" });
-  }
-
-  const res = json(200, { ok: true });
-
-  // Demo cookie: short TTL, HttpOnly
-  res.cookies.set({
-    name: "gafaig_admin_demo",
-    value: "1",
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-    path: "/",
-    maxAge: 60 * 60, // 1 hour
-  });
-
-  return res;
-}
-
-export async function GET() {
-  return json(405, { ok: false, error: "Method Not Allowed. Use POST." });
 }
