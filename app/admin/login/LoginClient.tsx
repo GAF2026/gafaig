@@ -3,108 +3,131 @@
 import { useEffect, useMemo, useState } from "react";
 
 type ApiResponse =
-  | { ok: true; demoEnabled?: boolean; message?: string }
-  | { ok: false; error: string };
+  | { ok: true; message?: string }
+  | { ok: false; error: string; code?: string };
+
+function inputClass() {
+  return "w-full rounded-xl border border-black/15 bg-white px-3 py-2 text-[14px] text-black placeholder:text-black/45 focus:outline-none focus:ring-2 focus:ring-black/10";
+}
 
 function buttonClass(variant: "primary" | "secondary" = "secondary") {
   if (variant === "primary") {
-    return "inline-flex items-center justify-center rounded-xl px-4 py-2 text-[14px] font-semibold bg-black text-white hover:bg-black/90";
+    return "inline-flex items-center justify-center rounded-xl px-4 py-2 text-[14px] font-semibold bg-black text-white hover:bg-black/90 disabled:opacity-60";
   }
-  return "inline-flex items-center justify-center rounded-xl px-4 py-2 text-[14px] font-semibold border border-black/15 hover:bg-black/[0.04]";
-}
-
-function cardClass() {
-  return "border border-black/10 rounded-2xl bg-white shadow-[0_1px_0_rgba(0,0,0,0.04)]";
-}
-
-async function postEnableDemo(): Promise<ApiResponse> {
-  try {
-    const res = await fetch("/api/admin/login", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      credentials: "include",
-      body: JSON.stringify({ mode: "demo" }),
-      cache: "no-store",
-    });
-
-    const json = (await res.json()) as any;
-    if (!json || typeof json.ok !== "boolean") {
-      return { ok: false, error: `Unexpected response (${res.status})` };
-    }
-    return json as ApiResponse;
-  } catch (e: any) {
-    return { ok: false, error: e?.message || "Request failed" };
-  }
+  return "inline-flex items-center justify-center rounded-xl px-4 py-2 text-[14px] font-semibold border border-black/15 hover:bg-black/[0.04] disabled:opacity-60";
 }
 
 export default function LoginClient() {
-  const [busy, setBusy] = useState(false);
-  const [status, setStatus] = useState<
-    | { kind: "idle"; text?: string }
-    | { kind: "ok"; text: string }
-    | { kind: "err"; text: string }
-  >({ kind: "idle" });
+  const [password, setPassword] = useState("");
+  const [status, setStatus] = useState<"idle" | "submitting" | "ok" | "error">("idle");
+  const [error, setError] = useState<string>("");
 
-  const statusUi = useMemo(() => {
-    if (status.kind === "ok") return <span className="text-[13px] text-black/70">{status.text}</span>;
-    if (status.kind === "err") return <span className="text-[13px] text-red-600">{status.text}</span>;
-    return <span className="text-[13px] text-black/45">{status.text ?? "Demo access sets a short-lived admin cookie."}</span>;
-  }, [status]);
+  const canSubmit = useMemo(() => password.trim().length > 0 && status !== "submitting", [password, status]);
 
-  // Never block rendering on client checks; just render.
-  useEffect(() => {
-    // noop - reserved for future "already logged in" checks
-  }, []);
+  async function enableDemoAccess() {
+    setStatus("submitting");
+    setError("");
 
-  async function onEnableDemo() {
-    setBusy(true);
-    setStatus({ kind: "idle", text: "Enabling demo access…" });
+    try {
+      const res = await fetch("/api/admin/login", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ password: password.trim() }),
+      });
 
-    const r = await postEnableDemo();
+      const data = (await res.json().catch(() => null)) as ApiResponse | null;
 
-    if (r.ok) {
-      setStatus({ kind: "ok", text: "Demo access enabled. You can now open Admin pages." });
-    } else {
-      setStatus({ kind: "err", text: r.error || "Unable to enable demo access." });
+      if (!res.ok || !data || (data as any).ok !== true) {
+        const msg = data && "error" in data ? data.error : `Login failed (HTTP ${res.status})`;
+        setStatus("error");
+        setError(msg);
+        return;
+      }
+
+      setStatus("ok");
+      setError("");
+    } catch (e: any) {
+      setStatus("error");
+      setError(e?.message || "Network error");
     }
-
-    setBusy(false);
   }
+
+  function goToAdmin() {
+    window.location.href = "/admin/applications";
+  }
+
+  // Optional: clear prior error when typing
+  useEffect(() => {
+    if (status === "error" && password.trim().length > 0) setError("");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [password]);
 
   return (
     <main className="mx-auto max-w-[1100px] px-6 pt-14 pb-16">
       <section className="pt-2 pb-8">
         <div className="text-[13px] tracking-[0.22em] uppercase text-black/60 font-semibold">Admin</div>
+
         <h1 className="mt-4 text-[40px] leading-[1.15] font-semibold text-black max-w-[980px]">Admin access</h1>
+
         <p className="mt-5 text-[18px] leading-[1.75] text-black/80 max-w-[920px]">
-          This environment supports a demo-only admin cookie for guided walkthroughs. No private evidence is exposed on public
-          pages.
+          This environment supports a demo-only admin cookie for guided walkthroughs. No private evidence is exposed on
+          public pages.
         </p>
       </section>
 
-      <section className={cardClass() + " p-6"}>
+      <section className="mt-2 border border-black/10 rounded-2xl p-6">
         <div className="flex items-start justify-between gap-6 flex-wrap">
           <div>
             <h2 className="text-[16px] font-semibold text-black">Demo login</h2>
-            <p className="mt-2 text-[14px] leading-[1.7] text-black/70 max-w-[760px]">
-              Click the button to set a temporary admin cookie in your browser. Then open the Admin section.
+            <p className="mt-2 text-[14px] leading-[1.7] text-black/70 max-w-[860px]">
+              Enter the demo admin password (set in Vercel as <span className="font-mono">GAFAIG_ADMIN_PASSWORD</span>),
+              then enable the cookie and open the Admin section.
             </p>
-            <div className="mt-3">{statusUi}</div>
           </div>
 
-          <div className="flex items-center gap-2">
-            <button type="button" className={buttonClass("primary")} onClick={onEnableDemo} disabled={busy}>
-              {busy ? "Working…" : "Enable demo access"}
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={enableDemoAccess}
+              className={buttonClass("primary")}
+              disabled={!canSubmit}
+            >
+              Enable demo access
             </button>
-            <a className={buttonClass("secondary")} href="/admin/applications">
+
+            <button type="button" onClick={goToAdmin} className={buttonClass("secondary")}>
               Go to Admin
-            </a>
+            </button>
           </div>
         </div>
 
-        <div className="mt-6 border-t border-black/10 pt-4 text-[13px] text-black/60 leading-[1.7]">
-          If this page appears blank in production, it usually indicates a client-side error or a stale deployment. Re-deploying
-          the latest commit to Vercel resolves it.
+        <div className="mt-5 max-w-[560px]">
+          <label className="block text-[12px] font-semibold uppercase tracking-[0.16em] text-black/60 mb-2">
+            Demo admin password
+          </label>
+
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="Enter GAFAIG_ADMIN_PASSWORD…"
+            className={inputClass()}
+            autoComplete="current-password"
+          />
+
+          {status === "ok" ? (
+            <div className="mt-3 text-[14px] text-black/70">
+              ✅ Demo access enabled. You can now open <span className="font-mono">/admin/applications</span>.
+            </div>
+          ) : null}
+
+          {error ? <div className="mt-3 text-[14px] text-red-600">{error}</div> : null}
+
+          <div className="mt-4 text-[13px] text-black/55">
+            If you see “Invalid password”, confirm the Vercel env var value matches exactly what you typed, then redeploy
+            after saving env changes.
+          </div>
         </div>
       </section>
     </main>
