@@ -1,13 +1,19 @@
+// app/api/admin/verification/decisions/route.ts
 import { NextResponse } from "next/server";
-import { executeQuery } from "@/lib/snowflake";
+import { sfQuery, executeQuery } from "@/lib/snowflake";
 
 export const dynamic = "force-dynamic";
 
 const COOKIE_NAME = "gafaig_admin";
 
+// Accept legacy cookie values to avoid breaking existing demo flow
 function isAuthed(req: Request) {
   const cookieHeader = req.headers.get("cookie") || "";
-  return cookieHeader.includes(`${COOKIE_NAME}=1`);
+  // supports: gafaig_admin=1 (new) and gafaig_admin=demo (legacy)
+  return (
+    cookieHeader.includes(`${COOKIE_NAME}=1`) ||
+    cookieHeader.includes(`${COOKIE_NAME}=demo`)
+  );
 }
 
 function requireField(obj: any, key: string) {
@@ -23,6 +29,38 @@ function optionalString(obj: any, key: string) {
   if (typeof v !== "string") return null;
   const t = v.trim();
   return t.length ? t : null;
+}
+
+async function getCaseStatus(caseId: string) {
+  const rows = await sfQuery<any>(
+    `
+    SELECT STATUS
+    FROM CORE.VERIFICATION_CASES
+    WHERE CASE_ID = ?
+    LIMIT 1
+    `,
+    [caseId]
+  );
+  return (rows?.[0]?.STATUS ?? null) as string | null;
+}
+
+async function getLatestSnapshot(caseId: string) {
+  const rows = await sfQuery<any>(
+    `
+    SELECT
+      SNAPSHOT_ID,
+      SNAPSHOT_AT,
+      TIER,
+      BAND,
+      SCORING_MODEL_VERSION
+    FROM CORE.CASE_SCORE_SNAPSHOTS_V2
+    WHERE CASE_ID = ?
+    ORDER BY SNAPSHOT_AT DESC
+    LIMIT 1
+    `,
+    [caseId]
+  );
+  return rows?.[0] ?? null;
 }
 
 export async function GET(req: Request) {
@@ -80,9 +118,46 @@ export async function POST(req: Request) {
       );
     }
 
+    // Write-lock: once approved, block further state changes via this endpoint
+    const currentStatus = await getCaseStatus(caseId);
+    if (currentStatus === "approved" && decisionRaw !== "approved") {
+      return NextResponse.json(
+        { ok: false, error: "Write-locked: approved cases cannot be modified via this endpoint." },
+        { status: 409 }
+      );
+    }
+
     const decidedBy = optionalString(body, "decidedBy") || "admin";
     const summary = optionalString(body, "summary");
     const conditions = optionalString(body, "conditions");
+
+    // Publish guard: approval requires an engine-produced snapshot with tier/band
+    if (decisionRaw === "approved") {
+      if (!summary) {
+        return NextResponse.json(
+          { ok: false, error: "Approval requires a non-empty summary." },
+          { status: 400 }
+        );
+      }
+
+      const snap = await getLatestSnapshot(caseId);
+      if (!snap) {
+        return NextResponse.json(
+          { ok: false, error: "Approval blocked: no score snapshot exists for this case." },
+          { status: 409 }
+        );
+      }
+
+      const tier = snap?.TIER ?? null;
+      const band = snap?.BAND ?? null;
+
+      if (!tier || !band) {
+        return NextResponse.json(
+          { ok: false, error: "Approval blocked: snapshot missing Tier/Band." },
+          { status: 409 }
+        );
+      }
+    }
 
     const decisionId = `DEC-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`;
 
@@ -107,14 +182,14 @@ export async function POST(req: Request) {
       [decisionRaw, caseId]
     );
 
-    // 3) Add event (DETAILS is VARIANT) ✅ use INSERT ... SELECT with PARSE_JSON(?)
+    // 3) Add event (DETAILS is VARIANT)
     const eventId = `EVT-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`;
-
     const detailsJson = JSON.stringify({
       decision: decisionRaw,
       decidedBy,
       summary: summary || null,
       conditions: conditions || null,
+      publishGuard: decisionRaw === "approved" ? "passed" : null,
     });
 
     await executeQuery(
