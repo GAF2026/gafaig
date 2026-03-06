@@ -1,16 +1,15 @@
 // lib/auth/admin.ts
 import type { NextRequest } from "next/server";
 
-export const ADMIN_COOKIE_NAME = "gafaig_admin";
+export const ADMIN_COOKIE_NAME = "gafaig_admin_demo";
 
 /**
- * For now GAFAIG uses a simple cookie value.
- * - "1"    = full admin access
- * - "demo" = demo/reviewer access (allowed for most admin endpoints during buildout)
+ * Current GAFAIG admin cookie values:
+ * - "1" = demo/admin access during buildout
  *
- * Later we can expand this to "reviewer" | "auditor" | etc.
+ * Later this can expand to role values if needed.
  */
-export type AdminCookieValue = "1" | "demo";
+export type AdminCookieValue = "1";
 
 /**
  * Read GAFAIG admin cookie from the request (middleware + route handlers).
@@ -21,26 +20,24 @@ export function getAdminCookie(req: NextRequest): string | null {
 }
 
 /**
- * True if the cookie value is a recognized admin/demo value.
+ * True if the cookie value is a recognized admin value.
  */
 export function isAdminCookie(value: string | null | undefined): value is AdminCookieValue {
-  return value === "1" || value === "demo";
+  return value === "1";
 }
 
 /**
- * True if this request has either admin ("1") or demo ("demo") access.
+ * True if this request has admin access.
  */
 export function isAdminRequest(req: NextRequest): boolean {
   return isAdminCookie(getAdminCookie(req));
 }
 
 /**
- * Use this in API routes when you want to gate endpoints:
- * - allowDemo=true  => accepts cookie "demo" and "1"
- * - allowDemo=false => accepts only "1"
+ * Use this in API routes or middleware when you want to gate endpoints.
+ * For now, GAFAIG buildout accepts only cookie value "1".
  */
-export function requireAdmin(req: NextRequest, allowDemo = true): boolean {
+export function requireAdmin(req: NextRequest, _allowDemo = true): boolean {
   const v = getAdminCookie(req);
-  if (allowDemo) return v === "1" || v === "demo";
   return v === "1";
 }

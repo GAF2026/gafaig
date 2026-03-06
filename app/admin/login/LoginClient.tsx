@@ -6,6 +6,9 @@ type ApiResponse =
   | { ok: true; message?: string }
   | { ok: false; error: string; code?: string };
 
+const PUBLIC_DEMO_PASSWORD =
+  "EfIV8wh3rinU1uO7ZLjbNlsyaUn4Ovr9zkZH6DfdvRfyGNc7WckN1Xrk5UlTHbCn";
+
 function inputClass() {
   return "w-full rounded-xl border border-black/15 bg-white px-3 py-2 text-[14px] text-black placeholder:text-black/45 focus:outline-none focus:ring-2 focus:ring-black/10";
 }
@@ -20,9 +23,7 @@ function buttonClass(variant: "primary" | "secondary" = "secondary") {
 function safeNextPath(raw: string | null | undefined) {
   const v = String(raw || "").trim();
   if (!v) return "/admin/applications";
-  // Only allow internal paths
   if (!v.startsWith("/")) return "/admin/applications";
-  // Prevent protocol-relative or weird redirects
   if (v.startsWith("//")) return "/admin/applications";
   return v;
 }
@@ -30,7 +31,7 @@ function safeNextPath(raw: string | null | undefined) {
 export default function LoginClient() {
   const [password, setPassword] = useState("");
   const [status, setStatus] = useState<"idle" | "submitting" | "ok" | "error">("idle");
-  const [error, setError] = useState<string>("");
+  const [error, setError] = useState("");
 
   const nextPath = useMemo(() => {
     if (typeof window === "undefined") return "/admin/applications";
@@ -38,10 +39,9 @@ export default function LoginClient() {
     return safeNextPath(sp.get("next"));
   }, []);
 
-  const canSubmit = useMemo(
-    () => password.trim().length > 0 && status !== "submitting",
-    [password, status]
-  );
+  const canSubmit = useMemo(() => {
+    return password.trim().length > 0 && status !== "submitting";
+  }, [password, status]);
 
   async function enableDemoAccess() {
     setStatus("submitting");
@@ -57,7 +57,7 @@ export default function LoginClient() {
 
       const data = (await res.json().catch(() => null)) as ApiResponse | null;
 
-      if (!res.ok || !data || (data as any).ok !== true) {
+      if (!res.ok || !data || data.ok !== true) {
         const msg = data && "error" in data ? data.error : `Login failed (HTTP ${res.status})`;
         setStatus("error");
         setError(msg);
@@ -66,9 +66,6 @@ export default function LoginClient() {
 
       setStatus("ok");
       setError("");
-
-      // ✅ Important: after cookie is set, go directly to the intended admin page.
-      // (This fixes “it stays on login” and makes /admin/applications load immediately if cookie is valid.)
       window.location.href = nextPath;
     } catch (e: any) {
       setStatus("error");
@@ -76,42 +73,101 @@ export default function LoginClient() {
     }
   }
 
-  function goToAdmin() {
-    window.location.href = nextPath;
+  function fillDemoPassword() {
+    setPassword(PUBLIC_DEMO_PASSWORD);
+    setError("");
   }
 
-  // Optional: clear prior error when typing
+  function copyDemoPassword() {
+    navigator.clipboard.writeText(PUBLIC_DEMO_PASSWORD).catch(() => {});
+  }
+
   useEffect(() => {
-    if (status === "error" && password.trim().length > 0) setError("");
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [password]);
+    if (status === "error" && password.trim().length > 0) {
+      setError("");
+    }
+  }, [password, status]);
 
   return (
     <main className="mx-auto max-w-[1100px] px-6 pt-14 pb-16">
       <section className="pt-2 pb-8">
-        <div className="text-[13px] tracking-[0.22em] uppercase text-black/60 font-semibold">Admin</div>
+        <div className="text-[13px] tracking-[0.22em] uppercase text-black/60 font-semibold">
+          Admin
+        </div>
 
         <h1 className="mt-4 text-[40px] leading-[1.15] font-semibold text-black max-w-[980px]">
-          Admin access
+          Reviewer demo access
         </h1>
 
         <p className="mt-5 text-[18px] leading-[1.75] text-black/80 max-w-[920px]">
-          This environment supports a demo-only admin cookie for guided walkthroughs. No private evidence is exposed on
-          public pages.
+          This login provides evaluator access to GAFAIG’s private reviewer workflow. After access is enabled,
+          you will enter the Snowflake-backed admin environment used to review application records and
+          verification activity. Public pages never expose private review data.
         </p>
       </section>
 
       <section className="mt-2 border border-black/10 rounded-2xl p-6">
         <div className="flex items-start justify-between gap-6 flex-wrap">
-          <div>
+          <div className="max-w-[760px]">
             <h2 className="text-[16px] font-semibold text-black">Demo login</h2>
-            <p className="mt-2 text-[14px] leading-[1.7] text-black/70 max-w-[860px]">
-              Enter the demo admin password (set in Vercel as{" "}
-              <span className="font-mono">GAFAIG_ADMIN_PASSWORD</span>), then enable the cookie and open the Admin
-              section.
+
+            <p className="mt-2 text-[14px] leading-[1.7] text-black/70">
+              Enter the public demo password below, then click{" "}
+              <span className="font-semibold">Enable demo access</span>. On success, you will be sent directly
+              to the working admin destination below.
             </p>
 
-            <div className="mt-2 text-[13px] text-black/55">
+            <div className="mt-4 border border-black/10 rounded-2xl p-4 bg-black/[0.02]">
+              <div className="text-[12px] uppercase tracking-[0.12em] text-black/55 font-semibold">
+                Public evaluator password
+              </div>
+              <div className="mt-2 break-all font-mono text-[13px] text-black">
+                {PUBLIC_DEMO_PASSWORD}
+              </div>
+
+              <div className="mt-3 flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={fillDemoPassword}
+                  className={buttonClass("secondary")}
+                >
+                  Use this password
+                </button>
+
+                <button
+                  type="button"
+                  onClick={copyDemoPassword}
+                  className={buttonClass("secondary")}
+                >
+                  Copy password
+                </button>
+              </div>
+            </div>
+
+            <div className="mt-4 grid gap-3 sm:grid-cols-3">
+              <div className="border border-black/10 rounded-xl p-3">
+                <div className="text-[12px] uppercase tracking-[0.12em] text-black/55 font-semibold">
+                  Step 1
+                </div>
+                <div className="mt-1 text-[14px] text-black/80">Use the public demo password</div>
+              </div>
+
+              <div className="border border-black/10 rounded-xl p-3">
+                <div className="text-[12px] uppercase tracking-[0.12em] text-black/55 font-semibold">
+                  Step 2
+                </div>
+                <div className="mt-1 text-[14px] text-black/80">Enable reviewer access</div>
+              </div>
+
+              <div className="border border-black/10 rounded-xl p-3">
+                <div className="text-[12px] uppercase tracking-[0.12em] text-black/55 font-semibold">
+                  Step 3
+                </div>
+                <div className="mt-1 text-[14px] text-black/80">Open Snowflake-backed applications</div>
+              </div>
+            </div>
+
+            <div className="mt-4 text-[13px] text-black/55">
               Destination: <span className="font-mono">{nextPath}</span>
             </div>
           </div>
@@ -125,28 +181,19 @@ export default function LoginClient() {
             >
               {status === "submitting" ? "Enabling…" : "Enable demo access"}
             </button>
-
-            <button
-              type="button"
-              onClick={goToAdmin}
-              className={buttonClass("secondary")}
-              disabled={status !== "ok"} // prevents confusion if they haven't enabled cookie yet
-            >
-              Go to Admin
-            </button>
           </div>
         </div>
 
-        <div className="mt-5 max-w-[560px]">
+        <div className="mt-6 max-w-[640px]">
           <label className="block text-[12px] font-semibold uppercase tracking-[0.16em] text-black/60 mb-2">
-            Demo admin password
+            Demo password
           </label>
 
           <input
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            placeholder="Enter GAFAIG_ADMIN_PASSWORD…"
+            placeholder="Enter demo password"
             className={inputClass()}
             autoComplete="current-password"
           />
@@ -154,13 +201,13 @@ export default function LoginClient() {
           {error ? <div className="mt-3 text-[14px] text-red-600">{error}</div> : null}
 
           <div className="mt-4 text-[13px] text-black/55">
-            Note: the admin cookie is <span className="font-mono">HttpOnly</span>, so it won’t appear in{" "}
-            <span className="font-mono">document.cookie</span>. That’s expected.
+            Successful login sets a short-lived <span className="font-mono">HttpOnly</span> cookie used for
+            the evaluator walkthrough.
           </div>
 
           <div className="mt-2 text-[13px] text-black/55">
-            If you see “Invalid password”, confirm the Vercel env var value matches exactly what you typed, then redeploy
-            after saving env changes.
+            This is a public demo credential for the challenge walkthrough only. It should be rotated or
+            removed after judging is complete.
           </div>
         </div>
       </section>

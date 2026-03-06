@@ -1,13 +1,11 @@
 // middleware.ts
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { requireAdmin } from "@/lib/auth/admin";
+
+const ADMIN_COOKIE_NAME = "gafaig_admin_demo";
+const ADMIN_COOKIE_VALUE = "1";
 
 function isPublicAdminApi(pathname: string) {
-  // Allow these without auth:
-  // - login sets cookie
-  // - logout clears cookie
-  // - status can be useful for simple health/auth checks
   return (
     pathname === "/api/admin/login" ||
     pathname === "/api/admin/logout" ||
@@ -15,39 +13,47 @@ function isPublicAdminApi(pathname: string) {
   );
 }
 
-export function middleware(req: NextRequest) {
-  const { pathname } = req.nextUrl;
+function hasAdminCookie(req: NextRequest) {
+  return req.cookies.get(ADMIN_COOKIE_NAME)?.value === ADMIN_COOKIE_VALUE;
+}
 
-  // Only guard /admin/* and /api/admin/*
+export function middleware(req: NextRequest) {
+  const { pathname, search } = req.nextUrl;
+
   const isAdminPage = pathname.startsWith("/admin");
   const isAdminApi = pathname.startsWith("/api/admin");
 
-  if (!isAdminPage && !isAdminApi) return NextResponse.next();
+  if (!isAdminPage && !isAdminApi) {
+    return NextResponse.next();
+  }
 
-  // Always allow the login page
-  if (pathname === "/admin/login") return NextResponse.next();
+  // Public admin entry point
+  if (pathname === "/admin/login") {
+    return NextResponse.next();
+  }
 
-  // Allow public admin API endpoints
-  if (isAdminApi && isPublicAdminApi(pathname)) return NextResponse.next();
+  // Public admin API endpoints needed for login/logout/status
+  if (isAdminApi && isPublicAdminApi(pathname)) {
+    return NextResponse.next();
+  }
 
-  // ✅ Single source of truth: requireAdmin()
-  // For now we allow demo on all guarded surfaces.
-  const ok = requireAdmin(req, true);
+  // Allow all guarded admin surfaces when demo cookie is present
+  if (hasAdminCookie(req)) {
+    return NextResponse.next();
+  }
 
-  if (ok) return NextResponse.next();
-
-  // If API request: return 401 JSON
+  // API requests should receive JSON instead of redirects
   if (isAdminApi) {
     return NextResponse.json(
-      { ok: false, error: "Unauthorized (missing admin cookie)" },
+      { ok: false, error: "Unauthorized" },
       { status: 401 }
     );
   }
 
-  // If page request: redirect to login with ?next=
+  // Page requests redirect to login and preserve intended destination
   const loginUrl = req.nextUrl.clone();
   loginUrl.pathname = "/admin/login";
-  loginUrl.searchParams.set("next", pathname + (req.nextUrl.search || ""));
+  loginUrl.searchParams.set("next", pathname + search);
   return NextResponse.redirect(loginUrl);
 }
 
