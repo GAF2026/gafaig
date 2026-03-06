@@ -40,23 +40,24 @@ export async function GET(req: Request) {
     const binds: any[] = [];
 
     if (search) {
-      // Match on id/name/website loosely (adjust columns if needed)
-      where.push(`(
-        ILIKE(PARTICIPANT_ID, ?) OR
-        ILIKE(NAME, ?) OR
-        ILIKE(WEBSITE, ?)
-      )`);
       const q = `%${search}%`;
-      binds.push(q, q, q);
+      where.push(`(
+        COALESCE(PARTICIPANT_ID::string, '') ILIKE ?
+        OR COALESCE(NAME::string, '') ILIKE ?
+        OR COALESCE(WEBSITE::string, '') ILIKE ?
+        OR COALESCE(COUNTRY::string, '') ILIKE ?
+        OR COALESCE(SLUG::string, '') ILIKE ?
+      )`);
+      binds.push(q, q, q, q, q);
     }
 
     if (status && status !== "all") {
-      where.push(`STATUS = ?`);
+      where.push(`UPPER(COALESCE(VERIFICATION_STATUS::string, '')) = UPPER(?)`);
       binds.push(status);
     }
 
     if (type && type !== "all") {
-      where.push(`TYPE = ?`);
+      where.push(`UPPER(COALESCE(PARTICIPANT_TYPE::string, '')) = UPPER(?)`);
       binds.push(type);
     }
 
@@ -70,14 +71,14 @@ export async function GET(req: Request) {
 
     const listSql = `
       SELECT
-        PARTICIPANT_ID as "participantId",
-        NAME as "name",
-        TYPE as "type",
-        STATUS as "status",
-        WEBSITE as "website",
-        COUNTRY as "country",
-        CREATED_AT as "createdAt",
-        UPDATED_AT as "updatedAt"
+        PARTICIPANT_ID AS "participantId",
+        NAME AS "name",
+        PARTICIPANT_TYPE AS "type",
+        VERIFICATION_STATUS AS "status",
+        WEBSITE AS "website",
+        COUNTRY AS "country",
+        CREATED_AT AS "createdAt",
+        UPDATED_AT AS "updatedAt"
       FROM CORE.PARTICIPANTS
       ${whereSql}
       ORDER BY UPDATED_AT DESC NULLS LAST, CREATED_AT DESC NULLS LAST
