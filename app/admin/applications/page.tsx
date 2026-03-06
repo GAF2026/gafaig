@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import AdminNav from "../_components/AdminNav";
+import AdminPageHeader from "../_components/AdminPageHeader";
 
 type Row = {
   requestId: string;
@@ -18,6 +19,10 @@ type ApiResponse =
 
 const STATUS_OPTIONS = ["all", "received", "in_review", "approved", "rejected"] as const;
 
+function labelForStatus(value: string) {
+  return value.replaceAll("_", " ");
+}
+
 export default function AdminApplicationsPage() {
   const [q, setQ] = useState("");
   const [status, setStatus] = useState<(typeof STATUS_OPTIONS)[number]>("all");
@@ -29,17 +34,12 @@ export default function AdminApplicationsPage() {
   const [rows, setRows] = useState<Row[]>([]);
   const [total, setTotal] = useState(0);
 
-  const pageCount = useMemo(
-    () => Math.max(1, Math.ceil(total / pageSize)),
-    [total, pageSize]
-  );
+  const pageCount = useMemo(() => Math.max(1, Math.ceil(total / pageSize)), [total, pageSize]);
 
   const showingFrom = rows.length ? (page - 1) * pageSize + 1 : 0;
   const showingTo = rows.length ? (page - 1) * pageSize + rows.length : 0;
 
-  async function load(
-    next?: Partial<{ q: string; status: string; pageSize: number; page: number }>
-  ) {
+  async function load(next?: Partial<{ q: string; status: string; pageSize: number; page: number }>) {
     const qq = next?.q ?? q;
     const ss = next?.status ?? status;
     const ps = next?.pageSize ?? pageSize;
@@ -102,51 +102,54 @@ export default function AdminApplicationsPage() {
       <AdminNav />
 
       <main className="mx-auto max-w-[1100px] px-6 pt-14 pb-16">
-        {/* Hero */}
-        <section className="pt-2 pb-8">
-          <div className="text-[13px] tracking-[0.22em] uppercase text-black/60 font-semibold">
-            Admin
+        <AdminPageHeader
+          title="Applications"
+          description="Review Snowflake-backed application intake records for the private verification workflow."
+          meta={loading ? "Loading…" : `Showing ${showingFrom} to ${showingTo} of ${total}`}
+        />
+
+        {error ? (
+          <div className="mb-6 rounded-2xl border border-red-200 bg-red-50 px-4 py-3">
+            <div className="text-[14px] font-semibold text-red-700">Error</div>
+            <div className="mt-1 text-[14px] text-black/80">{error}</div>
           </div>
+        ) : null}
 
-          <h1 className="mt-4 text-[40px] leading-[1.15] font-semibold text-black max-w-[980px]">
-            Applications
-          </h1>
-
-          <p className="mt-5 text-[16px] leading-[1.8] text-black/80 max-w-[920px]">
-            {loading ? "Loading…" : `Showing ${showingFrom} to ${showingTo} of ${total}`}
-          </p>
-        </section>
-
-        {/* Filters */}
         <section className="mt-6 border-t border-black/10 pt-8">
-          <div className="flex flex-wrap gap-6 items-end">
+          <div className="flex flex-wrap items-end gap-5">
             <div>
-              <div className="text-xs font-semibold mb-2">Search</div>
+              <div className="mb-2 text-[12px] font-semibold uppercase tracking-[0.12em] text-black/60">
+                Search
+              </div>
               <input
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
                 placeholder="requestId, org, email…"
-                className="w-[280px] rounded-lg border border-black/20 px-3 py-2 text-sm"
+                className="w-[320px] max-w-full rounded-xl border border-black/15 px-4 py-3 text-[14px] text-black placeholder:text-black/40 focus:outline-none focus:ring-2 focus:ring-black/10"
               />
             </div>
 
             <div>
-              <div className="text-xs font-semibold mb-2">Status</div>
+              <div className="mb-2 text-[12px] font-semibold uppercase tracking-[0.12em] text-black/60">
+                Status
+              </div>
               <select
                 value={status}
                 onChange={(e) => setStatus(e.target.value as any)}
-                className="w-[180px] rounded-lg border border-black/20 px-3 py-2 text-sm"
+                className="w-[200px] rounded-xl border border-black/15 px-4 py-3 text-[14px] text-black focus:outline-none focus:ring-2 focus:ring-black/10"
               >
                 {STATUS_OPTIONS.map((s) => (
                   <option key={s} value={s}>
-                    {s}
+                    {labelForStatus(s)}
                   </option>
                 ))}
               </select>
             </div>
 
             <div>
-              <div className="text-xs font-semibold mb-2">Page size</div>
+              <div className="mb-2 text-[12px] font-semibold uppercase tracking-[0.12em] text-black/60">
+                Page size
+              </div>
               <select
                 value={pageSize}
                 onChange={(e) => {
@@ -155,7 +158,7 @@ export default function AdminApplicationsPage() {
                   setPage(1);
                   load({ pageSize: v, page: 1 });
                 }}
-                className="w-[120px] rounded-lg border border-black/20 px-3 py-2 text-sm"
+                className="w-[140px] rounded-xl border border-black/15 px-4 py-3 text-[14px] text-black focus:outline-none focus:ring-2 focus:ring-black/10"
               >
                 {[10, 20, 50, 100].map((n) => (
                   <option key={n} value={n}>
@@ -165,24 +168,24 @@ export default function AdminApplicationsPage() {
               </select>
             </div>
 
-            <div className="ml-auto flex gap-3">
+            <div className="ml-auto flex flex-wrap gap-3">
               <button
                 onClick={() => load()}
-                className="px-4 py-2 rounded-full border border-black/20 text-sm font-semibold hover:bg-black/[0.04]"
+                className="inline-flex items-center justify-center rounded-xl border border-black/15 px-4 py-3 text-[14px] font-semibold hover:bg-black/[0.04]"
               >
                 Refresh
               </button>
 
               <button
                 onClick={clearAll}
-                className="px-4 py-2 rounded-full border border-black/20 text-sm font-semibold hover:bg-black/[0.04]"
+                className="inline-flex items-center justify-center rounded-xl border border-black/15 px-4 py-3 text-[14px] font-semibold hover:bg-black/[0.04]"
               >
                 Clear
               </button>
 
               <button
                 onClick={applySearch}
-                className="px-5 py-2 rounded-full border border-black bg-black text-white text-sm font-semibold hover:bg-black/90"
+                className="inline-flex items-center justify-center rounded-xl bg-black px-5 py-3 text-[14px] font-semibold text-white hover:bg-black/90"
               >
                 Apply
               </button>
@@ -190,40 +193,48 @@ export default function AdminApplicationsPage() {
           </div>
         </section>
 
-        {/* Table */}
-        <section className="mt-8 border border-black/10 rounded-2xl overflow-hidden">
+        <section className="mt-8 overflow-hidden rounded-2xl border border-black/10 bg-white">
           <div className="overflow-x-auto">
-            <table className="w-full text-sm min-w-[900px]">
-              <thead className="bg-black/[0.03] text-left">
+            <table className="min-w-[900px] w-full text-[14px]">
+              <thead className="bg-black/[0.03] text-left text-black">
                 <tr>
-                  <th className="px-4 py-3">Request</th>
-                  <th className="px-4 py-3">Organization</th>
-                  <th className="px-4 py-3">Email</th>
-                  <th className="px-4 py-3">Status</th>
-                  <th className="px-4 py-3">Source</th>
-                  <th className="px-4 py-3">Updated</th>
+                  <th className="px-4 py-4 font-semibold">Request</th>
+                  <th className="px-4 py-4 font-semibold">Organization</th>
+                  <th className="px-4 py-4 font-semibold">Email</th>
+                  <th className="px-4 py-4 font-semibold">Status</th>
+                  <th className="px-4 py-4 font-semibold">Source</th>
+                  <th className="px-4 py-4 font-semibold">Updated</th>
                 </tr>
               </thead>
+
               <tbody>
                 {rows.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="px-4 py-6 text-black/60">
+                    <td colSpan={6} className="px-4 py-8 text-black/60">
                       No applications found.
                     </td>
                   </tr>
                 ) : (
                   rows.map((r) => (
                     <tr key={r.requestId} className="border-t border-black/5">
-                      <td className="px-4 py-3 underline whitespace-nowrap">
-                        <a href={`/admin/applications/${encodeURIComponent(r.requestId)}`}>
+                      <td className="px-4 py-4 whitespace-nowrap">
+                        <a
+                          href={`/admin/applications/${encodeURIComponent(r.requestId)}`}
+                          className="font-semibold underline underline-offset-2"
+                        >
                           {r.requestId}
                         </a>
                       </td>
-                      <td className="px-4 py-3">{r.org}</td>
-                      <td className="px-4 py-3">{r.email}</td>
-                      <td className="px-4 py-3">{r.status}</td>
-                      <td className="px-4 py-3">{r.source}</td>
-                      <td className="px-4 py-3 whitespace-nowrap">{r.updatedAt}</td>
+
+                      <td className="px-4 py-4 text-black/85">{r.org}</td>
+                      <td className="px-4 py-4 text-black/75">{r.email}</td>
+                      <td className="px-4 py-4">
+                        <span className="inline-flex items-center rounded-full border border-black/10 px-3 py-1 text-[12px] font-semibold text-black/80 bg-black/[0.02]">
+                          {labelForStatus(r.status)}
+                        </span>
+                      </td>
+                      <td className="px-4 py-4 text-black/70">{r.source}</td>
+                      <td className="px-4 py-4 whitespace-nowrap text-black/65">{r.updatedAt}</td>
                     </tr>
                   ))
                 )}
@@ -231,8 +242,7 @@ export default function AdminApplicationsPage() {
             </table>
           </div>
 
-          {/* Pagination */}
-          <div className="flex justify-end items-center gap-3 px-4 py-4 border-t border-black/10">
+          <div className="flex items-center justify-end gap-3 border-t border-black/10 px-4 py-4">
             <button
               disabled={page <= 1 || loading}
               onClick={() => {
@@ -240,12 +250,12 @@ export default function AdminApplicationsPage() {
                 setPage(next);
                 load({ page: next });
               }}
-              className="px-4 py-2 rounded-full border border-black/20 text-sm font-semibold disabled:opacity-40"
+              className="inline-flex items-center justify-center rounded-xl border border-black/15 px-4 py-2 text-[14px] font-semibold disabled:opacity-40"
             >
               Prev
             </button>
 
-            <div className="text-sm font-medium">
+            <div className="text-[14px] font-medium text-black/75">
               Page {page} / {pageCount}
             </div>
 
@@ -256,7 +266,7 @@ export default function AdminApplicationsPage() {
                 setPage(next);
                 load({ page: next });
               }}
-              className="px-4 py-2 rounded-full border border-black/20 text-sm font-semibold disabled:opacity-40"
+              className="inline-flex items-center justify-center rounded-xl border border-black/15 px-4 py-2 text-[14px] font-semibold disabled:opacity-40"
             >
               Next
             </button>

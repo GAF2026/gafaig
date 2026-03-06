@@ -23,40 +23,44 @@ export default function AdminNav() {
   ];
 
   return (
-    <div
-      style={{
-        borderBottom: "1px solid #e5e5e5",
-        padding: "14px 24px",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        gap: 12,
-        flexWrap: "wrap",
-      }}
-    >
-      <div style={{ fontWeight: 900, fontSize: 16 }}>GAFAIG Admin</div>
+    <header className="border-b border-black/10 bg-white">
+      <div className="mx-auto flex max-w-[1100px] items-center justify-between gap-4 px-6 py-4 flex-wrap">
+        <div className="flex items-center gap-4 flex-wrap">
+          <Link
+            href="/"
+            className="text-[16px] font-semibold text-black tracking-[0.02em]"
+          >
+            GAFAIG
+          </Link>
 
-      <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
-        {links.map((l) => {
-          const active = isActive(pathname, l.href);
-          return (
-            <Link
-              key={l.href}
-              href={l.href}
-              style={{
-                padding: "8px 12px",
-                borderRadius: 10,
-                border: "1px solid #ccc",
-                textDecoration: "none",
-                fontWeight: 800,
-                background: active ? "#eee" : "white",
-              }}
-            >
-              {l.label}
-            </Link>
-          );
-        })}
+          <div className="hidden h-5 w-px bg-black/10 sm:block" />
+
+          <div className="text-[13px] uppercase tracking-[0.18em] text-black/50 font-semibold">
+            Admin
+          </div>
+        </div>
+
+        <nav className="flex items-center gap-2 flex-wrap">
+          {links.map((link) => {
+            const active = isActive(pathname, link.href);
+
+            return (
+              <Link
+                key={link.href}
+                href={link.href}
+                className={[
+                  "inline-flex items-center justify-center rounded-full px-4 py-2 text-[14px] font-semibold transition",
+                  active
+                    ? "bg-black text-white border border-black"
+                    : "bg-white text-black border border-black/10 hover:bg-black/[0.04]",
+                ].join(" ")}
+              >
+                {link.label}
+              </Link>
+            );
+          })}
+        </nav>
       </div>
-    </div>
+    </header>
   );
 }
