@@ -42,16 +42,57 @@ function scoreTier(score: number): {
   return { tier: "Not Verified", band: "D" };
 }
 
+function makeDemoFallback(caseId: string, extras?: Record<string, any>) {
+  const score = 83.33;
+  const { tier, band } = scoreTier(score);
+
+  return {
+    ok: true,
+    source: "demo-fallback",
+    caseId,
+    participantId: "PART-DEMO-0001",
+    standard: { code: "HG", version: "v1.0" },
+    caseStatus: "approved",
+    tier,
+    band,
+    score,
+    subscores: {
+      controls: 92,
+      coverage: 75,
+      freshness: 82,
+      summaries: 84,
+    },
+    lastActivityAt: "2026-02-10 14:22:03.802",
+    counts: {
+      findingsTotal: 6,
+      findingsScored: 5,
+      findingsNA: 1,
+      findingsWithEvidence: 5,
+      evidenceTotal: 8,
+      evidenceWithSummary: 6,
+    },
+    snowflakeEnv: extras?.snowflakeEnv ?? null,
+    debug: extras?.debug ?? null,
+  };
+}
+
 export async function GET(req: NextRequest, ctx: { params: { caseId: string } }) {
   try {
-    await requireAdmin(req);
+    const auth = requireAdmin(req);
+    if (!auth.ok) {
+      return NextResponse.json(
+        { ok: false, error: auth.error ?? "Unauthorized" },
+        { status: auth.status ?? 401 }
+      );
+    }
 
     const caseId = (ctx?.params?.caseId || "").trim();
     if (!caseId) {
       return NextResponse.json({ ok: false, error: "Missing caseId" }, { status: 400 });
     }
 
-    // 1) Prove Snowflake connectivity + show env
+    const isDemoCase = caseId.toUpperCase() === "CASE-0001";
+
     const envRes = await sfQueryResult<{
       CURRENT_ACCOUNT: string;
       CURRENT_REGION: string;
@@ -69,21 +110,28 @@ export async function GET(req: NextRequest, ctx: { params: { caseId: string } })
         CURRENT_WAREHOUSE() AS CURRENT_WAREHOUSE
     `);
 
-    // If Snowflake is not reachable/configured, return the REAL reason
     if (!envRes.ok) {
+      if (isDemoCase) {
+        return NextResponse.json(
+          makeDemoFallback(caseId, {
+            debug: {
+              fallbackReason: "Snowflake not reachable from app",
+              details: envRes.error || "Unknown Snowflake error",
+            },
+          })
+        );
+      }
+
       return NextResponse.json(
         {
           ok: false,
           error: "Snowflake not reachable from app",
           details: envRes.error || "Unknown Snowflake error",
-          hint:
-            "Check .env.local for SNOWFLAKE_QUERY_ENDPOINT, then restart `npm run dev`. If this is Vercel, ensure the env var exists there too.",
         },
         { status: 500 }
       );
     }
 
-    // 2) Try to fetch the score row (case-insensitive + trimmed)
     const scoreRes = await sfQueryResult<Row>(
       `
       SELECT
@@ -111,6 +159,18 @@ export async function GET(req: NextRequest, ctx: { params: { caseId: string } })
     );
 
     if (!scoreRes.ok) {
+      if (isDemoCase) {
+        return NextResponse.json(
+          makeDemoFallback(caseId, {
+            snowflakeEnv: envRes.rows?.[0] ?? null,
+            debug: {
+              fallbackReason: "Snowflake query failed",
+              details: scoreRes.error || "Unknown query error",
+            },
+          })
+        );
+      }
+
       return NextResponse.json(
         {
           ok: false,
@@ -124,8 +184,18 @@ export async function GET(req: NextRequest, ctx: { params: { caseId: string } })
 
     const r = scoreRes.rows?.[0];
 
-    // 3) If not found, return the top case IDs the app can actually see
     if (!r) {
+      if (isDemoCase) {
+        return NextResponse.json(
+          makeDemoFallback(caseId, {
+            snowflakeEnv: envRes.rows?.[0] ?? null,
+            debug: {
+              fallbackReason: "No score row found for demo case",
+            },
+          })
+        );
+      }
+
       const suggRes = await sfQueryResult<{ CASE_ID: string }>(`
         SELECT CASE_ID
         FROM GAFAIG_DB.CORE.V_GOVERNANCE_SCORE_CASE
@@ -151,6 +221,7 @@ export async function GET(req: NextRequest, ctx: { params: { caseId: string } })
 
     return NextResponse.json({
       ok: true,
+      source: "snowflake",
       caseId: r.CASE_ID,
       participantId: r.PARTICIPANT_ID,
       standard: { code: r.STANDARD_CODE, version: r.STANDARD_VERSION },
@@ -176,6 +247,21 @@ export async function GET(req: NextRequest, ctx: { params: { caseId: string } })
       snowflakeEnv: envRes.rows?.[0] ?? null,
     });
   } catch (e: any) {
-    return NextResponse.json({ ok: false, error: e?.message || "Unknown error" }, { status: 500 });
+    const caseId = (ctx?.params?.caseId || "").trim();
+    if (caseId.toUpperCase() === "CASE-0001") {
+      return NextResponse.json(
+        makeDemoFallback(caseId, {
+          debug: {
+            fallbackReason: "Unhandled exception",
+            details: e?.message || "Unknown error",
+          },
+        })
+      );
+    }
+
+    return NextResponse.json(
+      { ok: false, error: e?.message || "Unknown error" },
+      { status: 500 }
+    );
   }
 }
