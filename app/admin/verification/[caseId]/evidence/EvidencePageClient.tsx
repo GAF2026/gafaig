@@ -3,16 +3,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import CaseTabs from "../_components/CaseTabs";
 
-/**
- * EvidencePageClient
- * - Full interactive Evidence workflow:
- *   - governance metrics
- *   - AI summary defaults
- *   - Add evidence form
- *   - Link evidence to finding
- *   - Evidence list w/ summaries + bulk summarize/regenerate
- */
-
 type EvidenceRow = {
   evidenceId: string;
   caseId: string;
@@ -595,10 +585,10 @@ export default function EvidencePageClient(props: { caseId: string }) {
   }
 
   return (
-  <div className="space-y-8 w-full">
+    <div className="space-y-6 w-full">
       <div className="-mt-2">
-  <CaseTabs caseId={caseId} />
-</div>
+        <CaseTabs caseId={caseId} />
+      </div>
 
       {(loadError || storedSummaryLoadErr || bulkErr) ? (
         <div className="space-y-3">
@@ -631,9 +621,9 @@ export default function EvidencePageClient(props: { caseId: string }) {
             </div>
           </div>
 
-          <div className="flex items-center gap-3 flex-wrap">
+          <div className="flex items-center gap-2 flex-wrap">
             <button
-              className="inline-flex items-center justify-center rounded-xl border border-black/15 px-4 py-2 text-[14px] font-semibold hover:bg-black/[0.04]"
+              className="inline-flex h-10 items-center justify-center rounded-xl border border-black/15 px-4 text-[14px] font-semibold hover:bg-black/[0.04]"
               onClick={refreshAll}
               disabled={loading || !!bulkRunning}
             >
@@ -642,15 +632,15 @@ export default function EvidencePageClient(props: { caseId: string }) {
 
             <button
               onClick={summarizeAllMissing}
-              className="inline-flex items-center justify-center rounded-xl border border-black/15 px-4 py-2 text-[14px] font-semibold hover:bg-black/[0.04] disabled:opacity-50"
+              className="inline-flex h-10 items-center justify-center rounded-xl border border-black/15 px-4 text-[14px] font-semibold hover:bg-black/[0.04] disabled:opacity-50"
               disabled={loading || !!bulkRunning || evidence.length === 0 || missingCount === 0}
             >
-              {bulkRunning === "missing" ? "Summarizing…" : `Summarize all missing (${missingCount})`}
+              {bulkRunning === "missing" ? "Summarizing…" : `Summarize missing (${missingCount})`}
             </button>
 
             <button
               onClick={regenerateAll}
-              className="inline-flex items-center justify-center rounded-xl border border-black/15 px-4 py-2 text-[14px] font-semibold hover:bg-black/[0.04] disabled:opacity-50"
+              className="inline-flex h-10 items-center justify-center rounded-xl border border-black/15 px-4 text-[14px] font-semibold hover:bg-black/[0.04] disabled:opacity-50"
               disabled={loading || !!bulkRunning || evidence.length === 0}
             >
               {bulkRunning === "regen" ? "Regenerating…" : "Regenerate all"}
@@ -725,7 +715,7 @@ export default function EvidencePageClient(props: { caseId: string }) {
           </div>
 
           <button
-            className="inline-flex items-center justify-center rounded-xl bg-black px-5 py-3 text-[14px] font-semibold text-white hover:bg-black/90"
+            className="inline-flex h-11 items-center justify-center rounded-xl bg-black px-5 text-[14px] font-semibold text-white hover:bg-black/90"
             onClick={addEvidence}
             disabled={loading || !!bulkRunning}
           >
@@ -817,7 +807,7 @@ export default function EvidencePageClient(props: { caseId: string }) {
           </div>
 
           <button
-            className="inline-flex items-center justify-center rounded-xl border border-black/15 px-4 py-3 text-[14px] font-semibold hover:bg-black/[0.04] disabled:opacity-50"
+            className="inline-flex h-10 items-center justify-center rounded-xl border border-black/15 px-4 text-[14px] font-semibold hover:bg-black/[0.04] disabled:opacity-50"
             onClick={createLink}
             disabled={!selectedEvidenceId || !selectedFindingId}
           >
@@ -873,7 +863,7 @@ export default function EvidencePageClient(props: { caseId: string }) {
         {evidence.length === 0 ? (
           <div className="mt-5 text-[14px] text-black/60">No evidence found for this case.</div>
         ) : (
-          <div className="mt-5 space-y-4">
+          <div className="mt-5 space-y-3">
             {evidence.map((e) => {
               const style = getStyleForEvidence(e.evidenceId);
               const model = getModelForEvidence(e.evidenceId);
@@ -893,10 +883,10 @@ export default function EvidencePageClient(props: { caseId: string }) {
                       <div className="text-[12px] uppercase tracking-[0.12em] text-black/50 font-semibold">
                         {prettify(e.evidenceType)}
                       </div>
-                      <div className="mt-2 text-[18px] font-semibold text-black">{e.title}</div>
+                      <div className="mt-1 text-[18px] font-semibold text-black">{e.title}</div>
 
                       {e.description ? (
-                        <div className="mt-2 text-[14px] leading-[1.7] text-black/70">
+                        <div className="mt-2 text-[14px] leading-[1.6] text-black/70">
                           {e.description}
                         </div>
                       ) : null}
@@ -908,7 +898,7 @@ export default function EvidencePageClient(props: { caseId: string }) {
 
                     <div className="flex flex-col items-end gap-2">
                       <button
-                        className="inline-flex items-center justify-center rounded-xl bg-black px-4 py-2 text-[13px] font-semibold text-white hover:bg-black/90 disabled:opacity-50"
+                        className="inline-flex h-10 items-center justify-center rounded-xl bg-black px-4 text-[13px] font-semibold text-white hover:bg-black/90 disabled:opacity-50"
                         onClick={() => runAiSummary(e.evidenceId, { force: false })}
                         disabled={summaryLoadingId === e.evidenceId}
                       >
@@ -916,7 +906,7 @@ export default function EvidencePageClient(props: { caseId: string }) {
                       </button>
 
                       <button
-                        className="inline-flex items-center justify-center rounded-xl border border-black/15 px-4 py-2 text-[13px] font-semibold hover:bg-black/[0.04] disabled:opacity-50"
+                        className="inline-flex h-9 items-center justify-center rounded-xl border border-black/15 px-4 text-[12px] font-semibold hover:bg-black/[0.04] disabled:opacity-50"
                         onClick={() => runAiSummary(e.evidenceId, { force: true })}
                         disabled={summaryLoadingId === e.evidenceId}
                       >
@@ -925,9 +915,9 @@ export default function EvidencePageClient(props: { caseId: string }) {
                     </div>
                   </div>
 
-                  <div className="mt-5 grid gap-4 md:grid-cols-2">
+                  <div className="mt-4 grid gap-4 md:grid-cols-2">
                     <div>
-                      <label className="text-[12px] font-semibold uppercase tracking-[0.12em] text-black/60">
+                      <label className="text-[11px] font-semibold uppercase tracking-[0.12em] text-black/60">
                         Style
                       </label>
                       <select
@@ -948,7 +938,7 @@ export default function EvidencePageClient(props: { caseId: string }) {
                     </div>
 
                     <div>
-                      <label className="text-[12px] font-semibold uppercase tracking-[0.12em] text-black/60">
+                      <label className="text-[11px] font-semibold uppercase tracking-[0.12em] text-black/60">
                         Model
                       </label>
                       <input
@@ -965,8 +955,8 @@ export default function EvidencePageClient(props: { caseId: string }) {
                     </div>
                   </div>
 
-                  <div className="mt-5">
-                    <div className="mb-2 text-[12px] font-semibold uppercase tracking-[0.12em] text-black/60">
+                  <div className="mt-4">
+                    <div className="mb-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-black/60">
                       Linked findings
                     </div>
 
@@ -983,7 +973,7 @@ export default function EvidencePageClient(props: { caseId: string }) {
                                 <span className="ml-2">{f?.title || "(missing finding title)"}</span>
                               </div>
                               <button
-                                className="inline-flex items-center justify-center rounded-xl border border-black/15 px-3 py-1.5 text-[12px] font-semibold hover:bg-black/[0.04]"
+                                className="inline-flex h-8 items-center justify-center rounded-xl border border-black/15 px-3 text-[12px] font-semibold hover:bg-black/[0.04]"
                                 onClick={() => removeLink(fid, e.evidenceId)}
                               >
                                 Remove
@@ -995,8 +985,8 @@ export default function EvidencePageClient(props: { caseId: string }) {
                     )}
                   </div>
 
-                  <div className="mt-5">
-                    <div className="mb-2 text-[12px] font-semibold uppercase tracking-[0.12em] text-black/60">
+                  <div className="mt-4">
+                    <div className="mb-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-black/60">
                       Stored summary
                     </div>
 
@@ -1041,19 +1031,9 @@ export default function EvidencePageClient(props: { caseId: string }) {
           </div>
         )}
 
-        <div className="mt-6 text-[14px]">
-          <a className="underline text-black/75" href="/demo">
-            ← Back to Demo Guide
-          </a>
-          <span className="mx-2 text-black/25">·</span>
-          <a
-            className="underline text-black/75"
-            href={`/api/admin/verification/evidence?caseId=${encodeURIComponent(caseId)}`}
-            target="_blank"
-            rel="noreferrer"
-          >
-            View JSON endpoint
-          </a>
+        <div className="mt-6 flex items-center justify-between gap-3 border-t border-black/10 pt-4 text-[12px] text-black/45">
+          <div>Evidence workflow for private case review.</div>
+          <div className="font-mono">CASE: {caseId}</div>
         </div>
       </section>
     </div>
