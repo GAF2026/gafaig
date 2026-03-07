@@ -2,7 +2,9 @@
 
 import * as React from "react";
 import Link from "next/link";
-import AdminShell from "../../../_components/AdminShell";
+import AdminNav from "../../../_components/AdminNav";
+import AdminPageHeader from "../../../_components/AdminPageHeader";
+import CaseTabs from "../_components/CaseTabs";
 
 type FindingRow = {
   findingId: string;
@@ -35,6 +37,10 @@ type ApiPost = { ok: true; findingId: string } | { ok: false; error: string };
 
 function fmt(v?: string | null) {
   return v ? String(v) : "—";
+}
+
+function prettify(v?: string | null) {
+  return v ? String(v).replaceAll("_", " ").replaceAll("-", " ") : "—";
 }
 
 function truncateMiddle(s: string, head = 18, tail = 10) {
@@ -76,7 +82,7 @@ async function copyText(text: string) {
 
 function pillTone(value?: string) {
   const v = (value || "").toLowerCase();
-  if (v === "pass" || v === "approved") return "border-green-200 bg-green-50 text-green-800";
+  if (v === "pass" || v === "approved") return "border-emerald-200 bg-emerald-50 text-emerald-900";
   if (v === "partial" || v === "needs_more_info") return "border-amber-200 bg-amber-50 text-amber-900";
   if (v === "fail" || v === "rejected" || v === "suspended") return "border-red-200 bg-red-50 text-red-900";
   return "border-gray-200 bg-gray-50 text-gray-800";
@@ -91,20 +97,14 @@ async function safeJson<T>(res: Response): Promise<T> {
   }
 }
 
-/**
- * Normalize keys so the UI works whether the API returns:
- *  - camelCase (findingId) OR
- *  - Snowflake-style (FINDING_ID) OR
- *  - mixed case
- */
 function normalizeFindingRow(raw: any): FindingRow {
   const findingId = String(raw.findingId ?? raw.FINDING_ID ?? raw.finding_id ?? "");
   const caseId = String(raw.caseId ?? raw.CASE_ID ?? raw.case_id ?? "");
   const controlId = String(raw.controlId ?? raw.CONTROL_ID ?? raw.control_id ?? "");
   const controlTitle = String(raw.controlTitle ?? raw.CONTROL_TITLE ?? raw.control_title ?? "");
-  const result = String(raw.result ?? raw.RESULT ?? raw.result ?? "");
-  const severity = String(raw.severity ?? raw.SEVERITY ?? raw.severity ?? "");
-  const rationale = (raw.rationale ?? raw.RATIONALE ?? raw.rationale ?? null) as string | null;
+  const result = String(raw.result ?? raw.RESULT ?? "");
+  const severity = String(raw.severity ?? raw.SEVERITY ?? "");
+  const rationale = (raw.rationale ?? raw.RATIONALE ?? null) as string | null;
   const createdAt = String(raw.createdAt ?? raw.CREATED_AT ?? raw.created_at ?? "");
   const updatedAt = String(raw.updatedAt ?? raw.UPDATED_AT ?? raw.updated_at ?? createdAt);
 
@@ -125,13 +125,13 @@ function normalizeEvidenceRow(raw: any): EvidenceRow {
   const evidenceId = String(raw.evidenceId ?? raw.EVIDENCE_ID ?? raw.evidence_id ?? "");
   const caseId = String(raw.caseId ?? raw.CASE_ID ?? raw.case_id ?? "");
   const evidenceType = String(raw.evidenceType ?? raw.EVIDENCE_TYPE ?? raw.evidence_type ?? "");
-  const title = String(raw.title ?? raw.TITLE ?? raw.title ?? "");
-  const description = (raw.description ?? raw.DESCRIPTION ?? raw.description ?? null) as string | null;
-  const sourceUrl = (raw.sourceUrl ?? raw.SOURCE_URL ?? raw.source_url ?? null) as string | null;
-  const storageRef = (raw.storageRef ?? raw.STORAGE_REF ?? raw.storage_ref ?? null) as string | null;
-  const submittedBy = (raw.submittedBy ?? raw.SUBMITTED_BY ?? raw.submitted_by ?? null) as string | null;
-  const submittedAt = String(raw.submittedAt ?? raw.SUBMITTED_AT ?? raw.submitted_at ?? "");
-  const linkedAt = (raw.linkedAt ?? raw.LINKED_AT ?? raw.linked_at ?? undefined) as string | undefined;
+  const title = String(raw.title ?? raw.TITLE ?? "");
+  const description = (raw.description ?? raw.DESCRIPTION ?? null) as string | null;
+  const sourceUrl = (raw.sourceUrl ?? raw.SOURCE_URL ?? null) as string | null;
+  const storageRef = (raw.storageRef ?? raw.STORAGE_REF ?? null) as string | null;
+  const submittedBy = (raw.submittedBy ?? raw.SUBMITTED_BY ?? null) as string | null;
+  const submittedAt = String(raw.submittedAt ?? raw.SUBMITTED_AT ?? "");
+  const linkedAt = (raw.linkedAt ?? raw.LINKED_AT ?? undefined) as string | undefined;
 
   return {
     evidenceId,
@@ -158,11 +158,9 @@ export default function FindingsPage({ params }: { params: { caseId: string } })
   const [evidenceByFinding, setEvidenceByFinding] = React.useState<Record<string, EvidenceRow[]>>({});
   const [evidenceLoading, setEvidenceLoading] = React.useState<Record<string, boolean>>({});
 
-  // Debug panel
   const [lastGet, setLastGet] = React.useState<any>(null);
   const [lastPost, setLastPost] = React.useState<any>(null);
 
-  // add finding form
   const [controlId, setControlId] = React.useState("");
   const [controlTitle, setControlTitle] = React.useState("");
   const [result, setResult] = React.useState("pass");
@@ -185,6 +183,7 @@ export default function FindingsPage({ params }: { params: { caseId: string } })
       const res = await fetch(url, {
         method: "GET",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         cache: "no-store",
       });
 
@@ -211,7 +210,7 @@ export default function FindingsPage({ params }: { params: { caseId: string } })
 
   async function loadEvidenceForFinding(findingId: string) {
     if (!findingId) return;
-    if (evidenceByFinding[findingId]) return; // cached
+    if (evidenceByFinding[findingId]) return;
 
     setEvidenceLoading((m) => ({ ...m, [findingId]: true }));
     try {
@@ -219,6 +218,7 @@ export default function FindingsPage({ params }: { params: { caseId: string } })
       const res = await fetch(url, {
         method: "GET",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         cache: "no-store",
       });
 
@@ -274,6 +274,7 @@ export default function FindingsPage({ params }: { params: { caseId: string } })
       const res = await fetch(`/api/admin/verification/findings`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify(payload),
       });
 
@@ -290,7 +291,6 @@ export default function FindingsPage({ params }: { params: { caseId: string } })
       setControlId("");
       setControlTitle("");
       setRationale("");
-
       setExpanded({});
       setEvidenceByFinding({});
       setEvidenceLoading({});
@@ -327,308 +327,332 @@ export default function FindingsPage({ params }: { params: { caseId: string } })
   const cellPad = "px-5 py-4";
 
   const btnBase =
-    "inline-flex h-9 items-center justify-center rounded-xl border border-gray-200 bg-white px-4 text-sm font-semibold shadow-sm hover:bg-gray-50 whitespace-nowrap shrink-0";
+    "inline-flex h-9 items-center justify-center rounded-xl border border-black/10 bg-white px-4 text-sm font-semibold hover:bg-black/[0.04] whitespace-nowrap shrink-0";
 
   return (
-    <AdminShell title={`Admin • Verification • Findings • ${caseId}`}>
-      <div className="mb-6 flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <div className="text-3xl font-semibold tracking-tight">Findings</div>
-          <div className="mt-1 text-sm text-gray-600">
-            Case: <span className="font-mono">{caseId}</span>
+    <div>
+      <AdminNav />
+
+      <main className="mx-auto max-w-[1100px] px-6 pt-14 pb-16">
+        <AdminPageHeader
+          title={`Findings — ${caseId}`}
+          description="Record control evaluations, inspect linked evidence, and move the case toward decision."
+          meta={loading ? "Loading…" : `${rows.length} finding${rows.length === 1 ? "" : "s"}`}
+          actions={
+            <div className="flex flex-wrap gap-3">
+              <Link
+                href={backHref}
+                className="inline-flex items-center justify-center rounded-xl border border-black/15 px-4 py-2 text-[14px] font-semibold hover:bg-black/[0.04]"
+              >
+                ← Back
+              </Link>
+
+              <Link
+                href={evidencePageHref}
+                className="inline-flex items-center justify-center rounded-xl border border-black/15 px-4 py-2 text-[14px] font-semibold hover:bg-black/[0.04]"
+              >
+                Evidence →
+              </Link>
+
+              <button
+                className="inline-flex items-center justify-center rounded-xl border border-black/15 px-4 py-2 text-[14px] font-semibold hover:bg-black/[0.04] disabled:opacity-60"
+                onClick={load}
+                disabled={loading}
+              >
+                {loading ? "Loading…" : "Refresh"}
+              </button>
+            </div>
+          }
+        />
+
+        <CaseTabs caseId={caseId} />
+
+        {err ? (
+          <div className="mt-6 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-[14px] text-red-900">
+            <div className="font-semibold">Error</div>
+            <div className="mt-1 whitespace-pre-wrap">{err}</div>
           </div>
-        </div>
+        ) : null}
 
-        <div className="flex items-center gap-2">
-          <Link
-            href={backHref}
-            className="inline-flex h-11 items-center justify-center rounded-xl border border-gray-200 bg-white px-4 text-sm font-semibold shadow-sm hover:bg-gray-50"
-          >
-            ← Back
-          </Link>
-
-          <Link
-            href={evidencePageHref}
-            className="inline-flex h-11 items-center justify-center rounded-xl border border-gray-200 bg-white px-4 text-sm font-semibold shadow-sm hover:bg-gray-50"
-          >
-            Evidence →
-          </Link>
-
-          <button
-            className="inline-flex h-11 items-center justify-center rounded-xl border border-gray-200 bg-white px-4 text-sm font-semibold shadow-sm hover:bg-gray-50 disabled:opacity-60"
-            onClick={load}
-            disabled={loading}
-          >
-            {loading ? "Loading…" : "Refresh"}
-          </button>
-        </div>
-      </div>
-
-      {err ? (
-        <div className="mb-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-900 shadow-sm">
-          <div className="font-medium">Error</div>
-          <div className="mt-1 whitespace-pre-wrap">{err}</div>
-        </div>
-      ) : null}
-
-      <details className="mb-6 rounded-2xl border border-gray-200 bg-white p-4 text-sm shadow-sm">
-        <summary className="cursor-pointer select-none font-semibold">Debug (last API responses)</summary>
-        <div className="mt-3 grid gap-3 lg:grid-cols-2">
-          <div className="rounded-xl border border-gray-200 bg-gray-50 p-3">
-            <div className="mb-2 font-semibold">Last POST /findings</div>
-            <pre className="whitespace-pre-wrap break-words text-xs">{JSON.stringify(lastPost, null, 2)}</pre>
+        <details className="mt-6 rounded-2xl border border-black/10 bg-white p-4 text-sm">
+          <summary className="cursor-pointer select-none font-semibold text-black">Debug (last API responses)</summary>
+          <div className="mt-4 grid gap-4 lg:grid-cols-2">
+            <div className="rounded-xl border border-black/10 bg-black/[0.02] p-3">
+              <div className="mb-2 font-semibold">Last POST /findings</div>
+              <pre className="whitespace-pre-wrap break-words text-xs">{JSON.stringify(lastPost, null, 2)}</pre>
+            </div>
+            <div className="rounded-xl border border-black/10 bg-black/[0.02] p-3">
+              <div className="mb-2 font-semibold">Last GET /findings?caseId=…</div>
+              <pre className="whitespace-pre-wrap break-words text-xs">{JSON.stringify(lastGet, null, 2)}</pre>
+            </div>
           </div>
-          <div className="rounded-xl border border-gray-200 bg-gray-50 p-3">
-            <div className="mb-2 font-semibold">Last GET /findings?caseId=…</div>
-            <pre className="whitespace-pre-wrap break-words text-xs">{JSON.stringify(lastGet, null, 2)}</pre>
-          </div>
-        </div>
-      </details>
+        </details>
 
-      <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-        <div className="mb-4">
-          <div className="text-base font-semibold">Add finding</div>
-          <div className="mt-1 text-sm text-gray-600">Record an evaluation result for a control (e.g., HG-1.2).</div>
-        </div>
-
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-12">
-          <div className="lg:col-span-3">
-            <label className="mb-2 block text-sm font-semibold text-gray-800">Control ID</label>
-            <input
-              className="h-12 w-full rounded-xl border border-gray-200 bg-white px-4 text-base outline-none focus:border-gray-300"
-              value={controlId}
-              onChange={(e) => setControlId(e.target.value)}
-              placeholder="HG-1.2"
-            />
+        <section className="mt-6 rounded-2xl border border-black/10 bg-white p-6">
+          <div className="mb-4">
+            <div className="text-[16px] font-semibold text-black">Add finding</div>
+            <div className="mt-1 text-[14px] text-black/60">
+              Record an evaluation result for a control, such as HG-1.2.
+            </div>
           </div>
 
-          <div className="lg:col-span-5">
-            <label className="mb-2 block text-sm font-semibold text-gray-800">Control title</label>
-            <input
-              className="h-12 w-full rounded-xl border border-gray-200 bg-white px-4 text-base outline-none focus:border-gray-300"
-              value={controlTitle}
-              onChange={(e) => setControlTitle(e.target.value)}
-              placeholder="Escalation Path Exists"
-            />
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-12">
+            <div className="lg:col-span-3">
+              <label className="mb-2 block text-[12px] font-semibold uppercase tracking-[0.12em] text-black/60">
+                Control ID
+              </label>
+              <input
+                className="h-12 w-full rounded-xl border border-black/15 bg-white px-4 text-[14px] outline-none focus:ring-2 focus:ring-black/10"
+                value={controlId}
+                onChange={(e) => setControlId(e.target.value)}
+                placeholder="HG-1.2"
+              />
+            </div>
+
+            <div className="lg:col-span-5">
+              <label className="mb-2 block text-[12px] font-semibold uppercase tracking-[0.12em] text-black/60">
+                Control title
+              </label>
+              <input
+                className="h-12 w-full rounded-xl border border-black/15 bg-white px-4 text-[14px] outline-none focus:ring-2 focus:ring-black/10"
+                value={controlTitle}
+                onChange={(e) => setControlTitle(e.target.value)}
+                placeholder="Escalation Path Exists"
+              />
+            </div>
+
+            <div className="lg:col-span-2">
+              <label className="mb-2 block text-[12px] font-semibold uppercase tracking-[0.12em] text-black/60">
+                Result
+              </label>
+              <select
+                className="h-12 w-full rounded-xl border border-black/15 bg-white px-4 text-[14px] outline-none focus:ring-2 focus:ring-black/10"
+                value={result}
+                onChange={(e) => setResult(e.target.value)}
+              >
+                <option value="pass">pass</option>
+                <option value="partial">partial</option>
+                <option value="fail">fail</option>
+                <option value="needs_more_info">needs more info</option>
+              </select>
+            </div>
+
+            <div className="lg:col-span-2">
+              <label className="mb-2 block text-[12px] font-semibold uppercase tracking-[0.12em] text-black/60">
+                Severity
+              </label>
+              <select
+                className="h-12 w-full rounded-xl border border-black/15 bg-white px-4 text-[14px] outline-none focus:ring-2 focus:ring-black/10"
+                value={severity}
+                onChange={(e) => setSeverity(e.target.value)}
+              >
+                <option value="low">low</option>
+                <option value="medium">medium</option>
+                <option value="high">high</option>
+              </select>
+            </div>
+
+            <div className="lg:col-span-12">
+              <label className="mb-2 block text-[12px] font-semibold uppercase tracking-[0.12em] text-black/60">
+                Rationale (optional)
+              </label>
+              <input
+                className="h-12 w-full rounded-xl border border-black/15 bg-white px-4 text-[14px] outline-none focus:ring-2 focus:ring-black/10"
+                value={rationale}
+                onChange={(e) => setRationale(e.target.value)}
+                placeholder="Short explanation or notes for the audit trail"
+              />
+            </div>
+
+            <div className="lg:col-span-12 flex justify-end">
+              <button
+                className="inline-flex h-12 items-center justify-center rounded-xl bg-black px-6 text-[14px] font-semibold text-white hover:bg-black/90 disabled:opacity-60"
+                onClick={addFinding}
+                disabled={loading}
+              >
+                {loading ? "Saving…" : "Add finding"}
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <section className="mt-6 rounded-2xl border border-black/10 bg-white p-6">
+          <div className="mb-4">
+            <div className="text-[16px] font-semibold text-black">Findings ({rows.length})</div>
+            <div className="mt-1 text-[14px] text-black/60">
+              Click a row to expand and inspect linked evidence.
+            </div>
           </div>
 
-          <div className="lg:col-span-2">
-            <label className="mb-2 block text-sm font-semibold text-gray-800">Result</label>
-            <select
-              className="h-12 w-full rounded-xl border border-gray-200 bg-white px-4 text-base outline-none focus:border-gray-300"
-              value={result}
-              onChange={(e) => setResult(e.target.value)}
-            >
-              <option value="pass">pass</option>
-              <option value="partial">partial</option>
-              <option value="fail">fail</option>
-              <option value="needs_more_info">needs_more_info</option>
-            </select>
-          </div>
+          <div className="overflow-auto rounded-2xl border border-black/10">
+            <div className={`grid ${gridCols} bg-black/[0.03] text-left text-[12px] font-semibold uppercase tracking-[0.12em] text-black/60`}>
+              <div className={cellPad}>Control ID</div>
+              <div className={cellPad}>Control title</div>
+              <div className={cellPad}>Result</div>
+              <div className={cellPad}>Severity</div>
+              <div className={cellPad}>Updated</div>
+              <div className={cellPad}>Finding ID</div>
+              <div className={cellPad}>Actions</div>
+            </div>
 
-          <div className="lg:col-span-2">
-            <label className="mb-2 block text-sm font-semibold text-gray-800">Severity</label>
-            <select
-              className="h-12 w-full rounded-xl border border-gray-200 bg-white px-4 text-base outline-none focus:border-gray-300"
-              value={severity}
-              onChange={(e) => setSeverity(e.target.value)}
-            >
-              <option value="low">low</option>
-              <option value="medium">medium</option>
-              <option value="high">high</option>
-            </select>
-          </div>
+            {rows.length === 0 ? (
+              <div className="px-5 py-6 text-[14px] text-black/60">{loading ? "Loading…" : "No findings yet."}</div>
+            ) : (
+              rows.map((r) => {
+                const isOpen = !!expanded[r.findingId];
+                const evLoading = !!evidenceLoading[r.findingId];
+                const evRows = evidenceByFinding[r.findingId] || [];
+                const ts = splitDateTime(r.updatedAt || r.createdAt);
 
-          <div className="lg:col-span-12">
-            <label className="mb-2 block text-sm font-semibold text-gray-800">Rationale (optional)</label>
-            <input
-              className="h-12 w-full rounded-xl border border-gray-200 bg-white px-4 text-base outline-none focus:border-gray-300"
-              value={rationale}
-              onChange={(e) => setRationale(e.target.value)}
-              placeholder="Short explanation / notes for the audit trail"
-            />
-          </div>
-
-          <div className="lg:col-span-12 flex justify-end">
-            <button
-              className="inline-flex h-12 items-center justify-center rounded-2xl bg-black px-6 text-base font-semibold text-white shadow-sm disabled:opacity-60"
-              onClick={addFinding}
-              disabled={loading}
-            >
-              {loading ? "Saving…" : "Add finding"}
-            </button>
-          </div>
-        </div>
-      </section>
-
-      <section className="mt-6 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-        <div className="mb-4">
-          <div className="text-lg font-semibold">Findings ({rows.length})</div>
-          <div className="mt-1 text-sm text-gray-600">Click a row to expand and view linked evidence.</div>
-        </div>
-
-        <div className="overflow-auto rounded-2xl border border-gray-200">
-          <div className={`grid ${gridCols} bg-gray-50 text-xs font-semibold tracking-wider text-gray-600`}>
-            <div className={cellPad}>CONTROL ID</div>
-            <div className={cellPad}>CONTROL TITLE</div>
-            <div className={cellPad}>RESULT</div>
-            <div className={cellPad}>SEVERITY</div>
-            <div className={cellPad}>UPDATED</div>
-            <div className={cellPad}>FINDING ID</div>
-            <div className={cellPad}>ACTIONS</div>
-          </div>
-
-          {rows.length === 0 ? (
-            <div className="px-5 py-6 text-sm text-gray-800">{loading ? "Loading…" : "No findings yet."}</div>
-          ) : (
-            rows.map((r) => {
-              const isOpen = !!expanded[r.findingId];
-              const evLoading = !!evidenceLoading[r.findingId];
-              const evRows = evidenceByFinding[r.findingId] || [];
-              const ts = splitDateTime(r.updatedAt || r.createdAt);
-
-              return (
-                <div key={r.findingId} className="border-t border-gray-100">
-                  <button
-                    type="button"
-                    onClick={() => onToggle(r.findingId)}
-                    className={`grid ${gridCols} w-full text-left hover:bg-gray-50`}
-                  >
-                    <div className={`${cellPad} flex items-center font-mono text-sm text-gray-900`}>{r.controlId}</div>
-
-                    <div className={`${cellPad} flex items-center text-sm text-gray-900`}>
-                      <span className="break-words">{r.controlTitle}</span>
-                    </div>
-
-                    <div className={`${cellPad} flex items-center`}>
-                      <span
-                        className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold ${pillTone(
-                          r.result
-                        )}`}
-                      >
-                        {r.result}
-                      </span>
-                    </div>
-
-                    <div className={`${cellPad} flex items-center text-sm text-gray-900`}>{r.severity}</div>
-
-                    <div className={`${cellPad} flex items-center`}>
-                      <div className="leading-tight">
-                        <div className="font-mono text-sm text-gray-900">{ts.d}</div>
-                        {ts.t ? <div className="font-mono text-xs text-gray-500">{ts.t}</div> : null}
+                return (
+                  <div key={r.findingId} className="border-t border-black/5">
+                    <button
+                      type="button"
+                      onClick={() => onToggle(r.findingId)}
+                      className={`grid ${gridCols} w-full text-left hover:bg-black/[0.02]`}
+                    >
+                      <div className={`${cellPad} flex items-center font-mono text-[14px] text-black`}>
+                        {r.controlId}
                       </div>
-                    </div>
 
-                    <div className={`${cellPad} flex items-center`}>
-                      <span className="font-mono text-sm text-gray-900 whitespace-nowrap overflow-hidden text-ellipsis">
-                        {truncateMiddle(r.findingId, 22, 10)}
-                      </span>
-                    </div>
+                      <div className={`${cellPad} flex items-center text-[14px] text-black`}>
+                        <span className="break-words">{r.controlTitle}</span>
+                      </div>
 
-                    <div className={`${cellPad} flex items-center gap-2 flex-nowrap`}>
-                      <button
-                        type="button"
-                        className={btnBase}
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          copyFindingId(r.findingId);
-                        }}
-                        title="Copy Finding ID"
-                      >
-                        Copy
-                      </button>
+                      <div className={`${cellPad} flex items-center`}>
+                        <span
+                          className={`inline-flex items-center rounded-full border px-3 py-1 text-[12px] font-semibold ${pillTone(
+                            r.result
+                          )}`}
+                        >
+                          {prettify(r.result)}
+                        </span>
+                      </div>
 
-                      <button
-                        type="button"
-                        className={btnBase}
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          copyAllIds(r.findingId);
-                        }}
-                        title="Copy Finding ID + linked Evidence IDs"
-                      >
-                        Copy all IDs
-                      </button>
-                    </div>
-                  </button>
+                      <div className={`${cellPad} flex items-center text-[14px] text-black/80`}>
+                        {prettify(r.severity)}
+                      </div>
 
-                  {isOpen ? (
-                    <div className="bg-gray-50 px-5 py-5">
-                      <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
-                        <div className="text-sm font-semibold text-gray-900">Linked evidence</div>
-                        <div className="text-xs text-gray-600">
-                          {evLoading ? "Loading…" : `${evRows.length} item${evRows.length === 1 ? "" : "s"}`}
+                      <div className={`${cellPad} flex items-center`}>
+                        <div className="leading-tight">
+                          <div className="font-mono text-[14px] text-black">{ts.d}</div>
+                          {ts.t ? <div className="font-mono text-[12px] text-black/45">{ts.t}</div> : null}
                         </div>
                       </div>
 
-                      {evLoading ? (
-                        <div className="text-sm text-gray-700">Loading evidence…</div>
-                      ) : evRows.length === 0 ? (
-                        <div className="text-sm text-gray-700">
-                          No evidence linked to this finding yet.{" "}
-                          <Link className="underline" href={evidencePageHref}>
-                            Go to Evidence
-                          </Link>{" "}
-                          to link items.
+                      <div className={`${cellPad} flex items-center`}>
+                        <span className="font-mono text-[13px] text-black whitespace-nowrap overflow-hidden text-ellipsis">
+                          {truncateMiddle(r.findingId, 22, 10)}
+                        </span>
+                      </div>
+
+                      <div className={`${cellPad} flex items-center gap-2 flex-nowrap`}>
+                        <button
+                          type="button"
+                          className={btnBase}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            copyFindingId(r.findingId);
+                          }}
+                          title="Copy Finding ID"
+                        >
+                          Copy
+                        </button>
+
+                        <button
+                          type="button"
+                          className={btnBase}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            copyAllIds(r.findingId);
+                          }}
+                          title="Copy Finding ID + linked Evidence IDs"
+                        >
+                          Copy all IDs
+                        </button>
+                      </div>
+                    </button>
+
+                    {isOpen ? (
+                      <div className="bg-black/[0.02] px-5 py-5">
+                        <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
+                          <div className="text-[14px] font-semibold text-black">Linked evidence</div>
+                          <div className="text-[12px] text-black/55">
+                            {evLoading ? "Loading…" : `${evRows.length} item${evRows.length === 1 ? "" : "s"}`}
+                          </div>
                         </div>
-                      ) : (
-                        <div className="grid gap-3">
-                          {evRows.map((e) => (
-                            <div
-                              key={e.evidenceId}
-                              className="flex flex-wrap items-start justify-between gap-3 rounded-2xl border border-gray-200 bg-white p-4"
-                            >
-                              <div className="min-w-0">
-                                <div className="flex flex-wrap items-center gap-2">
-                                  <span className="font-mono text-sm text-gray-900">
-                                    {truncateMiddle(e.evidenceId, 22, 10)}
-                                  </span>
-                                  <button
-                                    type="button"
-                                    className="inline-flex h-8 items-center justify-center rounded-xl border border-gray-200 bg-white px-3 text-xs font-semibold shadow-sm hover:bg-gray-50 whitespace-nowrap"
-                                    onClick={() => copyEvidenceId(e.evidenceId)}
-                                    title="Copy Evidence ID"
-                                  >
-                                    Copy
-                                  </button>
-                                  <span className="inline-flex items-center rounded-full border border-gray-200 bg-gray-50 px-3 py-1 text-xs font-semibold text-gray-800">
-                                    {e.evidenceType}
-                                  </span>
+
+                        {evLoading ? (
+                          <div className="text-[14px] text-black/60">Loading evidence…</div>
+                        ) : evRows.length === 0 ? (
+                          <div className="text-[14px] text-black/60">
+                            No evidence linked to this finding yet.{" "}
+                            <Link className="underline" href={evidencePageHref}>
+                              Go to Evidence
+                            </Link>{" "}
+                            to link items.
+                          </div>
+                        ) : (
+                          <div className="grid gap-3">
+                            {evRows.map((e) => (
+                              <div
+                                key={e.evidenceId}
+                                className="flex flex-wrap items-start justify-between gap-3 rounded-2xl border border-black/10 bg-white p-4"
+                              >
+                                <div className="min-w-0">
+                                  <div className="flex flex-wrap items-center gap-2">
+                                    <span className="font-mono text-[13px] text-black">
+                                      {truncateMiddle(e.evidenceId, 22, 10)}
+                                    </span>
+                                    <button
+                                      type="button"
+                                      className="inline-flex h-8 items-center justify-center rounded-xl border border-black/10 bg-white px-3 text-[12px] font-semibold hover:bg-black/[0.04] whitespace-nowrap"
+                                      onClick={() => copyEvidenceId(e.evidenceId)}
+                                      title="Copy Evidence ID"
+                                    >
+                                      Copy
+                                    </button>
+                                    <span className="inline-flex items-center rounded-full border border-black/10 bg-black/[0.02] px-3 py-1 text-[12px] font-semibold text-black/80">
+                                      {prettify(e.evidenceType)}
+                                    </span>
+                                  </div>
+
+                                  <div className="mt-2 text-[14px] font-semibold text-black break-words">
+                                    {e.title}
+                                  </div>
+
+                                  <div className="mt-2 text-[12px] text-black/55">
+                                    Submitted: <span className="font-mono">{fmt(e.submittedAt)}</span>
+                                    {e.sourceUrl ? (
+                                      <>
+                                        {" "}
+                                        ·{" "}
+                                        <a className="underline" href={e.sourceUrl} target="_blank" rel="noreferrer">
+                                          Source
+                                        </a>
+                                      </>
+                                    ) : null}
+                                  </div>
                                 </div>
 
-                                <div className="mt-2 text-sm font-semibold text-gray-900 break-words">{e.title}</div>
-
-                                <div className="mt-2 text-xs text-gray-600">
-                                  Submitted: <span className="font-mono">{fmt(e.submittedAt)}</span>
-                                  {e.sourceUrl ? (
-                                    <>
-                                      {" "}
-                                      ·{" "}
-                                      <a className="underline" href={e.sourceUrl} target="_blank" rel="noreferrer">
-                                        Source
-                                      </a>
-                                    </>
-                                  ) : null}
+                                <div className="text-[12px] font-mono text-black/45 whitespace-nowrap">
+                                  {e.linkedAt ? `Linked: ${e.linkedAt}` : ""}
                                 </div>
                               </div>
-
-                              <div className="text-xs font-mono text-gray-500 whitespace-nowrap">
-                                {e.linkedAt ? `Linked: ${e.linkedAt}` : ""}
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  ) : null}
-                </div>
-              );
-            })
-          )}
-        </div>
-      </section>
-    </AdminShell>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    ) : null}
+                  </div>
+                );
+              })
+            )}
+          </div>
+        </section>
+      </main>
+    </div>
   );
 }
