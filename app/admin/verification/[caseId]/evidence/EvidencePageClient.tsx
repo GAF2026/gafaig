@@ -595,8 +595,10 @@ export default function EvidencePageClient(props: { caseId: string }) {
   }
 
   return (
-    <div className="space-y-8">
-      <CaseTabs caseId={caseId} />
+  <div className="space-y-8 w-full">
+      <div className="-mt-2">
+  <CaseTabs caseId={caseId} />
+</div>
 
       {(loadError || storedSummaryLoadErr || bulkErr) ? (
         <div className="space-y-3">
