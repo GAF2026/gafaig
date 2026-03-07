@@ -5,7 +5,7 @@
  * - Standard header + CaseTabs for uniform layout
  * - Reads current decision from GET /api/admin/verification/decisions?caseId=...
  * - Writes decision via POST /api/admin/verification/decisions
- * - Cookie-protected endpoint: requires gafaig_admin=1 in the browser
+ * - Uses current GAFAIG admin auth flow
  */
 
 import Link from "next/link";
@@ -24,7 +24,11 @@ type DecisionRow = {
 };
 
 async function fetchJson(url: string, init?: RequestInit) {
-  const res = await fetch(url, { cache: "no-store", ...(init || {}) });
+  const res = await fetch(url, {
+    cache: "no-store",
+    credentials: "include",
+    ...(init || {}),
+  });
   const text = await res.text();
 
   try {
@@ -56,7 +60,6 @@ export default function DecisionsPage({ params }: { params: { caseId: string } }
 
   const [current, setCurrent] = useState<DecisionRow | null>(null);
 
-  // Form fields (optional)
   const [decidedBy, setDecidedBy] = useState("admin@gafaig.com");
   const [summary, setSummary] = useState("");
   const [conditions, setConditions] = useState("");
@@ -67,12 +70,17 @@ export default function DecisionsPage({ params }: { params: { caseId: string } }
     setErr(null);
     setSaved(null);
 
-    const { res, data } = await fetchJson(`/api/admin/verification/decisions?caseId=${encodeURIComponent(caseId)}`);
+    const { res, data } = await fetchJson(
+      `/api/admin/verification/decisions?caseId=${encodeURIComponent(caseId)}`
+    );
 
     if (!data?.ok) {
-      // Most common: 401 if cookie missing
       if (res.status === 401) {
-        setErr("Unauthorized\nTip: make sure you have cookie gafaig_admin=1 set in the browser.");
+        setErr(
+          "Unauthorized\nTip: go to /admin/login and click “Enable demo access”, then return to this case."
+        );
+      } else if (res.status === 403) {
+        setErr("Forbidden\nYour current reviewer session does not have permission for this action.");
       } else {
         setErr(data?.error || "Failed to load decision.");
       }
@@ -83,7 +91,6 @@ export default function DecisionsPage({ params }: { params: { caseId: string } }
 
     setCurrent(data?.row ?? null);
 
-    // hydrate form fields from current row, if present
     const row = data?.row as DecisionRow | null;
     if (row?.decidedBy) setDecidedBy(String(row.decidedBy));
     if (row?.summary) setSummary(String(row.summary));
@@ -114,7 +121,11 @@ export default function DecisionsPage({ params }: { params: { caseId: string } }
 
     if (!data?.ok) {
       if (res.status === 401) {
-        setErr("Unauthorized\nTip: make sure you have cookie gafaig_admin=1 set in the browser.");
+        setErr(
+          "Unauthorized\nTip: go to /admin/login and click “Enable demo access”, then return to this case."
+        );
+      } else if (res.status === 403) {
+        setErr("Forbidden\nYour current reviewer session does not have permission for this action.");
       } else {
         setErr(data?.error || "Failed to save decision.");
       }
@@ -137,7 +148,6 @@ export default function DecisionsPage({ params }: { params: { caseId: string } }
   return (
     <AdminShell title={`Admin • Verification • Decisions • ${caseId}`}>
       <div className="mx-auto max-w-6xl px-6 py-10">
-        {/* Header row */}
         <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
           <div>
             <h1 className="text-4xl font-semibold tracking-tight">Decisions</h1>
@@ -164,7 +174,9 @@ export default function DecisionsPage({ params }: { params: { caseId: string } }
                     ) : null}
                   </>
                 ) : (
-                  <>Case: <span className="font-mono">{caseId}</span></>
+                  <>
+                    Case: <span className="font-mono">{caseId}</span>
+                  </>
                 )}
               </div>
             </div>
@@ -204,9 +216,7 @@ export default function DecisionsPage({ params }: { params: { caseId: string } }
           </div>
         ) : null}
 
-        {/* Two-column layout */}
         <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
-          {/* Set decision */}
           <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
             <div className="text-lg font-semibold">Set decision</div>
             <div className="mt-1 text-sm text-gray-600">
@@ -252,16 +262,14 @@ export default function DecisionsPage({ params }: { params: { caseId: string } }
               <div className="text-sm font-semibold">How to test</div>
               <ol className="mt-2 list-decimal space-y-1 pl-5 text-sm text-gray-700">
                 <li>Open this page in the browser.</li>
-                <li>
-                  Make sure cookie is set: <span className="font-mono">gafaig_admin=1</span>.
-                </li>
+                <li>Go to <span className="font-mono">/admin/login</span> and click <span className="font-semibold">Enable demo access</span>.</li>
+                <li>Return to this page.</li>
                 <li>Click Approve / Reject / Suspend / In review.</li>
                 <li>You should see a green “Saved” banner and the Current pill updates.</li>
               </ol>
             </div>
           </section>
 
-          {/* Decision details */}
           <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
             <div className="text-lg font-semibold">Decision details</div>
             <div className="mt-1 text-sm text-gray-600">Optional fields stored with the decision and audit event.</div>

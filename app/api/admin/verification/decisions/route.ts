@@ -1,19 +1,29 @@
-// app/api/admin/verification/decisions/route.ts
 import { NextResponse } from "next/server";
 import { sfQuery, executeQuery } from "@/lib/snowflake";
 
 export const dynamic = "force-dynamic";
 
-const COOKIE_NAME = "gafaig_admin";
+const DEMO_COOKIE_NAME = "gafaig_admin_demo";
+const LEGACY_COOKIE_NAME = "gafaig_admin";
 
-// Accept legacy cookie values to avoid breaking existing demo flow
+function parseCookieValue(cookieHeader: string, name: string) {
+  const parts = cookieHeader.split(";").map((p) => p.trim());
+  const prefix = `${name}=`;
+  const hit = parts.find((p) => p.startsWith(prefix));
+  if (!hit) return null;
+  return hit.slice(prefix.length);
+}
+
 function isAuthed(req: Request) {
   const cookieHeader = req.headers.get("cookie") || "";
-  // supports: gafaig_admin=1 (new) and gafaig_admin=demo (legacy)
-  return (
-    cookieHeader.includes(`${COOKIE_NAME}=1`) ||
-    cookieHeader.includes(`${COOKIE_NAME}=demo`)
-  );
+
+  const demoCookie = parseCookieValue(cookieHeader, DEMO_COOKIE_NAME);
+  if (demoCookie === "1") return true;
+
+  const legacyCookie = parseCookieValue(cookieHeader, LEGACY_COOKIE_NAME);
+  if (legacyCookie === "1" || legacyCookie === "demo") return true;
+
+  return false;
 }
 
 function requireField(obj: any, key: string) {
@@ -66,13 +76,23 @@ async function getLatestSnapshot(caseId: string) {
 export async function GET(req: Request) {
   try {
     if (!isAuthed(req)) {
-      return NextResponse.json({ ok: false, error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json(
+        {
+          ok: false,
+          error: "Unauthorized",
+          hint: "Enable reviewer access at /admin/login, then return to this case.",
+        },
+        { status: 401 }
+      );
     }
 
     const { searchParams } = new URL(req.url);
     const caseId = (searchParams.get("caseId") || "").trim();
     if (!caseId) {
-      return NextResponse.json({ ok: false, error: "Missing required field: caseId" }, { status: 400 });
+      return NextResponse.json(
+        { ok: false, error: "Missing required field: caseId" },
+        { status: 400 }
+      );
     }
 
     const rows = await executeQuery(
@@ -95,14 +115,24 @@ export async function GET(req: Request) {
 
     return NextResponse.json({ ok: true, row: rows?.[0] ?? null });
   } catch (e: any) {
-    return NextResponse.json({ ok: false, error: e?.message || String(e) }, { status: 500 });
+    return NextResponse.json(
+      { ok: false, error: e?.message || String(e) },
+      { status: 500 }
+    );
   }
 }
 
 export async function POST(req: Request) {
   try {
     if (!isAuthed(req)) {
-      return NextResponse.json({ ok: false, error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json(
+        {
+          ok: false,
+          error: "Unauthorized",
+          hint: "Enable reviewer access at /admin/login, then return to this case.",
+        },
+        { status: 401 }
+      );
     }
 
     const body = await req.json();
@@ -118,7 +148,6 @@ export async function POST(req: Request) {
       );
     }
 
-    // Write-lock: once approved, block further state changes via this endpoint
     const currentStatus = await getCaseStatus(caseId);
     if (currentStatus === "approved" && decisionRaw !== "approved") {
       return NextResponse.json(
@@ -131,7 +160,6 @@ export async function POST(req: Request) {
     const summary = optionalString(body, "summary");
     const conditions = optionalString(body, "conditions");
 
-    // Publish guard: approval requires an engine-produced snapshot with tier/band
     if (decisionRaw === "approved") {
       if (!summary) {
         return NextResponse.json(
@@ -161,7 +189,6 @@ export async function POST(req: Request) {
 
     const decisionId = `DEC-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`;
 
-    // 1) Insert decision
     await executeQuery(
       `
       INSERT INTO CORE.VERIFICATION_DECISIONS
@@ -172,7 +199,6 @@ export async function POST(req: Request) {
       [decisionId, caseId, decisionRaw, decidedBy, summary, conditions]
     );
 
-    // 2) Update case status
     await executeQuery(
       `
       UPDATE CORE.VERIFICATION_CASES
@@ -182,7 +208,6 @@ export async function POST(req: Request) {
       [decisionRaw, caseId]
     );
 
-    // 3) Add event (DETAILS is VARIANT)
     const eventId = `EVT-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`;
     const detailsJson = JSON.stringify({
       decision: decisionRaw,
@@ -202,8 +227,17 @@ export async function POST(req: Request) {
       [eventId, caseId, "decision", decidedBy, detailsJson]
     );
 
-    return NextResponse.json({ ok: true, decisionId, caseId, decision: decisionRaw, eventId });
+    return NextResponse.json({
+      ok: true,
+      decisionId,
+      caseId,
+      decision: decisionRaw,
+      eventId,
+    });
   } catch (e: any) {
-    return NextResponse.json({ ok: false, error: e?.message || String(e) }, { status: 500 });
+    return NextResponse.json(
+      { ok: false, error: e?.message || String(e) },
+      { status: 500 }
+    );
   }
 }
