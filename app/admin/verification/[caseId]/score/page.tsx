@@ -1,7 +1,10 @@
+import { headers } from "next/headers";
 import AdminNav from "../../../_components/AdminNav";
 import AdminPageHeader from "../../../_components/AdminPageHeader";
 import CaseTabs from "../_components/CaseTabs";
 import PublishPanel from "./_components/PublishPanel";
+
+export const dynamic = "force-dynamic";
 
 type ScoreResp = {
   ok: boolean;
@@ -62,12 +65,29 @@ function badgeClass(band?: string) {
   return "bg-neutral-700 text-white";
 }
 
+async function getBaseUrl() {
+  const h = headers();
+  const host = h.get("x-forwarded-host") || h.get("host");
+  const proto = h.get("x-forwarded-proto") || "https";
+
+  if (!host) {
+    return process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+  }
+
+  return `${proto}://${host}`;
+}
+
 async function getScore(caseId: string): Promise<ScoreResp | null> {
+  const baseUrl = await getBaseUrl();
+  const cookie = headers().get("cookie") || "";
+
   const res = await fetch(
-    `/api/admin/verification/${encodeURIComponent(caseId)}/score`,
+    `${baseUrl}/api/admin/verification/${encodeURIComponent(caseId)}/score`,
     {
       cache: "no-store",
-      credentials: "include",
+      headers: {
+        cookie,
+      },
     }
   );
 
@@ -81,7 +101,6 @@ export default async function CaseScorePage({
   params: { caseId: string };
 }) {
   const caseId = params.caseId;
-
   const data = await getScore(caseId);
   const ok = !!data?.ok;
 
@@ -101,36 +120,28 @@ export default async function CaseScorePage({
         {!ok ? (
           <div className="rounded-xl border border-black/10 p-4">
             <div className="font-semibold">Score unavailable</div>
-            <div className="text-sm text-neutral-600 mt-1">
-              {data?.error ||
-                "No governance score found for this case (or not authorized)."}
+            <div className="mt-1 text-sm text-neutral-600">
+              {data?.error || "No governance score found for this case (or not authorized)."}
             </div>
           </div>
         ) : (
           <>
-            {/* Score summary */}
             <div className="grid gap-6 lg:grid-cols-3">
               <div className="rounded-xl border border-black/10 p-6">
                 <div className="flex items-start justify-between">
                   <div>
-                    <div className="text-sm text-neutral-600">
-                      GAFAIG Governance Score
-                    </div>
-                    <div className="mt-2 text-3xl font-semibold">
-                      {num(data.score)}
-                    </div>
+                    <div className="text-sm text-neutral-600">GAFAIG Governance Score</div>
+                    <div className="mt-2 text-3xl font-semibold">{num(data.score)}</div>
                   </div>
 
                   <div
-                    className={`rounded-full px-3 py-1 text-sm font-semibold ${badgeClass(
-                      data.band
-                    )}`}
+                    className={`rounded-full px-3 py-1 text-sm font-semibold ${badgeClass(data.band)}`}
                   >
                     {data.band}
                   </div>
                 </div>
 
-                <div className="mt-4 text-sm space-y-1">
+                <div className="mt-4 space-y-1 text-sm">
                   <div>
                     <span className="text-neutral-600">Tier:</span>{" "}
                     <span className="font-medium">{data.tier}</span>
@@ -138,38 +149,28 @@ export default async function CaseScorePage({
 
                   <div>
                     <span className="text-neutral-600">Case status:</span>{" "}
-                    <span className="font-medium">
-                      {data.caseStatus ?? "—"}
-                    </span>
+                    <span className="font-medium">{data.caseStatus ?? "—"}</span>
                   </div>
 
                   <div>
                     <span className="text-neutral-600">Standard:</span>{" "}
                     <span className="font-medium">
-                      {(data.standard?.code ?? "—") +
-                        " " +
-                        (data.standard?.version ?? "")}
+                      {(data.standard?.code ?? "—") + " " + (data.standard?.version ?? "")}
                     </span>
                   </div>
 
                   <div>
                     <span className="text-neutral-600">Last activity:</span>{" "}
-                    <span className="font-medium">
-                      {data.lastActivityAt ?? "—"}
-                    </span>
+                    <span className="font-medium">{data.lastActivityAt ?? "—"}</span>
                   </div>
                 </div>
               </div>
 
-              {/* Subscores */}
               <div className="rounded-xl border border-black/10 p-6 lg:col-span-2">
                 <div className="flex items-center justify-between">
                   <div className="font-semibold">Subscores</div>
                   <div className="text-xs text-neutral-500">
-                    Participant:{" "}
-                    <span className="font-mono">
-                      {data.participantId ?? "—"}
-                    </span>
+                    Participant: <span className="font-mono">{data.participantId ?? "—"}</span>
                   </div>
                 </div>
 
@@ -191,7 +192,6 @@ export default async function CaseScorePage({
               </div>
             </div>
 
-            {/* Publish to registry */}
             <PublishPanel
               caseId={caseId}
               band={data.band}
@@ -227,10 +227,7 @@ function Subscore({ label, value }: { label: string; value?: number }) {
       </div>
 
       <div className="mt-2 h-2 w-full rounded-full bg-neutral-100">
-        <div
-          className="h-2 rounded-full bg-neutral-900"
-          style={{ width: `${v}%` }}
-        />
+        <div className="h-2 rounded-full bg-neutral-900" style={{ width: `${v}%` }} />
       </div>
     </div>
   );
