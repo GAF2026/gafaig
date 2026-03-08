@@ -1,15 +1,12 @@
 // app/registry/[registryId]/page.tsx
-import AISystemCard from "@/components/registry/AISystemCard";
+import RegistryAiSystemsSection from "@/components/registry/RegistryAiSystemsSection";
 import RegistryBadgePanel from "@/components/registry/RegistryBadgePanel";
 import RegistryCertificationSummary from "@/components/registry/RegistryCertificationSummary";
 import RegistryHeaderPanel from "@/components/registry/RegistryHeaderPanel";
 import RegistryVerificationPanel from "@/components/registry/RegistryVerificationPanel";
-import { headers } from "next/headers";
-import type {
-  RegistryApiResponse,
-  RegistryAiSystemsApiResponse,
-  VerifyApiResponse,
-} from "@/types/registry";
+import { getRegistryAiSystems, getRegistryRecord, getVerification } from "@/lib/registry/api";
+import { getBaseUrl } from "@/lib/registry/urls";
+import type { RegistryApiResponse } from "@/types/registry";
 
 export const dynamic = "force-dynamic";
 
@@ -22,65 +19,6 @@ function formatDate(v?: string | null) {
     month: "short",
     day: "2-digit",
   });
-}
-
-function getBaseUrl() {
-  const envUrl = process.env.NEXT_PUBLIC_SITE_URL;
-  if (envUrl) return envUrl.replace(/\/+$/, "");
-
-  const h = headers();
-  const host = h.get("x-forwarded-host") ?? h.get("host");
-  const proto = h.get("x-forwarded-proto") ?? "http";
-  if (host) return `${proto}://${host}`;
-
-  return "http://localhost:3000";
-}
-
-async function getRegistryRecord(registryId: string): Promise<RegistryApiResponse> {
-  try {
-    const base = getBaseUrl();
-    const sp = new URLSearchParams();
-    sp.set("limit", "1");
-    sp.set("registryId", registryId);
-
-    const res = await fetch(`${base}/api/registry?${sp.toString()}`, {
-      cache: "no-store",
-    });
-    return (await res.json()) as RegistryApiResponse;
-  } catch (e: any) {
-    return { ok: false, error: e?.message || "Failed to load registry record." };
-  }
-}
-
-async function getRegistryAiSystems(
-  registryId: string
-): Promise<RegistryAiSystemsApiResponse> {
-  try {
-    const base = getBaseUrl();
-    const res = await fetch(
-      `${base}/api/registry/${encodeURIComponent(registryId)}/ai-systems`,
-      {
-        cache: "no-store",
-      }
-    );
-    return (await res.json()) as RegistryAiSystemsApiResponse;
-  } catch (e: any) {
-    return { ok: false, error: e?.message || "Failed to load registry AI systems." };
-  }
-}
-
-async function getVerification(
-  registryId: string
-): Promise<VerifyApiResponse> {
-  try {
-    const base = getBaseUrl();
-    const res = await fetch(`${base}/api/verify/${encodeURIComponent(registryId)}`, {
-      cache: "no-store",
-    });
-    return (await res.json()) as VerifyApiResponse;
-  } catch (e: any) {
-    return { ok: false, error: e?.message || "Failed to load verification record." };
-  }
 }
 
 export default async function RegistryRecordPage({
@@ -97,7 +35,6 @@ export default async function RegistryRecordPage({
   ]);
 
   const row = data.ok && data.rows.length ? data.rows[0] : null;
-  const aiSystems = aiSystemsData.ok ? dataOrEmpty(aiSystemsData.rows) : [];
 
   const baseUrl = getBaseUrl();
   const absoluteRecordUrl = `${baseUrl}/registry/${encodeURIComponent(registryId)}`;
@@ -144,35 +81,7 @@ export default async function RegistryRecordPage({
             verifyData={verifyData}
           />
 
-          <section className="mt-10 border-t border-black/10 pt-8">
-            <h2 className="text-[16px] font-semibold text-black">
-              AI systems covered by this certification
-            </h2>
-
-            <p className="mt-3 max-w-[920px] text-[14px] leading-[1.8] text-black/75">
-              These are the public AI system disclosures included within the scope
-              of this certification.
-            </p>
-
-            {!aiSystemsData.ok ? (
-              <div className="mt-6 rounded-2xl border border-black/10 p-5">
-                <div className="font-semibold text-black">Unable to load AI systems</div>
-                <p className="mt-2 text-[14px] leading-[1.7] text-black/70">
-                  {aiSystemsData.error}
-                </p>
-              </div>
-            ) : aiSystems.length === 0 ? (
-              <div className="mt-6 rounded-2xl border border-black/10 p-5 text-[14px] text-black/70">
-                No AI systems have been published for this certification record.
-              </div>
-            ) : (
-              <div className="mt-6 grid grid-cols-1 gap-4">
-                {aiSystems.map((s) => (
-                  <AISystemCard key={s.SYSTEM_ID} system={s} />
-                ))}
-              </div>
-            )}
-          </section>
+          <RegistryAiSystemsSection aiSystemsData={aiSystemsData} />
 
           <RegistryBadgePanel
             absoluteRecordUrl={absoluteRecordUrl}
@@ -192,8 +101,4 @@ export default async function RegistryRecordPage({
       )}
     </main>
   );
-}
-
-function dataOrEmpty<T>(rows: T[] | undefined | null): T[] {
-  return Array.isArray(rows) ? rows : [];
 }
