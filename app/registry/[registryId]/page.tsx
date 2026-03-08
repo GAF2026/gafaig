@@ -23,13 +23,34 @@ type RegistryRow = {
   lastActivityAt: string | null;
 };
 
-type ApiResponse =
+type RegistryApiResponse =
   | {
       ok: true;
       rows: RegistryRow[];
       total: number;
       limit: number;
       filters?: { q: string; country: string; registryId: string };
+    }
+  | { ok: false; error: string };
+
+type RegistryAiSystemRow = {
+  SYSTEM_ID: string;
+  REGISTRY_ID: string;
+  SYSTEM_NAME: string;
+  SYSTEM_TYPE: string | null;
+  INTENDED_USE: string | null;
+  DEPLOYMENT_STATUS: string | null;
+  OVERSIGHT_LEVEL: string | null;
+  RISK_TIER: string | null;
+  PUBLIC_SUMMARY: string | null;
+  DISPLAY_ORDER: number | null;
+};
+
+type RegistryAiSystemsApiResponse =
+  | {
+      ok: true;
+      rows: RegistryAiSystemRow[];
+      total: number;
     }
   | { ok: false; error: string };
 
@@ -60,7 +81,7 @@ function getBaseUrl() {
   return "http://localhost:3000";
 }
 
-async function getRegistryRecord(registryId: string): Promise<ApiResponse> {
+async function getRegistryRecord(registryId: string): Promise<RegistryApiResponse> {
   try {
     const base = getBaseUrl();
     const sp = new URLSearchParams();
@@ -68,17 +89,34 @@ async function getRegistryRecord(registryId: string): Promise<ApiResponse> {
     sp.set("registryId", registryId);
 
     const res = await fetch(`${base}/api/registry?${sp.toString()}`, { cache: "no-store" });
-    return (await res.json()) as ApiResponse;
+    return (await res.json()) as RegistryApiResponse;
   } catch (e: any) {
     return { ok: false, error: e?.message || "Failed to load registry record." };
+  }
+}
+
+async function getRegistryAiSystems(registryId: string): Promise<RegistryAiSystemsApiResponse> {
+  try {
+    const base = getBaseUrl();
+    const res = await fetch(`${base}/api/registry/${encodeURIComponent(registryId)}/ai-systems`, {
+      cache: "no-store",
+    });
+    return (await res.json()) as RegistryAiSystemsApiResponse;
+  } catch (e: any) {
+    return { ok: false, error: e?.message || "Failed to load registry AI systems." };
   }
 }
 
 export default async function RegistryRecordPage({ params }: { params: { registryId: string } }) {
   const registryId = params.registryId;
 
-  const data = await getRegistryRecord(registryId);
+  const [data, aiSystemsData] = await Promise.all([
+    getRegistryRecord(registryId),
+    getRegistryAiSystems(registryId),
+  ]);
+
   const row = data.ok && data.rows.length ? data.rows[0] : null;
+  const aiSystems = aiSystemsData.ok ? aiSystemsData.rows : [];
 
   const baseUrl = getBaseUrl();
   const absoluteRecordUrl = `${baseUrl}/registry/${encodeURIComponent(registryId)}`;
@@ -86,7 +124,6 @@ export default async function RegistryRecordPage({ params }: { params: { registr
   const badgeSrcAbsolute = `${baseUrl}/images/gafaig-badge-verified-new.png`;
   const badgeSrcRelative = `/images/gafaig-badge-verified-new.png`;
 
-  // Embed code (keep these as plain strings to avoid JSX parse issues)
   const embedHtml = `<a href="${absoluteRecordUrl}" target="_blank" rel="noopener noreferrer">
   <img src="${badgeSrcAbsolute}" alt="Verified by GAFAIG" height="72" />
 </a>`;
@@ -95,7 +132,6 @@ export default async function RegistryRecordPage({ params }: { params: { registr
 
   return (
     <main className="mx-auto max-w-[1100px] px-6 pt-14 pb-16">
-      {/* Header */}
       <section className="pt-2 pb-8">
         <div className="text-[13px] tracking-[0.22em] uppercase text-black/60 font-semibold">Registry record</div>
 
@@ -134,7 +170,6 @@ export default async function RegistryRecordPage({ params }: { params: { registr
         </p>
       </section>
 
-      {/* Body */}
       {!data.ok ? (
         <section className="border border-black/10 rounded-2xl p-5">
           <div className="font-semibold text-black">Unable to load record</div>
@@ -149,7 +184,6 @@ export default async function RegistryRecordPage({ params }: { params: { registr
         </section>
       ) : (
         <>
-          {/* Summary cards */}
           <section className="grid grid-cols-1 md:grid-cols-12 gap-4">
             <div className="md:col-span-8 border border-black/10 rounded-2xl p-5">
               <h2 className="text-[16px] font-semibold text-black">Certification outcome</h2>
@@ -221,7 +255,60 @@ export default async function RegistryRecordPage({ params }: { params: { registr
             </div>
           </section>
 
-          {/* Verified badge + embed */}
+          <section className="mt-10 pt-8 border-t border-black/10">
+            <h2 className="text-[16px] font-semibold text-black">AI systems covered by this certification</h2>
+
+            <p className="mt-3 text-[14px] leading-[1.8] text-black/75 max-w-[920px]">
+              These are the public AI system disclosures included within the scope of this certification.
+            </p>
+
+            {!aiSystemsData.ok ? (
+              <div className="mt-6 border border-black/10 rounded-2xl p-5">
+                <div className="font-semibold text-black">Unable to load AI systems</div>
+                <p className="mt-2 text-[14px] leading-[1.7] text-black/70">{aiSystemsData.error}</p>
+              </div>
+            ) : aiSystems.length === 0 ? (
+              <div className="mt-6 border border-black/10 rounded-2xl p-5 text-[14px] text-black/70">
+                No AI systems have been published for this certification record.
+              </div>
+            ) : (
+              <div className="mt-6 grid grid-cols-1 gap-4">
+                {aiSystems.map((s) => (
+                  <div key={s.SYSTEM_ID} className="border border-black/10 rounded-2xl p-5">
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <div>
+                        <h3 className="text-[20px] leading-[1.3] font-semibold text-black">{s.SYSTEM_NAME}</h3>
+
+                        <div className="mt-3 flex flex-wrap gap-2">
+                          {s.SYSTEM_TYPE ? <span className={chipClass()}>{s.SYSTEM_TYPE}</span> : null}
+                          {s.DEPLOYMENT_STATUS ? <span className={chipClass()}>{s.DEPLOYMENT_STATUS}</span> : null}
+                          {s.OVERSIGHT_LEVEL ? <span className={chipClass()}>{s.OVERSIGHT_LEVEL}</span> : null}
+                          {s.RISK_TIER ? <span className={chipClass()}>{s.RISK_TIER}</span> : null}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="mt-5 grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <div className="text-[12px] uppercase tracking-[0.16em] text-black/60 font-semibold">
+                          Intended use
+                        </div>
+                        <div className="mt-2 text-[14px] text-black/85">{s.INTENDED_USE ?? "—"}</div>
+                      </div>
+
+                      <div>
+                        <div className="text-[12px] uppercase tracking-[0.16em] text-black/60 font-semibold">
+                          Public summary
+                        </div>
+                        <div className="mt-2 text-[14px] text-black/85">{s.PUBLIC_SUMMARY ?? "—"}</div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
+
           <section className="mt-10 pt-8 border-t border-black/10">
             <h2 className="text-[16px] font-semibold text-black">Verified by GAFAIG</h2>
             <p className="mt-3 text-[14px] leading-[1.8] text-black/75 max-w-[920px]">
@@ -229,10 +316,8 @@ export default async function RegistryRecordPage({ params }: { params: { registr
               their website. The badge links directly to this public registry record.
             </p>
 
-            {/* Badge preview */}
             <div className="mt-6 border border-black/10 rounded-2xl p-6 bg-black/[0.02]">
               <a href={absoluteRecordUrl} target="_blank" rel="noopener noreferrer" className="inline-block">
-                {/* Bigger badge */}
                 <img
                   src={badgeSrcRelative}
                   alt="Verified by GAFAIG"
@@ -246,7 +331,6 @@ export default async function RegistryRecordPage({ params }: { params: { registr
               </div>
             </div>
 
-            {/* Embed codes */}
             <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="border border-black/10 rounded-2xl p-5">
                 <div className="text-[12px] uppercase tracking-[0.16em] text-black/60 font-semibold">Embed code (HTML)</div>
@@ -269,7 +353,6 @@ export default async function RegistryRecordPage({ params }: { params: { registr
             </p>
           </section>
 
-          {/* Privacy boundary */}
           <section className="mt-10 pt-8 border-t border-black/10">
             <h2 className="text-[16px] font-semibold text-black">Privacy boundary</h2>
             <p className="mt-3 text-[16px] leading-[1.8] text-black/80 max-w-[920px]">

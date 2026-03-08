@@ -22,6 +22,7 @@ export default function CaseTabs({ caseId }: { caseId: string }) {
     { label: "Events", href: `${base}/events` },
     { label: "Assignments", href: `${base}/assignments` },
     { label: "Score", href: `${base}/score` },
+    { label: "AI Systems", href: `${base}/ai-systems` },
     { label: "Publish", href: `${base}/publish` },
   ];
 
