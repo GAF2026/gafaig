@@ -54,11 +54,50 @@ type RegistryAiSystemsApiResponse =
     }
   | { ok: false; error: string };
 
+type VerifyApiResponse =
+  | {
+      ok: true;
+      registryId: string;
+      verified: boolean;
+      record?: {
+        registryId: string;
+        applicationId: string;
+        entityName: string;
+        entityType: string | null;
+        country: string | null;
+        certifiedTier: string | null;
+        certifiedBand: string | null;
+        decisionStatus: string;
+        validFrom: string | null;
+        validTo: string | null;
+        certifiedAt: string | null;
+        lastActivityAt: string | null;
+        isCurrentlyValid?: boolean;
+      };
+      proof?: {
+        alg: string;
+        signature: string;
+        message: string;
+        signedAt: string;
+      };
+      now?: string;
+    }
+  | {
+      ok: false;
+      error: string;
+      verified?: false;
+      registryId?: string;
+    };
+
 function formatDate(v?: string | null) {
   if (!v) return "—";
   const d = new Date(v);
   if (Number.isNaN(d.getTime())) return v;
-  return d.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "2-digit" });
+  return d.toLocaleDateString(undefined, {
+    year: "numeric",
+    month: "short",
+    day: "2-digit",
+  });
 }
 
 function chipClass() {
@@ -88,31 +127,57 @@ async function getRegistryRecord(registryId: string): Promise<RegistryApiRespons
     sp.set("limit", "1");
     sp.set("registryId", registryId);
 
-    const res = await fetch(`${base}/api/registry?${sp.toString()}`, { cache: "no-store" });
+    const res = await fetch(`${base}/api/registry?${sp.toString()}`, {
+      cache: "no-store",
+    });
     return (await res.json()) as RegistryApiResponse;
   } catch (e: any) {
     return { ok: false, error: e?.message || "Failed to load registry record." };
   }
 }
 
-async function getRegistryAiSystems(registryId: string): Promise<RegistryAiSystemsApiResponse> {
+async function getRegistryAiSystems(
+  registryId: string
+): Promise<RegistryAiSystemsApiResponse> {
   try {
     const base = getBaseUrl();
-    const res = await fetch(`${base}/api/registry/${encodeURIComponent(registryId)}/ai-systems`, {
-      cache: "no-store",
-    });
+    const res = await fetch(
+      `${base}/api/registry/${encodeURIComponent(registryId)}/ai-systems`,
+      {
+        cache: "no-store",
+      }
+    );
     return (await res.json()) as RegistryAiSystemsApiResponse;
   } catch (e: any) {
     return { ok: false, error: e?.message || "Failed to load registry AI systems." };
   }
 }
 
-export default async function RegistryRecordPage({ params }: { params: { registryId: string } }) {
+async function getVerification(
+  registryId: string
+): Promise<VerifyApiResponse> {
+  try {
+    const base = getBaseUrl();
+    const res = await fetch(`${base}/api/verify/${encodeURIComponent(registryId)}`, {
+      cache: "no-store",
+    });
+    return (await res.json()) as VerifyApiResponse;
+  } catch (e: any) {
+    return { ok: false, error: e?.message || "Failed to load verification record." };
+  }
+}
+
+export default async function RegistryRecordPage({
+  params,
+}: {
+  params: { registryId: string };
+}) {
   const registryId = params.registryId;
 
-  const [data, aiSystemsData] = await Promise.all([
+  const [data, aiSystemsData, verifyData] = await Promise.all([
     getRegistryRecord(registryId),
     getRegistryAiSystems(registryId),
+    getVerification(registryId),
   ]);
 
   const row = data.ok && data.rows.length ? data.rows[0] : null;
@@ -120,6 +185,7 @@ export default async function RegistryRecordPage({ params }: { params: { registr
 
   const baseUrl = getBaseUrl();
   const absoluteRecordUrl = `${baseUrl}/registry/${encodeURIComponent(registryId)}`;
+  const absoluteVerifyUrl = `${baseUrl}/api/verify/${encodeURIComponent(registryId)}`;
 
   const badgeSrcAbsolute = `${baseUrl}/images/gafaig-badge-verified-new.png`;
   const badgeSrcRelative = `/images/gafaig-badge-verified-new.png`;
@@ -130,177 +196,355 @@ export default async function RegistryRecordPage({ params }: { params: { registr
 
   const embedMarkdown = `[![Verified by GAFAIG](${badgeSrcAbsolute})](${absoluteRecordUrl})`;
 
+  const verifyJsonExample = `fetch("${absoluteVerifyUrl}")
+  .then((r) => r.json())
+  .then(console.log);`;
+
+  const isVerified = verifyData.ok ? !!verifyData.verified : false;
+  const signature =
+    verifyData.ok && verifyData.proof?.signature
+      ? verifyData.proof.signature
+      : null;
+  const signedAt =
+    verifyData.ok && verifyData.proof?.signedAt
+      ? verifyData.proof.signedAt
+      : null;
+
   return (
     <main className="mx-auto max-w-[1100px] px-6 pt-14 pb-16">
       <section className="pt-2 pb-8">
-        <div className="text-[13px] tracking-[0.22em] uppercase text-black/60 font-semibold">Registry record</div>
+        <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
+          Registry record
+        </div>
 
-        <div className="mt-4 flex items-start justify-between gap-4 flex-wrap">
+        <div className="mt-4 flex flex-wrap items-start justify-between gap-4">
           <div>
-            <h1 className="text-[40px] leading-[1.15] font-semibold text-black max-w-[980px]">
+            <h1 className="max-w-[980px] text-[40px] font-semibold leading-[1.15] text-black">
               {row?.entityName ?? "Registry record"}
             </h1>
 
-            <div className="mt-2 flex items-center gap-2 flex-wrap">
+            <div className="mt-2 flex flex-wrap items-center gap-2">
               <span className={chipClass()}>{registryId}</span>
-              {row?.decisionStatus ? <span className={chipClass()}>{row.decisionStatus}</span> : null}
+              {row?.decisionStatus ? (
+                <span className={chipClass()}>{row.decisionStatus}</span>
+              ) : null}
+              {verifyData.ok ? (
+                <span className={chipClass()}>
+                  {isVerified ? "verification active" : "not currently valid"}
+                </span>
+              ) : null}
             </div>
           </div>
 
           <div className="flex items-center gap-2">
             <Link
               href="/registry"
-              className="inline-flex items-center justify-center rounded-xl px-4 py-2 text-[14px] font-semibold border border-black/15 hover:bg-black/[0.04]"
+              className="inline-flex items-center justify-center rounded-xl border border-black/15 px-4 py-2 text-[14px] font-semibold hover:bg-black/[0.04]"
             >
               Back to registry
             </Link>
 
             <a
+              href={absoluteVerifyUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center justify-center rounded-xl border border-black px-4 py-2 text-[14px] font-semibold hover:bg-black hover:text-white"
+            >
+              Verify via API
+            </a>
+
+            <a
               href={absoluteRecordUrl}
-              className="inline-flex items-center justify-center rounded-xl px-4 py-2 text-[14px] font-semibold bg-black text-white hover:bg-black/90"
+              className="inline-flex items-center justify-center rounded-xl bg-black px-4 py-2 text-[14px] font-semibold text-white hover:bg-black/90"
             >
               Permalink
             </a>
           </div>
         </div>
 
-        <p className="mt-5 text-[16px] leading-[1.8] text-black/80 max-w-[920px]">
-          This registry record is a controlled disclosure: it confirms certification outcomes without exposing internal
-          evidence, findings, reviewer rationales, or AI inventories.
+        <p className="mt-5 max-w-[920px] text-[16px] leading-[1.8] text-black/80">
+          This registry record is a controlled disclosure: it confirms certification
+          outcomes without exposing internal evidence, findings, reviewer rationales,
+          or private assessment materials.
         </p>
       </section>
 
       {!data.ok ? (
-        <section className="border border-black/10 rounded-2xl p-5">
+        <section className="rounded-2xl border border-black/10 p-5">
           <div className="font-semibold text-black">Unable to load record</div>
-          <p className="mt-2 text-[14px] leading-[1.7] text-black/70">{data.error}</p>
+          <p className="mt-2 text-[14px] leading-[1.7] text-black/70">
+            {data.error}
+          </p>
         </section>
       ) : !row ? (
-        <section className="border border-black/10 rounded-2xl p-5">
+        <section className="rounded-2xl border border-black/10 p-5">
           <div className="font-semibold text-black">Record not found</div>
           <p className="mt-2 text-[14px] leading-[1.7] text-black/70">
-            No public registry record exists for <span className="font-mono">{registryId}</span>.
+            No public registry record exists for{" "}
+            <span className="font-mono">{registryId}</span>.
           </p>
         </section>
       ) : (
         <>
-          <section className="grid grid-cols-1 md:grid-cols-12 gap-4">
-            <div className="md:col-span-8 border border-black/10 rounded-2xl p-5">
-              <h2 className="text-[16px] font-semibold text-black">Certification outcome</h2>
+          <section className="grid grid-cols-1 gap-4 md:grid-cols-12">
+            <div className="rounded-2xl border border-black/10 p-5 md:col-span-8">
+              <h2 className="text-[16px] font-semibold text-black">
+                Certification outcome
+              </h2>
 
-              <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
                 <div>
-                  <div className="text-[12px] uppercase tracking-[0.16em] text-black/60 font-semibold">Status</div>
+                  <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/60">
+                    Status
+                  </div>
                   <div className="mt-2">
                     <span className={chipClass()}>{row.decisionStatus}</span>
                   </div>
                 </div>
 
                 <div>
-                  <div className="text-[12px] uppercase tracking-[0.16em] text-black/60 font-semibold">Tier</div>
-                  <div className="mt-2 text-[16px] font-semibold text-black">{row.certifiedTier ?? "—"}</div>
+                  <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/60">
+                    Tier
+                  </div>
+                  <div className="mt-2 text-[16px] font-semibold text-black">
+                    {row.certifiedTier ?? "—"}
+                  </div>
                 </div>
 
                 <div>
-                  <div className="text-[12px] uppercase tracking-[0.16em] text-black/60 font-semibold">Band</div>
-                  <div className="mt-2 text-[16px] font-semibold text-black">{row.certifiedBand ?? "—"}</div>
+                  <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/60">
+                    Band
+                  </div>
+                  <div className="mt-2 text-[16px] font-semibold text-black">
+                    {row.certifiedBand ?? "—"}
+                  </div>
                 </div>
               </div>
 
-              <div className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
                 <div>
-                  <div className="text-[12px] uppercase tracking-[0.16em] text-black/60 font-semibold">Certified at</div>
-                  <div className="mt-2 text-[14px] text-black/85">{formatDate(row.certifiedAt)}</div>
+                  <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/60">
+                    Certified at
+                  </div>
+                  <div className="mt-2 text-[14px] text-black/85">
+                    {formatDate(row.certifiedAt)}
+                  </div>
                 </div>
 
                 <div>
-                  <div className="text-[12px] uppercase tracking-[0.16em] text-black/60 font-semibold">Valid from</div>
-                  <div className="mt-2 text-[14px] text-black/85">{formatDate(row.validFrom)}</div>
+                  <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/60">
+                    Valid from
+                  </div>
+                  <div className="mt-2 text-[14px] text-black/85">
+                    {formatDate(row.validFrom)}
+                  </div>
                 </div>
 
                 <div>
-                  <div className="text-[12px] uppercase tracking-[0.16em] text-black/60 font-semibold">Valid to</div>
-                  <div className="mt-2 text-[14px] text-black/85">{formatDate(row.validTo)}</div>
+                  <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/60">
+                    Valid to
+                  </div>
+                  <div className="mt-2 text-[14px] text-black/85">
+                    {formatDate(row.validTo)}
+                  </div>
                 </div>
               </div>
 
               <div className="mt-6 border-t border-black/10 pt-4 text-[13px] text-black/60">
-                Application ID: <span className="font-mono text-black/80">{row.applicationId}</span>
+                Application ID:{" "}
+                <span className="font-mono text-black/80">{row.applicationId}</span>
               </div>
             </div>
 
-            <div className="md:col-span-4 border border-black/10 rounded-2xl p-5">
+            <div className="rounded-2xl border border-black/10 p-5 md:col-span-4">
               <h2 className="text-[16px] font-semibold text-black">Entity</h2>
 
               <div className="mt-4 space-y-4">
                 <div>
-                  <div className="text-[12px] uppercase tracking-[0.16em] text-black/60 font-semibold">Name</div>
-                  <div className="mt-2 text-[14px] font-semibold text-black">{row.entityName}</div>
+                  <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/60">
+                    Name
+                  </div>
+                  <div className="mt-2 text-[14px] font-semibold text-black">
+                    {row.entityName}
+                  </div>
                 </div>
 
                 <div>
-                  <div className="text-[12px] uppercase tracking-[0.16em] text-black/60 font-semibold">Type</div>
-                  <div className="mt-2 text-[14px] text-black/85">{row.entityType ?? "—"}</div>
+                  <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/60">
+                    Type
+                  </div>
+                  <div className="mt-2 text-[14px] text-black/85">
+                    {row.entityType ?? "—"}
+                  </div>
                 </div>
 
                 <div>
-                  <div className="text-[12px] uppercase tracking-[0.16em] text-black/60 font-semibold">Country</div>
-                  <div className="mt-2 text-[14px] text-black/85">{row.country ?? "—"}</div>
+                  <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/60">
+                    Country
+                  </div>
+                  <div className="mt-2 text-[14px] text-black/85">
+                    {row.country ?? "—"}
+                  </div>
                 </div>
 
                 <div className="border-t border-black/10 pt-4 text-[13px] text-black/60">
-                  Registry ID: <span className="font-mono text-black/80">{row.registryId}</span>
+                  Registry ID:{" "}
+                  <span className="font-mono text-black/80">{row.registryId}</span>
                 </div>
               </div>
             </div>
           </section>
 
-          <section className="mt-10 pt-8 border-t border-black/10">
-            <h2 className="text-[16px] font-semibold text-black">AI systems covered by this certification</h2>
+          <section className="mt-10 border-t border-black/10 pt-8">
+            <h2 className="text-[16px] font-semibold text-black">
+              Verification endpoint
+            </h2>
 
-            <p className="mt-3 text-[14px] leading-[1.8] text-black/75 max-w-[920px]">
-              These are the public AI system disclosures included within the scope of this certification.
+            <p className="mt-3 max-w-[920px] text-[14px] leading-[1.8] text-black/75">
+              This certification can be validated programmatically through the public
+              verification API. External websites, procurement workflows, and
+              compliance tools can use this endpoint to confirm current certification
+              status and retrieve signed proof metadata.
+            </p>
+
+            <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div className="rounded-2xl border border-black/10 p-5">
+                <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/60">
+                  Verification URL
+                </div>
+                <div className="mt-3">
+                  <pre className={monoBox()}>{absoluteVerifyUrl}</pre>
+                </div>
+
+                <div className="mt-4 flex flex-wrap gap-2">
+                  <a
+                    href={absoluteVerifyUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center justify-center rounded-xl border border-black px-4 py-2 text-[14px] font-semibold hover:bg-black hover:text-white"
+                  >
+                    Open verification JSON
+                  </a>
+                </div>
+              </div>
+
+              <div className="rounded-2xl border border-black/10 p-5">
+                <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/60">
+                  Verification status
+                </div>
+
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <span className={chipClass()}>
+                    {verifyData.ok
+                      ? isVerified
+                        ? "verified"
+                        : "not currently valid"
+                      : "verification unavailable"}
+                  </span>
+                  {verifyData.ok && verifyData.proof?.alg ? (
+                    <span className={chipClass()}>{verifyData.proof.alg}</span>
+                  ) : null}
+                </div>
+
+                {verifyData.ok && signature ? (
+                  <div className="mt-4">
+                    <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/60">
+                      Signature
+                    </div>
+                    <div className="mt-2">
+                      <pre className={monoBox()}>{signature}</pre>
+                    </div>
+                  </div>
+                ) : null}
+
+                {signedAt ? (
+                  <div className="mt-4 text-[13px] text-black/60">
+                    Signed at:{" "}
+                    <span className="font-mono text-black/80">{signedAt}</span>
+                  </div>
+                ) : verifyData.ok ? null : (
+                  <div className="mt-4 text-[13px] text-red-700">
+                    {(verifyData as { ok: false; error: string }).error}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="mt-4 rounded-2xl border border-black/10 p-5">
+              <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/60">
+                Example usage
+              </div>
+              <div className="mt-3">
+                <pre className={monoBox()}>{verifyJsonExample}</pre>
+              </div>
+            </div>
+          </section>
+
+          <section className="mt-10 border-t border-black/10 pt-8">
+            <h2 className="text-[16px] font-semibold text-black">
+              AI systems covered by this certification
+            </h2>
+
+            <p className="mt-3 max-w-[920px] text-[14px] leading-[1.8] text-black/75">
+              These are the public AI system disclosures included within the scope
+              of this certification.
             </p>
 
             {!aiSystemsData.ok ? (
-              <div className="mt-6 border border-black/10 rounded-2xl p-5">
+              <div className="mt-6 rounded-2xl border border-black/10 p-5">
                 <div className="font-semibold text-black">Unable to load AI systems</div>
-                <p className="mt-2 text-[14px] leading-[1.7] text-black/70">{aiSystemsData.error}</p>
+                <p className="mt-2 text-[14px] leading-[1.7] text-black/70">
+                  {aiSystemsData.error}
+                </p>
               </div>
             ) : aiSystems.length === 0 ? (
-              <div className="mt-6 border border-black/10 rounded-2xl p-5 text-[14px] text-black/70">
+              <div className="mt-6 rounded-2xl border border-black/10 p-5 text-[14px] text-black/70">
                 No AI systems have been published for this certification record.
               </div>
             ) : (
               <div className="mt-6 grid grid-cols-1 gap-4">
                 {aiSystems.map((s) => (
-                  <div key={s.SYSTEM_ID} className="border border-black/10 rounded-2xl p-5">
+                  <div key={s.SYSTEM_ID} className="rounded-2xl border border-black/10 p-5">
                     <div className="flex flex-wrap items-start justify-between gap-3">
                       <div>
-                        <h3 className="text-[20px] leading-[1.3] font-semibold text-black">{s.SYSTEM_NAME}</h3>
+                        <h3 className="text-[20px] font-semibold leading-[1.3] text-black">
+                          {s.SYSTEM_NAME}
+                        </h3>
 
                         <div className="mt-3 flex flex-wrap gap-2">
-                          {s.SYSTEM_TYPE ? <span className={chipClass()}>{s.SYSTEM_TYPE}</span> : null}
-                          {s.DEPLOYMENT_STATUS ? <span className={chipClass()}>{s.DEPLOYMENT_STATUS}</span> : null}
-                          {s.OVERSIGHT_LEVEL ? <span className={chipClass()}>{s.OVERSIGHT_LEVEL}</span> : null}
-                          {s.RISK_TIER ? <span className={chipClass()}>{s.RISK_TIER}</span> : null}
+                          {s.SYSTEM_TYPE ? (
+                            <span className={chipClass()}>{s.SYSTEM_TYPE}</span>
+                          ) : null}
+                          {s.DEPLOYMENT_STATUS ? (
+                            <span className={chipClass()}>{s.DEPLOYMENT_STATUS}</span>
+                          ) : null}
+                          {s.OVERSIGHT_LEVEL ? (
+                            <span className={chipClass()}>{s.OVERSIGHT_LEVEL}</span>
+                          ) : null}
+                          {s.RISK_TIER ? (
+                            <span className={chipClass()}>{s.RISK_TIER}</span>
+                          ) : null}
                         </div>
                       </div>
                     </div>
 
-                    <div className="mt-5 grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="mt-5 grid grid-cols-1 gap-4 md:grid-cols-2">
                       <div>
-                        <div className="text-[12px] uppercase tracking-[0.16em] text-black/60 font-semibold">
+                        <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/60">
                           Intended use
                         </div>
-                        <div className="mt-2 text-[14px] text-black/85">{s.INTENDED_USE ?? "—"}</div>
+                        <div className="mt-2 text-[14px] text-black/85">
+                          {s.INTENDED_USE ?? "—"}
+                        </div>
                       </div>
 
                       <div>
-                        <div className="text-[12px] uppercase tracking-[0.16em] text-black/60 font-semibold">
+                        <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/60">
                           Public summary
                         </div>
-                        <div className="mt-2 text-[14px] text-black/85">{s.PUBLIC_SUMMARY ?? "—"}</div>
+                        <div className="mt-2 text-[14px] text-black/85">
+                          {s.PUBLIC_SUMMARY ?? "—"}
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -309,55 +553,71 @@ export default async function RegistryRecordPage({ params }: { params: { registr
             )}
           </section>
 
-          <section className="mt-10 pt-8 border-t border-black/10">
+          <section className="mt-10 border-t border-black/10 pt-8">
             <h2 className="text-[16px] font-semibold text-black">Verified by GAFAIG</h2>
-            <p className="mt-3 text-[14px] leading-[1.8] text-black/75 max-w-[920px]">
-              Organizations that successfully complete independent verification may display the GAFAIG Verified badge on
-              their website. The badge links directly to this public registry record.
+            <p className="mt-3 max-w-[920px] text-[14px] leading-[1.8] text-black/75">
+              Organizations that successfully complete independent verification may
+              display the GAFAIG Verified badge on their website. The badge links
+              directly to this public registry record.
             </p>
 
-            <div className="mt-6 border border-black/10 rounded-2xl p-6 bg-black/[0.02]">
-              <a href={absoluteRecordUrl} target="_blank" rel="noopener noreferrer" className="inline-block">
+            <div className="mt-6 rounded-2xl border border-black/10 bg-black/[0.02] p-6">
+              <a
+                href={absoluteRecordUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-block"
+              >
                 <img
                   src={badgeSrcRelative}
                   alt="Verified by GAFAIG"
-                  className="h-[96px] md:h-[110px] w-auto"
+                  className="h-[96px] w-auto md:h-[110px]"
                 />
               </a>
 
               <div className="mt-4 text-[13px] text-black/60">
                 Click the badge or use this link:
-                <span className="font-mono text-black ml-2">{absoluteRecordUrl}</span>
+                <span className="ml-2 font-mono text-black">{absoluteRecordUrl}</span>
+              </div>
+
+              <div className="mt-3 text-[13px] text-black/60">
+                API verification:
+                <span className="ml-2 font-mono text-black">{absoluteVerifyUrl}</span>
               </div>
             </div>
 
-            <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="border border-black/10 rounded-2xl p-5">
-                <div className="text-[12px] uppercase tracking-[0.16em] text-black/60 font-semibold">Embed code (HTML)</div>
+            <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div className="rounded-2xl border border-black/10 p-5">
+                <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/60">
+                  Embed code (HTML)
+                </div>
                 <div className="mt-3">
                   <pre className={monoBox()}>{embedHtml}</pre>
                 </div>
               </div>
 
-              <div className="border border-black/10 rounded-2xl p-5">
-                <div className="text-[12px] uppercase tracking-[0.16em] text-black/60 font-semibold">Embed code (Markdown)</div>
+              <div className="rounded-2xl border border-black/10 p-5">
+                <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/60">
+                  Embed code (Markdown)
+                </div>
                 <div className="mt-3">
                   <pre className={monoBox()}>{embedMarkdown}</pre>
                 </div>
               </div>
             </div>
 
-            <p className="mt-4 text-[12px] leading-[1.7] text-black/60 max-w-[980px]">
-              Note: This badge confirms certification status and tiering outcomes only. GAFAIG does not disclose internal
-              evidence, findings, reviewer rationales, or AI inventories through the public registry.
+            <p className="mt-4 max-w-[980px] text-[12px] leading-[1.7] text-black/60">
+              Note: This badge confirms certification status and tiering outcomes
+              only. GAFAIG does not disclose internal evidence, findings, reviewer
+              rationales, or private assessment materials through the public registry.
             </p>
           </section>
 
-          <section className="mt-10 pt-8 border-t border-black/10">
+          <section className="mt-10 border-t border-black/10 pt-8">
             <h2 className="text-[16px] font-semibold text-black">Privacy boundary</h2>
-            <p className="mt-3 text-[16px] leading-[1.8] text-black/80 max-w-[920px]">
-              The registry confirms certification without exposing internal evidence, findings, reviewer rationales, or AI
-              inventories.
+            <p className="mt-3 max-w-[920px] text-[16px] leading-[1.8] text-black/80">
+              The registry confirms certification without exposing internal evidence,
+              findings, reviewer rationales, or private assessment materials.
             </p>
           </section>
         </>
