@@ -1,6 +1,6 @@
 import Link from "next/link";
 import StatusChip from "@/components/ui/StatusChip";
-
+import { REGISTRY_VERIFICATION_STATES } from "@/lib/constants/registry";
 type Props = {
   registryId: string;
   entityName?: string | null;
@@ -39,7 +39,11 @@ export default function RegistryHeaderPanel({
 
             {showVerificationState ? (
               <StatusChip>
-                {isVerified ? "verification active" : "not currently valid"}
+                {
+  isVerified
+    ? REGISTRY_VERIFICATION_STATES.VERIFICATION_ACTIVE
+    : REGISTRY_VERIFICATION_STATES.NOT_CURRENTLY_VALID
+}
               </StatusChip>
             ) : null}
           </div>
