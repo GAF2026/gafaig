@@ -1,17 +1,5 @@
 import StatusChip from "@/components/ui/StatusChip";
-
-type RegistryAiSystemRow = {
-  SYSTEM_ID: string;
-  REGISTRY_ID: string | null;
-  SYSTEM_NAME: string | null;
-  SYSTEM_TYPE: string | null;
-  INTENDED_USE: string | null;
-  DEPLOYMENT_STATUS: string | null;
-  OVERSIGHT_LEVEL: string | null;
-  RISK_TIER: string | null;
-  PUBLIC_SUMMARY: string | null;
-  DISPLAY_ORDER: number | null;
-};
+import type { RegistryAiSystemRow } from "@/types/registry";
 
 type Props = {
   system: RegistryAiSystemRow;
@@ -23,7 +11,7 @@ export default function AISystemCard({ system }: Props) {
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h3 className="text-[20px] font-semibold leading-[1.3] text-black">
-            {system.SYSTEM_NAME}
+            {system.SYSTEM_NAME ?? "Unnamed AI system"}
           </h3>
 
           <div className="mt-3 flex flex-wrap gap-2">

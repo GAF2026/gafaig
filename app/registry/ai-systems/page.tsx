@@ -1,19 +1,7 @@
 import Link from "next/link";
 import { sfQueryResult } from "@/lib/snowflake";
 import AISystemCard from "@/components/registry/AISystemCard";
-
-type AiSystemRow = {
-  SYSTEM_ID: string;
-  REGISTRY_ID: string | null;
-  SYSTEM_NAME: string | null;
-  SYSTEM_TYPE: string | null;
-  INTENDED_USE: string | null;
-  DEPLOYMENT_STATUS: string | null;
-  OVERSIGHT_LEVEL: string | null;
-  RISK_TIER: string | null;
-  PUBLIC_SUMMARY: string | null;
-  DISPLAY_ORDER: number | null;
-};
+import type { RegistryAiSystemRow } from "@/types/registry";
 
 export const dynamic = "force-dynamic";
 
@@ -23,7 +11,7 @@ function safeText(value: unknown, fallback = "—") {
 }
 
 export default async function RegistryAiSystemsPage() {
-  const res = await sfQueryResult<AiSystemRow>(
+  const res = await sfQueryResult<RegistryAiSystemRow>(
     `
     SELECT
       SYSTEM_ID,
