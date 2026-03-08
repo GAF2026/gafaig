@@ -116,7 +116,7 @@ export default async function RegistryRecordPage({ params }: { params: { registr
   ]);
 
   const row = data.ok && data.rows.length ? data.rows[0] : null;
-  const aiSystems = aiSystemsData.ok ? aiSystemsData.rows : [];
+  const aiSystems = aiSystemsData.ok ? dataOrEmpty(aiSystemsData.rows) : [];
 
   const baseUrl = getBaseUrl();
   const absoluteRecordUrl = `${baseUrl}/registry/${encodeURIComponent(registryId)}`;
@@ -364,4 +364,8 @@ export default async function RegistryRecordPage({ params }: { params: { registr
       )}
     </main>
   );
+}
+
+function dataOrEmpty<T>(rows: T[] | undefined | null): T[] {
+  return Array.isArray(rows) ? rows : [];
 }
