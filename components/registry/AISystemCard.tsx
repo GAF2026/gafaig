@@ -3,7 +3,7 @@ import StatusChip from "@/components/ui/StatusChip";
 type RegistryAiSystemRow = {
   SYSTEM_ID: string;
   REGISTRY_ID: string | null;
-  SYSTEM_NAME: string;
+  SYSTEM_NAME: string | null;
   SYSTEM_TYPE: string | null;
   INTENDED_USE: string | null;
   DEPLOYMENT_STATUS: string | null;
