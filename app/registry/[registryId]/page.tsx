@@ -1,6 +1,9 @@
 // app/registry/[registryId]/page.tsx
 import Link from "next/link";
 import { headers } from "next/headers";
+import StatusChip from "@/components/ui/StatusChip";
+import MonoCodeBlock from "@/components/ui/MonoCodeBlock";
+import AISystemCard from "@/components/registry/AISystemCard";
 
 export const dynamic = "force-dynamic";
 
@@ -98,14 +101,6 @@ function formatDate(v?: string | null) {
     month: "short",
     day: "2-digit",
   });
-}
-
-function chipClass() {
-  return "inline-flex items-center rounded-full border border-black/15 bg-black/[0.04] px-2.5 py-1 text-[12px] font-semibold leading-none text-black";
-}
-
-function monoBox() {
-  return "w-full rounded-2xl border border-black/10 bg-white p-4 font-mono text-[12px] leading-[1.6] text-black/85 overflow-x-auto";
 }
 
 function getBaseUrl() {
@@ -224,14 +219,14 @@ export default async function RegistryRecordPage({
             </h1>
 
             <div className="mt-2 flex flex-wrap items-center gap-2">
-              <span className={chipClass()}>{registryId}</span>
+              <StatusChip>{registryId}</StatusChip>
               {row?.decisionStatus ? (
-                <span className={chipClass()}>{row.decisionStatus}</span>
+                <StatusChip>{row.decisionStatus}</StatusChip>
               ) : null}
               {verifyData.ok ? (
-                <span className={chipClass()}>
+                <StatusChip>
                   {isVerified ? "verification active" : "not currently valid"}
-                </span>
+                </StatusChip>
               ) : null}
             </div>
           </div>
@@ -298,7 +293,7 @@ export default async function RegistryRecordPage({
                     Status
                   </div>
                   <div className="mt-2">
-                    <span className={chipClass()}>{row.decisionStatus}</span>
+                    <StatusChip>{row.decisionStatus}</StatusChip>
                   </div>
                 </div>
 
@@ -413,7 +408,7 @@ export default async function RegistryRecordPage({
                   Verification URL
                 </div>
                 <div className="mt-3">
-                  <pre className={monoBox()}>{absoluteVerifyUrl}</pre>
+                  <MonoCodeBlock>{absoluteVerifyUrl}</MonoCodeBlock>
                 </div>
 
                 <div className="mt-4 flex flex-wrap gap-2">
@@ -434,15 +429,15 @@ export default async function RegistryRecordPage({
                 </div>
 
                 <div className="mt-3 flex flex-wrap gap-2">
-                  <span className={chipClass()}>
+                  <StatusChip>
                     {verifyData.ok
                       ? isVerified
                         ? "verified"
                         : "not currently valid"
                       : "verification unavailable"}
-                  </span>
+                  </StatusChip>
                   {verifyData.ok && verifyData.proof?.alg ? (
-                    <span className={chipClass()}>{verifyData.proof.alg}</span>
+                    <StatusChip>{verifyData.proof.alg}</StatusChip>
                   ) : null}
                 </div>
 
@@ -452,7 +447,7 @@ export default async function RegistryRecordPage({
                       Signature
                     </div>
                     <div className="mt-2">
-                      <pre className={monoBox()}>{signature}</pre>
+                      <MonoCodeBlock>{signature}</MonoCodeBlock>
                     </div>
                   </div>
                 ) : null}
@@ -475,7 +470,7 @@ export default async function RegistryRecordPage({
                 Example usage
               </div>
               <div className="mt-3">
-                <pre className={monoBox()}>{verifyJsonExample}</pre>
+                <MonoCodeBlock>{verifyJsonExample}</MonoCodeBlock>
               </div>
             </div>
           </section>
@@ -504,50 +499,7 @@ export default async function RegistryRecordPage({
             ) : (
               <div className="mt-6 grid grid-cols-1 gap-4">
                 {aiSystems.map((s) => (
-                  <div key={s.SYSTEM_ID} className="rounded-2xl border border-black/10 p-5">
-                    <div className="flex flex-wrap items-start justify-between gap-3">
-                      <div>
-                        <h3 className="text-[20px] font-semibold leading-[1.3] text-black">
-                          {s.SYSTEM_NAME}
-                        </h3>
-
-                        <div className="mt-3 flex flex-wrap gap-2">
-                          {s.SYSTEM_TYPE ? (
-                            <span className={chipClass()}>{s.SYSTEM_TYPE}</span>
-                          ) : null}
-                          {s.DEPLOYMENT_STATUS ? (
-                            <span className={chipClass()}>{s.DEPLOYMENT_STATUS}</span>
-                          ) : null}
-                          {s.OVERSIGHT_LEVEL ? (
-                            <span className={chipClass()}>{s.OVERSIGHT_LEVEL}</span>
-                          ) : null}
-                          {s.RISK_TIER ? (
-                            <span className={chipClass()}>{s.RISK_TIER}</span>
-                          ) : null}
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="mt-5 grid grid-cols-1 gap-4 md:grid-cols-2">
-                      <div>
-                        <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/60">
-                          Intended use
-                        </div>
-                        <div className="mt-2 text-[14px] text-black/85">
-                          {s.INTENDED_USE ?? "—"}
-                        </div>
-                      </div>
-
-                      <div>
-                        <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/60">
-                          Public summary
-                        </div>
-                        <div className="mt-2 text-[14px] text-black/85">
-                          {s.PUBLIC_SUMMARY ?? "—"}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+                  <AISystemCard key={s.SYSTEM_ID} system={s} />
                 ))}
               </div>
             )}
@@ -592,7 +544,7 @@ export default async function RegistryRecordPage({
                   Embed code (HTML)
                 </div>
                 <div className="mt-3">
-                  <pre className={monoBox()}>{embedHtml}</pre>
+                  <MonoCodeBlock>{embedHtml}</MonoCodeBlock>
                 </div>
               </div>
 
@@ -601,7 +553,7 @@ export default async function RegistryRecordPage({
                   Embed code (Markdown)
                 </div>
                 <div className="mt-3">
-                  <pre className={monoBox()}>{embedMarkdown}</pre>
+                  <MonoCodeBlock>{embedMarkdown}</MonoCodeBlock>
                 </div>
               </div>
             </div>
