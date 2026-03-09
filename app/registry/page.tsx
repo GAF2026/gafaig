@@ -36,7 +36,11 @@ function formatDate(v?: string | null) {
   if (!v) return "—";
   const d = new Date(v);
   if (Number.isNaN(d.getTime())) return v;
-  return d.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "2-digit" });
+  return d.toLocaleDateString(undefined, {
+    year: "numeric",
+    month: "short",
+    day: "2-digit",
+  });
 }
 
 function chipClass() {
@@ -66,7 +70,11 @@ function getBaseUrl() {
   return "http://localhost:3000";
 }
 
-async function getRegistry(params: { q?: string; country?: string; registryId?: string }): Promise<ApiResponse> {
+async function getRegistry(params: {
+  q?: string;
+  country?: string;
+  registryId?: string;
+}): Promise<ApiResponse> {
   try {
     const base = getBaseUrl();
     const sp = new URLSearchParams();
@@ -80,7 +88,9 @@ async function getRegistry(params: { q?: string; country?: string; registryId?: 
     if (country) sp.set("country", country);
     if (registryId) sp.set("registryId", registryId);
 
-    const res = await fetch(`${base}/api/registry?${sp.toString()}`, { cache: "no-store" });
+    const res = await fetch(`${base}/api/registry?${sp.toString()}`, {
+      cache: "no-store",
+    });
     return (await res.json()) as ApiResponse;
   } catch (e: any) {
     return { ok: false, error: e?.message || "Failed to load registry." };
@@ -105,145 +115,234 @@ export default async function RegistryPage({
   const rows = data.ok ? data.rows : [];
   const total = data.ok ? data.total : 0;
 
-  const hasFilters = Boolean((q || "").trim() || (country || "").trim() || (registryId || "").trim());
+  const hasFilters = Boolean(
+    (q || "").trim() || (country || "").trim() || (registryId || "").trim()
+  );
 
   return (
-    <main className="mx-auto max-w-[1100px] px-6 pt-14 pb-16">
-
-      {/* Hero */}
-      <section className="pt-2 pb-8">
-        <div className="text-[13px] tracking-[0.22em] uppercase text-black/60 font-semibold">
+    <main className="mx-auto max-w-[1100px] px-6 pb-16 pt-14">
+      <section className="pt-2 pb-10">
+        <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
           Registry
         </div>
 
-        <h1 className="mt-4 text-[40px] leading-[1.15] font-semibold text-black max-w-[980px]">
-          Public certification status for independent verification of human oversight for AI systems
+        <h1 className="mt-4 max-w-[980px] text-[40px] font-semibold leading-[1.15] text-black">
+          Public certification outcomes for independent verification of human
+          oversight across AI infrastructure
         </h1>
 
-        <p className="mt-5 text-[18px] leading-[1.75] text-black/80 max-w-[920px]">
-          The GAFAIG Registry publishes controlled disclosures only: certification status and tiering outcomes.
-          Internal evidence, findings, and any AI inventory remain private.
+        <p className="mt-5 max-w-[920px] text-[18px] leading-[1.75] text-black/80">
+          The GAFAIG Registry publishes certification outcomes for organizations
+          that have undergone independent verification of AI oversight.
+          Controlled public disclosures confirm certification status while
+          internal evidence, findings, and assessment materials remain private.
         </p>
 
-        <div className="mt-6 flex flex-wrap gap-2">
+        <div className="mt-7 flex flex-wrap gap-2">
           <Link
             href="/framework"
-            className="px-4 py-2 rounded-full text-sm font-semibold border border-black hover:bg-black/[0.04]"
+            className="rounded-full border border-black px-4 py-2 text-sm font-semibold hover:bg-black/[0.04]"
           >
             Read the Framework
           </Link>
 
           <Link
             href="/mission"
-            className="px-4 py-2 rounded-full text-sm font-semibold border border-black bg-black text-white hover:bg-black/90"
+            className="rounded-full border border-black bg-black px-4 py-2 text-sm font-semibold text-white hover:bg-black/90"
           >
-            Mission & Boundaries
+            Mission &amp; Boundaries
           </Link>
         </div>
       </section>
 
-      {/* Search section unchanged */}
+      <section className="border-t border-black/10 pt-8">
+        <h2 className="text-[16px] font-semibold text-black">Search the registry</h2>
 
-      {/* Registry records */}
-      <section className="mt-8 pt-8 border-t border-black/10">
+        <p className="mt-3 max-w-[920px] text-[16px] leading-[1.8] text-black/80">
+          Search certified organizations by name, country, or registry ID. Each
+          public record confirms certification outcomes and links to the
+          associated certification detail page.
+        </p>
 
-        <div className="mt-5 overflow-hidden border border-black/10 rounded-2xl">
-          <div className="overflow-x-auto">
+        <form className="mt-5 grid gap-3 md:grid-cols-4">
+          <div className="md:col-span-2">
+            <label className="mb-2 block text-[12px] font-semibold uppercase tracking-[0.16em] text-black/60">
+              Organization
+            </label>
+            <input
+              type="text"
+              name="q"
+              defaultValue={q}
+              placeholder="Search by organization name"
+              className={inputClass()}
+            />
+          </div>
 
-            <table className="w-full text-left">
+          <div>
+            <label className="mb-2 block text-[12px] font-semibold uppercase tracking-[0.16em] text-black/60">
+              Country
+            </label>
+            <input
+              type="text"
+              name="country"
+              defaultValue={country}
+              placeholder="Country"
+              className={inputClass()}
+            />
+          </div>
 
-              <thead className="bg-black/[0.02]">
-                <tr className="text-[12px] uppercase tracking-[0.16em] text-black/60">
-                  <th className="px-4 py-3 font-semibold">Entity</th>
-                  <th className="px-4 py-3 font-semibold">Status</th>
-                  <th className="px-4 py-3 font-semibold">Tier</th>
-                  <th className="px-4 py-3 font-semibold">Band</th>
-                  <th className="px-4 py-3 font-semibold">Registry ID</th>
-                  <th className="px-4 py-3 font-semibold">Certified</th>
-                </tr>
-              </thead>
+          <div>
+            <label className="mb-2 block text-[12px] font-semibold uppercase tracking-[0.16em] text-black/60">
+              Registry ID
+            </label>
+            <input
+              type="text"
+              name="registryId"
+              defaultValue={registryId}
+              placeholder="GAFAIG-00000001"
+              className={inputClass()}
+            />
+          </div>
 
-              <tbody className="divide-y divide-black/10">
+          <div className="md:col-span-4 flex flex-wrap gap-2 pt-1">
+            <button type="submit" className={buttonClass("primary")}>
+              Search Registry
+            </button>
 
-                {rows.map((r) => {
-                  const href = `/registry/${encodeURIComponent(r.registryId)}`;
+            <Link href="/registry" className={buttonClass("secondary")}>
+              Clear Filters
+            </Link>
+          </div>
+        </form>
+      </section>
 
-                  return (
-                    <tr
-                      key={r.registryId}
-                      className="text-[14px] text-black/85 hover:bg-black/[0.04] transition-colors"
-                    >
+      <section className="mt-10 border-t border-black/10 pt-8">
+        <div className="flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <h2 className="text-[16px] font-semibold text-black">
+              Certified organizations
+            </h2>
+            <p className="mt-2 text-[14px] leading-[1.7] text-black/72">
+              Organizations listed below have completed a GAFAIG governance
+              verification process.
+            </p>
+          </div>
 
-                      <td className="p-0 align-top">
-                        <Link href={href} className={cellLinkClass()}>
-                          <div className="font-semibold text-black">
-                            {r.entityName}
-                          </div>
-
-                          <div className="mt-1 text-[12px] text-black/60">
-                            {(r.entityType ?? "—") + (r.country ? ` · ${r.country}` : "")}
-                          </div>
-                        </Link>
-                      </td>
-
-                      <td className="p-0 align-top">
-                        <Link href={href} className={cellLinkClass()}>
-                          <span className={chipClass()}>
-                            {r.decisionStatus}
-                          </span>
-                        </Link>
-                      </td>
-
-                      <td className="p-0 align-top">
-                        <Link href={href} className={cellLinkClass()}>
-                          {r.certifiedTier ?? "—"}
-                        </Link>
-                      </td>
-
-                      <td className="p-0 align-top">
-                        <Link href={href} className={cellLinkClass()}>
-                          {r.certifiedBand ?? "—"}
-                        </Link>
-                      </td>
-
-                      <td className="p-0 align-top">
-                        <Link href={href} className={cellLinkClass()}>
-                          <span className="font-mono text-[12px] underline text-black">
-                            {r.registryId}
-                          </span>
-                        </Link>
-                      </td>
-
-                      <td className="p-0 align-top">
-                        <Link href={href} className={cellLinkClass()}>
-                          {formatDate(r.certifiedAt)}
-                        </Link>
-                      </td>
-
-                    </tr>
-                  );
-                })}
-
-              </tbody>
-            </table>
-
+          <div className="text-[14px] text-black/65">
+            {data.ok ? (
+              <>
+                {total} record{total === 1 ? "" : "s"}
+                {hasFilters ? " matching current filters" : ""}
+              </>
+            ) : (
+              "Registry unavailable"
+            )}
           </div>
         </div>
 
+        {!data.ok ? (
+          <div className="mt-6 rounded-2xl border border-black/10 p-5">
+            <div className="font-semibold text-black">Unable to load registry</div>
+            <p className="mt-2 text-[14px] leading-[1.7] text-black/70">
+              {data.error}
+            </p>
+          </div>
+        ) : rows.length === 0 ? (
+          <div className="mt-6 rounded-2xl border border-black/10 p-5">
+            <div className="font-semibold text-black">No matching records</div>
+            <p className="mt-2 text-[14px] leading-[1.7] text-black/70">
+              No public certification records matched the current search.
+            </p>
+          </div>
+        ) : (
+          <div className="mt-6 overflow-hidden rounded-2xl border border-black/10">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left">
+                <thead className="bg-black/[0.02]">
+                  <tr className="text-[12px] uppercase tracking-[0.16em] text-black/60">
+                    <th className="px-4 py-3 font-semibold">Entity</th>
+                    <th className="px-4 py-3 font-semibold">Status</th>
+                    <th className="px-4 py-3 font-semibold">Tier</th>
+                    <th className="px-4 py-3 font-semibold">Band</th>
+                    <th className="px-4 py-3 font-semibold">Registry ID</th>
+                    <th className="px-4 py-3 font-semibold">Certified</th>
+                  </tr>
+                </thead>
+
+                <tbody className="divide-y divide-black/10">
+                  {rows.map((r) => {
+                    const href = `/registry/${encodeURIComponent(r.registryId)}`;
+
+                    return (
+                      <tr
+                        key={r.registryId}
+                        className="text-[14px] text-black/85 transition-colors hover:bg-black/[0.04]"
+                      >
+                        <td className="p-0 align-top">
+                          <Link href={href} className={cellLinkClass()}>
+                            <div className="font-semibold text-black">
+                              {r.entityName}
+                            </div>
+
+                            <div className="mt-1 text-[12px] text-black/60">
+                              {(r.entityType ?? "—") +
+                                (r.country ? ` · ${r.country}` : "")}
+                            </div>
+                          </Link>
+                        </td>
+
+                        <td className="p-0 align-top">
+                          <Link href={href} className={cellLinkClass()}>
+                            <span className={chipClass()}>{r.decisionStatus}</span>
+                          </Link>
+                        </td>
+
+                        <td className="p-0 align-top">
+                          <Link href={href} className={cellLinkClass()}>
+                            {r.certifiedTier ?? "—"}
+                          </Link>
+                        </td>
+
+                        <td className="p-0 align-top">
+                          <Link href={href} className={cellLinkClass()}>
+                            {r.certifiedBand ?? "—"}
+                          </Link>
+                        </td>
+
+                        <td className="p-0 align-top">
+                          <Link href={href} className={cellLinkClass()}>
+                            <span className="font-mono text-[12px] text-black underline">
+                              {r.registryId}
+                            </span>
+                          </Link>
+                        </td>
+
+                        <td className="p-0 align-top">
+                          <Link href={href} className={cellLinkClass()}>
+                            {formatDate(r.certifiedAt)}
+                          </Link>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
       </section>
 
-      {/* Privacy boundary */}
-      <section className="mt-10 pt-8 border-t border-black/10">
+      <section className="mt-10 border-t border-black/10 pt-8">
         <h2 className="text-[16px] font-semibold text-black">
           Privacy boundary
         </h2>
 
-        <p className="mt-3 text-[16px] leading-[1.8] text-black/80 max-w-[920px]">
-          The registry confirms certification without exposing internal evidence,
-          findings, reviewer rationales, or AI inventories.
+        <p className="mt-3 max-w-[920px] text-[16px] leading-[1.8] text-black/80">
+          The registry confirms certification outcomes without exposing internal
+          evidence, findings, reviewer rationales, or private assessment
+          materials.
         </p>
       </section>
-
     </main>
   );
 }

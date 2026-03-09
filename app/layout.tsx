@@ -11,84 +11,100 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: "GAFAIG — Global Authority for AI Governance",
-  description: "Structured human oversight for AI systems.",
+  description:
+    "Independent verification of human oversight for AI systems.",
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <html lang="en">
-      <body className={`${inter.className} bg-white text-black antialiased`}>
+      <body className={`${inter.className} bg-[#fcfcfb] text-black antialiased`}>
         <div className="min-h-screen flex flex-col">
-          <header className="sticky top-0 z-50 bg-white/90 backdrop-blur border-b border-black/10">
-            <div className="mx-auto max-w-[1100px] px-6 py-3">
-              <div className="flex flex-col gap-3 md:flex-row md:items-center md:gap-4">
-                {/* Logo */}
-                <Link href="/" className="flex items-center gap-3 shrink-0">
+          <header className="sticky top-0 z-50 border-b border-black/10 bg-[#fcfcfb]/92 backdrop-blur">
+            <div className="mx-auto max-w-[1180px] px-6 py-4">
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:gap-6">
+                <Link href="/" className="flex shrink-0 items-center gap-3">
                   <img
                     src="/images/gafaig-lockup.png"
                     alt="GAFAIG"
-                    className="h-8 w-auto shrink-0"
+                    className="h-9 w-auto shrink-0"
                   />
                 </Link>
 
-                {/* Nav */}
-                <nav className="md:ml-auto w-full md:w-auto">
-                  {/* Primary links */}
-                  <div className="grid grid-cols-3 gap-2 md:flex md:items-center md:gap-2 md:flex-wrap md:justify-end">
-                    <Link
-                      href="/mission"
-                      className="px-3 py-2 rounded-full text-sm font-semibold border border-transparent hover:border-black/15 hover:bg-black/[0.04] text-center"
-                    >
-                      Mission
-                    </Link>
-                    <Link
-                      href="/framework"
-                      className="px-3 py-2 rounded-full text-sm font-semibold border border-transparent hover:border-black/15 hover:bg-black/[0.04] text-center"
-                    >
-                      Framework
-                    </Link>
-                    <Link
-                      href="/registry"
-                      className="px-3 py-2 rounded-full text-sm font-semibold border border-transparent hover:border-black/15 hover:bg-black/[0.04] text-center"
-                    >
-                      Registry
-                    </Link>
-                  </div>
+                <div className="hidden lg:block h-8 w-px bg-black/10" />
 
-                  {/* Action buttons */}
-                  <div className="mt-2 flex flex-col gap-2 md:mt-0 md:ml-2 md:flex-row md:items-center">
-                    <Link
-                      href="/demo"
-                      className="px-4 py-2 rounded-full text-sm font-semibold border border-black hover:bg-black/[0.04] w-full md:w-auto text-center flex items-center justify-center"
-                      title="Open the GAFAIG demo overview"
-                    >
-                      Demo
-                    </Link>
+                <nav className="w-full lg:ml-auto lg:w-auto">
+                  <div className="flex flex-col gap-2 lg:flex-row lg:items-center lg:gap-3">
+                    <div className="grid grid-cols-3 gap-2 lg:flex lg:items-center lg:gap-2">
+                      <Link
+                        href="/mission"
+                        className="rounded-full border border-transparent px-3 py-2 text-center text-sm font-semibold text-black/80 transition hover:border-black/15 hover:bg-black/[0.035] hover:text-black"
+                      >
+                        Mission
+                      </Link>
+                      <Link
+                        href="/framework"
+                        className="rounded-full border border-transparent px-3 py-2 text-center text-sm font-semibold text-black/80 transition hover:border-black/15 hover:bg-black/[0.035] hover:text-black"
+                      >
+                        Framework
+                      </Link>
+                      <Link
+                        href="/registry"
+                        className="rounded-full border border-transparent px-3 py-2 text-center text-sm font-semibold text-black/80 transition hover:border-black/15 hover:bg-black/[0.035] hover:text-black"
+                      >
+                        Registry
+                      </Link>
+                    </div>
 
-                    <Link
-                      href="/demo-script"
-                      className="px-4 py-2 rounded-full text-sm font-semibold border border-black hover:bg-black/[0.04] w-full md:w-auto text-center flex items-center justify-center"
-                      title="Open the Snowflake demo talk track"
-                    >
-                      Demo Script
-                    </Link>
+                    <div className="hidden lg:block h-7 w-px bg-black/10" />
 
-                    <Link
-                      href="/admin/login"
-                      className="px-4 py-2 rounded-full text-sm font-semibold border border-black bg-black text-white hover:bg-black/90 w-full md:w-auto text-center flex items-center justify-center"
-                      title="Open the GAFAIG admin login"
-                    >
-                      Admin
-                    </Link>
+                    <div className="mt-1 flex flex-col gap-2 lg:mt-0 lg:flex-row lg:items-center">
+                      <Link
+                        href="/demo"
+                        className="inline-flex w-full items-center justify-center rounded-full border border-black/15 px-4 py-2 text-center text-sm font-semibold text-black transition hover:border-black/25 hover:bg-black/[0.035] lg:w-auto"
+                        title="Open the GAFAIG demo overview"
+                      >
+                        Demo
+                      </Link>
+
+                      <Link
+                        href="/demo-script"
+                        className="inline-flex w-full items-center justify-center rounded-full border border-black/15 px-4 py-2 text-center text-sm font-semibold text-black transition hover:border-black/25 hover:bg-black/[0.035] lg:w-auto"
+                        title="Open the Snowflake demo talk track"
+                      >
+                        Demo Script
+                      </Link>
+
+                      <Link
+                        href="/admin/login"
+                        className="inline-flex w-full items-center justify-center rounded-full border border-black bg-black px-4 py-2 text-center text-sm font-semibold text-white transition hover:bg-black/90 lg:w-auto"
+                        title="Open the GAFAIG admin login"
+                      >
+                        Admin
+                      </Link>
+                    </div>
                   </div>
                 </nav>
               </div>
             </div>
           </header>
 
-          <div className="flex-1">{children}</div>
+          <div
+            aria-hidden="true"
+            className="pointer-events-none fixed inset-x-0 top-0 -z-10 h-[420px] bg-[radial-gradient(circle_at_top,rgba(0,0,0,0.05),transparent_58%)]"
+          />
 
-          <div className="mt-auto">
+          <div className="flex-1">
+            <div className="mx-auto max-w-[1320px] px-0">
+              {children}
+            </div>
+          </div>
+
+          <div className="mt-auto border-t border-black/8 bg-black/[0.015]">
             <SiteFooter />
           </div>
         </div>
