@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
+import { isGafaigRegistryId } from "@/lib/ids";
 
 export const dynamic = "force-dynamic";
 
@@ -52,10 +53,6 @@ function parseDate(v: string | null | undefined) {
 }
 
 function isCurrentlyValidRecord(row: RegistryRow, now = new Date()) {
-  // Keep deterministic / conservative:
-  // - must be approved
-  // - validFrom (if present) must be <= now
-  // - validTo (if present) must be > now
   if (String(row.decisionStatus || "").toLowerCase() !== "approved") return false;
 
   const vf = parseDate(row.validFrom);
@@ -68,9 +65,6 @@ function isCurrentlyValidRecord(row: RegistryRow, now = new Date()) {
 }
 
 function canonicalPayload(row: RegistryRow) {
-  // IMPORTANT: Canonical, stable fields only.
-  // Avoid derived/formatting fields and anything “noisy”.
-  // This is what you’re signing.
   const payload = {
     registryId: row.registryId,
     applicationId: row.applicationId,
@@ -88,7 +82,6 @@ function canonicalPayload(row: RegistryRow) {
     certifiedAt: row.certifiedAt ?? "",
   };
 
-  // Produce a stable string: sorted keys + JSON encoding.
   const keys = Object.keys(payload).sort();
   const stableObj: Record<string, any> = {};
   for (const k of keys) stableObj[k] = (payload as any)[k];
@@ -97,12 +90,12 @@ function canonicalPayload(row: RegistryRow) {
 }
 
 function signPayload(payload: Record<string, any>, secret: string) {
-  const msg = JSON.stringify(payload); // stable due to sorted keys above
+  const msg = JSON.stringify(payload);
   const mac = crypto.createHmac("sha256", secret).update(msg, "utf8").digest();
   return {
     alg: "HS256",
     signature: toBase64Url(mac),
-    message: msg, // useful for debugging; safe to return (contains only public fields)
+    message: msg,
   };
 }
 
@@ -116,15 +109,15 @@ function corsHeaders() {
 }
 
 function cacheHeaders(verified: boolean) {
-  // Tuned for “badge checks” and crawlers.
-  // Vercel respects s-maxage at the edge.
   if (verified) {
     return {
-      "Cache-Control": "public, max-age=60, s-maxage=300, stale-while-revalidate=3600",
+      "Cache-Control":
+        "public, max-age=60, s-maxage=300, stale-while-revalidate=3600",
     };
   }
   return {
-    "Cache-Control": "public, max-age=30, s-maxage=60, stale-while-revalidate=600",
+    "Cache-Control":
+      "public, max-age=30, s-maxage=60, stale-while-revalidate=600",
   };
 }
 
@@ -138,14 +131,35 @@ export async function OPTIONS() {
   });
 }
 
-export async function GET(req: NextRequest, ctx: { params: { registryId: string } }) {
+export async function GET(
+  req: NextRequest,
+  ctx: { params: { registryId: string } }
+) {
   const registryIdRaw = ctx?.params?.registryId ?? "";
   const registryId = safeUpper(registryIdRaw);
+
+  if (!registryId) {
+    return NextResponse.json(
+      { ok: false, error: "Missing registryId" },
+      { status: 400, headers: { ...corsHeaders(), ...cacheHeaders(false) } }
+    );
+  }
+
+  if (!isGafaigRegistryId(registryId)) {
+    return NextResponse.json(
+      { ok: false, error: "Invalid registryId format" },
+      { status: 400, headers: { ...corsHeaders(), ...cacheHeaders(false) } }
+    );
+  }
 
   const secret = process.env.GAFAIG_VERIFY_SIGNING_SECRET;
   if (!secret || secret.trim().length < 32) {
     return NextResponse.json(
-      { ok: false, error: "Server misconfigured: missing GAFAIG_VERIFY_SIGNING_SECRET (min 32 chars)." },
+      {
+        ok: false,
+        error:
+          "Server misconfigured: missing GAFAIG_VERIFY_SIGNING_SECRET (min 32 chars).",
+      },
       { status: 500, headers: { ...corsHeaders(), ...cacheHeaders(false) } }
     );
   }
@@ -153,7 +167,6 @@ export async function GET(req: NextRequest, ctx: { params: { registryId: string 
   const now = new Date();
   const origin = new URL(req.url).origin;
 
-  // Reuse existing registry API (no new Snowflake plumbing here)
   const url = new URL(`${origin}/api/registry`);
   url.searchParams.set("limit", "1");
   url.searchParams.set("registryId", registryId);
@@ -179,7 +192,13 @@ export async function GET(req: NextRequest, ctx: { params: { registryId: string 
   const row = reg.rows?.[0];
   if (!row) {
     return NextResponse.json(
-      { ok: true, registryId, verified: false, reason: "not_found", now: now.toISOString() },
+      {
+        ok: true,
+        registryId,
+        verified: false,
+        reason: "not_found",
+        now: now.toISOString(),
+      },
       { status: 200, headers: { ...corsHeaders(), ...cacheHeaders(false) } }
     );
   }
@@ -201,7 +220,7 @@ export async function GET(req: NextRequest, ctx: { params: { registryId: string 
       proof: {
         alg: signed.alg,
         signature: signed.signature,
-        message: signed.message, // contains ONLY public fields (stable)
+        message: signed.message,
         signedAt: now.toISOString(),
       },
       now: now.toISOString(),
