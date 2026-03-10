@@ -4,9 +4,6 @@ import { executeQuery } from "@/lib/snowflake";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-/**
- * Normalize Snowflake results into a plain array so .length / [0] work safely.
- */
 function normalizeRows<T = any>(result: any): T[] {
   if (!result) return [];
   if (Array.isArray(result)) return result;
@@ -23,21 +20,22 @@ export async function GET(
   ctx: { params: { participantId: string } }
 ) {
   try {
-    const participantId = ctx?.params?.participantId;
+    const participantId = String(ctx?.params?.participantId || "").trim();
     if (!participantId) return jsonError("Missing participantId", 400);
 
-    // Adjust table/column names ONLY if your schema differs.
     const sql = `
       SELECT
-        PARTICIPANT_ID as "participantId",
-        NAME as "name",
-        TYPE as "type",
-        STATUS as "status",
-        WEBSITE as "website",
-        COUNTRY as "country",
-        CREATED_AT as "createdAt",
-        UPDATED_AT as "updatedAt"
-      FROM CORE.PARTICIPANTS
+        PARTICIPANT_ID AS ID,
+        NAME,
+        PARTICIPANT_TYPE,
+        JURISDICTION_LEVEL,
+        COUNTRY,
+        WEBSITE,
+        DESIGNATION_LEVEL,
+        VERIFICATION_STATUS,
+        CREATED_AT,
+        UPDATED_AT
+      FROM GAFAIG_DB.CORE.PARTICIPANTS
       WHERE PARTICIPANT_ID = ?
       LIMIT 1
     `;
@@ -45,8 +43,11 @@ export async function GET(
     const result = await executeQuery(sql, [participantId]);
     const rows = normalizeRows<any>(result);
 
-    if (!rows || rows.length === 0) {
-      return NextResponse.json({ ok: false, error: "Not found" }, { status: 404 });
+    if (rows.length === 0) {
+      return NextResponse.json(
+        { ok: false, error: "Not found" },
+        { status: 404 }
+      );
     }
 
     return NextResponse.json({ ok: true, row: rows[0] });
