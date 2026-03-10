@@ -34,15 +34,19 @@ export default async function RegistryRecordPage({
   const isValidRegistryId = isGafaigRegistryId(registryId);
 
   const baseUrl = getBaseUrl();
-  const absoluteRecordUrl = `${baseUrl}/registry/${encodeURIComponent(registryId)}`;
-  const absoluteVerifyUrl = `${baseUrl}/api/verify/${encodeURIComponent(registryId)}`;
+  const absoluteRecordUrl = `${baseUrl}/registry/${encodeURIComponent(
+    registryId
+  )}`;
+  const absoluteVerifyUrl = `${baseUrl}/api/verify/${encodeURIComponent(
+    registryId
+  )}`;
 
   const badgeSrcAbsolute = `${baseUrl}/images/gafaig-badge-verified-new.png`;
   const badgeSrcRelative = `/images/gafaig-badge-verified-new.png`;
 
   if (!isValidRegistryId) {
     return (
-      <main className="mx-auto max-w-[1100px] px-6 pt-14 pb-16">
+      <main className="mx-auto max-w-[1100px] px-6 pb-20 pt-14">
         <RegistryHeaderPanel
           registryId={registryId || "Invalid registry ID"}
           entityName={null}
@@ -53,11 +57,13 @@ export default async function RegistryRecordPage({
           absoluteRecordUrl={absoluteRecordUrl}
         />
 
-        <section className="rounded-2xl border border-black/10 p-5">
-          <div className="font-semibold text-black">Record not found</div>
-          <p className="mt-2 text-[14px] leading-[1.7] text-black/70">
-            No public registry record exists for{" "}
-            <span className="font-mono">
+        <section className="rounded-2xl border border-black/10 bg-white/70 p-6">
+          <div className="text-[16px] font-semibold text-black">
+            Record not found
+          </div>
+          <p className="mt-3 max-w-[760px] text-[15px] leading-[1.75] text-black/72">
+            No public GAFAIG certification record exists for{" "}
+            <span className="font-mono text-black">
               {registryId || "(missing registry ID)"}
             </span>
             .
@@ -77,7 +83,7 @@ export default async function RegistryRecordPage({
   const isVerified = verifyData.ok ? !!verifyData.verified : false;
 
   return (
-    <main className="mx-auto max-w-[1100px] px-6 pt-14 pb-16">
+    <main className="mx-auto max-w-[1100px] px-6 pb-20 pt-14">
       <RegistryHeaderPanel
         registryId={registryId}
         entityName={row?.entityName}
@@ -89,22 +95,53 @@ export default async function RegistryRecordPage({
       />
 
       {!data.ok ? (
-        <section className="rounded-2xl border border-black/10 p-5">
-          <div className="font-semibold text-black">Unable to load record</div>
-          <p className="mt-2 text-[14px] leading-[1.7] text-black/70">
+        <section className="rounded-2xl border border-black/10 bg-white/70 p-6">
+          <div className="text-[16px] font-semibold text-black">
+            Unable to load record
+          </div>
+          <p className="mt-3 max-w-[760px] text-[15px] leading-[1.75] text-black/72">
             {data.error}
           </p>
         </section>
       ) : !row ? (
-        <section className="rounded-2xl border border-black/10 p-5">
-          <div className="font-semibold text-black">Record not found</div>
-          <p className="mt-2 text-[14px] leading-[1.7] text-black/70">
-            No public registry record exists for{" "}
-            <span className="font-mono">{registryId}</span>.
+        <section className="rounded-2xl border border-black/10 bg-white/70 p-6">
+          <div className="text-[16px] font-semibold text-black">
+            Record not found
+          </div>
+          <p className="mt-3 max-w-[760px] text-[15px] leading-[1.75] text-black/72">
+            No public GAFAIG certification record exists for{" "}
+            <span className="font-mono text-black">{registryId}</span>.
           </p>
         </section>
       ) : (
         <>
+          <section className="border-t border-black/10 pt-8">
+            <div className="grid gap-4 md:grid-cols-[1.35fr_.65fr]">
+              <div className="rounded-2xl border border-black/10 bg-white/70 p-5">
+                <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/55">
+                  Public certification record
+                </div>
+                <p className="mt-3 max-w-[760px] text-[15px] leading-[1.8] text-black/78">
+                  This record confirms that the organization completed a GAFAIG
+                  verification process for human oversight across AI
+                  infrastructure. Public disclosure is limited to certification
+                  outcomes and linked verification materials.
+                </p>
+              </div>
+
+              <div className="rounded-2xl border border-black/10 bg-white/70 p-5">
+                <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/55">
+                  Registry function
+                </div>
+                <p className="mt-3 text-[15px] leading-[1.8] text-black/78">
+                  The registry supports independent validation of certification
+                  status without exposing internal evidence, findings, or private
+                  assessment materials.
+                </p>
+              </div>
+            </div>
+          </section>
+
           <RegistryCertificationSummary row={row} formatDate={formatDate} />
 
           <RegistryVerificationPanel
@@ -126,9 +163,9 @@ export default async function RegistryRecordPage({
               Privacy boundary
             </h2>
             <p className="mt-3 max-w-[920px] text-[16px] leading-[1.8] text-black/80">
-              The registry confirms certification without exposing internal
-              evidence, findings, reviewer rationales, or private assessment
-              materials.
+              This public record confirms certification outcomes without exposing
+              internal evidence, findings, reviewer rationales, or private
+              assessment materials.
             </p>
           </section>
         </>

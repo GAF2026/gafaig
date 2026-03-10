@@ -7,25 +7,38 @@ type Props = {
   badgeSrcRelative: string;
 };
 
+function getRegistryIdFromRecordUrl(url: string) {
+  const match = url.match(/\/registry\/([^/?#]+)/i);
+  return match?.[1] ? decodeURIComponent(match[1]) : "";
+}
+
 export default function RegistryBadgePanel({
   absoluteRecordUrl,
   absoluteVerifyUrl,
-  badgeSrcAbsolute,
-  badgeSrcRelative,
 }: Props) {
+  const registryId = getRegistryIdFromRecordUrl(absoluteRecordUrl);
+  const dynamicBadgeUrl = registryId
+    ? `${new URL(absoluteRecordUrl).origin}/badge/${encodeURIComponent(
+        registryId
+      )}.svg`
+    : "";
+
   const embedHtml = `<a href="${absoluteRecordUrl}" target="_blank" rel="noopener noreferrer">
-  <img src="${badgeSrcAbsolute}" alt="Verified by GAFAIG" height="72" />
+  <img src="${dynamicBadgeUrl}" alt="Verified by GAFAIG" height="72" />
 </a>`;
 
-  const embedMarkdown = `[![Verified by GAFAIG](${badgeSrcAbsolute})](${absoluteRecordUrl})`;
+  const embedMarkdown = `[![Verified by GAFAIG](${dynamicBadgeUrl})](${absoluteRecordUrl})`;
 
   return (
     <section className="mt-10 border-t border-black/10 pt-8">
-      <h2 className="text-[16px] font-semibold text-black">Verified by GAFAIG</h2>
+      <h2 className="text-[16px] font-semibold text-black">
+        Verified by GAFAIG
+      </h2>
       <p className="mt-3 max-w-[920px] text-[14px] leading-[1.8] text-black/75">
         Organizations that successfully complete independent verification may
-        display the GAFAIG Verified badge on their website. The badge links
-        directly to this public registry record.
+        display the GAFAIG Verified badge on their website. The dynamic badge
+        links directly to the public registry record and reflects current
+        certification status through the public verification layer.
       </p>
 
       <div className="mt-6 rounded-2xl border border-black/10 bg-black/[0.02] p-6">
@@ -36,7 +49,7 @@ export default function RegistryBadgePanel({
           className="inline-block"
         >
           <img
-            src={badgeSrcRelative}
+            src={dynamicBadgeUrl}
             alt="Verified by GAFAIG"
             className="h-[96px] w-auto md:h-[110px]"
           />
@@ -45,6 +58,11 @@ export default function RegistryBadgePanel({
         <div className="mt-4 text-[13px] text-black/60">
           Click the badge or use this link:
           <span className="ml-2 font-mono text-black">{absoluteRecordUrl}</span>
+        </div>
+
+        <div className="mt-3 text-[13px] text-black/60">
+          Dynamic badge:
+          <span className="ml-2 font-mono text-black">{dynamicBadgeUrl}</span>
         </div>
 
         <div className="mt-3 text-[13px] text-black/60">
@@ -74,9 +92,10 @@ export default function RegistryBadgePanel({
       </div>
 
       <p className="mt-4 max-w-[980px] text-[12px] leading-[1.7] text-black/60">
-        Note: This badge confirms certification status and tiering outcomes
-        only. GAFAIG does not disclose internal evidence, findings, reviewer
-        rationales, or private assessment materials through the public registry.
+        Note: This badge confirms certification status and certification
+        outcomes only. GAFAIG does not disclose internal evidence, findings,
+        reviewer rationales, or private assessment materials through the public
+        registry.
       </p>
     </section>
   );

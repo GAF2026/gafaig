@@ -2,6 +2,8 @@
 // GAFAIG Snowflake server-only helper layer
 // Supports legacy and modern route handlers.
 
+import fs from "fs";
+import path from "path";
 import snowflake from "snowflake-sdk";
 
 type Bind = string | number | boolean | null;
@@ -28,41 +30,67 @@ export type SnowflakeCtx = {
   warehouse?: string;
 };
 
+function normalizePem(raw: string): string {
+  return raw.replace(/\\n/g, "\n").trim();
+}
+
 /**
- * Normalize private key input.
+ * Read private key from env value or file path.
+ * Priority:
+ * 1. SNOWFLAKE_PRIVATE_KEY
+ * 2. SNOWFLAKE_PRIVATE_KEY_PATH
  */
 function readPrivateKey(): string | undefined {
   const raw = process.env.SNOWFLAKE_PRIVATE_KEY;
-  if (!raw) return undefined;
-
-  // If PEM-like, normalize escaped newlines
-  if (raw.includes("BEGIN PRIVATE KEY")) {
-    return raw.replace(/\\n/g, "\n");
-  }
-
-  // Try base64 decode
-  try {
-    const decoded = Buffer.from(raw, "base64").toString("utf8");
-    if (decoded.includes("BEGIN PRIVATE KEY")) {
-      return decoded;
+  if (raw) {
+    // If PEM-like, normalize escaped newlines
+    if (raw.includes("BEGIN PRIVATE KEY")) {
+      return normalizePem(raw);
     }
-  } catch {
-    // ignore
+
+    // Try base64 decode
+    try {
+      const decoded = Buffer.from(raw, "base64").toString("utf8");
+      if (decoded.includes("BEGIN PRIVATE KEY")) {
+        return normalizePem(decoded);
+      }
+    } catch {
+      // ignore
+    }
+
+    return normalizePem(raw);
   }
 
-  return raw.replace(/\\n/g, "\n");
+  const keyPath = process.env.SNOWFLAKE_PRIVATE_KEY_PATH;
+  if (!keyPath) return undefined;
+
+  const resolvedPath = path.isAbsolute(keyPath)
+    ? keyPath
+    : path.resolve(process.cwd(), keyPath);
+
+  if (!fs.existsSync(resolvedPath)) {
+    throw new Error(
+      `Snowflake private key file not found: ${resolvedPath}`
+    );
+  }
+
+  const fileContents = fs.readFileSync(resolvedPath, "utf8");
+  return normalizePem(fileContents);
 }
 
 function getConfig() {
   const account = process.env.SNOWFLAKE_ACCOUNT;
-  const username = process.env.SNOWFLAKE_USERNAME;
+  const username =
+    process.env.SNOWFLAKE_USER || process.env.SNOWFLAKE_USERNAME;
   const warehouse = process.env.SNOWFLAKE_WAREHOUSE;
   const database = process.env.SNOWFLAKE_DATABASE;
   const schema = process.env.SNOWFLAKE_SCHEMA;
   const role = process.env.SNOWFLAKE_ROLE;
 
   if (!account) throw new Error("Missing env: SNOWFLAKE_ACCOUNT");
-  if (!username) throw new Error("Missing env: SNOWFLAKE_USERNAME");
+  if (!username) {
+    throw new Error("Missing env: SNOWFLAKE_USER or SNOWFLAKE_USERNAME");
+  }
 
   const privateKey = readPrivateKey();
   const password = process.env.SNOWFLAKE_PASSWORD;
@@ -84,7 +112,7 @@ function getConfig() {
   // Fallback to password
   if (!password) {
     throw new Error(
-      "Missing Snowflake credentials. Provide SNOWFLAKE_PRIVATE_KEY or SNOWFLAKE_PASSWORD."
+      "Missing Snowflake credentials. Provide SNOWFLAKE_PRIVATE_KEY, SNOWFLAKE_PRIVATE_KEY_PATH, or SNOWFLAKE_PASSWORD."
     );
   }
 
@@ -106,7 +134,9 @@ declare global {
 }
 
 async function getConnection(): Promise<snowflake.Connection> {
-  const g = globalThis as unknown as { __gafaig_sf_conn?: snowflake.Connection };
+  const g = globalThis as unknown as {
+    __gafaig_sf_conn?: snowflake.Connection;
+  };
 
   if (g.__gafaig_sf_conn) {
     return g.__gafaig_sf_conn;
@@ -117,9 +147,9 @@ async function getConnection(): Promise<snowflake.Connection> {
   const conn = snowflake.createConnection({
     account: cfg.account,
     username: cfg.username,
-    password: (cfg as any).password,
-    authenticator: (cfg as any).authenticator,
-    privateKey: (cfg as any).privateKey,
+    password: "password" in cfg ? cfg.password : undefined,
+    authenticator: "authenticator" in cfg ? cfg.authenticator : undefined,
+    privateKey: "privateKey" in cfg ? cfg.privateKey : undefined,
     warehouse: cfg.warehouse,
     database: cfg.database,
     schema: cfg.schema,
@@ -141,7 +171,10 @@ async function getConnection(): Promise<snowflake.Connection> {
 /**
  * Canonical rows-only query helper.
  */
-export async function sfQuery<T = any>(sqlText: string, binds?: Binds): Promise<T[]> {
+export async function sfQuery<T = any>(
+  sqlText: string,
+  binds?: Binds
+): Promise<T[]> {
   const result = await sfQueryResult<T>(sqlText, binds);
   if (!result.ok) throw new Error(result.error);
   return result.rows;
@@ -150,7 +183,10 @@ export async function sfQuery<T = any>(sqlText: string, binds?: Binds): Promise<
 /**
  * Canonical structured query helper.
  */
-export async function sfQueryResult<T = any>(sqlText: string, binds?: Binds): Promise<SfQueryResponse<T>> {
+export async function sfQueryResult<T = any>(
+  sqlText: string,
+  binds?: Binds
+): Promise<SfQueryResponse<T>> {
   try {
     const conn = await getConnection();
 
@@ -174,14 +210,20 @@ export async function sfQueryResult<T = any>(sqlText: string, binds?: Binds): Pr
 /**
  * Backward compatibility alias.
  */
-export async function querySnowflake<T = any>(sqlText: string, binds?: Binds): Promise<SfQueryResponse<T>> {
+export async function querySnowflake<T = any>(
+  sqlText: string,
+  binds?: Binds
+): Promise<SfQueryResponse<T>> {
   return sfQueryResult<T>(sqlText, binds);
 }
 
 /**
  * Backward compatibility for older routes expecting rows only.
  */
-export async function executeQuery<T = any>(sqlText: string, binds?: Binds): Promise<T[]> {
+export async function executeQuery<T = any>(
+  sqlText: string,
+  binds?: Binds
+): Promise<T[]> {
   return sfQuery<T>(sqlText, binds);
 }
 
