@@ -31,9 +31,32 @@ const DESIGNATION_PRESETS = [
   { value: "governance-partner", label: "Governance Partner" },
 ];
 
+function normalizeParticipantRow(raw: any): ParticipantRow {
+  return {
+    participantId: raw?.participantId ?? raw?.PARTICIPANT_ID ?? raw?.ID ?? "",
+    participantType:
+      raw?.participantType ?? raw?.PARTICIPANT_TYPE ?? raw?.TYPE ?? null,
+    jurisdictionLevel:
+      raw?.jurisdictionLevel ?? raw?.JURISDICTION_LEVEL ?? null,
+    name: raw?.name ?? raw?.NAME ?? null,
+    country: raw?.country ?? raw?.COUNTRY ?? null,
+    website: raw?.website ?? raw?.WEBSITE ?? null,
+    profileSlug: raw?.profileSlug ?? raw?.PROFILE_SLUG ?? raw?.SLUG ?? null,
+    designationLevel:
+      raw?.designationLevel ?? raw?.DESIGNATION_LEVEL ?? null,
+    verificationStatus:
+      raw?.verificationStatus ?? raw?.VERIFICATION_STATUS ?? null,
+    contactEmail: raw?.contactEmail ?? raw?.CONTACT_EMAIL ?? null,
+    publicSummary: raw?.publicSummary ?? raw?.PUBLIC_SUMMARY ?? null,
+    logoUrl: raw?.logoUrl ?? raw?.LOGO_URL ?? null,
+    createdAt: raw?.createdAt ?? raw?.CREATED_AT ?? null,
+    updatedAt: raw?.updatedAt ?? raw?.UPDATED_AT ?? null,
+  };
+}
+
 export default function AdminParticipantDetailsPage() {
   const params = useParams();
-  const id = String((params as any)?.id ?? "");
+  const id = String((params as any)?.Id ?? (params as any)?.id ?? "");
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -47,7 +70,7 @@ export default function AdminParticipantDetailsPage() {
   const [verificationStatus, setVerificationStatus] = useState("unverified");
   const [publicSummary, setPublicSummary] = useState("");
 
-  // save state (PATCH endpoint added next step)
+  // save state
   const [saving, setSaving] = useState(false);
   const [saveMsg, setSaveMsg] = useState("");
 
@@ -66,7 +89,7 @@ export default function AdminParticipantDetailsPage() {
         throw new Error(json?.error || `Failed to load participant (${res.status})`);
       }
 
-      const r: ParticipantRow = json.row;
+      const r = normalizeParticipantRow(json.row);
       setRow(r);
 
       setCountry(r.country ?? "");
@@ -89,7 +112,6 @@ export default function AdminParticipantDetailsPage() {
   }, [id]);
 
   async function save() {
-    // NOTE: PATCH route is added in the NEXT step.
     setSaving(true);
     setSaveMsg("");
 
@@ -125,7 +147,15 @@ export default function AdminParticipantDetailsPage() {
       <AdminNav />
 
       <div style={{ padding: 24, maxWidth: 960, margin: "0 auto" }}>
-        <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "baseline",
+            justifyContent: "space-between",
+            gap: 12,
+            flexWrap: "wrap",
+          }}
+        >
           <h1 style={{ fontSize: 22, fontWeight: 900 }}>Admin — Participant</h1>
           <a href="/admin/participants" style={{ textDecoration: "underline" }}>
             ← Back to participants
@@ -135,7 +165,14 @@ export default function AdminParticipantDetailsPage() {
         {loading ? <div style={{ marginTop: 12 }}>Loading…</div> : null}
 
         {error ? (
-          <div style={{ marginTop: 12, padding: 12, border: "1px solid crimson", borderRadius: 10 }}>
+          <div
+            style={{
+              marginTop: 12,
+              padding: 12,
+              border: "1px solid crimson",
+              borderRadius: 10,
+            }}
+          >
             <div style={{ color: "crimson", fontWeight: 900 }}>Error</div>
             <div style={{ marginTop: 6 }}>{error}</div>
           </div>
@@ -146,7 +183,7 @@ export default function AdminParticipantDetailsPage() {
             <div style={{ border: "1px solid #ddd", borderRadius: 12, padding: 14 }}>
               <div style={{ fontSize: 20, fontWeight: 900 }}>{row.name ?? "—"}</div>
               <div style={{ marginTop: 6, color: "#555" }}>
-                <b>ID:</b> {row.participantId}
+                <b>ID:</b> {row.participantId || "—"}
               </div>
               <div style={{ marginTop: 6, color: "#555" }}>
                 <b>Slug:</b> {row.profileSlug ?? "—"}{" "}
@@ -165,13 +202,27 @@ export default function AdminParticipantDetailsPage() {
                 ) : null}
               </div>
 
-              <div style={{ marginTop: 14, display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 12 }}>
+              <div
+                style={{
+                  marginTop: 14,
+                  display: "grid",
+                  gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
+                  gap: 12,
+                }}
+              >
                 <div>
-                  <div style={{ fontWeight: 800, marginBottom: 6 }}>Verification Status</div>
+                  <div style={{ fontWeight: 800, marginBottom: 6 }}>
+                    Verification Status
+                  </div>
                   <select
                     value={verificationStatus}
                     onChange={(e) => setVerificationStatus(e.target.value)}
-                    style={{ width: "100%", padding: "8px 10px", border: "1px solid #ccc", borderRadius: 10 }}
+                    style={{
+                      width: "100%",
+                      padding: "8px 10px",
+                      border: "1px solid #ccc",
+                      borderRadius: 10,
+                    }}
                   >
                     <option value="unverified">unverified</option>
                     <option value="pending">pending</option>
@@ -181,11 +232,18 @@ export default function AdminParticipantDetailsPage() {
                 </div>
 
                 <div>
-                  <div style={{ fontWeight: 800, marginBottom: 6 }}>Designation Level</div>
+                  <div style={{ fontWeight: 800, marginBottom: 6 }}>
+                    Designation Level
+                  </div>
                   <select
                     value={designationLevel}
                     onChange={(e) => setDesignationLevel(e.target.value)}
-                    style={{ width: "100%", padding: "8px 10px", border: "1px solid #ccc", borderRadius: 10 }}
+                    style={{
+                      width: "100%",
+                      padding: "8px 10px",
+                      border: "1px solid #ccc",
+                      borderRadius: 10,
+                    }}
                   >
                     {DESIGNATION_PRESETS.map((d) => (
                       <option key={d.value} value={d.value}>
@@ -201,7 +259,12 @@ export default function AdminParticipantDetailsPage() {
                     value={country}
                     onChange={(e) => setCountry(e.target.value)}
                     placeholder="e.g., United States"
-                    style={{ width: "100%", padding: "8px 10px", border: "1px solid #ccc", borderRadius: 10 }}
+                    style={{
+                      width: "100%",
+                      padding: "8px 10px",
+                      border: "1px solid #ccc",
+                      borderRadius: 10,
+                    }}
                   />
                 </div>
 
@@ -211,7 +274,12 @@ export default function AdminParticipantDetailsPage() {
                     value={website}
                     onChange={(e) => setWebsite(e.target.value)}
                     placeholder="https://..."
-                    style={{ width: "100%", padding: "8px 10px", border: "1px solid #ccc", borderRadius: 10 }}
+                    style={{
+                      width: "100%",
+                      padding: "8px 10px",
+                      border: "1px solid #ccc",
+                      borderRadius: 10,
+                    }}
                   />
                 </div>
               </div>
@@ -223,11 +291,24 @@ export default function AdminParticipantDetailsPage() {
                   onChange={(e) => setPublicSummary(e.target.value)}
                   placeholder="Short public description shown on the profile."
                   rows={6}
-                  style={{ width: "100%", padding: "10px 12px", border: "1px solid #ccc", borderRadius: 10 }}
+                  style={{
+                    width: "100%",
+                    padding: "10px 12px",
+                    border: "1px solid #ccc",
+                    borderRadius: 10,
+                  }}
                 />
               </div>
 
-              <div style={{ marginTop: 12, display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
+              <div
+                style={{
+                  marginTop: 12,
+                  display: "flex",
+                  gap: 10,
+                  alignItems: "center",
+                  flexWrap: "wrap",
+                }}
+              >
                 <button
                   onClick={() => save()}
                   disabled={saving}
@@ -258,7 +339,16 @@ export default function AdminParticipantDetailsPage() {
                   Reload
                 </button>
 
-                {saveMsg ? <div style={{ color: saveMsg.startsWith("Save failed") ? "crimson" : "#2e7d32", fontWeight: 900 }}>{saveMsg}</div> : null}
+                {saveMsg ? (
+                  <div
+                    style={{
+                      color: saveMsg.startsWith("Save failed") ? "crimson" : "#2e7d32",
+                      fontWeight: 900,
+                    }}
+                  >
+                    {saveMsg}
+                  </div>
+                ) : null}
               </div>
 
               <div style={{ marginTop: 14, color: "#666" }}>
