@@ -73,6 +73,12 @@ export default async function ExplorerSystemsPage() {
             >
               Open systems directory
             </Link>
+            <Link
+              href="/explorer/countries"
+              className="inline-flex items-center rounded-full border border-neutral-300 px-4 py-2 text-sm font-medium transition hover:bg-neutral-50"
+            >
+              View countries
+            </Link>
           </div>
         </section>
 
@@ -122,8 +128,14 @@ export default async function ExplorerSystemsPage() {
                   <Info label="Deployment" value={row.DEPLOYMENT_STATUS} />
                   <Info label="Oversight" value={row.OVERSIGHT_LEVEL} />
                   <Info label="Risk tier" value={row.RISK_TIER} />
-                  <Info label="Tier / band" value={joinTierBand(row.CERTIFIED_TIER, row.CERTIFIED_BAND)} />
-                  <Info label="Maturity" value={formatScore(row.GOVERNANCE_MATURITY_SCORE)} />
+                  <Info
+                    label="Tier / band"
+                    value={joinTierBand(row.CERTIFIED_TIER, row.CERTIFIED_BAND)}
+                  />
+                  <Info
+                    label="Maturity"
+                    value={formatScore(row.GOVERNANCE_MATURITY_SCORE)}
+                  />
                 </div>
               </div>
             ))}

@@ -108,6 +108,12 @@ export default async function ExplorerPage() {
               Explore systems
             </Link>
             <Link
+              href="/explorer/countries"
+              className="inline-flex items-center rounded-full border border-black px-4 py-2 text-sm font-medium transition hover:bg-black hover:text-white"
+            >
+              Explore countries
+            </Link>
+            <Link
               href="/registry"
               className="inline-flex items-center rounded-full border border-neutral-300 px-4 py-2 text-sm font-medium transition hover:bg-neutral-50"
             >
