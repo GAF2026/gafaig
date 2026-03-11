@@ -33,28 +33,32 @@ export default async function RegistryAiSystemsPage({
   const sp = (await searchParams) || {};
 
   const q = typeof sp.q === "string" ? sp.q.trim() : "";
-  const systemType = typeof sp.systemType === "string" ? sp.systemType.trim() : "";
+  const systemType =
+    typeof sp.systemType === "string" ? sp.systemType.trim() : "";
   const deploymentStatus =
     typeof sp.deploymentStatus === "string" ? sp.deploymentStatus.trim() : "";
 
   const res = await sfQueryResult<RegistryAiSystemRow>(
     `
     SELECT
-      SYSTEM_ID,
-      REGISTRY_ID,
-      SYSTEM_NAME,
-      SYSTEM_TYPE,
-      INTENDED_USE,
-      DEPLOYMENT_STATUS,
-      OVERSIGHT_LEVEL,
-      RISK_TIER,
-      PUBLIC_SUMMARY,
-      DISPLAY_ORDER
-    FROM GAFAIG_DB.CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC
+      s.SYSTEM_ID,
+      s.REGISTRY_ID,
+      r.ENTITY_NAME,
+      s.SYSTEM_NAME,
+      s.SYSTEM_TYPE,
+      s.INTENDED_USE,
+      s.DEPLOYMENT_STATUS,
+      s.OVERSIGHT_LEVEL,
+      s.RISK_TIER,
+      s.PUBLIC_SUMMARY,
+      s.DISPLAY_ORDER
+    FROM GAFAIG_DB.CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC s
+    LEFT JOIN GAFAIG_DB.CORE.V_REGISTRY_PUBLIC r
+      ON s.REGISTRY_ID = r.REGISTRY_ID
     ORDER BY
-      REGISTRY_ID ASC,
-      DISPLAY_ORDER ASC NULLS LAST,
-      SYSTEM_NAME ASC
+      s.REGISTRY_ID ASC,
+      s.DISPLAY_ORDER ASC NULLS LAST,
+      s.SYSTEM_NAME ASC
     `
   );
 
@@ -69,6 +73,7 @@ export default async function RegistryAiSystemsPage({
     const matchesQuery =
       !q ||
       includesText(row.SYSTEM_NAME, q) ||
+      includesText(row.ENTITY_NAME, q) ||
       includesText(row.INTENDED_USE, q) ||
       includesText(row.PUBLIC_SUMMARY, q) ||
       includesText(row.SYSTEM_TYPE, q) ||
@@ -100,9 +105,10 @@ export default async function RegistryAiSystemsPage({
               Certified AI Systems
             </h1>
             <p className="mt-4 max-w-3xl text-base leading-7 text-neutral-700">
-              Public registry of AI systems covered by GAFAIG-certified governance
-              reviews. Certification status is shown through the associated
-              registry record while private evidence remains non-public.
+              Public registry of AI systems covered by GAFAIG-certified
+              governance reviews. Certification status is shown through the
+              associated registry record while private evidence remains
+              non-public.
             </p>
           </div>
 
@@ -131,8 +137,9 @@ export default async function RegistryAiSystemsPage({
                   Search directory
                 </div>
                 <p className="mt-2 max-w-3xl text-sm leading-6 text-neutral-700">
-                  Search by AI system name, intended use, summary text, registry ID,
-                  or filter by system type and deployment status.
+                  Search by AI system name, organization, intended use, summary
+                  text, registry ID, or filter by system type and deployment
+                  status.
                 </p>
               </div>
 
@@ -152,7 +159,7 @@ export default async function RegistryAiSystemsPage({
                     id="q"
                     name="q"
                     defaultValue={q}
-                    placeholder="e.g. tutor, LLM, education, GAFAIG-00000001"
+                    placeholder="e.g. tutor, OpenAI, education, GAFAIG-00000001"
                     className="w-full rounded-xl border border-neutral-300 bg-white px-3 py-2 text-sm outline-none transition focus:border-black"
                   />
                 </div>
@@ -221,15 +228,19 @@ export default async function RegistryAiSystemsPage({
 
             {allRows.length === 0 ? (
               <div className="rounded-2xl border border-neutral-200 bg-neutral-50 p-8">
-                <h2 className="text-xl font-medium">No certified AI systems yet</h2>
+                <h2 className="text-xl font-medium">
+                  No certified AI systems yet
+                </h2>
                 <p className="mt-2 text-neutral-600">
-                  Publish a certified case from the admin workflow to make AI system
-                  disclosures visible here.
+                  Publish a certified case from the admin workflow to make AI
+                  system disclosures visible here.
                 </p>
               </div>
             ) : filteredRows.length === 0 ? (
               <div className="rounded-2xl border border-neutral-200 bg-neutral-50 p-8">
-                <h2 className="text-xl font-medium">No AI systems match those filters</h2>
+                <h2 className="text-xl font-medium">
+                  No AI systems match those filters
+                </h2>
                 <p className="mt-2 text-neutral-600">
                   Try a broader search term or clear one of the filters.
                 </p>
@@ -259,7 +270,9 @@ export default async function RegistryAiSystemsPage({
                       {row.REGISTRY_ID ? (
                         <div className="mt-3 flex justify-end">
                           <Link
-                            href={`/registry/${encodeURIComponent(row.REGISTRY_ID)}`}
+                            href={`/registry/${encodeURIComponent(
+                              row.REGISTRY_ID
+                            )}`}
                             className="inline-flex items-center rounded-full border border-black px-4 py-2 text-sm font-medium transition hover:bg-black hover:text-white"
                           >
                             View certification

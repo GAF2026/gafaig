@@ -14,15 +14,31 @@ export default function AISystemCard({ system }: Props) {
             {system.SYSTEM_NAME ?? "Unnamed AI system"}
           </h3>
 
+          {system.ENTITY_NAME ? (
+            <div className="mt-1 text-[14px] text-black/70">
+              Organization:{" "}
+              <span className="font-medium text-black">
+                {system.ENTITY_NAME}
+              </span>
+            </div>
+          ) : null}
+
           <div className="mt-3 flex flex-wrap gap-2">
-            {system.SYSTEM_TYPE ? <StatusChip>{system.SYSTEM_TYPE}</StatusChip> : null}
+            {system.SYSTEM_TYPE ? (
+              <StatusChip>{system.SYSTEM_TYPE}</StatusChip>
+            ) : null}
+
             {system.DEPLOYMENT_STATUS ? (
               <StatusChip>{system.DEPLOYMENT_STATUS}</StatusChip>
             ) : null}
+
             {system.OVERSIGHT_LEVEL ? (
               <StatusChip>{system.OVERSIGHT_LEVEL}</StatusChip>
             ) : null}
-            {system.RISK_TIER ? <StatusChip>{system.RISK_TIER}</StatusChip> : null}
+
+            {system.RISK_TIER ? (
+              <StatusChip>{system.RISK_TIER}</StatusChip>
+            ) : null}
           </div>
         </div>
       </div>
