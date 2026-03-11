@@ -139,13 +139,13 @@ function joinTierBand(tier: string | null, band: string | null) {
   return tier ?? band ?? "—";
 }
 
-function Info({ label, value }: { label: string; value: string }) {
+function Info({ label, value }: { label: string; value: string | null }) {
   return (
     <div className="rounded-xl border border-black/5 px-3 py-3">
       <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-black/55">
         {label}
       </div>
-      <div className="mt-2 text-[14px] text-black/85">{value}</div>
+      <div className="mt-2 text-[14px] text-black/85">{value ?? "—"}</div>
     </div>
   );
 }
