@@ -1,3 +1,4 @@
+import Link from "next/link";
 import StatusChip from "@/components/ui/StatusChip";
 import type { RegistryAiSystemRow } from "@/types/registry";
 
@@ -6,6 +7,10 @@ type Props = {
 };
 
 export default function AISystemCard({ system }: Props) {
+  const organizationHref = system.ENTITY_NAME
+    ? `/registry/ai-systems?org=${encodeURIComponent(system.ENTITY_NAME)}`
+    : null;
+
   return (
     <div className="rounded-2xl border border-black/10 p-5">
       <div className="flex flex-wrap items-start justify-between gap-3">
@@ -17,9 +22,12 @@ export default function AISystemCard({ system }: Props) {
           {system.ENTITY_NAME ? (
             <div className="mt-1 text-[14px] text-black/70">
               Organization:{" "}
-              <span className="font-medium text-black">
+              <Link
+                href={organizationHref!}
+                className="font-medium text-black underline underline-offset-2 hover:text-black/70"
+              >
                 {system.ENTITY_NAME}
-              </span>
+              </Link>
             </div>
           ) : null}
 
