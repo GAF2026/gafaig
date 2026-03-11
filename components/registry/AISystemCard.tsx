@@ -11,12 +11,19 @@ export default function AISystemCard({ system }: Props) {
     ? `/registry/ai-systems?org=${encodeURIComponent(system.ENTITY_NAME)}`
     : null;
 
+  const systemHref = `/ai-systems/${encodeURIComponent(system.SYSTEM_ID)}`;
+
   return (
     <div className="rounded-2xl border border-black/10 p-5">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h3 className="text-[20px] font-semibold leading-[1.3] text-black">
-            {system.SYSTEM_NAME ?? "Unnamed AI system"}
+            <Link
+              href={systemHref}
+              className="hover:underline underline-offset-2"
+            >
+              {system.SYSTEM_NAME ?? "Unnamed AI system"}
+            </Link>
           </h3>
 
           {system.ENTITY_NAME ? (
