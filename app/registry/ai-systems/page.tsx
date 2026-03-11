@@ -33,6 +33,7 @@ export default async function RegistryAiSystemsPage({
   const sp = (await searchParams) || {};
 
   const q = typeof sp.q === "string" ? sp.q.trim() : "";
+  const org = typeof sp.org === "string" ? sp.org.trim() : "";
   const systemType =
     typeof sp.systemType === "string" ? sp.systemType.trim() : "";
   const deploymentStatus =
@@ -64,6 +65,7 @@ export default async function RegistryAiSystemsPage({
 
   const allRows = res.ok ? res.rows ?? [] : [];
 
+  const organizationOptions = uniqueValues(allRows.map((row) => row.ENTITY_NAME));
   const systemTypeOptions = uniqueValues(allRows.map((row) => row.SYSTEM_TYPE));
   const deploymentStatusOptions = uniqueValues(
     allRows.map((row) => row.DEPLOYMENT_STATUS)
@@ -81,6 +83,8 @@ export default async function RegistryAiSystemsPage({
       includesText(row.RISK_TIER, q) ||
       includesText(row.REGISTRY_ID, q);
 
+    const matchesOrganization = !org || String(row.ENTITY_NAME ?? "") === org;
+
     const matchesSystemType =
       !systemType || String(row.SYSTEM_TYPE ?? "") === systemType;
 
@@ -88,10 +92,15 @@ export default async function RegistryAiSystemsPage({
       !deploymentStatus ||
       String(row.DEPLOYMENT_STATUS ?? "") === deploymentStatus;
 
-    return matchesQuery && matchesSystemType && matchesDeploymentStatus;
+    return (
+      matchesQuery &&
+      matchesOrganization &&
+      matchesSystemType &&
+      matchesDeploymentStatus
+    );
   });
 
-  const hasFilters = Boolean(q || systemType || deploymentStatus);
+  const hasFilters = Boolean(q || org || systemType || deploymentStatus);
 
   return (
     <main className="min-h-screen bg-white text-black">
@@ -138,8 +147,8 @@ export default async function RegistryAiSystemsPage({
                 </div>
                 <p className="mt-2 max-w-3xl text-sm leading-6 text-neutral-700">
                   Search by AI system name, organization, intended use, summary
-                  text, registry ID, or filter by system type and deployment
-                  status.
+                  text, registry ID, or filter by organization, system type, and
+                  deployment status.
                 </p>
               </div>
 
@@ -148,7 +157,7 @@ export default async function RegistryAiSystemsPage({
                 method="get"
                 className="grid gap-4 md:grid-cols-12"
               >
-                <div className="md:col-span-6">
+                <div className="md:col-span-4">
                   <label
                     htmlFor="q"
                     className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-neutral-500"
@@ -165,6 +174,28 @@ export default async function RegistryAiSystemsPage({
                 </div>
 
                 <div className="md:col-span-3">
+                  <label
+                    htmlFor="org"
+                    className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-neutral-500"
+                  >
+                    Organization
+                  </label>
+                  <select
+                    id="org"
+                    name="org"
+                    defaultValue={org}
+                    className="w-full rounded-xl border border-neutral-300 bg-white px-3 py-2 text-sm outline-none transition focus:border-black"
+                  >
+                    <option value="">All organizations</option>
+                    {organizationOptions.map((value) => (
+                      <option key={value} value={value}>
+                        {value}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="md:col-span-2">
                   <label
                     htmlFor="systemType"
                     className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-neutral-500"
@@ -262,6 +293,13 @@ export default async function RegistryAiSystemsPage({
                   {filteredRows.length === 1 ? "" : "s"}
                   {hasFilters ? ` out of ${allRows.length}` : ""}.
                 </div>
+
+                {org ? (
+                  <div className="mb-6 rounded-2xl border border-black/10 bg-white px-5 py-4 text-sm text-black/75">
+                    Viewing systems operated by{" "}
+                    <span className="font-semibold text-black">{org}</span>.
+                  </div>
+                ) : null}
 
                 <div className="grid gap-5">
                   {filteredRows.map((row) => (
