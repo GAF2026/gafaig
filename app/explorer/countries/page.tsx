@@ -241,8 +241,13 @@ export default async function ExplorerCountriesPage() {
                     <div className="flex flex-wrap items-start justify-between gap-4">
                       <div>
                         <h2 className="text-[22px] font-semibold text-black">
-                          {row.country}
-                        </h2>
+  <Link
+    href={`/explorer/countries/${encodeURIComponent(row.country)}`}
+    className="hover:underline"
+  >
+    {row.country}
+  </Link>
+</h2>
                         <p className="mt-2 text-[14px] leading-[1.7] text-black/70">
                           {scoreNarrative(row.avgGovernanceMaturityScore)}
                         </p>
