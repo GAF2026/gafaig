@@ -31,12 +31,22 @@ export type RegistryAiSystemRow = {
   SYSTEM_ID: string;
   REGISTRY_ID: string | null;
   ENTITY_NAME: string | null;
+
   SYSTEM_NAME: string | null;
   SYSTEM_TYPE: string | null;
   INTENDED_USE: string | null;
+
   DEPLOYMENT_STATUS: string | null;
   OVERSIGHT_LEVEL: string | null;
   RISK_TIER: string | null;
+
+  DEVELOPER_ORGANIZATION: string | null;
+  TRAINING_DATA_CATEGORY: string | null;
+  OVERSIGHT_MODEL: string | null;
+  HUMAN_REVIEW_REQUIRED: boolean | null;
+  EVALUATION_PROTOCOL: string | null;
+  AUDIT_FREQUENCY: string | null;
+
   PUBLIC_SUMMARY: string | null;
   DISPLAY_ORDER: number | null;
 };
