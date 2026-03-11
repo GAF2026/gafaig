@@ -44,6 +44,8 @@ export default async function RegistryAiSystemsPage({
     SELECT
       s.SYSTEM_ID,
       s.REGISTRY_ID,
+      s.APPLICATION_ID,
+      s.CASE_ID,
       r.ENTITY_NAME,
       s.SYSTEM_NAME,
       s.SYSTEM_TYPE,
@@ -51,6 +53,21 @@ export default async function RegistryAiSystemsPage({
       s.DEPLOYMENT_STATUS,
       s.OVERSIGHT_LEVEL,
       s.RISK_TIER,
+      s.DEVELOPER_ORGANIZATION,
+      s.TRAINING_DATA_CATEGORY,
+      s.OVERSIGHT_MODEL,
+      s.HUMAN_REVIEW_REQUIRED,
+      s.EVALUATION_PROTOCOL,
+      s.AUDIT_FREQUENCY,
+      s.DECISION_STATUS,
+      s.CERTIFIED_TIER,
+      s.CERTIFIED_BAND,
+      s.GOVERNANCE_MATURITY_SCORE,
+      s.CONTROLS_PCT,
+      s.COVERAGE_PCT,
+      s.FRESHNESS_PCT,
+      s.SUMMARY_PCT,
+      s.LAST_ACTIVITY_AT,
       s.PUBLIC_SUMMARY,
       s.DISPLAY_ORDER
     FROM GAFAIG_DB.CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC s
@@ -80,7 +97,10 @@ export default async function RegistryAiSystemsPage({
       includesText(row.PUBLIC_SUMMARY, q) ||
       includesText(row.SYSTEM_TYPE, q) ||
       includesText(row.OVERSIGHT_LEVEL, q) ||
+      includesText(row.OVERSIGHT_MODEL, q) ||
       includesText(row.RISK_TIER, q) ||
+      includesText(row.CERTIFIED_TIER, q) ||
+      includesText(row.CERTIFIED_BAND, q) ||
       includesText(row.REGISTRY_ID, q);
 
     const matchesOrganization = !org || String(row.ENTITY_NAME ?? "") === org;
@@ -115,9 +135,9 @@ export default async function RegistryAiSystemsPage({
             </h1>
             <p className="mt-4 max-w-3xl text-base leading-7 text-neutral-700">
               Public registry of AI systems covered by GAFAIG-certified
-              governance reviews. Certification status is shown through the
-              associated registry record while private evidence remains
-              non-public.
+              governance reviews. Governance maturity, oversight structure, and
+              certification outcome are surfaced without exposing private
+              evidence.
             </p>
           </div>
 
@@ -147,8 +167,8 @@ export default async function RegistryAiSystemsPage({
                 </div>
                 <p className="mt-2 max-w-3xl text-sm leading-6 text-neutral-700">
                   Search by AI system name, organization, intended use, summary
-                  text, registry ID, or filter by organization, system type, and
-                  deployment status.
+                  text, registry ID, governance tier, oversight model, or filter
+                  by organization, system type, and deployment status.
                 </p>
               </div>
 
@@ -168,7 +188,7 @@ export default async function RegistryAiSystemsPage({
                     id="q"
                     name="q"
                     defaultValue={q}
-                    placeholder="e.g. tutor, OpenAI, education, GAFAIG-00000001"
+                    placeholder="e.g. tutor, oversight, band A, GAFAIG-00000001"
                     className="w-full rounded-xl border border-neutral-300 bg-white px-3 py-2 text-sm outline-none transition focus:border-black"
                   />
                 </div>

@@ -6,6 +6,13 @@ type Props = {
   system: RegistryAiSystemRow;
 };
 
+function formatScore(value: number | null | undefined) {
+  if (value === null || value === undefined || Number.isNaN(Number(value))) {
+    return "—";
+  }
+  return `${Math.round(Number(value))} / 100`;
+}
+
 export default function AISystemCard({ system }: Props) {
   const organizationHref = system.ENTITY_NAME
     ? `/registry/ai-systems?org=${encodeURIComponent(system.ENTITY_NAME)}`
@@ -54,6 +61,14 @@ export default function AISystemCard({ system }: Props) {
             {system.RISK_TIER ? (
               <StatusChip>{system.RISK_TIER}</StatusChip>
             ) : null}
+
+            {system.CERTIFIED_TIER ? (
+              <StatusChip>{system.CERTIFIED_TIER}</StatusChip>
+            ) : null}
+
+            {system.CERTIFIED_BAND ? (
+              <StatusChip>{system.CERTIFIED_BAND}</StatusChip>
+            ) : null}
           </div>
         </div>
       </div>
@@ -74,6 +89,35 @@ export default function AISystemCard({ system }: Props) {
           </div>
           <div className="mt-2 text-[14px] text-black/85">
             {system.PUBLIC_SUMMARY ?? "—"}
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-5 grid grid-cols-1 gap-4 md:grid-cols-3">
+        <div>
+          <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/60">
+            Governance maturity
+          </div>
+          <div className="mt-2 text-[14px] font-medium text-black/90">
+            {formatScore(system.GOVERNANCE_MATURITY_SCORE)}
+          </div>
+        </div>
+
+        <div>
+          <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/60">
+            Oversight model
+          </div>
+          <div className="mt-2 text-[14px] text-black/85">
+            {system.OVERSIGHT_MODEL ?? "—"}
+          </div>
+        </div>
+
+        <div>
+          <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/60">
+            Audit frequency
+          </div>
+          <div className="mt-2 text-[14px] text-black/85">
+            {system.AUDIT_FREQUENCY ?? "—"}
           </div>
         </div>
       </div>

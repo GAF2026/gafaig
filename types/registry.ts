@@ -30,6 +30,8 @@ export type RegistryApiResponse =
 export type RegistryAiSystemRow = {
   SYSTEM_ID: string;
   REGISTRY_ID: string | null;
+  APPLICATION_ID: string | null;
+  CASE_ID: string | null;
   ENTITY_NAME: string | null;
 
   SYSTEM_NAME: string | null;
@@ -46,6 +48,16 @@ export type RegistryAiSystemRow = {
   HUMAN_REVIEW_REQUIRED: boolean | null;
   EVALUATION_PROTOCOL: string | null;
   AUDIT_FREQUENCY: string | null;
+
+  DECISION_STATUS: string | null;
+  CERTIFIED_TIER: string | null;
+  CERTIFIED_BAND: string | null;
+  GOVERNANCE_MATURITY_SCORE: number | null;
+  CONTROLS_PCT: number | null;
+  COVERAGE_PCT: number | null;
+  FRESHNESS_PCT: number | null;
+  SUMMARY_PCT: number | null;
+  LAST_ACTIVITY_AT: string | null;
 
   PUBLIC_SUMMARY: string | null;
   DISPLAY_ORDER: number | null;
