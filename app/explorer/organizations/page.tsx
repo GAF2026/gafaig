@@ -101,7 +101,7 @@ export default async function ExplorerOrganizationsPage() {
                   <div>
                     <h2 className="text-[20px] font-semibold text-black">
                       <Link
-                        href={`/organizations/${encodeURIComponent(row.REGISTRY_ID)}`}
+                        href={`/registry/${encodeURIComponent(row.REGISTRY_ID)}`}
                         className="hover:underline"
                       >
                         {row.ENTITY_NAME}

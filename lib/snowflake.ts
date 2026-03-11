@@ -43,12 +43,10 @@ function normalizePem(raw: string): string {
 function readPrivateKey(): string | undefined {
   const raw = process.env.SNOWFLAKE_PRIVATE_KEY;
   if (raw) {
-    // If PEM-like, normalize escaped newlines
     if (raw.includes("BEGIN PRIVATE KEY")) {
       return normalizePem(raw);
     }
 
-    // Try base64 decode
     try {
       const decoded = Buffer.from(raw, "base64").toString("utf8");
       if (decoded.includes("BEGIN PRIVATE KEY")) {
@@ -69,9 +67,7 @@ function readPrivateKey(): string | undefined {
     : path.resolve(process.cwd(), keyPath);
 
   if (!fs.existsSync(resolvedPath)) {
-    throw new Error(
-      `Snowflake private key file not found: ${resolvedPath}`
-    );
+    throw new Error(`Snowflake private key file not found: ${resolvedPath}`);
   }
 
   const fileContents = fs.readFileSync(resolvedPath, "utf8");
@@ -95,7 +91,6 @@ function getConfig() {
   const privateKey = readPrivateKey();
   const password = process.env.SNOWFLAKE_PASSWORD;
 
-  // Prefer key-pair authentication
   if (privateKey) {
     return {
       account,
@@ -109,7 +104,6 @@ function getConfig() {
     };
   }
 
-  // Fallback to password
   if (!password) {
     throw new Error(
       "Missing Snowflake credentials. Provide SNOWFLAKE_PRIVATE_KEY, SNOWFLAKE_PRIVATE_KEY_PATH, or SNOWFLAKE_PASSWORD."
@@ -133,13 +127,61 @@ declare global {
   var __gafaig_sf_conn: snowflake.Connection | undefined;
 }
 
+async function execRaw<T = any>(
+  conn: snowflake.Connection,
+  sqlText: string,
+  binds?: Binds
+): Promise<T[]> {
+  return new Promise<T[]>((resolve, reject) => {
+    conn.execute({
+      sqlText,
+      binds: binds as any,
+      complete: (err, _stmt, rows) => {
+        if (err) return reject(err);
+        resolve((rows ?? []) as T[]);
+      },
+    });
+  });
+}
+
+async function initializeSession(conn: snowflake.Connection): Promise<void> {
+  const cfg = getConfig();
+
+  if (cfg.role) {
+    await execRaw(conn, `USE ROLE IDENTIFIER(?)`, [cfg.role]);
+  }
+  if (cfg.warehouse) {
+    await execRaw(conn, `USE WAREHOUSE IDENTIFIER(?)`, [cfg.warehouse]);
+  }
+  if (cfg.database) {
+    await execRaw(conn, `USE DATABASE IDENTIFIER(?)`, [cfg.database]);
+  }
+  if (cfg.schema) {
+    await execRaw(conn, `USE SCHEMA IDENTIFIER(?)`, [cfg.schema]);
+  }
+}
+
 async function getConnection(): Promise<snowflake.Connection> {
   const g = globalThis as unknown as {
     __gafaig_sf_conn?: snowflake.Connection;
   };
 
   if (g.__gafaig_sf_conn) {
-    return g.__gafaig_sf_conn;
+    try {
+      await execRaw(g.__gafaig_sf_conn, "SELECT 1");
+      return g.__gafaig_sf_conn;
+    } catch {
+      try {
+        g.__gafaig_sf_conn.destroy((err) => {
+          if (err) {
+            console.warn("Snowflake cached connection destroy warning:", err);
+          }
+        });
+      } catch {
+        // ignore destroy errors
+      }
+      g.__gafaig_sf_conn = undefined;
+    }
   }
 
   const cfg = getConfig();
@@ -163,6 +205,8 @@ async function getConnection(): Promise<snowflake.Connection> {
       else resolve();
     });
   });
+
+  await initializeSession(conn);
 
   g.__gafaig_sf_conn = conn;
   return conn;
@@ -189,18 +233,7 @@ export async function sfQueryResult<T = any>(
 ): Promise<SfQueryResponse<T>> {
   try {
     const conn = await getConnection();
-
-    const rows = await new Promise<T[]>((resolve, reject) => {
-      conn.execute({
-        sqlText,
-        binds: binds as any,
-        complete: (err, _stmt, rows) => {
-          if (err) return reject(err);
-          resolve((rows ?? []) as T[]);
-        },
-      });
-    });
-
+    const rows = await execRaw<T>(conn, sqlText, binds);
     return { ok: true, rows, rowCount: rows.length };
   } catch (e: any) {
     return { ok: false, error: e?.message ?? String(e) };

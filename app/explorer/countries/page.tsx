@@ -92,7 +92,14 @@ export default async function ExplorerCountriesPage() {
       SELECT
         r.COUNTRY,
         COUNT(*) AS SYSTEM_COUNT,
-        AVG(s.GOVERNANCE_MATURITY_SCORE) AS AVG_GOVERNANCE_MATURITY_SCORE,
+        AVG(
+          CASE
+            WHEN UPPER(COALESCE(r.CERTIFIED_BAND, '')) = 'A' THEN 95
+            WHEN UPPER(COALESCE(r.CERTIFIED_BAND, '')) = 'B' THEN 85
+            WHEN UPPER(COALESCE(r.CERTIFIED_BAND, '')) = 'C' THEN 75
+            ELSE NULL
+          END
+        ) AS AVG_GOVERNANCE_MATURITY_SCORE,
         SUM(IFF(UPPER(COALESCE(s.RISK_TIER, '')) = 'HIGH', 1, 0)) AS HIGH_RISK_SYSTEM_COUNT,
         SUM(IFF(UPPER(COALESCE(s.RISK_TIER, '')) = 'MEDIUM', 1, 0)) AS MEDIUM_RISK_SYSTEM_COUNT,
         SUM(IFF(UPPER(COALESCE(s.RISK_TIER, '')) = 'LOW', 1, 0)) AS LOW_RISK_SYSTEM_COUNT
@@ -241,13 +248,13 @@ export default async function ExplorerCountriesPage() {
                     <div className="flex flex-wrap items-start justify-between gap-4">
                       <div>
                         <h2 className="text-[22px] font-semibold text-black">
-  <Link
-    href={`/explorer/countries/${encodeURIComponent(row.country)}`}
-    className="hover:underline"
-  >
-    {row.country}
-  </Link>
-</h2>
+                          <Link
+                            href={`/explorer/countries/${encodeURIComponent(row.country)}`}
+                            className="hover:underline"
+                          >
+                            {row.country}
+                          </Link>
+                        </h2>
                         <p className="mt-2 text-[14px] leading-[1.7] text-black/70">
                           {scoreNarrative(row.avgGovernanceMaturityScore)}
                         </p>

@@ -103,9 +103,14 @@ export default async function ExplorerCountryDetailPage({
         s.DEPLOYMENT_STATUS,
         s.OVERSIGHT_LEVEL,
         s.RISK_TIER,
-        s.CERTIFIED_TIER,
-        s.CERTIFIED_BAND,
-        s.GOVERNANCE_MATURITY_SCORE
+        r.CERTIFIED_TIER,
+        r.CERTIFIED_BAND,
+        CASE
+          WHEN UPPER(COALESCE(r.CERTIFIED_BAND, '')) = 'A' THEN 95
+          WHEN UPPER(COALESCE(r.CERTIFIED_BAND, '')) = 'B' THEN 85
+          WHEN UPPER(COALESCE(r.CERTIFIED_BAND, '')) = 'C' THEN 75
+          ELSE NULL
+        END AS GOVERNANCE_MATURITY_SCORE
       FROM GAFAIG_DB.CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC s
       LEFT JOIN GAFAIG_DB.CORE.V_REGISTRY_PUBLIC r
         ON s.REGISTRY_ID = r.REGISTRY_ID
@@ -124,7 +129,9 @@ export default async function ExplorerCountryDetailPage({
     (row) => String(row.DECISION_STATUS ?? "").toUpperCase() === "APPROVED"
   ).length;
   const totalSystems = systemRows.length;
-  const avgMaturity = average(systemRows.map((row) => row.GOVERNANCE_MATURITY_SCORE));
+  const avgMaturity = average(
+    systemRows.map((row) => row.GOVERNANCE_MATURITY_SCORE)
+  );
 
   const highRiskCount = systemRows.filter(
     (row) => String(row.RISK_TIER ?? "").toUpperCase() === "HIGH"
@@ -256,7 +263,11 @@ export default async function ExplorerCountryDetailPage({
                   Object.entries(tierCounts)
                     .sort((a, b) => a[0].localeCompare(b[0]))
                     .map(([tier, count]) => (
-                      <Info key={tier} label={`Tier ${tier}`} value={String(count)} />
+                      <Info
+                        key={tier}
+                        label={`Tier ${tier}`}
+                        value={String(count)}
+                      />
                     ))
                 )}
               </div>
@@ -282,7 +293,7 @@ export default async function ExplorerCountryDetailPage({
                         <div>
                           <h3 className="text-[20px] font-semibold text-black">
                             <Link
-                              href={`/organizations/${encodeURIComponent(
+                              href={`/registry/${encodeURIComponent(
                                 row.REGISTRY_ID
                               )}`}
                               className="hover:underline"
@@ -307,8 +318,17 @@ export default async function ExplorerCountryDetailPage({
                         <Info label="Entity type" value={row.ENTITY_TYPE ?? "—"} />
                         <Info label="Country" value={row.COUNTRY ?? "—"} />
                         <Info label="Status" value={row.DECISION_STATUS ?? "—"} />
-                        <Info label="Tier / band" value={joinTierBand(row.CERTIFIED_TIER, row.CERTIFIED_BAND)} />
-                        <Info label="Certified at" value={formatDate(row.CERTIFIED_AT)} />
+                        <Info
+                          label="Tier / band"
+                          value={joinTierBand(
+                            row.CERTIFIED_TIER,
+                            row.CERTIFIED_BAND
+                          )}
+                        />
+                        <Info
+                          label="Certified at"
+                          value={formatDate(row.CERTIFIED_AT)}
+                        />
                       </div>
                     </div>
                   ))}
@@ -336,7 +356,9 @@ export default async function ExplorerCountryDetailPage({
                         <div>
                           <h3 className="text-[20px] font-semibold text-black">
                             <Link
-                              href={`/ai-systems/${encodeURIComponent(row.SYSTEM_ID)}`}
+                              href={`/ai-systems/${encodeURIComponent(
+                                row.SYSTEM_ID
+                              )}`}
                               className="hover:underline"
                             >
                               {row.SYSTEM_NAME ?? "Unnamed AI system"}
@@ -357,7 +379,9 @@ export default async function ExplorerCountryDetailPage({
 
                         {row.REGISTRY_ID ? (
                           <Link
-                            href={`/registry/${encodeURIComponent(row.REGISTRY_ID)}`}
+                            href={`/registry/${encodeURIComponent(
+                              row.REGISTRY_ID
+                            )}`}
                             className="inline-flex items-center rounded-full border border-black px-4 py-2 text-sm font-medium transition hover:bg-black hover:text-white"
                           >
                             View certification
@@ -367,11 +391,26 @@ export default async function ExplorerCountryDetailPage({
 
                       <div className="mt-5 grid gap-4 md:grid-cols-6">
                         <Info label="System type" value={row.SYSTEM_TYPE ?? "—"} />
-                        <Info label="Deployment" value={row.DEPLOYMENT_STATUS ?? "—"} />
-                        <Info label="Oversight" value={row.OVERSIGHT_LEVEL ?? "—"} />
+                        <Info
+                          label="Deployment"
+                          value={row.DEPLOYMENT_STATUS ?? "—"}
+                        />
+                        <Info
+                          label="Oversight"
+                          value={row.OVERSIGHT_LEVEL ?? "—"}
+                        />
                         <Info label="Risk tier" value={row.RISK_TIER ?? "—"} />
-                        <Info label="Tier / band" value={joinTierBand(row.CERTIFIED_TIER, row.CERTIFIED_BAND)} />
-                        <Info label="Maturity" value={formatScore(row.GOVERNANCE_MATURITY_SCORE)} />
+                        <Info
+                          label="Tier / band"
+                          value={joinTierBand(
+                            row.CERTIFIED_TIER,
+                            row.CERTIFIED_BAND
+                          )}
+                        />
+                        <Info
+                          label="Maturity"
+                          value={formatScore(row.GOVERNANCE_MATURITY_SCORE)}
+                        />
                       </div>
                     </div>
                   ))}

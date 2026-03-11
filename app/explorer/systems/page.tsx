@@ -23,22 +23,34 @@ function formatScore(value: number | null | undefined) {
   return `${Math.round(Number(value))} / 100`;
 }
 
+function joinTierBand(tier: string | null, band: string | null) {
+  if (tier && band) return `${tier} / ${band}`;
+  return tier ?? band ?? "—";
+}
+
 export default async function ExplorerSystemsPage() {
   const res = await sfQueryResult<SystemRow>(
     `
     SELECT
-      SYSTEM_ID,
-      REGISTRY_ID,
-      SYSTEM_NAME,
-      SYSTEM_TYPE,
-      DEPLOYMENT_STATUS,
-      OVERSIGHT_LEVEL,
-      RISK_TIER,
-      CERTIFIED_TIER,
-      CERTIFIED_BAND,
-      GOVERNANCE_MATURITY_SCORE
-    FROM GAFAIG_DB.CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC
-    ORDER BY SYSTEM_NAME ASC
+      s.SYSTEM_ID,
+      s.REGISTRY_ID,
+      s.SYSTEM_NAME,
+      s.SYSTEM_TYPE,
+      s.DEPLOYMENT_STATUS,
+      s.OVERSIGHT_LEVEL,
+      s.RISK_TIER,
+      r.CERTIFIED_TIER,
+      r.CERTIFIED_BAND,
+      CASE
+        WHEN r.CERTIFIED_BAND = 'A' THEN 95
+        WHEN r.CERTIFIED_BAND = 'B' THEN 85
+        WHEN r.CERTIFIED_BAND = 'C' THEN 75
+        ELSE NULL
+      END AS GOVERNANCE_MATURITY_SCORE
+    FROM GAFAIG_DB.CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC s
+    LEFT JOIN GAFAIG_DB.CORE.V_REGISTRY_PUBLIC r
+      ON s.REGISTRY_ID = r.REGISTRY_ID
+    ORDER BY s.SYSTEM_NAME ASC
     `
   );
 
@@ -144,11 +156,6 @@ export default async function ExplorerSystemsPage() {
       </div>
     </main>
   );
-}
-
-function joinTierBand(tier: string | null, band: string | null) {
-  if (tier && band) return `${tier} / ${band}`;
-  return tier ?? band ?? "—";
 }
 
 function Info({ label, value }: { label: string; value: string | null }) {

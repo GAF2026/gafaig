@@ -39,6 +39,28 @@ export default async function RegistryAiSystemsPage({
   const deploymentStatus =
     typeof sp.deploymentStatus === "string" ? sp.deploymentStatus.trim() : "";
 
+  const whoAmI = await sfQueryResult<any>(`
+    SELECT
+      CURRENT_USER() AS USER_NAME,
+      CURRENT_ROLE() AS ROLE_NAME,
+      CURRENT_DATABASE() AS DB_NAME,
+      CURRENT_SCHEMA() AS SCHEMA_NAME
+  `);
+
+  console.log("SNOWFLAKE SESSION /registry/ai-systems:", whoAmI);
+
+  const probe = await sfQueryResult<any>(`
+    SELECT
+      SYSTEM_ID,
+      REGISTRY_ID,
+      APPLICATION_ID,
+      SYSTEM_NAME
+    FROM GAFAIG_DB.CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC
+    LIMIT 5
+  `);
+
+  console.log("PROBE /registry/ai-systems:", probe);
+
   const res = await sfQueryResult<RegistryAiSystemRow>(
     `
     SELECT
@@ -46,7 +68,9 @@ export default async function RegistryAiSystemsPage({
       s.REGISTRY_ID,
       s.APPLICATION_ID,
       s.CASE_ID,
+
       r.ENTITY_NAME,
+
       s.SYSTEM_NAME,
       s.SYSTEM_TYPE,
       s.INTENDED_USE,
@@ -59,20 +83,25 @@ export default async function RegistryAiSystemsPage({
       s.HUMAN_REVIEW_REQUIRED,
       s.EVALUATION_PROTOCOL,
       s.AUDIT_FREQUENCY,
-      s.DECISION_STATUS,
-      s.CERTIFIED_TIER,
-      s.CERTIFIED_BAND,
-      s.GOVERNANCE_MATURITY_SCORE,
-      s.CONTROLS_PCT,
-      s.COVERAGE_PCT,
-      s.FRESHNESS_PCT,
-      s.SUMMARY_PCT,
-      s.LAST_ACTIVITY_AT,
+
+      r.DECISION_STATUS,
+      r.CERTIFIED_TIER,
+      r.CERTIFIED_BAND,
+
+      NULL AS GOVERNANCE_MATURITY_SCORE,
+      NULL AS CONTROLS_PCT,
+      NULL AS COVERAGE_PCT,
+      NULL AS FRESHNESS_PCT,
+      NULL AS SUMMARY_PCT,
+
+      r.LAST_ACTIVITY_AT,
       s.PUBLIC_SUMMARY,
       s.DISPLAY_ORDER
+
     FROM GAFAIG_DB.CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC s
     LEFT JOIN GAFAIG_DB.CORE.V_REGISTRY_PUBLIC r
       ON s.REGISTRY_ID = r.REGISTRY_ID
+
     ORDER BY
       s.REGISTRY_ID ASC,
       s.DISPLAY_ORDER ASC NULLS LAST,
@@ -82,7 +111,9 @@ export default async function RegistryAiSystemsPage({
 
   const allRows = res.ok ? res.rows ?? [] : [];
 
-  const organizationOptions = uniqueValues(allRows.map((row) => row.ENTITY_NAME));
+  const organizationOptions = uniqueValues(
+    allRows.map((row) => row.ENTITY_NAME)
+  );
   const systemTypeOptions = uniqueValues(allRows.map((row) => row.SYSTEM_TYPE));
   const deploymentStatusOptions = uniqueValues(
     allRows.map((row) => row.DEPLOYMENT_STATUS)
