@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { headers } from "next/headers";
 import PublicPageHero from "./_components/PublicPageHero";
 
 export const dynamic = "force-dynamic";
@@ -18,11 +19,22 @@ type PublicMetricsResponse =
       error: string;
     };
 
+function getBaseUrl() {
+  const envUrl = process.env.NEXT_PUBLIC_SITE_URL;
+  if (envUrl) return envUrl.replace(/\/+$/, "");
+
+  const h = headers();
+  const host = h.get("x-forwarded-host") ?? h.get("host");
+  const proto = h.get("x-forwarded-proto") ?? "https";
+
+  if (host) return `${proto}://${host}`;
+
+  return "http://localhost:3000";
+}
+
 async function getPublicMetrics(): Promise<PublicMetricsResponse | null> {
   try {
-    const base =
-      process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/+$/, "") ||
-      "http://localhost:3000";
+    const base = getBaseUrl();
 
     const res = await fetch(`${base}/api/public/metrics`, {
       cache: "no-store",
@@ -30,10 +42,7 @@ async function getPublicMetrics(): Promise<PublicMetricsResponse | null> {
 
     const json = (await res.json()) as PublicMetricsResponse;
 
-    if (!res.ok) {
-      return null;
-    }
-
+    if (!res.ok) return null;
     return json;
   } catch {
     return null;
@@ -47,8 +56,7 @@ function fmt(value?: number) {
 
 export default async function HomePage() {
   const metricsResp = await getPublicMetrics();
-  const metrics =
-    metricsResp && metricsResp.ok ? metricsResp.metrics : null;
+  const metrics = metricsResp && metricsResp.ok ? metricsResp.metrics : null;
 
   return (
     <main className="mx-auto max-w-[1180px] px-6 pb-16 pt-14">
