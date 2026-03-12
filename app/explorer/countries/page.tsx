@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { sfQueryResult } from "@/lib/snowflake";
+import PublicPageHero from "../../_components/PublicPageHero";
 
 export const dynamic = "force-dynamic";
 
@@ -171,76 +172,85 @@ export default async function ExplorerCountriesPage() {
   const rows = sortRows(Array.from(byCountry.values()));
 
   const totalCountries = rows.length;
-  const totalOrganizations = rows.reduce((sum, row) => sum + row.organizationCount, 0);
+  const totalOrganizations = rows.reduce(
+    (sum, row) => sum + row.organizationCount,
+    0
+  );
   const totalSystems = rows.reduce((sum, row) => sum + row.systemCount, 0);
 
   return (
-    <main className="min-h-screen bg-white text-black">
-      <div className="mx-auto max-w-6xl px-6 py-10">
-        <section className="mb-8">
-          <div className="text-sm uppercase tracking-[0.2em] text-neutral-500">
-            Global governance explorer
-          </div>
-          <h1 className="mt-2 text-4xl font-semibold tracking-tight">
-            Explorer — Countries
-          </h1>
-          <p className="mt-4 max-w-3xl text-base leading-7 text-neutral-700">
-            Public country-level view of the GAFAIG registry, showing where
-            certified organizations and disclosed AI systems are represented,
-            along with public governance maturity and risk distribution where
-            available.
-          </p>
-
-          <div className="mt-6 flex flex-wrap gap-3">
+    <main className="mx-auto max-w-[1180px] px-6 pb-16 pt-14">
+      <PublicPageHero
+        eyebrow="EXPLORER"
+        title="Explorer — Countries"
+        description="Public country-level view of the GAFAIG registry, showing where certified organizations and disclosed AI systems are represented, along with public governance maturity and risk distribution where available."
+        actions={
+          <>
             <Link
               href="/explorer"
-              className="inline-flex items-center rounded-full border border-black px-4 py-2 text-sm font-medium transition hover:bg-black hover:text-white"
+              className="rounded-full border border-black bg-black px-5 py-3 text-sm font-semibold text-white transition hover:bg-black/90"
             >
               Back to explorer
             </Link>
             <Link
               href="/explorer/organizations"
-              className="inline-flex items-center rounded-full border border-neutral-300 px-4 py-2 text-sm font-medium transition hover:bg-neutral-50"
+              className="rounded-full border border-black px-5 py-3 text-sm font-semibold transition hover:bg-black/[0.04]"
             >
               View organizations
             </Link>
             <Link
               href="/explorer/systems"
-              className="inline-flex items-center rounded-full border border-neutral-300 px-4 py-2 text-sm font-medium transition hover:bg-neutral-50"
+              className="rounded-full border border-black px-5 py-3 text-sm font-semibold transition hover:bg-black/[0.04]"
             >
               View systems
             </Link>
-          </div>
-        </section>
+            <Link
+              href="/explorer/map"
+              className="rounded-full border border-black px-5 py-3 text-sm font-semibold transition hover:bg-black/[0.04]"
+            >
+              Open map
+            </Link>
+          </>
+        }
+      />
 
-        {!orgRes.ok ? (
-          <ErrorBox message={orgRes.error} />
-        ) : !systemRes.ok ? (
-          <ErrorBox message={systemRes.error} />
-        ) : (
-          <>
-            <section className="grid gap-4 md:grid-cols-3">
-              <MetricCard
-                label="Countries represented"
-                value={String(totalCountries)}
-              />
-              <MetricCard
-                label="Certified organizations"
-                value={String(totalOrganizations)}
-              />
-              <MetricCard
-                label="Disclosed AI systems"
-                value={String(totalSystems)}
-              />
-            </section>
+      {!orgRes.ok ? (
+        <ErrorBox message={orgRes.error} />
+      ) : !systemRes.ok ? (
+        <ErrorBox message={systemRes.error} />
+      ) : (
+        <>
+          <section className="mt-10 grid gap-4 md:grid-cols-3">
+            <MetricCard
+              label="Countries represented"
+              value={String(totalCountries)}
+            />
+            <MetricCard
+              label="Certified organizations"
+              value={String(totalOrganizations)}
+            />
+            <MetricCard
+              label="Disclosed AI systems"
+              value={String(totalSystems)}
+            />
+          </section>
 
-            <section className="mt-10 grid gap-4">
-              {rows.length === 0 ? (
-                <div className="rounded-2xl border border-black/10 p-6 text-sm text-black/70">
-                  No country-level public registry data is available yet.
-                </div>
-              ) : (
-                rows.map((row) => (
+          <section className="mt-10 rounded-3xl border border-black/10 bg-white p-8 md:p-10">
+            <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
+              COUNTRIES
+            </div>
+
+            <h2 className="mt-4 max-w-[760px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
+              Country-level public governance visibility
+            </h2>
+
+            {rows.length === 0 ? (
+              <div className="mt-8 rounded-2xl border border-black/10 p-6 text-sm text-black/70">
+                No country-level public registry data is available yet.
+              </div>
+            ) : (
+              <div className="mt-8 grid gap-4">
+                {rows.map((row) => (
                   <div
                     key={row.country}
                     className="rounded-2xl border border-black/10 p-5"
@@ -249,13 +259,15 @@ export default async function ExplorerCountriesPage() {
                       <div>
                         <h2 className="text-[22px] font-semibold text-black">
                           <Link
-                            href={`/explorer/countries/${encodeURIComponent(row.country)}`}
+                            href={`/explorer/countries/${encodeURIComponent(
+                              row.country
+                            )}`}
                             className="hover:underline"
                           >
                             {row.country}
                           </Link>
                         </h2>
-                        <p className="mt-2 text-[14px] leading-[1.7] text-black/70">
+                        <p className="mt-2 text-[14px] leading-[1.8] text-black/70">
                           {scoreNarrative(row.avgGovernanceMaturityScore)}
                         </p>
                       </div>
@@ -304,19 +316,19 @@ export default async function ExplorerCountriesPage() {
                       />
                     </div>
                   </div>
-                ))
-              )}
-            </section>
-          </>
-        )}
-      </div>
+                ))}
+              </div>
+            )}
+          </section>
+        </>
+      )}
     </main>
   );
 }
 
 function MetricCard({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-2xl border border-black/10 p-5">
+    <div className="rounded-2xl border border-black/10 bg-white p-5">
       <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/60">
         {label}
       </div>
@@ -338,7 +350,7 @@ function Info({ label, value }: { label: string; value: string }) {
 
 function ErrorBox({ message }: { message: string }) {
   return (
-    <div className="rounded-2xl border border-red-200 bg-red-50 p-5 text-sm text-red-700">
+    <div className="mt-10 rounded-2xl border border-red-200 bg-red-50 p-5 text-sm text-red-700">
       Failed to load country explorer data.
       <div className="mt-2 break-words text-red-600">{message}</div>
     </div>

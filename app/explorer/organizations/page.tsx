@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { sfQueryResult } from "@/lib/snowflake";
+import PublicPageHero from "../../_components/PublicPageHero";
 
 export const dynamic = "force-dynamic";
 
@@ -45,53 +46,55 @@ export default async function ExplorerOrganizationsPage() {
   const rows = res.ok ? res.rows ?? [] : [];
 
   return (
-    <main className="min-h-screen bg-white text-black">
-      <div className="mx-auto max-w-6xl px-6 py-10">
-        <section className="mb-8">
-          <div className="text-sm uppercase tracking-[0.2em] text-neutral-500">
-            Global governance explorer
-          </div>
-          <h1 className="mt-2 text-4xl font-semibold tracking-tight">
-            Explorer — Organizations
-          </h1>
-          <p className="mt-4 max-w-3xl text-base leading-7 text-neutral-700">
-            Public view of organizations represented in the GAFAIG registry,
-            including certification status, tier, band, and country.
-          </p>
-
-          <div className="mt-6 flex flex-wrap gap-3">
+    <main className="mx-auto max-w-[1180px] px-6 pb-16 pt-14">
+      <PublicPageHero
+        eyebrow="EXPLORER"
+        title="Explorer — Organizations"
+        description="Public view of organizations represented in the GAFAIG registry, including certification status, tier, band, and country."
+        actions={
+          <>
             <Link
               href="/explorer"
-              className="inline-flex items-center rounded-full border border-black px-4 py-2 text-sm font-medium transition hover:bg-black hover:text-white"
+              className="rounded-full border border-black bg-black px-5 py-3 text-sm font-semibold text-white transition hover:bg-black/90"
             >
               Back to explorer
             </Link>
             <Link
               href="/explorer/systems"
-              className="inline-flex items-center rounded-full border border-neutral-300 px-4 py-2 text-sm font-medium transition hover:bg-neutral-50"
+              className="rounded-full border border-black px-5 py-3 text-sm font-semibold transition hover:bg-black/[0.04]"
             >
               View systems
             </Link>
             <Link
               href="/explorer/countries"
-              className="inline-flex items-center rounded-full border border-neutral-300 px-4 py-2 text-sm font-medium transition hover:bg-neutral-50"
+              className="rounded-full border border-black px-5 py-3 text-sm font-semibold transition hover:bg-black/[0.04]"
             >
               View countries
             </Link>
-          </div>
-        </section>
+          </>
+        }
+      />
 
-        {!res.ok ? (
-          <div className="rounded-2xl border border-red-200 bg-red-50 p-5 text-sm text-red-700">
-            Failed to load organizations.
-            <div className="mt-2 break-words text-red-600">{res.error}</div>
+      {!res.ok ? (
+        <div className="mt-10 rounded-2xl border border-red-200 bg-red-50 p-5 text-sm text-red-700">
+          Failed to load organizations.
+          <div className="mt-2 break-words text-red-600">{res.error}</div>
+        </div>
+      ) : rows.length === 0 ? (
+        <div className="mt-10 rounded-2xl border border-black/10 bg-white p-6 text-sm text-black/70">
+          No public organizations found.
+        </div>
+      ) : (
+        <section className="mt-10 rounded-3xl border border-black/10 bg-white p-8 md:p-10">
+          <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
+            ORGANIZATIONS
           </div>
-        ) : rows.length === 0 ? (
-          <div className="rounded-2xl border border-black/10 p-6 text-sm text-black/70">
-            No public organizations found.
-          </div>
-        ) : (
-          <div className="grid gap-4">
+
+          <h2 className="mt-4 max-w-[760px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
+            Certified organizations in the public registry
+          </h2>
+
+          <div className="mt-8 grid gap-4">
             {rows.map((row) => (
               <div
                 key={row.REGISTRY_ID}
@@ -134,8 +137,8 @@ export default async function ExplorerOrganizationsPage() {
               </div>
             ))}
           </div>
-        )}
-      </div>
+        </section>
+      )}
     </main>
   );
 }

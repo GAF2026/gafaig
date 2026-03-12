@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { sfQueryResult } from "@/lib/snowflake";
+import PublicPageHero from "../../../_components/PublicPageHero";
 
 export const dynamic = "force-dynamic";
 
@@ -48,10 +49,6 @@ function formatScore(value: number | null | undefined) {
     return "—";
   }
   return `${Math.round(Number(value))} / 100`;
-}
-
-function num(value: number | null | undefined) {
-  return Number(value ?? 0);
 }
 
 function average(values: Array<number | null | undefined>) {
@@ -156,277 +153,278 @@ export default async function ExplorerCountryDetailPage({
 
   if (!country) {
     return (
-      <main className="min-h-screen bg-white text-black">
-        <div className="mx-auto max-w-6xl px-6 py-10">
-          <div className="rounded-2xl border border-black/10 p-6">
-            <div className="text-[18px] font-semibold text-black">
-              Country not found
-            </div>
-            <p className="mt-3 text-[15px] text-black/70">
-              No country parameter was provided.
-            </p>
+      <main className="mx-auto max-w-[1180px] px-6 pb-16 pt-14">
+        <div className="rounded-2xl border border-black/10 bg-white p-6">
+          <div className="text-[18px] font-semibold text-black">
+            Country not found
           </div>
+          <p className="mt-3 text-[15px] text-black/70">
+            No country parameter was provided.
+          </p>
         </div>
       </main>
     );
   }
 
   return (
-    <main className="min-h-screen bg-white text-black">
-      <div className="mx-auto max-w-6xl px-6 py-10">
-        <section className="mb-8">
-          <div className="text-sm uppercase tracking-[0.2em] text-neutral-500">
-            Global governance explorer
-          </div>
-          <h1 className="mt-2 text-4xl font-semibold tracking-tight">
-            Explorer — {country}
-          </h1>
-          <p className="mt-4 max-w-3xl text-base leading-7 text-neutral-700">
-            Public country-level drill-down for GAFAIG-certified organizations
-            and disclosed AI systems in {country}. This page surfaces public
-            certification signals, AI system exposure, and governance maturity
-            where available.
-          </p>
-
-          <div className="mt-6 flex flex-wrap gap-3">
+    <main className="mx-auto max-w-[1180px] px-6 pb-16 pt-14">
+      <PublicPageHero
+        eyebrow="EXPLORER"
+        title={`Explorer — ${country}`}
+        description={`Public country-level drill-down for GAFAIG-certified organizations and disclosed AI systems in ${country}. This page surfaces public certification signals, AI system exposure, and governance maturity where available.`}
+        actions={
+          <>
             <Link
               href="/explorer/countries"
-              className="inline-flex items-center rounded-full border border-black px-4 py-2 text-sm font-medium transition hover:bg-black hover:text-white"
+              className="rounded-full border border-black bg-black px-5 py-3 text-sm font-semibold text-white transition hover:bg-black/90"
             >
               Back to countries
             </Link>
             <Link
               href="/explorer/organizations"
-              className="inline-flex items-center rounded-full border border-neutral-300 px-4 py-2 text-sm font-medium transition hover:bg-neutral-50"
+              className="rounded-full border border-black px-5 py-3 text-sm font-semibold transition hover:bg-black/[0.04]"
             >
               View organizations
             </Link>
             <Link
               href="/explorer/systems"
-              className="inline-flex items-center rounded-full border border-neutral-300 px-4 py-2 text-sm font-medium transition hover:bg-neutral-50"
+              className="rounded-full border border-black px-5 py-3 text-sm font-semibold transition hover:bg-black/[0.04]"
             >
               View systems
             </Link>
-          </div>
-        </section>
+          </>
+        }
+      />
 
-        {!orgRes.ok ? (
-          <ErrorBox message={orgRes.error} />
-        ) : !systemRes.ok ? (
-          <ErrorBox message={systemRes.error} />
-        ) : (
-          <>
-            <section className="grid gap-4 md:grid-cols-4">
-              <MetricCard
-                label="Organizations"
-                value={String(totalOrganizations)}
-              />
-              <MetricCard
-                label="Approved organizations"
-                value={String(approvedOrganizations)}
-              />
-              <MetricCard
-                label="Disclosed systems"
-                value={String(totalSystems)}
-              />
-              <MetricCard
-                label="Avg maturity"
-                value={formatScore(avgMaturity)}
-              />
-            </section>
+      {!orgRes.ok ? (
+        <ErrorBox message={orgRes.error} />
+      ) : !systemRes.ok ? (
+        <ErrorBox message={systemRes.error} />
+      ) : (
+        <>
+          <section className="mt-10 grid gap-4 md:grid-cols-4">
+            <MetricCard
+              label="Organizations"
+              value={String(totalOrganizations)}
+            />
+            <MetricCard
+              label="Approved organizations"
+              value={String(approvedOrganizations)}
+            />
+            <MetricCard
+              label="Disclosed systems"
+              value={String(totalSystems)}
+            />
+            <MetricCard
+              label="Avg maturity"
+              value={formatScore(avgMaturity)}
+            />
+          </section>
 
-            <section className="mt-10 grid gap-4 md:grid-cols-3">
-              <MetricCard
-                label="High-risk systems"
-                value={String(highRiskCount)}
-              />
-              <MetricCard
-                label="Medium-risk systems"
-                value={String(mediumRiskCount)}
-              />
-              <MetricCard
-                label="Low-risk systems"
-                value={String(lowRiskCount)}
-              />
-            </section>
+          <section className="mt-10 grid gap-4 md:grid-cols-3">
+            <MetricCard
+              label="High-risk systems"
+              value={String(highRiskCount)}
+            />
+            <MetricCard
+              label="Medium-risk systems"
+              value={String(mediumRiskCount)}
+            />
+            <MetricCard
+              label="Low-risk systems"
+              value={String(lowRiskCount)}
+            />
+          </section>
 
-            <section className="mt-10 rounded-2xl border border-black/10 p-6">
-              <h2 className="text-lg font-semibold text-black">
-                Certification mix
-              </h2>
-              <div className="mt-4 grid gap-4 md:grid-cols-4">
-                {Object.keys(tierCounts).length === 0 ? (
-                  <div className="text-sm text-black/60">
-                    No public certification tier data available.
-                  </div>
-                ) : (
-                  Object.entries(tierCounts)
-                    .sort((a, b) => a[0].localeCompare(b[0]))
-                    .map(([tier, count]) => (
-                      <Info
-                        key={tier}
-                        label={`Tier ${tier}`}
-                        value={String(count)}
-                      />
-                    ))
-                )}
-              </div>
-            </section>
+          <section className="mt-10 rounded-3xl border border-black/10 bg-white p-8 md:p-10">
+            <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
+              CERTIFICATION MIX
+            </div>
 
-            <section className="mt-10">
-              <h2 className="text-[22px] font-semibold text-black">
-                Organizations in {country}
-              </h2>
+            <h2 className="mt-4 max-w-[760px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
+              Public certification distribution in {country}
+            </h2>
 
-              {orgRows.length === 0 ? (
-                <div className="mt-4 rounded-2xl border border-black/10 p-6 text-sm text-black/70">
-                  No public organizations found for this country.
+            <div className="mt-8 grid gap-4 md:grid-cols-4">
+              {Object.keys(tierCounts).length === 0 ? (
+                <div className="text-sm text-black/60">
+                  No public certification tier data available.
                 </div>
               ) : (
-                <div className="mt-4 grid gap-4">
-                  {orgRows.map((row) => (
-                    <div
-                      key={row.REGISTRY_ID}
-                      className="rounded-2xl border border-black/10 p-5"
-                    >
-                      <div className="flex flex-wrap items-start justify-between gap-4">
-                        <div>
-                          <h3 className="text-[20px] font-semibold text-black">
-                            <Link
-                              href={`/registry/${encodeURIComponent(
-                                row.REGISTRY_ID
-                              )}`}
-                              className="hover:underline"
-                            >
-                              {row.ENTITY_NAME}
-                            </Link>
-                          </h3>
-                          <div className="mt-2 text-[14px] text-black/65">
-                            {row.REGISTRY_ID}
-                          </div>
-                        </div>
-
-                        <Link
-                          href={`/registry/${encodeURIComponent(row.REGISTRY_ID)}`}
-                          className="inline-flex items-center rounded-full border border-black px-4 py-2 text-sm font-medium transition hover:bg-black hover:text-white"
-                        >
-                          View certification
-                        </Link>
-                      </div>
-
-                      <div className="mt-5 grid gap-4 md:grid-cols-5">
-                        <Info label="Entity type" value={row.ENTITY_TYPE ?? "—"} />
-                        <Info label="Country" value={row.COUNTRY ?? "—"} />
-                        <Info label="Status" value={row.DECISION_STATUS ?? "—"} />
-                        <Info
-                          label="Tier / band"
-                          value={joinTierBand(
-                            row.CERTIFIED_TIER,
-                            row.CERTIFIED_BAND
-                          )}
-                        />
-                        <Info
-                          label="Certified at"
-                          value={formatDate(row.CERTIFIED_AT)}
-                        />
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                Object.entries(tierCounts)
+                  .sort((a, b) => a[0].localeCompare(b[0]))
+                  .map(([tier, count]) => (
+                    <Info
+                      key={tier}
+                      label={`Tier ${tier}`}
+                      value={String(count)}
+                    />
+                  ))
               )}
-            </section>
+            </div>
+          </section>
 
-            <section className="mt-10">
-              <h2 className="text-[22px] font-semibold text-black">
-                AI systems in {country}
-              </h2>
+          <section className="mt-10 rounded-3xl border border-black/10 bg-white p-8 md:p-10">
+            <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
+              ORGANIZATIONS
+            </div>
 
-              {systemRows.length === 0 ? (
-                <div className="mt-4 rounded-2xl border border-black/10 p-6 text-sm text-black/70">
-                  No public AI systems found for this country.
-                </div>
-              ) : (
-                <div className="mt-4 grid gap-4">
-                  {systemRows.map((row) => (
-                    <div
-                      key={row.SYSTEM_ID}
-                      className="rounded-2xl border border-black/10 p-5"
-                    >
-                      <div className="flex flex-wrap items-start justify-between gap-4">
-                        <div>
-                          <h3 className="text-[20px] font-semibold text-black">
-                            <Link
-                              href={`/ai-systems/${encodeURIComponent(
-                                row.SYSTEM_ID
-                              )}`}
-                              className="hover:underline"
-                            >
-                              {row.SYSTEM_NAME ?? "Unnamed AI system"}
-                            </Link>
-                          </h3>
-                          <div className="mt-2 text-[14px] text-black/65">
-                            {row.SYSTEM_ID}
-                          </div>
-                          {row.ENTITY_NAME ? (
-                            <div className="mt-2 text-[14px] text-black/70">
-                              Organization:{" "}
-                              <span className="font-medium text-black">
-                                {row.ENTITY_NAME}
-                              </span>
-                            </div>
-                          ) : null}
-                        </div>
+            <h2 className="mt-4 max-w-[760px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
+              Organizations in {country}
+            </h2>
 
-                        {row.REGISTRY_ID ? (
+            {orgRows.length === 0 ? (
+              <div className="mt-8 rounded-2xl border border-black/10 p-6 text-sm text-black/70">
+                No public organizations found for this country.
+              </div>
+            ) : (
+              <div className="mt-8 grid gap-4">
+                {orgRows.map((row) => (
+                  <div
+                    key={row.REGISTRY_ID}
+                    className="rounded-2xl border border-black/10 p-5"
+                  >
+                    <div className="flex flex-wrap items-start justify-between gap-4">
+                      <div>
+                        <h3 className="text-[20px] font-semibold text-black">
                           <Link
                             href={`/registry/${encodeURIComponent(
                               row.REGISTRY_ID
                             )}`}
-                            className="inline-flex items-center rounded-full border border-black px-4 py-2 text-sm font-medium transition hover:bg-black hover:text-white"
+                            className="hover:underline"
                           >
-                            View certification
+                            {row.ENTITY_NAME}
                           </Link>
+                        </h3>
+                        <div className="mt-2 text-[14px] text-black/65">
+                          {row.REGISTRY_ID}
+                        </div>
+                      </div>
+
+                      <Link
+                        href={`/registry/${encodeURIComponent(row.REGISTRY_ID)}`}
+                        className="inline-flex items-center rounded-full border border-black px-4 py-2 text-sm font-medium transition hover:bg-black hover:text-white"
+                      >
+                        View certification
+                      </Link>
+                    </div>
+
+                    <div className="mt-5 grid gap-4 md:grid-cols-5">
+                      <Info label="Entity type" value={row.ENTITY_TYPE ?? "—"} />
+                      <Info label="Country" value={row.COUNTRY ?? "—"} />
+                      <Info label="Status" value={row.DECISION_STATUS ?? "—"} />
+                      <Info
+                        label="Tier / band"
+                        value={joinTierBand(
+                          row.CERTIFIED_TIER,
+                          row.CERTIFIED_BAND
+                        )}
+                      />
+                      <Info
+                        label="Certified at"
+                        value={formatDate(row.CERTIFIED_AT)}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
+
+          <section className="mt-10 rounded-3xl border border-black/10 bg-white p-8 md:p-10">
+            <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
+              AI SYSTEMS
+            </div>
+
+            <h2 className="mt-4 max-w-[760px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
+              AI systems in {country}
+            </h2>
+
+            {systemRows.length === 0 ? (
+              <div className="mt-8 rounded-2xl border border-black/10 p-6 text-sm text-black/70">
+                No public AI systems found for this country.
+              </div>
+            ) : (
+              <div className="mt-8 grid gap-4">
+                {systemRows.map((row) => (
+                  <div
+                    key={row.SYSTEM_ID}
+                    className="rounded-2xl border border-black/10 p-5"
+                  >
+                    <div className="flex flex-wrap items-start justify-between gap-4">
+                      <div>
+                        <h3 className="text-[20px] font-semibold text-black">
+                          <Link
+                            href={`/ai-systems/${encodeURIComponent(
+                              row.SYSTEM_ID
+                            )}`}
+                            className="hover:underline"
+                          >
+                            {row.SYSTEM_NAME ?? "Unnamed AI system"}
+                          </Link>
+                        </h3>
+                        <div className="mt-2 text-[14px] text-black/65">
+                          {row.SYSTEM_ID}
+                        </div>
+                        {row.ENTITY_NAME ? (
+                          <div className="mt-2 text-[14px] text-black/70">
+                            Organization:{" "}
+                            <span className="font-medium text-black">
+                              {row.ENTITY_NAME}
+                            </span>
+                          </div>
                         ) : null}
                       </div>
 
-                      <div className="mt-5 grid gap-4 md:grid-cols-6">
-                        <Info label="System type" value={row.SYSTEM_TYPE ?? "—"} />
-                        <Info
-                          label="Deployment"
-                          value={row.DEPLOYMENT_STATUS ?? "—"}
-                        />
-                        <Info
-                          label="Oversight"
-                          value={row.OVERSIGHT_LEVEL ?? "—"}
-                        />
-                        <Info label="Risk tier" value={row.RISK_TIER ?? "—"} />
-                        <Info
-                          label="Tier / band"
-                          value={joinTierBand(
-                            row.CERTIFIED_TIER,
-                            row.CERTIFIED_BAND
-                          )}
-                        />
-                        <Info
-                          label="Maturity"
-                          value={formatScore(row.GOVERNANCE_MATURITY_SCORE)}
-                        />
-                      </div>
+                      {row.REGISTRY_ID ? (
+                        <Link
+                          href={`/registry/${encodeURIComponent(
+                            row.REGISTRY_ID
+                          )}`}
+                          className="inline-flex items-center rounded-full border border-black px-4 py-2 text-sm font-medium transition hover:bg-black hover:text-white"
+                        >
+                          View certification
+                        </Link>
+                      ) : null}
                     </div>
-                  ))}
-                </div>
-              )}
-            </section>
-          </>
-        )}
-      </div>
+
+                    <div className="mt-5 grid gap-4 md:grid-cols-6">
+                      <Info label="System type" value={row.SYSTEM_TYPE ?? "—"} />
+                      <Info
+                        label="Deployment"
+                        value={row.DEPLOYMENT_STATUS ?? "—"}
+                      />
+                      <Info
+                        label="Oversight"
+                        value={row.OVERSIGHT_LEVEL ?? "—"}
+                      />
+                      <Info label="Risk tier" value={row.RISK_TIER ?? "—"} />
+                      <Info
+                        label="Tier / band"
+                        value={joinTierBand(
+                          row.CERTIFIED_TIER,
+                          row.CERTIFIED_BAND
+                        )}
+                      />
+                      <Info
+                        label="Maturity"
+                        value={formatScore(row.GOVERNANCE_MATURITY_SCORE)}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
+        </>
+      )}
     </main>
   );
 }
 
 function MetricCard({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-2xl border border-black/10 p-5">
+    <div className="rounded-2xl border border-black/10 bg-white p-5">
       <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/60">
         {label}
       </div>
@@ -448,7 +446,7 @@ function Info({ label, value }: { label: string; value: string }) {
 
 function ErrorBox({ message }: { message: string }) {
   return (
-    <div className="rounded-2xl border border-red-200 bg-red-50 p-5 text-sm text-red-700">
+    <div className="mt-10 rounded-2xl border border-red-200 bg-red-50 p-5 text-sm text-red-700">
       Failed to load country detail explorer data.
       <div className="mt-2 break-words text-red-600">{message}</div>
     </div>

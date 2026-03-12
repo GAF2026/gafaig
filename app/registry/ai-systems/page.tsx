@@ -2,6 +2,7 @@ import Link from "next/link";
 import { sfQueryResult } from "@/lib/snowflake";
 import AISystemCard from "@/components/registry/AISystemCard";
 import type { RegistryAiSystemRow } from "@/types/registry";
+import PublicPageHero from "../../_components/PublicPageHero";
 
 export const dynamic = "force-dynamic";
 
@@ -38,28 +39,6 @@ export default async function RegistryAiSystemsPage({
     typeof sp.systemType === "string" ? sp.systemType.trim() : "";
   const deploymentStatus =
     typeof sp.deploymentStatus === "string" ? sp.deploymentStatus.trim() : "";
-
-  const whoAmI = await sfQueryResult<any>(`
-    SELECT
-      CURRENT_USER() AS USER_NAME,
-      CURRENT_ROLE() AS ROLE_NAME,
-      CURRENT_DATABASE() AS DB_NAME,
-      CURRENT_SCHEMA() AS SCHEMA_NAME
-  `);
-
-  console.log("SNOWFLAKE SESSION /registry/ai-systems:", whoAmI);
-
-  const probe = await sfQueryResult<any>(`
-    SELECT
-      SYSTEM_ID,
-      REGISTRY_ID,
-      APPLICATION_ID,
-      SYSTEM_NAME
-    FROM GAFAIG_DB.CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC
-    LIMIT 5
-  `);
-
-  console.log("PROBE /registry/ai-systems:", probe);
 
   const res = await sfQueryResult<RegistryAiSystemRow>(
     `
@@ -154,228 +133,236 @@ export default async function RegistryAiSystemsPage({
   const hasFilters = Boolean(q || org || systemType || deploymentStatus);
 
   return (
-    <main className="min-h-screen bg-white text-black">
-      <div className="mx-auto max-w-6xl px-6 py-10">
-        <div className="mb-8 flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <p className="text-sm uppercase tracking-[0.2em] text-neutral-500">
-              Global AI Governance Registry
-            </p>
-            <h1 className="mt-2 text-4xl font-semibold tracking-tight">
-              Certified AI Systems
-            </h1>
-            <p className="mt-4 max-w-3xl text-base leading-7 text-neutral-700">
-              Public registry of AI systems covered by GAFAIG-certified
-              governance reviews. Governance maturity, oversight structure, and
-              certification outcome are surfaced without exposing private
-              evidence.
-            </p>
-          </div>
-
-          <div className="pt-1">
+    <main className="mx-auto max-w-[1180px] px-6 pb-16 pt-14">
+      <PublicPageHero
+        eyebrow="REGISTRY"
+        title="Certified AI Systems"
+        description="Public registry of AI systems covered by GAFAIG-certified governance reviews. Oversight structure, deployment context, and certification outcome are surfaced without exposing private evidence."
+        actions={
+          <>
             <Link
               href="/registry"
-              className="inline-flex items-center rounded-full border border-black px-4 py-2 text-sm font-medium transition hover:bg-black hover:text-white"
+              className="rounded-full border border-black bg-black px-5 py-3 text-sm font-semibold text-white transition hover:bg-black/90"
             >
               Browse registry records
             </Link>
+            <Link
+              href="/explorer/systems"
+              className="rounded-full border border-black px-5 py-3 text-sm font-semibold transition hover:bg-black/[0.04]"
+            >
+              Open systems explorer
+            </Link>
+          </>
+        }
+      />
+
+      {!res.ok ? (
+        <div className="mt-10 rounded-2xl border border-red-200 bg-red-50 p-5 text-sm text-red-700">
+          Failed to load certified AI systems.
+          <div className="mt-2 break-words text-red-600">
+            {safeText(res.error, "Unknown Snowflake error")}
           </div>
         </div>
-
-        {!res.ok ? (
-          <div className="rounded-2xl border border-red-200 bg-red-50 p-5 text-sm text-red-700">
-            Failed to load certified AI systems.
-            <div className="mt-2 break-words text-red-600">
-              {safeText(res.error, "Unknown Snowflake error")}
+      ) : (
+        <>
+          <section className="mt-10 rounded-3xl border border-black/10 bg-white p-8 md:p-10">
+            <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
+              SEARCH DIRECTORY
             </div>
-          </div>
-        ) : (
-          <>
-            <section className="mb-6 rounded-2xl border border-neutral-200 bg-neutral-50 p-5">
-              <div className="mb-4">
-                <div className="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-500">
-                  Search directory
-                </div>
-                <p className="mt-2 max-w-3xl text-sm leading-6 text-neutral-700">
-                  Search by AI system name, organization, intended use, summary
-                  text, registry ID, governance tier, oversight model, or filter
-                  by organization, system type, and deployment status.
-                </p>
+
+            <h2 className="mt-4 max-w-[760px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
+              Search public AI system disclosures
+            </h2>
+
+            <p className="mt-5 max-w-3xl text-[15px] leading-[1.85] text-black/75">
+              Search by AI system name, organization, intended use, summary
+              text, registry ID, governance tier, oversight model, or filter by
+              organization, system type, and deployment status.
+            </p>
+
+            <form
+              action="/registry/ai-systems"
+              method="get"
+              className="mt-6 grid gap-4 md:grid-cols-12"
+            >
+              <div className="md:col-span-4">
+                <label
+                  htmlFor="q"
+                  className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-black/55"
+                >
+                  Search
+                </label>
+                <input
+                  id="q"
+                  name="q"
+                  defaultValue={q}
+                  placeholder="e.g. tutor, oversight, band A, GAFAIG-00000001"
+                  className="w-full rounded-xl border border-black/15 bg-white px-3 py-2 text-sm outline-none transition focus:border-black"
+                />
               </div>
 
-              <form
-                action="/registry/ai-systems"
-                method="get"
-                className="grid gap-4 md:grid-cols-12"
-              >
-                <div className="md:col-span-4">
-                  <label
-                    htmlFor="q"
-                    className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-neutral-500"
-                  >
-                    Search
-                  </label>
-                  <input
-                    id="q"
-                    name="q"
-                    defaultValue={q}
-                    placeholder="e.g. tutor, oversight, band A, GAFAIG-00000001"
-                    className="w-full rounded-xl border border-neutral-300 bg-white px-3 py-2 text-sm outline-none transition focus:border-black"
-                  />
-                </div>
+              <div className="md:col-span-3">
+                <label
+                  htmlFor="org"
+                  className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-black/55"
+                >
+                  Organization
+                </label>
+                <select
+                  id="org"
+                  name="org"
+                  defaultValue={org}
+                  className="w-full rounded-xl border border-black/15 bg-white px-3 py-2 text-sm outline-none transition focus:border-black"
+                >
+                  <option value="">All organizations</option>
+                  {organizationOptions.map((value) => (
+                    <option key={value} value={value}>
+                      {value}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
-                <div className="md:col-span-3">
-                  <label
-                    htmlFor="org"
-                    className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-neutral-500"
-                  >
-                    Organization
-                  </label>
-                  <select
-                    id="org"
-                    name="org"
-                    defaultValue={org}
-                    className="w-full rounded-xl border border-neutral-300 bg-white px-3 py-2 text-sm outline-none transition focus:border-black"
-                  >
-                    <option value="">All organizations</option>
-                    {organizationOptions.map((value) => (
-                      <option key={value} value={value}>
-                        {value}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+              <div className="md:col-span-2">
+                <label
+                  htmlFor="systemType"
+                  className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-black/55"
+                >
+                  System type
+                </label>
+                <select
+                  id="systemType"
+                  name="systemType"
+                  defaultValue={systemType}
+                  className="w-full rounded-xl border border-black/15 bg-white px-3 py-2 text-sm outline-none transition focus:border-black"
+                >
+                  <option value="">All system types</option>
+                  {systemTypeOptions.map((value) => (
+                    <option key={value} value={value}>
+                      {value}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
-                <div className="md:col-span-2">
-                  <label
-                    htmlFor="systemType"
-                    className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-neutral-500"
-                  >
-                    System type
-                  </label>
-                  <select
-                    id="systemType"
-                    name="systemType"
-                    defaultValue={systemType}
-                    className="w-full rounded-xl border border-neutral-300 bg-white px-3 py-2 text-sm outline-none transition focus:border-black"
-                  >
-                    <option value="">All system types</option>
-                    {systemTypeOptions.map((value) => (
-                      <option key={value} value={value}>
-                        {value}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+              <div className="md:col-span-3">
+                <label
+                  htmlFor="deploymentStatus"
+                  className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-black/55"
+                >
+                  Deployment status
+                </label>
+                <select
+                  id="deploymentStatus"
+                  name="deploymentStatus"
+                  defaultValue={deploymentStatus}
+                  className="w-full rounded-xl border border-black/15 bg-white px-3 py-2 text-sm outline-none transition focus:border-black"
+                >
+                  <option value="">All deployment statuses</option>
+                  {deploymentStatusOptions.map((value) => (
+                    <option key={value} value={value}>
+                      {value}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
-                <div className="md:col-span-3">
-                  <label
-                    htmlFor="deploymentStatus"
-                    className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-neutral-500"
-                  >
-                    Deployment status
-                  </label>
-                  <select
-                    id="deploymentStatus"
-                    name="deploymentStatus"
-                    defaultValue={deploymentStatus}
-                    className="w-full rounded-xl border border-neutral-300 bg-white px-3 py-2 text-sm outline-none transition focus:border-black"
-                  >
-                    <option value="">All deployment statuses</option>
-                    {deploymentStatusOptions.map((value) => (
-                      <option key={value} value={value}>
-                        {value}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+              <div className="flex flex-wrap gap-3 md:col-span-12">
+                <button
+                  type="submit"
+                  className="inline-flex items-center rounded-full bg-black px-4 py-2 text-sm font-medium text-white transition hover:bg-black/90"
+                >
+                  Search directory
+                </button>
 
-                <div className="flex flex-wrap gap-3 md:col-span-12">
-                  <button
-                    type="submit"
-                    className="inline-flex items-center rounded-full bg-black px-4 py-2 text-sm font-medium text-white transition hover:bg-black/90"
-                  >
-                    Search directory
-                  </button>
+                <Link
+                  href="/registry/ai-systems"
+                  className="inline-flex items-center rounded-full border border-black/15 px-4 py-2 text-sm font-medium transition hover:bg-black/[0.04]"
+                >
+                  Clear filters
+                </Link>
+              </div>
+            </form>
+          </section>
 
+          {allRows.length === 0 ? (
+            <div className="mt-10 rounded-3xl border border-black/10 bg-white p-8 md:p-10">
+              <h2 className="text-[28px] font-semibold tracking-tight text-black">
+                No certified AI systems yet
+              </h2>
+              <p className="mt-3 text-[15px] leading-[1.8] text-black/70">
+                Publish a certified case from the admin workflow to make AI
+                system disclosures visible here.
+              </p>
+            </div>
+          ) : filteredRows.length === 0 ? (
+            <div className="mt-10 rounded-3xl border border-black/10 bg-white p-8 md:p-10">
+              <h2 className="text-[28px] font-semibold tracking-tight text-black">
+                No AI systems match those filters
+              </h2>
+              <p className="mt-3 text-[15px] leading-[1.8] text-black/70">
+                Try a broader search term or clear one of the filters.
+              </p>
+              {hasFilters ? (
+                <div className="mt-5">
                   <Link
                     href="/registry/ai-systems"
-                    className="inline-flex items-center rounded-full border border-neutral-300 px-4 py-2 text-sm font-medium transition hover:bg-white"
+                    className="inline-flex items-center rounded-full border border-black px-4 py-2 text-sm font-medium transition hover:bg-black hover:text-white"
                   >
-                    Clear filters
+                    View all certified AI systems
                   </Link>
                 </div>
-              </form>
-            </section>
-
-            {allRows.length === 0 ? (
-              <div className="rounded-2xl border border-neutral-200 bg-neutral-50 p-8">
-                <h2 className="text-xl font-medium">
-                  No certified AI systems yet
-                </h2>
-                <p className="mt-2 text-neutral-600">
-                  Publish a certified case from the admin workflow to make AI
-                  system disclosures visible here.
-                </p>
-              </div>
-            ) : filteredRows.length === 0 ? (
-              <div className="rounded-2xl border border-neutral-200 bg-neutral-50 p-8">
-                <h2 className="text-xl font-medium">
-                  No AI systems match those filters
-                </h2>
-                <p className="mt-2 text-neutral-600">
-                  Try a broader search term or clear one of the filters.
-                </p>
-                {hasFilters ? (
-                  <div className="mt-4">
-                    <Link
-                      href="/registry/ai-systems"
-                      className="inline-flex items-center rounded-full border border-black px-4 py-2 text-sm font-medium transition hover:bg-black hover:text-white"
-                    >
-                      View all certified AI systems
-                    </Link>
+              ) : null}
+            </div>
+          ) : (
+            <section className="mt-10 rounded-3xl border border-black/10 bg-white p-8 md:p-10">
+              <div className="flex flex-wrap items-end justify-between gap-4">
+                <div>
+                  <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
+                    AI SYSTEMS
                   </div>
-                ) : null}
-              </div>
-            ) : (
-              <>
-                <div className="mb-6 rounded-2xl border border-neutral-200 bg-neutral-50 px-5 py-4 text-sm text-neutral-700">
+                  <h2 className="mt-4 max-w-[760px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
+                    Public system disclosures
+                  </h2>
+                </div>
+
+                <div className="text-[14px] text-black/65">
                   Showing {filteredRows.length} certified AI system
                   {filteredRows.length === 1 ? "" : "s"}
                   {hasFilters ? ` out of ${allRows.length}` : ""}.
                 </div>
+              </div>
 
-                {org ? (
-                  <div className="mb-6 rounded-2xl border border-black/10 bg-white px-5 py-4 text-sm text-black/75">
-                    Viewing systems operated by{" "}
-                    <span className="font-semibold text-black">{org}</span>.
-                  </div>
-                ) : null}
-
-                <div className="grid gap-5">
-                  {filteredRows.map((row) => (
-                    <div key={row.SYSTEM_ID}>
-                      <AISystemCard system={row} />
-                      {row.REGISTRY_ID ? (
-                        <div className="mt-3 flex justify-end">
-                          <Link
-                            href={`/registry/${encodeURIComponent(
-                              row.REGISTRY_ID
-                            )}`}
-                            className="inline-flex items-center rounded-full border border-black px-4 py-2 text-sm font-medium transition hover:bg-black hover:text-white"
-                          >
-                            View certification
-                          </Link>
-                        </div>
-                      ) : null}
-                    </div>
-                  ))}
+              {org ? (
+                <div className="mt-6 rounded-2xl border border-black/10 bg-white px-5 py-4 text-sm text-black/75">
+                  Viewing systems operated by{" "}
+                  <span className="font-semibold text-black">{org}</span>.
                 </div>
-              </>
-            )}
-          </>
-        )}
-      </div>
+              ) : null}
+
+              <div className="mt-8 grid gap-5">
+                {filteredRows.map((row) => (
+                  <div key={row.SYSTEM_ID}>
+                    <AISystemCard system={row} />
+                    {row.REGISTRY_ID ? (
+                      <div className="mt-3 flex justify-end">
+                        <Link
+                          href={`/registry/${encodeURIComponent(
+                            row.REGISTRY_ID
+                          )}`}
+                          className="inline-flex items-center rounded-full border border-black px-4 py-2 text-sm font-medium transition hover:bg-black hover:text-white"
+                        >
+                          View certification
+                        </Link>
+                      </div>
+                    ) : null}
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+        </>
+      )}
     </main>
   );
 }

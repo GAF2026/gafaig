@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import AdminNav from "../_components/AdminNav";
 import AdminPageHeader from "../_components/AdminPageHeader";
 
@@ -17,7 +18,13 @@ type ApiResponse =
   | { ok: true; rows: Row[]; total: number; page: number; pageSize: number }
   | { ok: false; error: string };
 
-const STATUS_OPTIONS = ["all", "received", "in_review", "approved", "rejected"] as const;
+const STATUS_OPTIONS = [
+  "all",
+  "received",
+  "in_review",
+  "approved",
+  "rejected",
+] as const;
 
 function labelForStatus(value: string) {
   return value.replaceAll("_", " ");
@@ -34,12 +41,17 @@ export default function AdminApplicationsPage() {
   const [rows, setRows] = useState<Row[]>([]);
   const [total, setTotal] = useState(0);
 
-  const pageCount = useMemo(() => Math.max(1, Math.ceil(total / pageSize)), [total, pageSize]);
+  const pageCount = useMemo(
+    () => Math.max(1, Math.ceil(total / pageSize)),
+    [total, pageSize]
+  );
 
   const showingFrom = rows.length ? (page - 1) * pageSize + 1 : 0;
   const showingTo = rows.length ? (page - 1) * pageSize + rows.length : 0;
 
-  async function load(next?: Partial<{ q: string; status: string; pageSize: number; page: number }>) {
+  async function load(
+    next?: Partial<{ q: string; status: string; pageSize: number; page: number }>
+  ) {
     const qq = next?.q ?? q;
     const ss = next?.status ?? status;
     const ps = next?.pageSize ?? pageSize;
@@ -101,11 +113,24 @@ export default function AdminApplicationsPage() {
     <div>
       <AdminNav />
 
-      <main className="mx-auto max-w-[1100px] px-6 pt-14 pb-16">
+      <main className="mx-auto max-w-[1180px] px-6 pb-16 pt-14">
         <AdminPageHeader
+          eyebrow="Reviewer workflow"
           title="Applications"
           description="Review Snowflake-backed application intake records for the private verification workflow."
-          meta={loading ? "Loading…" : `Showing ${showingFrom} to ${showingTo} of ${total}`}
+          meta={
+            loading
+              ? "Loading…"
+              : `Showing ${showingFrom} to ${showingTo} of ${total}`
+          }
+          actions={
+            <Link
+              href="/demo"
+              className="inline-flex items-center rounded-full border border-black px-4 py-2 text-sm font-medium transition hover:bg-black hover:text-white"
+            >
+              Back to demo
+            </Link>
+          }
         />
 
         {error ? (
@@ -115,8 +140,21 @@ export default function AdminApplicationsPage() {
           </div>
         ) : null}
 
-        <section className="mt-6 border-t border-black/10 pt-8">
-          <div className="flex flex-wrap items-end gap-5">
+        <section className="mt-8 rounded-3xl border border-black/10 bg-white p-8 md:p-10">
+          <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
+            FILTERS
+          </div>
+
+          <h2 className="mt-4 max-w-[760px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
+            Search and refine application intake records
+          </h2>
+
+          <p className="mt-5 max-w-[920px] text-[15px] leading-[1.85] text-black/70">
+            Search by organization, request ID, or email, and filter by workflow
+            status to review private intake records more quickly.
+          </p>
+
+          <div className="mt-8 flex flex-wrap items-end gap-5">
             <div>
               <div className="mb-2 text-[12px] font-semibold uppercase tracking-[0.12em] text-black/60">
                 Search
@@ -193,83 +231,108 @@ export default function AdminApplicationsPage() {
           </div>
         </section>
 
-        <section className="mt-8 overflow-hidden rounded-2xl border border-black/10 bg-white">
-          <div className="overflow-x-auto">
-            <table className="min-w-[900px] w-full text-[14px]">
-              <thead className="bg-black/[0.03] text-left text-black">
-                <tr>
-                  <th className="px-4 py-4 font-semibold">Request</th>
-                  <th className="px-4 py-4 font-semibold">Organization</th>
-                  <th className="px-4 py-4 font-semibold">Email</th>
-                  <th className="px-4 py-4 font-semibold">Status</th>
-                  <th className="px-4 py-4 font-semibold">Source</th>
-                  <th className="px-4 py-4 font-semibold">Updated</th>
-                </tr>
-              </thead>
-
-              <tbody>
-                {rows.length === 0 ? (
-                  <tr>
-                    <td colSpan={6} className="px-4 py-8 text-black/60">
-                      No applications found.
-                    </td>
-                  </tr>
-                ) : (
-                  rows.map((r) => (
-                    <tr key={r.requestId} className="border-t border-black/5">
-                      <td className="px-4 py-4 whitespace-nowrap">
-                        <a
-                          href={`/admin/applications/${encodeURIComponent(r.requestId)}`}
-                          className="font-semibold underline underline-offset-2"
-                        >
-                          {r.requestId}
-                        </a>
-                      </td>
-
-                      <td className="px-4 py-4 text-black/85">{r.org}</td>
-                      <td className="px-4 py-4 text-black/75">{r.email}</td>
-                      <td className="px-4 py-4">
-                        <span className="inline-flex items-center rounded-full border border-black/10 px-3 py-1 text-[12px] font-semibold text-black/80 bg-black/[0.02]">
-                          {labelForStatus(r.status)}
-                        </span>
-                      </td>
-                      <td className="px-4 py-4 text-black/70">{r.source}</td>
-                      <td className="px-4 py-4 whitespace-nowrap text-black/65">{r.updatedAt}</td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-
-          <div className="flex items-center justify-end gap-3 border-t border-black/10 px-4 py-4">
-            <button
-              disabled={page <= 1 || loading}
-              onClick={() => {
-                const next = Math.max(1, page - 1);
-                setPage(next);
-                load({ page: next });
-              }}
-              className="inline-flex items-center justify-center rounded-xl border border-black/15 px-4 py-2 text-[14px] font-semibold disabled:opacity-40"
-            >
-              Prev
-            </button>
-
-            <div className="text-[14px] font-medium text-black/75">
-              Page {page} / {pageCount}
+        <section className="mt-10 rounded-3xl border border-black/10 bg-white p-8 md:p-10">
+          <div className="flex flex-wrap items-end justify-between gap-4">
+            <div>
+              <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
+                APPLICATION RECORDS
+              </div>
+              <h2 className="mt-4 max-w-[760px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
+                Snowflake-backed intake workflow
+              </h2>
+              <p className="mt-4 text-[14px] leading-[1.8] text-black/72">
+                Each row represents an application record within the private
+                verification workflow.
+              </p>
             </div>
 
-            <button
-              disabled={page >= pageCount || loading}
-              onClick={() => {
-                const next = Math.min(pageCount, page + 1);
-                setPage(next);
-                load({ page: next });
-              }}
-              className="inline-flex items-center justify-center rounded-xl border border-black/15 px-4 py-2 text-[14px] font-semibold disabled:opacity-40"
-            >
-              Next
-            </button>
+            <div className="text-[14px] text-black/65">
+              {loading ? "Loading…" : `Page ${page} of ${pageCount}`}
+            </div>
+          </div>
+
+          <div className="mt-6 overflow-hidden rounded-2xl border border-black/10 bg-white">
+            <div className="overflow-x-auto">
+              <table className="min-w-[900px] w-full text-[14px]">
+                <thead className="bg-black/[0.03] text-left text-black">
+                  <tr>
+                    <th className="px-4 py-4 font-semibold">Request</th>
+                    <th className="px-4 py-4 font-semibold">Organization</th>
+                    <th className="px-4 py-4 font-semibold">Email</th>
+                    <th className="px-4 py-4 font-semibold">Status</th>
+                    <th className="px-4 py-4 font-semibold">Source</th>
+                    <th className="px-4 py-4 font-semibold">Updated</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  {rows.length === 0 ? (
+                    <tr>
+                      <td colSpan={6} className="px-4 py-8 text-black/60">
+                        No applications found.
+                      </td>
+                    </tr>
+                  ) : (
+                    rows.map((r) => (
+                      <tr key={r.requestId} className="border-t border-black/5">
+                        <td className="px-4 py-4 whitespace-nowrap">
+                          <a
+                            href={`/admin/applications/${encodeURIComponent(
+                              r.requestId
+                            )}`}
+                            className="font-semibold underline underline-offset-2"
+                          >
+                            {r.requestId}
+                          </a>
+                        </td>
+
+                        <td className="px-4 py-4 text-black/85">{r.org}</td>
+                        <td className="px-4 py-4 text-black/75">{r.email}</td>
+                        <td className="px-4 py-4">
+                          <span className="inline-flex items-center rounded-full border border-black/10 bg-black/[0.02] px-3 py-1 text-[12px] font-semibold text-black/80">
+                            {labelForStatus(r.status)}
+                          </span>
+                        </td>
+                        <td className="px-4 py-4 text-black/70">{r.source}</td>
+                        <td className="px-4 py-4 whitespace-nowrap text-black/65">
+                          {r.updatedAt}
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            <div className="flex items-center justify-end gap-3 border-t border-black/10 px-4 py-4">
+              <button
+                disabled={page <= 1 || loading}
+                onClick={() => {
+                  const next = Math.max(1, page - 1);
+                  setPage(next);
+                  load({ page: next });
+                }}
+                className="inline-flex items-center justify-center rounded-xl border border-black/15 px-4 py-2 text-[14px] font-semibold disabled:opacity-40"
+              >
+                Prev
+              </button>
+
+              <div className="text-[14px] font-medium text-black/75">
+                Page {page} / {pageCount}
+              </div>
+
+              <button
+                disabled={page >= pageCount || loading}
+                onClick={() => {
+                  const next = Math.min(pageCount, page + 1);
+                  setPage(next);
+                  load({ page: next });
+                }}
+                className="inline-flex items-center justify-center rounded-xl border border-black/15 px-4 py-2 text-[14px] font-semibold disabled:opacity-40"
+              >
+                Next
+              </button>
+            </div>
           </div>
         </section>
       </main>

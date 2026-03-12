@@ -3,6 +3,7 @@ import WorldGovernanceMap, {
   type MapCountryRow,
 } from "@/components/explorer/WorldGovernanceMap";
 import { sfQueryResult } from "@/lib/snowflake";
+import PublicPageHero from "../../_components/PublicPageHero";
 
 export const dynamic = "force-dynamic";
 
@@ -98,58 +99,62 @@ export default async function ExplorerMapPage() {
   );
 
   return (
-    <main className="min-h-screen bg-white text-black">
-      <div className="mx-auto max-w-6xl px-6 py-10">
-        <section className="mb-8">
-          <div className="text-sm uppercase tracking-[0.2em] text-neutral-500">
-            Global governance explorer
-          </div>
-          <h1 className="mt-2 text-4xl font-semibold tracking-tight">
-            Explorer — Map
-          </h1>
-          <p className="mt-4 max-w-3xl text-base leading-7 text-neutral-700">
-            Interactive global map showing where GAFAIG-certified organizations
-            and public AI system disclosures are represented.
-          </p>
-
-          <div className="mt-6 flex flex-wrap gap-3">
+    <main className="mx-auto max-w-[1180px] px-6 pb-16 pt-14">
+      <PublicPageHero
+        eyebrow="EXPLORER"
+        title="Explorer — Map"
+        description="Interactive global map showing where GAFAIG-certified organizations and public AI system disclosures are represented."
+        actions={
+          <>
             <Link
               href="/explorer"
-              className="inline-flex items-center rounded-full border border-black px-4 py-2 text-sm font-medium transition hover:bg-black hover:text-white"
+              className="rounded-full border border-black bg-black px-5 py-3 text-sm font-semibold text-white transition hover:bg-black/90"
             >
               Back to explorer
             </Link>
             <Link
               href="/explorer/countries"
-              className="inline-flex items-center rounded-full border border-neutral-300 px-4 py-2 text-sm font-medium transition hover:bg-neutral-50"
+              className="rounded-full border border-black px-5 py-3 text-sm font-semibold transition hover:bg-black/[0.04]"
             >
               View countries
             </Link>
             <Link
               href="/explorer/systems"
-              className="inline-flex items-center rounded-full border border-neutral-300 px-4 py-2 text-sm font-medium transition hover:bg-neutral-50"
+              className="rounded-full border border-black px-5 py-3 text-sm font-semibold transition hover:bg-black/[0.04]"
             >
               View systems
             </Link>
+          </>
+        }
+      />
+
+      {!orgRes.ok ? (
+        <div className="mt-10 rounded-2xl border border-red-200 bg-red-50 p-5 text-sm text-red-700">
+          Failed to load map data.
+          <div className="mt-2 break-words text-red-600">{orgRes.error}</div>
+        </div>
+      ) : !systemRes.ok ? (
+        <div className="mt-10 rounded-2xl border border-red-200 bg-red-50 p-5 text-sm text-red-700">
+          Failed to load map data.
+          <div className="mt-2 break-words text-red-600">
+            {systemRes.error}
+          </div>
+        </div>
+      ) : (
+        <section className="mt-10 rounded-3xl border border-black/10 bg-white p-8 md:p-10">
+          <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
+            GLOBAL MAP
+          </div>
+
+          <h2 className="mt-4 max-w-[760px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
+            Geographic view of public governance coverage
+          </h2>
+
+          <div className="mt-8">
+            <WorldGovernanceMap rows={rows} />
           </div>
         </section>
-
-        {!orgRes.ok ? (
-          <div className="rounded-2xl border border-red-200 bg-red-50 p-5 text-sm text-red-700">
-            Failed to load map data.
-            <div className="mt-2 break-words text-red-600">{orgRes.error}</div>
-          </div>
-        ) : !systemRes.ok ? (
-          <div className="rounded-2xl border border-red-200 bg-red-50 p-5 text-sm text-red-700">
-            Failed to load map data.
-            <div className="mt-2 break-words text-red-600">
-              {systemRes.error}
-            </div>
-          </div>
-        ) : (
-          <WorldGovernanceMap rows={rows} />
-        )}
-      </div>
+      )}
     </main>
   );
 }
