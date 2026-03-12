@@ -39,7 +39,7 @@ export default function RootLayout({
 
                 <nav className="w-full lg:ml-auto lg:w-auto">
                   <div className="flex flex-col gap-2 lg:flex-row lg:items-center lg:gap-3">
-                    <div className="grid grid-cols-3 gap-2 lg:flex lg:items-center lg:gap-2">
+                    <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:flex lg:items-center lg:gap-2">
                       <Link
                         href="/mission"
                         className="rounded-full border border-transparent px-3 py-2 text-center text-sm font-semibold text-black/80 transition hover:border-black/15 hover:bg-black/[0.035] hover:text-black"
@@ -58,6 +58,12 @@ export default function RootLayout({
                       >
                         Registry
                       </Link>
+                      <Link
+                        href="/explorer"
+                        className="rounded-full border border-transparent px-3 py-2 text-center text-sm font-semibold text-black/80 transition hover:border-black/15 hover:bg-black/[0.035] hover:text-black"
+                      >
+                        Explorer
+                      </Link>
                     </div>
 
                     <div className="hidden lg:block h-7 w-px bg-black/10" />
@@ -73,8 +79,8 @@ export default function RootLayout({
 
                       <Link
                         href="/demo-script"
-                        className="inline-flex w-full items-center justify-center rounded-full border border-black/15 px-4 py-2 text-center text-sm font-semibold text-black transition hover:border-black/25 hover:bg-black/[0.035] lg:w-auto"
-                        title="Open the Snowflake demo talk track"
+                        className="inline-flex w-full items-center justify-center rounded-full border border-black/15 px-4 py-2 text-center text-sm font-semibold text-black/70 transition hover:border-black/20 hover:bg-black/[0.02] hover:text-black lg:w-auto"
+                        title="Open the GAFAIG demo talk track"
                       >
                         Demo Script
                       </Link>
@@ -99,9 +105,7 @@ export default function RootLayout({
           />
 
           <div className="flex-1">
-            <div className="mx-auto max-w-[1320px] px-0">
-              {children}
-            </div>
+            <div className="mx-auto max-w-[1320px] px-0">{children}</div>
           </div>
 
           <div className="mt-auto border-t border-black/8 bg-black/[0.015]">
