@@ -1,159 +1,133 @@
 // app/framework/page.tsx
 import Link from "next/link";
+import PublicPageHero from "../_components/PublicPageHero";
 
 export const dynamic = "force-static";
 
 export default function FrameworkPage() {
   return (
-    <main className="mx-auto max-w-[1100px] px-6 pb-16 pt-14">
-      <section className="pt-2 pb-10">
+    <main className="mx-auto max-w-[1180px] px-6 pb-16 pt-14">
+      <PublicPageHero
+        eyebrow="FRAMEWORK"
+        title="How GAFAIG verifies human oversight across AI infrastructure"
+        description="GAFAIG applies a repeatable verification model to evaluate whether human oversight operates across an organization’s AI infrastructure. Evidence is reviewed, findings are recorded, scoring is deterministic, and certification outcomes are published through the registry."
+        actions={
+          <>
+            <Link
+              href="/registry"
+              className="rounded-full border border-black bg-black px-5 py-3 text-sm font-semibold text-white transition hover:bg-black/90"
+            >
+              View the Registry
+            </Link>
+
+            <Link
+              href="/mission"
+              className="rounded-full border border-black px-5 py-3 text-sm font-semibold transition hover:bg-black/[0.04]"
+            >
+              Mission &amp; Boundaries
+            </Link>
+
+            <Link
+              href="/framework"
+              className="rounded-full border border-black px-5 py-3 text-sm font-semibold transition hover:bg-black/[0.04]"
+            >
+              Read the Framework
+            </Link>
+          </>
+        }
+      />
+
+      <section className="mt-10 rounded-3xl border border-black/10 bg-white p-8 md:p-10">
         <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
-          Framework
+          VERIFICATION MODEL
         </div>
 
-        <h1 className="mt-4 max-w-[980px] text-[40px] font-semibold leading-[1.15] text-black">
-          How GAFAIG verifies human oversight across AI infrastructure
-        </h1>
-
-        <p className="mt-5 max-w-[900px] text-[18px] leading-[1.75] text-black/80">
-          GAFAIG applies a repeatable verification model to evaluate whether
-          human oversight operates across an organization’s AI infrastructure.
-          Evidence is reviewed, findings are recorded, scoring is deterministic,
-          and certification outcomes are published through the registry.
-        </p>
-
-        <div className="mt-7 flex flex-wrap gap-2">
-          <Link
-            href="/registry"
-            className="rounded-full border border-black bg-black px-4 py-2 text-sm font-semibold text-white hover:bg-black/90"
-          >
-            View the Registry
-          </Link>
-
-          <Link
-            href="/mission"
-            className="rounded-full border border-black px-4 py-2 text-sm font-semibold hover:bg-black/[0.04]"
-          >
-            Mission &amp; Boundaries
-          </Link>
-
-          <Link
-            href="/framework"
-            className="rounded-full border border-black px-4 py-2 text-sm font-semibold hover:bg-black/[0.04]"
-          >
-            Read the Framework
-          </Link>
-        </div>
-      </section>
-
-      <section className="border-t border-black/10 pt-8">
-        <h2 className="text-[16px] font-semibold text-black">
-          Verification model
+        <h2 className="mt-4 max-w-[760px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
+          Organization-wide, evidence-based, and auditable
         </h2>
 
-        <p className="mt-3 max-w-[920px] text-[16px] leading-[1.8] text-black/80">
+        <p className="mt-5 max-w-[960px] text-[16px] leading-[1.85] text-black/80">
           GAFAIG verification is organization-wide, evidence-based, and designed
           to produce auditable certification outcomes. Internal evidence remains
           private, while public disclosure is limited to controlled certification
           outputs through the registry.
         </p>
 
-        <div className="mt-5 grid gap-4 md:grid-cols-2">
-          <div className="rounded-2xl border border-black/10 p-5">
-            <div className="font-semibold text-black">Program criteria</div>
-            <p className="mt-2 text-[14px] leading-[1.7] text-black/75">
-              GAFAIG applies structured program criteria to evaluate whether
-              human oversight operates across the organization’s AI
-              infrastructure.
-            </p>
-          </div>
+        <div className="mt-8 grid gap-4 md:grid-cols-2">
+          <FrameworkCard
+            title="Program criteria"
+            body="GAFAIG applies structured program criteria to evaluate whether human oversight operates across the organization’s AI infrastructure."
+          />
 
-          <div className="rounded-2xl border border-black/10 p-5">
-            <div className="font-semibold text-black">
-              Evidence-based assessment
-            </div>
-            <p className="mt-2 text-[14px] leading-[1.7] text-black/75">
-              Evidence is collected, linked to review criteria, and assessed as
-              part of a controlled verification process. Internal materials are
-              not disclosed publicly.
-            </p>
-          </div>
+          <FrameworkCard
+            title="Evidence-based assessment"
+            body="Evidence is collected, linked to review criteria, and assessed as part of a controlled verification process. Internal materials are not disclosed publicly."
+          />
 
-          <div className="rounded-2xl border border-black/10 p-5">
-            <div className="font-semibold text-black">
-              Deterministic scoring
-            </div>
-            <p className="mt-2 text-[14px] leading-[1.7] text-black/75">
-              Scoring is deterministic and auditable, implemented as
-              reproducible Snowflake-native SQL logic with consistent outputs
-              for the same evidence inputs.
-            </p>
-          </div>
+          <FrameworkCard
+            title="Deterministic scoring"
+            body="Scoring is deterministic and auditable, implemented as reproducible Snowflake-native SQL logic with consistent outputs for the same evidence inputs."
+          />
 
-          <div className="rounded-2xl border border-black/10 p-5">
-            <div className="font-semibold text-black">Public certification</div>
-            <p className="mt-2 text-[14px] leading-[1.7] text-black/75">
-              Certification outcomes are published through the GAFAIG Registry.
-              Evidence, findings, and internal assessment materials remain
-              private.
-            </p>
-          </div>
+          <FrameworkCard
+            title="Public certification"
+            body="Certification outcomes are published through the GAFAIG Registry. Evidence, findings, and internal assessment materials remain private."
+          />
         </div>
       </section>
 
-      <section className="mt-10 border-t border-black/10 pt-8">
-        <h2 className="text-[16px] font-semibold text-black">
-          Verification workflow
+      <section className="mt-10 rounded-3xl border border-black/10 bg-white p-8 md:p-10">
+        <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
+          VERIFICATION WORKFLOW
+        </div>
+
+        <h2 className="mt-4 max-w-[760px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
+          Evidence to certification, then registry publication
         </h2>
 
-        <div className="mt-5 grid gap-4 md:grid-cols-3">
-          <div className="rounded-2xl border border-black/10 p-5">
-            <div className="font-semibold text-black">1) Collect evidence</div>
-            <p className="mt-2 text-[14px] leading-[1.7] text-black/75">
-              Organizations provide governance artifacts, oversight records, and
-              operational documentation supporting review.
-            </p>
-          </div>
+        <div className="mt-8 grid gap-4 md:grid-cols-3">
+          <WorkflowCard
+            title="1) Collect evidence"
+            body="Organizations provide governance artifacts, oversight records, and operational documentation supporting review."
+          />
 
-          <div className="rounded-2xl border border-black/10 p-5">
-            <div className="font-semibold text-black">2) Record findings</div>
-            <p className="mt-2 text-[14px] leading-[1.7] text-black/75">
-              Submitted evidence is assessed against program criteria. Findings
-              capture review outcomes and remain linked to the underlying
-              evidence.
-            </p>
-          </div>
+          <WorkflowCard
+            title="2) Record findings"
+            body="Submitted evidence is assessed against program criteria. Findings capture review outcomes and remain linked to the underlying evidence."
+          />
 
-          <div className="rounded-2xl border border-black/10 p-5">
-            <div className="font-semibold text-black">
-              3) Score and certify
-            </div>
-            <p className="mt-2 text-[14px] leading-[1.7] text-black/75">
-              Deterministic scoring produces certification outcomes which are
-              then recorded and published through the public registry.
-            </p>
-          </div>
+          <WorkflowCard
+            title="3) Score and certify"
+            body="Deterministic scoring produces certification outcomes which are then recorded and published through the public registry."
+          />
         </div>
 
         <div className="mt-6 rounded-2xl border border-black/10 p-5">
-          <div className="font-semibold text-black">Workflow summary</div>
-          <div className="mt-2 text-[14px] leading-[1.7] text-black/75">
+          <div className="text-[20px] font-semibold text-black">
+            Workflow summary
+          </div>
+          <div className="mt-3 text-[15px] leading-[1.8] text-black/75">
             Evidence → Findings → Scoring → Decision → Certification → Registry
           </div>
         </div>
 
-        <p className="mt-4 max-w-[920px] text-[14px] leading-[1.8] text-black/72">
+        <p className="mt-5 max-w-[920px] text-[14px] leading-[1.8] text-black/72">
           Verification records are auditable and reproducible. Given the same
           evidence inputs, the scoring framework is designed to produce
           consistent outcomes.
         </p>
       </section>
 
-      <section className="mt-10 border-t border-black/10 pt-8">
-        <h2 className="text-[16px] font-semibold text-black">
-          Assurance properties
+      <section className="mt-10 rounded-3xl border border-black/10 bg-white p-8 md:p-10">
+        <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
+          ASSURANCE PROPERTIES
+        </div>
+
+        <h2 className="mt-4 max-w-[760px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
+          What gives the framework trust value
         </h2>
-        <ul className="mt-4 list-disc space-y-2 pl-5 text-[15px] leading-[1.7] text-black/80">
+
+        <ul className="mt-6 list-disc space-y-3 pl-5 text-[15px] leading-[1.8] text-black/80">
           <li>Organization-wide scope</li>
           <li>Evidence-linked certification decisions</li>
           <li>Deterministic and auditable scoring</li>
@@ -162,5 +136,35 @@ export default function FrameworkPage() {
         </ul>
       </section>
     </main>
+  );
+}
+
+function FrameworkCard({
+  title,
+  body,
+}: {
+  title: string;
+  body: string;
+}) {
+  return (
+    <div className="rounded-2xl border border-black/10 p-5">
+      <div className="text-[20px] font-semibold text-black">{title}</div>
+      <p className="mt-3 text-[14px] leading-[1.8] text-black/75">{body}</p>
+    </div>
+  );
+}
+
+function WorkflowCard({
+  title,
+  body,
+}: {
+  title: string;
+  body: string;
+}) {
+  return (
+    <div className="rounded-2xl border border-black/10 p-5">
+      <div className="text-[20px] font-semibold text-black">{title}</div>
+      <p className="mt-3 text-[14px] leading-[1.8] text-black/75">{body}</p>
+    </div>
   );
 }

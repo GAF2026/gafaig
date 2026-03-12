@@ -1,57 +1,41 @@
-// app/page.tsx
 import Link from "next/link";
+import PublicPageHero from "./_components/PublicPageHero";
 
 export const dynamic = "force-static";
 
 export default function HomePage() {
   return (
     <main className="mx-auto max-w-[1180px] px-6 pb-16 pt-14">
-      <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
-        <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
-          GLOBAL AUTHORITY FOR AI GOVERNANCE
-        </div>
+      <PublicPageHero
+        eyebrow="GLOBAL AUTHORITY FOR AI GOVERNANCE"
+        title="Verification infrastructure for AI governance at global scale"
+        description="GAFAIG operates as a governance verification engine and public trust registry for AI systems. It separates private review operations from public certification outcomes, so governance can be verified, structured, and transparently surfaced."
+        secondaryDescription="The platform is designed as global trust infrastructure: a private verification layer for evaluators, a public certification registry for transparency, and an explorer layer for countries, organizations, AI systems, and global governance visibility."
+        actions={
+          <>
+            <Link
+              href="/demo"
+              className="rounded-full border border-black bg-black px-5 py-3 text-sm font-semibold text-white transition hover:bg-black/90"
+            >
+              Start the Demo
+            </Link>
 
-        <h1 className="mt-4 max-w-[980px] text-[42px] font-semibold leading-[1.1] text-black md:text-[52px]">
-          Verification infrastructure for AI governance at global scale
-        </h1>
+            <Link
+              href="/registry"
+              className="rounded-full border border-black px-5 py-3 text-sm font-semibold transition hover:bg-black/[0.04]"
+            >
+              View the Registry
+            </Link>
 
-        <p className="mt-5 max-w-[920px] text-[18px] leading-[1.8] text-black/80">
-          GAFAIG operates as a governance verification engine and public trust
-          registry for AI systems. It separates private review operations from
-          public certification outcomes, so governance can be verified,
-          structured, and transparently surfaced.
-        </p>
-
-        <p className="mt-5 max-w-[920px] text-[16px] leading-[1.85] text-black/72">
-          The platform is designed as global trust infrastructure: a private
-          verification layer for evaluators, a public certification registry for
-          transparency, and an explorer layer for countries, organizations, AI
-          systems, and global governance visibility.
-        </p>
-
-        <div className="mt-8 flex flex-wrap gap-3">
-          <Link
-            href="/demo"
-            className="rounded-full border border-black bg-black px-5 py-3 text-sm font-semibold text-white transition hover:bg-black/90"
-          >
-            Start the Demo
-          </Link>
-
-          <Link
-            href="/registry"
-            className="rounded-full border border-black px-5 py-3 text-sm font-semibold transition hover:bg-black/[0.04]"
-          >
-            View the Registry
-          </Link>
-
-          <Link
-            href="/explorer"
-            className="rounded-full border border-black px-5 py-3 text-sm font-semibold transition hover:bg-black/[0.04]"
-          >
-            Open the Explorer
-          </Link>
-        </div>
-      </section>
+            <Link
+              href="/explorer"
+              className="rounded-full border border-black px-5 py-3 text-sm font-semibold transition hover:bg-black/[0.04]"
+            >
+              Open the Explorer
+            </Link>
+          </>
+        }
+      />
 
       <section className="mt-8 grid gap-4 md:grid-cols-3">
         <PillarCard
@@ -94,16 +78,16 @@ export default function HomePage() {
         />
       </section>
 
-      <section className="mt-10 rounded-3xl border border-black/10 bg-white p-8">
-        <div className="text-[12px] font-semibold uppercase tracking-[0.18em] text-black/55">
-          How the system works
+      <section className="mt-10 rounded-3xl border border-black/10 bg-white p-8 md:p-10">
+        <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
+          HOW THE SYSTEM WORKS
         </div>
 
-        <h2 className="mt-3 text-[28px] font-semibold tracking-tight text-black">
+        <h2 className="mt-4 max-w-[860px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
           From private verification to public trust
         </h2>
 
-        <p className="mt-4 max-w-[960px] text-[16px] leading-[1.85] text-black/75">
+        <p className="mt-5 max-w-[960px] text-[16px] leading-[1.85] text-black/75">
           GAFAIG is structured as infrastructure, not just a website. It begins
           in a private verification workflow, moves through deterministic
           certification logic, and ends in public registry and explorer surfaces
@@ -160,16 +144,16 @@ export default function HomePage() {
         />
       </section>
 
-      <section className="mt-10 rounded-3xl border border-black/10 bg-white p-8">
-        <div className="text-[12px] font-semibold uppercase tracking-[0.18em] text-black/55">
-          Why GAFAIG exists
+      <section className="mt-10 rounded-3xl border border-black/10 bg-white p-8 md:p-10">
+        <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
+          WHY GAFAIG EXISTS
         </div>
 
-        <h2 className="mt-3 text-[28px] font-semibold tracking-tight text-black">
+        <h2 className="mt-4 max-w-[860px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
           AI governance needs infrastructure, not just policy language
         </h2>
 
-        <p className="mt-4 max-w-[960px] text-[16px] leading-[1.85] text-black/75">
+        <p className="mt-5 max-w-[960px] text-[16px] leading-[1.85] text-black/75">
           As AI systems move into operational environments, governance cannot
           remain abstract. Institutions need a way to verify oversight,
           structure evidence, produce auditable decisions, and publish trust

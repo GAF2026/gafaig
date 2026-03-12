@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { headers } from "next/headers";
+import PublicPageHero from "../_components/PublicPageHero";
 
 export const dynamic = "force-dynamic";
 
@@ -120,51 +121,46 @@ export default async function RegistryPage({
   );
 
   return (
-    <main className="mx-auto max-w-[1100px] px-6 pb-16 pt-14">
-      <section className="pt-2 pb-10">
+    <main className="mx-auto max-w-[1180px] px-6 pb-16 pt-14">
+      <PublicPageHero
+        eyebrow="REGISTRY"
+        title="Public certification outcomes for independent verification of human oversight across AI infrastructure"
+        description="The GAFAIG Registry publishes certification outcomes for organizations that have undergone independent verification of AI oversight. Controlled public disclosures confirm certification status while internal evidence, findings, and assessment materials remain private."
+        actions={
+          <>
+            <Link
+              href="/framework"
+              className="rounded-full border border-black px-5 py-3 text-sm font-semibold transition hover:bg-black/[0.04]"
+            >
+              Read the Framework
+            </Link>
+
+            <Link
+              href="/mission"
+              className="rounded-full border border-black bg-black px-5 py-3 text-sm font-semibold text-white transition hover:bg-black/90"
+            >
+              Mission &amp; Boundaries
+            </Link>
+          </>
+        }
+      />
+
+      <section className="mt-10 rounded-3xl border border-black/10 bg-white p-8 md:p-10">
         <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
-          Registry
+          SEARCH THE REGISTRY
         </div>
 
-        <h1 className="mt-4 max-w-[980px] text-[40px] font-semibold leading-[1.15] text-black">
-          Public certification outcomes for independent verification of human
-          oversight across AI infrastructure
-        </h1>
+        <h2 className="mt-4 max-w-[760px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
+          Search certified organizations
+        </h2>
 
-        <p className="mt-5 max-w-[920px] text-[18px] leading-[1.75] text-black/80">
-          The GAFAIG Registry publishes certification outcomes for organizations
-          that have undergone independent verification of AI oversight.
-          Controlled public disclosures confirm certification status while
-          internal evidence, findings, and assessment materials remain private.
-        </p>
-
-        <div className="mt-7 flex flex-wrap gap-2">
-          <Link
-            href="/framework"
-            className="rounded-full border border-black px-4 py-2 text-sm font-semibold hover:bg-black/[0.04]"
-          >
-            Read the Framework
-          </Link>
-
-          <Link
-            href="/mission"
-            className="rounded-full border border-black bg-black px-4 py-2 text-sm font-semibold text-white hover:bg-black/90"
-          >
-            Mission &amp; Boundaries
-          </Link>
-        </div>
-      </section>
-
-      <section className="border-t border-black/10 pt-8">
-        <h2 className="text-[16px] font-semibold text-black">Search the registry</h2>
-
-        <p className="mt-3 max-w-[920px] text-[16px] leading-[1.8] text-black/80">
+        <p className="mt-5 max-w-[920px] text-[16px] leading-[1.85] text-black/80">
           Search certified organizations by name, country, or registry ID. Each
           public record confirms certification outcomes and links to the
           associated certification detail page.
         </p>
 
-        <form className="mt-5 grid gap-3 md:grid-cols-4">
+        <form className="mt-6 grid gap-3 md:grid-cols-4">
           <div className="md:col-span-2">
             <label className="mb-2 block text-[12px] font-semibold uppercase tracking-[0.16em] text-black/60">
               Organization
@@ -216,13 +212,16 @@ export default async function RegistryPage({
         </form>
       </section>
 
-      <section className="mt-10 border-t border-black/10 pt-8">
+      <section className="mt-10 rounded-3xl border border-black/10 bg-white p-8 md:p-10">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
-            <h2 className="text-[16px] font-semibold text-black">
-              Certified organizations
+            <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
+              CERTIFIED ORGANIZATIONS
+            </div>
+            <h2 className="mt-4 max-w-[760px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
+              Public certification records
             </h2>
-            <p className="mt-2 text-[14px] leading-[1.7] text-black/72">
+            <p className="mt-4 text-[14px] leading-[1.8] text-black/72">
               Organizations listed below have completed a GAFAIG governance
               verification process.
             </p>
@@ -332,12 +331,16 @@ export default async function RegistryPage({
         )}
       </section>
 
-      <section className="mt-10 border-t border-black/10 pt-8">
-        <h2 className="text-[16px] font-semibold text-black">
-          Privacy boundary
+      <section className="mt-10 rounded-3xl border border-black/10 bg-white p-8 md:p-10">
+        <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
+          PRIVACY BOUNDARY
+        </div>
+
+        <h2 className="mt-4 max-w-[760px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
+          Public trust without exposing internal reviewer materials
         </h2>
 
-        <p className="mt-3 max-w-[920px] text-[16px] leading-[1.8] text-black/80">
+        <p className="mt-5 max-w-[920px] text-[16px] leading-[1.85] text-black/80">
           The registry confirms certification outcomes without exposing internal
           evidence, findings, reviewer rationales, or private assessment
           materials.
