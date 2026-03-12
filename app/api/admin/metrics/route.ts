@@ -16,23 +16,28 @@ function toNumber(v: any, fallback = 0) {
   return Number.isFinite(n) ? n : fallback;
 }
 
+const SUBMISSIONS_VIEW = "GAFAIG_DB.CORE.V_ADMIN_SUBMISSIONS";
+
 export async function GET() {
   try {
-    const totalCasesSql = `
+    const totalSql = `
       SELECT COUNT(*) AS TOTAL
-      FROM GAFAIG_DB.CORE.VERIFICATION_CASES
+      FROM ${SUBMISSIONS_VIEW}
+      WHERE TYPE = 'application'
     `;
 
     const byStatusSql = `
       SELECT STATUS, COUNT(*) AS COUNT
-      FROM GAFAIG_DB.CORE.VERIFICATION_CASES
+      FROM ${SUBMISSIONS_VIEW}
+      WHERE TYPE = 'application'
       GROUP BY STATUS
     `;
 
     const thisMonthSql = `
       SELECT COUNT(*) AS TOTAL
-      FROM GAFAIG_DB.CORE.VERIFICATION_CASES
-      WHERE DATE_TRUNC('MONTH', CREATED_AT) = DATE_TRUNC('MONTH', CURRENT_DATE())
+      FROM ${SUBMISSIONS_VIEW}
+      WHERE TYPE = 'application'
+        AND DATE_TRUNC('MONTH', UPDATED_AT) = DATE_TRUNC('MONTH', CURRENT_DATE())
     `;
 
     const verifiedParticipantsSql = `
@@ -41,7 +46,7 @@ export async function GET() {
       WHERE LOWER(COALESCE(STATUS, '')) IN ('verified','approved')
     `;
 
-    const totalResult = await executeQuery(totalCasesSql);
+    const totalResult = await executeQuery(totalSql);
     const totalRows = normalizeRows<any>(totalResult);
     const total = toNumber(totalRows[0]?.TOTAL ?? 0);
 
@@ -59,7 +64,9 @@ export async function GET() {
     for (const r of statusRows) {
       const key = String(r.STATUS ?? "").toLowerCase();
       const count = toNumber(r.COUNT ?? 0);
-      if (key) byStatus[key] = (byStatus[key] ?? 0) + count;
+      if (key) {
+        byStatus[key] = (byStatus[key] ?? 0) + count;
+      }
     }
 
     const monthResult = await executeQuery(thisMonthSql);
