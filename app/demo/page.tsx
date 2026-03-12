@@ -7,30 +7,31 @@ export default function DemoPage() {
   return (
     <main className="mx-auto max-w-[1180px] px-6 pb-16 pt-14">
       <PublicPageHero
-        eyebrow="GUIDED DEMO"
-        title="A tighter GAFAIG demo, centered on proof"
-        description="This walkthrough is designed for judges, investors, and evaluators. It follows one clear sequence: private reviewer access, Snowflake-backed verification workflow, public certification registry, and global explorer surfaces."
+        eyebrow="DEMO"
+        title="GAFAIG platform walkthrough"
+        description="This walkthrough follows one clear sequence: private reviewer access, Snowflake-backed verification workflow, public certification registry, and global explorer surfaces."
+        secondaryDescription="GAFAIG is structured as trust infrastructure for AI governance. The platform begins in a controlled reviewer environment, moves through a deterministic verification workflow, and ends in public registry and explorer surfaces that communicate certification outcomes without exposing private evidence."
         actions={
           <>
             <Link
               href="/admin/login"
               className="rounded-full border border-black bg-black px-5 py-3 text-sm font-semibold text-white transition hover:bg-black/90"
             >
-              Start 60-second demo
+              Begin walkthrough
             </Link>
 
             <Link
               href="/admin/applications"
               className="rounded-full border border-black px-5 py-3 text-sm font-semibold transition hover:bg-black/[0.04]"
             >
-              Open admin workflow
+              Open reviewer workflow
             </Link>
 
             <Link
               href="/registry"
               className="rounded-full border border-black px-5 py-3 text-sm font-semibold transition hover:bg-black/[0.04]"
             >
-              Skip to public registry
+              Open public registry
             </Link>
           </>
         }
@@ -38,68 +39,68 @@ export default function DemoPage() {
 
       <section className="mt-10 grid gap-4 md:grid-cols-4">
         <ValueCard
-          label="Demo goal"
+          label="Platform role"
           title="Trust infrastructure"
-          body="Show how GAFAIG verifies governance for AI systems, not just publishes a public registry page."
+          body="GAFAIG verifies governance for AI systems through a private operational layer and a separate public trust layer."
         />
         <ValueCard
           label="Private layer"
           title="Reviewer workflow"
-          body="Controlled reviewer access and verification activity remain in a private operational environment."
+          body="Controlled reviewer access, evidence handling, and verification operations remain in a private environment."
         />
         <ValueCard
           label="System of record"
           title="Snowflake"
-          body="Snowflake backs the application intake and certification data shown across this environment."
+          body="Snowflake underpins application intake, verification workflow, and certification data across the platform."
         />
         <ValueCard
           label="Public layer"
           title="Registry + Explorer"
-          body="Certification outcomes and disclosed system signals can be explored without exposing private evidence."
+          body="Certification outcomes, disclosed systems, and global coverage can be explored without exposing internal reviewer materials."
         />
       </section>
 
       <section className="mt-10 rounded-3xl border border-black/10 bg-white p-8 md:p-10">
         <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
-          RECOMMENDED FLOW
+          PLATFORM FLOW
         </div>
 
         <h2 className="mt-4 max-w-[760px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
-          One path, four steps
+          One path across four layers
         </h2>
 
         <p className="mt-5 max-w-3xl text-[15px] leading-[1.8] text-black/70">
-          This demo should take less than a minute. Keep the narration tight,
-          let the pages speak for themselves, and move from the private layer
-          to public trust in order.
+          The walkthrough moves from private verification operations to public
+          trust surfaces in order. Each page shows a different layer of the
+          GAFAIG system.
         </p>
 
         <div className="mt-8 grid gap-4">
           <StepRow
             step="Step 1"
             title="Private reviewer environment"
-            body="Show the controlled evaluator flow and that GAFAIG supports a private verification layer for reviewers rather than exposing operations publicly."
+            body="Open the controlled reviewer layer and show that verification operations are separated from the public trust surface."
             href="/admin/login"
             cta="Open reviewer access"
           />
           <StepRow
             step="Step 2"
-            title="Snowflake-backed review workflow"
-            body="Continue into the reviewer workflow and show that application records and verification operations are being served through the platform’s internal environment."
+            title="Snowflake-backed verification workflow"
+            body="Move into the application workflow to show Snowflake-backed operational records, status management, and structured verification activity."
             href="/admin/applications"
             cta="Open applications"
           />
           <StepRow
             step="Step 3"
             title="Public certification registry"
-            body="Move to the registry to show that certification outcomes are surfaced separately from the private reviewer layer."
+            body="Open the registry to show how certification outcomes are surfaced publicly without revealing internal evidence or reviewer materials."
             href="/registry"
             cta="Open registry"
           />
           <StepRow
             step="Step 4"
             title="Global explorer and map"
-            body="Open the explorer, countries, and map view to show how registry trust signals can be explored without exposing private evidence."
+            body="Finish in the explorer to show organizations, systems, countries, and map-based governance visibility across the GAFAIG network."
             href="/explorer"
             cta="Open explorer"
           />
@@ -108,44 +109,44 @@ export default function DemoPage() {
 
       <section className="mt-10 rounded-3xl border border-black/10 bg-white p-8 md:p-10">
         <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
-          EXTENDED WALKTHROUGH
+          WALKTHROUGH NARRATIVE
         </div>
 
         <h2 className="mt-4 max-w-[760px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
-          60-second talk track
+          A 60-second product story
         </h2>
 
         <div className="mt-8 grid gap-4 md:grid-cols-2">
           <TalkCard
             time="0:00–0:15"
             title="What GAFAIG is"
-            body="GAFAIG provides governance infrastructure for AI systems. It combines a private verification layer with a public registry layer, so sensitive reviewer work stays confidential while certification outcomes can be disclosed publicly."
+            body="GAFAIG provides governance infrastructure for AI systems by combining a private verification layer with a public registry and explorer layer."
           />
           <TalkCard
             time="0:15–0:30"
-            title="Reviewer environment"
-            body="This admin login opens the private reviewer workflow. It is intentionally separate from the public site and uses a controlled demo access path for evaluation."
+            title="Private reviewer environment"
+            body="The reviewer layer is controlled and operational. It exists to support verification, not public marketing or public disclosure."
           />
           <TalkCard
             time="0:30–0:45"
             title="Snowflake-backed operations"
-            body="Snowflake is the system of record for the application and verification workflow, supporting internal review operations and deterministic governance outcomes."
+            body="Snowflake acts as the system of record for application intake, verification workflow, and structured governance outcomes."
           />
           <TalkCard
             time="0:45–1:00"
-            title="Public trust signal"
-            body="The registry and explorer surface certification outcomes, disclosed systems, and country-level trust signals without revealing reviewer evidence."
+            title="Public trust surface"
+            body="The registry and explorer communicate certification outcomes, disclosed systems, and country-level visibility without exposing internal reviewer evidence."
           />
         </div>
       </section>
 
       <section className="mt-10 rounded-3xl border border-black/10 bg-white p-8 md:p-10">
         <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
-          WHAT THE EVALUATOR SHOULD NOTICE
+          PLATFORM PROOF POINTS
         </div>
 
         <h2 className="mt-4 max-w-[760px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
-          Key proof points
+          What this walkthrough demonstrates
         </h2>
 
         <div className="mt-8 grid gap-4 md:grid-cols-2">
@@ -153,32 +154,32 @@ export default function DemoPage() {
             title="Private reviewer layer"
             items={[
               "Admin access is controlled and separate from the public site.",
-              "Reviewer pages represent operational workflow, not public marketing screens.",
-              "Private verification activity is not directly exposed in public registry pages.",
+              "Reviewer pages represent operational workflow rather than public-facing registry surfaces.",
+              "Private verification activity is not directly exposed through public certification pages.",
             ]}
           />
           <BulletCard
             title="Snowflake-backed operations"
             items={[
               "Snowflake is the system of record for application and verification data.",
-              "Reviewer workflow is tightly tied to Snowflake-backed records.",
-              "Deterministic review logic can be surfaced as trust infrastructure rather than ad hoc screenshots.",
+              "Reviewer workflow is tied to structured operational records.",
+              "Deterministic review logic can be surfaced as infrastructure rather than screenshots or static claims.",
             ]}
           />
           <BulletCard
             title="Public registry layer"
             items={[
               "Certification outcomes can be disclosed without exposing internal evidence.",
-              "Registry records are public trust signals, not reviewer workspaces.",
-              "Organizations and AI systems can be browsed in structured, queryable public disclosures.",
+              "Registry records function as public trust signals.",
+              "Organizations and AI systems can be browsed through structured public disclosures.",
             ]}
           />
           <BulletCard
             title="Explorer layer"
             items={[
-              "Countries, organizations, systems, and map views illustrate global trust coverage.",
-              "The explorer turns registry records into a legible global graph.",
-              "The map and country drill-down help the evaluator understand scale and structure quickly.",
+              "Countries, organizations, systems, and map views show global trust coverage.",
+              "The explorer turns registry records into a legible public network.",
+              "Country drill-down and map surfaces communicate structure and scale quickly.",
             ]}
           />
         </div>
