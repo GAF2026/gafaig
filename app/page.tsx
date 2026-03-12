@@ -1,9 +1,55 @@
 import Link from "next/link";
 import PublicPageHero from "./_components/PublicPageHero";
 
-export const dynamic = "force-static";
+export const dynamic = "force-dynamic";
 
-export default function HomePage() {
+type PublicMetricsResponse =
+  | {
+      ok: true;
+      metrics: {
+        certifiedOrganizations: number;
+        disclosedAiSystems: number;
+        countriesRepresented: number;
+        verifiedParticipants: number;
+      };
+    }
+  | {
+      ok: false;
+      error: string;
+    };
+
+async function getPublicMetrics(): Promise<PublicMetricsResponse | null> {
+  try {
+    const base =
+      process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/+$/, "") ||
+      "http://localhost:3000";
+
+    const res = await fetch(`${base}/api/public/metrics`, {
+      cache: "no-store",
+    });
+
+    const json = (await res.json()) as PublicMetricsResponse;
+
+    if (!res.ok) {
+      return null;
+    }
+
+    return json;
+  } catch {
+    return null;
+  }
+}
+
+function fmt(value?: number) {
+  if (typeof value !== "number" || Number.isNaN(value)) return "—";
+  return value.toLocaleString();
+}
+
+export default async function HomePage() {
+  const metricsResp = await getPublicMetrics();
+  const metrics =
+    metricsResp && metricsResp.ok ? metricsResp.metrics : null;
+
   return (
     <main className="mx-auto max-w-[1180px] px-6 pb-16 pt-14">
       <PublicPageHero
@@ -36,6 +82,47 @@ export default function HomePage() {
           </>
         }
       />
+
+      <section className="mt-8 rounded-3xl border border-black/10 bg-white p-6 md:p-7">
+        <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+          <div>
+            <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
+              GLOBAL TRUST SIGNALS
+            </div>
+            <h2 className="mt-3 text-[28px] font-semibold leading-[1.15] tracking-tight text-black md:text-[34px]">
+              Live governance footprint
+            </h2>
+            <p className="mt-3 max-w-[760px] text-[15px] leading-[1.8] text-black/72">
+              These public counters are generated from GAFAIG’s Snowflake-backed
+              registry, AI systems layer, and verified participant identity
+              records.
+            </p>
+          </div>
+
+          <div className="text-[13px] text-black/50">
+            Snowflake-backed public metrics
+          </div>
+        </div>
+
+        <div className="mt-7 grid gap-4 md:grid-cols-4">
+          <MetricCard
+            label="Certified organizations"
+            value={fmt(metrics?.certifiedOrganizations)}
+          />
+          <MetricCard
+            label="Disclosed AI systems"
+            value={fmt(metrics?.disclosedAiSystems)}
+          />
+          <MetricCard
+            label="Countries represented"
+            value={fmt(metrics?.countriesRepresented)}
+          />
+          <MetricCard
+            label="Verified participants"
+            value={fmt(metrics?.verifiedParticipants)}
+          />
+        </div>
+      </section>
 
       <section className="mt-8 grid gap-4 md:grid-cols-3">
         <PillarCard
@@ -162,6 +249,25 @@ export default function HomePage() {
         </p>
       </section>
     </main>
+  );
+}
+
+function MetricCard({
+  label,
+  value,
+}: {
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className="rounded-2xl border border-black/10 bg-white p-5">
+      <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/55">
+        {label}
+      </div>
+      <div className="mt-3 text-[36px] font-semibold leading-none tracking-tight text-black">
+        {value}
+      </div>
+    </div>
   );
 }
 
