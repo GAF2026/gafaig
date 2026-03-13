@@ -82,7 +82,6 @@ function DesktopHeader() {
             <div className="mx-1 h-7 w-px bg-black/10" />
 
             <NavPill href="/demo">Demo</NavPill>
-            <NavPill href="/demo-script">Demo Script</NavPill>
             <NavPill href="/admin/login" filled>
               Admin
             </NavPill>
@@ -115,7 +114,6 @@ function MobileHeader() {
             <NavPill href="/registry">Registry</NavPill>
             <NavPill href="/explorer">Explorer</NavPill>
             <NavPill href="/demo">Demo</NavPill>
-            <NavPill href="/demo-script">Demo Script</NavPill>
             <NavPill href="/admin/login" filled>
               Admin
             </NavPill>
