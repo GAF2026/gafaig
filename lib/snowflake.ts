@@ -46,7 +46,7 @@ function buildConnectionConfig(): snowflake.ConnectionOptions {
     warehouse: requireEnv(warehouse, "SNOWFLAKE_WAREHOUSE"),
     database: requireEnv(database, "SNOWFLAKE_DATABASE"),
     schema: requireEnv(schema, "SNOWFLAKE_SCHEMA"),
-    role,
+    ...(role ? { role } : {}),
   };
 
   if (password) {
@@ -73,11 +73,18 @@ function buildConnectionConfig(): snowflake.ConnectionOptions {
   );
 }
 
+export function snowflakeCtx(): snowflake.ConnectionOptions {
+  return buildConnectionConfig();
+}
+
 export function createConnection(): snowflake.Connection {
   return snowflake.createConnection(buildConnectionConfig());
 }
 
-async function runQuery<T = any>(sqlText: string, binds: any[] = []): Promise<T[]> {
+async function runQuery<T = any>(
+  sqlText: string,
+  binds: any[] = []
+): Promise<T[]> {
   const connection = createConnection();
 
   return new Promise<T[]>((resolve, reject) => {
@@ -118,6 +125,13 @@ export async function sfQuery<T = any>(
 }
 
 export async function snowflakeQuery<T = any>(
+  sqlText: string,
+  binds: any[] = []
+): Promise<T[]> {
+  return runQuery<T>(sqlText, binds);
+}
+
+export async function executeQuery<T = any>(
   sqlText: string,
   binds: any[] = []
 ): Promise<T[]> {
