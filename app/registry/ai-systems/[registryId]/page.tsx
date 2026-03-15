@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { notFound } from "next/navigation";
 import { sfQueryResult } from "@/lib/snowflake";
 import { isGafaigRegistryId } from "@/lib/ids";
 
@@ -6,6 +7,7 @@ export const dynamic = "force-dynamic";
 
 type RegistryRow = {
   REGISTRY_ID: string;
+  CASE_ID: string | null;
   APPLICATION_ID: string | null;
   ENTITY_NAME: string;
   ENTITY_TYPE: string | null;
@@ -16,6 +18,7 @@ type RegistryRow = {
   VALID_FROM: string | null;
   VALID_TO: string | null;
   CERTIFIED_AT: string | null;
+  LAST_ACTIVITY_AT: string | null;
 };
 
 function formatDate(v?: string | null) {
@@ -33,7 +36,12 @@ function chipClass() {
   return "inline-flex items-center rounded-full border border-black/15 bg-black/[0.04] px-2.5 py-1 text-[12px] font-semibold leading-none text-black";
 }
 
-export default async function RegistryRecordPage({
+function valueOrDash(v?: string | null) {
+  const s = String(v ?? "").trim();
+  return s.length > 0 ? s : "—";
+}
+
+export default async function RegistryAiSystemRecordPage({
   params,
 }: {
   params: { registryId: string };
@@ -41,25 +49,14 @@ export default async function RegistryRecordPage({
   const registryId = String(params.registryId || "").trim().toUpperCase();
 
   if (!isGafaigRegistryId(registryId)) {
-    return (
-      <main className="mx-auto max-w-[1100px] px-6 pb-16 pt-14">
-        <section className="rounded-2xl border border-black/10 p-6">
-          <div className="text-[16px] font-semibold text-black">
-            Registry record not found
-          </div>
-          <p className="mt-3 text-[15px] leading-[1.75] text-black/72">
-            No GAFAIG registry record exists for{" "}
-            <span className="font-mono text-black">{registryId}</span>.
-          </p>
-        </section>
-      </main>
-    );
+    notFound();
   }
 
   const res = await sfQueryResult<RegistryRow>(
     `
     SELECT
       REGISTRY_ID,
+      CASE_ID,
       APPLICATION_ID,
       ENTITY_NAME,
       ENTITY_TYPE,
@@ -69,46 +66,53 @@ export default async function RegistryRecordPage({
       DECISION_STATUS,
       VALID_FROM,
       VALID_TO,
-      CERTIFIED_AT
-    FROM GAFAIG_DB.CORE.V_REGISTRY_PUBLIC
+      CERTIFIED_AT,
+      LAST_ACTIVITY_AT
+    FROM GAFAIG_DB.CORE.V_REGISTRY_PUBLIC_SEARCH
     WHERE REGISTRY_ID = ?
     LIMIT 1
     `,
     [registryId]
   );
 
-  const row = res.ok ? res.rows?.[0] ?? null : null;
-
-  if (!row) {
+  if (!res.ok) {
     return (
       <main className="mx-auto max-w-[1100px] px-6 pb-16 pt-14">
-        <section className="rounded-2xl border border-black/10 p-6">
-          <div className="text-[16px] font-semibold text-black">
-            Registry record not found
+        <section className="rounded-2xl border border-red-200 bg-red-50 p-6">
+          <div className="text-[16px] font-semibold text-red-700">
+            Unable to load registry record
           </div>
-          <p className="mt-3 text-[15px] leading-[1.75] text-black/72">
-            No GAFAIG registry record exists for{" "}
-            <span className="font-mono text-black">{registryId}</span>.
+          <p className="mt-3 text-[15px] leading-[1.75] text-red-700/90">
+            {res.error || "Snowflake query failed."}
           </p>
+          <div className="mt-6">
+            <Link
+              href="/registry/ai-systems"
+              className="inline-flex items-center rounded-full border border-black px-4 py-2 text-sm font-medium transition hover:bg-black hover:text-white"
+            >
+              Back to public registry
+            </Link>
+          </div>
         </section>
       </main>
     );
+  }
+
+  const row = res.rows?.[0] ?? null;
+
+  if (!row) {
+    notFound();
   }
 
   return (
     <main className="mx-auto max-w-[1100px] px-6 pb-16 pt-14">
       <section className="pb-10 pt-2">
         <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
-          Registry record
+          Certified AI system record
         </div>
 
         <h1 className="mt-4 max-w-[980px] text-[40px] font-semibold leading-[1.15] text-black">
-          <Link
-            href={`/organizations/${encodeURIComponent(row.REGISTRY_ID)}`}
-            className="hover:underline"
-          >
-            {row.ENTITY_NAME}
-          </Link>
+          {row.ENTITY_NAME}
         </h1>
 
         <div className="mt-4 flex flex-wrap gap-2">
@@ -122,12 +126,16 @@ export default async function RegistryRecordPage({
           {row.CERTIFIED_BAND ? (
             <span className={chipClass()}>{row.CERTIFIED_BAND}</span>
           ) : null}
+
+          {row.ENTITY_TYPE ? (
+            <span className={chipClass()}>{row.ENTITY_TYPE}</span>
+          ) : null}
         </div>
 
         <p className="mt-5 max-w-[920px] text-[16px] leading-[1.8] text-black/80">
-          This GAFAIG registry record confirms certification outcomes without
-          exposing internal evidence, findings, reviewer identities, or private
-          assessment materials.
+          This public GAFAIG record confirms certification status and high-level
+          registry metadata without exposing private evidence, findings, or
+          controlled verification materials.
         </p>
       </section>
 
@@ -135,19 +143,48 @@ export default async function RegistryRecordPage({
         <div className="grid gap-4 md:grid-cols-3">
           <div className="rounded-2xl border border-black/10 p-5">
             <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/60">
-              Entity type
+              Registry ID
             </div>
-            <div className="mt-2 text-[15px] text-black/85">
-              {row.ENTITY_TYPE ?? "—"}
+            <div className="mt-2 font-mono text-[13px] text-black/85">
+              {valueOrDash(row.REGISTRY_ID)}
             </div>
           </div>
 
           <div className="rounded-2xl border border-black/10 p-5">
             <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/60">
+              Entity name
+            </div>
+            <div className="mt-2 text-[15px] text-black/85">
+              {valueOrDash(row.ENTITY_NAME)}
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-black/10 p-5">
+            <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/60">
+              Entity type
+            </div>
+            <div className="mt-2 text-[15px] text-black/85">
+              {valueOrDash(row.ENTITY_TYPE)}
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-4 grid gap-4 md:grid-cols-3">
+          <div className="rounded-2xl border border-black/10 p-5">
+            <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/60">
               Country
             </div>
             <div className="mt-2 text-[15px] text-black/85">
-              {row.COUNTRY ?? "—"}
+              {valueOrDash(row.COUNTRY)}
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-black/10 p-5">
+            <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/60">
+              Decision status
+            </div>
+            <div className="mt-2 text-[15px] text-black/85">
+              {valueOrDash(row.DECISION_STATUS)}
             </div>
           </div>
 
@@ -182,22 +219,71 @@ export default async function RegistryRecordPage({
 
           <div className="rounded-2xl border border-black/10 p-5">
             <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/60">
+              Last activity
+            </div>
+            <div className="mt-2 text-[15px] text-black/85">
+              {formatDate(row.LAST_ACTIVITY_AT)}
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-4 grid gap-4 md:grid-cols-3">
+          <div className="rounded-2xl border border-black/10 p-5">
+            <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/60">
+              Certified tier
+            </div>
+            <div className="mt-2 text-[15px] text-black/85">
+              {valueOrDash(row.CERTIFIED_TIER)}
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-black/10 p-5">
+            <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/60">
+              Certified band
+            </div>
+            <div className="mt-2 text-[15px] text-black/85">
+              {valueOrDash(row.CERTIFIED_BAND)}
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-black/10 p-5">
+            <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/60">
               Application ID
             </div>
             <div className="mt-2 font-mono text-[13px] text-black/85">
-              {row.APPLICATION_ID ?? "—"}
+              {valueOrDash(row.APPLICATION_ID)}
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-4 grid gap-4 md:grid-cols-3">
+          <div className="rounded-2xl border border-black/10 p-5">
+            <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/60">
+              Case ID
+            </div>
+            <div className="mt-2 font-mono text-[13px] text-black/85">
+              {valueOrDash(row.CASE_ID)}
             </div>
           </div>
         </div>
       </section>
 
       <section className="mt-10 border-t border-black/10 pt-8">
-        <Link
-          href={`/organizations/${encodeURIComponent(row.REGISTRY_ID)}`}
-          className="inline-flex items-center rounded-full border border-black px-4 py-2 text-sm font-medium transition hover:bg-black hover:text-white"
-        >
-          View organization profile
-        </Link>
+        <div className="flex flex-wrap gap-3">
+          <Link
+            href="/registry/ai-systems"
+            className="inline-flex items-center rounded-full border border-black px-4 py-2 text-sm font-medium transition hover:bg-black hover:text-white"
+          >
+            Back to public registry
+          </Link>
+
+          <Link
+            href={`/api/verify/${encodeURIComponent(row.REGISTRY_ID)}`}
+            className="inline-flex items-center rounded-full border border-black px-4 py-2 text-sm font-medium transition hover:bg-black hover:text-white"
+          >
+            Open verification endpoint
+          </Link>
+        </div>
       </section>
     </main>
   );
