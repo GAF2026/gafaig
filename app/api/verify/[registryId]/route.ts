@@ -1,24 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
-import crypto from "crypto";
+import crypto from "node:crypto";
 import { isGafaigRegistryId } from "@/lib/ids";
 
 export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
 
 type RegistryRow = {
   registryId: string;
   applicationId: string;
-
   entityName: string;
   entityType: string | null;
   country: string | null;
-
   certifiedTier: string | null;
   certifiedBand: string | null;
   decisionStatus: string;
-
   validFrom: string | null;
   validTo: string | null;
-
   certifiedAt: string | null;
   lastActivityAt: string | null;
 };
@@ -29,7 +26,11 @@ type RegistryApiResponse =
       rows: RegistryRow[];
       total: number;
       limit: number;
-      filters?: { q: string; country: string; registryId: string };
+      filters?: {
+        q: string;
+        country: string;
+        registryId: string;
+      };
     }
   | { ok: false; error: string };
 
@@ -41,25 +42,27 @@ function toBase64Url(buf: Buffer) {
     .replace(/=+$/g, "");
 }
 
-function safeUpper(v: string) {
-  return String(v || "").trim().toUpperCase();
+function safeUpper(value: string) {
+  return String(value || "").trim().toUpperCase();
 }
 
-function parseDate(v: string | null | undefined) {
-  if (!v) return null;
-  const d = new Date(v);
+function parseDate(value: string | null | undefined) {
+  if (!value) return null;
+  const d = new Date(value);
   if (Number.isNaN(d.getTime())) return null;
   return d;
 }
 
 function isCurrentlyValidRecord(row: RegistryRow, now = new Date()) {
-  if (String(row.decisionStatus || "").toLowerCase() !== "approved") return false;
+  if (String(row.decisionStatus || "").toLowerCase() !== "approved") {
+    return false;
+  }
 
-  const vf = parseDate(row.validFrom);
-  const vt = parseDate(row.validTo);
+  const validFrom = parseDate(row.validFrom);
+  const validTo = parseDate(row.validTo);
 
-  if (vf && now < vf) return false;
-  if (vt && now >= vt) return false;
+  if (validFrom && now < validFrom) return false;
+  if (validTo && now >= validTo) return false;
 
   return true;
 }
@@ -68,34 +71,39 @@ function canonicalPayload(row: RegistryRow) {
   const payload = {
     registryId: row.registryId,
     applicationId: row.applicationId,
-
     entityName: row.entityName,
     entityType: row.entityType ?? "",
     country: row.country ?? "",
-
     decisionStatus: row.decisionStatus,
     certifiedTier: row.certifiedTier ?? "",
     certifiedBand: row.certifiedBand ?? "",
-
     validFrom: row.validFrom ?? "",
     validTo: row.validTo ?? "",
     certifiedAt: row.certifiedAt ?? "",
+    lastActivityAt: row.lastActivityAt ?? "",
   };
 
   const keys = Object.keys(payload).sort();
-  const stableObj: Record<string, any> = {};
-  for (const k of keys) stableObj[k] = (payload as any)[k];
+  const stable: Record<string, string> = {};
 
-  return stableObj;
+  for (const key of keys) {
+    stable[key] = String(payload[key as keyof typeof payload] ?? "");
+  }
+
+  return stable;
 }
 
-function signPayload(payload: Record<string, any>, secret: string) {
-  const msg = JSON.stringify(payload);
-  const mac = crypto.createHmac("sha256", secret).update(msg, "utf8").digest();
+function signPayload(payload: Record<string, string>, secret: string) {
+  const message = JSON.stringify(payload);
+  const mac = crypto
+    .createHmac("sha256", secret)
+    .update(message, "utf8")
+    .digest();
+
   return {
     alg: "HS256",
     signature: toBase64Url(mac),
-    message: msg,
+    message,
   };
 }
 
@@ -115,6 +123,7 @@ function cacheHeaders(verified: boolean) {
         "public, max-age=60, s-maxage=300, stale-while-revalidate=3600",
     };
   }
+
   return {
     "Cache-Control":
       "public, max-age=30, s-maxage=60, stale-while-revalidate=600",
@@ -133,22 +142,22 @@ export async function OPTIONS() {
 
 export async function GET(
   req: NextRequest,
-  ctx: { params: { registryId: string } }
+  ctx: { params: Promise<{ registryId: string }> },
 ) {
-  const registryIdRaw = ctx?.params?.registryId ?? "";
-  const registryId = safeUpper(registryIdRaw);
+  const { registryId: rawRegistryId } = await ctx.params;
+  const registryId = safeUpper(rawRegistryId ?? "");
 
   if (!registryId) {
     return NextResponse.json(
       { ok: false, error: "Missing registryId" },
-      { status: 400, headers: { ...corsHeaders(), ...cacheHeaders(false) } }
+      { status: 400, headers: { ...corsHeaders(), ...cacheHeaders(false) } },
     );
   }
 
   if (!isGafaigRegistryId(registryId)) {
     return NextResponse.json(
       { ok: false, error: "Invalid registryId format" },
-      { status: 400, headers: { ...corsHeaders(), ...cacheHeaders(false) } }
+      { status: 400, headers: { ...corsHeaders(), ...cacheHeaders(false) } },
     );
   }
 
@@ -160,36 +169,50 @@ export async function GET(
         error:
           "Server misconfigured: missing GAFAIG_VERIFY_SIGNING_SECRET (min 32 chars).",
       },
-      { status: 500, headers: { ...corsHeaders(), ...cacheHeaders(false) } }
+      { status: 500, headers: { ...corsHeaders(), ...cacheHeaders(false) } },
     );
   }
 
   const now = new Date();
   const origin = new URL(req.url).origin;
+  const url = new URL("/api/registry", origin);
 
-  const url = new URL(`${origin}/api/registry`);
   url.searchParams.set("limit", "1");
   url.searchParams.set("registryId", registryId);
 
   let reg: RegistryApiResponse;
+
   try {
-    const res = await fetch(url.toString(), { cache: "no-store" });
+    const res = await fetch(url.toString(), {
+      cache: "no-store",
+      headers: {
+        Accept: "application/json",
+      },
+    });
+
     reg = (await res.json()) as RegistryApiResponse;
-  } catch (e: any) {
+  } catch (error) {
     return NextResponse.json(
-      { ok: false, error: e?.message || "Failed to query registry." },
-      { status: 500, headers: { ...corsHeaders(), ...cacheHeaders(false) } }
+      {
+        ok: false,
+        error:
+          error instanceof Error
+            ? error.message
+            : "Failed to query registry.",
+      },
+      { status: 500, headers: { ...corsHeaders(), ...cacheHeaders(false) } },
     );
   }
 
   if (!reg.ok) {
     return NextResponse.json(
       { ok: false, error: reg.error || "Registry query failed." },
-      { status: 500, headers: { ...corsHeaders(), ...cacheHeaders(false) } }
+      { status: 500, headers: { ...corsHeaders(), ...cacheHeaders(false) } },
     );
   }
 
   const row = reg.rows?.[0];
+
   if (!row) {
     return NextResponse.json(
       {
@@ -199,12 +222,11 @@ export async function GET(
         reason: "not_found",
         now: now.toISOString(),
       },
-      { status: 200, headers: { ...corsHeaders(), ...cacheHeaders(false) } }
+      { status: 200, headers: { ...corsHeaders(), ...cacheHeaders(false) } },
     );
   }
 
   const verified = isCurrentlyValidRecord(row, now);
-
   const payload = canonicalPayload(row);
   const signed = signPayload(payload, secret);
 
@@ -231,6 +253,6 @@ export async function GET(
         ...corsHeaders(),
         ...cacheHeaders(verified),
       },
-    }
+    },
   );
 }

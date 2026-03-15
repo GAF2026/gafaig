@@ -1,234 +1,154 @@
-import { headers } from "next/headers";
-import AdminNav from "../../../_components/AdminNav";
-import AdminPageHeader from "../../../_components/AdminPageHeader";
-import CaseTabs from "../_components/CaseTabs";
-import PublishPanel from "./_components/PublishPanel";
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import PublishCertificationButton from "./PublishCertificationButton";
 
+export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-type ScoreResp = {
-  ok: boolean;
-  error?: string;
-
-  caseId: string;
-  participantId: string | null;
-  standard: { code: string | null; version: string | null };
-  caseStatus: string | null;
-
-  tier: "High Assurance" | "Standard Assurance" | "Conditional" | "Not Verified";
-  band: "A" | "B" | "C" | "D";
-  score: number;
-
-  subscores: {
-    controls: number;
-    coverage: number;
-    freshness: number;
-    summaries: number;
-  };
-
-  lastActivityAt: string | null;
-
-  counts: {
-    findingsTotal: number;
-    findingsScored: number;
-    findingsNA: number;
-    findingsWithEvidence: number;
-    evidenceTotal: number;
-    evidenceWithSummary: number;
-  };
-
-  snowflakeEnv?: {
-    CURRENT_ACCOUNT: string;
-    CURRENT_REGION: string;
-    CURRENT_DATABASE: string;
-    CURRENT_SCHEMA: string;
-    CURRENT_ROLE: string;
-    CURRENT_WAREHOUSE: string;
-  } | null;
+type ScorePageProps = {
+  params: Promise<{
+    caseId: string;
+  }>;
 };
 
-function pct(n?: number) {
-  if (typeof n !== "number") return "—";
-  return `${Math.round(n * 10) / 10}%`;
+function normalizeCaseId(value: unknown): string {
+  return typeof value === "string" ? value.trim() : "";
 }
 
-function num(n?: number) {
-  if (typeof n !== "number") return "—";
-  return `${Math.round(n * 100) / 100}`;
+function isValidCaseId(value: string): boolean {
+  return /^[A-Z0-9][A-Z0-9._:-]{1,127}$/i.test(value);
 }
 
-function badgeClass(band?: string) {
-  if (band === "A") return "bg-emerald-600 text-white";
-  if (band === "B") return "bg-blue-600 text-white";
-  if (band === "C") return "bg-amber-600 text-white";
-  if (band === "D") return "bg-red-600 text-white";
-  return "bg-neutral-700 text-white";
-}
+export default async function VerificationScorePage({
+  params,
+}: ScorePageProps) {
+  const { caseId: rawCaseId } = await params;
+  const caseId = normalizeCaseId(rawCaseId);
 
-async function getBaseUrl() {
-  const h = headers();
-  const host = h.get("x-forwarded-host") || h.get("host");
-  const proto = h.get("x-forwarded-proto") || "https";
-
-  if (!host) {
-    return process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+  if (!isValidCaseId(caseId)) {
+    notFound();
   }
 
-  return `${proto}://${host}`;
-}
-
-async function getScore(caseId: string): Promise<ScoreResp | null> {
-  const baseUrl = await getBaseUrl();
-  const cookie = headers().get("cookie") || "";
-
-  const res = await fetch(
-    `${baseUrl}/api/admin/verification/${encodeURIComponent(caseId)}/score`,
-    {
-      cache: "no-store",
-      headers: {
-        cookie,
-      },
-    }
-  );
-
-  const data = (await res.json().catch(() => null)) as ScoreResp | null;
-  return data;
-}
-
-export default async function CaseScorePage({
-  params,
-}: {
-  params: { caseId: string };
-}) {
-  const caseId = params.caseId;
-  const data = await getScore(caseId);
-  const ok = !!data?.ok;
-
   return (
-    <div>
-      <AdminNav />
+    <main className="min-h-screen bg-[#0b1020] text-white">
+      <div className="mx-auto max-w-7xl px-6 py-10">
+        <div className="mb-8 flex flex-wrap items-center gap-3 text-sm text-white/60">
+          <Link
+            href="/admin/applications"
+            className="transition hover:text-white"
+          >
+            Applications
+          </Link>
+          <span>/</span>
+          <Link
+            href={`/admin/verification/${encodeURIComponent(caseId)}`}
+            className="transition hover:text-white"
+          >
+            Verification
+          </Link>
+          <span>/</span>
+          <span className="text-white/85">Score</span>
+        </div>
 
-      <main className="mx-auto max-w-[1100px] px-6 pt-14 pb-16 space-y-8">
-        <AdminPageHeader
-          title={`Score — ${caseId}`}
-          description="GAFAIG governance score generated from the Snowflake scoring engine."
-          meta={ok ? `Band ${data!.band} • ${data!.tier}` : undefined}
-        />
-
-        <CaseTabs caseId={caseId} />
-
-        {!ok ? (
-          <div className="rounded-xl border border-black/10 p-4">
-            <div className="font-semibold">Score unavailable</div>
-            <div className="mt-1 text-sm text-neutral-600">
-              {data?.error || "No governance score found for this case (or not authorized)."}
+        <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+          <div>
+            <div className="text-xs font-semibold uppercase tracking-[0.18em] text-cyan-300/70">
+              GAFAIG Admin
             </div>
+            <h1 className="mt-2 text-3xl font-semibold tracking-tight">
+              Certification Score
+            </h1>
+            <p className="mt-3 max-w-3xl text-sm leading-6 text-white/70">
+              Review deterministic scoring output for this verification case and
+              publish the approved certification into the public registry without
+              exposing private evidence.
+            </p>
           </div>
-        ) : (
-          <>
-            <div className="grid gap-6 lg:grid-cols-3">
-              <div className="rounded-xl border border-black/10 p-6">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <div className="text-sm text-neutral-600">GAFAIG Governance Score</div>
-                    <div className="mt-2 text-3xl font-semibold">{num(data.score)}</div>
-                  </div>
 
-                  <div
-                    className={`rounded-full px-3 py-1 text-sm font-semibold ${badgeClass(data.band)}`}
-                  >
-                    {data.band}
-                  </div>
+          <div className="rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white/75">
+            <div className="text-[11px] uppercase tracking-[0.14em] text-white/45">
+              Case ID
+            </div>
+            <div className="mt-1 font-medium text-white">{caseId}</div>
+          </div>
+        </div>
+
+        <div className="grid gap-6">
+          <section className="rounded-2xl border border-white/10 bg-white/[0.03] p-5 shadow-sm">
+            <div className="mb-4">
+              <h2 className="text-lg font-semibold text-white">
+                Score + Publish
+              </h2>
+              <p className="mt-2 text-sm leading-6 text-white/70">
+                This screen is the bridge between the private verification
+                engine and the public registry. Publishing creates or returns
+                the deterministic registry record for this case while keeping
+                evidence private inside the controlled layer.
+              </p>
+            </div>
+
+            <PublishCertificationButton
+              caseId={caseId}
+              initialRegistryId={null}
+            />
+          </section>
+
+          <section className="rounded-2xl border border-white/10 bg-white/[0.03] p-5 shadow-sm">
+            <h2 className="text-lg font-semibold text-white">
+              Next integration point
+            </h2>
+            <p className="mt-2 text-sm leading-6 text-white/70">
+              Once this publish action is working, the next step is to connect
+              the public registry views:
+            </p>
+
+            <div className="mt-4 grid gap-3 md:grid-cols-3">
+              <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4">
+                <div className="text-[11px] uppercase tracking-[0.14em] text-white/45">
+                  Public registry list
                 </div>
-
-                <div className="mt-4 space-y-1 text-sm">
-                  <div>
-                    <span className="text-neutral-600">Tier:</span>{" "}
-                    <span className="font-medium">{data.tier}</span>
-                  </div>
-
-                  <div>
-                    <span className="text-neutral-600">Case status:</span>{" "}
-                    <span className="font-medium">{data.caseStatus ?? "—"}</span>
-                  </div>
-
-                  <div>
-                    <span className="text-neutral-600">Standard:</span>{" "}
-                    <span className="font-medium">
-                      {(data.standard?.code ?? "—") + " " + (data.standard?.version ?? "")}
-                    </span>
-                  </div>
-
-                  <div>
-                    <span className="text-neutral-600">Last activity:</span>{" "}
-                    <span className="font-medium">{data.lastActivityAt ?? "—"}</span>
-                  </div>
+                <div className="mt-2 text-sm font-medium text-white">
+                  /registry/ai-systems
                 </div>
               </div>
 
-              <div className="rounded-xl border border-black/10 p-6 lg:col-span-2">
-                <div className="flex items-center justify-between">
-                  <div className="font-semibold">Subscores</div>
-                  <div className="text-xs text-neutral-500">
-                    Participant: <span className="font-mono">{data.participantId ?? "—"}</span>
-                  </div>
+              <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4">
+                <div className="text-[11px] uppercase tracking-[0.14em] text-white/45">
+                  Verification endpoint
                 </div>
-
-                <div className="mt-4 grid gap-4 sm:grid-cols-2">
-                  <Subscore label="Controls" value={data.subscores.controls} />
-                  <Subscore label="Coverage" value={data.subscores.coverage} />
-                  <Subscore label="Freshness" value={data.subscores.freshness} />
-                  <Subscore label="Summaries" value={data.subscores.summaries} />
+                <div className="mt-2 text-sm font-medium text-white">
+                  /api/verify/[registryId]
                 </div>
+              </div>
 
-                <div className="mt-6 grid gap-3 sm:grid-cols-2">
-                  <Stat label="Findings (total)" value={data.counts.findingsTotal} />
-                  <Stat label="Findings (scored)" value={data.counts.findingsScored} />
-                  <Stat label="Findings (N/A)" value={data.counts.findingsNA} />
-                  <Stat label="Findings w/ evidence" value={data.counts.findingsWithEvidence} />
-                  <Stat label="Evidence (total)" value={data.counts.evidenceTotal} />
-                  <Stat label="Evidence w/ summary" value={data.counts.evidenceWithSummary} />
+              <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4">
+                <div className="text-[11px] uppercase tracking-[0.14em] text-white/45">
+                  Public record page
+                </div>
+                <div className="mt-2 text-sm font-medium text-white">
+                  /registry/ai-systems/[registryId]
                 </div>
               </div>
             </div>
+          </section>
 
-            <PublishPanel
-              caseId={caseId}
-              band={data.band}
-              tier={data.tier}
-              score={data.score}
-              lastActivityAt={data.lastActivityAt}
-              snowflakeEnv={data.snowflakeEnv ?? null}
-            />
-          </>
-        )}
-      </main>
-    </div>
-  );
-}
+          <div className="flex flex-wrap gap-3">
+            <Link
+              href={`/admin/verification/${encodeURIComponent(caseId)}`}
+              className="inline-flex items-center justify-center rounded-xl border border-white/15 bg-white/10 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-white/15"
+            >
+              Back to Verification Case
+            </Link>
 
-function Stat({ label, value }: { label: string; value: number }) {
-  return (
-    <div className="rounded-md border border-black/10 p-3">
-      <div className="text-xs text-neutral-600">{label}</div>
-      <div className="mt-1 text-sm font-medium">{value}</div>
-    </div>
-  );
-}
-
-function Subscore({ label, value }: { label: string; value?: number }) {
-  const v = typeof value === "number" ? Math.max(0, Math.min(100, value)) : 0;
-
-  return (
-    <div className="rounded-md border border-black/10 p-3">
-      <div className="flex items-center justify-between">
-        <div className="text-sm font-medium">{label}</div>
-        <div className="text-sm text-neutral-700">{pct(value)}</div>
+            <Link
+              href="/admin/applications"
+              className="inline-flex items-center justify-center rounded-xl border border-white/15 bg-transparent px-4 py-2.5 text-sm font-medium text-white/85 transition hover:bg-white/10 hover:text-white"
+            >
+              Back to Applications
+            </Link>
+          </div>
+        </div>
       </div>
-
-      <div className="mt-2 h-2 w-full rounded-full bg-neutral-100">
-        <div className="h-2 rounded-full bg-neutral-900" style={{ width: `${v}%` }} />
-      </div>
-    </div>
+    </main>
   );
 }
