@@ -347,12 +347,12 @@ export default async function RegistryAiSystemsPage({
                     {row.REGISTRY_ID ? (
                       <div className="mt-3 flex justify-end">
                         <Link
-                          href={`/registry/${encodeURIComponent(
+                          href={`/registry/ai-systems/${encodeURIComponent(
                             row.REGISTRY_ID
                           )}`}
                           className="inline-flex items-center rounded-full border border-black px-4 py-2 text-sm font-medium transition hover:bg-black hover:text-white"
                         >
-                          View certification
+                          View certificate
                         </Link>
                       </div>
                     ) : null}
