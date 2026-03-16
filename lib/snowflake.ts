@@ -27,18 +27,6 @@ function env(name: string): string | undefined {
   return trimmed.length > 0 ? trimmed : undefined;
 }
 
-const account = env("SNOWFLAKE_ACCOUNT");
-const username = env("SNOWFLAKE_USER") ?? env("SNOWFLAKE_USERNAME");
-const warehouse = env("SNOWFLAKE_WAREHOUSE");
-const database = env("SNOWFLAKE_DATABASE");
-const schema = env("SNOWFLAKE_SCHEMA");
-const role = env("SNOWFLAKE_ROLE");
-
-const password = env("SNOWFLAKE_PASSWORD");
-const privateKey = env("SNOWFLAKE_PRIVATE_KEY");
-const privateKeyPath = env("SNOWFLAKE_PRIVATE_KEY_PATH");
-const privateKeyPass = env("SNOWFLAKE_PRIVATE_KEY_PASSPHRASE");
-
 function requireEnv(value: string | undefined, name: string): string {
   if (!value) {
     throw new Error(`Missing required environment variable: ${name}`);
@@ -46,16 +34,63 @@ function requireEnv(value: string | undefined, name: string): string {
   return value;
 }
 
+function getSnowflakeEnv() {
+  const account = env("SNOWFLAKE_ACCOUNT");
+  const username = env("SNOWFLAKE_USER") ?? env("SNOWFLAKE_USERNAME");
+  const warehouse = env("SNOWFLAKE_WAREHOUSE");
+  const database = env("SNOWFLAKE_DATABASE");
+  const schema = env("SNOWFLAKE_SCHEMA");
+  const role = env("SNOWFLAKE_ROLE");
+
+  const password = env("SNOWFLAKE_PASSWORD");
+  const privateKey = env("SNOWFLAKE_PRIVATE_KEY");
+  const privateKeyPath = env("SNOWFLAKE_PRIVATE_KEY_PATH");
+  const privateKeyPass = env("SNOWFLAKE_PRIVATE_KEY_PASSPHRASE");
+
+  return {
+    account,
+    username,
+    warehouse,
+    database,
+    schema,
+    role,
+    password,
+    privateKey,
+    privateKeyPath,
+    privateKeyPass,
+  };
+}
+
+function normalizePem(raw: string): string {
+  return raw.replace(/\r\n/g, "\n").trim();
+}
+
 function buildConnectionConfig(): snowflake.ConnectionOptions {
+  const {
+    account,
+    username,
+    warehouse,
+    database,
+    schema,
+    role,
+    password,
+    privateKey,
+    privateKeyPath,
+    privateKeyPass,
+  } = getSnowflakeEnv();
+
   const cfg: snowflake.ConnectionOptions = {
     account: requireEnv(account, "SNOWFLAKE_ACCOUNT"),
     username: requireEnv(username, "SNOWFLAKE_USER or SNOWFLAKE_USERNAME"),
     warehouse: requireEnv(warehouse, "SNOWFLAKE_WAREHOUSE"),
     database: requireEnv(database, "SNOWFLAKE_DATABASE"),
     schema: requireEnv(schema, "SNOWFLAKE_SCHEMA"),
-    role,
     clientSessionKeepAlive: true,
   };
+
+  if (role) {
+    cfg.role = role;
+  }
 
   if (password) {
     cfg.password = password;
@@ -64,15 +99,19 @@ function buildConnectionConfig(): snowflake.ConnectionOptions {
 
   if (privateKey) {
     cfg.authenticator = "SNOWFLAKE_JWT";
-    cfg.privateKey = privateKey;
-    if (privateKeyPass) cfg.privateKeyPass = privateKeyPass;
+    cfg.privateKey = normalizePem(privateKey);
+    if (privateKeyPass) {
+      cfg.privateKeyPass = privateKeyPass;
+    }
     return cfg;
   }
 
   if (privateKeyPath) {
     cfg.authenticator = "SNOWFLAKE_JWT";
     cfg.privateKeyPath = privateKeyPath;
-    if (privateKeyPass) cfg.privateKeyPass = privateKeyPass;
+    if (privateKeyPass) {
+      cfg.privateKeyPass = privateKeyPass;
+    }
     return cfg;
   }
 
@@ -94,9 +133,30 @@ async function connectNewConnection(): Promise<snowflake.Connection> {
         reject(err);
         return;
       }
+
       resolve(connection);
     });
   });
+}
+
+function isRecoverableConnectionError(error: unknown): boolean {
+  const message = String((error as { message?: string } | undefined)?.message || "").toLowerCase();
+
+  return (
+    message.includes("terminated connection") ||
+    message.includes("connection is closed") ||
+    message.includes("connection was already destroyed") ||
+    message.includes("not connected") ||
+    message.includes("disconnected") ||
+    message.includes("connection not established") ||
+    message.includes("socket") ||
+    message.includes("econnreset")
+  );
+}
+
+function resetSharedConnection() {
+  global.__gafaigSnowflakeConnection = undefined;
+  global.__gafaigSnowflakeConnecting = undefined;
 }
 
 async function getSharedConnection(): Promise<snowflake.Connection> {
@@ -109,6 +169,10 @@ async function getSharedConnection(): Promise<snowflake.Connection> {
       .then((connection) => {
         global.__gafaigSnowflakeConnection = connection;
         return connection;
+      })
+      .catch((error) => {
+        resetSharedConnection();
+        throw error;
       })
       .finally(() => {
         global.__gafaigSnowflakeConnecting = undefined;
@@ -139,26 +203,20 @@ async function executeOnConnection<T = any>(
   });
 }
 
-async function runQuery<T = any>(sqlText: string, binds: any[] = []): Promise<T[]> {
+async function runQuery<T = any>(
+  sqlText: string,
+  binds: any[] = []
+): Promise<T[]> {
   let connection = await getSharedConnection();
 
   try {
     return await executeOnConnection<T>(connection, sqlText, binds);
-  } catch (error: any) {
-    const message = String(error?.message || "");
-
-    const looksLikeDeadConnection =
-      message.includes("Unable to perform operation using terminated connection") ||
-      message.includes("Connection is closed") ||
-      message.includes("disconnected") ||
-      message.includes("connection was already destroyed") ||
-      message.includes("not connected");
-
-    if (!looksLikeDeadConnection) {
+  } catch (error) {
+    if (!isRecoverableConnectionError(error)) {
       throw error;
     }
 
-    global.__gafaigSnowflakeConnection = undefined;
+    resetSharedConnection();
     connection = await getSharedConnection();
     return executeOnConnection<T>(connection, sqlText, binds);
   }
@@ -205,6 +263,18 @@ export async function sfQueryResult<T = any>(
 }
 
 export function snowflakeCtx() {
+  const {
+    account,
+    username,
+    warehouse,
+    database,
+    schema,
+    role,
+    password,
+    privateKey,
+    privateKeyPath,
+  } = getSnowflakeEnv();
+
   return {
     account: account ?? null,
     username: username ?? null,
