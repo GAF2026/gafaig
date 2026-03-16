@@ -343,15 +343,19 @@ export default async function RegistryAiSystemsPage({
 
               <div className="mt-8 grid gap-5">
                 {filteredRows.map((row) => {
-                  const hasRegistryId = String(row.REGISTRY_ID ?? "").trim().length > 0;
+                  const registryId =
+                    typeof row.REGISTRY_ID === "string" &&
+                    row.REGISTRY_ID.trim().length > 0
+                      ? row.REGISTRY_ID
+                      : null;
 
                   return (
                     <div key={row.SYSTEM_ID}>
                       <AISystemCard system={row} />
-                      {hasRegistryId ? (
+                      {registryId ? (
                         <div className="mt-3 flex justify-end">
                           <Link
-                            href={buildRegistryAiSystemHref(row.REGISTRY_ID)}
+                            href={buildRegistryAiSystemHref(registryId)}
                             className="inline-flex items-center rounded-full border border-black px-4 py-2 text-sm font-medium transition hover:bg-black hover:text-white"
                           >
                             View certificate
