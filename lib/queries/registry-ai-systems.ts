@@ -1,5 +1,9 @@
 import { sfQueryResult } from "@/lib/snowflake";
-import { SNOWFLAKE } from "@/lib/platform-contracts";
+import {
+  SNOWFLAKE,
+  SELECT_REGISTRY_AI_SYSTEM,
+  JOIN_REGISTRY,
+} from "./registry";
 
 export type RegistryAiSystemRow = {
   SYSTEM_ID: string;
@@ -27,6 +31,12 @@ export type RegistryAiSystemRow = {
   CERTIFIED_TIER: string | null;
   CERTIFIED_BAND: string | null;
 
+  GOVERNANCE_MATURITY_SCORE: number | null;
+  CONTROLS_PCT: number | null;
+  COVERAGE_PCT: number | null;
+  FRESHNESS_PCT: number | null;
+  SUMMARY_PCT: number | null;
+
   LAST_ACTIVITY_AT: string | null;
   PUBLIC_SUMMARY: string | null;
   DISPLAY_ORDER: number | null;
@@ -38,45 +48,15 @@ export type RegistryAiSystemRow = {
 export async function getRegistryAiSystems() {
   return sfQueryResult<RegistryAiSystemRow>(
     `
-SELECT
-  s.SYSTEM_ID,
-  s.REGISTRY_ID,
-  s.APPLICATION_ID,
-  s.CASE_ID,
-
-  r.ENTITY_NAME,
-
-  s.SYSTEM_NAME,
-  s.SYSTEM_TYPE,
-  s.INTENDED_USE,
-  s.DEPLOYMENT_STATUS,
-  s.OVERSIGHT_LEVEL,
-  s.RISK_TIER,
-
-  s.DEVELOPER_ORGANIZATION,
-  s.TRAINING_DATA_CATEGORY,
-  s.OVERSIGHT_MODEL,
-  s.HUMAN_REVIEW_REQUIRED,
-  s.EVALUATION_PROTOCOL,
-  s.AUDIT_FREQUENCY,
-
-  r.DECISION_STATUS,
-  r.CERTIFIED_TIER,
-  r.CERTIFIED_BAND,
-
-  r.LAST_ACTIVITY_AT,
-  s.PUBLIC_SUMMARY,
-  s.DISPLAY_ORDER
-
-FROM ${SNOWFLAKE.views.publicAiSystems} s
-LEFT JOIN ${SNOWFLAKE.views.publicRegistry} r
-  ON s.REGISTRY_ID = r.REGISTRY_ID
-
-ORDER BY
-  s.REGISTRY_ID ASC,
-  s.DISPLAY_ORDER ASC NULLS LAST,
-  s.SYSTEM_NAME ASC
-`
+    SELECT
+      ${SELECT_REGISTRY_AI_SYSTEM}
+    FROM ${SNOWFLAKE.views.publicAiSystems} s
+    ${JOIN_REGISTRY}
+    ORDER BY
+      s.REGISTRY_ID ASC,
+      s.DISPLAY_ORDER ASC NULLS LAST,
+      s.SYSTEM_NAME ASC
+    `
   );
 }
 
@@ -86,43 +66,13 @@ ORDER BY
 export async function getRegistryAiSystemByRegistryId(registryId: string) {
   return sfQueryResult<RegistryAiSystemRow>(
     `
-SELECT
-  s.SYSTEM_ID,
-  s.REGISTRY_ID,
-  s.APPLICATION_ID,
-  s.CASE_ID,
-
-  r.ENTITY_NAME,
-
-  s.SYSTEM_NAME,
-  s.SYSTEM_TYPE,
-  s.INTENDED_USE,
-  s.DEPLOYMENT_STATUS,
-  s.OVERSIGHT_LEVEL,
-  s.RISK_TIER,
-
-  s.DEVELOPER_ORGANIZATION,
-  s.TRAINING_DATA_CATEGORY,
-  s.OVERSIGHT_MODEL,
-  s.HUMAN_REVIEW_REQUIRED,
-  s.EVALUATION_PROTOCOL,
-  s.AUDIT_FREQUENCY,
-
-  r.DECISION_STATUS,
-  r.CERTIFIED_TIER,
-  r.CERTIFIED_BAND,
-
-  r.LAST_ACTIVITY_AT,
-  s.PUBLIC_SUMMARY,
-  s.DISPLAY_ORDER
-
-FROM ${SNOWFLAKE.views.publicAiSystems} s
-LEFT JOIN ${SNOWFLAKE.views.publicRegistry} r
-  ON s.REGISTRY_ID = r.REGISTRY_ID
-
-WHERE s.REGISTRY_ID = ?
-LIMIT 1
-`,
+    SELECT
+      ${SELECT_REGISTRY_AI_SYSTEM}
+    FROM ${SNOWFLAKE.views.publicAiSystems} s
+    ${JOIN_REGISTRY}
+    WHERE s.REGISTRY_ID = ?
+    LIMIT 1
+    `,
     [registryId]
   );
 }
