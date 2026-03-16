@@ -13,6 +13,13 @@ type QuerySuccess<T> = {
 
 export type SfQueryResult<T> = QuerySuccess<T> | QueryError;
 
+declare global {
+  // eslint-disable-next-line no-var
+  var __gafaigSnowflakeConnection: snowflake.Connection | undefined;
+  // eslint-disable-next-line no-var
+  var __gafaigSnowflakeConnecting: Promise<snowflake.Connection> | undefined;
+}
+
 function env(name: string): string | undefined {
   const value = process.env[name];
   if (typeof value !== "string") return undefined;
@@ -46,7 +53,8 @@ function buildConnectionConfig(): snowflake.ConnectionOptions {
     warehouse: requireEnv(warehouse, "SNOWFLAKE_WAREHOUSE"),
     database: requireEnv(database, "SNOWFLAKE_DATABASE"),
     schema: requireEnv(schema, "SNOWFLAKE_SCHEMA"),
-    ...(role ? { role } : {}),
+    role,
+    clientSessionKeepAlive: true,
   };
 
   if (password) {
@@ -73,48 +81,87 @@ function buildConnectionConfig(): snowflake.ConnectionOptions {
   );
 }
 
-export function snowflakeCtx(): snowflake.ConnectionOptions {
-  return buildConnectionConfig();
-}
-
 export function createConnection(): snowflake.Connection {
   return snowflake.createConnection(buildConnectionConfig());
 }
 
-async function runQuery<T = any>(
+async function connectNewConnection(): Promise<snowflake.Connection> {
+  const connection = createConnection();
+
+  return new Promise<snowflake.Connection>((resolve, reject) => {
+    connection.connect((err) => {
+      if (err) {
+        reject(err);
+        return;
+      }
+      resolve(connection);
+    });
+  });
+}
+
+async function getSharedConnection(): Promise<snowflake.Connection> {
+  if (global.__gafaigSnowflakeConnection) {
+    return global.__gafaigSnowflakeConnection;
+  }
+
+  if (!global.__gafaigSnowflakeConnecting) {
+    global.__gafaigSnowflakeConnecting = connectNewConnection()
+      .then((connection) => {
+        global.__gafaigSnowflakeConnection = connection;
+        return connection;
+      })
+      .finally(() => {
+        global.__gafaigSnowflakeConnecting = undefined;
+      });
+  }
+
+  return global.__gafaigSnowflakeConnecting;
+}
+
+async function executeOnConnection<T = any>(
+  connection: snowflake.Connection,
   sqlText: string,
   binds: any[] = []
 ): Promise<T[]> {
-  const connection = createConnection();
-
   return new Promise<T[]>((resolve, reject) => {
-    connection.connect((connectErr) => {
-      if (connectErr) {
-        reject(connectErr);
-        return;
-      }
+    connection.execute({
+      sqlText,
+      binds,
+      complete: (execErr, _stmt, rows) => {
+        if (execErr) {
+          reject(execErr);
+          return;
+        }
 
-      connection.execute({
-        sqlText,
-        binds,
-        complete: (execErr, _stmt, rows) => {
-          connection.destroy((destroyErr) => {
-            if (execErr) {
-              reject(execErr);
-              return;
-            }
-
-            if (destroyErr) {
-              reject(destroyErr);
-              return;
-            }
-
-            resolve((rows ?? []) as T[]);
-          });
-        },
-      });
+        resolve((rows ?? []) as T[]);
+      },
     });
   });
+}
+
+async function runQuery<T = any>(sqlText: string, binds: any[] = []): Promise<T[]> {
+  let connection = await getSharedConnection();
+
+  try {
+    return await executeOnConnection<T>(connection, sqlText, binds);
+  } catch (error: any) {
+    const message = String(error?.message || "");
+
+    const looksLikeDeadConnection =
+      message.includes("Unable to perform operation using terminated connection") ||
+      message.includes("Connection is closed") ||
+      message.includes("disconnected") ||
+      message.includes("connection was already destroyed") ||
+      message.includes("not connected");
+
+    if (!looksLikeDeadConnection) {
+      throw error;
+    }
+
+    global.__gafaigSnowflakeConnection = undefined;
+    connection = await getSharedConnection();
+    return executeOnConnection<T>(connection, sqlText, binds);
+  }
 }
 
 export async function sfQuery<T = any>(
@@ -155,4 +202,22 @@ export async function sfQueryResult<T = any>(
       error: error?.message || "Snowflake query failed.",
     };
   }
+}
+
+export function snowflakeCtx() {
+  return {
+    account: account ?? null,
+    username: username ?? null,
+    warehouse: warehouse ?? null,
+    database: database ?? null,
+    schema: schema ?? null,
+    role: role ?? null,
+    authMode: password
+      ? "password"
+      : privateKey
+      ? "privateKey"
+      : privateKeyPath
+      ? "privateKeyPath"
+      : "missing",
+  };
 }

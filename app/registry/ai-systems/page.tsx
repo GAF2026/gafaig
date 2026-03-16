@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { sfQueryResult } from "@/lib/snowflake";
+import { buildRegistryAiSystemHref } from "@/lib/platform-contracts";
 import AISystemCard from "@/components/registry/AISystemCard";
 import type { RegistryAiSystemRow } from "@/types/registry";
 import PublicPageHero from "../../_components/PublicPageHero";
@@ -341,23 +342,25 @@ export default async function RegistryAiSystemsPage({
               ) : null}
 
               <div className="mt-8 grid gap-5">
-                {filteredRows.map((row) => (
-                  <div key={row.SYSTEM_ID}>
-                    <AISystemCard system={row} />
-                    {row.REGISTRY_ID ? (
-                      <div className="mt-3 flex justify-end">
-                        <Link
-                          href={`/registry/ai-systems/${encodeURIComponent(
-                            row.REGISTRY_ID
-                          )}`}
-                          className="inline-flex items-center rounded-full border border-black px-4 py-2 text-sm font-medium transition hover:bg-black hover:text-white"
-                        >
-                          View certificate
-                        </Link>
-                      </div>
-                    ) : null}
-                  </div>
-                ))}
+                {filteredRows.map((row) => {
+                  const hasRegistryId = String(row.REGISTRY_ID ?? "").trim().length > 0;
+
+                  return (
+                    <div key={row.SYSTEM_ID}>
+                      <AISystemCard system={row} />
+                      {hasRegistryId ? (
+                        <div className="mt-3 flex justify-end">
+                          <Link
+                            href={buildRegistryAiSystemHref(row.REGISTRY_ID)}
+                            className="inline-flex items-center rounded-full border border-black px-4 py-2 text-sm font-medium transition hover:bg-black hover:text-white"
+                          >
+                            View certificate
+                          </Link>
+                        </div>
+                      ) : null}
+                    </div>
+                  );
+                })}
               </div>
             </section>
           )}
