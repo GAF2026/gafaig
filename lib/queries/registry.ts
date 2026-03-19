@@ -1,58 +1,111 @@
-/**
- * GAFAIG Snowflake Query Registry
- *
- * Centralized definitions for canonical Snowflake objects and shared SELECT/JOIN
- * fragments used by registry query helpers.
- */
+import { snowflakeQuery } from "@/lib/snowflake";
 
-export const SNOWFLAKE = {
-  database: "GAFAIG_DB",
-  schema: "CORE",
+export type RegistryRecordRow = {
+  registryId: string;
+  applicationId: string | null;
+  caseId: string | null;
 
-  views: {
-    publicRegistry: "GAFAIG_DB.CORE.V_REGISTRY_PUBLIC",
-    publicAiSystems: "GAFAIG_DB.CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC",
-  },
-} as const;
+  entityName: string | null;
+  entityType: string | null;
+  country: string | null;
 
-export const SELECT_REGISTRY_AI_SYSTEM = `
-  s.SYSTEM_ID,
-  s.REGISTRY_ID,
-  s.APPLICATION_ID,
-  s.CASE_ID,
+  verificationType: string | null;
+  modelVersion: string | null;
 
-  r.ENTITY_NAME,
+  certifiedScore: number | null;
+  certifiedTier: string | null;
+  certifiedBand: string | null;
 
-  s.SYSTEM_NAME,
-  s.SYSTEM_TYPE,
-  s.INTENDED_USE,
-  s.DEPLOYMENT_STATUS,
-  s.OVERSIGHT_LEVEL,
-  s.RISK_TIER,
+  decisionStatus: string | null;
+  validFrom: string | null;
+  validTo: string | null;
+  lastActivityAt: string | null;
+  certifiedAt: string | null;
+  publishedAt: string | null;
+  registryStatus: string | null;
+  createdAt: string | null;
+};
 
-  s.DEVELOPER_ORGANIZATION,
-  s.TRAINING_DATA_CATEGORY,
-  s.OVERSIGHT_MODEL,
-  s.HUMAN_REVIEW_REQUIRED,
-  s.EVALUATION_PROTOCOL,
-  s.AUDIT_FREQUENCY,
+export type RegistryListRow = RegistryRecordRow;
 
-  r.DECISION_STATUS,
-  r.CERTIFIED_TIER,
-  r.CERTIFIED_BAND,
+function firstString(...values: any[]): string | null {
+  for (const value of values) {
+    if (value === null || value === undefined) continue;
+    const s = String(value).trim();
+    if (s) return s;
+  }
+  return null;
+}
 
-  NULL AS GOVERNANCE_MATURITY_SCORE,
-  NULL AS CONTROLS_PCT,
-  NULL AS COVERAGE_PCT,
-  NULL AS FRESHNESS_PCT,
-  NULL AS SUMMARY_PCT,
+function firstNumber(...values: any[]): number | null {
+  for (const value of values) {
+    if (value === null || value === undefined || value === "") continue;
+    const n = Number(value);
+    if (Number.isFinite(n)) return n;
+  }
+  return null;
+}
 
-  r.LAST_ACTIVITY_AT,
-  s.PUBLIC_SUMMARY,
-  s.DISPLAY_ORDER
+function normalizeText(value: string | null | undefined): string {
+  return String(value ?? "").trim().toUpperCase();
+}
+
+function normalizeRegistryRow(row: Record<string, any>): RegistryRecordRow {
+  return {
+    registryId: firstString(row.REGISTRY_ID) ?? "",
+    applicationId: firstString(row.APPLICATION_ID),
+    caseId: firstString(row.CASE_ID),
+
+    entityName: firstString(row.ENTITY_NAME),
+    entityType: firstString(row.ENTITY_TYPE),
+    country: firstString(row.COUNTRY),
+
+    verificationType: firstString(row.VERIFICATION_TYPE),
+    modelVersion: firstString(row.MODEL_VERSION),
+
+    certifiedScore: firstNumber(row.CERTIFIED_SCORE, row.SCORE, row.FINAL_SCORE),
+    certifiedTier: firstString(row.CERTIFIED_TIER, row.TIER),
+    certifiedBand: firstString(row.CERTIFIED_BAND, row.BAND),
+
+    decisionStatus: firstString(row.DECISION_STATUS, row.REGISTRY_STATUS, row.STATUS),
+    validFrom: firstString(row.VALID_FROM, row.APPROVED_AT),
+    validTo: firstString(row.VALID_TO),
+    lastActivityAt: firstString(row.LAST_ACTIVITY_AT, row.PUBLISHED_AT, row.CREATED_AT),
+    certifiedAt: firstString(row.CERTIFIED_AT, row.APPROVED_AT, row.PUBLISHED_AT),
+    publishedAt: firstString(row.PUBLISHED_AT),
+    registryStatus: firstString(row.REGISTRY_STATUS),
+    createdAt: firstString(row.CREATED_AT),
+  };
+}
+
+const baseSelect = `
+  SELECT *
+  FROM GAFAIG_DB.CORE.V_REGISTRY_PUBLIC
 `;
 
-export const JOIN_REGISTRY = `
-  LEFT JOIN ${SNOWFLAKE.views.publicRegistry} r
-    ON s.REGISTRY_ID = r.REGISTRY_ID
-`;
+export async function getRegistryRecords(): Promise<RegistryListRow[]> {
+  const sql = `
+    ${baseSelect}
+  `;
+
+  const rows = await snowflakeQuery<Record<string, any>>(sql);
+  const normalized = rows.map(normalizeRegistryRow);
+
+  normalized.sort((a, b) => {
+    const aName = normalizeText(a.entityName);
+    const bName = normalizeText(b.entityName);
+    return aName.localeCompare(bName);
+  });
+
+  return normalized;
+}
+
+export async function getRegistryByRegistryId(
+  registryId: string
+): Promise<RegistryRecordRow | null> {
+  const rows = await getRegistryRecords();
+  const match = rows.find(
+    (row) => normalizeText(row.registryId) === normalizeText(registryId)
+  );
+  return match ?? null;
+}

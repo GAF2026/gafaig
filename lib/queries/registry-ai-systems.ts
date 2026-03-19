@@ -72,87 +72,116 @@ export type RegistryAiSystemsSummaryStats = {
   countries: number;
 };
 
+function firstString(...values: any[]): string | null {
+  for (const value of values) {
+    if (value === null || value === undefined) continue;
+    const s = String(value).trim();
+    if (s) return s;
+  }
+  return null;
+}
+
+function firstNumber(...values: any[]): number | null {
+  for (const value of values) {
+    if (value === null || value === undefined || value === "") continue;
+    const n = Number(value);
+    if (Number.isFinite(n)) return n;
+  }
+  return null;
+}
+
+function firstBoolean(...values: any[]): boolean | null {
+  for (const value of values) {
+    if (value === null || value === undefined || value === "") continue;
+    if (typeof value === "boolean") return value;
+    const s = String(value).trim().toLowerCase();
+    if (["true", "1", "yes", "y"].includes(s)) return true;
+    if (["false", "0", "no", "n"].includes(s)) return false;
+  }
+  return null;
+}
+
+function compareNullableStrings(
+  a: string | null,
+  b: string | null,
+  direction: "asc" | "desc"
+): number {
+  const av = (a ?? "").toUpperCase();
+  const bv = (b ?? "").toUpperCase();
+
+  if (!av && !bv) return 0;
+  if (!av) return 1;
+  if (!bv) return -1;
+
+  const cmp = av.localeCompare(bv);
+  return direction === "desc" ? -cmp : cmp;
+}
+
+function compareNullableNumbers(
+  a: number | null,
+  b: number | null,
+  direction: "asc" | "desc"
+): number {
+  const av = a ?? Number.POSITIVE_INFINITY;
+  const bv = b ?? Number.POSITIVE_INFINITY;
+
+  if (av === bv) return 0;
+  return direction === "desc" ? bv - av : av - bv;
+}
+
 function normalizeRow(row: Record<string, any>): RegistryAiSystemRow {
   return {
-    systemId: row.SYSTEM_ID,
-    registryId: row.REGISTRY_ID ?? null,
-    applicationId: row.APPLICATION_ID ?? null,
-    caseId: row.CASE_ID ?? null,
+    systemId: firstString(row.SYSTEM_ID) ?? "",
+    registryId: firstString(row.REGISTRY_ID),
+    applicationId: firstString(row.APPLICATION_ID),
+    caseId: firstString(row.CASE_ID),
 
-    systemName: row.SYSTEM_NAME,
-    systemType: row.SYSTEM_TYPE ?? null,
-    intendedUse: row.INTENDED_USE ?? null,
+    systemName: firstString(row.SYSTEM_NAME) ?? "",
+    systemType: firstString(row.SYSTEM_TYPE),
+    intendedUse: firstString(row.INTENDED_USE),
 
-    deploymentStatus: row.DEPLOYMENT_STATUS ?? null,
-    oversightLevel: row.OVERSIGHT_LEVEL ?? null,
-    riskTier: row.RISK_TIER ?? null,
-    developerOrganization: row.DEVELOPER_ORGANIZATION ?? null,
-    trainingDataCategory: row.TRAINING_DATA_CATEGORY ?? null,
-    oversightModel: row.OVERSIGHT_MODEL ?? null,
-    humanReviewRequired: row.HUMAN_REVIEW_REQUIRED ?? null,
-    evaluationProtocol: row.EVALUATION_PROTOCOL ?? null,
-    auditFrequency: row.AUDIT_FREQUENCY ?? null,
-    publicSummary: row.PUBLIC_SUMMARY ?? null,
-    isPublic: row.IS_PUBLIC ?? null,
-    displayOrder: row.DISPLAY_ORDER ?? null,
-    createdAt: row.CREATED_AT ?? null,
-    updatedAt: row.UPDATED_AT ?? null,
+    deploymentStatus: firstString(
+      row.DEPLOYMENT_STATUS,
+      row.DEPLOYMENT_SCOPE,
+      row.SYSTEM_STATUS,
+      row.STATUS
+    ),
+    oversightLevel: firstString(row.OVERSIGHT_LEVEL, row.OVERSIGHT_MODEL),
+    riskTier: firstString(row.RISK_TIER, row.RISK_LEVEL),
+    developerOrganization: firstString(
+      row.DEVELOPER_ORGANIZATION,
+      row.DEVELOPER_ORG
+    ),
+    trainingDataCategory: firstString(row.TRAINING_DATA_CATEGORY),
+    oversightModel: firstString(row.OVERSIGHT_MODEL),
+    humanReviewRequired: firstBoolean(row.HUMAN_REVIEW_REQUIRED),
+    evaluationProtocol: firstString(row.EVALUATION_PROTOCOL),
+    auditFrequency: firstString(row.AUDIT_FREQUENCY),
+    publicSummary: firstString(row.PUBLIC_SUMMARY),
+    isPublic: firstBoolean(row.IS_PUBLIC),
+    displayOrder: firstNumber(row.DISPLAY_ORDER),
+    createdAt: firstString(row.CREATED_AT),
+    updatedAt: firstString(row.UPDATED_AT),
 
-    entityName: row.ENTITY_NAME ?? null,
-    entityType: row.ENTITY_TYPE ?? null,
-    country: row.COUNTRY ?? null,
+    entityName: firstString(row.ENTITY_NAME),
+    entityType: firstString(row.ENTITY_TYPE),
+    country: firstString(row.COUNTRY),
 
-    certifiedTier: row.CERTIFIED_TIER ?? null,
-    certifiedBand: row.CERTIFIED_BAND ?? null,
-    certifiedScore: row.CERTIFIED_SCORE ?? null,
-    certifiedAt: row.CERTIFIED_AT ?? null,
-    decisionStatus: row.DECISION_STATUS ?? null,
-    validFrom: row.VALID_FROM ?? null,
-    validTo: row.VALID_TO ?? null,
-    lastActivityAt: row.LAST_ACTIVITY_AT ?? null,
+    certifiedTier: firstString(row.CERTIFIED_TIER, row.TIER),
+    certifiedBand: firstString(row.CERTIFIED_BAND, row.BAND),
+    certifiedScore: firstNumber(row.CERTIFIED_SCORE, row.SCORE, row.FINAL_SCORE),
+    certifiedAt: firstString(row.CERTIFIED_AT, row.APPROVED_AT, row.PUBLISHED_AT),
+    decisionStatus: firstString(row.DECISION_STATUS, row.REGISTRY_STATUS, row.STATUS),
+    validFrom: firstString(row.VALID_FROM, row.APPROVED_AT),
+    validTo: firstString(row.VALID_TO),
+    lastActivityAt: firstString(row.LAST_ACTIVITY_AT, row.PUBLISHED_AT, row.CREATED_AT),
   };
 }
 
 const baseSelect = `
-  SELECT
-    SYSTEM_ID,
-    REGISTRY_ID,
-    APPLICATION_ID,
-    CASE_ID,
-    SYSTEM_NAME,
-    SYSTEM_TYPE,
-    INTENDED_USE,
-    DEPLOYMENT_STATUS,
-    OVERSIGHT_LEVEL,
-    RISK_TIER,
-    DEVELOPER_ORGANIZATION,
-    TRAINING_DATA_CATEGORY,
-    OVERSIGHT_MODEL,
-    HUMAN_REVIEW_REQUIRED,
-    EVALUATION_PROTOCOL,
-    AUDIT_FREQUENCY,
-    PUBLIC_SUMMARY,
-    IS_PUBLIC,
-    DISPLAY_ORDER,
-    CREATED_AT,
-    UPDATED_AT,
-    ENTITY_NAME,
-    ENTITY_TYPE,
-    COUNTRY,
-    CERTIFIED_TIER,
-    CERTIFIED_BAND,
-    CERTIFIED_SCORE,
-    CERTIFIED_AT,
-    DECISION_STATUS,
-    VALID_FROM,
-    VALID_TO,
-    LAST_ACTIVITY_AT
+  SELECT *
   FROM GAFAIG_DB.CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC
 `;
-
-function escapeSqlString(value: string): string {
-  return value.replace(/'/g, "''");
-}
 
 function toPositiveInteger(value: number | undefined, fallback: number): number {
   if (!Number.isFinite(value) || !value || value < 1) return fallback;
@@ -164,96 +193,107 @@ function clampPageSize(value: number | undefined, fallback = 25, max = 100): num
   return Math.min(size, max);
 }
 
-function getOrderByClause(
-  sortBy: RegistryAiSystemsSortBy = "name",
-  sortOrder: RegistryAiSystemsSortOrder = "asc"
-): string {
-  const direction = sortOrder === "desc" ? "DESC" : "ASC";
-
-  switch (sortBy) {
-    case "score":
-      return `
-        ORDER BY
-          CERTIFIED_SCORE ${direction} NULLS LAST,
-          COALESCE(DISPLAY_ORDER, 999999) ASC,
-          SYSTEM_NAME ASC
-      `;
-    case "tier":
-      return `
-        ORDER BY
-          CERTIFIED_TIER ${direction} NULLS LAST,
-          COALESCE(DISPLAY_ORDER, 999999) ASC,
-          SYSTEM_NAME ASC
-      `;
-    case "country":
-      return `
-        ORDER BY
-          COUNTRY ${direction} NULLS LAST,
-          COALESCE(DISPLAY_ORDER, 999999) ASC,
-          SYSTEM_NAME ASC
-      `;
-    case "name":
-    default:
-      return `
-        ORDER BY
-          COALESCE(DISPLAY_ORDER, 999999) ASC,
-          SYSTEM_NAME ${direction}
-      `;
-  }
+function normalizeText(value: string | null | undefined): string {
+  return String(value ?? "").trim().toUpperCase();
 }
 
-function buildWhereClause(params: GetRegistryAiSystemsParams): string {
-  const conditions: string[] = [];
+function applyFilters(
+  rows: RegistryAiSystemRow[],
+  params: GetRegistryAiSystemsParams
+): RegistryAiSystemRow[] {
+  return rows.filter((row) => {
+    if (params.search?.trim()) {
+      const search = normalizeText(params.search);
+      const haystack = [
+        row.systemId,
+        row.registryId,
+        row.systemName,
+        row.entityName,
+        row.developerOrganization,
+        row.caseId,
+        row.applicationId,
+      ]
+        .map((v) => normalizeText(v))
+        .join(" ");
 
-  if (params.search?.trim()) {
-    const safeSearch = escapeSqlString(params.search.trim());
-    conditions.push(`
-      (
-        UPPER(TRIM(COALESCE(SYSTEM_ID, ''))) LIKE UPPER('%${safeSearch}%')
-        OR UPPER(TRIM(COALESCE(REGISTRY_ID, ''))) LIKE UPPER('%${safeSearch}%')
-        OR UPPER(TRIM(COALESCE(SYSTEM_NAME, ''))) LIKE UPPER('%${safeSearch}%')
-        OR UPPER(TRIM(COALESCE(ENTITY_NAME, ''))) LIKE UPPER('%${safeSearch}%')
-        OR UPPER(TRIM(COALESCE(DEVELOPER_ORGANIZATION, ''))) LIKE UPPER('%${safeSearch}%')
-      )
-    `);
-  }
+      if (!haystack.includes(search)) return false;
+    }
 
-  if (params.country?.trim()) {
-    const safeCountry = escapeSqlString(params.country.trim());
-    conditions.push(`
-      TRIM(UPPER(COALESCE(COUNTRY, ''))) = TRIM(UPPER('${safeCountry}'))
-    `);
-  }
+    if (params.country?.trim()) {
+      if (normalizeText(row.country) !== normalizeText(params.country)) return false;
+    }
 
-  if (params.tier?.trim()) {
-    const safeTier = escapeSqlString(params.tier.trim());
-    conditions.push(`
-      TRIM(UPPER(COALESCE(CERTIFIED_TIER, ''))) = TRIM(UPPER('${safeTier}'))
-    `);
-  }
+    if (params.tier?.trim()) {
+      if (normalizeText(row.certifiedTier) !== normalizeText(params.tier)) return false;
+    }
 
-  if (params.band?.trim()) {
-    const safeBand = escapeSqlString(params.band.trim());
-    conditions.push(`
-      TRIM(UPPER(COALESCE(CERTIFIED_BAND, ''))) = TRIM(UPPER('${safeBand}'))
-    `);
-  }
+    if (params.band?.trim()) {
+      if (normalizeText(row.certifiedBand) !== normalizeText(params.band)) return false;
+    }
 
-  if (!conditions.length) return "";
+    return true;
+  });
+}
 
-  return `WHERE ${conditions.join("\nAND ")}`;
+function applySort(
+  rows: RegistryAiSystemRow[],
+  sortBy: RegistryAiSystemsSortBy = "name",
+  sortOrder: RegistryAiSystemsSortOrder = "asc"
+): RegistryAiSystemRow[] {
+  const cloned = [...rows];
+
+  cloned.sort((a, b) => {
+    switch (sortBy) {
+      case "score": {
+        const cmp = compareNullableNumbers(
+          a.certifiedScore,
+          b.certifiedScore,
+          sortOrder
+        );
+        if (cmp !== 0) return cmp;
+        break;
+      }
+      case "tier": {
+        const cmp = compareNullableStrings(
+          a.certifiedTier,
+          b.certifiedTier,
+          sortOrder
+        );
+        if (cmp !== 0) return cmp;
+        break;
+      }
+      case "country": {
+        const cmp = compareNullableStrings(a.country, b.country, sortOrder);
+        if (cmp !== 0) return cmp;
+        break;
+      }
+      case "name":
+      default: {
+        const cmp = compareNullableStrings(a.systemName, b.systemName, sortOrder);
+        if (cmp !== 0) return cmp;
+        break;
+      }
+    }
+
+    const displayA = a.displayOrder ?? 999999;
+    const displayB = b.displayOrder ?? 999999;
+    if (displayA !== displayB) return displayA - displayB;
+
+    return compareNullableStrings(a.systemName, b.systemName, "asc");
+  });
+
+  return cloned;
 }
 
 export async function getRegistryAiSystems(): Promise<RegistryAiSystemRow[]> {
   const sql = `
     ${baseSelect}
-    ORDER BY
-      COALESCE(DISPLAY_ORDER, 999999) ASC,
-      SYSTEM_NAME ASC
   `;
 
   const rows = await snowflakeQuery<Record<string, any>>(sql);
-  return rows.map(normalizeRow);
+  const normalized = rows.map(normalizeRow);
+
+  return applySort(normalized, "name", "asc");
 }
 
 export async function getRegistryAiSystemsPaginated(
@@ -262,33 +302,17 @@ export async function getRegistryAiSystemsPaginated(
   const requestedPage = toPositiveInteger(params.page, 1);
   const pageSize = clampPageSize(params.pageSize, 25, 100);
 
-  const whereClause = buildWhereClause(params);
-  const orderByClause = getOrderByClause(params.sortBy, params.sortOrder);
+  const allRows = await getRegistryAiSystems();
+  const filteredRows = applyFilters(allRows, params);
+  const sortedRows = applySort(filteredRows, params.sortBy, params.sortOrder);
 
-  const countSql = `
-    SELECT COUNT(*) AS TOTAL
-    FROM GAFAIG_DB.CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC
-    ${whereClause}
-  `;
-
-  const countRows = await snowflakeQuery<Record<string, any>>(countSql);
-  const total = Number(countRows[0]?.TOTAL ?? 0);
+  const total = sortedRows.length;
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
   const page = total === 0 ? 1 : Math.min(requestedPage, totalPages);
   const offset = (page - 1) * pageSize;
 
-  const dataSql = `
-    ${baseSelect}
-    ${whereClause}
-    ${orderByClause}
-    LIMIT ${pageSize}
-    OFFSET ${offset}
-  `;
-
-  const dataRows = await snowflakeQuery<Record<string, any>>(dataSql);
-
   return {
-    rows: dataRows.map(normalizeRow),
+    rows: sortedRows.slice(offset, offset + pageSize),
     total,
     page,
     pageSize,
@@ -296,87 +320,61 @@ export async function getRegistryAiSystemsPaginated(
 }
 
 export async function getRegistryAiSystemsFilterOptions(): Promise<RegistryAiSystemsFilterOptions> {
-  const [countryRows, tierRows, bandRows] = await Promise.all([
-    snowflakeQuery<Record<string, any>>(`
-      SELECT DISTINCT COUNTRY
-      FROM GAFAIG_DB.CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC
-      WHERE TRIM(COALESCE(COUNTRY, '')) <> ''
-      ORDER BY COUNTRY ASC
-    `),
-    snowflakeQuery<Record<string, any>>(`
-      SELECT DISTINCT CERTIFIED_TIER
-      FROM GAFAIG_DB.CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC
-      WHERE TRIM(COALESCE(CERTIFIED_TIER, '')) <> ''
-      ORDER BY CERTIFIED_TIER ASC
-    `),
-    snowflakeQuery<Record<string, any>>(`
-      SELECT DISTINCT CERTIFIED_BAND
-      FROM GAFAIG_DB.CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC
-      WHERE TRIM(COALESCE(CERTIFIED_BAND, '')) <> ''
-      ORDER BY CERTIFIED_BAND ASC
-    `),
-  ]);
+  const rows = await getRegistryAiSystems();
+
+  const countries = Array.from(
+    new Set(rows.map((row) => row.country).filter((v): v is string => Boolean(v?.trim())))
+  ).sort((a, b) => a.localeCompare(b));
+
+  const tiers = Array.from(
+    new Set(rows.map((row) => row.certifiedTier).filter((v): v is string => Boolean(v?.trim())))
+  ).sort((a, b) => a.localeCompare(b));
+
+  const bands = Array.from(
+    new Set(rows.map((row) => row.certifiedBand).filter((v): v is string => Boolean(v?.trim())))
+  ).sort((a, b) => a.localeCompare(b));
 
   return {
-    countries: countryRows
-      .map((row) => row.COUNTRY)
-      .filter((value): value is string => Boolean(value)),
-    tiers: tierRows
-      .map((row) => row.CERTIFIED_TIER)
-      .filter((value): value is string => Boolean(value)),
-    bands: bandRows
-      .map((row) => row.CERTIFIED_BAND)
-      .filter((value): value is string => Boolean(value)),
+    countries,
+    tiers,
+    bands,
   };
 }
 
 export async function getRegistryAiSystemsSummaryStats(): Promise<RegistryAiSystemsSummaryStats> {
-  const sql = `
-    SELECT
-      COUNT(*) AS TOTAL_SYSTEMS,
-      COUNT(DISTINCT NULLIF(TRIM(ENTITY_NAME), '')) AS LINKED_ENTITIES,
-      COUNT(DISTINCT NULLIF(TRIM(COUNTRY), '')) AS COUNTRIES
-    FROM GAFAIG_DB.CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC
-  `;
+  const rows = await getRegistryAiSystems();
 
-  const rows = await snowflakeQuery<Record<string, any>>(sql);
-  const row = rows[0] ?? {};
+  const linkedEntities = new Set(
+    rows.map((row) => row.entityName).filter((v): v is string => Boolean(v?.trim()))
+  ).size;
+
+  const countries = new Set(
+    rows.map((row) => row.country).filter((v): v is string => Boolean(v?.trim()))
+  ).size;
 
   return {
-    totalSystems: Number(row.TOTAL_SYSTEMS ?? 0),
-    linkedEntities: Number(row.LINKED_ENTITIES ?? 0),
-    countries: Number(row.COUNTRIES ?? 0),
+    totalSystems: rows.length,
+    linkedEntities,
+    countries,
   };
 }
 
 export async function getRegistryAiSystemBySystemId(
   systemId: string
 ): Promise<RegistryAiSystemRow | null> {
-  const safeId = escapeSqlString(systemId);
-
-  const sql = `
-    ${baseSelect}
-    WHERE TRIM(UPPER(SYSTEM_ID)) = TRIM(UPPER('${safeId}'))
-    LIMIT 1
-  `;
-
-  const rows = await snowflakeQuery<Record<string, any>>(sql);
-  if (!rows.length) return null;
-  return normalizeRow(rows[0]);
+  const rows = await getRegistryAiSystems();
+  const match = rows.find(
+    (row) => normalizeText(row.systemId) === normalizeText(systemId)
+  );
+  return match ?? null;
 }
 
 export async function getRegistryAiSystemByRegistryId(
   registryId: string
 ): Promise<RegistryAiSystemRow | null> {
-  const safeId = escapeSqlString(registryId);
-
-  const sql = `
-    ${baseSelect}
-    WHERE TRIM(UPPER(REGISTRY_ID)) = TRIM(UPPER('${safeId}'))
-    LIMIT 1
-  `;
-
-  const rows = await snowflakeQuery<Record<string, any>>(sql);
-  if (!rows.length) return null;
-  return normalizeRow(rows[0]);
+  const rows = await getRegistryAiSystems();
+  const match = rows.find(
+    (row) => normalizeText(row.registryId) === normalizeText(registryId)
+  );
+  return match ?? null;
 }

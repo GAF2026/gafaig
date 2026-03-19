@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getRegistryAiSystemByRegistryId } from "@/lib/queries/registry-ai-systems";
+import { getRegistryByRegistryId } from "@/lib/queries/registry";
 
 function fmtDate(value: string | null): string {
   if (!value) return "—";
@@ -25,7 +25,7 @@ function badgeClass(text?: string | null) {
   if (v.includes("baseline") || v === "c") {
     return "border-amber-200 bg-amber-50 text-amber-700";
   }
-  if (v.includes("approved")) {
+  if (v.includes("approved") || v.includes("published")) {
     return "border-emerald-200 bg-emerald-50 text-emerald-700";
   }
   if (v.includes("pending")) {
@@ -56,7 +56,7 @@ export default async function RegistryDetailPage({ params }: PageProps) {
 
   if (!registryId) notFound();
 
-  const record = await getRegistryAiSystemByRegistryId(registryId);
+  const record = await getRegistryByRegistryId(registryId);
 
   if (!record) notFound();
 
@@ -64,7 +64,7 @@ export default async function RegistryDetailPage({ params }: PageProps) {
     <main className="mx-auto max-w-6xl px-6 py-12">
       <div className="mb-8">
         <Link
-          href="/registry"
+          href="/registry/ai-systems"
           className="text-sm font-medium text-slate-600 hover:text-slate-900"
         >
           ← Back to Registry
@@ -103,10 +103,9 @@ export default async function RegistryDetailPage({ params }: PageProps) {
             </h1>
 
             <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-600">
-              Official GAFAIG public certification record for a published AI
-              system. This page exposes the public governance signal and linked
-              certification metadata without revealing private evidence or
-              reviewer materials.
+              Official GAFAIG public certification record. This page exposes the
+              public governance signal and linked certification metadata without
+              revealing private evidence or reviewer materials.
             </p>
 
             <div className="mt-4 inline-flex rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-medium text-slate-600">
@@ -126,10 +125,10 @@ export default async function RegistryDetailPage({ params }: PageProps) {
 
             <div className="rounded-2xl bg-slate-50 p-4">
               <div className="text-xs uppercase tracking-wide text-slate-500">
-                Certified
+                Published
               </div>
               <div className="mt-2 text-base font-medium text-slate-900">
-                {fmtDate(record.certifiedAt)}
+                {fmtDate(record.publishedAt)}
               </div>
             </div>
 
@@ -171,36 +170,29 @@ export default async function RegistryDetailPage({ params }: PageProps) {
 
               <div className="rounded-xl bg-slate-50 p-4">
                 <div className="text-xs uppercase tracking-wide text-slate-500">
-                  System ID
-                </div>
-                <div className="mt-2 break-all text-sm font-medium text-slate-900">
-                  {record.systemId}
-                </div>
-              </div>
-
-              <div className="rounded-xl bg-slate-50 p-4">
-                <div className="text-xs uppercase tracking-wide text-slate-500">
                   Case ID
                 </div>
                 <div className="mt-2 break-all text-sm font-medium text-slate-900">
                   {record.caseId ?? "—"}
                 </div>
               </div>
+
+              <div className="rounded-xl bg-slate-50 p-4">
+                <div className="text-xs uppercase tracking-wide text-slate-500">
+                  Registry Status
+                </div>
+                <div className="mt-2 break-all text-sm font-medium text-slate-900">
+                  {record.registryStatus ?? "—"}
+                </div>
+              </div>
             </div>
 
             <div className="mt-4 flex flex-wrap gap-3">
               <Link
-                href={`/registry/ai-systems/${encodeURIComponent(record.systemId)}`}
-                className="inline-flex rounded-xl bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-800"
-              >
-                View AI System
-              </Link>
-
-              <Link
-                href="/registry"
+                href="/registry/ai-systems"
                 className="inline-flex rounded-xl border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
               >
-                Browse Systems
+                Browse AI Systems
               </Link>
             </div>
           </section>
@@ -230,12 +222,6 @@ export default async function RegistryDetailPage({ params }: PageProps) {
                 </span>
               </div>
               <div className="flex items-start justify-between gap-4">
-                <span className="text-slate-500">Audit Frequency</span>
-                <span className="font-medium text-slate-900">
-                  {record.auditFrequency ?? "—"}
-                </span>
-              </div>
-              <div className="flex items-start justify-between gap-4">
                 <span className="text-slate-500">Last Activity</span>
                 <span className="font-medium text-slate-900">
                   {fmtDate(record.lastActivityAt)}
@@ -246,56 +232,6 @@ export default async function RegistryDetailPage({ params }: PageProps) {
         </div>
 
         <div className="mt-6 grid gap-6 md:grid-cols-2">
-          <section className="rounded-2xl border border-slate-200 p-5">
-            <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
-              AI System
-            </h2>
-            <div className="mt-4 grid gap-3">
-              <div className="rounded-xl bg-slate-50 p-4">
-                <div className="text-xs uppercase tracking-wide text-slate-500">
-                  System Name
-                </div>
-                <div className="mt-2 text-sm font-medium text-slate-900">
-                  {record.systemName}
-                </div>
-              </div>
-              <div className="grid gap-3 sm:grid-cols-2">
-                <div className="rounded-xl bg-slate-50 p-4">
-                  <div className="text-xs uppercase tracking-wide text-slate-500">
-                    Type
-                  </div>
-                  <div className="mt-2 text-sm font-medium text-slate-900">
-                    {record.systemType ?? "—"}
-                  </div>
-                </div>
-                <div className="rounded-xl bg-slate-50 p-4">
-                  <div className="text-xs uppercase tracking-wide text-slate-500">
-                    Risk Tier
-                  </div>
-                  <div className="mt-2 text-sm font-medium text-slate-900">
-                    {record.riskTier ?? "—"}
-                  </div>
-                </div>
-                <div className="rounded-xl bg-slate-50 p-4">
-                  <div className="text-xs uppercase tracking-wide text-slate-500">
-                    Deployment
-                  </div>
-                  <div className="mt-2 text-sm font-medium text-slate-900">
-                    {record.deploymentStatus ?? "—"}
-                  </div>
-                </div>
-                <div className="rounded-xl bg-slate-50 p-4">
-                  <div className="text-xs uppercase tracking-wide text-slate-500">
-                    Oversight
-                  </div>
-                  <div className="mt-2 text-sm font-medium text-slate-900">
-                    {record.oversightLevel ?? "—"}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </section>
-
           <section className="rounded-2xl border border-slate-200 p-5">
             <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
               Linked Entity
@@ -332,84 +268,28 @@ export default async function RegistryDetailPage({ params }: PageProps) {
 
           <section className="rounded-2xl border border-slate-200 p-5">
             <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
-              Governance Signal
-            </h2>
-            <div className="mt-4 grid gap-3 sm:grid-cols-2">
-              <div className="rounded-xl bg-slate-50 p-4">
-                <div className="text-xs uppercase tracking-wide text-slate-500">
-                  Oversight Model
-                </div>
-                <div className="mt-2 text-sm font-medium text-slate-900">
-                  {record.oversightModel ?? "—"}
-                </div>
-              </div>
-              <div className="rounded-xl bg-slate-50 p-4">
-                <div className="text-xs uppercase tracking-wide text-slate-500">
-                  Human Review Required
-                </div>
-                <div className="mt-2 text-sm font-medium text-slate-900">
-                  {record.humanReviewRequired === null
-                    ? "—"
-                    : record.humanReviewRequired
-                      ? "Yes"
-                      : "No"}
-                </div>
-              </div>
-              <div className="rounded-xl bg-slate-50 p-4 sm:col-span-2">
-                <div className="text-xs uppercase tracking-wide text-slate-500">
-                  Evaluation Protocol
-                </div>
-                <div className="mt-2 text-sm font-medium text-slate-900">
-                  {record.evaluationProtocol ?? "—"}
-                </div>
-              </div>
-            </div>
-          </section>
-
-          <section className="rounded-2xl border border-slate-200 p-5">
-            <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
-              Additional Metadata
+              Registry Metadata
             </h2>
             <div className="mt-4 grid gap-3">
               <div className="rounded-xl bg-slate-50 p-4">
                 <div className="text-xs uppercase tracking-wide text-slate-500">
-                  Developer Organization
+                  Verification Type
                 </div>
                 <div className="mt-2 text-sm font-medium text-slate-900">
-                  {record.developerOrganization ?? "—"}
+                  {record.verificationType ?? "—"}
                 </div>
               </div>
               <div className="rounded-xl bg-slate-50 p-4">
                 <div className="text-xs uppercase tracking-wide text-slate-500">
-                  Training Data Category
+                  Model Version
                 </div>
                 <div className="mt-2 text-sm font-medium text-slate-900">
-                  {record.trainingDataCategory ?? "—"}
+                  {record.modelVersion ?? "—"}
                 </div>
               </div>
             </div>
           </section>
         </div>
-
-        <section className="mt-6 rounded-2xl border border-slate-200 p-5">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
-            Intended Use
-          </h2>
-          <p className="mt-3 text-sm leading-6 text-slate-700">
-            {record.intendedUse ?? "—"}
-          </p>
-        </section>
-
-        {record.publicSummary ? (
-          <section className="mt-6 rounded-2xl border border-slate-200 bg-slate-50 p-5">
-            <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
-              Public Summary
-            </h2>
-            <p className="mt-3 text-sm leading-6 text-slate-700">
-              {record.publicSummary}
-            </p>
-          </section>
-        ) : null}
 
         <section className="mt-6 rounded-2xl border border-slate-200 bg-slate-50 p-5">
           <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
