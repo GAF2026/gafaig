@@ -1,44 +1,24 @@
 import Link from "next/link";
-import { headers } from "next/headers";
 import PublicPageHero from "../_components/PublicPageHero";
+import { getRegistryAiSystems } from "@/lib/queries/registry-ai-systems";
 
 export const dynamic = "force-dynamic";
 
 type RegistryRow = {
   registryId: string;
-  applicationId: string;
-
-  entityName: string;
+  systemId: string;
+  systemName: string;
+  entityName: string | null;
   entityType: string | null;
   country: string | null;
-
   certifiedTier: string | null;
   certifiedBand: string | null;
-  decisionStatus: string;
-
+  decisionStatus: string | null;
+  certifiedAt: string | null;
   validFrom: string | null;
   validTo: string | null;
-
-  certifiedAt: string | null;
   lastActivityAt: string | null;
 };
-
-type RegistryStats = {
-  certificationRecords: number;
-  disclosedAiSystems: number;
-  countriesRepresented: number;
-  latestCertificationDate: string | null;
-};
-
-type ApiResponse =
-  | {
-      ok: true;
-      rows: RegistryRow[];
-      total: number;
-      limit: number;
-      filters?: { q: string; country: string; registryId: string };
-    }
-  | { ok: false; error: string };
 
 function formatDate(v?: string | null) {
   if (!v) return "—";
@@ -66,73 +46,8 @@ function buttonClass(variant: "primary" | "secondary" = "secondary") {
   return "inline-flex items-center justify-center rounded-xl px-4 py-2 text-[14px] font-semibold border border-black/15 hover:bg-black/[0.04]";
 }
 
-function getBaseUrl() {
-  const envUrl = process.env.NEXT_PUBLIC_SITE_URL;
-  if (envUrl) return envUrl.replace(/\/+$/, "");
-
-  const h = headers();
-  const host = h.get("x-forwarded-host") ?? h.get("host");
-  const proto = h.get("x-forwarded-proto") ?? "http";
-  if (host) return `${proto}://${host}`;
-
-  return "http://localhost:3000";
-}
-
-async function getRegistry(params: {
-  q?: string;
-  country?: string;
-  registryId?: string;
-}): Promise<ApiResponse> {
-  try {
-    const base = getBaseUrl();
-    const sp = new URLSearchParams();
-    sp.set("limit", "50");
-
-    const q = (params.q || "").trim();
-    const country = (params.country || "").trim();
-    const registryId = (params.registryId || "").trim();
-
-    if (q) sp.set("q", q);
-    if (country) sp.set("country", country);
-    if (registryId) sp.set("registryId", registryId);
-
-    const res = await fetch(`${base}/api/registry?${sp.toString()}`, {
-      cache: "no-store",
-    });
-
-    return (await res.json()) as ApiResponse;
-  } catch (e: any) {
-    return { ok: false, error: e?.message || "Failed to load registry." };
-  }
-}
-
 function cellLinkClass() {
   return "block px-4 py-3 hover:bg-black/[0.02] focus:outline-none focus-visible:ring-2 focus-visible:ring-black/20";
-}
-
-function getRegistryStats(rows: RegistryRow[], total: number): RegistryStats {
-  const certificationRecords = total;
-  const disclosedAiSystems = rows.length;
-  const countriesRepresented = new Set(
-    rows.map((r) => (r.country || "").trim()).filter(Boolean)
-  ).size;
-
-  const latestCertificationDate =
-    rows
-      .map((r) => r.certifiedAt)
-      .filter(Boolean)
-      .sort((a, b) => {
-        const at = new Date(a as string).getTime();
-        const bt = new Date(b as string).getTime();
-        return bt - at;
-      })[0] ?? null;
-
-  return {
-    certificationRecords,
-    disclosedAiSystems,
-    countriesRepresented,
-    latestCertificationDate,
-  };
 }
 
 function StatCard({
@@ -195,25 +110,92 @@ function GatewayCard({
   );
 }
 
+function dedupeRegistryRows(rows: Awaited<ReturnType<typeof getRegistryAiSystems>>): RegistryRow[] {
+  const seen = new Set<string>();
+  const out: RegistryRow[] = [];
+
+  for (const row of rows) {
+    if (!row.registryId) continue;
+    const key = row.registryId.trim().toUpperCase();
+    if (!key || seen.has(key)) continue;
+    seen.add(key);
+
+    out.push({
+      registryId: row.registryId,
+      systemId: row.systemId,
+      systemName: row.systemName,
+      entityName: row.entityName,
+      entityType: row.entityType,
+      country: row.country,
+      certifiedTier: row.certifiedTier,
+      certifiedBand: row.certifiedBand,
+      decisionStatus: row.decisionStatus,
+      certifiedAt: row.certifiedAt,
+      validFrom: row.validFrom,
+      validTo: row.validTo,
+      lastActivityAt: row.lastActivityAt,
+    });
+  }
+
+  return out;
+}
+
+function getStats(rows: RegistryRow[]) {
+  const countriesRepresented = new Set(
+    rows.map((r) => (r.country || "").trim()).filter(Boolean)
+  ).size;
+
+  const latestCertificationDate =
+    rows
+      .map((r) => r.certifiedAt)
+      .filter(Boolean)
+      .sort((a, b) => {
+        const at = new Date(a as string).getTime();
+        const bt = new Date(b as string).getTime();
+        return bt - at;
+      })[0] ?? null;
+
+  return {
+    certificationRecords: rows.length,
+    disclosedAiSystems: rows.length,
+    countriesRepresented,
+    latestCertificationDate,
+  };
+}
+
 export default async function RegistryPage({
   searchParams,
 }: {
   searchParams?: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const sp = (await searchParams) || {};
-  const q = typeof sp.q === "string" ? sp.q : "";
-  const country = typeof sp.country === "string" ? sp.country : "";
-  const registryId = typeof sp.registryId === "string" ? sp.registryId : "";
+  const q = typeof sp.q === "string" ? sp.q.trim() : "";
+  const country = typeof sp.country === "string" ? sp.country.trim() : "";
+  const registryId = typeof sp.registryId === "string" ? sp.registryId.trim() : "";
 
-  const data = await getRegistry({ q, country, registryId });
-  const rows = data.ok ? data.rows : [];
-  const total = data.ok ? data.total : 0;
+  const allSystems = await getRegistryAiSystems();
+  const allRows = dedupeRegistryRows(allSystems);
 
-  const hasFilters = Boolean(
-    (q || "").trim() || (country || "").trim() || (registryId || "").trim()
-  );
+  const rows = allRows.filter((row) => {
+    const matchesQ =
+      !q ||
+      [row.entityName, row.systemName]
+        .filter(Boolean)
+        .some((value) => String(value).toUpperCase().includes(q.toUpperCase()));
 
-  const stats = getRegistryStats(rows, total);
+    const matchesCountry =
+      !country ||
+      (row.country || "").trim().toUpperCase() === country.trim().toUpperCase();
+
+    const matchesRegistryId =
+      !registryId ||
+      (row.registryId || "").trim().toUpperCase() === registryId.trim().toUpperCase();
+
+    return matchesQ && matchesCountry && matchesRegistryId;
+  });
+
+  const hasFilters = Boolean(q || country || registryId);
+  const stats = getStats(rows.length ? rows : allRows);
 
   return (
     <main className="mx-auto max-w-[1180px] px-6 pb-16 pt-14">
@@ -265,7 +247,7 @@ export default async function RegistryPage({
           <StatCard
             label="Disclosed AI Systems"
             value={stats.disclosedAiSystems}
-            helper="System-level records in current results"
+            helper="System-linked public records"
           />
           <StatCard
             label="Countries Represented"
@@ -319,13 +301,13 @@ export default async function RegistryPage({
         <form className="mt-6 grid gap-3 md:grid-cols-4">
           <div className="md:col-span-2">
             <label className="mb-2 block text-[12px] font-semibold uppercase tracking-[0.16em] text-black/60">
-              Organization
+              Organization or System
             </label>
             <input
               type="text"
               name="q"
               defaultValue={q}
-              placeholder="Search by organization name"
+              placeholder="Search by organization or system name"
               className={inputClass()}
             />
           </div>
@@ -351,7 +333,7 @@ export default async function RegistryPage({
               type="text"
               name="registryId"
               defaultValue={registryId}
-              placeholder="GAFAIG-00000001"
+              placeholder="GAFAIG-00000003"
               className={inputClass()}
             />
           </div>
@@ -388,25 +370,12 @@ export default async function RegistryPage({
           </div>
 
           <div className="text-[14px] text-black/65">
-            {data.ok ? (
-              <>
-                {total} record{total === 1 ? "" : "s"}
-                {hasFilters ? " matching current filters" : ""}
-              </>
-            ) : (
-              "Registry unavailable"
-            )}
+            {rows.length} record{rows.length === 1 ? "" : "s"}
+            {hasFilters ? " matching current filters" : ""}
           </div>
         </div>
 
-        {!data.ok ? (
-          <div className="mt-6 rounded-2xl border border-black/10 p-5">
-            <div className="font-semibold text-black">Unable to load registry</div>
-            <p className="mt-2 text-[14px] leading-[1.7] text-black/70">
-              {data.error}
-            </p>
-          </div>
-        ) : rows.length === 0 ? (
+        {rows.length === 0 ? (
           <div className="mt-6 rounded-2xl border border-black/10 p-5">
             <div className="font-semibold text-black">No matching records</div>
             <p className="mt-2 text-[14px] leading-[1.7] text-black/70">
@@ -440,7 +409,7 @@ export default async function RegistryPage({
                         <td className="p-0 align-top">
                           <Link href={href} className={cellLinkClass()}>
                             <div className="font-semibold text-black">
-                              {r.entityName}
+                              {r.entityName ?? r.systemName}
                             </div>
 
                             <div className="mt-1 text-[12px] text-black/60">
@@ -452,7 +421,9 @@ export default async function RegistryPage({
 
                         <td className="p-0 align-top">
                           <Link href={href} className={cellLinkClass()}>
-                            <span className={chipClass()}>{r.decisionStatus}</span>
+                            <span className={chipClass()}>
+                              {r.decisionStatus ?? "—"}
+                            </span>
                           </Link>
                         </td>
 
