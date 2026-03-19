@@ -23,6 +23,13 @@ type RegistryRow = {
   lastActivityAt: string | null;
 };
 
+type RegistryStats = {
+  certificationRecords: number;
+  disclosedAiSystems: number;
+  countriesRepresented: number;
+  latestCertificationDate: string | null;
+};
+
 type ApiResponse =
   | {
       ok: true;
@@ -92,6 +99,7 @@ async function getRegistry(params: {
     const res = await fetch(`${base}/api/registry?${sp.toString()}`, {
       cache: "no-store",
     });
+
     return (await res.json()) as ApiResponse;
   } catch (e: any) {
     return { ok: false, error: e?.message || "Failed to load registry." };
@@ -100,6 +108,91 @@ async function getRegistry(params: {
 
 function cellLinkClass() {
   return "block px-4 py-3 hover:bg-black/[0.02] focus:outline-none focus-visible:ring-2 focus-visible:ring-black/20";
+}
+
+function getRegistryStats(rows: RegistryRow[], total: number): RegistryStats {
+  const certificationRecords = total;
+  const disclosedAiSystems = rows.length;
+  const countriesRepresented = new Set(
+    rows.map((r) => (r.country || "").trim()).filter(Boolean)
+  ).size;
+
+  const latestCertificationDate =
+    rows
+      .map((r) => r.certifiedAt)
+      .filter(Boolean)
+      .sort((a, b) => {
+        const at = new Date(a as string).getTime();
+        const bt = new Date(b as string).getTime();
+        return bt - at;
+      })[0] ?? null;
+
+  return {
+    certificationRecords,
+    disclosedAiSystems,
+    countriesRepresented,
+    latestCertificationDate,
+  };
+}
+
+function StatCard({
+  label,
+  value,
+  helper,
+}: {
+  label: string;
+  value: string | number;
+  helper?: string;
+}) {
+  return (
+    <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-4">
+      <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/55">
+        {label}
+      </div>
+      <div className="mt-2 text-[28px] font-semibold leading-none tracking-tight text-black">
+        {value}
+      </div>
+      {helper ? (
+        <div className="mt-2 text-[12px] leading-[1.6] text-black/60">
+          {helper}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+function GatewayCard({
+  eyebrow,
+  title,
+  description,
+  href,
+  cta,
+}: {
+  eyebrow: string;
+  title: string;
+  description: string;
+  href: string;
+  cta: string;
+}) {
+  return (
+    <div className="rounded-2xl border border-black/10 bg-white p-6">
+      <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/55">
+        {eyebrow}
+      </div>
+      <h3 className="mt-3 text-[22px] font-semibold leading-[1.2] tracking-tight text-black">
+        {title}
+      </h3>
+      <p className="mt-3 text-[14px] leading-[1.8] text-black/72">
+        {description}
+      </p>
+      <Link
+        href={href}
+        className="mt-5 inline-flex items-center text-[14px] font-semibold text-black underline underline-offset-4"
+      >
+        {cta}
+      </Link>
+    </div>
+  );
 }
 
 export default async function RegistryPage({
@@ -120,26 +213,28 @@ export default async function RegistryPage({
     (q || "").trim() || (country || "").trim() || (registryId || "").trim()
   );
 
+  const stats = getRegistryStats(rows, total);
+
   return (
     <main className="mx-auto max-w-[1180px] px-6 pb-16 pt-14">
       <PublicPageHero
         eyebrow="REGISTRY"
-        title="Public certification outcomes for independent verification of human oversight across AI infrastructure"
-        description="The GAFAIG Registry publishes certification outcomes for organizations that have undergone independent verification of AI oversight. Controlled public disclosures confirm certification status while internal evidence, findings, and assessment materials remain private."
+        title="Public registry for certification records and AI systems disclosed through the GAFAIG governance workflow"
+        description="The GAFAIG Registry publishes controlled public certification outcomes derived from a deterministic governance workflow. Public records confirm certification status, linked AI systems, and governance signals while private evidence, findings, reviewer rationale, and internal assessment materials remain protected."
         actions={
           <>
+            <Link
+              href="/registry/ai-systems"
+              className="rounded-full border border-black bg-black px-5 py-3 text-sm font-semibold text-white transition hover:bg-black/90"
+            >
+              Explore Public AI Registry
+            </Link>
+
             <Link
               href="/framework"
               className="rounded-full border border-black px-5 py-3 text-sm font-semibold transition hover:bg-black/[0.04]"
             >
               Read the Framework
-            </Link>
-
-            <Link
-              href="/mission"
-              className="rounded-full border border-black bg-black px-5 py-3 text-sm font-semibold text-white transition hover:bg-black/90"
-            >
-              Mission &amp; Boundaries
             </Link>
           </>
         }
@@ -147,17 +242,78 @@ export default async function RegistryPage({
 
       <section className="mt-10 rounded-3xl border border-black/10 bg-white p-8 md:p-10">
         <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
+          LIVE REGISTRY SIGNAL
+        </div>
+
+        <h2 className="mt-4 max-w-[760px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
+          Public records generated from deterministic certification workflow
+        </h2>
+
+        <p className="mt-5 max-w-[920px] text-[16px] leading-[1.85] text-black/80">
+          This registry is the public-facing layer of the GAFAIG platform. It
+          connects certification records to disclosed AI systems and allows
+          external observers to inspect public governance outcomes without
+          exposing internal reviewer materials.
+        </p>
+
+        <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          <StatCard
+            label="Certification Records"
+            value={stats.certificationRecords}
+            helper="Published public certification outcomes"
+          />
+          <StatCard
+            label="Disclosed AI Systems"
+            value={stats.disclosedAiSystems}
+            helper="System-level records in current results"
+          />
+          <StatCard
+            label="Countries Represented"
+            value={stats.countriesRepresented}
+            helper="Countries visible in current public records"
+          />
+          <StatCard
+            label="Latest Certification"
+            value={formatDate(stats.latestCertificationDate)}
+            helper="Most recent certification date in current results"
+          />
+        </div>
+      </section>
+
+      <section className="mt-10 grid gap-6 lg:grid-cols-2">
+        <GatewayCard
+          eyebrow="AI SYSTEMS"
+          title="Browse the public AI systems registry"
+          description="Explore system-level public disclosures, linked entity metadata, and certification outcomes for AI systems published through the registry."
+          href="/registry/ai-systems"
+          cta="Open AI Systems Registry →"
+        />
+
+        <GatewayCard
+          eyebrow="CERTIFICATION RECORDS"
+          title="Search published registry certification records"
+          description="Search public registry records by organization, country, or registry ID and open the associated certification detail page."
+          href="#search-registry"
+          cta="Search certification records ↓"
+        />
+      </section>
+
+      <section
+        id="search-registry"
+        className="mt-10 rounded-3xl border border-black/10 bg-white p-8 md:p-10"
+      >
+        <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
           SEARCH THE REGISTRY
         </div>
 
         <h2 className="mt-4 max-w-[760px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
-          Search certified organizations
+          Search public certification records
         </h2>
 
         <p className="mt-5 max-w-[920px] text-[16px] leading-[1.85] text-black/80">
-          Search certified organizations by name, country, or registry ID. Each
-          public record confirms certification outcomes and links to the
-          associated certification detail page.
+          Search published certification records by organization, country, or
+          registry ID. Each record links to the associated public certification
+          page and connects into the disclosed AI system detail surface.
         </p>
 
         <form className="mt-6 grid gap-3 md:grid-cols-4">
@@ -208,6 +364,10 @@ export default async function RegistryPage({
             <Link href="/registry" className={buttonClass("secondary")}>
               Clear Filters
             </Link>
+
+            <Link href="/registry/ai-systems" className={buttonClass("secondary")}>
+              Browse AI Systems
+            </Link>
           </div>
         </form>
       </section>
@@ -216,14 +376,14 @@ export default async function RegistryPage({
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
             <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
-              CERTIFIED ORGANIZATIONS
+              PUBLISHED RECORDS
             </div>
             <h2 className="mt-4 max-w-[760px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
               Public certification records
             </h2>
             <p className="mt-4 text-[14px] leading-[1.8] text-black/72">
-              Organizations listed below have completed a GAFAIG governance
-              verification process.
+              Published records below confirm certification outcomes and provide
+              entry into the official public certification artifact.
             </p>
           </div>
 
@@ -331,20 +491,51 @@ export default async function RegistryPage({
         )}
       </section>
 
-      <section className="mt-10 rounded-3xl border border-black/10 bg-white p-8 md:p-10">
-        <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
-          PRIVACY BOUNDARY
+      <section className="mt-10 grid gap-6 lg:grid-cols-2">
+        <div className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
+          <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
+            DETERMINISTIC WORKFLOW
+          </div>
+
+          <h2 className="mt-4 max-w-[760px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
+            From governance verification to public registry disclosure
+          </h2>
+
+          <p className="mt-5 max-w-[920px] text-[16px] leading-[1.85] text-black/80">
+            Registry records are generated from a structured workflow that moves
+            from verification case to scoring, snapshot, certification
+            publication, and public registry disclosure.
+          </p>
+
+          <div className="mt-6 grid gap-3 md:grid-cols-5">
+            {["Case", "Evidence", "Scoring", "Snapshot", "Registry"].map(
+              (step) => (
+                <div
+                  key={step}
+                  className="rounded-2xl border border-black/10 bg-black/[0.02] px-4 py-4 text-center text-[13px] font-semibold text-black"
+                >
+                  {step}
+                </div>
+              )
+            )}
+          </div>
         </div>
 
-        <h2 className="mt-4 max-w-[760px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
-          Public trust without exposing internal reviewer materials
-        </h2>
+        <div className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
+          <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
+            PRIVACY BOUNDARY
+          </div>
 
-        <p className="mt-5 max-w-[920px] text-[16px] leading-[1.85] text-black/80">
-          The registry confirms certification outcomes without exposing internal
-          evidence, findings, reviewer rationales, or private assessment
-          materials.
-        </p>
+          <h2 className="mt-4 max-w-[760px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
+            Public trust without exposing internal reviewer materials
+          </h2>
+
+          <p className="mt-5 max-w-[920px] text-[16px] leading-[1.85] text-black/80">
+            The registry confirms certification outcomes and linked system
+            disclosures without exposing internal evidence, findings, reviewer
+            rationales, or private assessment materials.
+          </p>
+        </div>
       </section>
     </main>
   );

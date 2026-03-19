@@ -1,0 +1,48 @@
+-- ============================================================
+-- 17_TABLES_DECISIONS.sql
+-- Purpose: Final governance certification decisions
+-- ============================================================
+
+USE ROLE ACCOUNTADMIN;
+USE WAREHOUSE GAFAIG_WH;
+USE DATABASE GAFAIG_DB;
+USE SCHEMA CORE;
+
+-- ------------------------------------------------------------
+-- 1) Create table
+-- ------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS CORE.DECISIONS (
+  DECISION_ID         STRING,
+  CASE_ID             STRING,
+  APPLICATION_ID      STRING,
+  SNAPSHOT_ID         STRING,
+
+  DECISION_STATUS     STRING,   -- approved | approved_with_conditions | rejected | revoked | expired
+  CERTIFICATION_TIER  STRING,
+  CERTIFICATION_BAND  STRING,
+
+  VALID_FROM          TIMESTAMP_NTZ,
+  VALID_TO            TIMESTAMP_NTZ,
+
+  DECISION_NOTES      STRING,
+  CREATED_AT          TIMESTAMP_NTZ
+);
+
+-- ------------------------------------------------------------
+-- 2) Harden schema
+-- ------------------------------------------------------------
+ALTER TABLE CORE.DECISIONS ADD COLUMN IF NOT EXISTS DECISION_ID STRING;
+ALTER TABLE CORE.DECISIONS ADD COLUMN IF NOT EXISTS CASE_ID STRING;
+ALTER TABLE CORE.DECISIONS ADD COLUMN IF NOT EXISTS APPLICATION_ID STRING;
+ALTER TABLE CORE.DECISIONS ADD COLUMN IF NOT EXISTS SNAPSHOT_ID STRING;
+ALTER TABLE CORE.DECISIONS ADD COLUMN IF NOT EXISTS DECISION_STATUS STRING;
+ALTER TABLE CORE.DECISIONS ADD COLUMN IF NOT EXISTS CERTIFICATION_TIER STRING;
+ALTER TABLE CORE.DECISIONS ADD COLUMN IF NOT EXISTS CERTIFICATION_BAND STRING;
+ALTER TABLE CORE.DECISIONS ADD COLUMN IF NOT EXISTS VALID_FROM TIMESTAMP_NTZ;
+ALTER TABLE CORE.DECISIONS ADD COLUMN IF NOT EXISTS VALID_TO TIMESTAMP_NTZ;
+ALTER TABLE CORE.DECISIONS ADD COLUMN IF NOT EXISTS DECISION_NOTES STRING;
+ALTER TABLE CORE.DECISIONS ADD COLUMN IF NOT EXISTS CREATED_AT TIMESTAMP_NTZ;
+
+-- ============================================================
+-- END
+-- ============================================================

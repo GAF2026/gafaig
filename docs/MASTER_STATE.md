@@ -1,16 +1,21 @@
 # GAFAIG — MASTER STATE
-Authoritative Project Memory  
-Last Updated: 2026-03-14
+Authoritative Project Memory
+Last Updated: 2026-03-19
 
 ---
 
 # Platform Overview
 
-GAFAIG is the world’s first searchable AI governance registry.
+GAFAIG is the world’s first AI governance registry powered by a deterministic verification engine.
 
-It functions as global trust infrastructure that verifies organizations and AI systems against governance standards using deterministic scoring and verifiable evidence.
+It functions as global trust infrastructure that verifies organizations using:
 
-GAFAIG operates as a neutral global verification registry similar in role to:
+• governance controls  
+• verifiable evidence  
+• deterministic scoring  
+• auditable decision logic  
+
+GAFAIG operates as neutral global verification infrastructure similar in role to:
 
 • financial audit infrastructure  
 • certificate authorities  
@@ -19,35 +24,31 @@ GAFAIG operates as a neutral global verification registry similar in role to:
 
 The platform provides two major layers:
 
-1. Private verification engine
-2. Public transparency registry
+1. Private verification engine  
+2. Public transparency registry  
 
 ---
 
-# System Architecture Overview
+# System Architecture Overview (CANONICAL)
 
-GAFAIG operates as a two-layer architecture.
+GAFAIG operates as a two-layer architecture:
 
 PRIVATE LAYER  
-Verification Engine
+Deterministic Governance Engine (Snowflake-native)
 
 PUBLIC LAYER  
 Global AI Governance Registry
 
-The private layer evaluates governance compliance.  
-The public layer provides transparent registry verification results.
+The private layer performs verification and scoring.  
+The public layer exposes only the verified governance signal.
 
 ---
 
-# System Data Flow
+# Canonical Data Flow (LOCKED)
 
-The high-level governance verification lifecycle is:
+The authoritative GAFAIG architecture is:
 
-Submission  
-↓  
-Application  
-↓  
-Participants  
+Case  
 ↓  
 Findings  
 ↓  
@@ -55,712 +56,417 @@ Evidence
 ↓  
 Events  
 ↓  
-Scoring  
+Enterprise Scoring Engine  
 ↓  
-Decision  
+Score Snapshot  
 ↓  
-Registry Publication  
+Registry Snapshot  
+↓  
+Public Registry  
 
-Private verification data remains restricted.
+IMPORTANT:
 
-Only controlled verification disclosures are published to the registry.
+This is a case-first architecture.
+
+NOT:
+
+Submission → Application → Case (automatic)
+
+That path exists for intake only and is NOT the core engine.
 
 ---
 
-# Private Verification Engine
+# Private Verification Engine (SOURCE OF TRUTH)
 
-The private verification layer manages governance evaluation.
+The verification engine is fully implemented in Snowflake.
 
-Verification workflow:
+Core workflow:
 
 Findings → Evidence → Events → Scoring → Decision
 
 Key characteristics:
 
-• Snowflake-backed deterministic scoring engine  
+• deterministic SQL-based scoring engine  
 • organization-isolated verification cases  
-• stored procedures enforce least privilege  
-• auditable SQL scoring logic  
-• reproducible governance scoring  
+• auditable and reproducible logic  
+• no black-box scoring  
+• full traceability from evidence → decision  
 
 Outputs:
 
-• verification decision  
-• governance tier classification  
-• governance band classification  
-• scoring breakdown  
-• renewal trigger timeline  
-
-Evidence and detailed findings are visible only to:
-
-• authorized reviewers  
-• regulators (when granted)  
-• the verified organization
-
----
-
-# Public Registry Layer
-
-The public registry provides transparency without exposing private evidence.
-
-Published registry information includes:
-
-• organization name  
-• AI system name  
-• verification status  
+• governance score  
 • governance tier  
 • governance band  
-• standard version verified  
-• verification timestamp  
-• verification proof ID  
+• renewal status  
+• scoring breakdown  
 
-The registry defines what “Verified” means by linking to:
+Evidence and detailed findings are restricted to:
 
-• governance standards  
-• scoring methodology  
-• verification framework  
-
----
-
-# Strategic Positioning
-
-GAFAIG is not simply:
-
-• a scoring dashboard  
-• an admin application  
-• a compliance database  
-
-GAFAIG is:
-
-A global AI governance registry with enforceable verification logic.
-
-This positions GAFAIG closer to:
-
-• financial audit infrastructure  
-• certificate authorities  
-• regulatory registries  
-• international standards bodies  
+• authorized reviewers  
+• regulators (if granted)  
+• verified organization  
 
 ---
 
-# Snowflake Architecture
+# Enterprise Governance Scoring Engine (CANONICAL ENGINE)
 
-GAFAIG uses Snowflake as the authoritative system of record for governance verification data and scoring logic.
+GAFAIG uses Enterprise Governance Scoring v1.0.
 
-The verification engine is implemented using deterministic SQL logic, stored procedures, and views within the Snowflake environment.
+Core principle:
 
-### Snowflake Environment
-
-Account  
-duglhtd-cm14952
-
-Database  
-GAFAIG_DB
-
-Primary Schema  
-CORE
-
-Application Role  
-GAFAIG_APP_ROLE
-
-Warehouse  
-GAFAIG_WH
-
-Authentication  
-Key-pair authentication
-
-Application user  
-GAFAIG_APP_USER
+GAFAIG evaluates organizational governance oversight — NOT AI system risk classification.
 
 ---
 
-# Core Snowflake Tables
+# Scoring Inputs
 
-CORE.SUBMISSIONS  
-Initial verification requests submitted by organizations.
-
-CORE.APPLICATIONS  
-Approved verification applications.
-
-CORE.PARTICIPANTS  
-Organizations or entities participating in verification.
-
-CORE.FINDINGS  
-Governance control findings associated with verification cases.
-
-CORE.EVIDENCE  
-Evidence artifacts supporting governance findings.
-
-CORE.EVENTS  
-Verification lifecycle events.
-
-CORE.CASE_SCORE_SNAPSHOTS  
-Recorded scoring outcomes for verification cases.
-
-CORE.DECISIONS  
-Final verification decisions.
-
-CORE.REGISTRY_AI_SYSTEMS  
-Registry records of verified AI systems.
+• Findings  
+• Evidence  
+• Evidence summaries  
+• Events  
 
 ---
 
-# Core Snowflake Views
+# Scoring Components
 
-CORE.V_ADMIN_SUBMISSIONS  
-Unified admin view used by the Admin Applications UI.
+Each control is evaluated using:
 
-CORE.VERIFICATION_CASE_DETAIL  
-Comprehensive verification case data view.
-
-CORE.PUBLIC_REGISTRY  
-Public registry view of verified organizations.
-
-CORE.REGISTRY_AI_SYSTEMS_PUBLIC  
-Public view of verified AI systems.
+1. Quality Score  
+2. Coverage Score  
+3. Freshness Score  
+4. Operational Score  
 
 ---
 
-# Deterministic Governance Scoring Engine
+# Scoring Formulas
 
-GAFAIG uses a deterministic scoring engine implemented in Snowflake.
+Control Score =  
+0.60 × Quality  
++ 0.25 × Coverage  
++ 0.15 × Freshness  
 
-The scoring model evaluates governance compliance using four major components.
+Case Score =  
+0.65 × Controls  
++ 0.15 × Coverage  
++ 0.10 × Freshness  
++ 0.10 × Operational  
 
-Controls Score  
-Measures governance control implementation.
+---
 
-Coverage Score  
-Measures coverage of governance domains.
+# Scoring Outputs
 
-Freshness Score  
-Measures recency and maintenance of governance evidence.
+• SCORE (0–100)  
+• TIER  
+• BAND  
+• RENEWAL_STATUS  
 
-Summaries Score  
-Measures documentation completeness and reporting.
+---
 
-The deterministic scoring engine produces:
+# Core Scoring Objects
 
-• overall governance score  
-• governance tier classification  
-• governance band classification  
+Tables:
 
-These outputs are recorded in:
+• SCORING_MODEL_VERSIONS  
+• CONTROL_CATALOG  
+• CONTROL_WEIGHTS  
+• SEVERITY_WEIGHTS  
+• SCORE_BANDS  
 
-CORE.CASE_SCORE_SNAPSHOTS
+Views:
+
+• V_CASE_SCORE_ENTERPRISE  
+• V_CASE_TIER_BAND  
+• V_CASE_RENEWAL_STATUS  
+• V_PUBLIC_OVERSIGHT_SIGNAL  
+
+Procedure:
+
+• SP_SCORE_CASE_ENTERPRISE(P_CASE_ID)
+
+---
+
+# Snapshot Architecture
+
+Table:
+
+• CASE_SCORE_SNAPSHOTS_V2  
+
+Snapshots are:
+
+• immutable  
+• reproducible  
+• deterministic  
 
 ---
 
 # Registry Publication Engine
 
-Verification outcomes are published to the public registry through controlled registry publishing logic.
+Procedure:
 
-Publication occurs when:
+• SP_PUBLISH_CASE_TO_REGISTRY_V3  
 
-Verification status = APPROVED
+Pipeline:
 
-The publication process writes registry records to:
+Case  
+→ Score Snapshot  
+→ Registry Snapshot  
+→ Latest Approved View  
+→ Public Registry  
 
-CORE.REGISTRY_AI_SYSTEMS
+Core objects:
 
-Public registry views expose only approved verification records.
+• REGISTRY_SNAPSHOTS  
+• V_REGISTRY_LATEST_APPROVED  
 
-Private evidence and findings remain restricted to authorized roles.
+---
+
+# Public Registry Layer (CANONICAL)
+
+Primary views:
+
+• V_REGISTRY_PUBLIC  
+• V_PUBLIC_REGISTRY  
+• V_REGISTRY_EXPORT_V1  
+
+Derived from:
+
+• V_REGISTRY_LATEST_APPROVED (SOURCE OF TRUTH)
+
+---
+
+# AI Systems Registry Layer (NEW — CANONICAL)
+
+The platform now includes a full AI systems registry.
+
+Primary view:
+
+• V_REGISTRY_AI_SYSTEMS_PUBLIC  
+
+Architecture:
+
+REGISTRY_AI_SYSTEMS  
+→ VERIFICATION_CASES  
+→ REGISTRY_ENTITIES  
+→ V_REGISTRY_PUBLIC  
+
+This produces:
+
+• system-level registry records  
+• linked entity metadata  
+• certification data  
+
+---
+
+# Snowflake Architecture
+
+Snowflake is the system of record.
+
+All logic exists in:
+
+• tables  
+• views  
+• stored procedures  
+
+No governance logic exists in the frontend.
+
+---
+
+# Snowflake Environment
+
+Account: GAFAIG1  
+Database: GAFAIG_DB  
+Schema: CORE  
+Warehouse: GAFAIG_WH  
+
+Roles:
+
+• GAFAIG_APP_ROLE  
+• GAFAIG_PUBLISHER  
+• GAFAIG_PUBLIC_READER  
+
+---
+
+# Core Snowflake Tables
+
+Verification:
+
+• VERIFICATION_CASES  
+• VERIFICATION_FINDINGS  
+• VERIFICATION_EVIDENCE  
+• VERIFICATION_EVENTS  
+
+Linking:
+
+• VERIFICATION_FINDING_EVIDENCE  
+• FINDING_EVIDENCE_MAP  
+
+Scoring:
+
+• CASE_SCORE_SNAPSHOTS_V2  
+
+Registry:
+
+• REGISTRY_SNAPSHOTS  
+• REGISTRY_AI_SYSTEMS  
+
+---
+
+# Critical Architecture Rules (STRICT)
+
+1. Case-first architecture  
+All logic starts with CASE_ID.
+
+2. Snapshot-based registry  
+No live scoring in registry.
+
+3. Query registry required  
+No inline SQL in UI or routes.
+
+4. ID normalization required  
+Use TRIM / UPPER for joins.
+
+5. View purity rule  
+View files contain ONLY:
+• CREATE VIEW  
+• GRANTS  
+
+NO:
+• INSERT  
+• UPDATE  
+• SELECT tests  
 
 ---
 
 # Repository Architecture
 
-GitHub Repository
+GitHub: GAF2026/gafaig  
 
-GAF2026/gafaig
+Stack:
 
-The GAFAIG repository contains the web application, Snowflake SQL architecture, governance scoring engine logic, and documentation for the global AI governance registry.
-
-The platform is built using:
-
-Next.js  
-TypeScript  
-Snowflake  
-Vercel
-
----
-
-# High-Level Project Structure
-
-The repository is organized into several major directories.
-
-components/  
-Reusable React UI components used across the platform.
-
-docs/  
-Permanent project documentation and architecture reference.
-
-lib/  
-Core application logic including Snowflake connectivity, authentication logic, and registry helpers.
-
-sql/  
-Snowflake database architecture and registry schema.
-
-types/  
-TypeScript type definitions used across the application.
-
----
-
-# Core Application Libraries
-
-lib/
-
-Contains the core runtime logic used by the GAFAIG application.
-
-Key modules include:
-
-auth/  
-Admin authentication and session management.
-
-http/  
-HTTP request helpers.
-
-registry/  
-Registry API helpers and URL construction.
-
-email/  
-Notification and email delivery utilities.
-
-constants/  
-Shared constants used throughout the application.
-
----
-
-# Type Definitions
-
-types/
-
-TypeScript type definitions used across the platform.
-
-Examples:
-
-registry.ts  
-Defines registry object structures and types.
-
-env.d.ts  
-Defines environment variable types.
-
-ids.ts  
-Defines identifier formats used throughout the platform.
-
----
-
-# Deterministic Identifier Model
-
-GAFAIG identifiers must remain deterministic across:
-
+• Next.js (App Router)  
+• TypeScript  
 • Snowflake  
-• Next.js application  
-• Public registry  
-
-Examples:
-
-CASE_ID  
-REGISTRY_ID  
-VERIFICATION_ID  
-
-Identifier definitions are maintained in:
-
-types/ids.ts
+• Vercel  
 
 ---
 
-# Snowflake SQL Architecture
+# Query Registry (CRITICAL)
 
-sql/
+Location:
 
-Contains the SQL architecture used to create the governance verification engine.
+lib/queries/
 
-Subdirectories include:
+Purpose:
 
-core/  
-Core Snowflake objects.
-
-registry/  
-Registry publishing logic.
-
-migrations/  
-Database migration scripts.
-
-security/  
-Role grants and access control logic.
-
-demo/  
-Demo data seeding scripts.
+• centralize SQL  
+• eliminate duplication  
+• prevent AI SQL errors  
+• stabilize frontend  
 
 ---
 
-# Deployment Architecture
+# Application Routes (UPDATED)
 
-GAFAIG is deployed as a web application hosted on Vercel with Snowflake as the authoritative backend.
-
-Production URL
-
-https://www.gafaig.com
-
-Hosting Platform
-
-Vercel
-
-Vercel Project
-
-gafaig-vercel
-
-GitHub Repository
-
-GAF2026/gafaig
-
----
-
-# Deployment Flow
-
-Local development  
-→ Git commit  
-→ GitHub push  
-→ Vercel build and deployment  
-→ Production site update
-
-This means the GitHub repository is the source code origin, and Vercel is the deployment surface for the public application.
-
----
-
-# Runtime Architecture
-
-Frontend  
-Next.js application
-
-Backend data layer  
-Snowflake
-
-Hosting  
-Vercel
-
-Authentication  
-Signed admin session cookie
-
-Environment model  
-Local `.env.local` for development  
-Vercel environment variables for production
-
----
-
-# Environment Variables
-
-### Vercel Environment Variables
-
-GAFAIG_ADMIN_DEMO_PASSWORD  
-NEXT_PUBLIC_DEMO_PASSWORD  
-GAFAIG_SESSION_SECRET  
-GAFAIG_ADMIN_PASSWORD  
-SNOWFLAKE_PRIVATE_KEY  
-SNOWFLAKE_USERNAME  
-SNOWFLAKE_USER  
-GAFAIG_VERIFY_SIGNING_SECRET  
-SNOWFLAKE_ACCOUNT  
-SNOWFLAKE_WAREHOUSE  
-SNOWFLAKE_DATABASE  
-SNOWFLAKE_SCHEMA  
-SNOWFLAKE_ROLE  
-
-### Local Environment Variables (.env.local)
-
-GAFAIG_SESSION_SECRET  
-GAFAIG_ADMIN_PASSWORD  
-GAFAIG_ADMIN_DEMO_PASSWORD  
-NEXT_PUBLIC_DEMO_PASSWORD  
-SNOWFLAKE_ACCOUNT  
-SNOWFLAKE_USERNAME  
-SNOWFLAKE_WAREHOUSE  
-SNOWFLAKE_DATABASE  
-SNOWFLAKE_SCHEMA  
-SNOWFLAKE_ROLE  
-SNOWFLAKE_PRIVATE_KEY_PATH  
-NODE_ENV  
-NEXT_PUBLIC_SITE_URL  
-
----
-
-# Routes and URL Map
-
-GAFAIG includes public platform pages, public registry surfaces, admin routes, and API routes.
-
-### Public Pages
-
-/  
-Homepage
-
-/mission  
-Public mission and purpose of GAFAIG.
-
-/framework  
-Public explanation of the governance framework and standards logic.
+Public:
 
 /registry  
-Public registry landing surface.
-
 /registry/ai-systems  
-Public searchable registry of AI systems.
+/registry/ai-systems/[registryId]  
 
 ---
 
-### Admin Pages
+# Frontend Architecture
 
-/admin/login  
-Admin login surface.
+Pattern:
 
-/admin/applications  
-Admin applications dashboard.
+Page → Query Layer → Snowflake View  
 
-/admin/verification  
-Admin verification cases index.
-
-/admin/verification/[caseId]  
-Verification case detail page.
-
-/admin/verification/[caseId]/score  
-Verification score detail page.
-
-/admin/verification/[caseId]/evidence  
-Verification evidence page.
-
-/admin/verification/[caseId]/findings  
-Verification findings page.
+No direct SQL in pages.
 
 ---
 
-### API Routes
+# Deployment
 
-/api/admin/verification  
-Admin verification API surface.
+Production:
 
-/api/registry/search  
-Public registry search API.
+https://www.gafaig.com  
 
-/api/verify/[id]  
-Verification or proof lookup API.
+Pipeline:
 
-/api/registry/ai-systems  
-Public AI systems registry API.
-
----
-
-# Snowflake Worksheet Inventory
-
-The following worksheet files represent the Snowflake buildout and operational scripts used for GAFAIG.
-
-### Core and Governance Worksheets
-
-DDL Snapshot - 2026-02-26.sql  
-GAFAIG - Admin Unified View.sql  
-GAFAIG - APP_ROLE Smoke.sql  
-GAFAIG - CORE.REGISTRY_PUBLISH.sql  
-GAFAIG - Demo Evidence Summaries.sql  
-GAFAIG - GET_DDL Export.sql  
-GAFAIG - Governance Scoring (Enterprise v1.0).sql  
-GAFAIG - Governance Scoring.sql  
-GAFAIG - Grants.sql  
-GAFAIG - Migration - Snapshot Tier Band Backfill.sql  
-GAFAIG - Registry AI Systems Backfill.sql  
-GAFAIG - Registry AI Systems Registry View.sql  
-GAFAIG - Scoring Model v1.0 + Registry.sql  
-GAFAIG - Security Grants.sql  
-GAFAIG - Applications Setup & Grants.sql  
-GAFAIG - Core Setup.sql  
-GAFAIG - CORE.REGISTRY_SNAPSHOTS.sql  
-GAFAIG - Verification Workflow Schema (Draft).sql  
-GAFAIG - Verification Workflow Schema.sql  
-GAFAIG - Deterministic Governance Scoring Engine v1.0.sql  
-GAFAIG - Public Registry Search View.sql  
-GAFAIG - Public Registry Surface.sql  
-GAFAIG - True Global Registry Identity.sql  
-
----
-
-### Environment Setup Worksheets
-
-00_CORE_SETUP.sql  
-01_REBUILD_ENVIRONMENT.sql  
-
----
-
-### Table Build Worksheets
-
-10_TABLES_SUBMISSIONS.sql  
-11_TABLES_APPLICATIONS.sql  
-12_TABLES_PARTICIPANTS.sql  
-13_TABLES_FINDINGS.sql  
-14_TABLES_EVIDENCE.sql  
-14_TABLES_REGISTRY_AI_SYSTEMS.sql  
-15_TABLES_EVENTS.sql  
-16_TABLES_CASE_SCORE_SNAPSHOTS.sql  
-17_TABLES_DECISIONS.sql  
-
----
-
-### View Build Worksheets
-
-20_VIEWS_VERIFICATION_CASE_DETAIL.sql  
-21_VIEWS_PUBLIC_REGISTRY.sql  
-22_VIEWS_REGISTRY_AI_SYSTEMS_PUBLIC.sql  
-
----
-
-### Public Access and Grant Worksheets
-
-23_GRANTS_REGISTRY_AI_SYSTEMS_PUBLIC.sql  
-24_GRANTS_AND_DIAGNOSTICS_PUBLIC_VIEWS.sql  
-
----
-
-### Demo Data Worksheets
-
-30_DEMO_DATA_SEEDING.sql  
-31_DEMO_DECISIONS_SEEDING.sql  
-32_DEMO_REGISTRY_AI_SYSTEMS_SEED.sql  
-33_DEMO_PARTICIPANTS_CURATED_SEED.sql  
-
----
-
-### Automation and Diagnostics Worksheets
-
-40_PARTICIPANTS_AUTOSYNC.sql  
-98_ENVIRONMENT_DIAGNOSTICS_REGISTRY.sql  
-99_ENVIRONMENT_DIAGNOSTICS.sql  
+Local → GitHub → Vercel → Production  
 
 ---
 
 # Current Platform Status
 
-GAFAIG is currently operating as a working platform with a Snowflake-backed verification engine and a Next.js application deployed to Vercel.
+GAFAIG now has:
 
-Production URL
-
-https://www.gafaig.com
-
-The platform includes both the verification engine and the public-facing registry surfaces.
-
----
-
-# Work Completed (Recent Phase)
-
-### Public Platform
-
-• homepage updated  
-• mission page implemented  
-• governance framework page implemented  
-• registry landing page implemented  
-• AI systems registry page implemented  
-
-### Verification Engine
-
-• deterministic governance scoring engine implemented  
-• verification workflow schema implemented  
-• case scoring snapshots implemented  
-• decision model implemented  
-
-### Registry Infrastructure
-
-• registry AI systems table created  
-• public registry views created  
-• registry publication logic implemented  
-
-### Admin Surfaces
-
-• admin login flow implemented  
-• admin applications dashboard implemented  
-• verification case workflows implemented  
-
-### Security and Hardening
-
-• signed admin session cookies  
-• Snowflake role-based access model  
-• scoped application user privileges  
-• view and stored procedure access control  
-
-### Deployment
-
-• GitHub repository operational  
-• Vercel deployment connected  
-• production site running  
+• deterministic enterprise scoring engine  
+• verification workflow schema  
+• evidence linkage system  
+• event-based scoring  
+• snapshot system (v2)  
+• registry publish pipeline  
+• public registry views  
+• AI systems registry  
+• Next.js registry UI  
+• query registry layer  
 
 ---
 
-# Current Development Phase
+# Current Phase
 
-Surface the Engine
-
-The current phase focuses on exposing the registry and verification infrastructure to the public platform.
-
-Key objectives:
-
-• global AI system registry  
-• certification publish automation  
-• public verification proof lookup  
-• verification badge system  
+Surface the Engine → Registry Completion
 
 ---
 
-# Next Major Features
+# Immediate Next Steps
 
-### Global AI Registry
-
-/registry/ai-systems
-
-### Certification Publish Automation
-
-Automatically publish approved verification results into the public registry.
-
-### Verification Badge API
-
-Example endpoint:
-
-/api/verify/[verification_id]
-
-### Registry Search
-
-Public search interface for AI systems.
+1. Add system detail page (completed)  
+2. Add search / filtering to registry  
+3. Add verification API  
+4. Connect intake → case creation  
+5. Expand demo dataset  
 
 ---
 
 # Project Philosophy
 
-GAFAIG is designed as neutral global trust infrastructure.
+GAFAIG is not a dashboard.
 
-The goal is not simply governance scoring.
+It is:
 
-The goal is to create:
-
-A global registry of verified AI governance.
-
-This allows organizations and AI systems to prove governance compliance in a transparent and auditable way.
+A global AI governance registry backed by deterministic verification logic.
 
 ---
 
 # New Chat Starter Block
 
-When starting a new development chat for GAFAIG, paste the following:
+Please treat docs/MASTER_STATE.md as the canonical architecture for GAFAIG.
 
-Please treat `docs/MASTER_STATE.md` as the canonical architecture and platform memory for GAFAIG.
-
-Repository:  
+Repository:
 GAF2026/gafaig
 
-Platform:  
+Platform:
 GAFAIG — Global AI Governance Registry
 
-Production:  
+Production:
 https://www.gafaig.com
 
-Snowflake:  
-GAFAIG_DB / CORE schema
+Architecture:
+Snowflake-native deterministic governance engine (Enterprise v1.0)
 
-Current Phase:  
+Core Flow:
+Case → Findings → Evidence → Events → Scoring → Snapshot → Registry
+
+Snowflake:
+GAFAIG_DB / CORE
+
+Current Phase:
 Surface the Engine
 
-Do not re-architect the platform. Continue development from the current architecture.
+State:
+AI systems registry + public registry fully wired
+
+Rules:
+Do not re-architect. Continue from current system.

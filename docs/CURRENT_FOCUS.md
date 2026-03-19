@@ -1,10 +1,10 @@
 # GAFAIG — CURRENT DEVELOPMENT FOCUS
 
-Last Updated: 2026-03-15
+Last Updated: 2026-03-19
 
-This document defines the **active development milestone** for the GAFAIG platform.
+This document defines the active development milestone for the GAFAIG platform.
 
-AI assistants and developers should prioritize work described in this document before making unrelated changes.
+AI assistants and developers must prioritize work described in this document before making unrelated changes.
 
 For full platform architecture see:
 
@@ -22,373 +22,378 @@ docs/ENGINEERING_RULES.md
 
 # Current Development Phase
 
-Surface the Engine
+Surface the Engine → Registry Completion
 
-This phase exposes the GAFAIG governance verification engine through public registry surfaces.
+This phase exposes the **enterprise governance scoring engine** through the public registry and AI systems registry.
 
-The platform is transitioning from:
+The platform has transitioned from:
 
 internal verification infrastructure
 
-to
+to:
 
-global AI governance registry.
-
----
-
-# Platform Layers Involved In This Phase
-
-```
-Snowflake Governance Engine
-↓
-Registry Snapshot Publishing
-↓
-Public Registry Views
-↓
-API Surfaces
-↓
-Explorer + Registry UI
-```
-
-Snowflake remains the **system of record**.
+deterministic governance engine → global registry system → AI systems surface
 
 ---
 
-# Primary Objectives
+# Canonical Execution Model (LOCKED)
 
-1. Stabilize Registry Publication Pipeline  
-2. Expose Public Verification Endpoint  
-3. Complete Global AI Systems Registry  
-4. Complete Public Registry Search  
-5. Surface Registry Data in Explorer  
+All development must follow this architecture:
+
+Case  
+↓  
+Findings  
+↓  
+Evidence  
+↓  
+Events  
+↓  
+Enterprise Scoring Engine  
+↓  
+Score Snapshot  
+↓  
+Registry Snapshot  
+↓  
+Public Registry  
+↓  
+AI Systems Registry  
+
+IMPORTANT:
+
+• This is a **case-first architecture**  
+• Applications/submissions are NOT the core engine  
+• Registry data must originate from scoring + snapshot pipeline  
 
 ---
 
-# Objective 1 — Stabilize Registry Publication Pipeline
+# Platform Layers Involved
 
-Registry publication is triggered through the admin verification workflow.
+Snowflake Governance Engine  
+↓  
+Score Snapshots (deterministic)  
+↓  
+Registry Publishing  
+↓  
+Public Registry Views  
+↓  
+AI Systems Registry Views  
+↓  
+Query Layer (Next.js)  
+↓  
+Frontend UI  
 
-Admin route:
+Snowflake is the system of record.
 
-```
-/admin/verification/[caseId]/score
-```
+---
 
-Admin API:
+# Primary Objectives (UPDATED)
 
-```
-/api/admin/publish
-```
+1. Validate Enterprise Scoring Pipeline  
+2. Connect Scoring → Registry Publishing  
+3. Stabilize Public Registry Views  
+4. Stabilize AI Systems Registry  
+5. Complete Verification API  
+6. Enforce Full Snapshot Data Alignment  
 
-Snowflake procedure:
+---
 
-```
-CORE.SP_PUBLISH_CASE_TO_REGISTRY_V3
-```
+# Objective 1 — Validate Enterprise Scoring Pipeline
 
-Publishing flow:
+Core procedure:
 
-```
-Verification case
-↓
-Governance score snapshot
-↓
-Registry snapshot
-↓
-Latest approved registry record
-↓
-Public registry projection
-```
+CORE.SP_SCORE_CASE_ENTERPRISE
 
-Key Snowflake objects:
+Core views:
 
-```
-CORE.REGISTRY_SNAPSHOTS
-CORE.V_REGISTRY_LATEST_APPROVED
-CORE.V_REGISTRY_PUBLIC
-CORE.V_REGISTRY_PUBLIC_SEARCH
-```
+CORE.V_CASE_SCORE_ENTERPRISE  
+CORE.V_CASE_TIER_BAND  
+CORE.V_CASE_RENEWAL_STATUS  
 
 Goal:
 
-Ensure publishing always produces a valid public registry record.
+Ensure canonical case (CASE-ENT-0001):
+
+• produces deterministic score  
+• produces tier + band  
+• produces renewal status  
+• writes snapshot to CASE_SCORE_SNAPSHOTS_V2  
+
+This is the foundation of the entire platform.
 
 ---
 
-# Objective 2 — Public Verification Endpoint
+# Objective 2 — Connect Scoring → Registry Publishing
 
-Allow third parties to verify GAFAIG certification.
+Procedure:
 
-API endpoint:
+CORE.SP_PUBLISH_CASE_TO_REGISTRY_V3
 
-```
-/api/verify/[registryId]
-```
+Pipeline:
 
-Example:
+Verification Case  
+↓  
+Enterprise Score  
+↓  
+Score Snapshot  
+↓  
+Registry Snapshot  
+↓  
+Latest Approved Record  
+↓  
+Public Registry  
 
-```
-/api/verify/GAFAIG-00000001
-```
+Key objects:
 
-Expected response:
+CORE.CASE_SCORE_SNAPSHOTS_V2  
+CORE.REGISTRY_SNAPSHOTS  
+CORE.V_REGISTRY_LATEST_APPROVED  
+CORE.V_PUBLIC_OVERSIGHT_SIGNAL  
 
-• registry identifier  
-• organization name  
-• certification tier  
-• governance band  
-• certification score  
-• certification timestamp  
+Goal:
 
-Purpose:
+All registry records MUST originate from:
 
-Enable:
+Enterprise scoring → snapshot → publish
 
-• verification badges  
-• registry proof links  
-• third-party verification  
+---
+
+# Objective 3 — Public Registry Surfaces
+
+Routes:
+
+/registry  
+/registry/[registryId]
+
+API:
+
+/api/registry  
+/api/registry/search  
+
+Data sources:
+
+CORE.V_REGISTRY_LATEST_APPROVED  
+CORE.V_REGISTRY_PUBLIC  
+CORE.V_PUBLIC_REGISTRY  
+
+Goal:
+
+• eliminate direct table reads  
+• ensure registry reflects snapshot pipeline only  
+
+---
+
+# Objective 4 — AI Systems Registry (NEW PRIORITY)
+
+Routes:
+
+/registry/ai-systems  
+/registry/ai-systems/[registryId]
 
 Data source:
 
-```
-CORE.V_REGISTRY_PUBLIC
-```
+CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC  
+
+Architecture:
+
+REGISTRY_AI_SYSTEMS  
+→ VERIFICATION_CASES  
+→ REGISTRY_ENTITIES  
+→ V_REGISTRY_PUBLIC  
+
+Frontend:
+
+Next.js + Query Registry pattern
+
+Query layer:
+
+lib/queries/registry-ai-systems.ts  
+
+Goal:
+
+• expose system-level registry surface  
+• link systems → entities → certification  
+• ensure system data aligns with registry pipeline  
 
 ---
 
-# Objective 3 — Global AI Systems Registry
+# Objective 5 — Verification API
 
-Create a public searchable registry of verified AI systems.
+Endpoint:
 
-Route:
+/api/verify/[registryId]
 
-```
-/registry/ai-systems
-```
+Example:
 
-Registry should display:
+/api/verify/GAFAIG-00000001
 
-• AI system name  
-• developer organization  
-• risk tier  
-• oversight level  
-• governance certification tier  
-• governance band  
-• certification timestamp  
+Response:
 
-Snowflake table:
-
-```
-CORE.REGISTRY_AI_SYSTEMS
-```
-
-Public view:
-
-```
-CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC
-```
-
----
-
-# Objective 4 — Public Registry Search
-
-Allow users to search the global AI governance registry.
-
-API endpoint:
-
-```
-/api/registry/search
-```
-
-Search fields may include:
-
-• registry identifier  
+• registry ID  
 • organization name  
-• country  
-• AI system name  
-• certification tier  
+• score  
+• tier  
+• band  
+• renewal status  
+• timestamp  
 
-Primary Snowflake view:
+Data source:
 
-```
-CORE.V_REGISTRY_PUBLIC_SEARCH
-```
+CORE.V_PUBLIC_OVERSIGHT_SIGNAL  
 
-This view powers:
+Purpose:
 
-• registry explorer  
-• search APIs  
-• public registry surfaces  
+• third-party verification  
+• certification badges  
+• trust validation  
 
 ---
 
-# Objective 5 — Explorer Integration
+# Objective 6 — Data Alignment (CRITICAL)
 
-The explorer provides public analytics on the GAFAIG registry.
+All data MUST follow:
 
-Primary route:
+CASE  
+→ SCORING  
+→ SNAPSHOT  
+→ REGISTRY  
+→ AI SYSTEMS VIEW  
 
-```
-/explorer
-```
+NOT:
 
-Explorer surfaces include:
+manual inserts into registry or system tables
 
-```
-/explorer/organizations
-/explorer/systems
-/explorer/countries
-/explorer/map
-```
+---
 
-Explorer aggregates public registry signals.
+# Known Issue (RESOLVED DIRECTION)
 
-Primary data sources:
+Previous demo data:
 
-```
-CORE.V_REGISTRY_PUBLIC
-CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC
-```
+Inserted directly into:
 
-Metrics include:
+CORE.REGISTRY_AI_SYSTEMS
 
-• certified organizations  
-• disclosed AI systems  
-• countries represented  
-• certification tier distribution  
-• system risk distribution  
-• oversight distribution  
+This caused:
+
+• mismatched registry data  
+• orphan systems  
+• inconsistent UI  
+
+Correct model:
+
+All systems must link to:
+
+CASE_ID → REGISTRY → PUBLIC VIEW  
 
 ---
 
 # Current Priority Areas
 
-Developers and AI assistants should focus on:
+Snowflake:
+
+• enterprise scoring views  
+• snapshot table (CASE_SCORE_SNAPSHOTS_V2)  
+• registry publish procedure  
+• AI systems public view  
+
+API:
+
+• /api/registry  
+• /api/verify  
+• /api/admin/publish  
 
 Frontend:
 
-```
-app/registry/
-app/registry/ai-systems/
-app/explorer/
-```
+• /registry  
+• /registry/[registryId]  
+• /registry/ai-systems  
+• /registry/ai-systems/[registryId]  
 
-API routes:
+Query Layer:
 
-```
-app/api/admin/publish
-app/api/registry/
-app/api/verify/
-```
-
-Snowflake registry layer:
-
-```
-CORE.REGISTRY_SNAPSHOTS
-CORE.V_REGISTRY_LATEST_APPROVED
-CORE.V_REGISTRY_PUBLIC
-CORE.V_REGISTRY_PUBLIC_SEARCH
-CORE.REGISTRY_AI_SYSTEMS
-CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC
-```
+• lib/queries (MANDATORY)  
 
 ---
 
-# Work Completed Recently
+# Work Completed (UPDATED)
 
-Major infrastructure milestones achieved:
+Major milestones:
 
-• deterministic governance scoring engine  
-• verification workflow schema implemented  
-• registry snapshot publishing procedure created  
-• public registry projection views implemented  
-• explorer analytics page implemented  
-• admin verification scoring interface completed  
-• admin publish endpoint connected to Snowflake  
-• registry identifier generation operational  
-• public registry search view implemented  
+• enterprise governance scoring engine implemented  
+• deterministic scoring procedure deployed  
+• snapshot architecture (v2) implemented  
+• verification workflow stabilized  
+• evidence linkage system working  
+• event-based scoring implemented  
+• registry publishing pipeline operational  
+• public registry views implemented  
+• query registry abstraction implemented  
+• AI systems registry view created  
+• AI systems frontend page implemented  
+• system detail page implemented  
 
-The full publish pipeline now operates across:
+Critical discoveries:
 
-```
-Snowflake → API → UI
-```
-
----
-
-# Near-Term Goals
-
-Complete the remaining public registry surfaces.
-
-Priority tasks:
-
-1. Complete `/registry/ai-systems` UI  
-2. Implement `/registry/organizations` surface  
-3. Implement `/registry/[registryId]` certification page  
-4. Finalize `/api/verify/[registryId]` endpoint  
-5. Ensure registry search API stability  
+• case-first architecture confirmed  
+• snapshot pipeline is mandatory  
+• ID normalization required  
+• dual evidence mapping required  
+• legacy scoring deprecated  
+• view purity rule required  
 
 ---
 
-# Important Rules
+# Near-Term Execution Plan
 
-All development must follow the engineering standards defined in:
+1. Validate CASE-ENT-0001 scoring  
+2. Publish case to registry  
+3. Confirm registry output  
+4. Confirm AI systems linkage  
+5. Add search + filtering to registry UI  
+6. Expand demo dataset through pipeline only  
 
-```
-docs/ENGINEERING_RULES.md
-```
+---
 
-Key rules include:
+# Important Rules (STRICT)
 
-1. Do not re-architect the Snowflake schema.
-2. Do not expose private verification evidence.
-3. Public routes must expose only controlled disclosures.
-4. Identifiers must remain deterministic.
+1. Do not re-architect the system  
+2. Always use enterprise scoring engine  
+3. All registry data must come from snapshots  
+4. Never expose private evidence  
+5. Always use query registry (no inline SQL)  
+6. Always normalize IDs (TRIM / UPPER)  
+7. Views must contain only CREATE VIEW + GRANTS  
 
-Identifiers include:
+Identifiers:
 
-```
-CASE_ID
-REGISTRY_ID
-SNAPSHOT_ID
-APPLICATION_ID
-SYSTEM_ID
-```
-
-Identifier definitions live in:
-
-```
-types/ids.ts
-```
+CASE_ID  
+FINDING_ID  
+EVIDENCE_ID  
+SNAPSHOT_ID  
+REGISTRY_ID  
+SYSTEM_ID  
 
 ---
 
 # Development Workflow
 
-Typical development cycle:
-
-1. Modify code in VS Code  
-2. Run local development server  
-3. Test route locally  
-4. Verify Snowflake view output  
-5. Commit working change  
-6. Push to GitHub  
-7. Verify Vercel deployment  
+1. Update Snowflake objects  
+2. Validate via SQL  
+3. Validate via query layer  
+4. Validate via frontend  
+5. Commit  
+6. Deploy (Vercel)  
 
 ---
 
 # Starting a New Chat
 
-When beginning a new GAFAIG development chat, paste this starter block:
+Paste this:
 
-```
-Please treat docs/MASTER_STATE.md as the canonical architecture and platform memory for GAFAIG.
+Please treat docs/MASTER_STATE.md as canonical architecture.
 
-Use docs/PROJECT_INDEX.md as the repository map.
+Use docs/CURRENT_FOCUS.md as the active milestone.
 
-Use docs/CURRENT_FOCUS.md as the active development milestone.
-
-Use docs/ENGINEERING_RULES.md as the implementation guardrails.
+Use docs/ENGINEERING_RULES.md as guardrails.
 
 Repository:
 GAF2026/gafaig
@@ -400,13 +405,14 @@ Production:
 https://www.gafaig.com
 
 Snowflake:
-GAFAIG_DB / CORE schema
+GAFAIG_DB / CORE
 
 Current Phase:
-Surface the Engine
+Surface the Engine → Registry Completion
 
-Do not re-architect the platform.
-Continue development from the current architecture.
-```
+State:
+Registry + AI systems fully wired
 
-This ensures AI assistants align with the existing system before proposing changes.
+Rules:
+Do not re-architect.
+Continue from snapshot-based registry architecture only.

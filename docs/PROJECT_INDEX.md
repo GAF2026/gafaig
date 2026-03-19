@@ -1,55 +1,67 @@
 # GAFAIG — PROJECT INDEX
 Repository Architecture Map
 
-Last Updated: 2026-03-15
+Last Updated: 2026-03-19
 
 This document provides a complete navigation index for the GAFAIG repository.
 
 It allows contributors and AI assistants to understand the structure of the platform before proposing changes.
 
-All development must respect the architecture defined in:
+All development must respect:
 
-docs/MASTER_STATE.md
-
-Engineering standards are defined in:
-
-docs/ENGINEERING_RULES.md
-
-Current milestone work is tracked in:
-
-docs/CURRENT_FOCUS.md
+docs/MASTER_STATE.md  
+docs/ENGINEERING_RULES.md  
+docs/CURRENT_FOCUS.md  
 
 ---
 
 # Platform Overview
 
-GAFAIG is a global AI governance registry and verification infrastructure.
+GAFAIG is a global AI governance registry powered by a deterministic verification engine.
 
-The platform is composed of four major layers:
+The platform is composed of five major layers:
 
-```
-Snowflake Verification Engine
-↓
-Registry Publication Layer
-↓
-API Surface
-↓
-Next.js UI Surfaces
-```
+Snowflake Governance Engine  
+↓  
+Snapshot Layer  
+↓  
+Registry Publication Layer  
+↓  
+API / Query Layer  
+↓  
+Next.js UI  
 
 Snowflake is the system of record.
 
 ---
 
+# Canonical Architecture (IMPORTANT)
+
+The system is case-first, not application-first.
+
+Execution flow:
+
+CASE  
+→ FINDINGS  
+→ EVIDENCE  
+→ EVENTS  
+→ ENTERPRISE SCORING  
+→ SCORE SNAPSHOT  
+→ REGISTRY SNAPSHOT  
+→ PUBLIC REGISTRY  
+→ AI SYSTEMS REGISTRY  
+
+All public data must originate from this pipeline.
+
+---
+
 # Repository Structure
 
-```
-app/
-api/
-lib/
-types/
-docs/
-```
+app/  
+lib/  
+types/  
+docs/  
+sql/  
 
 ---
 
@@ -57,160 +69,280 @@ docs/
 
 ## Public Pages
 
-```
-/
-/mission
-/framework
-/registry
-/explorer
-```
+/  
+/mission  
+/framework  
+/registry  
+/registry/[registryId]  
+/registry/ai-systems  
+/registry/ai-systems/[registryId]  
 
 ---
 
-## Explorer
+## Registry Surfaces
 
-Public analytics explorer.
-
-```
-/explorer
-/explorer/organizations
-/explorer/systems
-/explorer/countries
-/explorer/map
-```
+/registry  
+/registry/[registryId]  
 
 Data sources:
 
-```
-CORE.V_REGISTRY_PUBLIC
-CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC
-```
+CORE.V_REGISTRY_LATEST_APPROVED  
+CORE.V_REGISTRY_PUBLIC  
+CORE.V_PUBLIC_REGISTRY  
+CORE.V_PUBLIC_OVERSIGHT_SIGNAL  
 
 ---
 
-## Registry Pages
+## AI Systems Registry (NEW)
 
-Public registry surfaces.
+/registry/ai-systems  
+/registry/ai-systems/[registryId]  
 
-```
-/registry
-/registry/ai-systems
-/registry/organizations
-/registry/[registryId]
-```
+Data source:
+
+CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC  
+
+Purpose:
+
+• expose system-level registry  
+• link systems to entities and certification  
+• extend registry visibility  
+
+---
+
+## Explorer (Public Analytics)
+
+/explorer  
+/explorer/organizations  
+/explorer/systems  
+/explorer/countries  
+/explorer/map  
+
+Data sources:
+
+CORE.V_REGISTRY_LATEST_APPROVED  
+CORE.V_PUBLIC_OVERSIGHT_SIGNAL  
 
 ---
 
 # Admin Interface
 
-```
-/admin/login
-/admin/applications
-/admin/verification
-/admin/verification/[caseId]
-/admin/verification/[caseId]/score
-```
+/admin/login  
+/admin/applications  
+/admin/verification  
+/admin/verification/[caseId]  
+/admin/verification/[caseId]/score  
+/admin/verification/[caseId]/evidence  
+/admin/verification/[caseId]/findings  
 
-These routes connect the private verification engine to the public registry.
+These routes operate on:
+
+VERIFICATION_CASES  
+VERIFICATION_FINDINGS  
+VERIFICATION_EVIDENCE  
+VERIFICATION_EVENTS  
 
 ---
 
 # API Routes
 
-## Verification Endpoint
+## Registry APIs
 
-Public verification endpoint.
+/api/registry  
+/api/registry/search  
 
-```
-/api/verify/[registryId]
-```
+Sources:
 
-Returns certification metadata for a registry record.
+CORE.V_REGISTRY_LATEST_APPROVED  
+CORE.V_REGISTRY_PUBLIC  
+CORE.V_PUBLIC_REGISTRY  
 
 ---
 
-## Registry APIs
+## AI Systems (via Query Layer)
 
-```
-/api/registry/search
-```
+No direct API required initially.
 
-Search interface for registry explorer.
+Frontend uses:
+
+lib/queries/registry-ai-systems.ts  
+
+---
+
+## Verification Endpoint
+
+/api/verify/[registryId]  
+
+Returns:
+
+• score  
+• tier  
+• band  
+• renewal status  
+• timestamp  
+
+Source:
+
+CORE.V_PUBLIC_OVERSIGHT_SIGNAL  
 
 ---
 
 ## Admin APIs
 
-```
-/api/admin/publish
-```
+/api/admin/publish  
 
-Triggers Snowflake registry publication.
+Calls:
+
+CORE.SP_PUBLISH_CASE_TO_REGISTRY_V3  
 
 ---
 
 # Snowflake Database
 
-```
-GAFAIG_DB
-CORE
-```
+GAFAIG_DB  
+CORE  
 
 ---
 
 # Core Snowflake Tables
 
-```
-CORE.APPLICATIONS
-CORE.PARTICIPANTS
-CORE.FINDINGS
-CORE.EVIDENCE
-CORE.EVENTS
-CORE.CASE_SCORE_SNAPSHOTS
-CORE.DECISIONS
-CORE.REGISTRY_AI_SYSTEMS
-```
+Verification Engine:
+
+VERIFICATION_CASES  
+VERIFICATION_FINDINGS  
+VERIFICATION_EVIDENCE  
+VERIFICATION_EVENTS  
+
+Link Tables:
+
+VERIFICATION_FINDING_EVIDENCE  
+FINDING_EVIDENCE_MAP  
+
+AI / Evidence:
+
+EVIDENCE_SUMMARIES  
+
+Scoring:
+
+CASE_SCORE_SNAPSHOTS_V2  
+
+Registry:
+
+REGISTRY_SNAPSHOTS  
+REGISTRY_AI_SYSTEMS  
 
 ---
 
-# Snowflake Registry Views
+# Enterprise Scoring Engine (CANONICAL)
 
-These power the public registry.
+Tables:
 
-```
-CORE.V_REGISTRY_LATEST_APPROVED
-CORE.V_REGISTRY_PUBLIC
-CORE.V_REGISTRY_PUBLIC_SEARCH
-CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC
-```
+SCORING_MODEL_VERSIONS  
+CONTROL_CATALOG  
+CONTROL_WEIGHTS  
+SEVERITY_WEIGHTS  
+SCORE_BANDS  
 
----
+Views:
 
-# Snowflake Admin Views
+V_CASE_SCORE_ENTERPRISE  
+V_CASE_TIER_BAND  
+V_CASE_RENEWAL_STATUS  
+V_PUBLIC_OVERSIGHT_SIGNAL  
 
-Used by the admin interface.
+Procedure:
 
-```
-CORE.V_ADMIN_SUBMISSIONS
-CORE.V_VERIFICATION_CASE_DETAIL
-CORE.V_GOVERNANCE_SCORE_CASE
-```
+SP_SCORE_CASE_ENTERPRISE  
 
 ---
 
-# Snowflake Procedures
+# Registry Layer
 
-Registry publication and workflow procedures.
+Views:
 
-Examples include:
+V_REGISTRY_LATEST_APPROVED  
+V_REGISTRY_PUBLIC  
+V_PUBLIC_REGISTRY  
+V_REGISTRY_EXPORT_V1  
 
-```
-SP_PUBLISH_CASE_TO_REGISTRY_V3
-APPROVE_CASE_V1
-UNAPPROVE_CASE_V1
-```
+Procedure:
 
-These procedures control publication into the public registry.
+SP_PUBLISH_CASE_TO_REGISTRY_V3  
+
+---
+
+# AI Systems Registry Layer
+
+View:
+
+V_REGISTRY_AI_SYSTEMS_PUBLIC  
+
+Derived from:
+
+REGISTRY_AI_SYSTEMS  
+VERIFICATION_CASES  
+REGISTRY_ENTITIES  
+V_REGISTRY_PUBLIC  
+
+Purpose:
+
+• expose certified AI systems  
+• enrich with entity + certification  
+• align with registry pipeline  
+
+---
+
+# Snowflake View Usage Rules
+
+Application must read from views only.
+
+Primary views:
+
+V_CASE_SCORE_ENTERPRISE  
+V_CASE_TIER_BAND  
+V_CASE_RENEWAL_STATUS  
+V_REGISTRY_LATEST_APPROVED  
+V_REGISTRY_PUBLIC  
+V_PUBLIC_REGISTRY  
+V_PUBLIC_OVERSIGHT_SIGNAL  
+V_REGISTRY_AI_SYSTEMS_PUBLIC  
+
+---
+
+# Query Registry Layer (CRITICAL)
+
+Location:
+
+lib/queries/
+
+Purpose:
+
+• centralize SQL  
+• eliminate duplication  
+• prevent drift  
+• stabilize API + UI  
+
+Examples:
+
+lib/queries/registry-ai-systems.ts  
+
+All data access must use this layer.
+
+---
+
+# Core Libraries
+
+lib/snowflake.ts  
+lib/queries/  
+lib/auth/  
+lib/ids.ts  
+
+Responsibilities:
+
+• Snowflake connection  
+• query abstraction  
+• authentication  
+• deterministic IDs  
 
 ---
 
@@ -218,94 +350,133 @@ These procedures control publication into the public registry.
 
 Location:
 
-```
-types/contracts/
-```
+types/contracts/  
 
-These files define canonical data contracts between:
+Defines canonical structures between:
 
-```
-Snowflake
-API
-UI
-```
+Snowflake → Query Layer → UI  
 
 Examples:
 
-```
-registry-ai-system.ts
-verification-proof.ts
-verification-case.ts
-admin-application.ts
-```
+registry.ts  
+verification.ts  
+aiSystems.ts  
 
 ---
 
-# Core Libraries
+# Deterministic Identifiers
 
-```
-lib/snowflake.ts
-lib/auth/
-lib/ids.ts
-```
+CASE_ID  
+FINDING_ID  
+EVIDENCE_ID  
+SNAPSHOT_ID  
+REGISTRY_ID  
+SYSTEM_ID  
 
-These utilities provide:
+Defined in:
 
-• Snowflake connectivity  
-• authentication helpers  
-• deterministic identifier utilities  
+types/ids.ts  
+
+Identifiers must never be mutated in UI.
 
 ---
 
 # Environment Variables
 
-Configured locally:
+Local:
 
-```
-.env.local
-```
+.env.local  
 
-Configured in production:
+Production:
 
-```
-Vercel environment settings
-```
+Vercel environment settings  
 
-Examples include:
+Examples:
 
-```
-GAFAIG_SESSION_SECRET
-GAFAIG_ADMIN_PASSWORD
-SNOWFLAKE_ACCOUNT
-SNOWFLAKE_USERNAME
-SNOWFLAKE_ROLE
-SNOWFLAKE_DATABASE
-SNOWFLAKE_SCHEMA
-SNOWFLAKE_PRIVATE_KEY
-```
+GAFAIG_SESSION_SECRET  
+GAFAIG_ADMIN_PASSWORD  
+SNOWFLAKE_ACCOUNT  
+SNOWFLAKE_USERNAME  
+SNOWFLAKE_ROLE  
+SNOWFLAKE_DATABASE  
+SNOWFLAKE_SCHEMA  
+SNOWFLAKE_WAREHOUSE  
+SNOWFLAKE_PRIVATE_KEY  
+
+---
+
+# SQL Directory Structure (UPDATED)
+
+sql/  
+  active/  
+    canonical pipeline files  
+  archive/  
+    legacy_pipeline/  
+    diagnostics/  
+    scratch/  
+
+Rules:
+
+• only run files in active/  
+• archive is read-only reference  
+• no mixed pipeline generations  
 
 ---
 
 # Canonical Documentation
 
-```
-docs/MASTER_STATE.md
-docs/PROJECT_INDEX.md
-docs/CURRENT_FOCUS.md
-docs/ENGINEERING_RULES.md
-docs/CHANGELOG.md
-```
+docs/MASTER_STATE.md  
+docs/CURRENT_FOCUS.md  
+docs/ENGINEERING_RULES.md  
+docs/PROJECT_INDEX.md  
+docs/CHANGELOG.md  
 
-These documents define the authoritative state of the platform.
+These define the authoritative platform state.
 
 ---
 
-# Development Rule
+# Critical Development Rule
 
-Before creating new routes, APIs, or database objects:
+Before creating any new:
 
-1. Check this index.
-2. Confirm the functionality does not already exist.
-3. Extend existing architecture where possible.
+• page  
+• API route  
+• Snowflake object  
+• query  
+• helper  
 
-This prevents duplicate surfaces and architecture drift.
+You must:
+
+1. Check this index  
+2. Confirm it does not exist  
+3. Extend existing architecture  
+
+---
+
+# Key Constraints
+
+• Case-first architecture only  
+• Enterprise scoring only  
+• Snapshot pipeline required  
+• No direct registry inserts  
+• AI systems must link to registry  
+• Snowflake is the source of truth  
+• Public data must be snapshot-derived  
+• Query layer required (no inline SQL)  
+
+---
+
+# Final Note
+
+GAFAIG is not a typical application.
+
+It is:
+
+A deterministic governance engine + global registry system.
+
+All development must reinforce:
+
+• scoring integrity  
+• registry correctness  
+• data lineage  
+• architectural consistency  

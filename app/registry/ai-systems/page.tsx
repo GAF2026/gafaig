@@ -1,375 +1,632 @@
 import Link from "next/link";
-import { sfQueryResult } from "@/lib/snowflake";
-import { buildRegistryAiSystemHref } from "@/lib/platform-contracts";
-import AISystemCard from "@/components/registry/AISystemCard";
-import type { RegistryAiSystemRow } from "@/types/registry";
-import PublicPageHero from "../../_components/PublicPageHero";
+import {
+  getRegistryAiSystemsFilterOptions,
+  getRegistryAiSystemsPaginated,
+  getRegistryAiSystemsSummaryStats,
+  type GetRegistryAiSystemsParams,
+  type RegistryAiSystemsSortBy,
+  type RegistryAiSystemsSortOrder,
+} from "@/lib/queries/registry-ai-systems";
+
+function fmtDate(value: string | null): string {
+  if (!value) return "—";
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return value;
+  return d.toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
+}
+
+function badgeClass(text?: string | null) {
+  const v = String(text || "").toLowerCase();
+
+  if (v.includes("enterprise") || v === "a") {
+    return "border-emerald-200 bg-emerald-50 text-emerald-700";
+  }
+  if (v.includes("standard") || v === "b") {
+    return "border-blue-200 bg-blue-50 text-blue-700";
+  }
+  if (v.includes("baseline") || v === "c") {
+    return "border-amber-200 bg-amber-50 text-amber-700";
+  }
+  return "border-slate-200 bg-slate-50 text-slate-700";
+}
+
+function parseString(value: string | string[] | undefined): string | undefined {
+  if (Array.isArray(value)) return value[0]?.trim() || undefined;
+  return value?.trim() || undefined;
+}
+
+function parsePositiveInt(
+  value: string | string[] | undefined,
+  fallback: number
+): number {
+  const raw = parseString(value);
+  if (!raw) return fallback;
+  const parsed = Number(raw);
+  if (!Number.isFinite(parsed) || parsed < 1) return fallback;
+  return Math.floor(parsed);
+}
+
+function normalizeSortBy(value: string | undefined): RegistryAiSystemsSortBy {
+  if (value === "score" || value === "tier" || value === "country") return value;
+  return "name";
+}
+
+function normalizeSortOrder(
+  value: string | undefined
+): RegistryAiSystemsSortOrder {
+  return value === "desc" ? "desc" : "asc";
+}
+
+function buildQueryString(
+  current: Record<string, string | undefined>,
+  updates: Record<string, string | number | undefined | null>
+): string {
+  const params = new URLSearchParams();
+
+  for (const [key, value] of Object.entries(current)) {
+    if (value && value.trim() !== "") {
+      params.set(key, value);
+    }
+  }
+
+  for (const [key, value] of Object.entries(updates)) {
+    if (value === undefined || value === null || String(value).trim() === "") {
+      params.delete(key);
+    } else {
+      params.set(key, String(value));
+    }
+  }
+
+  const qs = params.toString();
+  return qs ? `?${qs}` : "";
+}
+
+function buildPageNumbers(currentPage: number, totalPages: number): number[] {
+  if (totalPages <= 1) return [1];
+
+  const pages = new Set<number>();
+  pages.add(1);
+  pages.add(totalPages);
+
+  for (let p = currentPage - 2; p <= currentPage + 2; p += 1) {
+    if (p >= 1 && p <= totalPages) {
+      pages.add(p);
+    }
+  }
+
+  return Array.from(pages).sort((a, b) => a - b);
+}
 
 export const dynamic = "force-dynamic";
 
-function safeText(value: unknown, fallback = "—") {
-  const text = String(value ?? "").trim();
-  return text || fallback;
-}
-
-function uniqueValues(values: Array<string | null | undefined>) {
-  return Array.from(
-    new Set(
-      values
-        .map((v) => String(v ?? "").trim())
-        .filter(Boolean)
-        .sort((a, b) => a.localeCompare(b))
-    )
-  );
-}
-
-function includesText(value: string | null | undefined, query: string) {
-  return String(value ?? "").toLowerCase().includes(query.toLowerCase());
-}
+type PageProps = {
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
+};
 
 export default async function RegistryAiSystemsPage({
   searchParams,
-}: {
-  searchParams?: Promise<Record<string, string | string[] | undefined>>;
-}) {
-  const sp = (await searchParams) || {};
+}: PageProps) {
+  const resolvedSearchParams = searchParams ? await searchParams : {};
 
-  const q = typeof sp.q === "string" ? sp.q.trim() : "";
-  const org = typeof sp.org === "string" ? sp.org.trim() : "";
-  const systemType =
-    typeof sp.systemType === "string" ? sp.systemType.trim() : "";
-  const deploymentStatus =
-    typeof sp.deploymentStatus === "string" ? sp.deploymentStatus.trim() : "";
+  const search = parseString(resolvedSearchParams.search);
+  const country = parseString(resolvedSearchParams.country);
+  const tier = parseString(resolvedSearchParams.tier);
+  const band = parseString(resolvedSearchParams.band);
+  const sortBy = normalizeSortBy(parseString(resolvedSearchParams.sortBy));
+  const sortOrder = normalizeSortOrder(parseString(resolvedSearchParams.sortOrder));
+  const requestedPage = parsePositiveInt(resolvedSearchParams.page, 1);
+  const pageSize = parsePositiveInt(resolvedSearchParams.pageSize, 12);
 
-  const res = await sfQueryResult<RegistryAiSystemRow>(
-    `
-    SELECT
-      s.SYSTEM_ID,
-      s.REGISTRY_ID,
-      s.APPLICATION_ID,
-      s.CASE_ID,
+  const queryParams: GetRegistryAiSystemsParams = {
+    search,
+    country,
+    tier,
+    band,
+    sortBy,
+    sortOrder,
+    page: requestedPage,
+    pageSize,
+  };
 
-      r.ENTITY_NAME,
+  const [result, filterOptions, summaryStats] = await Promise.all([
+    getRegistryAiSystemsPaginated(queryParams),
+    getRegistryAiSystemsFilterOptions(),
+    getRegistryAiSystemsSummaryStats(),
+  ]);
 
-      s.SYSTEM_NAME,
-      s.SYSTEM_TYPE,
-      s.INTENDED_USE,
-      s.DEPLOYMENT_STATUS,
-      s.OVERSIGHT_LEVEL,
-      s.RISK_TIER,
-      s.DEVELOPER_ORGANIZATION,
-      s.TRAINING_DATA_CATEGORY,
-      s.OVERSIGHT_MODEL,
-      s.HUMAN_REVIEW_REQUIRED,
-      s.EVALUATION_PROTOCOL,
-      s.AUDIT_FREQUENCY,
+  const systems = result.rows;
+  const total = result.total;
+  const totalPages = Math.max(1, Math.ceil(total / result.pageSize));
 
-      r.DECISION_STATUS,
-      r.CERTIFIED_TIER,
-      r.CERTIFIED_BAND,
+  const currentQuery = {
+    search,
+    country,
+    tier,
+    band,
+    sortBy,
+    sortOrder,
+    pageSize: String(pageSize),
+  };
 
-      NULL AS GOVERNANCE_MATURITY_SCORE,
-      NULL AS CONTROLS_PCT,
-      NULL AS COVERAGE_PCT,
-      NULL AS FRESHNESS_PCT,
-      NULL AS SUMMARY_PCT,
+  const pageNumbers = buildPageNumbers(result.page, totalPages);
+  const hasFilters = Boolean(search || country || tier || band);
+  const pageWasClamped = requestedPage !== result.page;
 
-      r.LAST_ACTIVITY_AT,
-      s.PUBLIC_SUMMARY,
-      s.DISPLAY_ORDER
-
-    FROM GAFAIG_DB.CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC s
-    LEFT JOIN GAFAIG_DB.CORE.V_REGISTRY_PUBLIC r
-      ON s.REGISTRY_ID = r.REGISTRY_ID
-
-    ORDER BY
-      s.REGISTRY_ID ASC,
-      s.DISPLAY_ORDER ASC NULLS LAST,
-      s.SYSTEM_NAME ASC
-    `
-  );
-
-  const allRows = res.ok ? res.rows ?? [] : [];
-
-  const organizationOptions = uniqueValues(
-    allRows.map((row) => row.ENTITY_NAME)
-  );
-  const systemTypeOptions = uniqueValues(allRows.map((row) => row.SYSTEM_TYPE));
-  const deploymentStatusOptions = uniqueValues(
-    allRows.map((row) => row.DEPLOYMENT_STATUS)
-  );
-
-  const filteredRows = allRows.filter((row) => {
-    const matchesQuery =
-      !q ||
-      includesText(row.SYSTEM_NAME, q) ||
-      includesText(row.ENTITY_NAME, q) ||
-      includesText(row.INTENDED_USE, q) ||
-      includesText(row.PUBLIC_SUMMARY, q) ||
-      includesText(row.SYSTEM_TYPE, q) ||
-      includesText(row.OVERSIGHT_LEVEL, q) ||
-      includesText(row.OVERSIGHT_MODEL, q) ||
-      includesText(row.RISK_TIER, q) ||
-      includesText(row.CERTIFIED_TIER, q) ||
-      includesText(row.CERTIFIED_BAND, q) ||
-      includesText(row.REGISTRY_ID, q);
-
-    const matchesOrganization = !org || String(row.ENTITY_NAME ?? "") === org;
-
-    const matchesSystemType =
-      !systemType || String(row.SYSTEM_TYPE ?? "") === systemType;
-
-    const matchesDeploymentStatus =
-      !deploymentStatus ||
-      String(row.DEPLOYMENT_STATUS ?? "") === deploymentStatus;
-
-    return (
-      matchesQuery &&
-      matchesOrganization &&
-      matchesSystemType &&
-      matchesDeploymentStatus
-    );
-  });
-
-  const hasFilters = Boolean(q || org || systemType || deploymentStatus);
+  const start =
+    systems.length === 0 ? 0 : (result.page - 1) * result.pageSize + 1;
+  const end =
+    systems.length === 0
+      ? 0
+      : (result.page - 1) * result.pageSize + systems.length;
 
   return (
-    <main className="mx-auto max-w-[1180px] px-6 pb-16 pt-14">
-      <PublicPageHero
-        eyebrow="REGISTRY"
-        title="Certified AI Systems"
-        description="Public registry of AI systems covered by GAFAIG-certified governance reviews. Oversight structure, deployment context, and certification outcome are surfaced without exposing private evidence."
-        actions={
-          <>
-            <Link
-              href="/registry"
-              className="rounded-full border border-black bg-black px-5 py-3 text-sm font-semibold text-white transition hover:bg-black/90"
-            >
-              Browse registry records
-            </Link>
-            <Link
-              href="/explorer/systems"
-              className="rounded-full border border-black px-5 py-3 text-sm font-semibold transition hover:bg-black/[0.04]"
-            >
-              Open systems explorer
-            </Link>
-          </>
-        }
-      />
+    <main className="mx-auto max-w-7xl px-6 py-12">
+      <div className="mb-8">
+        <h1 className="text-3xl font-semibold tracking-tight text-slate-900">
+          Global AI Systems Registry
+        </h1>
+        <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-600">
+          Public-facing AI systems connected to published GAFAIG registry
+          records. This view reflects the current certified registry surface and
+          associated entity metadata.
+        </p>
+      </div>
 
-      {!res.ok ? (
-        <div className="mt-10 rounded-2xl border border-red-200 bg-red-50 p-5 text-sm text-red-700">
-          Failed to load certified AI systems.
-          <div className="mt-2 break-words text-red-600">
-            {safeText(res.error, "Unknown Snowflake error")}
+      <div className="mb-6 grid gap-4 sm:grid-cols-3">
+        <div className="rounded-2xl border border-slate-200 bg-white p-5">
+          <div className="text-xs uppercase tracking-wide text-slate-500">
+            Matching Systems
+          </div>
+          <div className="mt-2 text-3xl font-semibold text-slate-900">
+            {total}
           </div>
         </div>
-      ) : (
-        <>
-          <section className="mt-10 rounded-3xl border border-black/10 bg-white p-8 md:p-10">
-            <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
-              SEARCH DIRECTORY
-            </div>
 
-            <h2 className="mt-4 max-w-[760px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
-              Search public AI system disclosures
-            </h2>
+        <div className="rounded-2xl border border-slate-200 bg-white p-5">
+          <div className="text-xs uppercase tracking-wide text-slate-500">
+            Linked Entities
+          </div>
+          <div className="mt-2 text-3xl font-semibold text-slate-900">
+            {summaryStats.linkedEntities}
+          </div>
+        </div>
 
-            <p className="mt-5 max-w-3xl text-[15px] leading-[1.85] text-black/75">
-              Search by AI system name, organization, intended use, summary
-              text, registry ID, governance tier, oversight model, or filter by
-              organization, system type, and deployment status.
-            </p>
+        <div className="rounded-2xl border border-slate-200 bg-white p-5">
+          <div className="text-xs uppercase tracking-wide text-slate-500">
+            Countries
+          </div>
+          <div className="mt-2 text-3xl font-semibold text-slate-900">
+            {summaryStats.countries}
+          </div>
+        </div>
+      </div>
 
-            <form
-              action="/registry/ai-systems"
-              method="get"
-              className="mt-6 grid gap-4 md:grid-cols-12"
+      <section className="mb-6 rounded-2xl border border-slate-200 bg-white p-5">
+        <form method="get" className="grid gap-4 lg:grid-cols-12">
+          <div className="lg:col-span-4">
+            <label
+              htmlFor="search"
+              className="mb-2 block text-xs font-medium uppercase tracking-wide text-slate-500"
             >
-              <div className="md:col-span-4">
-                <label
-                  htmlFor="q"
-                  className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-black/55"
-                >
-                  Search
-                </label>
-                <input
-                  id="q"
-                  name="q"
-                  defaultValue={q}
-                  placeholder="e.g. tutor, oversight, band A, GAFAIG-00000001"
-                  className="w-full rounded-xl border border-black/15 bg-white px-3 py-2 text-sm outline-none transition focus:border-black"
-                />
-              </div>
+              Search
+            </label>
+            <input
+              id="search"
+              name="search"
+              defaultValue={search ?? ""}
+              placeholder="System, entity, registry ID, or developer"
+              className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm text-slate-900 outline-none ring-0 transition focus:border-slate-400"
+            />
+          </div>
 
-              <div className="md:col-span-3">
-                <label
-                  htmlFor="org"
-                  className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-black/55"
-                >
-                  Organization
-                </label>
-                <select
-                  id="org"
-                  name="org"
-                  defaultValue={org}
-                  className="w-full rounded-xl border border-black/15 bg-white px-3 py-2 text-sm outline-none transition focus:border-black"
-                >
-                  <option value="">All organizations</option>
-                  {organizationOptions.map((value) => (
-                    <option key={value} value={value}>
-                      {value}
-                    </option>
-                  ))}
-                </select>
-              </div>
+          <div className="lg:col-span-2">
+            <label
+              htmlFor="country"
+              className="mb-2 block text-xs font-medium uppercase tracking-wide text-slate-500"
+            >
+              Country
+            </label>
+            <select
+              id="country"
+              name="country"
+              defaultValue={country ?? ""}
+              className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-slate-400"
+            >
+              <option value="">All countries</option>
+              {filterOptions.countries.map((value) => (
+                <option key={value} value={value}>
+                  {value}
+                </option>
+              ))}
+            </select>
+          </div>
 
-              <div className="md:col-span-2">
-                <label
-                  htmlFor="systemType"
-                  className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-black/55"
-                >
-                  System type
-                </label>
-                <select
-                  id="systemType"
-                  name="systemType"
-                  defaultValue={systemType}
-                  className="w-full rounded-xl border border-black/15 bg-white px-3 py-2 text-sm outline-none transition focus:border-black"
-                >
-                  <option value="">All system types</option>
-                  {systemTypeOptions.map((value) => (
-                    <option key={value} value={value}>
-                      {value}
-                    </option>
-                  ))}
-                </select>
-              </div>
+          <div className="lg:col-span-2">
+            <label
+              htmlFor="tier"
+              className="mb-2 block text-xs font-medium uppercase tracking-wide text-slate-500"
+            >
+              Tier
+            </label>
+            <select
+              id="tier"
+              name="tier"
+              defaultValue={tier ?? ""}
+              className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-slate-400"
+            >
+              <option value="">All tiers</option>
+              {filterOptions.tiers.map((value) => (
+                <option key={value} value={value}>
+                  {value}
+                </option>
+              ))}
+            </select>
+          </div>
 
-              <div className="md:col-span-3">
-                <label
-                  htmlFor="deploymentStatus"
-                  className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-black/55"
-                >
-                  Deployment status
-                </label>
-                <select
-                  id="deploymentStatus"
-                  name="deploymentStatus"
-                  defaultValue={deploymentStatus}
-                  className="w-full rounded-xl border border-black/15 bg-white px-3 py-2 text-sm outline-none transition focus:border-black"
-                >
-                  <option value="">All deployment statuses</option>
-                  {deploymentStatusOptions.map((value) => (
-                    <option key={value} value={value}>
-                      {value}
-                    </option>
-                  ))}
-                </select>
-              </div>
+          <div className="lg:col-span-2">
+            <label
+              htmlFor="band"
+              className="mb-2 block text-xs font-medium uppercase tracking-wide text-slate-500"
+            >
+              Band
+            </label>
+            <select
+              id="band"
+              name="band"
+              defaultValue={band ?? ""}
+              className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-slate-400"
+            >
+              <option value="">All bands</option>
+              {filterOptions.bands.map((value) => (
+                <option key={value} value={value}>
+                  {value}
+                </option>
+              ))}
+            </select>
+          </div>
 
-              <div className="flex flex-wrap gap-3 md:col-span-12">
-                <button
-                  type="submit"
-                  className="inline-flex items-center rounded-full bg-black px-4 py-2 text-sm font-medium text-white transition hover:bg-black/90"
-                >
-                  Search directory
-                </button>
+          <div className="lg:col-span-1">
+            <label
+              htmlFor="sortBy"
+              className="mb-2 block text-xs font-medium uppercase tracking-wide text-slate-500"
+            >
+              Sort
+            </label>
+            <select
+              id="sortBy"
+              name="sortBy"
+              defaultValue={sortBy}
+              className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-slate-400"
+            >
+              <option value="name">Name</option>
+              <option value="score">Score</option>
+              <option value="tier">Tier</option>
+              <option value="country">Country</option>
+            </select>
+          </div>
 
-                <Link
-                  href="/registry/ai-systems"
-                  className="inline-flex items-center rounded-full border border-black/15 px-4 py-2 text-sm font-medium transition hover:bg-black/[0.04]"
-                >
-                  Clear filters
-                </Link>
-              </div>
-            </form>
-          </section>
+          <div className="lg:col-span-1">
+            <label
+              htmlFor="sortOrder"
+              className="mb-2 block text-xs font-medium uppercase tracking-wide text-slate-500"
+            >
+              Order
+            </label>
+            <select
+              id="sortOrder"
+              name="sortOrder"
+              defaultValue={sortOrder}
+              className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-slate-400"
+            >
+              <option value="asc">Asc</option>
+              <option value="desc">Desc</option>
+            </select>
+          </div>
 
-          {allRows.length === 0 ? (
-            <div className="mt-10 rounded-3xl border border-black/10 bg-white p-8 md:p-10">
-              <h2 className="text-[28px] font-semibold tracking-tight text-black">
-                No certified AI systems yet
-              </h2>
-              <p className="mt-3 text-[15px] leading-[1.8] text-black/70">
-                Publish a certified case from the admin workflow to make AI
-                system disclosures visible here.
-              </p>
-            </div>
-          ) : filteredRows.length === 0 ? (
-            <div className="mt-10 rounded-3xl border border-black/10 bg-white p-8 md:p-10">
-              <h2 className="text-[28px] font-semibold tracking-tight text-black">
-                No AI systems match those filters
-              </h2>
-              <p className="mt-3 text-[15px] leading-[1.8] text-black/70">
-                Try a broader search term or clear one of the filters.
-              </p>
-              {hasFilters ? (
-                <div className="mt-5">
-                  <Link
-                    href="/registry/ai-systems"
-                    className="inline-flex items-center rounded-full border border-black px-4 py-2 text-sm font-medium transition hover:bg-black hover:text-white"
-                  >
-                    View all certified AI systems
-                  </Link>
-                </div>
-              ) : null}
+          <input type="hidden" name="page" value="1" />
+          <input type="hidden" name="pageSize" value={pageSize} />
+
+          <div className="flex items-end gap-3 lg:col-span-12">
+            <button
+              type="submit"
+              className="inline-flex rounded-xl bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-800"
+            >
+              Apply Filters
+            </button>
+
+            <Link
+              href="/registry/ai-systems"
+              className="inline-flex rounded-xl border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+            >
+              Reset
+            </Link>
+          </div>
+        </form>
+      </section>
+
+      {pageWasClamped ? (
+        <div className="mb-4 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+          The requested page was out of range. Showing the last available page instead.
+        </div>
+      ) : null}
+
+      <div className="mb-4 flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white p-4 text-sm text-slate-600 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          Showing <span className="font-medium text-slate-900">{start}</span> to{" "}
+          <span className="font-medium text-slate-900">{end}</span> of{" "}
+          <span className="font-medium text-slate-900">{total}</span> systems
+        </div>
+
+        <div className="flex flex-wrap items-center gap-3">
+          {hasFilters ? (
+            <div className="text-xs uppercase tracking-wide text-slate-500">
+              Filters active
             </div>
           ) : (
-            <section className="mt-10 rounded-3xl border border-black/10 bg-white p-8 md:p-10">
-              <div className="flex flex-wrap items-end justify-between gap-4">
-                <div>
-                  <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
-                    AI SYSTEMS
+            <div className="text-xs uppercase tracking-wide text-slate-500">
+              All systems
+            </div>
+          )}
+
+          <form method="get" className="flex items-center gap-2">
+            {search ? <input type="hidden" name="search" value={search} /> : null}
+            {country ? (
+              <input type="hidden" name="country" value={country} />
+            ) : null}
+            {tier ? <input type="hidden" name="tier" value={tier} /> : null}
+            {band ? <input type="hidden" name="band" value={band} /> : null}
+            <input type="hidden" name="sortBy" value={sortBy} />
+            <input type="hidden" name="sortOrder" value={sortOrder} />
+            <input type="hidden" name="page" value="1" />
+
+            <label
+              htmlFor="pageSize"
+              className="text-xs uppercase tracking-wide text-slate-500"
+            >
+              Per page
+            </label>
+            <select
+              id="pageSize"
+              name="pageSize"
+              defaultValue={String(pageSize)}
+              className="rounded-lg border border-slate-300 bg-white px-2 py-1.5 text-sm text-slate-900"
+            >
+              <option value="12">12</option>
+              <option value="24">24</option>
+              <option value="48">48</option>
+            </select>
+            <button
+              type="submit"
+              className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm text-slate-700 transition hover:bg-slate-50"
+            >
+              Update
+            </button>
+          </form>
+        </div>
+      </div>
+
+      {systems.length === 0 ? (
+        <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center text-slate-600">
+          No public AI systems matched the current filters.
+        </div>
+      ) : (
+        <div className="grid gap-5">
+          {systems.map((system) => (
+            <article
+              key={system.systemId}
+              className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
+            >
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h2 className="text-xl font-semibold text-slate-900">
+                      <Link
+                        href={`/registry/ai-systems/${system.systemId}`}
+                        className="hover:text-slate-700"
+                      >
+                        {system.systemName}
+                      </Link>
+                    </h2>
+
+                    <span
+                      className={`inline-flex rounded-full border px-2.5 py-1 text-xs font-medium ${badgeClass(
+                        system.certifiedTier
+                      )}`}
+                    >
+                      {system.certifiedTier ?? "Unspecified"}
+                    </span>
+
+                    <span
+                      className={`inline-flex rounded-full border px-2.5 py-1 text-xs font-medium ${badgeClass(
+                        system.certifiedBand
+                      )}`}
+                    >
+                      Band {system.certifiedBand ?? "—"}
+                    </span>
                   </div>
-                  <h2 className="mt-4 max-w-[760px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
-                    Public system disclosures
-                  </h2>
+
+                  <div className="mt-3 flex flex-wrap gap-x-6 gap-y-2 text-sm text-slate-600">
+                    <span>
+                      <span className="font-medium text-slate-800">Entity:</span>{" "}
+                      {system.entityName ?? "—"}
+                    </span>
+                    <span>
+                      <span className="font-medium text-slate-800">Country:</span>{" "}
+                      {system.country ?? "—"}
+                    </span>
+                    <span>
+                      <span className="font-medium text-slate-800">Type:</span>{" "}
+                      {system.systemType ?? "—"}
+                    </span>
+                    <span>
+                      <span className="font-medium text-slate-800">Risk:</span>{" "}
+                      {system.riskTier ?? "—"}
+                    </span>
+                  </div>
                 </div>
 
-                <div className="text-[14px] text-black/65">
-                  Showing {filteredRows.length} certified AI system
-                  {filteredRows.length === 1 ? "" : "s"}
-                  {hasFilters ? ` out of ${allRows.length}` : ""}.
+                <div className="grid grid-cols-2 gap-3 text-sm lg:min-w-[280px]">
+                  <div className="rounded-xl bg-slate-50 p-3">
+                    <div className="text-xs uppercase tracking-wide text-slate-500">
+                      Registry ID
+                    </div>
+                    <div className="mt-1 font-medium text-slate-900">
+                      {system.registryId ?? "—"}
+                    </div>
+                  </div>
+                  <div className="rounded-xl bg-slate-50 p-3">
+                    <div className="text-xs uppercase tracking-wide text-slate-500">
+                      Case ID
+                    </div>
+                    <div className="mt-1 font-medium text-slate-900">
+                      {system.caseId ?? "—"}
+                    </div>
+                  </div>
+                  <div className="rounded-xl bg-slate-50 p-3">
+                    <div className="text-xs uppercase tracking-wide text-slate-500">
+                      Certified
+                    </div>
+                    <div className="mt-1 font-medium text-slate-900">
+                      {fmtDate(system.certifiedAt)}
+                    </div>
+                  </div>
+                  <div className="rounded-xl bg-slate-50 p-3">
+                    <div className="text-xs uppercase tracking-wide text-slate-500">
+                      Score
+                    </div>
+                    <div className="mt-1 font-medium text-slate-900">
+                      {system.certifiedScore ?? "—"}
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              {org ? (
-                <div className="mt-6 rounded-2xl border border-black/10 bg-white px-5 py-4 text-sm text-black/75">
-                  Viewing systems operated by{" "}
-                  <span className="font-semibold text-black">{org}</span>.
+              <div className="mt-5 grid gap-4 md:grid-cols-3">
+                <div>
+                  <div className="text-xs uppercase tracking-wide text-slate-500">
+                    Intended Use
+                  </div>
+                  <p className="mt-2 text-sm leading-6 text-slate-700">
+                    {system.intendedUse ?? "—"}
+                  </p>
+                </div>
+
+                <div>
+                  <div className="text-xs uppercase tracking-wide text-slate-500">
+                    Oversight
+                  </div>
+                  <p className="mt-2 text-sm leading-6 text-slate-700">
+                    {system.oversightLevel ?? "—"}
+                  </p>
+                  <div className="mt-3 text-xs text-slate-500">
+                    Human review required:{" "}
+                    <span className="font-medium text-slate-700">
+                      {system.humanReviewRequired === null
+                        ? "—"
+                        : system.humanReviewRequired
+                        ? "Yes"
+                        : "No"}
+                    </span>
+                  </div>
+                </div>
+
+                <div>
+                  <div className="text-xs uppercase tracking-wide text-slate-500">
+                    Deployment
+                  </div>
+                  <p className="mt-2 text-sm leading-6 text-slate-700">
+                    {system.deploymentStatus ?? "—"}
+                  </p>
+                  <div className="mt-3 text-xs text-slate-500">
+                    Decision status:{" "}
+                    <span className="font-medium text-slate-700">
+                      {system.decisionStatus ?? "—"}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {system.publicSummary ? (
+                <div className="mt-5 rounded-xl border border-slate-200 bg-slate-50 p-4">
+                  <div className="text-xs uppercase tracking-wide text-slate-500">
+                    Public Summary
+                  </div>
+                  <p className="mt-2 text-sm leading-6 text-slate-700">
+                    {system.publicSummary}
+                  </p>
                 </div>
               ) : null}
-
-              <div className="mt-8 grid gap-5">
-                {filteredRows.map((row) => {
-                  const registryId =
-                    typeof row.REGISTRY_ID === "string" &&
-                    row.REGISTRY_ID.trim().length > 0
-                      ? row.REGISTRY_ID
-                      : null;
-
-                  return (
-                    <div key={row.SYSTEM_ID}>
-                      <AISystemCard system={row} />
-                      {registryId ? (
-                        <div className="mt-3 flex justify-end">
-                          <Link
-                            href={buildRegistryAiSystemHref(registryId)}
-                            className="inline-flex items-center rounded-full border border-black px-4 py-2 text-sm font-medium transition hover:bg-black hover:text-white"
-                          >
-                            View certificate
-                          </Link>
-                        </div>
-                      ) : null}
-                    </div>
-                  );
-                })}
-              </div>
-            </section>
-          )}
-        </>
+            </article>
+          ))}
+        </div>
       )}
+
+      {totalPages > 1 ? (
+        <nav className="mt-8 flex flex-col gap-4 rounded-2xl border border-slate-200 bg-white p-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="text-sm text-slate-600">
+            Page <span className="font-medium text-slate-900">{result.page}</span> of{" "}
+            <span className="font-medium text-slate-900">{totalPages}</span>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2">
+            <Link
+              href={buildQueryString(currentQuery, {
+                page: Math.max(1, result.page - 1),
+              })}
+              aria-disabled={result.page <= 1}
+              className={`rounded-xl border px-3 py-2 text-sm transition ${
+                result.page <= 1
+                  ? "pointer-events-none border-slate-200 text-slate-400"
+                  : "border-slate-300 text-slate-700 hover:bg-slate-50"
+              }`}
+            >
+              Previous
+            </Link>
+
+            {pageNumbers.map((pageNumber, index) => {
+              const previous = pageNumbers[index - 1];
+              const showGap = previous && pageNumber - previous > 1;
+
+              return (
+                <div key={pageNumber} className="flex items-center gap-2">
+                  {showGap ? (
+                    <span className="px-1 text-sm text-slate-400">…</span>
+                  ) : null}
+
+                  <Link
+                    href={buildQueryString(currentQuery, { page: pageNumber })}
+                    className={`rounded-xl border px-3 py-2 text-sm transition ${
+                      pageNumber === result.page
+                        ? "border-slate-900 bg-slate-900 text-white"
+                        : "border-slate-300 text-slate-700 hover:bg-slate-50"
+                    }`}
+                  >
+                    {pageNumber}
+                  </Link>
+                </div>
+              );
+            })}
+
+            <Link
+              href={buildQueryString(currentQuery, {
+                page: Math.min(totalPages, result.page + 1),
+              })}
+              aria-disabled={result.page >= totalPages}
+              className={`rounded-xl border px-3 py-2 text-sm transition ${
+                result.page >= totalPages
+                  ? "pointer-events-none border-slate-200 text-slate-400"
+                  : "border-slate-300 text-slate-700 hover:bg-slate-50"
+              }`}
+            >
+              Next
+            </Link>
+          </div>
+        </nav>
+      ) : null}
     </main>
   );
 }

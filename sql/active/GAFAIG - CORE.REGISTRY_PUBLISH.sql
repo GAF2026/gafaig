@@ -1,0 +1,287 @@
+-- ============================================================
+-- GAFAIG - CORE.REGISTRY_PUBLISH.sql
+-- Canonical approved-only public registry publish pipeline
+-- ============================================================
+
+USE ROLE ACCOUNTADMIN;
+USE DATABASE GAFAIG_DB;
+USE SCHEMA CORE;
+
+-- ============================================================
+-- 0) CANONICAL REGISTRY TABLE
+-- ============================================================
+
+CREATE TABLE IF NOT EXISTS CORE.REGISTRY_SNAPSHOTS (
+  REGISTRY_SNAPSHOT_ID VARCHAR,
+  REGISTRY_ID          VARCHAR,
+  ORG_ID               VARCHAR,
+  CASE_ID              VARCHAR,
+  ENTITY_NAME          VARCHAR,
+  VERIFICATION_TYPE    VARCHAR,
+  MODEL_VERSION        VARCHAR,
+  SCORE                NUMBER(10,4),
+  TIER                 VARCHAR,
+  BAND                 VARCHAR,
+  RENEWAL_STATUS       VARCHAR,
+  APPROVED_AT          TIMESTAMP_NTZ,
+  PUBLISHED_AT         TIMESTAMP_NTZ,
+  REGISTRY_STATUS      VARCHAR,
+  CREATED_AT           TIMESTAMP_NTZ DEFAULT CURRENT_TIMESTAMP()
+);
+
+-- ============================================================
+-- 1) APPROVED SOURCE VIEW
+-- Purpose:
+--   Canonical approved-only source for public registry publish.
+-- Notes:
+--   - Uses latest score snapshot per case
+--   - Surfaces only approved cases
+--   - Never exposes private evidence/finding detail
+-- ============================================================
+
+CREATE OR REPLACE VIEW CORE.V_REGISTRY_APPROVED_SOURCE AS
+WITH latest_score AS (
+  SELECT
+    s.SNAPSHOT_ID,
+    s.ORG_ID,
+    s.CASE_ID,
+    s.MODEL_VERSION,
+    s.SCORE,
+    s.TIER,
+    s.BAND,
+    s.RENEWAL_STATUS,
+    s.SCORED_AT,
+    ROW_NUMBER() OVER (
+      PARTITION BY TRIM(s.CASE_ID)
+      ORDER BY s.SCORED_AT DESC, s.SNAPSHOT_ID DESC
+    ) AS RN
+  FROM CORE.CASE_SCORE_SNAPSHOTS_V2 s
+),
+approved_case AS (
+  SELECT
+    c.ORG_ID,
+    c.CASE_ID,
+    c.ENTITY_NAME,
+    c.VERIFICATION_TYPE,
+    c.APPROVED_AT
+  FROM CORE.VERIFICATION_CASES c
+  WHERE UPPER(TRIM(c.STATUS)) = 'APPROVED'
+)
+SELECT
+  ac.CASE_ID,
+  ac.ORG_ID,
+  ac.ENTITY_NAME,
+  ac.VERIFICATION_TYPE,
+  ac.APPROVED_AT,
+  ls.SNAPSHOT_ID,
+  ls.MODEL_VERSION,
+  ls.SCORE,
+  ls.TIER,
+  ls.BAND,
+  ls.RENEWAL_STATUS
+FROM approved_case ac
+JOIN latest_score ls
+  ON TRIM(ac.CASE_ID) = TRIM(ls.CASE_ID)
+ AND ls.RN = 1;
+
+-- ============================================================
+-- 2) PUBLISH PROCEDURE
+-- Notes:
+--   - Inserts one registry snapshot row for a given approved case
+--   - Reads only from V_REGISTRY_APPROVED_SOURCE
+--   - Working canonical signature: (P_CASE_ID VARCHAR)
+-- ============================================================
+
+CREATE OR REPLACE PROCEDURE CORE.SP_PUBLISH_CASE_TO_REGISTRY_V3(P_CASE_ID VARCHAR)
+RETURNS VARIANT
+LANGUAGE SQL
+EXECUTE AS OWNER
+AS
+$$
+BEGIN
+  INSERT INTO CORE.REGISTRY_SNAPSHOTS (
+    REGISTRY_SNAPSHOT_ID,
+    REGISTRY_ID,
+    ORG_ID,
+    CASE_ID,
+    ENTITY_NAME,
+    VERIFICATION_TYPE,
+    MODEL_VERSION,
+    SCORE,
+    TIER,
+    BAND,
+    RENEWAL_STATUS,
+    APPROVED_AT,
+    PUBLISHED_AT,
+    REGISTRY_STATUS,
+    CREATED_AT
+  )
+  SELECT
+    src.SNAPSHOT_ID,
+    'GAFAIG-' || TRIM(src.CASE_ID),
+    src.ORG_ID,
+    src.CASE_ID,
+    src.ENTITY_NAME,
+    src.VERIFICATION_TYPE,
+    src.MODEL_VERSION,
+    src.SCORE,
+    src.TIER,
+    src.BAND,
+    src.RENEWAL_STATUS,
+    src.APPROVED_AT,
+    CURRENT_TIMESTAMP(),
+    'published',
+    CURRENT_TIMESTAMP()
+  FROM CORE.V_REGISTRY_APPROVED_SOURCE src
+  WHERE TRIM(src.CASE_ID) = TRIM(:P_CASE_ID);
+
+  RETURN OBJECT_CONSTRUCT(
+    'ok', TRUE,
+    'caseId', :P_CASE_ID
+  );
+END;
+$$;
+
+-- ============================================================
+-- 3) LATEST PUBLISHED REGISTRY VIEW
+-- Purpose:
+--   One latest published row per CASE_ID
+-- ============================================================
+
+CREATE OR REPLACE VIEW CORE.V_REGISTRY_LATEST_APPROVED AS
+WITH ranked AS (
+  SELECT
+    rs.REGISTRY_ID,
+    rs.ORG_ID,
+    rs.CASE_ID,
+    rs.ENTITY_NAME,
+    rs.VERIFICATION_TYPE,
+    rs.MODEL_VERSION,
+    rs.SCORE,
+    rs.TIER,
+    rs.BAND,
+    rs.RENEWAL_STATUS,
+    rs.APPROVED_AT,
+    rs.PUBLISHED_AT,
+    rs.REGISTRY_STATUS,
+    rs.REGISTRY_SNAPSHOT_ID,
+    rs.CREATED_AT,
+    ROW_NUMBER() OVER (
+      PARTITION BY TRIM(rs.CASE_ID)
+      ORDER BY rs.CREATED_AT DESC, rs.PUBLISHED_AT DESC, rs.REGISTRY_SNAPSHOT_ID DESC
+    ) AS RN
+  FROM CORE.REGISTRY_SNAPSHOTS rs
+  WHERE LOWER(TRIM(rs.REGISTRY_STATUS)) = 'published'
+)
+SELECT
+  REGISTRY_ID,
+  ORG_ID,
+  CASE_ID,
+  ENTITY_NAME,
+  VERIFICATION_TYPE,
+  MODEL_VERSION,
+  SCORE,
+  TIER,
+  BAND,
+  RENEWAL_STATUS,
+  APPROVED_AT,
+  PUBLISHED_AT,
+  REGISTRY_SNAPSHOT_ID,
+  CREATED_AT
+FROM ranked
+WHERE RN = 1;
+
+-- ============================================================
+-- 4) PUBLIC SEARCH VIEW
+-- Purpose:
+--   Public-safe registry surface for app/search pages
+-- ============================================================
+
+CREATE OR REPLACE VIEW CORE.V_REGISTRY_PUBLIC_SEARCH AS
+SELECT
+  REGISTRY_ID,
+  ORG_ID,
+  CASE_ID,
+  ENTITY_NAME,
+  VERIFICATION_TYPE,
+  MODEL_VERSION,
+  SCORE,
+  TIER,
+  BAND
+FROM CORE.V_REGISTRY_LATEST_APPROVED;
+
+-- ============================================================
+-- 5) GRANTS
+-- Notes:
+--   Grant both current and future access for app role
+-- ============================================================
+
+GRANT USAGE ON DATABASE GAFAIG_DB TO ROLE GAFAIG_APP_ROLE;
+GRANT USAGE ON SCHEMA GAFAIG_DB.CORE TO ROLE GAFAIG_APP_ROLE;
+
+GRANT SELECT ON TABLE GAFAIG_DB.CORE.VERIFICATION_CASES TO ROLE GAFAIG_APP_ROLE;
+GRANT SELECT ON TABLE GAFAIG_DB.CORE.CASE_SCORE_SNAPSHOTS_V2 TO ROLE GAFAIG_APP_ROLE;
+GRANT SELECT ON TABLE GAFAIG_DB.CORE.REGISTRY_SNAPSHOTS TO ROLE GAFAIG_APP_ROLE;
+
+GRANT SELECT ON VIEW GAFAIG_DB.CORE.V_REGISTRY_APPROVED_SOURCE TO ROLE GAFAIG_APP_ROLE;
+GRANT SELECT ON VIEW GAFAIG_DB.CORE.V_REGISTRY_LATEST_APPROVED TO ROLE GAFAIG_APP_ROLE;
+GRANT SELECT ON VIEW GAFAIG_DB.CORE.V_REGISTRY_PUBLIC_SEARCH TO ROLE GAFAIG_APP_ROLE;
+
+GRANT INSERT, UPDATE, DELETE ON TABLE GAFAIG_DB.CORE.REGISTRY_SNAPSHOTS TO ROLE GAFAIG_APP_ROLE;
+GRANT USAGE ON PROCEDURE GAFAIG_DB.CORE.SP_PUBLISH_CASE_TO_REGISTRY_V3(VARCHAR) TO ROLE GAFAIG_APP_ROLE;
+
+GRANT SELECT ON FUTURE TABLES IN SCHEMA GAFAIG_DB.CORE TO ROLE GAFAIG_APP_ROLE;
+GRANT SELECT ON FUTURE VIEWS IN SCHEMA GAFAIG_DB.CORE TO ROLE GAFAIG_APP_ROLE;
+
+-- ============================================================
+-- 6) OPTIONAL VALIDATION
+-- Uncomment and run manually as needed
+-- ============================================================
+
+-- USE ROLE ACCOUNTADMIN;
+-- USE DATABASE GAFAIG_DB;
+-- USE SCHEMA CORE;
+
+-- UPDATE CORE.VERIFICATION_CASES
+-- SET STATUS = 'approved',
+--     APPROVED_AT = CURRENT_TIMESTAMP(),
+--     APPROVED_BY = 'demo.publisher@gafaig.org',
+--     UPDATED_AT = CURRENT_TIMESTAMP()
+-- WHERE CASE_ID = 'CASE-0001';
+
+-- SELECT *
+-- FROM CORE.V_REGISTRY_APPROVED_SOURCE
+-- WHERE CASE_ID = 'CASE-0001';
+
+-- CALL CORE.SP_PUBLISH_CASE_TO_REGISTRY_V3('CASE-0001');
+
+-- SELECT *
+-- FROM CORE.REGISTRY_SNAPSHOTS
+-- WHERE CASE_ID = 'CASE-0001'
+-- ORDER BY CREATED_AT DESC;
+
+-- SELECT *
+-- FROM CORE.V_REGISTRY_LATEST_APPROVED
+-- WHERE CASE_ID = 'CASE-0001';
+
+-- SELECT *
+-- FROM CORE.V_REGISTRY_PUBLIC_SEARCH
+-- WHERE CASE_ID = 'CASE-0001';
+USE ROLE ACCOUNTADMIN;
+USE DATABASE GAFAIG_DB;
+USE SCHEMA CORE;
+
+CALL CORE.SP_PUBLISH_CASE_TO_REGISTRY_V3('CASE-0001');
+
+SELECT *
+FROM CORE.REGISTRY_SNAPSHOTS
+WHERE CASE_ID = 'CASE-0001'
+ORDER BY CREATED_AT DESC;
+
+SELECT *
+FROM CORE.V_REGISTRY_LATEST_APPROVED
+WHERE CASE_ID = 'CASE-0001';
+
+SELECT *
+FROM CORE.V_REGISTRY_PUBLIC_SEARCH
+WHERE CASE_ID = 'CASE-0001';
