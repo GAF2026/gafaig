@@ -20,6 +20,7 @@ type ApiResponse =
 
 const STATUS_OPTIONS = [
   "all",
+  "pending",
   "received",
   "in_review",
   "approved",
@@ -92,21 +93,32 @@ export default function AdminApplicationsPage() {
   }
 
   useEffect(() => {
-    load();
+    load({ page: 1 });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   function applySearch() {
     setPage(1);
-    load({ page: 1 });
+    load({ page: 1, q, status, pageSize });
   }
 
   function clearAll() {
-    setQ("");
-    setStatus("all");
-    setPageSize(10);
-    setPage(1);
-    load({ q: "", status: "all", pageSize: 10, page: 1 });
+    const nextQ = "";
+    const nextStatus: (typeof STATUS_OPTIONS)[number] = "all";
+    const nextPageSize = 10;
+    const nextPage = 1;
+
+    setQ(nextQ);
+    setStatus(nextStatus);
+    setPageSize(nextPageSize);
+    setPage(nextPage);
+
+    load({
+      q: nextQ,
+      status: nextStatus,
+      pageSize: nextPageSize,
+      page: nextPage,
+    });
   }
 
   return (
@@ -173,7 +185,9 @@ export default function AdminApplicationsPage() {
               </div>
               <select
                 value={status}
-                onChange={(e) => setStatus(e.target.value as any)}
+                onChange={(e) =>
+                  setStatus(e.target.value as (typeof STATUS_OPTIONS)[number])
+                }
                 className="w-[200px] rounded-xl border border-black/15 px-4 py-3 text-[14px] text-black focus:outline-none focus:ring-2 focus:ring-black/10"
               >
                 {STATUS_OPTIONS.map((s) => (
@@ -194,7 +208,7 @@ export default function AdminApplicationsPage() {
                   const v = Number(e.target.value);
                   setPageSize(v);
                   setPage(1);
-                  load({ pageSize: v, page: 1 });
+                  load({ pageSize: v, page: 1, q, status });
                 }}
                 className="w-[140px] rounded-xl border border-black/15 px-4 py-3 text-[14px] text-black focus:outline-none focus:ring-2 focus:ring-black/10"
               >

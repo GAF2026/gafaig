@@ -15,7 +15,6 @@ function asInt(v: string | null, def: number, min: number, max: number) {
   return Math.max(min, Math.min(max, Math.trunc(n)));
 }
 
-// View confirmed working
 const VIEW_NAME = "GAFAIG_DB.CORE.V_ADMIN_SUBMISSIONS";
 
 export async function GET(req: NextRequest) {
@@ -37,48 +36,42 @@ export async function GET(req: NextRequest) {
     const where: string[] = [];
     const binds: any[] = [];
 
-    // Only applications on this page
-    where.push(`TYPE = 'application'`);
-
     if (status && status.toLowerCase() !== "all") {
       where.push(`UPPER(COALESCE(STATUS, '')) = UPPER(?)`);
       binds.push(status);
     }
 
     if (q) {
-      // Snowflake: ILIKE is an operator, not a function
-      where.push(
-        `(
-          COALESCE(REQUEST_ID::string, '')      ILIKE '%' || ? || '%'
-          OR COALESCE(ORG_NAME::string, '')     ILIKE '%' || ? || '%'
-          OR COALESCE(CONTACT_EMAIL::string, '') ILIKE '%' || ? || '%'
-          OR COALESCE(SOURCE_TABLE::string, '') ILIKE '%' || ? || '%'
-        )`
-      );
+      where.push(`
+        (
+          COALESCE(REQUEST_ID::STRING, '') ILIKE '%' || ? || '%'
+          OR COALESCE(ORG_NAME::STRING, '') ILIKE '%' || ? || '%'
+          OR COALESCE(CONTACT_EMAIL::STRING, '') ILIKE '%' || ? || '%'
+          OR COALESCE(SOURCE_TABLE::STRING, '') ILIKE '%' || ? || '%'
+        )
+      `);
       binds.push(q, q, q, q);
     }
 
-    const whereSql = `WHERE ${where.join(" AND ")}`;
+    const whereSql = where.length ? `WHERE ${where.join(" AND ")}` : "";
     const offset = (page - 1) * pageSize;
 
-    // Count
     const countSql = `
       SELECT COUNT(*)::NUMBER AS TOTAL
       FROM ${VIEW_NAME}
       ${whereSql}
     `;
     const countRows = await sfQuery<{ TOTAL: number }>(countSql, binds);
-    const total = Number((countRows?.[0] as any)?.TOTAL ?? 0);
+    const total = Number(countRows?.[0]?.TOTAL ?? 0);
 
-    // Rows (alias columns to the UI-friendly names)
     const rowsSql = `
       SELECT
-        REQUEST_ID      AS "requestId",
-        ORG_NAME        AS "org",
-        CONTACT_EMAIL   AS "email",
-        STATUS          AS "status",
-        SOURCE_TABLE    AS "source",
-        UPDATED_AT      AS "updatedAt"
+        REQUEST_ID AS "requestId",
+        ORG_NAME AS "org",
+        CONTACT_EMAIL AS "email",
+        STATUS AS "status",
+        SOURCE_TABLE AS "source",
+        TO_VARCHAR(UPDATED_AT, 'YYYY-MM-DD HH24:MI:SS') AS "updatedAt"
       FROM ${VIEW_NAME}
       ${whereSql}
       ORDER BY UPDATED_AT DESC NULLS LAST
@@ -93,7 +86,6 @@ export async function GET(req: NextRequest) {
       pageSize,
       total,
       rows: rows ?? [],
-      view: VIEW_NAME,
     });
   } catch (e: any) {
     const msg = String(e?.message ?? e ?? "Unknown error");
