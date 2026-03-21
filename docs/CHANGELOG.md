@@ -5,7 +5,7 @@
 ## 2026-03-19
 
 ### AI Systems Registry (MAJOR PLATFORM EXPANSION)
-- Implemented full **AI Systems Registry layer**.
+- Implemented full AI Systems Registry layer.
 - Introduced canonical Snowflake view:
   - V_REGISTRY_AI_SYSTEMS_PUBLIC
 - Established architecture:
@@ -19,7 +19,7 @@
 ### Next.js Registry UI (AI Systems)
 - Implemented new public routes:
   - /registry/ai-systems
-  - /registry/ai-systems/[registryId]
+  - /registry/ai-systems/[systemId]
 - Built full UI pages:
   - AI systems list page
   - AI system detail page
@@ -32,13 +32,27 @@
 
 ---
 
+### Registry Routing Corrections (CRITICAL)
+- Corrected identifier usage across registry surfaces:
+  - /registry/[registryId] → REGISTRY_ID
+  - /registry/ai-systems/[systemId] → SYSTEM_ID
+- Eliminated incorrect dual usage of registryId for systems.
+- Prevented cross-route data mismatches.
+- Stabilized navigation between:
+  - registry records
+  - AI systems
+  - entity-linked views
+
+---
+
 ### Query Registry Layer (CRITICAL ARCHITECTURE)
 - Enforced canonical query pattern:
   - lib/queries/
 - Implemented:
   - getRegistryAiSystems()
   - getRegistryAiSystemBySystemId()
-- Removed all inline SQL from UI.
+  - getRegistryAiSystemByRegistryId()
+- Removed inline SQL from UI pages.
 - Established query layer as:
   - required data access abstraction
   - protection against SQL drift
@@ -46,23 +60,12 @@
 
 ---
 
-### Next.js Routing Fix (CRITICAL)
-- Resolved dynamic route conflict:
-  - [registryId] vs [systemId]
-- Standardized slug naming:
-  - all AI system routes now use [registryId]
-- Eliminated Next.js runtime error:
-  - "You cannot use different slug names for the same dynamic path"
-- Restored stable dev server startup.
-
----
-
 ### Snowflake View Architecture (CRITICAL FIX)
 - Refactored:
   - 21_VIEWS_PUBLIC_REGISTRY.sql
   - 22_VIEWS_REGISTRY_AI_SYSTEMS_PUBLIC.sql
-- Enforced **View Purity Rule**:
-  - view files now contain ONLY:
+- Enforced View Purity Rule:
+  - view files contain ONLY:
     - CREATE VIEW
     - GRANTS
 - Removed:
@@ -81,6 +84,52 @@
   - all views derive from V_REGISTRY_LATEST_APPROVED
 - Eliminated dependency on:
   - REGISTRY_ENTITIES for canonical registry layer
+
+---
+
+### Admin Applications Workflow (CRITICAL STABILIZATION)
+- Introduced canonical compatibility view:
+  - V_ADMIN_SUBMISSIONS
+- Aligned admin API:
+  - /api/admin/applications
+- Fixed production-breaking issues:
+  - invalid TYPE filter
+  - missing column aliases
+  - schema mismatches between Snowflake and UI
+- Standardized column contract:
+  - REQUEST_ID → requestId
+  - ORG_NAME → org
+  - CONTACT_EMAIL → email
+  - STATUS → status
+  - SOURCE_TABLE → source
+  - UPDATED_AT → updatedAt
+- Ensured:
+  - search works
+  - status filtering works
+  - pagination works
+- Restored full admin applications UI functionality.
+
+---
+
+### Snowflake Compatibility Layer (NEW PATTERN)
+- Introduced compatibility view strategy for UI stabilization:
+  - V_ADMIN_SUBMISSIONS acts as contract layer
+- Purpose:
+  - decouple UI from raw schema volatility
+  - support legacy UI expectations safely
+- Established pattern:
+  - UI depends on view contracts, not tables
+
+---
+
+### Homepage Governance Footprint Review
+- Audited homepage metrics against Snowflake registry outputs.
+- Identified mismatch risks between:
+  - registry views
+  - AI systems view
+  - public counts
+- Established requirement:
+  - homepage must derive from canonical public views only.
 
 ---
 
@@ -133,21 +182,21 @@ sql/
 Updated all canonical documents:
 
 - MASTER_STATE.md
-  - added AI systems registry layer
-  - added query registry architecture
+  - added admin intake layer
+  - added compatibility view pattern
 - CURRENT_FOCUS.md
-  - added AI systems registry objective
-  - updated development phase
+  - added admin applications stabilization
+  - added intake → case pipeline direction
 - ENGINEERING_RULES.md
   - added:
-    - query registry rule
-    - view purity rule
-    - AI systems alignment rule
+    - no speculative schema rule
+    - admin intake constraints
+    - compatibility view guidance
 - PROJECT_INDEX.md
   - added:
-    - AI systems routes
-    - query layer mapping
-    - SQL directory structure
+    - admin applications route
+    - V_ADMIN_SUBMISSIONS
+    - corrected systemId routing
 
 Established complete documentation alignment across:
 
@@ -162,6 +211,8 @@ GAFAIG now includes:
 - snapshot-based registry pipeline
 - canonical public registry views
 - AI systems registry layer
+- admin intake workflow (applications)
+- compatibility view architecture
 - query registry abstraction (mandatory)
 - fully wired Next.js registry UI
 - stable Snowflake execution environment

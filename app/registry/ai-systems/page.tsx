@@ -171,8 +171,8 @@ export default async function RegistryAiSystemsPage({
         </h1>
         <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-600">
           Public-facing AI systems connected to published GAFAIG registry
-          records. This view reflects the current certified registry surface and
-          associated entity metadata.
+          records. This view reflects the certified AI systems surface derived
+          from the public registry and linked entity metadata.
         </p>
       </div>
 
@@ -188,7 +188,7 @@ export default async function RegistryAiSystemsPage({
 
         <div className="rounded-2xl border border-slate-200 bg-white p-5">
           <div className="text-xs uppercase tracking-wide text-slate-500">
-            Linked Entities
+            Global Linked Entities
           </div>
           <div className="mt-2 text-3xl font-semibold text-slate-900">
             {summaryStats.linkedEntities}
@@ -197,7 +197,7 @@ export default async function RegistryAiSystemsPage({
 
         <div className="rounded-2xl border border-slate-200 bg-white p-5">
           <div className="text-xs uppercase tracking-wide text-slate-500">
-            Countries
+            Global Countries
           </div>
           <div className="mt-2 text-3xl font-semibold text-slate-900">
             {summaryStats.countries}

@@ -46,13 +46,14 @@ function valueOrDash(value?: string | null | number): string | number {
 export const dynamic = "force-dynamic";
 
 type PageProps = {
-  params: {
+  params: Promise<{
     registryId: string;
-  };
+  }>;
 };
 
 export default async function RegistryDetailPage({ params }: PageProps) {
-  const registryId = params.registryId?.trim().toUpperCase();
+  const resolvedParams = await params;
+  const registryId = resolvedParams.registryId?.trim().toUpperCase();
 
   if (!registryId) notFound();
 
@@ -64,7 +65,7 @@ export default async function RegistryDetailPage({ params }: PageProps) {
     <main className="mx-auto max-w-6xl px-6 py-12">
       <div className="mb-8">
         <Link
-          href="/registry/ai-systems"
+          href="/registry"
           className="text-sm font-medium text-slate-600 hover:text-slate-900"
         >
           ← Back to Registry
@@ -125,10 +126,10 @@ export default async function RegistryDetailPage({ params }: PageProps) {
 
             <div className="rounded-2xl bg-slate-50 p-4">
               <div className="text-xs uppercase tracking-wide text-slate-500">
-                Published
+                Certified
               </div>
               <div className="mt-2 text-base font-medium text-slate-900">
-                {fmtDate(record.publishedAt)}
+                {fmtDate(record.certifiedAt)}
               </div>
             </div>
 
@@ -179,10 +180,10 @@ export default async function RegistryDetailPage({ params }: PageProps) {
 
               <div className="rounded-xl bg-slate-50 p-4">
                 <div className="text-xs uppercase tracking-wide text-slate-500">
-                  Registry Status
+                  Snapshot ID
                 </div>
                 <div className="mt-2 break-all text-sm font-medium text-slate-900">
-                  {record.registryStatus ?? "—"}
+                  {record.snapshotId ?? "—"}
                 </div>
               </div>
             </div>
@@ -273,18 +274,18 @@ export default async function RegistryDetailPage({ params }: PageProps) {
             <div className="mt-4 grid gap-3">
               <div className="rounded-xl bg-slate-50 p-4">
                 <div className="text-xs uppercase tracking-wide text-slate-500">
-                  Verification Type
+                  Application ID
                 </div>
                 <div className="mt-2 text-sm font-medium text-slate-900">
-                  {record.verificationType ?? "—"}
+                  {record.applicationId ?? "—"}
                 </div>
               </div>
               <div className="rounded-xl bg-slate-50 p-4">
                 <div className="text-xs uppercase tracking-wide text-slate-500">
-                  Model Version
+                  Certified At
                 </div>
                 <div className="mt-2 text-sm font-medium text-slate-900">
-                  {record.modelVersion ?? "—"}
+                  {fmtDate(record.certifiedAt)}
                 </div>
               </div>
             </div>

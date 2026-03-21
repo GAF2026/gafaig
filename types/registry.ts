@@ -1,20 +1,23 @@
 export type RegistryRow = {
   registryId: string;
-  applicationId: string;
+  applicationId: string | null;
+  caseId?: string | null;
 
-  entityName: string;
+  entityName: string | null;
   entityType: string | null;
   country: string | null;
 
+  certifiedScore?: number | null;
   certifiedTier: string | null;
   certifiedBand: string | null;
-  decisionStatus: string;
+  decisionStatus: string | null;
 
   validFrom: string | null;
   validTo: string | null;
 
   certifiedAt: string | null;
   lastActivityAt: string | null;
+  snapshotId?: string | null;
 };
 
 export type RegistryApiResponse =
@@ -23,7 +26,13 @@ export type RegistryApiResponse =
       rows: RegistryRow[];
       total: number;
       limit: number;
-      filters?: { q: string; country: string; registryId: string };
+      filters?: {
+        q?: string;
+        country?: string;
+        registryId?: string;
+        caseId?: string;
+        applicationId?: string;
+      };
     }
   | { ok: false; error: string };
 
@@ -78,17 +87,23 @@ export type VerifyApiResponse =
       verified: boolean;
       record?: {
         registryId: string;
-        applicationId: string;
-        entityName: string;
+        applicationId: string | null;
+        caseId?: string | null;
+        entityName: string | null;
         entityType: string | null;
         country: string | null;
+        certifiedScore?: number | null;
         certifiedTier: string | null;
         certifiedBand: string | null;
-        decisionStatus: string;
+        decisionStatus: string | null;
         validFrom: string | null;
         validTo: string | null;
         certifiedAt: string | null;
         lastActivityAt: string | null;
+        snapshotId?: string | null;
+        modelVersion?: string | null;
+        renewalStatus?: string | null;
+        scoredAt?: string | null;
         isCurrentlyValid?: boolean;
       };
       proof?: {
@@ -97,6 +112,7 @@ export type VerifyApiResponse =
         message: string;
         signedAt: string;
       };
+      reason?: string;
       now?: string;
     }
   | {

@@ -1,21 +1,23 @@
 import { NextRequest, NextResponse } from "next/server";
-import { sfQuery } from "@/lib/snowflake";
+import { requireAdmin } from "@/lib/auth/require";
+import { normalizeId } from "@/lib/ids";
+import { snowflakeQuery } from "@/lib/snowflake";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 type PublishRequestBody = {
   caseId?: string;
-  approvedBy?: string;
 };
 
 type StoredProcResult = {
   ok?: boolean;
+  error?: string;
   caseId?: string;
-  snapshotId?: string;
-  finalScore?: number | string | null;
-  tier?: string | null;
-  band?: string | null;
+  registryId?: string;
+  registrySnapshotId?: string;
+  entityName?: string | null;
+  status?: string | null;
 };
 
 type RegistryRow = {
@@ -88,10 +90,16 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   try {
-    const body = (await req.json().catch(() => ({}))) as PublishRequestBody;
+    const auth = await requireAdmin(req);
+    if (!auth.ok) {
+      return NextResponse.json(
+        { ok: false, error: auth.error ?? "Unauthorized" },
+        { status: auth.status ?? 401 }
+      );
+    }
 
-    const caseId = asString(body.caseId)?.toUpperCase();
-    const approvedBy = asString(body.approvedBy) ?? "demo-admin";
+    const body = (await req.json().catch(() => ({}))) as PublishRequestBody;
+    const caseId = normalizeId(body.caseId);
 
     if (!caseId) {
       return NextResponse.json(
@@ -100,14 +108,33 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const procRows = await sfQuery<Record<string, unknown>>(
-      `CALL GAFAIG_DB.CORE.SP_PUBLISH_CASE_TO_REGISTRY_V3(?, ?)`,
-      [caseId, approvedBy]
+    const procRows = await snowflakeQuery<Record<string, unknown>>(
+      `CALL GAFAIG_DB.CORE.SP_PUBLISH_CASE_TO_REGISTRY_V3(?)`,
+      [caseId]
     );
 
     const procPayload = parseStoredProcPayload(procRows[0]);
 
-    const registryRows = await sfQuery<RegistryRow>(
+    if (!procPayload) {
+      return NextResponse.json(
+        { ok: false, error: "Publish procedure returned no result." },
+        { status: 500 }
+      );
+    }
+
+    if (!procPayload.ok) {
+      return NextResponse.json(
+        {
+          ok: false,
+          error: procPayload.error ?? "Registry publish failed.",
+          caseId,
+          proc: procPayload,
+        },
+        { status: 400 }
+      );
+    }
+
+    const registryRows = await snowflakeQuery<RegistryRow>(
       `
       SELECT
         REGISTRY_ID,
@@ -125,7 +152,7 @@ export async function POST(req: NextRequest) {
         CERTIFIED_AT,
         LAST_ACTIVITY_AT
       FROM GAFAIG_DB.CORE.V_REGISTRY_PUBLIC
-      WHERE CASE_ID = ?
+      WHERE TRIM(UPPER(CASE_ID)) = TRIM(UPPER(?))
       ORDER BY CERTIFIED_AT DESC NULLS LAST, LAST_ACTIVITY_AT DESC NULLS LAST
       LIMIT 1
       `,
@@ -134,12 +161,9 @@ export async function POST(req: NextRequest) {
 
     const row = registryRows[0];
 
-    const registryId = asString(row?.REGISTRY_ID);
-    const snapshotId = asString(procPayload?.snapshotId);
-    const certifiedTier = asString(row?.CERTIFIED_TIER) ?? asString(procPayload?.tier);
-    const certifiedBand = asString(row?.CERTIFIED_BAND) ?? asString(procPayload?.band);
-    const finalScore =
-      asNumber(row?.CERTIFIED_SCORE) ?? asNumber(procPayload?.finalScore);
+    const registryId =
+      asString(row?.REGISTRY_ID) ?? asString(procPayload.registryId);
+    const registrySnapshotId = asString(procPayload.registrySnapshotId);
 
     if (!registryId) {
       return NextResponse.json(
@@ -147,18 +171,23 @@ export async function POST(req: NextRequest) {
           ok: false,
           error: "Publish completed but no public registry record was found.",
           caseId,
-          snapshotId,
+          registrySnapshotId,
+          proc: procPayload,
         },
         { status: 500 }
       );
     }
 
+    const certifiedTier = asString(row?.CERTIFIED_TIER);
+    const certifiedBand = asString(row?.CERTIFIED_BAND);
+    const finalScore = asNumber(row?.CERTIFIED_SCORE);
+
     return NextResponse.json({
       ok: true,
       status: "published",
       caseId,
-      snapshotId,
       registryId,
+      registrySnapshotId,
       verifyEndpoint: buildVerifyEndpoint(registryId),
       certifiedTier,
       certifiedBand,
@@ -183,11 +212,12 @@ export async function POST(req: NextRequest) {
         : null,
       proc: procPayload,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     return NextResponse.json(
       {
         ok: false,
-        error: error?.message || "Registry publish failed.",
+        error:
+          error instanceof Error ? error.message : "Registry publish failed.",
       },
       { status: 500 }
     );

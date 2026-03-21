@@ -1,134 +1,107 @@
-// app/api/registry/route.ts
 import { NextResponse } from "next/server";
-import { sfQuery } from "@/lib/snowflake";
+import type { RegistryApiResponse, RegistryRow } from "@/types/registry";
+import { getRegistryRecords, searchRegistryRecords } from "@/lib/queries/registry";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-type RegistryRow = {
-  registryId: string;
-  applicationId: string;
-
-  entityName: string;
-  entityType: string | null;
-  country: string | null;
-
-  certifiedTier: string | null;
-  certifiedBand: string | null;
-  decisionStatus: string;
-
-  validFrom: string | null;
-  validTo: string | null;
-
-  certifiedAt: string | null;
-  lastActivityAt: string | null;
-
-  // normalized helpers for UI search
-  entityNameNorm: string;
-  countryNorm: string | null;
-  q: string;
-};
-
-type Ok = {
-  ok: true;
-  rows: RegistryRow[];
-  total: number;
-  limit: number;
-  filters: { q: string; country: string; registryId: string };
-};
-type Err = { ok: false; error: string };
-
-function s(v: any): string | null {
-  if (v === null || v === undefined) return null;
-  const out = String(v);
-  return out.length ? out : null;
+function clean(value: string | null): string {
+  return String(value ?? "").trim();
 }
 
-function cleanLike(v: string) {
-  // keep substring search simple + safe (parameterized)
-  return v.trim();
+function toRegistryRow(row: {
+  registryId: string;
+  applicationId: string | null;
+  caseId?: string | null;
+  entityName: string | null;
+  entityType: string | null;
+  country: string | null;
+  certifiedScore?: number | null;
+  certifiedTier: string | null;
+  certifiedBand: string | null;
+  decisionStatus: string | null;
+  validFrom: string | null;
+  validTo: string | null;
+  certifiedAt: string | null;
+  lastActivityAt: string | null;
+  snapshotId?: string | null;
+}): RegistryRow {
+  return {
+    registryId: row.registryId,
+    applicationId: row.applicationId,
+    caseId: row.caseId ?? null,
+    entityName: row.entityName,
+    entityType: row.entityType,
+    country: row.country,
+    certifiedScore: row.certifiedScore ?? null,
+    certifiedTier: row.certifiedTier,
+    certifiedBand: row.certifiedBand,
+    decisionStatus: row.decisionStatus,
+    validFrom: row.validFrom,
+    validTo: row.validTo,
+    certifiedAt: row.certifiedAt,
+    lastActivityAt: row.lastActivityAt,
+    snapshotId: row.snapshotId ?? null,
+  };
 }
 
 export async function GET(req: Request) {
   try {
     const url = new URL(req.url);
 
-    const limitRaw = url.searchParams.get("limit");
-    const limit = Math.min(Math.max(Number(limitRaw ?? "50") || 50, 1), 200);
+    const limitRaw = Number(url.searchParams.get("limit") || "50");
+    const limit = Math.min(Math.max(limitRaw || 50, 1), 200);
 
-    const q = cleanLike(url.searchParams.get("q") || "");
-    const country = cleanLike(url.searchParams.get("country") || "");
-    const registryId = cleanLike(url.searchParams.get("registryId") || "");
+    const q = clean(url.searchParams.get("q"));
+    const country = clean(url.searchParams.get("country"));
+    const registryId = clean(url.searchParams.get("registryId"));
+    const caseId = clean(url.searchParams.get("caseId"));
+    const applicationId = clean(url.searchParams.get("applicationId"));
 
-    // We query the normalized search view (already approved + currently valid by design of V_REGISTRY_PUBLIC)
-    // and apply simple optional filters.
-    const sql = `
-      SELECT
-        registry_id,
-        application_id,
-        entity_name,
-        entity_type,
+    const hasFilters =
+      q.length > 0 ||
+      country.length > 0 ||
+      registryId.length > 0 ||
+      caseId.length > 0 ||
+      applicationId.length > 0;
+
+    const rows = hasFilters
+      ? await searchRegistryRecords({
+          q,
+          country,
+          registryId,
+          caseId,
+          applicationId,
+          limit,
+        })
+      : await getRegistryRecords(limit);
+
+    const response: RegistryApiResponse = {
+      ok: true,
+      rows: rows.map(toRegistryRow),
+      total: rows.length,
+      limit,
+      filters: {
+        q,
         country,
-        certified_tier,
-        certified_band,
-        decision_status,
-        valid_from,
-        valid_to,
-        certified_at,
-        last_activity_at,
-        entity_name_norm,
-        country_norm,
-        q
-      FROM GAFAIG_DB.CORE.V_REGISTRY_PUBLIC_SEARCH
-      WHERE 1=1
-        AND ( ? = '' OR q ILIKE '%' || ? || '%' )
-        AND ( ? = '' OR country_norm = UPPER(?) )
-        AND ( ? = '' OR registry_id = ? )
-      ORDER BY certified_at DESC NULLS LAST, last_activity_at DESC NULLS LAST
-      LIMIT ?
-    `;
-
-    const params = [q, q, country, country, registryId, registryId, limit];
-
-    const raw = await sfQuery<any>(sql, params);
-
-    const rows: RegistryRow[] = raw.map((r: any) => ({
-      registryId: String(r.REGISTRY_ID),
-      applicationId: String(r.APPLICATION_ID),
-
-      entityName: String(r.ENTITY_NAME ?? "Unknown"),
-      entityType: s(r.ENTITY_TYPE),
-      country: s(r.COUNTRY),
-
-      certifiedTier: s(r.CERTIFIED_TIER),
-      certifiedBand: s(r.CERTIFIED_BAND),
-      decisionStatus: String(r.DECISION_STATUS ?? "unknown"),
-
-      validFrom: s(r.VALID_FROM),
-      validTo: s(r.VALID_TO),
-
-      certifiedAt: s(r.CERTIFIED_AT),
-      lastActivityAt: s(r.LAST_ACTIVITY_AT),
-
-      entityNameNorm: String(r.ENTITY_NAME_NORM ?? ""),
-      countryNorm: s(r.COUNTRY_NORM),
-      q: String(r.Q ?? ""),
-    }));
-
-    return NextResponse.json(
-      {
-        ok: true,
-        rows,
-        total: rows.length,
-        limit,
-        filters: { q, country, registryId },
+        registryId,
+        caseId,
+        applicationId,
       },
-      { headers: { "Cache-Control": "no-store" } }
-    );
-  } catch (e: any) {
-    return NextResponse.json(
-      { ok: false, error: e?.message || "Registry endpoint failed." } as Err,
-      { status: 500, headers: { "Cache-Control": "no-store" } }
-    );
+    };
+
+    return NextResponse.json(response, {
+      headers: { "Cache-Control": "no-store" },
+    });
+  } catch (error) {
+    const response: RegistryApiResponse = {
+      ok: false,
+      error: error instanceof Error ? error.message : "Registry endpoint failed.",
+    };
+
+    return NextResponse.json(response, {
+      status: 500,
+      headers: { "Cache-Control": "no-store" },
+    });
   }
 }

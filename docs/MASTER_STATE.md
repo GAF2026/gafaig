@@ -257,6 +257,36 @@ This produces:
 
 ---
 
+# Admin Intake / Applications Layer (NEW — CANONICAL)
+
+The platform now includes a Snowflake-backed intake workflow.
+
+Primary view:
+
+• V_ADMIN_SUBMISSIONS  
+
+Purpose:
+
+• surface intake records for reviewer workflow  
+• unify web + API submission sources  
+• support filtering, pagination, and search  
+
+Constraints:
+
+• API filters TYPE = 'application'  
+• STATUS used for workflow state  
+• no mutation logic in view  
+
+Frontend route:
+
+/admin/applications  
+
+API route:
+
+/api/admin/applications  
+
+---
+
 # Snowflake Architecture
 
 Snowflake is the system of record.
@@ -373,13 +403,17 @@ Public:
 /registry/ai-systems  
 /registry/ai-systems/[registryId]  
 
+Admin:
+
+/admin/applications  
+
 ---
 
 # Frontend Architecture
 
 Pattern:
 
-Page → Query Layer → Snowflake View  
+Page → API Route → Query Layer → Snowflake View  
 
 No direct SQL in pages.
 
@@ -409,6 +443,7 @@ GAFAIG now has:
 • registry publish pipeline  
 • public registry views  
 • AI systems registry  
+• admin intake workflow (applications)  
 • Next.js registry UI  
 • query registry layer  
 
@@ -422,11 +457,11 @@ Surface the Engine → Registry Completion
 
 # Immediate Next Steps
 
-1. Add system detail page (completed)  
-2. Add search / filtering to registry  
-3. Add verification API  
-4. Connect intake → case creation  
-5. Expand demo dataset  
+1. Connect intake → automatic case creation  
+2. Trigger scoring from intake pipeline  
+3. Automate registry publication  
+4. Expand demo dataset  
+5. Add verification API  
 
 ---
 
@@ -466,7 +501,7 @@ Current Phase:
 Surface the Engine
 
 State:
-AI systems registry + public registry fully wired
+Registry + AI systems + admin intake fully operational
 
 Rules:
 Do not re-architect. Continue from current system.

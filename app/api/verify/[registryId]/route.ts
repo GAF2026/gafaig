@@ -1,38 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "node:crypto";
 import { isGafaigRegistryId } from "@/lib/ids";
+import { getRegistryVerificationByRegistryId } from "@/lib/queries/registry";
+import type { VerifyApiResponse } from "@/types/registry";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
-
-type RegistryRow = {
-  registryId: string;
-  applicationId: string;
-  entityName: string;
-  entityType: string | null;
-  country: string | null;
-  certifiedTier: string | null;
-  certifiedBand: string | null;
-  decisionStatus: string;
-  validFrom: string | null;
-  validTo: string | null;
-  certifiedAt: string | null;
-  lastActivityAt: string | null;
-};
-
-type RegistryApiResponse =
-  | {
-      ok: true;
-      rows: RegistryRow[];
-      total: number;
-      limit: number;
-      filters?: {
-        q: string;
-        country: string;
-        registryId: string;
-      };
-    }
-  | { ok: false; error: string };
 
 function toBase64Url(buf: Buffer) {
   return buf
@@ -53,8 +26,21 @@ function parseDate(value: string | null | undefined) {
   return d;
 }
 
-function isCurrentlyValidRecord(row: RegistryRow, now = new Date()) {
+function isCurrentlyValidRecord(
+  row: {
+    decisionStatus: string | null;
+    validFrom: string | null;
+    validTo: string | null;
+    renewalStatus: string | null;
+  },
+  now = new Date(),
+) {
   if (String(row.decisionStatus || "").toLowerCase() !== "approved") {
+    return false;
+  }
+
+  const renewalStatus = String(row.renewalStatus || "").toLowerCase();
+  if (renewalStatus === "not_certified") {
     return false;
   }
 
@@ -67,20 +53,48 @@ function isCurrentlyValidRecord(row: RegistryRow, now = new Date()) {
   return true;
 }
 
-function canonicalPayload(row: RegistryRow) {
+function canonicalPayload(row: {
+  registryId: string;
+  applicationId: string | null;
+  caseId: string | null;
+  entityName: string | null;
+  entityType: string | null;
+  country: string | null;
+  certifiedScore: number | null;
+  certifiedTier: string | null;
+  certifiedBand: string | null;
+  decisionStatus: string | null;
+  validFrom: string | null;
+  validTo: string | null;
+  certifiedAt: string | null;
+  lastActivityAt: string | null;
+  snapshotId: string | null;
+  modelVersion: string | null;
+  renewalStatus: string | null;
+  scoredAt: string | null;
+}) {
   const payload = {
-    registryId: row.registryId,
-    applicationId: row.applicationId,
-    entityName: row.entityName,
-    entityType: row.entityType ?? "",
-    country: row.country ?? "",
-    decisionStatus: row.decisionStatus,
-    certifiedTier: row.certifiedTier ?? "",
+    applicationId: row.applicationId ?? "",
+    caseId: row.caseId ?? "",
+    certifiedAt: row.certifiedAt ?? "",
     certifiedBand: row.certifiedBand ?? "",
+    certifiedScore:
+      row.certifiedScore === null || row.certifiedScore === undefined
+        ? ""
+        : String(row.certifiedScore),
+    certifiedTier: row.certifiedTier ?? "",
+    country: row.country ?? "",
+    decisionStatus: row.decisionStatus ?? "",
+    entityName: row.entityName ?? "",
+    entityType: row.entityType ?? "",
+    lastActivityAt: row.lastActivityAt ?? "",
+    modelVersion: row.modelVersion ?? "",
+    registryId: row.registryId,
+    renewalStatus: row.renewalStatus ?? "",
+    scoredAt: row.scoredAt ?? "",
+    snapshotId: row.snapshotId ?? "",
     validFrom: row.validFrom ?? "",
     validTo: row.validTo ?? "",
-    certifiedAt: row.certifiedAt ?? "",
-    lastActivityAt: row.lastActivityAt ?? "",
   };
 
   const keys = Object.keys(payload).sort();
@@ -141,102 +155,102 @@ export async function OPTIONS() {
 }
 
 export async function GET(
-  req: NextRequest,
+  _req: NextRequest,
   ctx: { params: Promise<{ registryId: string }> },
 ) {
   const { registryId: rawRegistryId } = await ctx.params;
   const registryId = safeUpper(rawRegistryId ?? "");
 
   if (!registryId) {
-    return NextResponse.json(
-      { ok: false, error: "Missing registryId" },
-      { status: 400, headers: { ...corsHeaders(), ...cacheHeaders(false) } },
-    );
+    const response: VerifyApiResponse = {
+      ok: false,
+      error: "Missing registryId",
+      verified: false,
+      registryId,
+    };
+
+    return NextResponse.json(response, {
+      status: 400,
+      headers: { ...corsHeaders(), ...cacheHeaders(false) },
+    });
   }
 
   if (!isGafaigRegistryId(registryId)) {
-    return NextResponse.json(
-      { ok: false, error: "Invalid registryId format" },
-      { status: 400, headers: { ...corsHeaders(), ...cacheHeaders(false) } },
-    );
+    const response: VerifyApiResponse = {
+      ok: false,
+      error: "Invalid registryId format",
+      verified: false,
+      registryId,
+    };
+
+    return NextResponse.json(response, {
+      status: 400,
+      headers: { ...corsHeaders(), ...cacheHeaders(false) },
+    });
   }
 
   const secret = process.env.GAFAIG_VERIFY_SIGNING_SECRET;
   if (!secret || secret.trim().length < 32) {
-    return NextResponse.json(
-      {
-        ok: false,
-        error:
-          "Server misconfigured: missing GAFAIG_VERIFY_SIGNING_SECRET (min 32 chars).",
-      },
-      { status: 500, headers: { ...corsHeaders(), ...cacheHeaders(false) } },
-    );
+    const response: VerifyApiResponse = {
+      ok: false,
+      error:
+        "Server misconfigured: missing GAFAIG_VERIFY_SIGNING_SECRET (min 32 chars).",
+      verified: false,
+      registryId,
+    };
+
+    return NextResponse.json(response, {
+      status: 500,
+      headers: { ...corsHeaders(), ...cacheHeaders(false) },
+    });
   }
-
-  const now = new Date();
-  const origin = new URL(req.url).origin;
-  const url = new URL("/api/registry", origin);
-
-  url.searchParams.set("limit", "1");
-  url.searchParams.set("registryId", registryId);
-
-  let reg: RegistryApiResponse;
 
   try {
-    const res = await fetch(url.toString(), {
-      cache: "no-store",
-      headers: {
-        Accept: "application/json",
-      },
-    });
+    const now = new Date();
+    const row = await getRegistryVerificationByRegistryId(registryId);
 
-    reg = (await res.json()) as RegistryApiResponse;
-  } catch (error) {
-    return NextResponse.json(
-      {
-        ok: false,
-        error:
-          error instanceof Error
-            ? error.message
-            : "Failed to query registry.",
-      },
-      { status: 500, headers: { ...corsHeaders(), ...cacheHeaders(false) } },
-    );
-  }
-
-  if (!reg.ok) {
-    return NextResponse.json(
-      { ok: false, error: reg.error || "Registry query failed." },
-      { status: 500, headers: { ...corsHeaders(), ...cacheHeaders(false) } },
-    );
-  }
-
-  const row = reg.rows?.[0];
-
-  if (!row) {
-    return NextResponse.json(
-      {
+    if (!row) {
+      const response: VerifyApiResponse = {
         ok: true,
         registryId,
         verified: false,
         reason: "not_found",
         now: now.toISOString(),
-      },
-      { status: 200, headers: { ...corsHeaders(), ...cacheHeaders(false) } },
-    );
-  }
+      };
 
-  const verified = isCurrentlyValidRecord(row, now);
-  const payload = canonicalPayload(row);
-  const signed = signPayload(payload, secret);
+      return NextResponse.json(response, {
+        status: 200,
+        headers: { ...corsHeaders(), ...cacheHeaders(false) },
+      });
+    }
 
-  return NextResponse.json(
-    {
+    const verified = isCurrentlyValidRecord(row, now);
+    const payload = canonicalPayload(row);
+    const signed = signPayload(payload, secret);
+
+    const response: VerifyApiResponse = {
       ok: true,
       registryId,
       verified,
       record: {
-        ...row,
+        registryId: row.registryId,
+        applicationId: row.applicationId,
+        caseId: row.caseId,
+        entityName: row.entityName,
+        entityType: row.entityType,
+        country: row.country,
+        certifiedScore: row.certifiedScore,
+        certifiedTier: row.certifiedTier,
+        certifiedBand: row.certifiedBand,
+        decisionStatus: row.decisionStatus,
+        validFrom: row.validFrom,
+        validTo: row.validTo,
+        certifiedAt: row.certifiedAt,
+        lastActivityAt: row.lastActivityAt,
+        snapshotId: row.snapshotId,
+        modelVersion: row.modelVersion,
+        renewalStatus: row.renewalStatus,
+        scoredAt: row.scoredAt,
         isCurrentlyValid: verified,
       },
       proof: {
@@ -246,13 +260,27 @@ export async function GET(
         signedAt: now.toISOString(),
       },
       now: now.toISOString(),
-    },
-    {
+    };
+
+    return NextResponse.json(response, {
       status: 200,
       headers: {
         ...corsHeaders(),
         ...cacheHeaders(verified),
       },
-    },
-  );
+    });
+  } catch (error) {
+    const response: VerifyApiResponse = {
+      ok: false,
+      error:
+        error instanceof Error ? error.message : "Verification query failed.",
+      verified: false,
+      registryId,
+    };
+
+    return NextResponse.json(response, {
+      status: 500,
+      headers: { ...corsHeaders(), ...cacheHeaders(false) },
+    });
+  }
 }

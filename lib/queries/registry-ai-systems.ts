@@ -72,33 +72,41 @@ export type RegistryAiSystemsSummaryStats = {
   countries: number;
 };
 
-function firstString(...values: any[]): string | null {
-  for (const value of values) {
-    if (value === null || value === undefined) continue;
-    const s = String(value).trim();
-    if (s) return s;
-  }
+function firstString(value: unknown): string | null {
+  if (value === null || value === undefined) return null;
+  const s = String(value).trim();
+  return s ? s : null;
+}
+
+function firstNumber(value: unknown): number | null {
+  if (value === null || value === undefined || value === "") return null;
+  const n = Number(value);
+  return Number.isFinite(n) ? n : null;
+}
+
+function firstBoolean(value: unknown): boolean | null {
+  if (value === null || value === undefined || value === "") return null;
+  if (typeof value === "boolean") return value;
+
+  const s = String(value).trim().toLowerCase();
+  if (["true", "1", "yes", "y"].includes(s)) return true;
+  if (["false", "0", "no", "n"].includes(s)) return false;
+
   return null;
 }
 
-function firstNumber(...values: any[]): number | null {
-  for (const value of values) {
-    if (value === null || value === undefined || value === "") continue;
-    const n = Number(value);
-    if (Number.isFinite(n)) return n;
-  }
-  return null;
+function normalizeText(value: string | null | undefined): string {
+  return String(value ?? "").trim().toUpperCase();
 }
 
-function firstBoolean(...values: any[]): boolean | null {
-  for (const value of values) {
-    if (value === null || value === undefined || value === "") continue;
-    if (typeof value === "boolean") return value;
-    const s = String(value).trim().toLowerCase();
-    if (["true", "1", "yes", "y"].includes(s)) return true;
-    if (["false", "0", "no", "n"].includes(s)) return false;
-  }
-  return null;
+function toPositiveInteger(value: number | undefined, fallback: number): number {
+  if (!Number.isFinite(value) || !value || value < 1) return fallback;
+  return Math.floor(value);
+}
+
+function clampPageSize(value: number | undefined, fallback = 25, max = 100): number {
+  const size = toPositiveInteger(value, fallback);
+  return Math.min(size, max);
 }
 
 function compareNullableStrings(
@@ -106,8 +114,8 @@ function compareNullableStrings(
   b: string | null,
   direction: "asc" | "desc"
 ): number {
-  const av = (a ?? "").toUpperCase();
-  const bv = (b ?? "").toUpperCase();
+  const av = normalizeText(a);
+  const bv = normalizeText(b);
 
   if (!av && !bv) return 0;
   if (!av) return 1;
@@ -129,7 +137,7 @@ function compareNullableNumbers(
   return direction === "desc" ? bv - av : av - bv;
 }
 
-function normalizeRow(row: Record<string, any>): RegistryAiSystemRow {
+function normalizeRow(row: Record<string, unknown>): RegistryAiSystemRow {
   return {
     systemId: firstString(row.SYSTEM_ID) ?? "",
     registryId: firstString(row.REGISTRY_ID),
@@ -140,18 +148,10 @@ function normalizeRow(row: Record<string, any>): RegistryAiSystemRow {
     systemType: firstString(row.SYSTEM_TYPE),
     intendedUse: firstString(row.INTENDED_USE),
 
-    deploymentStatus: firstString(
-      row.DEPLOYMENT_STATUS,
-      row.DEPLOYMENT_SCOPE,
-      row.SYSTEM_STATUS,
-      row.STATUS
-    ),
-    oversightLevel: firstString(row.OVERSIGHT_LEVEL, row.OVERSIGHT_MODEL),
-    riskTier: firstString(row.RISK_TIER, row.RISK_LEVEL),
-    developerOrganization: firstString(
-      row.DEVELOPER_ORGANIZATION,
-      row.DEVELOPER_ORG
-    ),
+    deploymentStatus: firstString(row.DEPLOYMENT_STATUS),
+    oversightLevel: firstString(row.OVERSIGHT_LEVEL),
+    riskTier: firstString(row.RISK_TIER),
+    developerOrganization: firstString(row.DEVELOPER_ORGANIZATION),
     trainingDataCategory: firstString(row.TRAINING_DATA_CATEGORY),
     oversightModel: firstString(row.OVERSIGHT_MODEL),
     humanReviewRequired: firstBoolean(row.HUMAN_REVIEW_REQUIRED),
@@ -167,35 +167,53 @@ function normalizeRow(row: Record<string, any>): RegistryAiSystemRow {
     entityType: firstString(row.ENTITY_TYPE),
     country: firstString(row.COUNTRY),
 
-    certifiedTier: firstString(row.CERTIFIED_TIER, row.TIER),
-    certifiedBand: firstString(row.CERTIFIED_BAND, row.BAND),
-    certifiedScore: firstNumber(row.CERTIFIED_SCORE, row.SCORE, row.FINAL_SCORE),
-    certifiedAt: firstString(row.CERTIFIED_AT, row.APPROVED_AT, row.PUBLISHED_AT),
-    decisionStatus: firstString(row.DECISION_STATUS, row.REGISTRY_STATUS, row.STATUS),
-    validFrom: firstString(row.VALID_FROM, row.APPROVED_AT),
+    certifiedTier: firstString(row.CERTIFIED_TIER),
+    certifiedBand: firstString(row.CERTIFIED_BAND),
+    certifiedScore: firstNumber(row.CERTIFIED_SCORE),
+    certifiedAt: firstString(row.CERTIFIED_AT),
+    decisionStatus: firstString(row.DECISION_STATUS),
+    validFrom: firstString(row.VALID_FROM),
     validTo: firstString(row.VALID_TO),
-    lastActivityAt: firstString(row.LAST_ACTIVITY_AT, row.PUBLISHED_AT, row.CREATED_AT),
+    lastActivityAt: firstString(row.LAST_ACTIVITY_AT),
   };
 }
 
-const baseSelect = `
-  SELECT *
+const AI_SYSTEMS_SELECT = `
+  SELECT
+    SYSTEM_ID,
+    REGISTRY_ID,
+    APPLICATION_ID,
+    CASE_ID,
+    SYSTEM_NAME,
+    SYSTEM_TYPE,
+    INTENDED_USE,
+    DEPLOYMENT_STATUS,
+    OVERSIGHT_LEVEL,
+    RISK_TIER,
+    DEVELOPER_ORGANIZATION,
+    TRAINING_DATA_CATEGORY,
+    OVERSIGHT_MODEL,
+    HUMAN_REVIEW_REQUIRED,
+    EVALUATION_PROTOCOL,
+    AUDIT_FREQUENCY,
+    PUBLIC_SUMMARY,
+    IS_PUBLIC,
+    DISPLAY_ORDER,
+    CREATED_AT,
+    UPDATED_AT,
+    ENTITY_NAME,
+    ENTITY_TYPE,
+    COUNTRY,
+    CERTIFIED_TIER,
+    CERTIFIED_BAND,
+    CERTIFIED_SCORE,
+    CERTIFIED_AT,
+    DECISION_STATUS,
+    VALID_FROM,
+    VALID_TO,
+    LAST_ACTIVITY_AT
   FROM GAFAIG_DB.CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC
 `;
-
-function toPositiveInteger(value: number | undefined, fallback: number): number {
-  if (!Number.isFinite(value) || !value || value < 1) return fallback;
-  return Math.floor(value);
-}
-
-function clampPageSize(value: number | undefined, fallback = 25, max = 100): number {
-  const size = toPositiveInteger(value, fallback);
-  return Math.min(size, max);
-}
-
-function normalizeText(value: string | null | undefined): string {
-  return String(value ?? "").trim().toUpperCase();
-}
 
 function applyFilters(
   rows: RegistryAiSystemRow[],
@@ -245,20 +263,12 @@ function applySort(
   cloned.sort((a, b) => {
     switch (sortBy) {
       case "score": {
-        const cmp = compareNullableNumbers(
-          a.certifiedScore,
-          b.certifiedScore,
-          sortOrder
-        );
+        const cmp = compareNullableNumbers(a.certifiedScore, b.certifiedScore, sortOrder);
         if (cmp !== 0) return cmp;
         break;
       }
       case "tier": {
-        const cmp = compareNullableStrings(
-          a.certifiedTier,
-          b.certifiedTier,
-          sortOrder
-        );
+        const cmp = compareNullableStrings(a.certifiedTier, b.certifiedTier, sortOrder);
         if (cmp !== 0) return cmp;
         break;
       }
@@ -287,13 +297,12 @@ function applySort(
 
 export async function getRegistryAiSystems(): Promise<RegistryAiSystemRow[]> {
   const sql = `
-    ${baseSelect}
+    ${AI_SYSTEMS_SELECT}
+    ORDER BY DISPLAY_ORDER ASC NULLS LAST, SYSTEM_NAME ASC, SYSTEM_ID ASC
   `;
 
-  const rows = await snowflakeQuery<Record<string, any>>(sql);
-  const normalized = rows.map(normalizeRow);
-
-  return applySort(normalized, "name", "asc");
+  const rows = await snowflakeQuery<Record<string, unknown>>(sql);
+  return rows.map(normalizeRow);
 }
 
 export async function getRegistryAiSystemsPaginated(
@@ -362,19 +371,26 @@ export async function getRegistryAiSystemsSummaryStats(): Promise<RegistryAiSyst
 export async function getRegistryAiSystemBySystemId(
   systemId: string
 ): Promise<RegistryAiSystemRow | null> {
-  const rows = await getRegistryAiSystems();
-  const match = rows.find(
-    (row) => normalizeText(row.systemId) === normalizeText(systemId)
-  );
-  return match ?? null;
+  const sql = `
+    ${AI_SYSTEMS_SELECT}
+    WHERE TRIM(UPPER(SYSTEM_ID)) = TRIM(UPPER(?))
+    LIMIT 1
+  `;
+
+  const rows = await snowflakeQuery<Record<string, unknown>>(sql, [systemId]);
+  return rows[0] ? normalizeRow(rows[0]) : null;
 }
 
 export async function getRegistryAiSystemByRegistryId(
   registryId: string
 ): Promise<RegistryAiSystemRow | null> {
-  const rows = await getRegistryAiSystems();
-  const match = rows.find(
-    (row) => normalizeText(row.registryId) === normalizeText(registryId)
-  );
-  return match ?? null;
+  const sql = `
+    ${AI_SYSTEMS_SELECT}
+    WHERE TRIM(UPPER(REGISTRY_ID)) = TRIM(UPPER(?))
+    ORDER BY DISPLAY_ORDER ASC NULLS LAST, SYSTEM_NAME ASC, SYSTEM_ID ASC
+    LIMIT 1
+  `;
+
+  const rows = await snowflakeQuery<Record<string, unknown>>(sql, [registryId]);
+  return rows[0] ? normalizeRow(rows[0]) : null;
 }

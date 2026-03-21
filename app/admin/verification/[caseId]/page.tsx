@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
+import { useParams } from "next/navigation";
 import AdminNav from "../../_components/AdminNav";
 import AdminPageHeader from "../../_components/AdminPageHeader";
 
@@ -14,6 +15,40 @@ type DecisionRow = {
   summary?: string | null;
   conditions?: string | null;
 };
+
+type ScoreResponse =
+  | {
+      ok: true;
+      caseId: string;
+      participantId: string | null;
+      standard: { code: string | null; version: string | null };
+      caseStatus: string | null;
+      renewalStatus?: string | null;
+      tier: string;
+      band: string;
+      score: number;
+      subscores: {
+        controls: number;
+        coverage: number;
+        freshness: number;
+        summaries: number;
+      };
+      lastActivityAt: string | null;
+      counts: {
+        findingsTotal: number;
+        findingsScored: number;
+        findingsNA: number;
+        findingsWithEvidence: number;
+        evidenceTotal: number;
+        evidenceWithSummary: number;
+      };
+    }
+  | {
+      ok: false;
+      error: string;
+      hint?: string;
+      suggestions?: string[];
+    };
 
 async function fetchJson(url: string) {
   const res = await fetch(url, {
@@ -64,8 +99,12 @@ function pillClass(value?: string | null) {
   return "bg-gray-50 text-gray-800 border-gray-200";
 }
 
-export default function CaseOverviewPage({ params }: { params: { caseId: string } }) {
-  const caseId = params?.caseId || "";
+export default function CaseOverviewPage() {
+  const params = useParams();
+  const caseIdParam = params?.caseId;
+  const caseId = Array.isArray(caseIdParam)
+    ? String(caseIdParam[0] ?? "")
+    : String(caseIdParam ?? "");
 
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
@@ -73,6 +112,7 @@ export default function CaseOverviewPage({ params }: { params: { caseId: string 
   const [evidenceCount, setEvidenceCount] = React.useState<number>(0);
   const [findingsCount, setFindingsCount] = React.useState<number>(0);
   const [decision, setDecision] = React.useState<DecisionRow | null>(null);
+  const [score, setScore] = React.useState<ScoreResponse | null>(null);
 
   async function load() {
     if (!caseId) return;
@@ -84,11 +124,13 @@ export default function CaseOverviewPage({ params }: { params: { caseId: string 
       const evidenceUrl = `/api/admin/verification/${encodeURIComponent(caseId)}/evidence`;
       const findingsUrl = `/api/admin/verification/findings?caseId=${encodeURIComponent(caseId)}`;
       const decisionUrl = `/api/admin/verification/decisions?caseId=${encodeURIComponent(caseId)}`;
+      const scoreUrl = `/api/admin/verification/${encodeURIComponent(caseId)}/score`;
 
-      const [e, f, d] = await Promise.all([
+      const [e, f, d, s] = await Promise.all([
         fetchJson(evidenceUrl),
         fetchJson(findingsUrl),
         fetchJson(decisionUrl),
+        fetchJson(scoreUrl),
       ]);
 
       if (!e.data?.ok) {
@@ -100,13 +142,19 @@ export default function CaseOverviewPage({ params }: { params: { caseId: string 
       }
 
       if (!d.data?.ok) {
-        if (d.res.status === 401) {
+        if (d.res.status === 401 || d.res.status === 404) {
           setDecision(null);
         } else {
           throw new Error(d.data?.error || "Failed to load decision");
         }
       } else {
         setDecision(d.data?.row ?? null);
+      }
+
+      if (!s.data?.ok) {
+        setScore(s.data as ScoreResponse);
+      } else {
+        setScore(s.data as ScoreResponse);
       }
 
       setEvidenceCount(Array.isArray(e.data.rows) ? e.data.rows.length : 0);
@@ -116,6 +164,7 @@ export default function CaseOverviewPage({ params }: { params: { caseId: string 
       setEvidenceCount(0);
       setFindingsCount(0);
       setDecision(null);
+      setScore(null);
     } finally {
       setLoading(false);
     }
@@ -126,17 +175,21 @@ export default function CaseOverviewPage({ params }: { params: { caseId: string 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [caseId]);
 
-  const status = (decision?.decision || "").toLowerCase();
+  const status =
+    (score && score.ok ? score.caseStatus : null) ||
+    decision?.decision ||
+    "";
+
   const statusLabel = status ? prettify(status) : "no decision yet";
 
   return (
     <div>
       <AdminNav />
 
-      <main className="mx-auto max-w-[1100px] px-6 pt-14 pb-16">
+      <main className="mx-auto max-w-[1100px] px-6 pb-16 pt-14">
         <AdminPageHeader
           title={`Case ${caseId}`}
-          description="Case overview for the private verification workflow. Use this page to move into evidence, findings, and decision actions."
+          description="Case overview for the private verification workflow. Use this page to move into evidence, findings, scoring, decision, and publish actions."
           meta={loading ? "Loading…" : `Status: ${statusLabel}`}
           actions={
             <div className="flex flex-wrap gap-3">
@@ -176,6 +229,22 @@ export default function CaseOverviewPage({ params }: { params: { caseId: string 
               Status: {statusLabel}
             </span>
 
+            {score && score.ok ? (
+              <>
+                <span className="inline-flex items-center rounded-full border border-black/10 bg-black/[0.02] px-3 py-1 text-[12px] font-semibold text-black/80">
+                  Score: {score.score}
+                </span>
+                <span className="inline-flex items-center rounded-full border border-black/10 bg-black/[0.02] px-3 py-1 text-[12px] font-semibold text-black/80">
+                  {score.tier} • Band {score.band}
+                </span>
+                {score.renewalStatus ? (
+                  <span className="inline-flex items-center rounded-full border border-black/10 bg-black/[0.02] px-3 py-1 text-[12px] font-semibold text-black/80">
+                    Renewal: {prettify(score.renewalStatus)}
+                  </span>
+                ) : null}
+              </>
+            ) : null}
+
             {!decision ? (
               <span className="text-[14px] text-black/60">
                 No recorded decision yet for this case.
@@ -183,11 +252,16 @@ export default function CaseOverviewPage({ params }: { params: { caseId: string 
             ) : (
               <span className="text-[14px] text-black/60">
                 Last decision:{" "}
-                <span className="font-mono text-black/75">{decision.decidedAt || "—"}</span>
+                <span className="font-mono text-black/75">
+                  {decision.decidedAt || "—"}
+                </span>
                 {decision.decidedBy ? (
                   <>
                     {" "}
-                    by <span className="font-mono text-black/75">{decision.decidedBy}</span>
+                    by{" "}
+                    <span className="font-mono text-black/75">
+                      {decision.decidedBy}
+                    </span>
                   </>
                 ) : null}
               </span>
@@ -198,19 +272,33 @@ export default function CaseOverviewPage({ params }: { params: { caseId: string 
         {error ? (
           <div className="mb-6 rounded-2xl border border-red-200 bg-red-50 px-4 py-3">
             <div className="text-[14px] font-semibold text-red-700">Error</div>
-            <div className="mt-1 whitespace-pre-wrap text-[14px] text-black/80">{error}</div>
+            <div className="mt-1 whitespace-pre-wrap text-[14px] text-black/80">
+              {error}
+            </div>
           </div>
         ) : null}
 
-        <section className="grid gap-4 md:grid-cols-3">
+        {score && !score.ok ? (
+          <div className="mb-6 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3">
+            <div className="text-[14px] font-semibold text-amber-800">
+              Score unavailable
+            </div>
+            <div className="mt-1 text-[14px] text-black/80">{score.error}</div>
+            {score.hint ? (
+              <div className="mt-1 text-[13px] text-black/70">{score.hint}</div>
+            ) : null}
+          </div>
+        ) : null}
+
+        <section className="grid gap-4 md:grid-cols-5">
           <Link
             href={`/admin/verification/${encodeURIComponent(caseId)}/evidence`}
             className="rounded-2xl border border-black/10 p-5 hover:bg-black/[0.02]"
           >
-            <div className="text-[12px] uppercase tracking-[0.12em] text-black/55 font-semibold">
+            <div className="text-[12px] font-semibold uppercase tracking-[0.12em] text-black/55">
               Evidence
             </div>
-            <div className="mt-3 text-[44px] leading-none font-semibold text-black">
+            <div className="mt-3 text-[44px] font-semibold leading-none text-black">
               {loading ? "—" : evidenceCount}
             </div>
             <div className="mt-3 text-[14px] leading-[1.7] text-black/65">
@@ -222,10 +310,10 @@ export default function CaseOverviewPage({ params }: { params: { caseId: string 
             href={`/admin/verification/${encodeURIComponent(caseId)}/findings`}
             className="rounded-2xl border border-black/10 p-5 hover:bg-black/[0.02]"
           >
-            <div className="text-[12px] uppercase tracking-[0.12em] text-black/55 font-semibold">
+            <div className="text-[12px] font-semibold uppercase tracking-[0.12em] text-black/55">
               Findings
             </div>
-            <div className="mt-3 text-[44px] leading-none font-semibold text-black">
+            <div className="mt-3 text-[44px] font-semibold leading-none text-black">
               {loading ? "—" : findingsCount}
             </div>
             <div className="mt-3 text-[14px] leading-[1.7] text-black/65">
@@ -234,17 +322,47 @@ export default function CaseOverviewPage({ params }: { params: { caseId: string 
           </Link>
 
           <Link
+            href={`/admin/verification/${encodeURIComponent(caseId)}/score`}
+            className="rounded-2xl border border-black/10 p-5 hover:bg-black/[0.02]"
+          >
+            <div className="text-[12px] font-semibold uppercase tracking-[0.12em] text-black/55">
+              Score
+            </div>
+            <div className="mt-3 text-[32px] font-semibold leading-none text-black">
+              {score && score.ok ? score.score : "—"}
+            </div>
+            <div className="mt-3 text-[14px] leading-[1.7] text-black/65">
+              Review canonical enterprise scoring, subscores, and governance output.
+            </div>
+          </Link>
+
+          <Link
             href={`/admin/verification/${encodeURIComponent(caseId)}/decisions`}
             className="rounded-2xl border border-black/10 p-5 hover:bg-black/[0.02]"
           >
-            <div className="text-[12px] uppercase tracking-[0.12em] text-black/55 font-semibold">
+            <div className="text-[12px] font-semibold uppercase tracking-[0.12em] text-black/55">
               Decision
             </div>
-            <div className="mt-3 text-[32px] leading-none font-semibold text-black">
+            <div className="mt-3 text-[32px] font-semibold leading-none text-black">
               {decision?.decision ? prettify(decision.decision) : "—"}
             </div>
             <div className="mt-3 text-[14px] leading-[1.7] text-black/65">
               Approve, reject, suspend, or continue review with a recorded decision trail.
+            </div>
+          </Link>
+
+          <Link
+            href={`/admin/verification/${encodeURIComponent(caseId)}/publish`}
+            className="rounded-2xl border border-black/10 p-5 hover:bg-black/[0.02]"
+          >
+            <div className="text-[12px] font-semibold uppercase tracking-[0.12em] text-black/55">
+              Publish
+            </div>
+            <div className="mt-3 text-[32px] font-semibold leading-none text-black">
+              {score && score.ok ? score.band : "—"}
+            </div>
+            <div className="mt-3 text-[14px] leading-[1.7] text-black/65">
+              Publish the approved case to the public registry and AI systems surfaces.
             </div>
           </Link>
         </section>
@@ -260,7 +378,13 @@ export default function CaseOverviewPage({ params }: { params: { caseId: string 
               Open <span className="font-semibold text-black">Findings</span> to evaluate controls and document review results.
             </li>
             <li>
+              Open <span className="font-semibold text-black">Score</span> to confirm canonical enterprise scoring results.
+            </li>
+            <li>
               Open <span className="font-semibold text-black">Decision</span> to finalize the case outcome and audit trail.
+            </li>
+            <li>
+              Open <span className="font-semibold text-black">Publish</span> to move an approved case into the public registry pipeline.
             </li>
           </ul>
         </section>

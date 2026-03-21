@@ -7,15 +7,25 @@ import AdminPageHeader from "../_components/AdminPageHeader";
 
 type Row = {
   requestId: string;
-  org: string;
-  email: string;
-  status: string;
-  source: string;
-  updatedAt: string;
+  org: string | null;
+  email: string | null;
+  status: string | null;
+  source: string | null;
+  updatedAt: string | null;
 };
 
 type ApiResponse =
-  | { ok: true; rows: Row[]; total: number; page: number; pageSize: number }
+  | {
+      ok: true;
+      rows: Row[];
+      total: number;
+      page: number;
+      pageSize: number;
+      filters?: {
+        status?: string;
+        q?: string;
+      };
+    }
   | { ok: false; error: string };
 
 const STATUS_OPTIONS = [
@@ -27,8 +37,14 @@ const STATUS_OPTIONS = [
   "rejected",
 ] as const;
 
-function labelForStatus(value: string) {
-  return value.replaceAll("_", " ");
+function labelForStatus(value: string | null | undefined) {
+  const normalized = String(value ?? "").trim();
+  if (!normalized) return "unknown";
+  return normalized.replaceAll("_", " ");
+}
+
+function valueOrDash(value: string | null | undefined) {
+  return value && value.trim() ? value : "—";
 }
 
 export default function AdminApplicationsPage() {
@@ -76,15 +92,15 @@ export default function AdminApplicationsPage() {
       const data = (await res.json()) as ApiResponse;
 
       if (!res.ok || !data.ok) {
-        throw new Error((data as any)?.error || `Failed to load (${res.status})`);
+        throw new Error((data as { ok: false; error: string })?.error || `Failed to load (${res.status})`);
       }
 
       setRows(data.rows ?? []);
       setTotal(Number(data.total ?? 0));
       setPage(Number(data.page ?? pg));
       setPageSize(Number(data.pageSize ?? ps));
-    } catch (e: any) {
-      setError(e?.message ?? "Failed to load applications");
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : "Failed to load applications");
       setRows([]);
       setTotal(0);
     } finally {
@@ -290,26 +306,32 @@ export default function AdminApplicationsPage() {
                     rows.map((r) => (
                       <tr key={r.requestId} className="border-t border-black/5">
                         <td className="px-4 py-4 whitespace-nowrap">
-                          <a
+                          <Link
                             href={`/admin/applications/${encodeURIComponent(
                               r.requestId
                             )}`}
                             className="font-semibold underline underline-offset-2"
                           >
                             {r.requestId}
-                          </a>
+                          </Link>
                         </td>
 
-                        <td className="px-4 py-4 text-black/85">{r.org}</td>
-                        <td className="px-4 py-4 text-black/75">{r.email}</td>
+                        <td className="px-4 py-4 text-black/85">
+                          {valueOrDash(r.org)}
+                        </td>
+                        <td className="px-4 py-4 text-black/75">
+                          {valueOrDash(r.email)}
+                        </td>
                         <td className="px-4 py-4">
                           <span className="inline-flex items-center rounded-full border border-black/10 bg-black/[0.02] px-3 py-1 text-[12px] font-semibold text-black/80">
                             {labelForStatus(r.status)}
                           </span>
                         </td>
-                        <td className="px-4 py-4 text-black/70">{r.source}</td>
+                        <td className="px-4 py-4 text-black/70">
+                          {valueOrDash(r.source)}
+                        </td>
                         <td className="px-4 py-4 whitespace-nowrap text-black/65">
-                          {r.updatedAt}
+                          {valueOrDash(r.updatedAt)}
                         </td>
                       </tr>
                     ))

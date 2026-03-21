@@ -1,24 +1,14 @@
 import Link from "next/link";
 import PublicPageHero from "../_components/PublicPageHero";
-import { getRegistryAiSystems } from "@/lib/queries/registry-ai-systems";
+import {
+  getRegistryRecords,
+  searchRegistryRecords,
+  type RegistryRecordRow,
+  type RegistrySearchFilters,
+} from "@/lib/queries/registry";
+import { getRegistryAiSystemsSummaryStats } from "@/lib/queries/registry-ai-systems";
 
 export const dynamic = "force-dynamic";
-
-type RegistryRow = {
-  registryId: string;
-  systemId: string;
-  systemName: string;
-  entityName: string | null;
-  entityType: string | null;
-  country: string | null;
-  certifiedTier: string | null;
-  certifiedBand: string | null;
-  decisionStatus: string | null;
-  certifiedAt: string | null;
-  validFrom: string | null;
-  validTo: string | null;
-  lastActivityAt: string | null;
-};
 
 function formatDate(v?: string | null) {
   if (!v) return "—";
@@ -110,43 +100,17 @@ function GatewayCard({
   );
 }
 
-function dedupeRegistryRows(rows: Awaited<ReturnType<typeof getRegistryAiSystems>>): RegistryRow[] {
-  const seen = new Set<string>();
-  const out: RegistryRow[] = [];
-
-  for (const row of rows) {
-    if (!row.registryId) continue;
-    const key = row.registryId.trim().toUpperCase();
-    if (!key || seen.has(key)) continue;
-    seen.add(key);
-
-    out.push({
-      registryId: row.registryId,
-      systemId: row.systemId,
-      systemName: row.systemName,
-      entityName: row.entityName,
-      entityType: row.entityType,
-      country: row.country,
-      certifiedTier: row.certifiedTier,
-      certifiedBand: row.certifiedBand,
-      decisionStatus: row.decisionStatus,
-      certifiedAt: row.certifiedAt,
-      validFrom: row.validFrom,
-      validTo: row.validTo,
-      lastActivityAt: row.lastActivityAt,
-    });
-  }
-
-  return out;
-}
-
-function getStats(rows: RegistryRow[]) {
+function getStats(
+  visibleRows: RegistryRecordRow[],
+  allRows: RegistryRecordRow[],
+  disclosedAiSystems: number
+) {
   const countriesRepresented = new Set(
-    rows.map((r) => (r.country || "").trim()).filter(Boolean)
+    visibleRows.map((r) => (r.country || "").trim()).filter(Boolean)
   ).size;
 
   const latestCertificationDate =
-    rows
+    visibleRows
       .map((r) => r.certifiedAt)
       .filter(Boolean)
       .sort((a, b) => {
@@ -156,10 +120,11 @@ function getStats(rows: RegistryRow[]) {
       })[0] ?? null;
 
   return {
-    certificationRecords: rows.length,
-    disclosedAiSystems: rows.length,
+    certificationRecords: visibleRows.length,
+    disclosedAiSystems,
     countriesRepresented,
     latestCertificationDate,
+    totalCertificationRecords: allRows.length,
   };
 }
 
@@ -171,31 +136,43 @@ export default async function RegistryPage({
   const sp = (await searchParams) || {};
   const q = typeof sp.q === "string" ? sp.q.trim() : "";
   const country = typeof sp.country === "string" ? sp.country.trim() : "";
-  const registryId = typeof sp.registryId === "string" ? sp.registryId.trim() : "";
+  const registryId =
+    typeof sp.registryId === "string" ? sp.registryId.trim() : "";
 
-  const allSystems = await getRegistryAiSystems();
-  const allRows = dedupeRegistryRows(allSystems);
-
-  const rows = allRows.filter((row) => {
-    const matchesQ =
-      !q ||
-      [row.entityName, row.systemName]
-        .filter(Boolean)
-        .some((value) => String(value).toUpperCase().includes(q.toUpperCase()));
-
-    const matchesCountry =
-      !country ||
-      (row.country || "").trim().toUpperCase() === country.trim().toUpperCase();
-
-    const matchesRegistryId =
-      !registryId ||
-      (row.registryId || "").trim().toUpperCase() === registryId.trim().toUpperCase();
-
-    return matchesQ && matchesCountry && matchesRegistryId;
-  });
+  const filters: RegistrySearchFilters = {
+    q,
+    country,
+    registryId,
+    limit: 500,
+  };
 
   const hasFilters = Boolean(q || country || registryId);
-  const stats = getStats(rows.length ? rows : allRows);
+
+  const [allRows, visibleRows, aiSystemStats] = await Promise.all([
+    getRegistryRecords(500),
+    hasFilters ? searchRegistryRecords(filters) : getRegistryRecords(500),
+    getRegistryAiSystemsSummaryStats(),
+  ]);
+
+  const rows: RegistryRecordRow[] = visibleRows.map((row) => ({
+    registryId: row.registryId,
+    applicationId: row.applicationId,
+    caseId: row.caseId,
+    entityName: row.entityName,
+    entityType: row.entityType,
+    country: row.country,
+    certifiedScore: null,
+    certifiedTier: row.certifiedTier,
+    certifiedBand: row.certifiedBand,
+    decisionStatus: row.decisionStatus,
+    validFrom: row.validFrom,
+    validTo: row.validTo,
+    certifiedAt: row.certifiedAt,
+    lastActivityAt: row.lastActivityAt,
+    snapshotId: null,
+  }));
+
+  const stats = getStats(rows, allRows, aiSystemStats.totalSystems);
 
   return (
     <main className="mx-auto max-w-[1180px] px-6 pb-16 pt-14">
@@ -233,26 +210,29 @@ export default async function RegistryPage({
 
         <p className="mt-5 max-w-[920px] text-[16px] leading-[1.85] text-black/80">
           This registry is the public-facing layer of the GAFAIG platform. It
-          connects certification records to disclosed AI systems and allows
-          external observers to inspect public governance outcomes without
-          exposing internal reviewer materials.
+          exposes certification records derived from the canonical snapshot-based
+          registry pipeline and links into the public AI systems surface.
         </p>
 
         <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
           <StatCard
             label="Certification Records"
             value={stats.certificationRecords}
-            helper="Published public certification outcomes"
+            helper={
+              hasFilters
+                ? `Filtered from ${stats.totalCertificationRecords} published records`
+                : "Published public certification outcomes"
+            }
           />
           <StatCard
             label="Disclosed AI Systems"
             value={stats.disclosedAiSystems}
-            helper="System-linked public records"
+            helper="Public AI systems linked to registry records"
           />
           <StatCard
             label="Countries Represented"
             value={stats.countriesRepresented}
-            helper="Countries visible in current public records"
+            helper="Countries visible in current registry results"
           />
           <StatCard
             label="Latest Certification"
@@ -294,20 +274,20 @@ export default async function RegistryPage({
 
         <p className="mt-5 max-w-[920px] text-[16px] leading-[1.85] text-black/80">
           Search published certification records by organization, country, or
-          registry ID. Each record links to the associated public certification
-          page and connects into the disclosed AI system detail surface.
+          registry ID. Each record links to the official public certification
+          page.
         </p>
 
         <form className="mt-6 grid gap-3 md:grid-cols-4">
           <div className="md:col-span-2">
             <label className="mb-2 block text-[12px] font-semibold uppercase tracking-[0.16em] text-black/60">
-              Organization or System
+              Organization
             </label>
             <input
               type="text"
               name="q"
               defaultValue={q}
-              placeholder="Search by organization or system name"
+              placeholder="Search by organization name"
               className={inputClass()}
             />
           </div>
@@ -409,7 +389,7 @@ export default async function RegistryPage({
                         <td className="p-0 align-top">
                           <Link href={href} className={cellLinkClass()}>
                             <div className="font-semibold text-black">
-                              {r.entityName ?? r.systemName}
+                              {r.entityName ?? "Unnamed Entity"}
                             </div>
 
                             <div className="mt-1 text-[12px] text-black/60">
@@ -474,8 +454,8 @@ export default async function RegistryPage({
 
           <p className="mt-5 max-w-[920px] text-[16px] leading-[1.85] text-black/80">
             Registry records are generated from a structured workflow that moves
-            from verification case to scoring, snapshot, certification
-            publication, and public registry disclosure.
+            from case-based verification to scoring, snapshot creation, registry
+            publication, and public disclosure.
           </p>
 
           <div className="mt-6 grid gap-3 md:grid-cols-5">

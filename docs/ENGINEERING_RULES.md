@@ -61,6 +61,7 @@ Snowflake is authoritative for:
 • registry publication  
 • public registry views  
 • AI systems registry views  
+• admin intake views  
 
 Application code must NEVER replicate scoring logic.
 
@@ -81,6 +82,7 @@ IMPORTANT:
 • VERIFICATION_CASES is the root object  
 • all scoring originates from CASE_ID  
 • applications are intake only  
+• admin intake does NOT replace case workflow  
 • application → case automation is NOT canonical  
 
 Never bypass the case workflow.
@@ -186,6 +188,7 @@ DO NOT:
 
 • create orphan systems  
 • insert systems without registry linkage  
+• assume system metadata fields without verifying view schema  
 
 ---
 
@@ -199,7 +202,8 @@ Rules:
 
 • all SQL must live in query layer  
 • UI must NEVER contain SQL  
-• API must call query functions only  
+• API must call query functions OR canonical SQL (transitional only)  
+• eliminate duplicate SQL across routes  
 
 Purpose:
 
@@ -250,7 +254,7 @@ Tables are storage only.
 Data flow:
 
 Snowflake View  
-→ Query Layer  
+→ Query Layer / API  
 → TypeScript Mapping  
 → UI  
 
@@ -318,6 +322,11 @@ Must NOT expose:
 • internal scoring logic  
 • reviewer notes  
 
+Only expose:
+
+• approved registry data  
+• oversight signal outputs  
+
 ---
 
 # Rule 16 — Admin Surfaces Must Be Protected
@@ -329,11 +338,39 @@ Routes:
 
 Require authentication.
 
-Never expose secrets.
+Never expose:
+
+• credentials  
+• internal Snowflake structures  
+• privileged data  
+
+Admin surfaces include:
+
+• /admin/applications  
 
 ---
 
-# Rule 17 — Deterministic Identifiers Only
+# Rule 17 — Admin Intake Is NOT the Core Engine
+
+Admin intake (applications) is:
+
+• a reviewer workflow surface  
+• a staging layer  
+
+It is NOT:
+
+• the governance engine  
+• a registry source  
+
+Constraints:
+
+• must read from V_ADMIN_SUBMISSIONS  
+• must not publish directly to registry  
+• must not bypass scoring pipeline  
+
+---
+
+# Rule 18 — Deterministic Identifiers Only
 
 Identifiers:
 
@@ -343,27 +380,32 @@ EVIDENCE_ID
 SNAPSHOT_ID  
 REGISTRY_ID  
 SYSTEM_ID  
+REQUEST_ID  
 
 Defined in:
 
 types/ids.ts  
 
-Do not mutate in UI.
+Do not mutate identifiers in UI or API.
 
 ---
 
-# Rule 18 — Environment Variables Only
+# Rule 19 — Environment Variables Only
 
 Secrets must use:
 
 .env.local  
 Vercel environment config  
 
-Never hardcode credentials.
+Never hardcode:
+
+• database credentials  
+• API keys  
+• tokens  
 
 ---
 
-# Rule 19 — Full Pipeline Validation Required
+# Rule 20 — Full Pipeline Validation Required
 
 Every change must validate:
 
@@ -371,18 +413,19 @@ Every change must validate:
 2. snapshot created  
 3. registry snapshot created  
 4. public view resolves  
-5. query layer returns data  
+5. query/API layer returns correct data  
 6. UI renders correctly  
+7. production behaves identically to local  
 
 ---
 
-# Rule 20 — No Duplicate Architecture
+# Rule 21 — No Duplicate Architecture
 
 Before creating anything new:
 
 • check Snowflake objects  
 • check query layer  
-• check routes  
+• check existing routes  
 
 Extend existing systems.
 
@@ -390,7 +433,25 @@ Do not fork architecture.
 
 ---
 
-# Rule 21 — AI Must Not Re-Architect
+# Rule 22 — No Speculative Schema Usage (CRITICAL)
+
+Do NOT reference columns unless verified in Snowflake.
+
+Required workflow:
+
+1. inspect view in Snowflake  
+2. confirm column exists  
+3. then use in query/UI  
+
+Prevents:
+
+• runtime crashes  
+• broken pages  
+• production regressions  
+
+---
+
+# Rule 23 — AI Must Not Re-Architect
 
 AI assistants must:
 
@@ -403,10 +464,11 @@ AI must NOT:
 • invent new architecture  
 • bypass Snowflake  
 • introduce alternate pipelines  
+• fabricate schema  
 
 ---
 
-# Rule 22 — Docs Must Stay Synchronized
+# Rule 24 — Docs Must Stay Synchronized
 
 Always update together:
 
@@ -419,7 +481,7 @@ Use full-file replacements.
 
 ---
 
-# Rule 23 — New Chats Must Be Re-Anchored
+# Rule 25 — New Chats Must Be Re-Anchored
 
 At start of every new chat:
 
@@ -435,13 +497,15 @@ Re-establish:
 
 1. Review canonical docs  
 2. Confirm architecture path  
-3. Modify Snowflake or query layer  
+3. Modify Snowflake or query/API layer  
 4. Validate in Snowflake  
-5. Validate query layer  
-6. Validate UI  
+5. Validate API/query layer  
+6. Validate UI locally  
 7. Commit  
-8. Deploy  
-9. Update docs  
+8. Push to GitHub  
+9. Deploy via Vercel  
+10. Validate production  
+11. Update docs  
 
 ---
 
@@ -456,4 +520,4 @@ Engineering decisions must prioritize:
 • registry integrity  
 • reproducibility  
 • controlled disclosure  
-• architectural consistency  
+• architecture consistency  

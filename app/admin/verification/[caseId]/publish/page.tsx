@@ -1,3 +1,4 @@
+import Link from "next/link";
 import AdminNav from "../../../_components/AdminNav";
 import AdminPageHeader from "../../../_components/AdminPageHeader";
 import CaseTabs from "../_components/CaseTabs";
@@ -74,17 +75,19 @@ async function getScore(caseId: string): Promise<ScoreResp | null> {
 export default async function CasePublishPage({
   params,
 }: {
-  params: { caseId: string };
+  params: Promise<{ caseId: string }>;
 }) {
-  const caseId = params.caseId;
+  const { caseId } = await params;
   const data = await getScore(caseId);
   const ok = !!data?.ok;
+  const publishAllowed =
+    ok && String(data.caseStatus ?? "").trim().toLowerCase() !== "approved";
 
   return (
     <div className="min-h-screen bg-white text-black">
       <AdminNav />
 
-      <main className="mx-auto max-w-[1100px] px-6 pt-14 pb-16 space-y-8">
+      <main className="mx-auto max-w-[1100px] space-y-8 px-6 pb-16 pt-14">
         <AdminPageHeader
           title={`Publish — ${caseId}`}
           description="Approve this verification case and write the public registry snapshot."
@@ -95,7 +98,9 @@ export default async function CasePublishPage({
 
         {!ok ? (
           <section className="rounded-2xl border border-black/10 p-5">
-            <div className="text-[16px] font-semibold text-black">Publish unavailable</div>
+            <div className="text-[16px] font-semibold text-black">
+              Publish unavailable
+            </div>
             <p className="mt-2 text-[14px] leading-[1.7] text-black/70">
               {data?.error || "Unable to load the score required for publish."}
             </p>
@@ -104,16 +109,16 @@ export default async function CasePublishPage({
           <>
             <section className="grid gap-4 md:grid-cols-4">
               <div className="rounded-2xl border border-black/10 p-4">
-                <div className="text-[12px] uppercase tracking-[0.16em] text-black/60 font-semibold">
+                <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/60">
                   Score
                 </div>
-                <div className="mt-3 text-[30px] leading-none font-semibold text-black">
+                <div className="mt-3 text-[30px] font-semibold leading-none text-black">
                   {data.score}
                 </div>
               </div>
 
               <div className="rounded-2xl border border-black/10 p-4">
-                <div className="text-[12px] uppercase tracking-[0.16em] text-black/60 font-semibold">
+                <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/60">
                   Tier
                 </div>
                 <div className="mt-3 text-[18px] font-semibold text-black">
@@ -122,7 +127,7 @@ export default async function CasePublishPage({
               </div>
 
               <div className="rounded-2xl border border-black/10 p-4">
-                <div className="text-[12px] uppercase tracking-[0.16em] text-black/60 font-semibold">
+                <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/60">
                   Band
                 </div>
                 <div className="mt-3 text-[18px] font-semibold text-black">
@@ -131,7 +136,7 @@ export default async function CasePublishPage({
               </div>
 
               <div className="rounded-2xl border border-black/10 p-4">
-                <div className="text-[12px] uppercase tracking-[0.16em] text-black/60 font-semibold">
+                <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/60">
                   Status
                 </div>
                 <div className="mt-3 text-[18px] font-semibold text-black">
@@ -141,12 +146,23 @@ export default async function CasePublishPage({
             </section>
 
             <section className="rounded-2xl border border-black/10 p-5">
-              <h2 className="text-[16px] font-semibold text-black">Publish workflow</h2>
-              <p className="mt-2 text-[14px] leading-[1.7] text-black/70 max-w-[900px]">
-                Publishing writes the approval action into Snowflake and makes the registry
-                snapshot available through the public registry views. After publish, verify the
-                result on the public registry.
+              <h2 className="text-[16px] font-semibold text-black">
+                Publish workflow
+              </h2>
+              <p className="mt-2 max-w-[900px] text-[14px] leading-[1.7] text-black/70">
+                Publishing first approves the case through the admin publish API,
+                then writes a registry snapshot in Snowflake and exposes the result
+                through the public registry views. After publish, verify the result
+                on the public registry.
               </p>
+
+              {!publishAllowed ? (
+                <div className="mt-5 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-[14px] text-emerald-800">
+                  This case already appears to be approved. Publishing can still be
+                  validated from the public registry after the current snapshot is
+                  confirmed.
+                </div>
+              ) : null}
 
               <div className="mt-5">
                 <PublishPanel
@@ -161,27 +177,33 @@ export default async function CasePublishPage({
             </section>
 
             <section className="rounded-2xl border border-black/10 p-5">
-              <h2 className="text-[16px] font-semibold text-black">After publish</h2>
+              <h2 className="text-[16px] font-semibold text-black">
+                After publish
+              </h2>
               <div className="mt-3 grid gap-4 md:grid-cols-2">
-                <a
+                <Link
                   href="/registry"
                   className="rounded-2xl border border-black/10 p-4 hover:bg-black/[0.03]"
                 >
-                  <div className="text-[14px] font-semibold text-black">Open public registry</div>
+                  <div className="text-[14px] font-semibold text-black">
+                    Open public registry
+                  </div>
                   <div className="mt-1 text-[13px] text-black/60">
                     Confirm the published record appears in the registry list.
                   </div>
-                </a>
+                </Link>
 
-                <a
-                  href={`/registry`}
+                <Link
+                  href="/registry"
                   className="rounded-2xl border border-black/10 p-4 hover:bg-black/[0.03]"
                 >
-                  <div className="text-[14px] font-semibold text-black">Search for this entity</div>
+                  <div className="text-[14px] font-semibold text-black">
+                    Search for this entity
+                  </div>
                   <div className="mt-1 text-[13px] text-black/60">
                     Use the public registry to verify the final public disclosure.
                   </div>
-                </a>
+                </Link>
               </div>
             </section>
           </>

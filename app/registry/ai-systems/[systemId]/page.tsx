@@ -1,9 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import {
-  getRegistryAiSystemByRegistryId,
-  getRegistryAiSystemBySystemId,
-} from "@/lib/queries/registry-ai-systems";
+import { getRegistryAiSystemBySystemId } from "@/lib/queries/registry-ai-systems";
 
 function fmtDate(value: string | null): string {
   if (!value) return "—";
@@ -49,34 +46,22 @@ function valueOrDash(value?: string | null | number): string | number {
 export const dynamic = "force-dynamic";
 
 type PageProps = {
-  params: {
+  params: Promise<{
     systemId: string;
-  };
+  }>;
 };
 
 export default async function RegistryAiSystemDetailPage({
   params,
 }: PageProps) {
-  const slug = params.systemId?.trim();
+  const resolvedParams = await params;
+  const slug = resolvedParams.systemId?.trim();
 
   if (!slug) notFound();
 
-  const system =
-    (await getRegistryAiSystemBySystemId(slug)) ??
-    (await getRegistryAiSystemByRegistryId(slug));
+  const system = await getRegistryAiSystemBySystemId(slug);
 
   if (!system) notFound();
-
-  const normalizedSlug = slug.toUpperCase();
-  const normalizedSystemId = system.systemId?.trim().toUpperCase() ?? "";
-  const normalizedRegistryId = system.registryId?.trim().toUpperCase() ?? "";
-
-  const resolvedBy =
-    normalizedSlug === normalizedSystemId
-      ? "system"
-      : normalizedSlug === normalizedRegistryId
-        ? "registry"
-        : null;
 
   return (
     <main className="mx-auto max-w-6xl px-6 py-12">
@@ -125,12 +110,6 @@ export default async function RegistryAiSystemDetailPage({
               certification metadata, governance status, and published system
               disclosures.
             </p>
-
-            {resolvedBy ? (
-              <div className="mt-4 inline-flex rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-medium text-slate-600">
-                Resolved by {resolvedBy === "system" ? "System ID" : "Registry ID"}
-              </div>
-            ) : null}
           </div>
 
           <div className="grid w-full gap-3 sm:grid-cols-2 lg:w-[360px]">

@@ -11,7 +11,6 @@ type PublicMetricsResponse =
         certifiedOrganizations: number;
         disclosedAiSystems: number;
         countriesRepresented: number;
-        verifiedParticipants: number;
       };
     }
   | {
@@ -19,11 +18,11 @@ type PublicMetricsResponse =
       error: string;
     };
 
-function getBaseUrl() {
+async function getBaseUrl() {
   const envUrl = process.env.NEXT_PUBLIC_SITE_URL;
   if (envUrl) return envUrl.replace(/\/+$/, "");
 
-  const h = headers();
+  const h = await headers();
   const host = h.get("x-forwarded-host") ?? h.get("host");
   const proto = h.get("x-forwarded-proto") ?? "https";
 
@@ -34,7 +33,7 @@ function getBaseUrl() {
 
 async function getPublicMetrics(): Promise<PublicMetricsResponse | null> {
   try {
-    const base = getBaseUrl();
+    const base = await getBaseUrl();
 
     const res = await fetch(`${base}/api/public/metrics`, {
       cache: "no-store",
@@ -101,9 +100,8 @@ export default async function HomePage() {
               Live governance footprint
             </h2>
             <p className="mt-3 max-w-[760px] text-[15px] leading-[1.8] text-black/72">
-              These public counters are generated from GAFAIG’s Snowflake-backed
-              registry, AI systems layer, and verified participant identity
-              records.
+              These public counters are generated from GAFAIG&apos;s canonical
+              public registry and AI systems registry views.
             </p>
           </div>
 
@@ -112,7 +110,7 @@ export default async function HomePage() {
           </div>
         </div>
 
-        <div className="mt-7 grid gap-4 md:grid-cols-4">
+        <div className="mt-7 grid gap-4 md:grid-cols-3">
           <MetricCard
             label="Certified organizations"
             value={fmt(metrics?.certifiedOrganizations)}
@@ -124,10 +122,6 @@ export default async function HomePage() {
           <MetricCard
             label="Countries represented"
             value={fmt(metrics?.countriesRepresented)}
-          />
-          <MetricCard
-            label="Verified participants"
-            value={fmt(metrics?.verifiedParticipants)}
           />
         </div>
       </section>

@@ -75,7 +75,7 @@ sql/
 /registry  
 /registry/[registryId]  
 /registry/ai-systems  
-/registry/ai-systems/[registryId]  
+/registry/ai-systems/[systemId]  
 
 ---
 
@@ -91,12 +91,18 @@ CORE.V_REGISTRY_PUBLIC
 CORE.V_PUBLIC_REGISTRY  
 CORE.V_PUBLIC_OVERSIGHT_SIGNAL  
 
+Purpose:
+
+• expose certified registry records  
+• surface governance signals only  
+• hide all private verification data  
+
 ---
 
-## AI Systems Registry (NEW)
+## AI Systems Registry
 
 /registry/ai-systems  
-/registry/ai-systems/[registryId]  
+/registry/ai-systems/[systemId]  
 
 Data source:
 
@@ -107,6 +113,7 @@ Purpose:
 • expose system-level registry  
 • link systems to entities and certification  
 • extend registry visibility  
+• resolve by SYSTEM_ID (NOT registryId)  
 
 ---
 
@@ -144,6 +151,31 @@ VERIFICATION_EVENTS
 
 ---
 
+## Admin Applications (NEW — STABILIZED)
+
+/admin/applications  
+
+API:
+
+/api/admin/applications  
+
+Data source:
+
+CORE.V_ADMIN_SUBMISSIONS  
+
+Purpose:
+
+• reviewer intake workflow  
+• search / filter submissions  
+• display requestId, org, email, status  
+
+Important:
+
+• this is NOT the governance engine  
+• this is a staging/intake surface only  
+
+---
+
 # API Routes
 
 ## Registry APIs
@@ -159,9 +191,9 @@ CORE.V_PUBLIC_REGISTRY
 
 ---
 
-## AI Systems (via Query Layer)
+## AI Systems
 
-No direct API required initially.
+No dedicated API required (current design).
 
 Frontend uses:
 
@@ -189,7 +221,13 @@ CORE.V_PUBLIC_OVERSIGHT_SIGNAL
 
 ## Admin APIs
 
+/api/admin/applications  
 /api/admin/publish  
+
+Functions:
+
+• intake listing (applications)  
+• registry publishing trigger  
 
 Calls:
 
@@ -206,27 +244,35 @@ CORE
 
 # Core Snowflake Tables
 
-Verification Engine:
+## Verification Engine
 
 VERIFICATION_CASES  
 VERIFICATION_FINDINGS  
 VERIFICATION_EVIDENCE  
 VERIFICATION_EVENTS  
 
-Link Tables:
+---
+
+## Link Tables
 
 VERIFICATION_FINDING_EVIDENCE  
 FINDING_EVIDENCE_MAP  
 
-AI / Evidence:
+---
+
+## Evidence Layer
 
 EVIDENCE_SUMMARIES  
 
-Scoring:
+---
+
+## Scoring
 
 CASE_SCORE_SNAPSHOTS_V2  
 
-Registry:
+---
+
+## Registry
 
 REGISTRY_SNAPSHOTS  
 REGISTRY_AI_SYSTEMS  
@@ -235,7 +281,7 @@ REGISTRY_AI_SYSTEMS
 
 # Enterprise Scoring Engine (CANONICAL)
 
-Tables:
+## Tables
 
 SCORING_MODEL_VERSIONS  
 CONTROL_CATALOG  
@@ -243,14 +289,18 @@ CONTROL_WEIGHTS
 SEVERITY_WEIGHTS  
 SCORE_BANDS  
 
-Views:
+---
+
+## Views
 
 V_CASE_SCORE_ENTERPRISE  
 V_CASE_TIER_BAND  
 V_CASE_RENEWAL_STATUS  
 V_PUBLIC_OVERSIGHT_SIGNAL  
 
-Procedure:
+---
+
+## Procedure
 
 SP_SCORE_CASE_ENTERPRISE  
 
@@ -258,14 +308,16 @@ SP_SCORE_CASE_ENTERPRISE
 
 # Registry Layer
 
-Views:
+## Views
 
 V_REGISTRY_LATEST_APPROVED  
 V_REGISTRY_PUBLIC  
 V_PUBLIC_REGISTRY  
 V_REGISTRY_EXPORT_V1  
 
-Procedure:
+---
+
+## Procedure
 
 SP_PUBLISH_CASE_TO_REGISTRY_V3  
 
@@ -273,22 +325,54 @@ SP_PUBLISH_CASE_TO_REGISTRY_V3
 
 # AI Systems Registry Layer
 
-View:
+## View
 
 V_REGISTRY_AI_SYSTEMS_PUBLIC  
 
-Derived from:
+---
+
+## Derived From
 
 REGISTRY_AI_SYSTEMS  
 VERIFICATION_CASES  
 REGISTRY_ENTITIES  
 V_REGISTRY_PUBLIC  
 
-Purpose:
+---
+
+## Purpose
 
 • expose certified AI systems  
 • enrich with entity + certification  
 • align with registry pipeline  
+
+---
+
+# Admin Intake Layer
+
+## View
+
+V_ADMIN_SUBMISSIONS  
+
+---
+
+## Purpose
+
+• unify submission sources  
+• provide admin visibility  
+• maintain compatibility with UI  
+
+---
+
+## Key Columns (Compatibility Contract)
+
+REQUEST_ID  
+ORG_NAME  
+CONTACT_EMAIL  
+STATUS  
+SOURCE_TABLE  
+TYPE  
+UPDATED_AT  
 
 ---
 
@@ -306,6 +390,7 @@ V_REGISTRY_PUBLIC
 V_PUBLIC_REGISTRY  
 V_PUBLIC_OVERSIGHT_SIGNAL  
 V_REGISTRY_AI_SYSTEMS_PUBLIC  
+V_ADMIN_SUBMISSIONS  
 
 ---
 
@@ -325,8 +410,11 @@ Purpose:
 Examples:
 
 lib/queries/registry-ai-systems.ts  
+lib/queries/registry.ts  
 
-All data access must use this layer.
+Rule:
+
+All data access must use this layer or API abstraction.
 
 ---
 
@@ -337,7 +425,9 @@ lib/queries/
 lib/auth/  
 lib/ids.ts  
 
-Responsibilities:
+---
+
+## Responsibilities
 
 • Snowflake connection  
 • query abstraction  
@@ -372,6 +462,7 @@ EVIDENCE_ID
 SNAPSHOT_ID  
 REGISTRY_ID  
 SYSTEM_ID  
+REQUEST_ID  
 
 Defined in:
 
@@ -405,7 +496,7 @@ SNOWFLAKE_PRIVATE_KEY
 
 ---
 
-# SQL Directory Structure (UPDATED)
+# SQL Directory Structure
 
 sql/  
   active/  
@@ -415,11 +506,13 @@ sql/
     diagnostics/  
     scratch/  
 
-Rules:
+---
+
+## Rules
 
 • only run files in active/  
 • archive is read-only reference  
-• no mixed pipeline generations  
+• no mixing old and new pipeline logic  
 
 ---
 
@@ -460,9 +553,11 @@ You must:
 • Snapshot pipeline required  
 • No direct registry inserts  
 • AI systems must link to registry  
+• Admin intake must not bypass case pipeline  
 • Snowflake is the source of truth  
 • Public data must be snapshot-derived  
 • Query layer required (no inline SQL)  
+• No speculative schema usage  
 
 ---
 

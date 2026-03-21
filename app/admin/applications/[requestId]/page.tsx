@@ -1,21 +1,41 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { useParams } from "next/navigation";
 import AdminNav from "../../_components/AdminNav";
 import AdminPageHeader from "../../_components/AdminPageHeader";
 
 type Row = {
   requestId: string;
-  submissionType: string;
-  orgName: string;
-  contactEmail: string;
-  status: string;
+  submissionType: string | null;
+  orgName: string | null;
+  contactEmail: string | null;
+  status: string | null;
   requestedTier?: string | null;
   renewalPeriod?: string | null;
+  sourceTable?: string | null;
   createdAt?: string | null;
   updatedAt?: string | null;
 };
+
+type DetailApiResponse =
+  | { ok: true; row: Row }
+  | { ok: false; error: string };
+
+type StatusApiResponse =
+  | { ok: true }
+  | { ok: false; error: string };
+
+type ConvertApiResponse =
+  | {
+      ok: true;
+      caseId: string;
+      requestId: string;
+      participantId: string;
+      alreadyExisted: boolean;
+    }
+  | { ok: false; error: string };
 
 const STATUSES = ["received", "in_review", "approved", "rejected"] as const;
 
@@ -24,15 +44,33 @@ function prettify(value: string | null | undefined) {
   return value.replaceAll("_", " ");
 }
 
+function valueOrDash(value: string | null | undefined) {
+  return value && value.trim() ? value : "—";
+}
+
+function buildParticipantIdFromRequestId(requestId: string) {
+  const suffix = requestId.replace(/^REQ-/i, "").trim();
+  if (!suffix) return "PART-UNKNOWN";
+  return `PART-${suffix.toUpperCase()}`;
+}
+
 export default function AdminApplicationDetailPage() {
   const params = useParams();
-  const requestId = String((params as any)?.requestId ?? "");
+
+  const requestIdParam = params?.requestId;
+  const requestId = Array.isArray(requestIdParam)
+    ? String(requestIdParam[0] ?? "")
+    : String(requestIdParam ?? "");
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [converting, setConverting] = useState(false);
   const [error, setError] = useState("");
   const [row, setRow] = useState<Row | null>(null);
   const [copied, setCopied] = useState(false);
+  const [convertMessage, setConvertMessage] = useState("");
+  const [createdCaseId, setCreatedCaseId] = useState<string | null>(null);
+  const [participantIdInput, setParticipantIdInput] = useState("");
 
   async function copyRequestId(value: string) {
     try {
@@ -62,20 +100,27 @@ export default function AdminApplicationDetailPage() {
     setError("");
 
     try {
-      const res = await fetch(`/api/admin/applications/${encodeURIComponent(requestId)}`, {
-        cache: "no-store",
-        credentials: "include",
-      });
+      const res = await fetch(
+        `/api/admin/applications/${encodeURIComponent(requestId)}`,
+        {
+          cache: "no-store",
+          credentials: "include",
+        }
+      );
 
-      const data = await res.json();
+      const data = (await res.json()) as DetailApiResponse;
 
-      if (!res.ok || !data?.ok) {
-        throw new Error(data?.error || `Failed to load application (${res.status})`);
+      if (!res.ok || !data.ok) {
+        throw new Error(
+          (data as { ok: false; error: string })?.error ||
+            `Failed to load application (${res.status})`
+        );
       }
 
-      setRow(data.row as Row);
-    } catch (e: any) {
-      setError(e?.message ?? "Failed to load application");
+      setRow(data.row);
+      setParticipantIdInput(buildParticipantIdFromRequestId(data.row.requestId));
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : "Failed to load application");
       setRow(null);
     } finally {
       setLoading(false);
@@ -105,17 +150,72 @@ export default function AdminApplicationDetailPage() {
         }),
       });
 
-      const data = await res.json();
+      const data = (await res.json()) as StatusApiResponse;
 
-      if (!res.ok || !data?.ok) {
-        throw new Error(data?.error || `Failed to update status (${res.status})`);
+      if (!res.ok || !data.ok) {
+        throw new Error(
+          (data as { ok: false; error: string })?.error ||
+            `Failed to update status (${res.status})`
+        );
       }
 
       await load();
-    } catch (e: any) {
-      setError(e?.message ?? "Failed to update status");
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : "Failed to update status");
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function convertToCase() {
+    if (!row) return;
+
+    const participantId = participantIdInput.trim().toUpperCase();
+    if (!participantId) {
+      setError("Participant ID is required before converting to case.");
+      return;
+    }
+
+    setConverting(true);
+    setError("");
+    setConvertMessage("");
+    setCreatedCaseId(null);
+
+    try {
+      const res = await fetch(
+        `/api/admin/applications/${encodeURIComponent(row.requestId)}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({
+            participantId,
+            actor: "admin",
+          }),
+        }
+      );
+
+      const data = (await res.json()) as ConvertApiResponse;
+
+      if (!res.ok || !data.ok) {
+        throw new Error(
+          (data as { ok: false; error: string })?.error ||
+            `Failed to convert to case (${res.status})`
+        );
+      }
+
+      setCreatedCaseId(data.caseId);
+      setConvertMessage(
+        data.alreadyExisted
+          ? `Case already existed: ${data.caseId}`
+          : `Created case: ${data.caseId}`
+      );
+    } catch (e: unknown) {
+      setError(
+        e instanceof Error ? e.message : "Failed to convert application to case"
+      );
+    } finally {
+      setConverting(false);
     }
   }
 
@@ -123,18 +223,18 @@ export default function AdminApplicationDetailPage() {
     <div>
       <AdminNav />
 
-      <main className="mx-auto max-w-[1100px] px-6 pt-14 pb-16">
+      <main className="mx-auto max-w-[1100px] px-6 pb-16 pt-14">
         <AdminPageHeader
           title="Application"
-          description="Review the selected application record and update its workflow status."
+          description="Review the selected application record, update its workflow status, and convert it into a canonical verification case."
           meta={
             loading
               ? "Loading…"
               : row
-              ? `Request ${row.requestId}`
-              : error
-              ? "Unable to load application"
-              : "Not found"
+                ? `Request ${row.requestId}`
+                : error
+                  ? "Unable to load application"
+                  : "Not found"
           }
           actions={
             row ? (
@@ -159,18 +259,20 @@ export default function AdminApplicationDetailPage() {
 
         {!loading && !row ? (
           <section className="rounded-2xl border border-black/10 p-5">
-            <div className="text-[16px] font-semibold text-black">Application not found</div>
+            <div className="text-[16px] font-semibold text-black">
+              Application not found
+            </div>
             <div className="mt-2 text-[14px] text-black/65">
               The requested application could not be loaded.
             </div>
 
             <div className="mt-5">
-              <a
+              <Link
                 href="/admin/applications"
                 className="text-[14px] font-semibold underline text-black/80"
               >
                 ← Back to applications
-              </a>
+              </Link>
             </div>
           </section>
         ) : null}
@@ -178,9 +280,9 @@ export default function AdminApplicationDetailPage() {
         {row ? (
           <>
             <section className="rounded-2xl border border-black/10 p-5">
-              <div className="flex items-start justify-between gap-6 flex-wrap">
+              <div className="flex flex-wrap items-start justify-between gap-6">
                 <div>
-                  <div className="text-[12px] uppercase tracking-[0.12em] text-black/55 font-semibold">
+                  <div className="text-[12px] font-semibold uppercase tracking-[0.12em] text-black/55">
                     Current status
                   </div>
 
@@ -202,13 +304,17 @@ export default function AdminApplicationDetailPage() {
                         onClick={() => setStatus(status)}
                         disabled={saving || isCurrent}
                         className={[
-                          "inline-flex items-center justify-center rounded-xl px-4 py-2 text-[14px] font-semibold border",
+                          "inline-flex items-center justify-center rounded-xl border px-4 py-2 text-[14px] font-semibold",
                           isCurrent
                             ? "border-black bg-black text-white"
                             : "border-black/15 bg-white hover:bg-black/[0.04]",
                           saving || isCurrent ? "opacity-60" : "",
                         ].join(" ")}
-                        title={isCurrent ? "Current status" : `Set status to ${status}`}
+                        title={
+                          isCurrent
+                            ? "Current status"
+                            : `Set status to ${status}`
+                        }
                       >
                         {saving && !isCurrent ? "Working…" : prettify(status)}
                       </button>
@@ -219,55 +325,166 @@ export default function AdminApplicationDetailPage() {
             </section>
 
             <section className="mt-8 rounded-2xl border border-black/10 p-5">
-              <h2 className="text-[16px] font-semibold text-black">Application details</h2>
+              <h2 className="text-[16px] font-semibold text-black">
+                Application details
+              </h2>
 
-              <div className="mt-5 grid gap-y-4 gap-x-8 md:grid-cols-[180px_1fr]">
-                <div className="text-[14px] font-semibold text-black/70">Request ID</div>
+              <div className="mt-5 grid gap-x-8 gap-y-4 md:grid-cols-[180px_1fr]">
+                <div className="text-[14px] font-semibold text-black/70">
+                  Request ID
+                </div>
                 <div className="text-[15px] text-black">{row.requestId}</div>
 
-                <div className="text-[14px] font-semibold text-black/70">Type</div>
-                <div className="text-[15px] text-black">{row.submissionType || "—"}</div>
+                <div className="text-[14px] font-semibold text-black/70">
+                  Type
+                </div>
+                <div className="text-[15px] text-black">
+                  {valueOrDash(row.submissionType)}
+                </div>
 
-                <div className="text-[14px] font-semibold text-black/70">Status</div>
-                <div className="text-[15px] text-black">{prettify(row.status)}</div>
+                <div className="text-[14px] font-semibold text-black/70">
+                  Status
+                </div>
+                <div className="text-[15px] text-black">
+                  {prettify(row.status)}
+                </div>
 
-                <div className="text-[14px] font-semibold text-black/70">Organization</div>
-                <div className="text-[15px] text-black">{row.orgName || "—"}</div>
+                <div className="text-[14px] font-semibold text-black/70">
+                  Organization
+                </div>
+                <div className="text-[15px] text-black">
+                  {valueOrDash(row.orgName)}
+                </div>
 
-                <div className="text-[14px] font-semibold text-black/70">Email</div>
-                <div className="text-[15px] text-black">{row.contactEmail || "—"}</div>
+                <div className="text-[14px] font-semibold text-black/70">
+                  Email
+                </div>
+                <div className="text-[15px] text-black">
+                  {valueOrDash(row.contactEmail)}
+                </div>
 
-                <div className="text-[14px] font-semibold text-black/70">Requested Tier</div>
-                <div className="text-[15px] text-black">{row.requestedTier ?? "—"}</div>
+                <div className="text-[14px] font-semibold text-black/70">
+                  Source Table
+                </div>
+                <div className="text-[15px] text-black">
+                  {valueOrDash(row.sourceTable)}
+                </div>
 
-                <div className="text-[14px] font-semibold text-black/70">Renewal Period</div>
-                <div className="text-[15px] text-black">{row.renewalPeriod ?? "—"}</div>
+                <div className="text-[14px] font-semibold text-black/70">
+                  Requested Tier
+                </div>
+                <div className="text-[15px] text-black">
+                  {valueOrDash(row.requestedTier)}
+                </div>
 
-                <div className="text-[14px] font-semibold text-black/70">Created</div>
-                <div className="text-[15px] text-black/75">{row.createdAt ?? "—"}</div>
+                <div className="text-[14px] font-semibold text-black/70">
+                  Renewal Period
+                </div>
+                <div className="text-[15px] text-black">
+                  {valueOrDash(row.renewalPeriod)}
+                </div>
 
-                <div className="text-[14px] font-semibold text-black/70">Updated</div>
-                <div className="text-[15px] text-black/75">{row.updatedAt ?? "—"}</div>
+                <div className="text-[14px] font-semibold text-black/70">
+                  Created
+                </div>
+                <div className="text-[15px] text-black/75">
+                  {valueOrDash(row.createdAt)}
+                </div>
+
+                <div className="text-[14px] font-semibold text-black/70">
+                  Updated
+                </div>
+                <div className="text-[15px] text-black/75">
+                  {valueOrDash(row.updatedAt)}
+                </div>
               </div>
             </section>
 
             <section className="mt-8 rounded-2xl border border-black/10 p-5">
-              <h2 className="text-[16px] font-semibold text-black">Next actions</h2>
+              <h2 className="text-[16px] font-semibold text-black">
+                Convert application to case
+              </h2>
+
+              <p className="mt-2 max-w-[900px] text-[14px] leading-[1.8] text-black/70">
+                This is the core intake-to-engine bridge. Converting an application
+                creates or reuses a canonical verification case so the record can move
+                into the case-first governance workflow.
+              </p>
+
+              <div className="mt-5 grid gap-4 md:grid-cols-[220px_1fr] md:items-end">
+                <div>
+                  <label className="mb-2 block text-[12px] font-semibold uppercase tracking-[0.12em] text-black/60">
+                    Participant ID
+                  </label>
+                  <input
+                    value={participantIdInput}
+                    onChange={(e) => setParticipantIdInput(e.target.value)}
+                    className="w-full rounded-xl border border-black/15 px-4 py-3 text-[14px] text-black focus:outline-none focus:ring-2 focus:ring-black/10"
+                    placeholder="PART-..."
+                  />
+                </div>
+
+                <div className="flex flex-wrap gap-3">
+                  <button
+                    type="button"
+                    onClick={convertToCase}
+                    disabled={converting}
+                    className="inline-flex items-center justify-center rounded-xl bg-black px-5 py-3 text-[14px] font-semibold text-white hover:bg-black/90 disabled:opacity-60"
+                  >
+                    {converting ? "Converting…" : "Convert to Case"}
+                  </button>
+
+                  <Link
+                    href="/admin/verification"
+                    className="inline-flex items-center justify-center rounded-xl border border-black/15 px-4 py-3 text-[14px] font-semibold hover:bg-black/[0.04]"
+                  >
+                    Open verification queue
+                  </Link>
+                </div>
+              </div>
+
+              {convertMessage ? (
+                <div className="mt-5 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3">
+                  <div className="text-[14px] font-semibold text-emerald-800">
+                    Conversion complete
+                  </div>
+                  <div className="mt-1 text-[14px] text-black/80">
+                    {convertMessage}
+                  </div>
+
+                  {createdCaseId ? (
+                    <div className="mt-3">
+                      <Link
+                        href={`/admin/verification/${encodeURIComponent(createdCaseId)}`}
+                        className="text-[14px] font-semibold underline text-black/80"
+                      >
+                        Open case {createdCaseId}
+                      </Link>
+                    </div>
+                  ) : null}
+                </div>
+              ) : null}
+            </section>
+
+            <section className="mt-8 rounded-2xl border border-black/10 p-5">
+              <h2 className="text-[16px] font-semibold text-black">
+                Next actions
+              </h2>
 
               <div className="mt-4 flex flex-wrap gap-3">
-                <a
+                <Link
                   href="/admin/applications"
                   className="inline-flex items-center justify-center rounded-xl border border-black/15 px-4 py-2 text-[14px] font-semibold hover:bg-black/[0.04]"
                 >
                   ← Back to applications
-                </a>
+                </Link>
 
-                <a
+                <Link
                   href="/admin/verification"
                   className="inline-flex items-center justify-center rounded-xl border border-black/15 px-4 py-2 text-[14px] font-semibold hover:bg-black/[0.04]"
                 >
                   Open verification workflow
-                </a>
+                </Link>
               </div>
             </section>
           </>
