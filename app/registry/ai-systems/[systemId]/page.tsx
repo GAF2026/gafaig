@@ -16,22 +16,13 @@ function fmtDate(value: string | null): string {
 function badgeClass(text?: string | null) {
   const v = String(text || "").toLowerCase();
 
-  if (v.includes("enterprise") || v === "a") {
-    return "border-emerald-200 bg-emerald-50 text-emerald-700";
-  }
-  if (v.includes("standard") || v === "b") {
-    return "border-blue-200 bg-blue-50 text-blue-700";
-  }
-  if (v.includes("baseline") || v === "c") {
-    return "border-amber-200 bg-amber-50 text-amber-700";
-  }
   if (v.includes("approved")) {
     return "border-emerald-200 bg-emerald-50 text-emerald-700";
   }
   if (v.includes("pending")) {
     return "border-amber-200 bg-amber-50 text-amber-700";
   }
-  if (v.includes("revoked") || v.includes("denied")) {
+  if (v.includes("rejected") || v.includes("denied") || v.includes("revoked")) {
     return "border-rose-200 bg-rose-50 text-rose-700";
   }
 
@@ -63,6 +54,9 @@ export default async function RegistryAiSystemDetailPage({
 
   if (!system) notFound();
 
+  const isCertified =
+    system.decisionStatus?.toLowerCase() === "approved";
+
   return (
     <main className="mx-auto max-w-6xl px-6 py-12">
       <div className="mb-8">
@@ -80,24 +74,22 @@ export default async function RegistryAiSystemDetailPage({
             <div className="flex flex-wrap items-center gap-2">
               <span
                 className={`inline-flex rounded-full border px-3 py-1 text-xs font-medium ${badgeClass(
-                  system.certifiedTier
-                )}`}
-              >
-                {system.certifiedTier ?? "Unspecified Tier"}
-              </span>
-              <span
-                className={`inline-flex rounded-full border px-3 py-1 text-xs font-medium ${badgeClass(
-                  system.certifiedBand
-                )}`}
-              >
-                Band {system.certifiedBand ?? "—"}
-              </span>
-              <span
-                className={`inline-flex rounded-full border px-3 py-1 text-xs font-medium ${badgeClass(
                   system.decisionStatus
                 )}`}
               >
                 {system.decisionStatus ?? "Unknown Status"}
+              </span>
+
+              <span className="inline-flex rounded-full border px-3 py-1 text-xs font-medium border-slate-200 bg-slate-50 text-slate-700">
+                {isCertified
+                  ? system.certifiedTier || "Certified"
+                  : "Not Certified"}
+              </span>
+
+              <span className="inline-flex rounded-full border px-3 py-1 text-xs font-medium border-slate-200 bg-slate-50 text-slate-700">
+                {isCertified && system.certifiedBand
+                  ? `Band ${system.certifiedBand}`
+                  : "No Band"}
               </span>
             </div>
 
@@ -106,46 +98,31 @@ export default async function RegistryAiSystemDetailPage({
             </h1>
 
             <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-600">
-              Public GAFAIG registry detail for this AI system, including linked
-              certification metadata, governance status, and published system
-              disclosures.
+              Public GAFAIG registry detail for this AI system, including certified
+              governance metadata and system disclosures.
             </p>
           </div>
 
           <div className="grid w-full gap-3 sm:grid-cols-2 lg:w-[360px]">
             <div className="rounded-2xl bg-slate-50 p-4">
               <div className="text-xs uppercase tracking-wide text-slate-500">
-                Score
+                Certified Score
               </div>
               <div className="mt-2 text-2xl font-semibold text-slate-900">
-                {valueOrDash(system.certifiedScore)}
+                {isCertified
+                  ? valueOrDash(system.certifiedScore)
+                  : "Pending"}
               </div>
             </div>
 
             <div className="rounded-2xl bg-slate-50 p-4">
               <div className="text-xs uppercase tracking-wide text-slate-500">
-                Certified
+                Certified At
               </div>
               <div className="mt-2 text-base font-medium text-slate-900">
-                {fmtDate(system.certifiedAt)}
-              </div>
-            </div>
-
-            <div className="rounded-2xl bg-slate-50 p-4">
-              <div className="text-xs uppercase tracking-wide text-slate-500">
-                Valid From
-              </div>
-              <div className="mt-2 text-base font-medium text-slate-900">
-                {fmtDate(system.validFrom)}
-              </div>
-            </div>
-
-            <div className="rounded-2xl bg-slate-50 p-4">
-              <div className="text-xs uppercase tracking-wide text-slate-500">
-                Valid To
-              </div>
-              <div className="mt-2 text-base font-medium text-slate-900">
-                {fmtDate(system.validTo)}
+                {isCertified
+                  ? fmtDate(system.certifiedAt)
+                  : "Not issued"}
               </div>
             </div>
           </div>
@@ -185,24 +162,6 @@ export default async function RegistryAiSystemDetailPage({
                 </div>
               </div>
             </div>
-
-            <div className="mt-4 flex flex-wrap gap-3">
-              {system.registryId ? (
-                <Link
-                  href={`/registry/${encodeURIComponent(system.registryId)}`}
-                  className="inline-flex rounded-xl bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-800"
-                >
-                  View Registry Record
-                </Link>
-              ) : null}
-
-              <Link
-                href="/registry/ai-systems"
-                className="inline-flex rounded-xl border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
-              >
-                Back to Systems
-              </Link>
-            </div>
           </section>
 
           <section className="rounded-2xl border border-slate-200 p-5">
@@ -211,171 +170,23 @@ export default async function RegistryAiSystemDetailPage({
             </h2>
 
             <div className="mt-4 space-y-3 text-sm text-slate-700">
-              <div className="flex items-start justify-between gap-4">
-                <span className="text-slate-500">Decision Status</span>
+              <div className="flex justify-between">
+                <span className="text-slate-500">Decision</span>
                 <span className="font-medium text-slate-900">
                   {system.decisionStatus ?? "—"}
                 </span>
               </div>
-              <div className="flex items-start justify-between gap-4">
+              <div className="flex justify-between">
                 <span className="text-slate-500">Tier</span>
                 <span className="font-medium text-slate-900">
-                  {system.certifiedTier ?? "—"}
+                  {isCertified ? system.certifiedTier ?? "—" : "—"}
                 </span>
               </div>
-              <div className="flex items-start justify-between gap-4">
+              <div className="flex justify-between">
                 <span className="text-slate-500">Band</span>
                 <span className="font-medium text-slate-900">
-                  {system.certifiedBand ?? "—"}
+                  {isCertified ? system.certifiedBand ?? "—" : "—"}
                 </span>
-              </div>
-              <div className="flex items-start justify-between gap-4">
-                <span className="text-slate-500">Audit Frequency</span>
-                <span className="font-medium text-slate-900">
-                  {system.auditFrequency ?? "—"}
-                </span>
-              </div>
-              <div className="flex items-start justify-between gap-4">
-                <span className="text-slate-500">Last Activity</span>
-                <span className="font-medium text-slate-900">
-                  {fmtDate(system.lastActivityAt)}
-                </span>
-              </div>
-            </div>
-          </section>
-        </div>
-
-        <div className="mt-6 grid gap-6 md:grid-cols-2">
-          <section className="rounded-2xl border border-slate-200 p-5">
-            <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
-              Entity
-            </h2>
-            <div className="mt-4 grid gap-3">
-              <div className="rounded-xl bg-slate-50 p-4">
-                <div className="text-xs uppercase tracking-wide text-slate-500">
-                  Name
-                </div>
-                <div className="mt-2 text-sm font-medium text-slate-900">
-                  {system.entityName ?? "—"}
-                </div>
-              </div>
-              <div className="grid gap-3 sm:grid-cols-2">
-                <div className="rounded-xl bg-slate-50 p-4">
-                  <div className="text-xs uppercase tracking-wide text-slate-500">
-                    Type
-                  </div>
-                  <div className="mt-2 text-sm font-medium text-slate-900">
-                    {system.entityType ?? "—"}
-                  </div>
-                </div>
-                <div className="rounded-xl bg-slate-50 p-4">
-                  <div className="text-xs uppercase tracking-wide text-slate-500">
-                    Country
-                  </div>
-                  <div className="mt-2 text-sm font-medium text-slate-900">
-                    {system.country ?? "—"}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          <section className="rounded-2xl border border-slate-200 p-5">
-            <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
-              System
-            </h2>
-            <div className="mt-4 grid gap-3 sm:grid-cols-2">
-              <div className="rounded-xl bg-slate-50 p-4">
-                <div className="text-xs uppercase tracking-wide text-slate-500">
-                  Type
-                </div>
-                <div className="mt-2 text-sm font-medium text-slate-900">
-                  {system.systemType ?? "—"}
-                </div>
-              </div>
-              <div className="rounded-xl bg-slate-50 p-4">
-                <div className="text-xs uppercase tracking-wide text-slate-500">
-                  Risk Tier
-                </div>
-                <div className="mt-2 text-sm font-medium text-slate-900">
-                  {system.riskTier ?? "—"}
-                </div>
-              </div>
-              <div className="rounded-xl bg-slate-50 p-4">
-                <div className="text-xs uppercase tracking-wide text-slate-500">
-                  Deployment
-                </div>
-                <div className="mt-2 text-sm font-medium text-slate-900">
-                  {system.deploymentStatus ?? "—"}
-                </div>
-              </div>
-              <div className="rounded-xl bg-slate-50 p-4">
-                <div className="text-xs uppercase tracking-wide text-slate-500">
-                  Oversight
-                </div>
-                <div className="mt-2 text-sm font-medium text-slate-900">
-                  {system.oversightLevel ?? "—"}
-                </div>
-              </div>
-            </div>
-          </section>
-
-          <section className="rounded-2xl border border-slate-200 p-5">
-            <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
-              Governance
-            </h2>
-            <div className="mt-4 grid gap-3 sm:grid-cols-2">
-              <div className="rounded-xl bg-slate-50 p-4">
-                <div className="text-xs uppercase tracking-wide text-slate-500">
-                  Oversight Model
-                </div>
-                <div className="mt-2 text-sm font-medium text-slate-900">
-                  {system.oversightModel ?? "—"}
-                </div>
-              </div>
-              <div className="rounded-xl bg-slate-50 p-4">
-                <div className="text-xs uppercase tracking-wide text-slate-500">
-                  Human Review Required
-                </div>
-                <div className="mt-2 text-sm font-medium text-slate-900">
-                  {system.humanReviewRequired === null
-                    ? "—"
-                    : system.humanReviewRequired
-                      ? "Yes"
-                      : "No"}
-                </div>
-              </div>
-              <div className="rounded-xl bg-slate-50 p-4 sm:col-span-2">
-                <div className="text-xs uppercase tracking-wide text-slate-500">
-                  Evaluation Protocol
-                </div>
-                <div className="mt-2 text-sm font-medium text-slate-900">
-                  {system.evaluationProtocol ?? "—"}
-                </div>
-              </div>
-            </div>
-          </section>
-
-          <section className="rounded-2xl border border-slate-200 p-5">
-            <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
-              Additional Metadata
-            </h2>
-            <div className="mt-4 grid gap-3">
-              <div className="rounded-xl bg-slate-50 p-4">
-                <div className="text-xs uppercase tracking-wide text-slate-500">
-                  Developer Organization
-                </div>
-                <div className="mt-2 text-sm font-medium text-slate-900">
-                  {system.developerOrganization ?? "—"}
-                </div>
-              </div>
-              <div className="rounded-xl bg-slate-50 p-4">
-                <div className="text-xs uppercase tracking-wide text-slate-500">
-                  Training Data Category
-                </div>
-                <div className="mt-2 text-sm font-medium text-slate-900">
-                  {system.trainingDataCategory ?? "—"}
-                </div>
               </div>
             </div>
           </section>

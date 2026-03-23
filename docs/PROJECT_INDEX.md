@@ -1,577 +1,298 @@
 # GAFAIG — PROJECT INDEX
-Repository Architecture Map
-
-Last Updated: 2026-03-19
-
-This document provides a complete navigation index for the GAFAIG repository.
-
-It allows contributors and AI assistants to understand the structure of the platform before proposing changes.
-
-All development must respect:
-
-docs/MASTER_STATE.md  
-docs/ENGINEERING_RULES.md  
-docs/CURRENT_FOCUS.md  
+Canonical File & System Map
+Last Updated: 2026-03-22
 
 ---
 
-# Platform Overview
+# PURPOSE
 
-GAFAIG is a global AI governance registry powered by a deterministic verification engine.
+This document provides a **complete map of the GAFAIG system**:
 
-The platform is composed of five major layers:
+• where logic lives  
+• which files are canonical  
+• how components connect  
+• what each file is responsible for  
 
-Snowflake Governance Engine  
-↓  
-Snapshot Layer  
-↓  
-Registry Publication Layer  
-↓  
-API / Query Layer  
-↓  
-Next.js UI  
+This prevents:
 
-Snowflake is the system of record.
+• file confusion  
+• duplicate logic  
+• AI hallucinated paths  
+• circular debugging  
 
 ---
 
-# Canonical Architecture (IMPORTANT)
+# SYSTEM OVERVIEW
 
-The system is case-first, not application-first.
+GAFAIG consists of:
 
-Execution flow:
+1. Snowflake (deterministic governance engine)  
+2. Query Layer (Next.js server functions)  
+3. UI (Next.js App Router)  
+4. Execution Scripts (manual testing only)  
+
+---
+
+# CORE DATA FLOW
 
 CASE  
 → FINDINGS  
 → EVIDENCE  
 → EVENTS  
-→ ENTERPRISE SCORING  
-→ SCORE SNAPSHOT  
-→ REGISTRY SNAPSHOT  
-→ PUBLIC REGISTRY  
-→ AI SYSTEMS REGISTRY  
-
-All public data must originate from this pipeline.
+→ SCORING  
+→ SNAPSHOT  
+→ REGISTRY  
+→ AI SYSTEMS VIEW  
+→ UI  
 
 ---
 
-# Repository Structure
+# SNOWFLAKE FILES (CANONICAL)
 
-app/  
-lib/  
-types/  
-docs/  
-sql/  
+## 🔵 SCORING
 
----
+### File:
+24_SP_SCORE_CASE_ENTERPRISE.sql  
 
-# Next.js Application Routes
-
-## Public Pages
-
-/  
-/mission  
-/framework  
-/registry  
-/registry/[registryId]  
-/registry/ai-systems  
-/registry/ai-systems/[systemId]  
-
----
-
-## Registry Surfaces
-
-/registry  
-/registry/[registryId]  
-
-Data sources:
-
-CORE.V_REGISTRY_LATEST_APPROVED  
-CORE.V_REGISTRY_PUBLIC  
-CORE.V_PUBLIC_REGISTRY  
-CORE.V_PUBLIC_OVERSIGHT_SIGNAL  
-
-Purpose:
-
-• expose certified registry records  
-• surface governance signals only  
-• hide all private verification data  
-
----
-
-## AI Systems Registry
-
-/registry/ai-systems  
-/registry/ai-systems/[systemId]  
-
-Data source:
-
-CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC  
-
-Purpose:
-
-• expose system-level registry  
-• link systems to entities and certification  
-• extend registry visibility  
-• resolve by SYSTEM_ID (NOT registryId)  
-
----
-
-## Explorer (Public Analytics)
-
-/explorer  
-/explorer/organizations  
-/explorer/systems  
-/explorer/countries  
-/explorer/map  
-
-Data sources:
-
-CORE.V_REGISTRY_LATEST_APPROVED  
-CORE.V_PUBLIC_OVERSIGHT_SIGNAL  
-
----
-
-# Admin Interface
-
-/admin/login  
-/admin/applications  
-/admin/verification  
-/admin/verification/[caseId]  
-/admin/verification/[caseId]/score  
-/admin/verification/[caseId]/evidence  
-/admin/verification/[caseId]/findings  
-
-These routes operate on:
-
-VERIFICATION_CASES  
-VERIFICATION_FINDINGS  
-VERIFICATION_EVIDENCE  
-VERIFICATION_EVENTS  
-
----
-
-## Admin Applications (NEW — STABILIZED)
-
-/admin/applications  
-
-API:
-
-/api/admin/applications  
-
-Data source:
-
-CORE.V_ADMIN_SUBMISSIONS  
-
-Purpose:
-
-• reviewer intake workflow  
-• search / filter submissions  
-• display requestId, org, email, status  
-
-Important:
-
-• this is NOT the governance engine  
-• this is a staging/intake surface only  
-
----
-
-# API Routes
-
-## Registry APIs
-
-/api/registry  
-/api/registry/search  
-
-Sources:
-
-CORE.V_REGISTRY_LATEST_APPROVED  
-CORE.V_REGISTRY_PUBLIC  
-CORE.V_PUBLIC_REGISTRY  
-
----
-
-## AI Systems
-
-No dedicated API required (current design).
-
-Frontend uses:
-
-lib/queries/registry-ai-systems.ts  
-
----
-
-## Verification Endpoint
-
-/api/verify/[registryId]  
-
-Returns:
-
-• score  
-• tier  
-• band  
-• renewal status  
-• timestamp  
-
-Source:
-
-CORE.V_PUBLIC_OVERSIGHT_SIGNAL  
-
----
-
-## Admin APIs
-
-/api/admin/applications  
-/api/admin/publish  
-
-Functions:
-
-• intake listing (applications)  
-• registry publishing trigger  
-
-Calls:
-
-CORE.SP_PUBLISH_CASE_TO_REGISTRY_V3  
-
----
-
-# Snowflake Database
-
-GAFAIG_DB  
-CORE  
-
----
-
-# Core Snowflake Tables
-
-## Verification Engine
-
-VERIFICATION_CASES  
-VERIFICATION_FINDINGS  
-VERIFICATION_EVIDENCE  
-VERIFICATION_EVENTS  
-
----
-
-## Link Tables
-
-VERIFICATION_FINDING_EVIDENCE  
-FINDING_EVIDENCE_MAP  
-
----
-
-## Evidence Layer
-
-EVIDENCE_SUMMARIES  
-
----
-
-## Scoring
-
-CASE_SCORE_SNAPSHOTS_V2  
-
----
-
-## Registry
-
-REGISTRY_SNAPSHOTS  
-REGISTRY_AI_SYSTEMS  
-
----
-
-# Enterprise Scoring Engine (CANONICAL)
-
-## Tables
-
-SCORING_MODEL_VERSIONS  
-CONTROL_CATALOG  
-CONTROL_WEIGHTS  
-SEVERITY_WEIGHTS  
-SCORE_BANDS  
-
----
-
-## Views
-
-V_CASE_SCORE_ENTERPRISE  
-V_CASE_TIER_BAND  
-V_CASE_RENEWAL_STATUS  
-V_PUBLIC_OVERSIGHT_SIGNAL  
-
----
-
-## Procedure
-
+### Contains:
 SP_SCORE_CASE_ENTERPRISE  
 
----
-
-# Registry Layer
-
-## Views
-
-V_REGISTRY_LATEST_APPROVED  
-V_REGISTRY_PUBLIC  
-V_PUBLIC_REGISTRY  
-V_REGISTRY_EXPORT_V1  
+### Purpose:
+• calculates governance score  
+• generates score snapshot inputs  
+• deterministic scoring engine  
 
 ---
 
-## Procedure
+## 🔵 REGISTRY PUBLISH
 
+### File:
+25_PROCEDURES_APPROVAL.sql  
+
+### Contains:
 SP_PUBLISH_CASE_TO_REGISTRY_V3  
 
----
-
-# AI Systems Registry Layer
-
-## View
-
-V_REGISTRY_AI_SYSTEMS_PUBLIC  
-
----
-
-## Derived From
-
-REGISTRY_AI_SYSTEMS  
-VERIFICATION_CASES  
-REGISTRY_ENTITIES  
-V_REGISTRY_PUBLIC  
+### Purpose:
+• validates case approval  
+• reads governance score  
+• creates REGISTRY_SNAPSHOTS row  
+• generates REGISTRY_ID  
+• links REGISTRY_AI_SYSTEMS  
 
 ---
 
-## Purpose
+## 🔵 PUBLIC REGISTRY VIEWS
 
-• expose certified AI systems  
-• enrich with entity + certification  
-• align with registry pipeline  
+### File:
+21_VIEWS_PUBLIC_REGISTRY.sql  
 
----
+### Contains:
 
-# Admin Intake Layer
+• V_REGISTRY_LATEST_APPROVED  
+• V_REGISTRY_PUBLIC  
+• V_REGISTRY_EXPORT_V1  
 
-## View
+### Purpose:
 
-V_ADMIN_SUBMISSIONS  
-
----
-
-## Purpose
-
-• unify submission sources  
-• provide admin visibility  
-• maintain compatibility with UI  
-
----
-
-## Key Columns (Compatibility Contract)
-
-REQUEST_ID  
-ORG_NAME  
-CONTACT_EMAIL  
-STATUS  
-SOURCE_TABLE  
-TYPE  
-UPDATED_AT  
-
----
-
-# Snowflake View Usage Rules
-
-Application must read from views only.
-
-Primary views:
-
-V_CASE_SCORE_ENTERPRISE  
-V_CASE_TIER_BAND  
-V_CASE_RENEWAL_STATUS  
 V_REGISTRY_LATEST_APPROVED  
+→ canonical registry state (1 row per case)
+
 V_REGISTRY_PUBLIC  
-V_PUBLIC_REGISTRY  
-V_PUBLIC_OVERSIGHT_SIGNAL  
+→ public registry projection
+
+V_REGISTRY_EXPORT_V1  
+→ export-compatible dataset  
+
+---
+
+## 🔵 AI SYSTEMS VIEW
+
+### File:
+22_VIEWS_REGISTRY_AI_SYSTEMS_PUBLIC.sql  
+
+### Contains:
 V_REGISTRY_AI_SYSTEMS_PUBLIC  
-V_ADMIN_SUBMISSIONS  
+
+### Purpose:
+
+• joins AI systems to registry  
+• exposes certification fields  
+• provides UI-ready dataset  
 
 ---
 
-# Query Registry Layer (CRITICAL)
+# SNOWFLAKE TABLES (CORE)
+
+• APPLICATIONS  
+• VERIFICATION_CASES  
+• FINDINGS  
+• EVIDENCE  
+• EVENTS  
+• DECISIONS  
+• REGISTRY_SNAPSHOTS  
+• REGISTRY_AI_SYSTEMS  
+
+---
+
+# QUERY LAYER (NEXT.JS)
 
 Location:
 
-lib/queries/
+/lib/queries/
 
-Purpose:
+---
 
-• centralize SQL  
-• eliminate duplication  
-• prevent drift  
-• stabilize API + UI  
+## 🔵 AI SYSTEMS QUERY
 
-Examples:
-
+### File:
 lib/queries/registry-ai-systems.ts  
-lib/queries/registry.ts  
 
-Rule:
+### Functions:
 
-All data access must use this layer or API abstraction.
+• getRegistryAiSystemsPaginated()  
+• getRegistryAiSystemsFilterOptions()  
+• getRegistryAiSystemsSummaryStats()  
+
+### Current Issue:
+
+Incorrect mapping:
+
+certifiedTier → r.TIER  
+certifiedBand → r.BAND  
+certifiedScore → r.SCORE  
+
+### Required Fix:
+
+certifiedTier → r.CERTIFIED_TIER  
+certifiedBand → r.CERTIFIED_BAND  
+certifiedScore → r.CERTIFIED_SCORE  
+certifiedAt → r.CERTIFIED_AT  
+decisionStatus → r.DECISION_STATUS  
 
 ---
 
-# Core Libraries
-
-lib/snowflake.ts  
-lib/queries/  
-lib/auth/  
-lib/ids.ts  
-
----
-
-## Responsibilities
-
-• Snowflake connection  
-• query abstraction  
-• authentication  
-• deterministic IDs  
-
----
-
-# Contract Types
+# FRONTEND (NEXT.JS APP ROUTER)
 
 Location:
 
-types/contracts/  
-
-Defines canonical structures between:
-
-Snowflake → Query Layer → UI  
-
-Examples:
-
-registry.ts  
-verification.ts  
-aiSystems.ts  
+/app/
 
 ---
 
-# Deterministic Identifiers
+## 🔵 PUBLIC REGISTRY LIST
 
-CASE_ID  
-FINDING_ID  
-EVIDENCE_ID  
-SNAPSHOT_ID  
-REGISTRY_ID  
-SYSTEM_ID  
-REQUEST_ID  
+Route:
 
-Defined in:
+/registry/ai-systems  
 
-types/ids.ts  
+### Purpose:
 
-Identifiers must never be mutated in UI.
+• display all certified AI systems  
+• filter / search capability  
 
 ---
 
-# Environment Variables
+## 🔵 PUBLIC REGISTRY DETAIL
 
-Local:
+Route:
 
-.env.local  
+/registry/ai-systems/[registryId]  
 
-Production:
+### Purpose:
 
-Vercel environment settings  
-
-Examples:
-
-GAFAIG_SESSION_SECRET  
-GAFAIG_ADMIN_PASSWORD  
-SNOWFLAKE_ACCOUNT  
-SNOWFLAKE_USERNAME  
-SNOWFLAKE_ROLE  
-SNOWFLAKE_DATABASE  
-SNOWFLAKE_SCHEMA  
-SNOWFLAKE_WAREHOUSE  
-SNOWFLAKE_PRIVATE_KEY  
+• display system-level certification  
+• show governance metadata  
 
 ---
 
-# SQL Directory Structure
+## 🔵 ADMIN
 
-sql/  
-  active/  
-    canonical pipeline files  
-  archive/  
-    legacy_pipeline/  
-    diagnostics/  
-    scratch/  
+Route:
 
----
+/admin/  
 
-## Rules
+### Key Pages:
 
-• only run files in active/  
-• archive is read-only reference  
-• no mixing old and new pipeline logic  
+• /admin/applications  
+• /admin/verification/[caseId]  
 
 ---
 
-# Canonical Documentation
+# EXECUTION FILES (NON-CANONICAL)
 
-docs/MASTER_STATE.md  
-docs/CURRENT_FOCUS.md  
-docs/ENGINEERING_RULES.md  
-docs/PROJECT_INDEX.md  
-docs/CHANGELOG.md  
+## 🔴 RUN PIPELINE
 
-These define the authoritative platform state.
+Example:
 
----
+99_RUN_PIPELINE.sql  
 
-# Critical Development Rule
+### Purpose:
 
-Before creating any new:
+• manual execution  
+• debugging  
+• validation  
 
-• page  
-• API route  
-• Snowflake object  
-• query  
-• helper  
+### Rule:
 
-You must:
-
-1. Check this index  
-2. Confirm it does not exist  
-3. Extend existing architecture  
+NOT part of system logic  
+May be deleted or recreated  
 
 ---
 
-# Key Constraints
+# FILE RESPONSIBILITY SUMMARY
 
-• Case-first architecture only  
-• Enterprise scoring only  
-• Snapshot pipeline required  
-• No direct registry inserts  
-• AI systems must link to registry  
-• Admin intake must not bypass case pipeline  
-• Snowflake is the source of truth  
-• Public data must be snapshot-derived  
-• Query layer required (no inline SQL)  
-• No speculative schema usage  
+| Layer        | File                                  | Responsibility |
+|-------------|----------------------------------------|---------------|
+| Scoring      | 24_SP_SCORE_CASE_ENTERPRISE.sql       | Score engine |
+| Publish      | 25_PROCEDURES_APPROVAL.sql            | Registry write |
+| Registry     | 21_VIEWS_PUBLIC_REGISTRY.sql          | Canonical registry state |
+| AI Systems   | 22_VIEWS_REGISTRY_AI_SYSTEMS_PUBLIC.sql | Public system surface |
+| Query Layer  | registry-ai-systems.ts               | Data mapping to UI |
+| UI           | /registry pages                      | Display only |
 
 ---
 
-# Final Note
+# CURRENT STATE
 
-GAFAIG is not a typical application.
+✔ Pipeline working  
+✔ Registry publish working  
+✔ Views stable  
+✔ AI systems view stable  
+✔ Certification fields present  
 
-It is:
+⚠ Query layer incorrect  
+⚠ UI not showing certification correctly  
 
-A deterministic governance engine + global registry system.
+---
 
-All development must reinforce:
+# NEXT TASK MAP
 
-• scoring integrity  
-• registry correctness  
-• data lineage  
-• architectural consistency  
+1. Fix query layer mappings  
+2. Update UI to display certification  
+3. Validate full flow  
+4. Deploy to Vercel  
+
+---
+
+# NAVIGATION GUIDE
+
+When debugging:
+
+• registry data → V_REGISTRY_LATEST_APPROVED  
+• system-level data → V_REGISTRY_AI_SYSTEMS_PUBLIC  
+• scoring → SP_SCORE_CASE_ENTERPRISE  
+• publish → SP_PUBLISH_CASE_TO_REGISTRY_V3  
+
+---
+
+# CRITICAL RULE
+
+If unsure:
+
+→ trace data flow  
+→ find correct view  
+→ do not guess  
+
+---
+
+# END OF FILE

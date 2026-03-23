@@ -1,507 +1,325 @@
 # GAFAIG — MASTER STATE
-Authoritative Project Memory
-Last Updated: 2026-03-19
+Canonical System Definition
+Last Updated: 2026-03-22
 
 ---
 
-# Platform Overview
+# PLATFORM IDENTITY
 
-GAFAIG is the world’s first AI governance registry powered by a deterministic verification engine.
+GAFAIG — Global AI Governance Registry
 
-It functions as global trust infrastructure that verifies organizations using:
+GAFAIG is a deterministic AI governance engine + global registry.
 
-• governance controls  
-• verifiable evidence  
-• deterministic scoring  
-• auditable decision logic  
+It functions as:
 
-GAFAIG operates as neutral global verification infrastructure similar in role to:
-
-• financial audit infrastructure  
-• certificate authorities  
-• regulatory registries  
-• international standards bodies  
-
-The platform provides two major layers:
-
-1. Private verification engine  
-2. Public transparency registry  
+• a certification authority  
+• a registry of verified AI systems  
+• a governance scoring engine  
+• a public trust infrastructure layer  
 
 ---
 
-# System Architecture Overview (CANONICAL)
+# CORE PRINCIPLE
 
-GAFAIG operates as a two-layer architecture:
+The system is case-driven and append-only.
 
-PRIVATE LAYER  
-Deterministic Governance Engine (Snowflake-native)
-
-PUBLIC LAYER  
-Global AI Governance Registry
-
-The private layer performs verification and scoring.  
-The public layer exposes only the verified governance signal.
+NOT application-driven.
 
 ---
 
-# Canonical Data Flow (LOCKED)
+# CANONICAL DATA FLOW (LOCKED)
 
-The authoritative GAFAIG architecture is:
+ALL DATA MUST FOLLOW:
 
-Case  
-↓  
-Findings  
-↓  
-Evidence  
-↓  
-Events  
-↓  
-Enterprise Scoring Engine  
-↓  
-Score Snapshot  
-↓  
-Registry Snapshot  
-↓  
-Public Registry  
-
-IMPORTANT:
-
-This is a case-first architecture.
-
-NOT:
-
-Submission → Application → Case (automatic)
-
-That path exists for intake only and is NOT the core engine.
+CASE  
+→ FINDINGS  
+→ EVIDENCE  
+→ EVENTS  
+→ SCORING  
+→ SNAPSHOT  
+→ REGISTRY  
+→ AI SYSTEMS VIEW  
+→ UI  
 
 ---
 
-# Private Verification Engine (SOURCE OF TRUTH)
+# SYSTEM STATUS
 
-The verification engine is fully implemented in Snowflake.
+## FULL PIPELINE OPERATIONAL
 
-Core workflow:
+The following is confirmed working end-to-end:
 
-Findings → Evidence → Events → Scoring → Decision
-
-Key characteristics:
-
-• deterministic SQL-based scoring engine  
-• organization-isolated verification cases  
-• auditable and reproducible logic  
-• no black-box scoring  
-• full traceability from evidence → decision  
-
-Outputs:
-
-• governance score  
-• governance tier  
-• governance band  
-• renewal status  
-• scoring breakdown  
-
-Evidence and detailed findings are restricted to:
-
-• authorized reviewers  
-• regulators (if granted)  
-• verified organization  
+• CASE creation  
+• FINDINGS / EVIDENCE / EVENTS ingestion  
+• Enterprise scoring engine  
+• Score snapshot system  
+• Registry publish procedure  
+• Registry snapshot system  
+• AI systems public view  
+• Query layer integration  
 
 ---
 
-# Enterprise Governance Scoring Engine (CANONICAL ENGINE)
+# SNOWFLAKE ARCHITECTURE
 
-GAFAIG uses Enterprise Governance Scoring v1.0.
-
-Core principle:
-
-GAFAIG evaluates organizational governance oversight — NOT AI system risk classification.
-
----
-
-# Scoring Inputs
-
-• Findings  
-• Evidence  
-• Evidence summaries  
-• Events  
-
----
-
-# Scoring Components
-
-Each control is evaluated using:
-
-1. Quality Score  
-2. Coverage Score  
-3. Freshness Score  
-4. Operational Score  
-
----
-
-# Scoring Formulas
-
-Control Score =  
-0.60 × Quality  
-+ 0.25 × Coverage  
-+ 0.15 × Freshness  
-
-Case Score =  
-0.65 × Controls  
-+ 0.15 × Coverage  
-+ 0.10 × Freshness  
-+ 0.10 × Operational  
-
----
-
-# Scoring Outputs
-
-• SCORE (0–100)  
-• TIER  
-• BAND  
-• RENEWAL_STATUS  
-
----
-
-# Core Scoring Objects
-
-Tables:
-
-• SCORING_MODEL_VERSIONS  
-• CONTROL_CATALOG  
-• CONTROL_WEIGHTS  
-• SEVERITY_WEIGHTS  
-• SCORE_BANDS  
-
-Views:
-
-• V_CASE_SCORE_ENTERPRISE  
-• V_CASE_TIER_BAND  
-• V_CASE_RENEWAL_STATUS  
-• V_PUBLIC_OVERSIGHT_SIGNAL  
-
-Procedure:
-
-• SP_SCORE_CASE_ENTERPRISE(P_CASE_ID)
-
----
-
-# Snapshot Architecture
-
-Table:
-
-• CASE_SCORE_SNAPSHOTS_V2  
-
-Snapshots are:
-
-• immutable  
-• reproducible  
-• deterministic  
-
----
-
-# Registry Publication Engine
-
-Procedure:
-
-• SP_PUBLISH_CASE_TO_REGISTRY_V3  
-
-Pipeline:
-
-Case  
-→ Score Snapshot  
-→ Registry Snapshot  
-→ Latest Approved View  
-→ Public Registry  
-
-Core objects:
-
-• REGISTRY_SNAPSHOTS  
-• V_REGISTRY_LATEST_APPROVED  
-
----
-
-# Public Registry Layer (CANONICAL)
-
-Primary views:
-
-• V_REGISTRY_PUBLIC  
-• V_PUBLIC_REGISTRY  
-• V_REGISTRY_EXPORT_V1  
-
-Derived from:
-
-• V_REGISTRY_LATEST_APPROVED (SOURCE OF TRUTH)
-
----
-
-# AI Systems Registry Layer (NEW — CANONICAL)
-
-The platform now includes a full AI systems registry.
-
-Primary view:
-
-• V_REGISTRY_AI_SYSTEMS_PUBLIC  
-
-Architecture:
-
-REGISTRY_AI_SYSTEMS  
-→ VERIFICATION_CASES  
-→ REGISTRY_ENTITIES  
-→ V_REGISTRY_PUBLIC  
-
-This produces:
-
-• system-level registry records  
-• linked entity metadata  
-• certification data  
-
----
-
-# Admin Intake / Applications Layer (NEW — CANONICAL)
-
-The platform now includes a Snowflake-backed intake workflow.
-
-Primary view:
-
-• V_ADMIN_SUBMISSIONS  
-
-Purpose:
-
-• surface intake records for reviewer workflow  
-• unify web + API submission sources  
-• support filtering, pagination, and search  
-
-Constraints:
-
-• API filters TYPE = 'application'  
-• STATUS used for workflow state  
-• no mutation logic in view  
-
-Frontend route:
-
-/admin/applications  
-
-API route:
-
-/api/admin/applications  
-
----
-
-# Snowflake Architecture
-
-Snowflake is the system of record.
-
-All logic exists in:
-
-• tables  
-• views  
-• stored procedures  
-
-No governance logic exists in the frontend.
-
----
-
-# Snowflake Environment
-
-Account: GAFAIG1  
 Database: GAFAIG_DB  
 Schema: CORE  
-Warehouse: GAFAIG_WH  
-
-Roles:
-
-• GAFAIG_APP_ROLE  
-• GAFAIG_PUBLISHER  
-• GAFAIG_PUBLIC_READER  
 
 ---
 
-# Core Snowflake Tables
+## CORE TABLES
 
-Verification:
-
+• APPLICATIONS  
 • VERIFICATION_CASES  
-• VERIFICATION_FINDINGS  
-• VERIFICATION_EVIDENCE  
-• VERIFICATION_EVENTS  
-
-Linking:
-
-• VERIFICATION_FINDING_EVIDENCE  
-• FINDING_EVIDENCE_MAP  
-
-Scoring:
-
-• CASE_SCORE_SNAPSHOTS_V2  
-
-Registry:
-
+• FINDINGS  
+• EVIDENCE  
+• EVENTS  
+• DECISIONS  
 • REGISTRY_SNAPSHOTS  
 • REGISTRY_AI_SYSTEMS  
 
 ---
 
-# Critical Architecture Rules (STRICT)
+## CORE PROCEDURES
 
-1. Case-first architecture  
-All logic starts with CASE_ID.
-
-2. Snapshot-based registry  
-No live scoring in registry.
-
-3. Query registry required  
-No inline SQL in UI or routes.
-
-4. ID normalization required  
-Use TRIM / UPPER for joins.
-
-5. View purity rule  
-View files contain ONLY:
-• CREATE VIEW  
-• GRANTS  
-
-NO:
-• INSERT  
-• UPDATE  
-• SELECT tests  
+• SP_SCORE_CASE_ENTERPRISE  
+• SP_PUBLISH_CASE_TO_REGISTRY_V3  
 
 ---
 
-# Repository Architecture
+## CANONICAL VIEWS (SOURCE OF TRUTH)
 
-GitHub: GAF2026/gafaig  
+### V_REGISTRY_LATEST_APPROVED
 
-Stack:
+Guarantees:
 
-• Next.js (App Router)  
-• TypeScript  
-• Snowflake  
-• Vercel  
+• one row per CASE_ID  
+• latest snapshot only  
+• certification fields derived  
+
+Includes:
+
+• SCORE / TIER / BAND  
+• CERTIFIED_SCORE  
+• CERTIFIED_TIER  
+• CERTIFIED_BAND  
+• CERTIFIED_AT  
+• DECISION_STATUS  
+• RENEWAL_STATUS  
 
 ---
 
-# Query Registry (CRITICAL)
+### V_REGISTRY_PUBLIC
+
+Thin projection of:
+
+V_REGISTRY_LATEST_APPROVED  
+
+---
+
+### V_REGISTRY_AI_SYSTEMS_PUBLIC
+
+Joins:
+
+REGISTRY_AI_SYSTEMS → V_REGISTRY_LATEST_APPROVED  
+
+Guarantees:
+
+• one row per AI system  
+• registry-linked certification  
+• no UPDATED_AT dependency  
+• safe null handling  
+
+Includes:
+
+• SYSTEM metadata  
+• ENTITY / ORG  
+• SCORE / TIER / BAND  
+• CERTIFIED_* fields  
+• DECISION_STATUS  
+• RENEWAL_STATUS  
+
+---
+
+# CERTIFICATION CONTRACT (LOCKED)
+
+The following fields define trust:
+
+CERTIFIED_SCORE  
+CERTIFIED_TIER  
+CERTIFIED_BAND  
+CERTIFIED_AT  
+DECISION_STATUS  
+RENEWAL_STATUS  
+
+These must:
+
+• originate from REGISTRY_SNAPSHOTS  
+• flow through V_REGISTRY_LATEST_APPROVED  
+• propagate into AI SYSTEMS view  
+• be consumed by UI  
+
+---
+
+# QUERY LAYER (NEXT.JS)
 
 Location:
 
-lib/queries/
+/lib/queries/
 
-Purpose:
+File:
 
-• centralize SQL  
-• eliminate duplication  
-• prevent AI SQL errors  
-• stabilize frontend  
+registry-ai-systems.ts  
 
 ---
 
-# Application Routes (UPDATED)
+## CURRENT ISSUE (CRITICAL)
 
-Public:
+The query layer is incorrectly mapped:
 
-/registry  
+certifiedTier → r.TIER  
+certifiedBand → r.BAND  
+certifiedScore → r.SCORE  
+certifiedAt → null  
+decisionStatus → null  
+
+---
+
+## REQUIRED FIX (NEXT STEP)
+
+Must map:
+
+certifiedTier → r.CERTIFIED_TIER  
+certifiedBand → r.CERTIFIED_BAND  
+certifiedScore → r.CERTIFIED_SCORE  
+certifiedAt → r.CERTIFIED_AT  
+decisionStatus → r.DECISION_STATUS  
+
+---
+
+# FRONTEND ROUTES
+
+Public Registry:
+
 /registry/ai-systems  
 /registry/ai-systems/[registryId]  
 
-Admin:
+Current state:
 
-/admin/applications  
-
----
-
-# Frontend Architecture
-
-Pattern:
-
-Page → API Route → Query Layer → Snowflake View  
-
-No direct SQL in pages.
+• data loads  
+• certification not displayed correctly  
 
 ---
 
-# Deployment
+# CURRENT PHASE
 
-Production:
+REGISTRY SURFACE COMPLETION  
 
-https://www.gafaig.com  
+Transition:
 
-Pipeline:
-
-Local → GitHub → Vercel → Production  
+Engine works → Registry is visible, trusted, and consumable  
 
 ---
 
-# Current Platform Status
+# IMMEDIATE NEXT STEPS
 
-GAFAIG now has:
+1. FIX QUERY LAYER  
+Update registry-ai-systems.ts to use CERTIFIED_* fields  
 
-• deterministic enterprise scoring engine  
-• verification workflow schema  
-• evidence linkage system  
-• event-based scoring  
-• snapshot system (v2)  
-• registry publish pipeline  
-• public registry views  
-• AI systems registry  
-• admin intake workflow (applications)  
-• Next.js registry UI  
-• query registry layer  
+2. UPDATE UI  
+Show certification fields in:
 
----
+/registry/ai-systems  
+/registry/ai-systems/[registryId]  
 
-# Current Phase
+3. VERIFY FLOW  
+Confirm:
 
-Surface the Engine → Registry Completion
+score → snapshot → registry → AI systems → UI  
+
+4. DEPLOY  
+Push to Vercel after UI reflects certification  
 
 ---
 
-# Immediate Next Steps
+# ENGINEERING RULES
 
-1. Connect intake → automatic case creation  
-2. Trigger scoring from intake pipeline  
-3. Automate registry publication  
-4. Expand demo dataset  
-5. Add verification API  
+DO NOT:
 
----
+• re-architect pipeline  
+• modify core flow  
+• introduce new scoring logic  
+• use APPLICATIONS as source of truth  
 
-# Project Philosophy
+ALWAYS:
 
-GAFAIG is not a dashboard.
-
-It is:
-
-A global AI governance registry backed by deterministic verification logic.
+• treat views as contract  
+• propagate fields forward  
+• maintain append-only integrity  
 
 ---
 
-# New Chat Starter Block
+# IMPORTANT DISCOVERY
 
-Please treat docs/MASTER_STATE.md as the canonical architecture for GAFAIG.
+Snowflake worksheets may retain:
 
-Repository:
-GAF2026/gafaig
+• hidden compiled state  
+• stale column references  
 
-Platform:
-GAFAIG — Global AI Governance Registry
+Example error:
 
-Production:
-https://www.gafaig.com
+invalid identifier 'UPDATED_AT'  
 
-Architecture:
-Snowflake-native deterministic governance engine (Enterprise v1.0)
+Resolution:
 
-Core Flow:
-Case → Findings → Evidence → Events → Scoring → Snapshot → Registry
+• do not reuse corrupted worksheets  
+• use clean execution files  
+• treat run scripts as disposable  
 
-Snowflake:
-GAFAIG_DB / CORE
+---
 
-Current Phase:
-Surface the Engine
+# EXECUTION SCRIPT POLICY
 
-State:
-Registry + AI systems + admin intake fully operational
+Files like:
 
-Rules:
-Do not re-architect. Continue from current system.
+99_RUN_PIPELINE.sql  
+
+Are:
+
+• not canonical  
+• not trusted  
+• manual only  
+
+---
+
+# SYSTEM STATE SUMMARY
+
+✔ Governance engine working  
+✔ Registry snapshot system working  
+✔ Public registry views stable  
+✔ AI systems view stable  
+✔ Certification fields flowing  
+
+⚠ UI not yet reflecting certification  
+
+---
+
+# NEXT CHAT START POINT
+
+Continue from:
+
+"Fix query layer and surface certification in UI"
+
+---
+
+# END STATE TARGET
+
+GAFAIG becomes:
+
+• global AI certification registry  
+• publicly queryable trust layer  
+• deterministic governance system  
+
+---
+
+END OF FILE

@@ -1,370 +1,239 @@
 # GAFAIG — CHANGELOG
+System Evolution Log
+Last Updated: 2026-03-22
+
+---
+
+## 2026-03-22
+
+### 🔥 CRITICAL MILESTONE — PIPELINE STABILIZATION
+
+Resolved major execution instability across Snowflake pipeline.
+
+#### Fixes:
+
+• Eliminated `UPDATED_AT` dependency from registry pipeline  
+• Removed invalid column references from procedures and views  
+• Rebuilt `V_REGISTRY_AI_SYSTEMS_PUBLIC` to use safe null handling  
+• Corrected `SP_PUBLISH_CASE_TO_REGISTRY_V3` update logic  
+• Ensured publish procedure no longer references non-existent columns  
+• Fixed Snowflake execution inconsistencies caused by stale worksheet state  
+
+---
+
+### 🧱 REGISTRY ARCHITECTURE FINALIZED
+
+#### Established canonical registry layer:
+
+• `V_REGISTRY_LATEST_APPROVED` as single source of truth  
+• one row per CASE_ID  
+• deterministic latest snapshot selection via ROW_NUMBER  
+
+#### Introduced certification contract:
+
+• CERTIFIED_SCORE  
+• CERTIFIED_TIER  
+• CERTIFIED_BAND  
+• CERTIFIED_AT  
+• DECISION_STATUS  
+• RENEWAL_STATUS  
+
+#### Enforced append-only registry model:
+
+• no updates to prior snapshots  
+• all changes via new snapshot rows  
+
+---
+
+### 🔗 AI SYSTEMS INTEGRATION COMPLETED
+
+#### `V_REGISTRY_AI_SYSTEMS_PUBLIC`:
+
+• successfully joins AI systems to registry  
+• propagates REGISTRY_ID to all systems under a case  
+• exposes certification fields to UI layer  
+• removes dependency on UPDATED_AT  
+
+#### Verified:
+
+• multiple systems share same REGISTRY_ID per case  
+• certification fields flow correctly  
+• public dataset stable and queryable  
+
+---
+
+### ⚙️ PROCEDURE HARDENING
+
+#### `SP_SCORE_CASE_ENTERPRISE`
+
+• rebuilt to align with canonical scoring view  
+• removed reliance on UPDATED_AT  
+• ensured idempotent scoring behavior  
+
+#### `SP_PUBLISH_CASE_TO_REGISTRY_V3`
+
+• fixed registry snapshot insertion logic  
+• ensured proper REGISTRY_ID generation  
+• enforced append-only writes  
+• removed invalid update column usage  
+• aligned with governance score source  
+
+---
+
+### 🧠 DEBUGGING BREAKTHROUGH
+
+Identified root cause of persistent errors:
+
+Snowflake worksheet state retention:
+
+• hidden compiled fragments  
+• stale SQL execution  
+• invalid column references persisting across edits  
+
+#### Resolution:
+
+• stopped reusing corrupted worksheets  
+• adopted clean execution strategy  
+• treated run scripts as disposable  
+
+---
+
+### 📊 VIEW CONTRACT STABILIZATION
+
+#### Locked canonical views:
+
+• `V_REGISTRY_LATEST_APPROVED`  
+• `V_REGISTRY_PUBLIC`  
+• `V_REGISTRY_AI_SYSTEMS_PUBLIC`  
+
+#### Ensured:
+
+• consistent column definitions  
+• no backward-breaking changes  
+• certification fields standardized  
+
+---
+
+### ⚠️ QUERY LAYER ISSUE IDENTIFIED
+
+Current mapping in:
+
+`lib/queries/registry-ai-systems.ts`
+
+Incorrectly uses:
+
+• SCORE  
+• TIER  
+• BAND  
+
+Instead of:
+
+• CERTIFIED_SCORE  
+• CERTIFIED_TIER  
+• CERTIFIED_BAND  
+• CERTIFIED_AT  
+• DECISION_STATUS  
+
+This is now the primary remaining gap.
+
+---
+
+### 🚧 NEXT PHASE — REGISTRY UI COMPLETION
+
+Transitioning from:
+
+Backend complete → UI incomplete
+
+#### Next steps:
+
+• fix query layer mapping  
+• surface certification fields in UI  
+• update registry pages  
+• validate full end-to-end flow  
+• deploy to Vercel  
+
+---
+
+## 2026-03-21
+
+### PLATFORM STABILIZATION
+
+• confirmed full CASE → REGISTRY pipeline execution  
+• validated scoring and publish flow  
+• verified registry snapshots populate correctly  
+• confirmed AI systems view loads in UI  
+
+---
+
+### QUERY LAYER INTRODUCED
+
+• created centralized Snowflake query abstraction  
+• removed inline SQL from UI routes  
+• standardized query functions  
+
+---
+
+### REGISTRY ROUTES STABILIZED
+
+• `/registry/ai-systems` loads  
+• `/registry/ai-systems/[registryId]` loads  
+
+---
+
+## 2026-03-20
+
+### ARCHITECTURE CLARIFICATION
+
+• established canonical execution path  
+• defined registry as append-only system  
+• separated intake layer from governance engine  
+
+---
+
+### SNOWFLAKE FILE ORGANIZATION
+
+• structured SQL worksheets into logical groups  
+• clarified responsibilities of each file  
+• reduced confusion across multiple SQL scripts  
 
 ---
 
 ## 2026-03-19
 
-### AI Systems Registry (MAJOR PLATFORM EXPANSION)
-- Implemented full AI Systems Registry layer.
-- Introduced canonical Snowflake view:
-  - V_REGISTRY_AI_SYSTEMS_PUBLIC
-- Established architecture:
-  - REGISTRY_AI_SYSTEMS → VERIFICATION_CASES → REGISTRY_ENTITIES → V_REGISTRY_PUBLIC
-- Enforced alignment with registry pipeline:
-  - systems must link to CASE_ID and REGISTRY_ID
-- Eliminated orphan system architecture risk.
+### CANONICAL SYSTEM DEFINITION
+
+• created MASTER_STATE.md  
+• defined deterministic governance architecture  
+• documented full pipeline flow  
 
 ---
 
-### Next.js Registry UI (AI Systems)
-- Implemented new public routes:
-  - /registry/ai-systems
-  - /registry/ai-systems/[systemId]
-- Built full UI pages:
-  - AI systems list page
-  - AI system detail page
-- Connected UI to Snowflake via query registry.
-- Implemented structured display:
-  - system metadata
-  - entity metadata
-  - certification data
-  - governance attributes
+### PROJECT STRUCTURE FORMALIZED
+
+• introduced PROJECT_INDEX.md  
+• introduced ENGINEERING_RULES.md  
+• introduced CURRENT_FOCUS.md  
 
 ---
 
-### Registry Routing Corrections (CRITICAL)
-- Corrected identifier usage across registry surfaces:
-  - /registry/[registryId] → REGISTRY_ID
-  - /registry/ai-systems/[systemId] → SYSTEM_ID
-- Eliminated incorrect dual usage of registryId for systems.
-- Prevented cross-route data mismatches.
-- Stabilized navigation between:
-  - registry records
-  - AI systems
-  - entity-linked views
+## SUMMARY
+
+### Current System Status
+
+✔ Governance engine operational  
+✔ Registry pipeline stable  
+✔ Public views canonical  
+✔ AI systems integration complete  
+
+⚠ Query layer incorrect  
+⚠ UI not yet reflecting certification  
 
 ---
 
-### Query Registry Layer (CRITICAL ARCHITECTURE)
-- Enforced canonical query pattern:
-  - lib/queries/
-- Implemented:
-  - getRegistryAiSystems()
-  - getRegistryAiSystemBySystemId()
-  - getRegistryAiSystemByRegistryId()
-- Removed inline SQL from UI pages.
-- Established query layer as:
-  - required data access abstraction
-  - protection against SQL drift
-  - stabilizer for AI-assisted development
+### Next Critical Milestone
+
+Expose certification data correctly in UI and deploy.
 
 ---
 
-### Snowflake View Architecture (CRITICAL FIX)
-- Refactored:
-  - 21_VIEWS_PUBLIC_REGISTRY.sql
-  - 22_VIEWS_REGISTRY_AI_SYSTEMS_PUBLIC.sql
-- Enforced View Purity Rule:
-  - view files contain ONLY:
-    - CREATE VIEW
-    - GRANTS
-- Removed:
-  - test queries
-  - embedded logic
-  - non-deterministic elements
-
----
-
-### Registry View Alignment
-- Standardized public registry layer:
-  - V_REGISTRY_PUBLIC (canonical)
-  - V_PUBLIC_REGISTRY (UI-facing)
-  - V_REGISTRY_EXPORT_V1
-- Ensured:
-  - all views derive from V_REGISTRY_LATEST_APPROVED
-- Eliminated dependency on:
-  - REGISTRY_ENTITIES for canonical registry layer
-
----
-
-### Admin Applications Workflow (CRITICAL STABILIZATION)
-- Introduced canonical compatibility view:
-  - V_ADMIN_SUBMISSIONS
-- Aligned admin API:
-  - /api/admin/applications
-- Fixed production-breaking issues:
-  - invalid TYPE filter
-  - missing column aliases
-  - schema mismatches between Snowflake and UI
-- Standardized column contract:
-  - REQUEST_ID → requestId
-  - ORG_NAME → org
-  - CONTACT_EMAIL → email
-  - STATUS → status
-  - SOURCE_TABLE → source
-  - UPDATED_AT → updatedAt
-- Ensured:
-  - search works
-  - status filtering works
-  - pagination works
-- Restored full admin applications UI functionality.
-
----
-
-### Snowflake Compatibility Layer (NEW PATTERN)
-- Introduced compatibility view strategy for UI stabilization:
-  - V_ADMIN_SUBMISSIONS acts as contract layer
-- Purpose:
-  - decouple UI from raw schema volatility
-  - support legacy UI expectations safely
-- Established pattern:
-  - UI depends on view contracts, not tables
-
----
-
-### Homepage Governance Footprint Review
-- Audited homepage metrics against Snowflake registry outputs.
-- Identified mismatch risks between:
-  - registry views
-  - AI systems view
-  - public counts
-- Established requirement:
-  - homepage must derive from canonical public views only.
-
----
-
-### SQL Pipeline Cleanup (MAJOR STABILITY IMPROVEMENT)
-- Reorganized SQL files into structured directories:
-
-sql/
-  active/
-  archive/
-    legacy_pipeline/
-    diagnostics/
-    scratch/
-
-- Categorized all SQL files:
-  - active (canonical pipeline)
-  - legacy (archived)
-  - diagnostics
-- Removed redundant / duplicate worksheet files.
-- Eliminated multiple overlapping pipeline generations.
-
----
-
-### Snowflake Environment Stabilization
-- Executed full canonical rebuild sequence.
-- Verified successful execution of:
-  - core setup
-  - verification schema
-  - scoring engine
-  - registry pipeline
-  - AI systems layer
-- Confirmed:
-  - zero errors across execution chain.
-
----
-
-### Demo Data Alignment Improvements
-- Identified and corrected improper demo data patterns.
-- Reinforced rule:
-  - no direct inserts into registry surfaces
-- Ensured demo pipeline aligns with:
-  - CASE → SNAPSHOT → REGISTRY
-- Improved integrity of:
-  - registry counts
-  - AI systems display
-  - frontend consistency
-
----
-
-### Documentation Synchronization (FULL SYSTEM ALIGNMENT)
-Updated all canonical documents:
-
-- MASTER_STATE.md
-  - added admin intake layer
-  - added compatibility view pattern
-- CURRENT_FOCUS.md
-  - added admin applications stabilization
-  - added intake → case pipeline direction
-- ENGINEERING_RULES.md
-  - added:
-    - no speculative schema rule
-    - admin intake constraints
-    - compatibility view guidance
-- PROJECT_INDEX.md
-  - added:
-    - admin applications route
-    - V_ADMIN_SUBMISSIONS
-    - corrected systemId routing
-
-Established complete documentation alignment across:
-
-Snowflake → Query Layer → API → UI
-
----
-
-### Platform Status (Post-Update)
-GAFAIG now includes:
-
-- deterministic enterprise scoring engine
-- snapshot-based registry pipeline
-- canonical public registry views
-- AI systems registry layer
-- admin intake workflow (applications)
-- compatibility view architecture
-- query registry abstraction (mandatory)
-- fully wired Next.js registry UI
-- stable Snowflake execution environment
-
----
-
-## 2026-03-17
-
-### Architecture (CRITICAL MILESTONE)
-- Established canonical GAFAIG architecture as case-first deterministic governance engine.
-- Confirmed execution flow:
-
-CASE → FINDINGS → EVIDENCE → EVENTS → SCORING → SNAPSHOT → REGISTRY
-
-- Eliminated ambiguity between application-driven vs case-driven workflows.
-- Defined applications as intake-only.
-
----
-
-### Enterprise Governance Scoring Engine (v1.0)
-- Implemented canonical scoring engine.
-- Replaced legacy scoring models.
-- Introduced control-based scoring system.
-- Implemented deterministic scoring views and procedure.
-
----
-
-### Snapshot Architecture (v2)
-- Introduced CASE_SCORE_SNAPSHOTS_V2.
-- Implemented deterministic snapshot persistence.
-- Made snapshots mandatory for registry publication.
-
----
-
-### Verification Workflow Stabilization
-- Standardized verification tables.
-- Confirmed case-first workflow.
-- Maintained dual evidence mapping tables.
-
----
-
-### ID Normalization Fix
-- Fixed scoring failures caused by:
-  - casing mismatches
-  - trailing spaces
-- Implemented:
-  - TRIM()
-  - UPPER()
-
----
-
-### Registry Architecture Clarification
-- Defined snapshot-driven registry pipeline.
-- Eliminated manual registry inserts.
-- Confirmed SP_PUBLISH_CASE_TO_REGISTRY_V3 as only publish method.
-
----
-
-### Demo Data Issue Identified
-- Diagnosed orphan AI system records.
-- Root cause:
-  - direct inserts into REGISTRY_AI_SYSTEMS
-- Established correct pipeline-driven data flow.
-
----
-
-### Canonical Enterprise Test Case
-- Created CASE-ENT-0001.
-- Used for:
-  - scoring validation
-  - snapshot validation
-  - registry validation
-
----
-
-### Documentation Overhaul
-- Updated all core docs:
-  - MASTER_STATE.md
-  - CURRENT_FOCUS.md
-  - ENGINEERING_RULES.md
-  - PROJECT_INDEX.md
-- Established documentation as source of truth.
-
----
-
-### Engineering Rules Strengthened
-- Enforced:
-  - case-first architecture
-  - enterprise scoring only
-  - snapshot-driven registry
-- Prohibited:
-  - legacy scoring
-  - direct registry writes
-
----
-
-### Platform Status
-- deterministic scoring engine complete
-- verification workflow stabilized
-- snapshot registry pipeline operational
-- public registry views implemented
-
----
-
-## 2026-03-16
-
-### Platform
-- Implemented Snowflake Query Registry abstraction.
-- Introduced lib/queries layer.
-- Eliminated duplicated SQL.
-
----
-
-### Registry Routes
-Stabilized:
-
-/registry/ai-systems  
-/registry/ai-systems/[registryId]
-
----
-
-### Query Layer
-Created:
-
-- getRegistryAiSystems()
-- getRegistryAiSystemByRegistryId()
-
----
-
-### Build Stability
-- Fixed Next.js module issues.
-- Verified build success.
-
----
-
-### Snowflake Integration
-- Verified JWT authentication.
-- Confirmed GAFAIG_APP_ROLE connectivity.
-
----
-
-## 2026-02-23
-
-- Fixed Snowflake environment variables.
-- Stabilized admin applications page.
-- Began documentation consolidation.
-
----
-
-## 2026-02-20 to 2026-02-22
-
-- Refined evidence workflow.
-- Debugged verification APIs.
-- Updated scoring SQL.
-- Stabilized verification pipeline.
+END OF FILE

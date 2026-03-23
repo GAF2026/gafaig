@@ -1,523 +1,288 @@
 # GAFAIG — ENGINEERING RULES
-Development Standards for Snowflake + Next.js + Registry Architecture
+Canonical Development Constraints
+Last Updated: 2026-03-22
 
-Last Updated: 2026-03-19
+---
 
-This document defines the engineering rules for the GAFAIG platform.
+# PURPOSE
+
+This document defines the **non-negotiable engineering rules** for GAFAIG.
 
 These rules ensure:
 
-• deterministic governance verification  
-• consistent data contracts across system layers  
-• safe registry publication  
-• predictable AI-assisted development  
-• architecture continuity across chats and contributors  
-
-These rules apply to all development work performed on the platform.
-
-For platform architecture see:
-
-docs/MASTER_STATE.md
-
-For repository navigation see:
-
-docs/PROJECT_INDEX.md
-
-For current milestone see:
-
-docs/CURRENT_FOCUS.md
+• deterministic behavior  
+• architectural integrity  
+• safe AI-assisted development  
+• zero system drift  
 
 ---
 
-# Core Principle
+# CORE PRINCIPLE
 
-GAFAIG operates as deterministic trust infrastructure.
+GAFAIG is:
 
-This means:
+A deterministic governance engine + append-only registry
 
-• governance scoring must be reproducible  
-• registry outputs must be verifiable  
-• identifiers must be deterministic  
-• private evidence must remain protected  
-• public surfaces must expose only controlled disclosures  
+NOT:
 
-The platform is verification infrastructure — not a typical web application.
+• a dashboard  
+• a mutable database  
+• an analytics tool  
 
 ---
 
-# Rule 1 — Snowflake Is the Source of Truth
+# GOLDEN RULE
 
-All verification data originates in Snowflake.
-
-Snowflake is authoritative for:
-
-• verification cases  
-• findings  
-• evidence  
-• events  
-• scoring logic  
-• scoring outputs  
-• snapshots  
-• registry publication  
-• public registry views  
-• AI systems registry views  
-• admin intake views  
-
-Application code must NEVER replicate scoring logic.
-
-Schema:
-
-GAFAIG_DB.CORE
-
----
-
-# Rule 2 — Case-First Architecture (CRITICAL)
-
-Canonical flow:
-
-CASE → FINDINGS → EVIDENCE → EVENTS → SCORING → SNAPSHOT → REGISTRY → AI SYSTEMS
-
-IMPORTANT:
-
-• VERIFICATION_CASES is the root object  
-• all scoring originates from CASE_ID  
-• applications are intake only  
-• admin intake does NOT replace case workflow  
-• application → case automation is NOT canonical  
-
-Never bypass the case workflow.
-
----
-
-# Rule 3 — Enterprise Scoring Engine Only
-
-The ONLY valid scoring system is:
-
-Enterprise Governance Scoring v1.0
-
-Canonical objects:
-
-• V_CASE_SCORE_ENTERPRISE  
-• V_CASE_TIER_BAND  
-• V_CASE_RENEWAL_STATUS  
-• SP_SCORE_CASE_ENTERPRISE  
-
-DO NOT USE:
-
-• legacy scoring views  
-• ad hoc calculations  
-• frontend scoring logic  
-
----
-
-# Rule 4 — Deterministic Scoring Is Mandatory
-
-Given identical inputs, scoring must produce identical outputs.
-
-Inputs:
-
-• findings  
-• evidence  
-• evidence summaries  
-• events  
-
-Outputs:
-
-• score  
-• tier  
-• band  
-• renewal status  
-
-Snapshots must persist results in:
-
-CORE.CASE_SCORE_SNAPSHOTS_V2
-
-No scoring in UI or API.
-
----
-
-# Rule 5 — Snapshot-Based Registry Only
-
-Registry pipeline:
+ALL DATA MUST FLOW:
 
 CASE  
-→ SCORE  
+→ FINDINGS  
+→ EVIDENCE  
+→ EVENTS  
+→ SCORING  
 → SNAPSHOT  
-→ REGISTRY SNAPSHOT  
-→ PUBLIC VIEW  
+→ REGISTRY  
+→ AI SYSTEMS VIEW  
+→ UI  
 
-Publishing must use:
-
-CORE.SP_PUBLISH_CASE_TO_REGISTRY_V3
-
-NEVER:
-
-• insert directly into registry tables  
-• fabricate registry records  
+No exceptions.
 
 ---
 
-# Rule 6 — Public Data Must Originate from Snapshots
+# IMMUTABILITY RULE
 
-Valid flow:
+The system is append-only.
 
-CASE → SNAPSHOT → REGISTRY → VIEW
+• REGISTRY_SNAPSHOTS is immutable  
+• SCORE_SNAPSHOTS are immutable  
+• No updates to historical rows  
 
-Key views:
+Allowed:
+
+• inserting new snapshots  
+• deriving latest state via views  
+
+Not allowed:
+
+• updating prior records  
+• overwriting certification history  
+
+---
+
+# SOURCE OF TRUTH RULE
+
+Never use tables directly in the UI.
+
+Always use:
 
 • V_REGISTRY_LATEST_APPROVED  
-• V_REGISTRY_PUBLIC  
-• V_PUBLIC_REGISTRY  
-• V_PUBLIC_OVERSIGHT_SIGNAL  
+• V_REGISTRY_AI_SYSTEMS_PUBLIC  
 
-If data bypasses snapshots, it is invalid.
+Views define the contract.
 
 ---
 
-# Rule 7 — AI Systems Must Align with Registry
+# CERTIFICATION RULE
 
-AI systems must be linked to:
+The ONLY valid certification fields are:
 
-CASE_ID → REGISTRY_ID → PUBLIC REGISTRY
+CERTIFIED_SCORE  
+CERTIFIED_TIER  
+CERTIFIED_BAND  
+CERTIFIED_AT  
+DECISION_STATUS  
+RENEWAL_STATUS  
 
-View:
+These must:
 
-• V_REGISTRY_AI_SYSTEMS_PUBLIC  
+• originate from REGISTRY_SNAPSHOTS  
+• flow through V_REGISTRY_LATEST_APPROVED  
+• be exposed via V_REGISTRY_AI_SYSTEMS_PUBLIC  
+• be consumed by frontend  
+
+---
+
+# PROHIBITED PATTERNS
 
 DO NOT:
 
-• create orphan systems  
-• insert systems without registry linkage  
-• assume system metadata fields without verifying view schema  
+• compute certification in frontend  
+• derive certification from SCORE/TIER/BAND  
+• bypass canonical views  
+• join directly to REGISTRY_SNAPSHOTS in UI  
+• use APPLICATIONS as a source of truth  
 
 ---
 
-# Rule 8 — Query Registry Is Mandatory
+# VIEW CONTRACT RULE
 
-Location:
+Views are APIs.
 
-lib/queries/
+Once stabilized:
 
-Rules:
+• column names must not change  
+• semantics must not change  
+• downstream consumers depend on them  
 
-• all SQL must live in query layer  
-• UI must NEVER contain SQL  
-• API must call query functions OR canonical SQL (transitional only)  
-• eliminate duplicate SQL across routes  
+Changes must be:
 
-Purpose:
-
-• prevent SQL duplication  
-• eliminate drift  
-• stabilize AI-assisted development  
+• additive only  
+• backward compatible  
 
 ---
 
-# Rule 9 — View Purity Rule (CRITICAL)
+# PROCEDURE RULE
 
-SQL view files must contain ONLY:
+Procedures must:
 
-• CREATE VIEW  
-• GRANTS  
-
-They must NOT contain:
-
-• INSERT  
-• UPDATE  
-• DELETE  
-• SELECT test queries  
-
-This ensures:
-
-• deterministic deployments  
-• safe rebuilds  
-• no hidden side effects  
+• be idempotent where possible  
+• never depend on mutable state  
+• operate only on canonical views/tables  
+• not reference non-existent columns (e.g., UPDATED_AT issues)  
 
 ---
 
-# Rule 10 — Use Views, Not Tables
+# QUERY LAYER RULE
 
-UI and API must read from views.
+Next.js query layer must:
 
-Views enforce:
+• only query canonical views  
+• never contain business logic  
+• never remap semantics incorrectly  
 
-• stable schema  
-• access control  
-• public-safe filtering  
+Correct pattern:
 
-Tables are storage only.
+certifiedTier → r.CERTIFIED_TIER  
 
----
+Incorrect pattern:
 
-# Rule 11 — UI Must Never Use Raw Snowflake Rows
-
-Data flow:
-
-Snowflake View  
-→ Query Layer / API  
-→ TypeScript Mapping  
-→ UI  
-
-Never expose raw Snowflake column names.
+certifiedTier → r.TIER  
 
 ---
 
-# Rule 12 — Explicit Column Mapping Required
+# UI RULE
 
-Snowflake: UPPERCASE  
-Frontend: camelCase  
+Frontend must:
 
-Example:
+• display certified fields only  
+• never infer certification  
+• never calculate governance state  
 
-REGISTRY_ID → registryId  
-SYSTEM_ID → systemId  
-CASE_ID → caseId  
-
-Always map explicitly.
+UI is a renderer, not a processor.
 
 ---
 
-# Rule 13 — ID Normalization Is Required
+# SNOWFLAKE WORKSHEET RULE
 
-All joins must normalize identifiers:
+Worksheets are NOT reliable state.
 
-TRIM()  
-UPPER()
+They may retain:
 
-Example:
+• stale execution fragments  
+• hidden compiled SQL  
+• invalid column references  
 
-TRIM(UPPER(a.CASE_ID)) = TRIM(UPPER(b.CASE_ID))
+Therefore:
 
-Prevents silent failures.
-
----
-
-# Rule 14 — Dual Evidence Mapping Must Be Maintained
-
-Tables:
-
-• VERIFICATION_FINDING_EVIDENCE  
-• FINDING_EVIDENCE_MAP  
-
-Rule:
-
-• write to both  
-• do not consolidate yet  
+• never trust a worksheet after heavy edits  
+• always use clean execution blocks  
+• recreate run scripts when debugging  
 
 ---
 
-# Rule 15 — Public Surfaces Must Be Safe
+# EXECUTION SCRIPT RULE
 
-Public routes:
+Files like:
 
-/registry  
-/registry/ai-systems  
-/api/registry  
-/api/verify/[registryId]  
+99_RUN_PIPELINE.sql  
 
-Must NOT expose:
+Are:
 
-• evidence  
-• findings  
-• internal scoring logic  
-• reviewer notes  
+• disposable  
+• non-canonical  
+• for manual testing only  
 
-Only expose:
+Do NOT:
 
-• approved registry data  
-• oversight signal outputs  
+• treat them as system logic  
+• rely on them for correctness  
 
 ---
 
-# Rule 16 — Admin Surfaces Must Be Protected
+# AI DEVELOPMENT RULE
 
-Routes:
+When using AI (ChatGPT):
 
-/admin/*  
-/api/admin/*  
+ALWAYS:
 
-Require authentication.
+• provide full file context  
+• reference canonical views  
+• avoid partial code patches  
 
-Never expose:
+NEVER:
 
-• credentials  
-• internal Snowflake structures  
-• privileged data  
-
-Admin surfaces include:
-
-• /admin/applications  
+• allow AI to re-architect system  
+• accept schema changes without validation  
+• introduce duplicate logic paths  
 
 ---
 
-# Rule 17 — Admin Intake Is NOT the Core Engine
+# CHANGE MANAGEMENT RULE
 
-Admin intake (applications) is:
+All changes must:
 
-• a reviewer workflow surface  
-• a staging layer  
-
-It is NOT:
-
-• the governance engine  
-• a registry source  
-
-Constraints:
-
-• must read from V_ADMIN_SUBMISSIONS  
-• must not publish directly to registry  
-• must not bypass scoring pipeline  
+• preserve pipeline flow  
+• not break downstream views  
+• be tested at the view level  
+• be validated via registry output  
 
 ---
 
-# Rule 18 — Deterministic Identifiers Only
+# DEBUGGING RULE
 
-Identifiers:
+When errors occur:
 
-CASE_ID  
-FINDING_ID  
-EVIDENCE_ID  
-SNAPSHOT_ID  
-REGISTRY_ID  
-SYSTEM_ID  
-REQUEST_ID  
-
-Defined in:
-
-types/ids.ts  
-
-Do not mutate identifiers in UI or API.
+1. Verify canonical view definitions  
+2. Use GET_DDL to inspect live objects  
+3. Test views directly  
+4. Avoid debugging through UI first  
+5. Avoid reusing corrupted worksheets  
 
 ---
 
-# Rule 19 — Environment Variables Only
+# STABILITY PRINCIPLE
 
-Secrets must use:
+Once a component works:
 
-.env.local  
-Vercel environment config  
+LOCK IT.
 
-Never hardcode:
+Do not:
 
-• database credentials  
-• API keys  
-• tokens  
-
----
-
-# Rule 20 — Full Pipeline Validation Required
-
-Every change must validate:
-
-1. Snowflake logic  
-2. snapshot created  
-3. registry snapshot created  
-4. public view resolves  
-5. query/API layer returns correct data  
-6. UI renders correctly  
-7. production behaves identically to local  
+• refactor working views  
+• rewrite procedures  
+• optimize prematurely  
 
 ---
 
-# Rule 21 — No Duplicate Architecture
+# PLATFORM INTEGRITY
 
-Before creating anything new:
+GAFAIG must always remain:
 
-• check Snowflake objects  
-• check query layer  
-• check existing routes  
-
-Extend existing systems.
-
-Do not fork architecture.
+• deterministic  
+• append-only  
+• globally consistent  
+• externally verifiable  
 
 ---
 
-# Rule 22 — No Speculative Schema Usage (CRITICAL)
+# FINAL RULE
 
-Do NOT reference columns unless verified in Snowflake.
+If unsure:
 
-Required workflow:
-
-1. inspect view in Snowflake  
-2. confirm column exists  
-3. then use in query/UI  
-
-Prevents:
-
-• runtime crashes  
-• broken pages  
-• production regressions  
+→ Follow the data flow  
+→ Trust the views  
+→ Do not invent logic  
 
 ---
 
-# Rule 23 — AI Must Not Re-Architect
-
-AI assistants must:
-
-• follow MASTER_STATE.md  
-• follow CURRENT_FOCUS.md  
-• follow ENGINEERING_RULES.md  
-
-AI must NOT:
-
-• invent new architecture  
-• bypass Snowflake  
-• introduce alternate pipelines  
-• fabricate schema  
-
----
-
-# Rule 24 — Docs Must Stay Synchronized
-
-Always update together:
-
-docs/MASTER_STATE.md  
-docs/CURRENT_FOCUS.md  
-docs/ENGINEERING_RULES.md  
-docs/PROJECT_INDEX.md  
-
-Use full-file replacements.
-
----
-
-# Rule 25 — New Chats Must Be Re-Anchored
-
-At start of every new chat:
-
-Re-establish:
-
-• MASTER_STATE.md  
-• CURRENT_FOCUS.md  
-• ENGINEERING_RULES.md  
-
----
-
-# Development Workflow
-
-1. Review canonical docs  
-2. Confirm architecture path  
-3. Modify Snowflake or query/API layer  
-4. Validate in Snowflake  
-5. Validate API/query layer  
-6. Validate UI locally  
-7. Commit  
-8. Push to GitHub  
-9. Deploy via Vercel  
-10. Validate production  
-11. Update docs  
-
----
-
-# Final Principle
-
-GAFAIG is global governance infrastructure.
-
-Engineering decisions must prioritize:
-
-• determinism  
-• auditability  
-• registry integrity  
-• reproducibility  
-• controlled disclosure  
-• architecture consistency  
+END OF FILE
