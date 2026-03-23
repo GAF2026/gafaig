@@ -179,7 +179,7 @@ export async function POST(req: NextRequest) {
         DETAILS,
         CREATED_AT
       )
-      VALUES (?, ?, ?, ?, PARSE_JSON(?), CURRENT_TIMESTAMP())
+      SELECT ?, ?, ?, ?, PARSE_JSON(?), CURRENT_TIMESTAMP()
       `,
       [
         eventId,
