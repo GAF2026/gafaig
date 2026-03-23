@@ -74,7 +74,9 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    const caseId = getParam(req, "caseId");
+    // ✅ FIXED: normalize caseId to uppercase
+    const caseId = getParam(req, "caseId").toUpperCase();
+
     if (!caseId) {
       return json({ ok: false, error: "Missing query param: caseId" }, 400);
     }
@@ -115,7 +117,9 @@ export async function POST(req: NextRequest) {
       actor?: string;
     };
 
-    const caseId = String(body.caseId || "").trim();
+    // ✅ FIXED: normalize caseId to uppercase
+    const caseId = String(body.caseId || "").trim().toUpperCase();
+
     const decision = String(body.decision || "").trim().toLowerCase();
     const summary = String(body.summary || "").trim();
     const conditions = String(body.conditions || "").trim();
