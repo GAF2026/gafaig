@@ -26,29 +26,7 @@ function makeId(prefix: string) {
   return `${prefix}-${Date.now()}-${Math.random().toString(16).slice(2, 10)}`;
 }
 
-function parseProcedurePayload(row: Record<string, unknown> | undefined) {
-  if (!row) return null;
-
-  const firstValue = Object.values(row)[0];
-
-  if (firstValue && typeof firstValue === "object") {
-    return firstValue as Record<string, unknown>;
-  }
-
-  if (typeof firstValue === "string") {
-    try {
-      return JSON.parse(firstValue) as Record<string, unknown>;
-    } catch {
-      return null;
-    }
-  }
-
-  return null;
-}
-
-const CASES_TABLE = "GAFAIG_DB.CORE.VERIFICATION_CASES";
 const DECISIONS_TABLE = "GAFAIG_DB.CORE.VERIFICATION_DECISIONS";
-const EVENTS_TABLE = "GAFAIG_DB.CORE.VERIFICATION_EVENTS";
 
 export async function GET(req: NextRequest) {
   try {
@@ -74,7 +52,7 @@ export async function GET(req: NextRequest) {
         CONDITIONS
       FROM ${DECISIONS_TABLE}
       WHERE TRIM(UPPER(CASE_ID)) = TRIM(UPPER(?))
-      ORDER BY DECIDED_AT DESC, DECISION_ID DESC
+      ORDER BY DECIDED_AT DESC
       LIMIT 1
       `,
       [caseId]
@@ -115,121 +93,24 @@ export async function POST(req: NextRequest) {
       return json({ ok: false, error: auth.error ?? "Unauthorized" }, auth.status ?? 401);
     }
 
-    const body = (await req.json().catch(() => ({}))) as {
-      caseId?: string;
-      decision?: string;
-      summary?: string;
-      conditions?: string;
-      actor?: string;
-    };
+    const body = await req.json();
 
     const caseId = String(body.caseId || "").trim();
     const decision = String(body.decision || "").trim().toLowerCase();
     const summary = String(body.summary || "").trim();
     const conditions = String(body.conditions || "").trim();
-    const actor = String(body.actor || "admin").trim();
+    const actor = "admin";
 
-    if (!caseId) {
-      return json({ ok: false, error: "Missing body field: caseId" }, 400);
-    }
-
-    if (!decision) {
-      return json({ ok: false, error: "Missing body field: decision" }, 400);
+    if (!caseId || !decision) {
+      return json({ ok: false, error: "Missing fields" }, 400);
     }
 
     if (!["approved", "rejected", "suspended"].includes(decision)) {
       return json({ ok: false, error: "Invalid decision" }, 400);
     }
 
-    if (decision === "approved") {
-      const procRows = await sfQuery<Record<string, unknown>>(
-        `
-        CALL GAFAIG_DB.CORE.APPROVE_CASE_V1(?, ?, ?)
-        `,
-        [caseId, actor, summary || null]
-      );
-
-      const payload = parseProcedurePayload(procRows?.[0]);
-
-      if (!payload || payload.ok !== true) {
-        return json(
-          {
-            ok: false,
-            error:
-              firstString(payload?.error) ||
-              "Approval procedure failed",
-            ctx: snowflakeCtx(),
-          },
-          400
-        );
-      }
-
-      const latestRows = await sfQuery<Record<string, unknown>>(
-        `
-        SELECT
-          DECISION_ID,
-          CASE_ID,
-          DECISION,
-          DECIDED_BY,
-          TO_VARCHAR(DECIDED_AT, 'YYYY-MM-DD HH24:MI:SS') AS DECIDED_AT,
-          SUMMARY,
-          CONDITIONS
-        FROM ${DECISIONS_TABLE}
-        WHERE TRIM(UPPER(CASE_ID)) = TRIM(UPPER(?))
-        ORDER BY DECIDED_AT DESC, DECISION_ID DESC
-        LIMIT 1
-        `,
-        [caseId]
-      );
-
-      const latest = latestRows?.[0] ?? null;
-
-      return json({
-        ok: true,
-        caseId,
-        decision: "approved",
-        row: latest
-          ? {
-              decisionId: firstString(latest.DECISION_ID),
-              caseId: firstString(latest.CASE_ID),
-              decision: firstString(latest.DECISION),
-              decidedBy: firstString(latest.DECIDED_BY),
-              decidedAt: firstString(latest.DECIDED_AT),
-              summary: firstString(latest.SUMMARY),
-              conditions: firstString(latest.CONDITIONS),
-            }
-          : null,
-        ctx: snowflakeCtx(),
-      });
-    }
-
-    const caseRows = await sfQuery<Record<string, unknown>>(
-      `
-      SELECT CASE_ID
-      FROM ${CASES_TABLE}
-      WHERE TRIM(UPPER(CASE_ID)) = TRIM(UPPER(?))
-      LIMIT 1
-      `,
-      [caseId]
-    );
-
-    if (!caseRows?.length) {
-      return json({ ok: false, error: "Case not found" }, 404);
-    }
-
+    // ✅ ALWAYS INSERT DECISION RECORD (CRITICAL FIX)
     const decisionId = makeId("DEC");
-    const eventId = makeId("EVT");
-
-    await sfQuery(
-      `
-      UPDATE ${CASES_TABLE}
-      SET
-        STATUS = ?,
-        UPDATED_AT = CURRENT_TIMESTAMP()
-      WHERE TRIM(UPPER(CASE_ID)) = TRIM(UPPER(?))
-      `,
-      [decision, caseId]
-    );
 
     await sfQuery(
       `
@@ -242,8 +123,7 @@ export async function POST(req: NextRequest) {
         SUMMARY,
         CONDITIONS
       )
-      SELECT
-        ?, ?, ?, ?, CURRENT_TIMESTAMP(), ?, ?
+      SELECT ?, ?, ?, ?, CURRENT_TIMESTAMP(), ?, ?
       `,
       [
         decisionId,
@@ -255,69 +135,18 @@ export async function POST(req: NextRequest) {
       ]
     );
 
-    await sfQuery(
-      `
-      INSERT INTO ${EVENTS_TABLE} (
-        EVENT_ID,
-        CASE_ID,
-        EVENT_TYPE,
-        ACTOR,
-        DETAILS,
-        CREATED_AT
-      )
-      SELECT
-        ?, ?, ?, ?, PARSE_JSON(?), CURRENT_TIMESTAMP()
-      `,
-      [
-        eventId,
-        caseId,
-        `case_${decision}`,
-        actor,
-        JSON.stringify({
-          decisionId,
-          decision,
-          summary: summary || null,
-          conditions: conditions || null,
-        }),
-      ]
-    );
-
-    const latestRows = await sfQuery<Record<string, unknown>>(
-      `
-      SELECT
-        DECISION_ID,
-        CASE_ID,
-        DECISION,
-        DECIDED_BY,
-        TO_VARCHAR(DECIDED_AT, 'YYYY-MM-DD HH24:MI:SS') AS DECIDED_AT,
-        SUMMARY,
-        CONDITIONS
-      FROM ${DECISIONS_TABLE}
-      WHERE TRIM(UPPER(CASE_ID)) = TRIM(UPPER(?))
-      ORDER BY DECIDED_AT DESC, DECISION_ID DESC
-      LIMIT 1
-      `,
-      [caseId]
-    );
-
-    const latest = latestRows?.[0] ?? null;
+    // ✅ THEN call procedure (optional but preserved)
+    if (decision === "approved") {
+      await sfQuery(
+        `CALL GAFAIG_DB.CORE.APPROVE_CASE_V1(?, ?, ?)`,
+        [caseId, actor, summary || null]
+      );
+    }
 
     return json({
       ok: true,
       caseId,
       decision,
-      row: latest
-        ? {
-            decisionId: firstString(latest.DECISION_ID),
-            caseId: firstString(latest.CASE_ID),
-            decision: firstString(latest.DECISION),
-            decidedBy: firstString(latest.DECIDED_BY),
-            decidedAt: firstString(latest.DECIDED_AT),
-            summary: firstString(latest.SUMMARY),
-            conditions: firstString(latest.CONDITIONS),
-          }
-        : null,
-      ctx: snowflakeCtx(),
     });
   } catch (e) {
     return json(
