@@ -21,14 +21,19 @@ type DecisionGetResponse =
   | { ok: true; row: DecisionRow | null }
   | { ok: false; error: string };
 
-type DecisionPostResponse =
-  | {
-      ok: true;
-      caseId: string;
-      decision: string;
-      proc?: unknown;
-    }
-  | { ok: false; error: string };
+type DecisionPostSuccess = {
+  ok: true;
+  caseId: string;
+  decision: string;
+  proc?: unknown;
+};
+
+type DecisionPostError = {
+  ok: false;
+  error: string;
+};
+
+type DecisionPostResponse = DecisionPostSuccess | DecisionPostError;
 
 type ScoreResponse =
   | {
@@ -126,34 +131,28 @@ export default function CaseDecisionsPage() {
         fetchJson(`/api/admin/verification/${encodeURIComponent(caseId)}/score`),
       ]);
 
-      if (!decisionResp.data?.ok) {
-        throw new Error(decisionResp.data?.error || "Failed to load decision");
+      const decisionData = decisionResp.data as DecisionGetResponse;
+
+      if (!decisionData.ok) {
+        throw new Error(decisionData.error || "Failed to load decision");
       }
 
-      setDecisionRow(decisionResp.data.row ?? null);
+      setDecisionRow(decisionData.row ?? null);
+      setScore(scoreResp.data as ScoreResponse);
 
-      if (scoreResp.data?.ok) {
-        setScore(scoreResp.data as ScoreResponse);
-      } else {
-        setScore(scoreResp.data as ScoreResponse);
-      }
-
-      if (decisionResp.data.row?.decision) {
-        const current = String(decisionResp.data.row.decision).toLowerCase();
-        if (
-          current === "approved" ||
-          current === "rejected" ||
-          current === "suspended"
-        ) {
+      if (decisionData.row?.decision) {
+        const current = String(decisionData.row.decision).toLowerCase();
+        if (current === "approved" || current === "rejected" || current === "suspended") {
           setDecision(current);
         }
       }
 
-      if (decisionResp.data.row?.summary) {
-        setSummary(String(decisionResp.data.row.summary));
+      if (decisionData.row?.summary) {
+        setSummary(String(decisionData.row.summary));
       }
-      if (decisionResp.data.row?.conditions) {
-        setConditions(String(decisionResp.data.row.conditions));
+
+      if (decisionData.row?.conditions) {
+        setConditions(String(decisionData.row.conditions));
       }
     } catch (err: any) {
       setError(err?.message || String(err));
@@ -202,7 +201,12 @@ export default function CaseDecisionsPage() {
       const data = (await res.json().catch(() => null)) as DecisionPostResponse | null;
 
       if (!res.ok || !data?.ok) {
-        throw new Error(data?.error || `Failed to save decision (HTTP ${res.status})`);
+        const errorMessage =
+          data && !data.ok && "error" in data
+            ? data.error
+            : `Failed to save decision (HTTP ${res.status})`;
+
+        throw new Error(errorMessage);
       }
 
       setSuccess(`Decision saved: ${prettify(data.decision)}`);

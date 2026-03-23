@@ -80,8 +80,10 @@ export default async function CasePublishPage({
   const { caseId } = await params;
   const data = await getScore(caseId);
   const ok = !!data?.ok;
-  const publishAllowed =
-    ok && String(data.caseStatus ?? "").trim().toLowerCase() !== "approved";
+
+  const caseStatus = String(data?.caseStatus ?? "").trim().toLowerCase();
+  const isApproved = ok && caseStatus === "approved";
+  const publishAllowed = ok && isApproved;
 
   return (
     <div className="min-h-screen bg-white text-black">
@@ -150,29 +152,72 @@ export default async function CasePublishPage({
                 Publish workflow
               </h2>
               <p className="mt-2 max-w-[900px] text-[14px] leading-[1.7] text-black/70">
-                Publishing first approves the case through the admin publish API,
-                then writes a registry snapshot in Snowflake and exposes the result
-                through the public registry views. After publish, verify the result
-                on the public registry.
+                Publishing writes the canonical public registry snapshot for this
+                approved case and exposes the result through the public registry
+                views. After publish, verify the result on the public registry
+                surfaces.
               </p>
 
-              {!publishAllowed ? (
-                <div className="mt-5 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-[14px] text-emerald-800">
-                  This case already appears to be approved. Publishing can still be
-                  validated from the public registry after the current snapshot is
-                  confirmed.
+              {!isApproved ? (
+                <div className="mt-5 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-[14px] text-amber-800">
+                  Case must be approved before publishing to the registry.
                 </div>
-              ) : null}
+              ) : (
+                <div className="mt-5 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-[14px] text-emerald-800">
+                  Case is approved and ready for registry publication.
+                </div>
+              )}
+
+              <section className="mt-5 rounded-2xl border border-black/10 p-5">
+                <h3 className="text-[16px] font-semibold text-black">
+                  Registry status
+                </h3>
+
+                <div className="mt-3 grid gap-4 md:grid-cols-3">
+                  <div className="rounded-xl border border-black/10 p-4">
+                    <div className="text-[12px] uppercase tracking-[0.12em] text-black/60">
+                      Published
+                    </div>
+                    <div className="mt-2 text-[16px] font-semibold text-black">
+                      {isApproved ? "Not Published" : "Not Ready"}
+                    </div>
+                  </div>
+
+                  <div className="rounded-xl border border-black/10 p-4">
+                    <div className="text-[12px] uppercase tracking-[0.12em] text-black/60">
+                      Registry ID
+                    </div>
+                    <div className="mt-2 text-[14px] font-mono text-black/75">
+                      Will appear after publish
+                    </div>
+                  </div>
+
+                  <div className="rounded-xl border border-black/10 p-4">
+                    <div className="text-[12px] uppercase tracking-[0.12em] text-black/60">
+                      Snapshot
+                    </div>
+                    <div className="mt-2 text-[14px] text-black/75">
+                      Not created
+                    </div>
+                  </div>
+                </div>
+              </section>
 
               <div className="mt-5">
-                <PublishPanel
-                  caseId={caseId}
-                  band={data.band}
-                  tier={data.tier}
-                  score={data.score}
-                  lastActivityAt={data.lastActivityAt}
-                  snowflakeEnv={data.snowflakeEnv ?? null}
-                />
+                {publishAllowed ? (
+                  <PublishPanel
+                    caseId={caseId}
+                    band={data.band}
+                    tier={data.tier}
+                    score={data.score}
+                    lastActivityAt={data.lastActivityAt}
+                    snowflakeEnv={data.snowflakeEnv ?? null}
+                  />
+                ) : (
+                  <div className="rounded-xl border border-black/10 p-4 text-[14px] text-black/60">
+                    Publish is locked until the case is approved.
+                  </div>
+                )}
               </div>
             </section>
 
@@ -182,7 +227,7 @@ export default async function CasePublishPage({
               </h2>
               <div className="mt-3 grid gap-4 md:grid-cols-2">
                 <Link
-                  href="/registry"
+                  href="/registry/ai-systems"
                   className="rounded-2xl border border-black/10 p-4 hover:bg-black/[0.03]"
                 >
                   <div className="text-[14px] font-semibold text-black">
@@ -194,7 +239,7 @@ export default async function CasePublishPage({
                 </Link>
 
                 <Link
-                  href="/registry"
+                  href="/registry/ai-systems"
                   className="rounded-2xl border border-black/10 p-4 hover:bg-black/[0.03]"
                 >
                   <div className="text-[14px] font-semibold text-black">

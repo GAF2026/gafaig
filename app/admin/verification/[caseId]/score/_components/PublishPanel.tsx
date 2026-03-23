@@ -2,41 +2,43 @@
 
 import { useMemo, useState } from "react";
 
-type PublishApiResponse =
-  | {
-      ok: true;
-      status: "published";
-      caseId: string;
-      registryId: string;
-      registrySnapshotId?: string | null;
-      verifyEndpoint?: string | null;
-      certifiedTier?: string | null;
-      certifiedBand?: string | null;
-      finalScore?: number | null;
-      record?: {
-        registryId: string;
-        caseId: string | null;
-        applicationId: string | null;
-        entityName: string | null;
-        entityType: string | null;
-        country: string | null;
-        certifiedTier: string | null;
-        certifiedBand: string | null;
-        finalScore: number | null;
-        decisionStatus: string | null;
-        validFrom: string | null;
-        validTo: string | null;
-        certifiedAt: string | null;
-        lastActivityAt: string | null;
-      } | null;
-      proc?: unknown;
-    }
-  | {
-      ok: false;
-      error: string;
-      caseId?: string;
-      proc?: unknown;
-    };
+type PublishApiSuccess = {
+  ok: true;
+  status: "published";
+  caseId: string;
+  registryId: string;
+  registrySnapshotId?: string | null;
+  verifyEndpoint?: string | null;
+  certifiedTier?: string | null;
+  certifiedBand?: string | null;
+  finalScore?: number | null;
+  record?: {
+    registryId: string;
+    caseId: string | null;
+    applicationId: string | null;
+    entityName: string | null;
+    entityType: string | null;
+    country: string | null;
+    certifiedTier: string | null;
+    certifiedBand: string | null;
+    finalScore: number | null;
+    decisionStatus: string | null;
+    validFrom: string | null;
+    validTo: string | null;
+    certifiedAt: string | null;
+    lastActivityAt: string | null;
+  } | null;
+  proc?: unknown;
+};
+
+type PublishApiError = {
+  ok: false;
+  error: string;
+  caseId?: string;
+  proc?: unknown;
+};
+
+type PublishApiResponse = PublishApiSuccess | PublishApiError;
 
 export default function PublishPanel(props: {
   caseId: string;
@@ -77,14 +79,17 @@ export default function PublishPanel(props: {
       const data = (await res.json().catch(() => null)) as PublishApiResponse | null;
 
       if (!res.ok || !data?.ok) {
-        setErr(
-          data?.error || `Publish failed (HTTP ${res.status})`
-        );
+        const errorMessage =
+          data && !data.ok && "error" in data
+            ? data.error
+            : `Publish failed (HTTP ${res.status})`;
+
+        setErr(errorMessage);
       } else {
         setRegistryId(data.registryId ?? null);
         setVerifyEndpoint(data.verifyEndpoint ?? null);
         setMsg(
-          "Published. Registry snapshot should now be visible via public registry views."
+          "Published. Registry snapshot should now be visible via public registry views.",
         );
       }
     } catch (e: unknown) {
