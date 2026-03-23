@@ -15,23 +15,12 @@ export async function POST(req: Request) {
       );
     }
 
-    // ✅ Update canonical applications table
+    // ✅ FIX: update SUBMISSIONS (source of V_ADMIN_SUBMISSIONS)
     await executeQuery(
       `
-      UPDATE CORE.APPLICATIONS
+      UPDATE CORE.SUBMISSIONS
       SET STATUS = ?, UPDATED_AT = CURRENT_TIMESTAMP()
-      WHERE REQUEST_ID = ?
-      `,
-      [status, requestId]
-    );
-
-    // ⚠️ CRITICAL: also update source feeding V_ADMIN_SUBMISSIONS
-    // (Assuming APPLICATIONS is the base — if not, this still safe)
-    await executeQuery(
-      `
-      UPDATE GAFAIG_DB.CORE.APPLICATIONS
-      SET STATUS = ?, UPDATED_AT = CURRENT_TIMESTAMP()
-      WHERE REQUEST_ID = ?
+      WHERE SUBMISSION_ID = ?
       `,
       [status, requestId]
     );
