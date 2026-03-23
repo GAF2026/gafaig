@@ -5,12 +5,18 @@ import { sfQuery, snowflakeCtx } from "@/lib/snowflake";
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
+const DECISIONS_TABLE = "GAFAIG_DB.CORE.VERIFICATION_DECISIONS";
+
 function json(data: unknown, status = 200) {
   return NextResponse.json(data, { status });
 }
 
-function getParam(req: NextRequest, key: string) {
-  return (req.nextUrl?.searchParams?.get(key) || "").trim();
+function normalizeCaseId(id: string) {
+  return id.trim().toUpperCase();
+}
+
+function makeId(prefix: string) {
+  return `${prefix}-${Date.now()}-${Math.random().toString(16).slice(2, 10)}`;
 }
 
 function firstString(...values: unknown[]): string | null {
@@ -22,107 +28,91 @@ function firstString(...values: unknown[]): string | null {
   return null;
 }
 
-function makeId(prefix: string) {
-  return `${prefix}-${Date.now()}-${Math.random().toString(16).slice(2, 10)}`;
+function getParam(req: NextRequest, key: string) {
+  return (req.nextUrl?.searchParams?.get(key) || "").trim();
 }
 
-const DECISIONS_TABLE = "GAFAIG_DB.CORE.VERIFICATION_DECISIONS";
-const CASES_TABLE = "GAFAIG_DB.CORE.VERIFICATION_CASES";
-const EVENTS_TABLE = "GAFAIG_DB.CORE.VERIFICATION_EVENTS";
-
-async function getLatestDecision(caseId: string) {
-  const rows = await sfQuery<Record<string, unknown>>(
-    `
-    SELECT
-      DECISION_ID,
-      CASE_ID,
-      DECISION,
-      DECIDED_BY,
-      TO_VARCHAR(DECIDED_AT, 'YYYY-MM-DD HH24:MI:SS') AS DECIDED_AT,
-      SUMMARY,
-      CONDITIONS
-    FROM ${DECISIONS_TABLE}
-    WHERE TRIM(UPPER(CASE_ID)) = TRIM(UPPER(?))
-    ORDER BY DECIDED_AT DESC, DECISION_ID DESC
-    LIMIT 1
-    `,
-    [caseId],
-  );
-
-  const row = rows?.[0] ?? null;
-
-  return row
-    ? {
-        decisionId: firstString(row.DECISION_ID),
-        caseId: firstString(row.CASE_ID),
-        decision: firstString(row.DECISION),
-        decidedBy: firstString(row.DECIDED_BY),
-        decidedAt: firstString(row.DECIDED_AT),
-        summary: firstString(row.SUMMARY),
-        conditions: firstString(row.CONDITIONS),
-      }
-    : null;
-}
-
+//
+// ✅ GET — READ DECISION
+//
 export async function GET(req: NextRequest) {
   try {
     const auth = await requireAdmin(req);
     if (!auth.ok) {
-      return json(
-        { ok: false, error: auth.error ?? "Unauthorized" },
-        auth.status ?? 401,
-      );
+      return json({ ok: false, error: auth.error }, auth.status ?? 401);
     }
 
-    const caseId = getParam(req, "caseId").toUpperCase();
-
-    if (!caseId) {
-      return json({ ok: false, error: "Missing query param: caseId" }, 400);
+    const rawCaseId = getParam(req, "caseId");
+    if (!rawCaseId) {
+      return json({ ok: false, error: "Missing caseId" }, 400);
     }
 
-    const row = await getLatestDecision(caseId);
+    const caseId = normalizeCaseId(rawCaseId);
+
+    const rows = await sfQuery<Record<string, unknown>>(
+      `
+      SELECT
+        DECISION_ID,
+        CASE_ID,
+        DECISION,
+        DECIDED_BY,
+        TO_VARCHAR(DECIDED_AT, 'YYYY-MM-DD HH24:MI:SS') AS DECIDED_AT,
+        SUMMARY,
+        CONDITIONS
+      FROM ${DECISIONS_TABLE}
+      WHERE TRIM(UPPER(CASE_ID)) = TRIM(UPPER(?))
+      ORDER BY DECIDED_AT DESC
+      LIMIT 1
+      `,
+      [caseId]
+    );
+
+    const row = rows?.[0];
 
     return json({
       ok: true,
-      row,
+      row: row
+        ? {
+            decisionId: firstString(row.DECISION_ID),
+            caseId: firstString(row.CASE_ID),
+            decision: firstString(row.DECISION),
+            decidedBy: firstString(row.DECIDED_BY),
+            decidedAt: firstString(row.DECIDED_AT),
+            summary: firstString(row.SUMMARY),
+            conditions: firstString(row.CONDITIONS),
+          }
+        : null,
     });
   } catch (e) {
     return json(
       {
         ok: false,
-        error: e instanceof Error ? e.message : "Failed to load decision",
+        error: e instanceof Error ? e.message : "GET failed",
         ctx: snowflakeCtx(),
       },
-      500,
+      500
     );
   }
 }
 
+//
+// ✅ POST — WRITE DECISION (HARD GUARANTEE)
+//
 export async function POST(req: NextRequest) {
   try {
     const auth = await requireAdmin(req);
     if (!auth.ok) {
-      return json(
-        { ok: false, error: auth.error ?? "Unauthorized" },
-        auth.status ?? 401,
-      );
+      return json({ ok: false, error: auth.error }, auth.status ?? 401);
     }
 
-    const body = (await req.json().catch(() => ({}))) as {
-      caseId?: string;
-      decision?: string;
-      summary?: string;
-      conditions?: string;
-      actor?: string;
-    };
+    const body = await req.json();
 
-    const caseId = String(body.caseId || "").trim().toUpperCase();
+    const rawCaseId = String(body.caseId || "").trim();
     const decision = String(body.decision || "").trim().toLowerCase();
     const summary = String(body.summary || "").trim();
     const conditions = String(body.conditions || "").trim();
-    const actor = String(body.actor || "admin").trim();
 
-    if (!caseId || !decision) {
+    if (!rawCaseId || !decision) {
       return json({ ok: false, error: "Missing fields" }, 400);
     }
 
@@ -130,113 +120,80 @@ export async function POST(req: NextRequest) {
       return json({ ok: false, error: "Invalid decision" }, 400);
     }
 
-    const caseRows = await sfQuery<Record<string, unknown>>(
-      `
-      SELECT CASE_ID
-      FROM ${CASES_TABLE}
-      WHERE TRIM(UPPER(CASE_ID)) = TRIM(UPPER(?))
-      LIMIT 1
-      `,
-      [caseId],
-    );
-
-    if (!caseRows?.length) {
-      return json({ ok: false, error: "Case not found" }, 404);
-    }
-
+    const caseId = normalizeCaseId(rawCaseId);
+    const actor = "admin";
     const decisionId = makeId("DEC");
 
-    // ✅ CRITICAL: wrap inserts
-    try {
-      await sfQuery(
-        `
-        INSERT INTO ${DECISIONS_TABLE} (
-          DECISION_ID,
-          CASE_ID,
-          DECISION,
-          DECIDED_BY,
-          DECIDED_AT,
-          SUMMARY,
-          CONDITIONS
-        )
-        VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP(), ?, ?)
-        `,
-        [
-          decisionId,
-          caseId,
-          decision,
-          actor,
-          summary || null,
-          conditions || null,
-        ],
-      );
-
-      await sfQuery(
-        `
-        INSERT INTO ${EVENTS_TABLE} (
-          EVENT_ID,
-          CASE_ID,
-          EVENT_TYPE,
-          ACTOR,
-          DETAILS,
-          CREATED_AT
-        )
-        SELECT ?, ?, ?, ?, PARSE_JSON(?), CURRENT_TIMESTAMP()
-        `,
-        [
-          makeId("EVT"),
-          caseId,
-          "decision_recorded",
-          actor,
-          JSON.stringify({
-            decision,
-            summary,
-          }),
-        ],
-      );
-    } catch (err) {
-      return json(
-        {
-          ok: false,
-          error: err instanceof Error ? err.message : "Insert failed",
-        },
-        500,
-      );
-    }
-
+    //
+    // ✅ INSERT (SAFE — NO PARSE_JSON)
+    //
     await sfQuery(
       `
-      UPDATE ${CASES_TABLE}
-      SET STATUS = ?, UPDATED_AT = CURRENT_TIMESTAMP()
-      WHERE TRIM(UPPER(CASE_ID)) = TRIM(UPPER(?))
+      INSERT INTO ${DECISIONS_TABLE} (
+        DECISION_ID,
+        CASE_ID,
+        DECISION,
+        DECIDED_BY,
+        DECIDED_AT,
+        SUMMARY,
+        CONDITIONS
+      )
+      SELECT ?, ?, ?, ?, CURRENT_TIMESTAMP(), ?, ?
       `,
-      [decision, caseId],
+      [
+        decisionId,
+        caseId,
+        decision,
+        actor,
+        summary || null,
+        conditions || null,
+      ]
     );
 
+    //
+    // ✅ VERIFY INSERT (CRITICAL)
+    //
+    const verify = await sfQuery<Record<string, unknown>>(
+      `
+      SELECT DECISION_ID
+      FROM ${DECISIONS_TABLE}
+      WHERE DECISION_ID = ?
+      LIMIT 1
+      `,
+      [decisionId]
+    );
+
+    if (!verify.length) {
+      throw new Error("Decision INSERT failed — row not found after write");
+    }
+
+    //
+    // ✅ APPROVAL PROCEDURE (SECONDARY)
+    //
     if (decision === "approved") {
       await sfQuery(
         `CALL GAFAIG_DB.CORE.APPROVE_CASE_V1(?, ?, ?)`,
-        [caseId, actor, summary || null],
+        [caseId, actor, summary || null]
       );
     }
 
-    const row = await getLatestDecision(caseId);
-
+    //
+    // ✅ RETURN CONFIRMED RESULT
+    //
     return json({
       ok: true,
       caseId,
       decision,
-      row,
-      ctx: snowflakeCtx(),
+      decisionId,
     });
   } catch (e) {
     return json(
       {
         ok: false,
-        error: e instanceof Error ? e.message : "Failed to save decision",
+        error: e instanceof Error ? e.message : "POST failed",
         ctx: snowflakeCtx(),
       },
-      500,
+      500
     );
   }
 }

@@ -25,12 +25,14 @@ type DecisionPostSuccess = {
   ok: true;
   caseId: string;
   decision: string;
-  proc?: unknown;
+  row?: DecisionRow | null;
+  ctx?: unknown;
 };
 
 type DecisionPostError = {
   ok: false;
   error: string;
+  ctx?: unknown;
 };
 
 type DecisionPostResponse = DecisionPostSuccess | DecisionPostError;
@@ -189,16 +191,24 @@ export default function CaseDecisionsPage() {
         method: "POST",
         headers: { "content-type": "application/json" },
         credentials: "include",
+        cache: "no-store",
         body: JSON.stringify({
           caseId,
           decision,
-          decidedBy: "admin",
+          actor: "admin",
           summary,
           conditions,
         }),
       });
 
-      const data = (await res.json().catch(() => null)) as DecisionPostResponse | null;
+      const text = await res.text();
+      let data: DecisionPostResponse | null = null;
+
+      try {
+        data = JSON.parse(text) as DecisionPostResponse;
+      } catch {
+        throw new Error(`Non-JSON response from decision API (HTTP ${res.status})`);
+      }
 
       if (!res.ok || !data?.ok) {
         const errorMessage =
@@ -209,7 +219,33 @@ export default function CaseDecisionsPage() {
         throw new Error(errorMessage);
       }
 
-      setSuccess(`Decision saved: ${prettify(data.decision)}`);
+      const verify = await fetchJson(
+        `/api/admin/verification/decisions?caseId=${encodeURIComponent(caseId)}`,
+      );
+
+      const verifyData = verify.data as DecisionGetResponse;
+
+      if (!verifyData.ok) {
+        throw new Error(verifyData.error || "Decision save verification failed");
+      }
+
+      if (!verifyData.row) {
+        throw new Error(
+          "Decision API reported success, but no decision row was found after save.",
+        );
+      }
+
+      setDecisionRow(verifyData.row);
+      setSuccess(`Decision saved: ${prettify(verifyData.row.decision ?? data.decision)}`);
+
+      if (verifyData.row.summary) {
+        setSummary(String(verifyData.row.summary));
+      }
+
+      if (verifyData.row.conditions) {
+        setConditions(String(verifyData.row.conditions));
+      }
+
       await load();
     } catch (err: any) {
       setError(err?.message || "Failed to save decision");
