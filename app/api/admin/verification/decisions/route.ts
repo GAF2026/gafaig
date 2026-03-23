@@ -74,7 +74,6 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    // ✅ FIXED: normalize caseId to uppercase
     const caseId = getParam(req, "caseId").toUpperCase();
 
     if (!caseId) {
@@ -117,9 +116,7 @@ export async function POST(req: NextRequest) {
       actor?: string;
     };
 
-    // ✅ FIXED: normalize caseId to uppercase
     const caseId = String(body.caseId || "").trim().toUpperCase();
-
     const decision = String(body.decision || "").trim().toLowerCase();
     const summary = String(body.summary || "").trim();
     const conditions = String(body.conditions || "").trim();
@@ -148,56 +145,64 @@ export async function POST(req: NextRequest) {
     }
 
     const decisionId = makeId("DEC");
-    const eventId = makeId("EVT");
 
-    await sfQuery(
-      `
-      INSERT INTO ${DECISIONS_TABLE} (
-        DECISION_ID,
-        CASE_ID,
-        DECISION,
-        DECIDED_BY,
-        DECIDED_AT,
-        SUMMARY,
-        CONDITIONS
-      )
-      VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP(), ?, ?)
-      `,
-      [
-        decisionId,
-        caseId,
-        decision,
-        actor,
-        summary || null,
-        conditions || null,
-      ],
-    );
-
-    await sfQuery(
-      `
-      INSERT INTO ${EVENTS_TABLE} (
-        EVENT_ID,
-        CASE_ID,
-        EVENT_TYPE,
-        ACTOR,
-        DETAILS,
-        CREATED_AT
-      )
-      SELECT ?, ?, ?, ?, PARSE_JSON(?), CURRENT_TIMESTAMP()
-      `,
-      [
-        eventId,
-        caseId,
-        `case_${decision}`,
-        actor,
-        JSON.stringify({
+    // ✅ CRITICAL: wrap inserts
+    try {
+      await sfQuery(
+        `
+        INSERT INTO ${DECISIONS_TABLE} (
+          DECISION_ID,
+          CASE_ID,
+          DECISION,
+          DECIDED_BY,
+          DECIDED_AT,
+          SUMMARY,
+          CONDITIONS
+        )
+        VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP(), ?, ?)
+        `,
+        [
           decisionId,
+          caseId,
           decision,
-          summary: summary || null,
-          conditions: conditions || null,
-        }),
-      ],
-    );
+          actor,
+          summary || null,
+          conditions || null,
+        ],
+      );
+
+      await sfQuery(
+        `
+        INSERT INTO ${EVENTS_TABLE} (
+          EVENT_ID,
+          CASE_ID,
+          EVENT_TYPE,
+          ACTOR,
+          DETAILS,
+          CREATED_AT
+        )
+        SELECT ?, ?, ?, ?, PARSE_JSON(?), CURRENT_TIMESTAMP()
+        `,
+        [
+          makeId("EVT"),
+          caseId,
+          "decision_recorded",
+          actor,
+          JSON.stringify({
+            decision,
+            summary,
+          }),
+        ],
+      );
+    } catch (err) {
+      return json(
+        {
+          ok: false,
+          error: err instanceof Error ? err.message : "Insert failed",
+        },
+        500,
+      );
+    }
 
     await sfQuery(
       `
