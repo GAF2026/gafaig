@@ -6,6 +6,8 @@ export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 const DECISIONS_TABLE = "GAFAIG_DB.CORE.VERIFICATION_DECISIONS";
+const CASES_TABLE = "GAFAIG_DB.CORE.VERIFICATION_CASES";
+const EVENTS_TABLE = "GAFAIG_DB.CORE.VERIFICATION_EVENTS";
 
 function json(data: unknown, status = 200) {
   return NextResponse.json(data, { status });
@@ -32,9 +34,41 @@ function getParam(req: NextRequest, key: string) {
   return (req.nextUrl?.searchParams?.get(key) || "").trim();
 }
 
-//
-// ✅ GET — READ DECISION
-//
+async function getLatestDecision(caseId: string) {
+  const rows = await sfQuery<Record<string, unknown>>(
+    `
+    SELECT
+      DECISION_ID,
+      CASE_ID,
+      DECISION,
+      DECIDED_BY,
+      TO_VARCHAR(DECIDED_AT, 'YYYY-MM-DD HH24:MI:SS') AS DECIDED_AT,
+      SUMMARY,
+      CONDITIONS,
+      ORG_ID
+    FROM ${DECISIONS_TABLE}
+    WHERE TRIM(UPPER(CASE_ID)) = TRIM(UPPER(?))
+    ORDER BY DECIDED_AT DESC, DECISION_ID DESC
+    LIMIT 1
+    `,
+    [caseId]
+  );
+
+  const row = rows?.[0];
+
+  return row
+    ? {
+        decisionId: firstString(row.DECISION_ID),
+        caseId: firstString(row.CASE_ID),
+        decision: firstString(row.DECISION),
+        decidedBy: firstString(row.DECIDED_BY),
+        decidedAt: firstString(row.DECIDED_AT),
+        summary: firstString(row.SUMMARY),
+        conditions: firstString(row.CONDITIONS),
+      }
+    : null;
+}
+
 export async function GET(req: NextRequest) {
   try {
     const auth = await requireAdmin(req);
@@ -48,41 +82,9 @@ export async function GET(req: NextRequest) {
     }
 
     const caseId = normalizeCaseId(rawCaseId);
+    const row = await getLatestDecision(caseId);
 
-    const rows = await sfQuery<Record<string, unknown>>(
-      `
-      SELECT
-        DECISION_ID,
-        CASE_ID,
-        DECISION,
-        DECIDED_BY,
-        TO_VARCHAR(DECIDED_AT, 'YYYY-MM-DD HH24:MI:SS') AS DECIDED_AT,
-        SUMMARY,
-        CONDITIONS
-      FROM ${DECISIONS_TABLE}
-      WHERE TRIM(UPPER(CASE_ID)) = TRIM(UPPER(?))
-      ORDER BY DECIDED_AT DESC
-      LIMIT 1
-      `,
-      [caseId]
-    );
-
-    const row = rows?.[0];
-
-    return json({
-      ok: true,
-      row: row
-        ? {
-            decisionId: firstString(row.DECISION_ID),
-            caseId: firstString(row.CASE_ID),
-            decision: firstString(row.DECISION),
-            decidedBy: firstString(row.DECIDED_BY),
-            decidedAt: firstString(row.DECIDED_AT),
-            summary: firstString(row.SUMMARY),
-            conditions: firstString(row.CONDITIONS),
-          }
-        : null,
-    });
+    return json({ ok: true, row });
   } catch (e) {
     return json(
       {
@@ -95,9 +97,6 @@ export async function GET(req: NextRequest) {
   }
 }
 
-//
-// ✅ POST — WRITE DECISION (HARD GUARANTEE)
-//
 export async function POST(req: NextRequest) {
   try {
     const auth = await requireAdmin(req);
@@ -123,10 +122,37 @@ export async function POST(req: NextRequest) {
     const caseId = normalizeCaseId(rawCaseId);
     const actor = "admin";
     const decisionId = makeId("DEC");
+    const eventId = makeId("EVT");
 
-    //
-    // ✅ INSERT (SAFE — NO PARSE_JSON)
-    //
+    // Pull ORG_ID from the canonical case row so the row access policy can see the decision row.
+    const caseRows = await sfQuery<Record<string, unknown>>(
+      `
+      SELECT
+        CASE_ID,
+        ORG_ID
+      FROM ${CASES_TABLE}
+      WHERE TRIM(UPPER(CASE_ID)) = TRIM(UPPER(?))
+      LIMIT 1
+      `,
+      [caseId]
+    );
+
+    const caseRow = caseRows?.[0];
+    if (!caseRow) {
+      return json({ ok: false, error: "Case not found" }, 404);
+    }
+
+    const orgId = firstString(caseRow.ORG_ID);
+    if (!orgId) {
+      return json(
+        {
+          ok: false,
+          error: "Case ORG_ID is missing; cannot write decision row under row access policy.",
+        },
+        500
+      );
+    }
+
     await sfQuery(
       `
       INSERT INTO ${DECISIONS_TABLE} (
@@ -136,9 +162,11 @@ export async function POST(req: NextRequest) {
         DECIDED_BY,
         DECIDED_AT,
         SUMMARY,
-        CONDITIONS
+        CONDITIONS,
+        CREATED_AT,
+        ORG_ID
       )
-      SELECT ?, ?, ?, ?, CURRENT_TIMESTAMP(), ?, ?
+      SELECT ?, ?, ?, ?, CURRENT_TIMESTAMP(), ?, ?, CURRENT_TIMESTAMP(), ?
       `,
       [
         decisionId,
@@ -147,29 +175,37 @@ export async function POST(req: NextRequest) {
         actor,
         summary || null,
         conditions || null,
+        orgId,
       ]
     );
 
-    //
-    // ✅ VERIFY INSERT (CRITICAL)
-    //
-    const verify = await sfQuery<Record<string, unknown>>(
+    await sfQuery(
       `
-      SELECT DECISION_ID
-      FROM ${DECISIONS_TABLE}
-      WHERE DECISION_ID = ?
-      LIMIT 1
+      INSERT INTO ${EVENTS_TABLE} (
+        EVENT_ID,
+        CASE_ID,
+        EVENT_TYPE,
+        ACTOR,
+        DETAILS,
+        CREATED_AT
+      )
+      SELECT ?, ?, ?, ?, PARSE_JSON(?), CURRENT_TIMESTAMP()
       `,
-      [decisionId]
+      [
+        eventId,
+        caseId,
+        "decision_recorded",
+        actor,
+        JSON.stringify({
+          decisionId,
+          decision,
+          summary: summary || null,
+          conditions: conditions || null,
+          orgId,
+        }),
+      ]
     );
 
-    if (!verify.length) {
-      throw new Error("Decision INSERT failed — row not found after write");
-    }
-
-    //
-    // ✅ APPROVAL PROCEDURE (SECONDARY)
-    //
     if (decision === "approved") {
       await sfQuery(
         `CALL GAFAIG_DB.CORE.APPROVE_CASE_V1(?, ?, ?)`,
@@ -177,14 +213,25 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    //
-    // ✅ RETURN CONFIRMED RESULT
-    //
+    const row = await getLatestDecision(caseId);
+
+    if (!row) {
+      return json(
+        {
+          ok: false,
+          error: "Decision row was inserted but is still not readable after save.",
+          ctx: snowflakeCtx(),
+        },
+        500
+      );
+    }
+
     return json({
       ok: true,
       caseId,
       decision,
       decisionId,
+      row,
     });
   } catch (e) {
     return json(
