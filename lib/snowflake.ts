@@ -13,13 +13,6 @@ type QuerySuccess<T> = {
 
 export type SfQueryResult<T> = QuerySuccess<T> | QueryError;
 
-declare global {
-  // eslint-disable-next-line no-var
-  var __gafaigSnowflakeConnection: snowflake.Connection | undefined;
-  // eslint-disable-next-line no-var
-  var __gafaigSnowflakeConnecting: Promise<snowflake.Connection> | undefined;
-}
-
 function env(name: string): string | undefined {
   const value = process.env[name];
   if (typeof value !== "string") return undefined;
@@ -85,7 +78,7 @@ function buildConnectionConfig(): snowflake.ConnectionOptions {
     warehouse: requireEnv(warehouse, "SNOWFLAKE_WAREHOUSE"),
     database: requireEnv(database, "SNOWFLAKE_DATABASE"),
     schema: requireEnv(schema, "SNOWFLAKE_SCHEMA"),
-    clientSessionKeepAlive: true,
+    clientSessionKeepAlive: false,
   };
 
   if (role) {
@@ -116,7 +109,7 @@ function buildConnectionConfig(): snowflake.ConnectionOptions {
   }
 
   throw new Error(
-    "Missing Snowflake auth configuration. Provide SNOWFLAKE_PASSWORD or SNOWFLAKE_PRIVATE_KEY or SNOWFLAKE_PRIVATE_KEY_PATH."
+    "Missing Snowflake auth configuration. Provide SNOWFLAKE_PASSWORD or SNOWFLAKE_PRIVATE_KEY or SNOWFLAKE_PRIVATE_KEY_PATH.",
   );
 }
 
@@ -127,65 +120,23 @@ export function createConnection(): snowflake.Connection {
 async function connectNewConnection(): Promise<snowflake.Connection> {
   const connection = createConnection();
 
-  return new Promise<snowflake.Connection>((resolve, reject) => {
+  await new Promise<void>((resolve, reject) => {
     connection.connect((err) => {
       if (err) {
         reject(err);
         return;
       }
-
-      resolve(connection);
+      resolve();
     });
   });
-}
 
-function isRecoverableConnectionError(error: unknown): boolean {
-  const message = String((error as { message?: string } | undefined)?.message || "").toLowerCase();
-
-  return (
-    message.includes("terminated connection") ||
-    message.includes("connection is closed") ||
-    message.includes("connection was already destroyed") ||
-    message.includes("not connected") ||
-    message.includes("disconnected") ||
-    message.includes("connection not established") ||
-    message.includes("socket") ||
-    message.includes("econnreset")
-  );
-}
-
-function resetSharedConnection() {
-  global.__gafaigSnowflakeConnection = undefined;
-  global.__gafaigSnowflakeConnecting = undefined;
-}
-
-async function getSharedConnection(): Promise<snowflake.Connection> {
-  if (global.__gafaigSnowflakeConnection) {
-    return global.__gafaigSnowflakeConnection;
-  }
-
-  if (!global.__gafaigSnowflakeConnecting) {
-    global.__gafaigSnowflakeConnecting = connectNewConnection()
-      .then((connection) => {
-        global.__gafaigSnowflakeConnection = connection;
-        return connection;
-      })
-      .catch((error) => {
-        resetSharedConnection();
-        throw error;
-      })
-      .finally(() => {
-        global.__gafaigSnowflakeConnecting = undefined;
-      });
-  }
-
-  return global.__gafaigSnowflakeConnecting;
+  return connection;
 }
 
 async function executeOnConnection<T = any>(
   connection: snowflake.Connection,
   sqlText: string,
-  binds: any[] = []
+  binds: any[] = [],
 ): Promise<T[]> {
   return new Promise<T[]>((resolve, reject) => {
     connection.execute({
@@ -203,49 +154,67 @@ async function executeOnConnection<T = any>(
   });
 }
 
-async function runQuery<T = any>(
-  sqlText: string,
-  binds: any[] = []
-): Promise<T[]> {
-  let connection = await getSharedConnection();
+async function destroyConnectionQuietly(connection: snowflake.Connection) {
+  await new Promise<void>((resolve) => {
+    try {
+      connection.destroy((_err, _conn) => resolve());
+    } catch {
+      resolve();
+    }
+  });
+}
+
+async function runQuery<T = any>(sqlText: string, binds: any[] = []): Promise<T[]> {
+  const connection = await connectNewConnection();
 
   try {
-    return await executeOnConnection<T>(connection, sqlText, binds);
-  } catch (error) {
-    if (!isRecoverableConnectionError(error)) {
-      throw error;
+    await executeOnConnection(connection, "ALTER SESSION SET AUTOCOMMIT = TRUE");
+
+    const rows = await executeOnConnection<T>(connection, sqlText, binds);
+
+    try {
+      await executeOnConnection(connection, "COMMIT");
+    } catch {
+      // harmless when no transaction is open
     }
 
-    resetSharedConnection();
-    connection = await getSharedConnection();
-    return executeOnConnection<T>(connection, sqlText, binds);
+    return rows;
+  } catch (error) {
+    try {
+      await executeOnConnection(connection, "ROLLBACK");
+    } catch {
+      // ignore rollback failures
+    }
+    throw error;
+  } finally {
+    await destroyConnectionQuietly(connection);
   }
 }
 
 export async function sfQuery<T = any>(
   sqlText: string,
-  binds: any[] = []
+  binds: any[] = [],
 ): Promise<T[]> {
   return runQuery<T>(sqlText, binds);
 }
 
 export async function snowflakeQuery<T = any>(
   sqlText: string,
-  binds: any[] = []
+  binds: any[] = [],
 ): Promise<T[]> {
   return runQuery<T>(sqlText, binds);
 }
 
 export async function executeQuery<T = any>(
   sqlText: string,
-  binds: any[] = []
+  binds: any[] = [],
 ): Promise<T[]> {
   return runQuery<T>(sqlText, binds);
 }
 
 export async function sfQueryResult<T = any>(
   sqlText: string,
-  binds: any[] = []
+  binds: any[] = [],
 ): Promise<SfQueryResult<T>> {
   try {
     const rows = await runQuery<T>(sqlText, binds);
@@ -285,9 +254,9 @@ export function snowflakeCtx() {
     authMode: password
       ? "password"
       : privateKey
-      ? "privateKey"
-      : privateKeyPath
-      ? "privateKeyPath"
-      : "missing",
+        ? "privateKey"
+        : privateKeyPath
+          ? "privateKeyPath"
+          : "missing",
   };
 }
