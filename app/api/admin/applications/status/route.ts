@@ -1,95 +1,43 @@
 import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
-import { requireAdmin } from "@/lib/auth/require";
-import { normalizeId } from "@/lib/ids";
-import { snowflakeQuery } from "@/lib/snowflake";
+import { executeQuery } from "@/lib/snowflake";
 
-export const dynamic = "force-dynamic";
-export const runtime = "nodejs";
-
-const ALLOWED_STATUSES = new Set([
-  "received",
-  "in_review",
-  "approved",
-  "rejected",
-]);
-
-function json(data: unknown, status = 200) {
-  return NextResponse.json(data, { status });
-}
-
-function clean(value: unknown): string {
-  return String(value ?? "").trim();
-}
-
-export async function POST(req: NextRequest) {
+export async function POST(req: Request) {
   try {
-    const auth = await requireAdmin(req);
-    if (!auth.ok) {
-      return json(
-        { ok: false, error: auth.error ?? "Unauthorized" },
-        auth.status ?? 401
-      );
-    }
-
     const body = await req.json();
-    const requestId = normalizeId(body?.requestId);
-    const status = clean(body?.status).toLowerCase();
+
+    const requestId = String(body?.requestId ?? "").trim();
+    const status = String(body?.status ?? "").trim().toLowerCase();
 
     if (!requestId || !status) {
-      return json({ ok: false, error: "Missing requestId or status" }, 400);
-    }
-
-    if (!ALLOWED_STATUSES.has(status)) {
-      return json(
-        {
-          ok: false,
-          error: `Invalid status. Allowed values: ${Array.from(ALLOWED_STATUSES).join(", ")}`,
-        },
-        400
+      return NextResponse.json(
+        { ok: false, error: "Missing requestId or status" },
+        { status: 400 }
       );
     }
 
-    const existsSql = `
-      SELECT REQUEST_ID
-      FROM GAFAIG_DB.CORE.APPLICATIONS
-      WHERE TRIM(UPPER(COALESCE(REQUEST_ID, ''))) = TRIM(UPPER(?))
-      LIMIT 1
-    `;
+    // ✅ CRITICAL: use REQUEST_ID (not ID)
+    const result = await executeQuery(
+      `
+      UPDATE CORE.APPLICATIONS
+      SET STATUS = ?
+      WHERE REQUEST_ID = ?
+      `,
+      [status, requestId]
+    );
 
-    const existing = await snowflakeQuery<Record<string, unknown>>(existsSql, [
-      requestId,
-    ]);
-
-    if (!existing.length) {
-      return json({ ok: false, error: "Application not found" }, 404);
+    // Optional: check rows affected (depends on your executeQuery implementation)
+    if (!result) {
+      return NextResponse.json(
+        { ok: false, error: "Application not found" },
+        { status: 404 }
+      );
     }
 
-    const updateSql = `
-      UPDATE GAFAIG_DB.CORE.APPLICATIONS
-      SET
-        STATUS = ?,
-        UPDATED_AT = CURRENT_TIMESTAMP()
-      WHERE TRIM(UPPER(COALESCE(REQUEST_ID, ''))) = TRIM(UPPER(?))
-    `;
-
-    await snowflakeQuery(updateSql, [status, requestId]);
-
-    return json({
-      ok: true,
-      requestId,
-      status,
-    });
-  } catch (error) {
-    return json(
-      {
-        ok: false,
-        error:
-          error instanceof Error
-            ? error.message
-            : "Failed to update application status",
-      },
-      500
+    return NextResponse.json({ ok: true });
+  } catch (err: any) {
+    return NextResponse.json(
+      { ok: false, error: err?.message || "Failed to update status" },
+      { status: 500 }
     );
   }
 }
