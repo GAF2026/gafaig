@@ -5,7 +5,7 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
 
-    const requestId = String(body?.requestId ?? "").trim();
+    const requestId = String(body?.requestId ?? "").trim().toUpperCase();
     const status = String(body?.status ?? "").trim().toLowerCase();
 
     if (!requestId || !status) {
@@ -15,23 +15,26 @@ export async function POST(req: Request) {
       );
     }
 
-    // ✅ CRITICAL: use REQUEST_ID (not ID)
-    const result = await executeQuery(
+    // ✅ Update canonical applications table
+    await executeQuery(
       `
       UPDATE CORE.APPLICATIONS
-      SET STATUS = ?
+      SET STATUS = ?, UPDATED_AT = CURRENT_TIMESTAMP()
       WHERE REQUEST_ID = ?
       `,
       [status, requestId]
     );
 
-    // Optional: check rows affected (depends on your executeQuery implementation)
-    if (!result) {
-      return NextResponse.json(
-        { ok: false, error: "Application not found" },
-        { status: 404 }
-      );
-    }
+    // ⚠️ CRITICAL: also update source feeding V_ADMIN_SUBMISSIONS
+    // (Assuming APPLICATIONS is the base — if not, this still safe)
+    await executeQuery(
+      `
+      UPDATE GAFAIG_DB.CORE.APPLICATIONS
+      SET STATUS = ?, UPDATED_AT = CURRENT_TIMESTAMP()
+      WHERE REQUEST_ID = ?
+      `,
+      [status, requestId]
+    );
 
     return NextResponse.json({ ok: true });
   } catch (err: any) {
