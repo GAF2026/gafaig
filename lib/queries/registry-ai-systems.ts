@@ -77,6 +77,10 @@ function toNullableIsoString(value: unknown): string | null {
   return String(value);
 }
 
+function escapeSqlString(value: string): string {
+  return value.replace(/'/g, "''");
+}
+
 function mapRegistryAiSystemRow(r: any): RegistryAiSystem {
   return {
     systemId: String(r.SYSTEM_ID),
@@ -112,12 +116,13 @@ function mapRegistryAiSystemRow(r: any): RegistryAiSystem {
   };
 }
 
-// ✅ FIX: MISSING FUNCTION
 export async function getRegistryAiSystemBySystemId(systemId: string) {
+  const safeSystemId = escapeSqlString(systemId);
+
   const rows = await executeQuery(`
     SELECT *
     FROM CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC
-    WHERE SYSTEM_ID = '${systemId}'
+    WHERE SYSTEM_ID = '${safeSystemId}'
     LIMIT 1
   `);
 
@@ -125,6 +130,22 @@ export async function getRegistryAiSystemBySystemId(systemId: string) {
   if (!row) return null;
 
   return mapRegistryAiSystemRow(row);
+}
+
+export async function getRegistryAiSystemsByRegistryId(registryId: string) {
+  const safeRegistryId = escapeSqlString(registryId);
+
+  const rows = await executeQuery(`
+    SELECT *
+    FROM CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC
+    WHERE REGISTRY_ID = '${safeRegistryId}'
+    ORDER BY
+      COALESCE(ENTITY_NAME, ''),
+      COALESCE(SYSTEM_NAME, ''),
+      COALESCE(SYSTEM_ID, '')
+  `);
+
+  return rows.map(mapRegistryAiSystemRow);
 }
 
 export async function getRegistryAiSystemsPaginated(
@@ -163,12 +184,34 @@ export async function getRegistryAiSystemsFilterOptions() {
       CERTIFIED_TIER,
       CERTIFIED_BAND
     FROM CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC
+    ORDER BY
+      COUNTRY,
+      CERTIFIED_TIER,
+      CERTIFIED_BAND
   `);
 
   return {
-    countries: rows.map((r: any) => toNullableString(r.COUNTRY)).filter(Boolean),
-    tiers: rows.map((r: any) => toNullableString(r.CERTIFIED_TIER)).filter(Boolean),
-    bands: rows.map((r: any) => toNullableString(r.CERTIFIED_BAND)).filter(Boolean),
+    countries: Array.from(
+      new Set(
+        rows
+          .map((r: any) => toNullableString(r.COUNTRY))
+          .filter((value): value is string => Boolean(value)),
+      ),
+    ),
+    tiers: Array.from(
+      new Set(
+        rows
+          .map((r: any) => toNullableString(r.CERTIFIED_TIER))
+          .filter((value): value is string => Boolean(value)),
+      ),
+    ),
+    bands: Array.from(
+      new Set(
+        rows
+          .map((r: any) => toNullableString(r.CERTIFIED_BAND))
+          .filter((value): value is string => Boolean(value)),
+      ),
+    ),
   };
 }
 
