@@ -1,43 +1,15 @@
-import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
-import { sfQueryResult } from "@/lib/snowflake";
+import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/auth/require";
+import { sfQuery } from "@/lib/snowflake";
 
-type ActorRow = {
-  ACTOR: string;
-};
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
 
-type ColumnRow = {
-  TABLE_NAME: string;
-  COLUMN_NAME: string;
-};
-
-type GenericRow = Record<string, any>;
-
-// IMPORTANT:
-// V_PUBLIC_REGISTRY is intentionally excluded because it is currently broken
-// in Snowflake and references invalid identifier ENTITY_TYPE.
-const CORE_OBJECTS = [
-  "V_REGISTRY_PUBLIC",
-  "V_REGISTRY_EXPORT_V1",
-  "REGISTRY_SNAPSHOTS",
-  "VERIFICATION_CASES",
-  "REGISTRY_AI_SYSTEMS",
-] as const;
-
-function upperSet(values: string[]) {
-  return new Set(values.map((v) => String(v || "").toUpperCase()));
+function json(data: unknown, status = 200) {
+  return NextResponse.json(data, { status });
 }
 
-function hasAll(set: Set<string>, cols: string[]) {
-  return cols.every((c) => set.has(c.toUpperCase()));
-}
-
-function firstPresent(set: Set<string>, candidates: string[]) {
-  return candidates.find((c) => set.has(c.toUpperCase())) || null;
-}
-
-function firstString(...values: unknown[]) {
+function firstString(...values: unknown[]): string | null {
   for (const value of values) {
     if (value === null || value === undefined) continue;
     const s = String(value).trim();
@@ -46,478 +18,149 @@ function firstString(...values: unknown[]) {
   return null;
 }
 
-async function getObjectColumns(objectName: string) {
-  const res = await sfQueryResult<ColumnRow>(
-    `
-    SELECT TABLE_NAME, COLUMN_NAME
-    FROM GAFAIG_DB.INFORMATION_SCHEMA.COLUMNS
-    WHERE TABLE_SCHEMA = 'CORE'
-      AND TABLE_NAME = ?
-    ORDER BY ORDINAL_POSITION
-    `,
-    [objectName]
-  );
-
-  if (!res.ok) {
-    return {
-      ok: false as const,
-      objectName,
-      error: res.error || "Unknown Snowflake error",
-      columns: [] as string[],
-      set: new Set<string>(),
-    };
+function firstNumber(...values: unknown[]): number | null {
+  for (const value of values) {
+    if (value === null || value === undefined) continue;
+    const n = Number(value);
+    if (!Number.isNaN(n)) return n;
   }
-
-  const columns = (res.rows || []).map((r) => r.COLUMN_NAME);
-  return {
-    ok: true as const,
-    objectName,
-    columns,
-    set: upperSet(columns),
-  };
-}
-
-async function tryResolveRegistryIdByCaseId(
-  objectName: string,
-  columnSet: Set<string>,
-  caseId: string
-) {
-  if (!hasAll(columnSet, ["CASE_ID", "REGISTRY_ID"])) {
-    return {
-      ok: true as const,
-      matched: false,
-      row: null as GenericRow | null,
-      reason: "Missing CASE_ID and/or REGISTRY_ID",
-    };
-  }
-
-  const orderCol =
-    firstPresent(columnSet, ["CERTIFIED_AT", "CREATED_AT", "UPDATED_AT"]) ||
-    "CASE_ID";
-
-  const res = await sfQueryResult<GenericRow>(
-    `
-    SELECT CASE_ID, REGISTRY_ID
-    FROM GAFAIG_DB.CORE.${objectName}
-    WHERE CASE_ID = ?
-    ORDER BY ${orderCol} DESC NULLS LAST
-    LIMIT 1
-    `,
-    [caseId]
-  );
-
-  if (!res.ok) {
-    return {
-      ok: false as const,
-      matched: true,
-      error: res.error || "Unknown Snowflake error",
-      row: null as GenericRow | null,
-    };
-  }
-
-  return {
-    ok: true as const,
-    matched: true,
-    row: res.rows?.[0] || null,
-  };
-}
-
-async function tryResolveApplicationIdByCaseId(
-  objectName: string,
-  columnSet: Set<string>,
-  caseId: string
-) {
-  if (!hasAll(columnSet, ["CASE_ID", "APPLICATION_ID"])) {
-    return {
-      ok: true as const,
-      matched: false,
-      row: null as GenericRow | null,
-      reason: "Missing CASE_ID and/or APPLICATION_ID",
-    };
-  }
-
-  const orderCol =
-    firstPresent(columnSet, ["CERTIFIED_AT", "CREATED_AT", "UPDATED_AT"]) ||
-    "CASE_ID";
-
-  const res = await sfQueryResult<GenericRow>(
-    `
-    SELECT CASE_ID, APPLICATION_ID
-    FROM GAFAIG_DB.CORE.${objectName}
-    WHERE CASE_ID = ?
-    ORDER BY ${orderCol} DESC NULLS LAST
-    LIMIT 1
-    `,
-    [caseId]
-  );
-
-  if (!res.ok) {
-    return {
-      ok: false as const,
-      matched: true,
-      error: res.error || "Unknown Snowflake error",
-      row: null as GenericRow | null,
-    };
-  }
-
-  return {
-    ok: true as const,
-    matched: true,
-    row: res.rows?.[0] || null,
-  };
-}
-
-async function tryResolveRegistryIdByApplicationId(
-  objectName: string,
-  columnSet: Set<string>,
-  applicationId: string
-) {
-  if (!hasAll(columnSet, ["APPLICATION_ID", "REGISTRY_ID"])) {
-    return {
-      ok: true as const,
-      matched: false,
-      row: null as GenericRow | null,
-      reason: "Missing APPLICATION_ID and/or REGISTRY_ID",
-    };
-  }
-
-  const orderCol =
-    firstPresent(columnSet, ["CERTIFIED_AT", "CREATED_AT", "UPDATED_AT"]) ||
-    "APPLICATION_ID";
-
-  const res = await sfQueryResult<GenericRow>(
-    `
-    SELECT APPLICATION_ID, REGISTRY_ID
-    FROM GAFAIG_DB.CORE.${objectName}
-    WHERE APPLICATION_ID = ?
-    ORDER BY ${orderCol} DESC NULLS LAST
-    LIMIT 1
-    `,
-    [applicationId]
-  );
-
-  if (!res.ok) {
-    return {
-      ok: false as const,
-      matched: true,
-      error: res.error || "Unknown Snowflake error",
-      row: null as GenericRow | null,
-    };
-  }
-
-  return {
-    ok: true as const,
-    matched: true,
-    row: res.rows?.[0] || null,
-  };
-}
-
-function extractProcedureResultRow(rows: GenericRow[] | undefined) {
-  const row = rows?.[0];
-  if (!row) return null;
-
-  const direct =
-    row.RESULT ??
-    row.result ??
-    row.SP_PUBLISH_CASE_TO_REGISTRY_V4 ??
-    row.SP_PUBLISH_CASE_TO_REGISTRY_V3 ??
-    null;
-
-  if (direct) return direct;
-
-  const firstKey = Object.keys(row)[0];
-  return firstKey ? row[firstKey] : null;
-}
-
-function extractRegistryIdFromProcedureResult(result: any): string | null {
-  if (!result) return null;
-
-  if (typeof result === "string") {
-    return firstString(result);
-  }
-
-  if (typeof result === "object") {
-    return (
-      firstString(
-        result.REGISTRY_ID,
-        result.registryId,
-        result.registry_id,
-        result.PUBLIC_REGISTRY_ID
-      ) || null
-    );
-  }
-
   return null;
 }
 
 export async function POST(
   req: NextRequest,
-  ctx: { params: { caseId: string } }
+  context: { params: { caseId: string } }
 ) {
-  try {
-    await requireAdmin(req);
+  const auth = await requireAdmin(req);
+  if (!auth.ok) {
+    return json({ ok: false, error: auth.error ?? "Unauthorized" }, auth.status ?? 401);
+  }
 
-    const caseId = (ctx?.params?.caseId || "").trim();
+  try {
+    const caseId = String(context.params.caseId || "").trim();
     if (!caseId) {
-      return NextResponse.json(
-        { ok: false, error: "Missing caseId" },
-        { status: 400 }
-      );
+      return json({ ok: false, error: "Missing caseId" }, 400);
     }
 
     const body = await req.json().catch(() => ({}));
-    const notes =
-      typeof body?.notes === "string" && body.notes.trim()
-        ? body.notes.trim()
-        : "Initial public registry publish";
+    const actor = String(body?.actor || "admin").trim() || "admin";
+    const notes = firstString(body?.notes) ?? null;
 
-    const actorRes = await sfQueryResult<ActorRow>(
-      `SELECT CURRENT_USER() AS ACTOR`
+    // 1) Load current score/status row
+    const scoreRows = await sfQuery<Record<string, unknown>>(
+      `
+      SELECT
+        CASE_ID,
+        ORG_ID,
+        FINAL_SCORE,
+        TIER,
+        BAND
+      FROM GAFAIG_DB.CORE.V_GOVERNANCE_SCORE_CASE
+      WHERE TRIM(UPPER(CASE_ID)) = TRIM(UPPER(?))
+      LIMIT 1
+      `,
+      [caseId]
     );
-    const actor =
-      actorRes.ok && actorRes.rows?.[0]?.ACTOR
-        ? actorRes.rows[0].ACTOR
-        : "admin";
 
-    const callRes = await sfQueryResult<any>(
-      `CALL GAFAIG_DB.CORE.SP_PUBLISH_CASE_TO_REGISTRY_V4(?, ?)`,
+    const scoreRow = scoreRows?.[0];
+    if (!scoreRow) {
+      return json(
+        { ok: false, error: `Case ${caseId} not found in V_GOVERNANCE_SCORE_CASE` },
+        404
+      );
+    }
+
+    // 2) Publish using CALL, because this is a PROCEDURE not a FUNCTION
+    const callRows = await sfQuery<Record<string, unknown>>(
+      `
+      CALL GAFAIG_DB.CORE.SP_PUBLISH_CASE_TO_REGISTRY_V4(?, ?)
+      `,
       [caseId, actor]
     );
 
-    if (!callRes.ok) {
-      return NextResponse.json(
-        {
-          ok: false,
-          error: "Publish failed",
-          details: callRes.error || "Unknown Snowflake error",
-          hint:
-            "Ensure GAFAIG_APP_ROLE has USAGE on GAFAIG_DB.CORE.SP_PUBLISH_CASE_TO_REGISTRY_V4(VARCHAR, VARCHAR).",
-        },
-        { status: 500 }
-      );
+    const callRow = callRows?.[0] ?? null;
+    const callPayload = callRow
+      ? (Object.values(callRow)[0] as Record<string, unknown>)
+      : null;
+
+    const ok =
+      !!callPayload &&
+      (callPayload.ok === true ||
+        String(callPayload.ok).toLowerCase() === "true");
+
+    if (!ok) {
+      const errorMessage =
+        firstString(callPayload?.error) ?? "Publish procedure returned failure";
+      return json({ ok: false, error: errorMessage, result: callPayload }, 500);
     }
 
-    let registryId =
-      extractRegistryIdFromProcedureResult(
-        extractProcedureResultRow(callRes.rows)
-      ) || null;
-
-    let applicationId: string | null = null;
-
-    const debug: Record<string, any> = {
-      caseId,
-      actor,
-      notes,
-      inspectedObjects: [],
-      resolutionPath: [],
-      procedureResult: callRes.rows?.[0] ?? null,
-    };
-
-    const objectMeta: Record<string, { columns: string[]; set: Set<string> }> =
-      {};
-
-    for (const objectName of CORE_OBJECTS) {
-      const meta = await getObjectColumns(objectName);
-
-      if (!meta.ok) {
-        debug.inspectedObjects.push({
-          objectName,
-          ok: false,
-          error: meta.error,
-        });
-        continue;
-      }
-
-      objectMeta[objectName] = {
-        columns: meta.columns,
-        set: meta.set,
-      };
-
-      debug.inspectedObjects.push({
-        objectName,
-        ok: true,
-        columns: meta.columns,
-      });
-    }
-
-    if (!registryId) {
-      for (const objectName of CORE_OBJECTS) {
-        if (registryId) break;
-        const meta = objectMeta[objectName];
-        if (!meta) continue;
-
-        const res = await tryResolveRegistryIdByCaseId(
-          objectName,
-          meta.set,
-          caseId
-        );
-
-        if (!res.ok) {
-          debug.resolutionPath.push({
-            step: `${objectName}:CASE_ID->REGISTRY_ID`,
-            ok: false,
-            error: res.error,
-          });
-          continue;
-        }
-
-        if (!res.matched) {
-          debug.resolutionPath.push({
-            step: `${objectName}:CASE_ID->REGISTRY_ID`,
-            ok: true,
-            skipped: true,
-            reason: res.reason,
-          });
-          continue;
-        }
-
-        registryId = res.row?.REGISTRY_ID || null;
-
-        debug.resolutionPath.push({
-          step: `${objectName}:CASE_ID->REGISTRY_ID`,
-          ok: true,
-          rowCount: res.row ? 1 : 0,
-          registryId,
-        });
-      }
-    }
-
-    if (!registryId && !applicationId) {
-      for (const objectName of CORE_OBJECTS) {
-        if (applicationId) break;
-        const meta = objectMeta[objectName];
-        if (!meta) continue;
-
-        const res = await tryResolveApplicationIdByCaseId(
-          objectName,
-          meta.set,
-          caseId
-        );
-
-        if (!res.ok) {
-          debug.resolutionPath.push({
-            step: `${objectName}:CASE_ID->APPLICATION_ID`,
-            ok: false,
-            error: res.error,
-          });
-          continue;
-        }
-
-        if (!res.matched) {
-          debug.resolutionPath.push({
-            step: `${objectName}:CASE_ID->APPLICATION_ID`,
-            ok: true,
-            skipped: true,
-            reason: res.reason,
-          });
-          continue;
-        }
-
-        applicationId = res.row?.APPLICATION_ID || null;
-
-        debug.resolutionPath.push({
-          step: `${objectName}:CASE_ID->APPLICATION_ID`,
-          ok: true,
-          rowCount: res.row ? 1 : 0,
-          applicationId,
-        });
-      }
-    }
-
-    if (!registryId && applicationId) {
-      for (const objectName of CORE_OBJECTS) {
-        if (registryId) break;
-        const meta = objectMeta[objectName];
-        if (!meta) continue;
-
-        const res = await tryResolveRegistryIdByApplicationId(
-          objectName,
-          meta.set,
-          applicationId
-        );
-
-        if (!res.ok) {
-          debug.resolutionPath.push({
-            step: `${objectName}:APPLICATION_ID->REGISTRY_ID`,
-            ok: false,
-            error: res.error,
-          });
-          continue;
-        }
-
-        if (!res.matched) {
-          debug.resolutionPath.push({
-            step: `${objectName}:APPLICATION_ID->REGISTRY_ID`,
-            ok: true,
-            skipped: true,
-            reason: res.reason,
-          });
-          continue;
-        }
-
-        registryId = res.row?.REGISTRY_ID || null;
-
-        debug.resolutionPath.push({
-          step: `${objectName}:APPLICATION_ID->REGISTRY_ID`,
-          ok: true,
-          rowCount: res.row ? 1 : 0,
-          registryId,
-        });
-      }
-    }
-
-    if (!registryId) {
-      return NextResponse.json(
-        {
-          ok: false,
-          error: "Publish succeeded, but failed to resolve registry/application",
-          applicationId,
-          registryId,
-          debug,
-        },
-        { status: 500 }
-      );
-    }
-
-    const linkRes = await sfQueryResult<any>(
+    // 3) Resolve latest published snapshot
+    const snapshotRows = await sfQuery<Record<string, unknown>>(
       `
-      UPDATE GAFAIG_DB.CORE.REGISTRY_AI_SYSTEMS
-      SET REGISTRY_ID = ?
-      WHERE CASE_ID = ?
-        AND (REGISTRY_ID IS NULL OR REGISTRY_ID <> ?)
+      SELECT
+        REGISTRY_ID,
+        REGISTRY_SNAPSHOT_ID,
+        CASE_ID,
+        ENTITY_NAME,
+        VERIFICATION_TYPE,
+        MODEL_VERSION,
+        SCORE,
+        TIER,
+        BAND,
+        CERTIFIED_SCORE,
+        CERTIFIED_TIER,
+        CERTIFIED_BAND,
+        CERTIFIED_AT,
+        REGISTRY_STATUS,
+        CREATED_AT
+      FROM GAFAIG_DB.CORE.REGISTRY_SNAPSHOTS
+      WHERE TRIM(UPPER(CASE_ID)) = TRIM(UPPER(?))
+      ORDER BY CREATED_AT DESC
+      LIMIT 1
       `,
-      [registryId, caseId, registryId]
+      [caseId]
     );
 
-    if (!linkRes.ok) {
-      return NextResponse.json(
-        {
-          ok: false,
-          error: "Publish succeeded, but AI systems linkage failed",
-          details: linkRes.error || "Unknown Snowflake error",
-          registryId,
-          applicationId,
-          debug,
-        },
-        { status: 500 }
+    const snapshot = snapshotRows?.[0];
+    if (!snapshot) {
+      return json(
+        { ok: false, error: "Publish completed but no registry snapshot was found" },
+        500
       );
     }
 
-    return NextResponse.json({
+    // 4) Return clean API payload
+    return json({
       ok: true,
       caseId,
       actor,
       notes,
-      applicationId,
-      registryId,
-      result: callRes.rows?.[0] ?? null,
-      aiSystemsLinked: true,
-      debug,
+      registryId:
+        firstString(snapshot.REGISTRY_ID) ??
+        firstString(callPayload?.registryId),
+      registrySnapshotId:
+        firstString(snapshot.REGISTRY_SNAPSHOT_ID) ??
+        firstString(callPayload?.registrySnapshotId),
+      entityName: firstString(snapshot.ENTITY_NAME),
+      verificationType: firstString(snapshot.VERIFICATION_TYPE),
+      modelVersion: firstString(snapshot.MODEL_VERSION),
+      score:
+        firstNumber(snapshot.CERTIFIED_SCORE, snapshot.SCORE, callPayload?.score),
+      tier:
+        firstString(snapshot.CERTIFIED_TIER, snapshot.TIER, callPayload?.tier),
+      band:
+        firstString(snapshot.CERTIFIED_BAND, snapshot.BAND, callPayload?.band),
+      certifiedAt: firstString(snapshot.CERTIFIED_AT),
+      registryStatus: firstString(snapshot.REGISTRY_STATUS),
+      result: callPayload,
     });
-  } catch (e: any) {
-    return NextResponse.json(
-      { ok: false, error: e?.message || "Unknown error" },
-      { status: 500 }
+  } catch (e) {
+    return json(
+      {
+        ok: false,
+        error: e instanceof Error ? e.message : "Unknown error",
+      },
+      500
     );
   }
 }
