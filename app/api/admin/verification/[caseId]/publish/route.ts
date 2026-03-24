@@ -14,9 +14,11 @@ type ColumnRow = {
 
 type GenericRow = Record<string, any>;
 
+// IMPORTANT:
+// V_PUBLIC_REGISTRY is intentionally excluded because it is currently broken
+// in Snowflake and references invalid identifier ENTITY_TYPE.
 const CORE_OBJECTS = [
   "V_REGISTRY_PUBLIC",
-  "V_PUBLIC_REGISTRY",
   "V_REGISTRY_EXPORT_V1",
   "REGISTRY_SNAPSHOTS",
   "VERIFICATION_CASES",
@@ -277,8 +279,6 @@ export async function POST(
         ? actorRes.rows[0].ACTOR
         : "admin";
 
-    // 1) Publish canonical registry snapshot using the actual deployed procedure signature:
-    //    SP_PUBLISH_CASE_TO_REGISTRY_V4(VARCHAR, VARCHAR)
     const callRes = await sfQueryResult<any>(
       `CALL GAFAIG_DB.CORE.SP_PUBLISH_CASE_TO_REGISTRY_V4(?, ?)`,
       [caseId, actor]
@@ -313,7 +313,6 @@ export async function POST(
       procedureResult: callRes.rows?.[0] ?? null,
     };
 
-    // 2) Discover actual available columns on real objects
     const objectMeta: Record<string, { columns: string[]; set: Set<string> }> =
       {};
 
@@ -341,7 +340,6 @@ export async function POST(
       });
     }
 
-    // 3) If procedure result did not already expose REGISTRY_ID, resolve it by CASE_ID
     if (!registryId) {
       for (const objectName of CORE_OBJECTS) {
         if (registryId) break;
@@ -384,7 +382,6 @@ export async function POST(
       }
     }
 
-    // 4) If still missing, resolve APPLICATION_ID by CASE_ID
     if (!registryId && !applicationId) {
       for (const objectName of CORE_OBJECTS) {
         if (applicationId) break;
@@ -427,7 +424,6 @@ export async function POST(
       }
     }
 
-    // 5) If we found APPLICATION_ID, resolve REGISTRY_ID by APPLICATION_ID
     if (!registryId && applicationId) {
       for (const objectName of CORE_OBJECTS) {
         if (registryId) break;
@@ -483,7 +479,6 @@ export async function POST(
       );
     }
 
-    // 6) Attach all AI systems on this case to the published registry record
     const linkRes = await sfQueryResult<any>(
       `
       UPDATE GAFAIG_DB.CORE.REGISTRY_AI_SYSTEMS
