@@ -35,6 +35,15 @@ function firstPresent(set: Set<string>, candidates: string[]) {
   return candidates.find((c) => set.has(c.toUpperCase())) || null;
 }
 
+function firstString(...values: unknown[]) {
+  for (const value of values) {
+    if (value === null || value === undefined) continue;
+    const s = String(value).trim();
+    if (s) return s;
+  }
+  return null;
+}
+
 async function getObjectColumns(objectName: string) {
   const res = await sfQueryResult<ColumnRow>(
     `
@@ -201,6 +210,44 @@ async function tryResolveRegistryIdByApplicationId(
   };
 }
 
+function extractProcedureResultRow(rows: GenericRow[] | undefined) {
+  const row = rows?.[0];
+  if (!row) return null;
+
+  const direct =
+    row.RESULT ??
+    row.result ??
+    row.SP_PUBLISH_CASE_TO_REGISTRY_V4 ??
+    row.SP_PUBLISH_CASE_TO_REGISTRY_V3 ??
+    null;
+
+  if (direct) return direct;
+
+  const firstKey = Object.keys(row)[0];
+  return firstKey ? row[firstKey] : null;
+}
+
+function extractRegistryIdFromProcedureResult(result: any): string | null {
+  if (!result) return null;
+
+  if (typeof result === "string") {
+    return firstString(result);
+  }
+
+  if (typeof result === "object") {
+    return (
+      firstString(
+        result.REGISTRY_ID,
+        result.registryId,
+        result.registry_id,
+        result.PUBLIC_REGISTRY_ID
+      ) || null
+    );
+  }
+
+  return null;
+}
+
 export async function POST(
   req: NextRequest,
   ctx: { params: { caseId: string } }
@@ -228,12 +275,13 @@ export async function POST(
     const actor =
       actorRes.ok && actorRes.rows?.[0]?.ACTOR
         ? actorRes.rows[0].ACTOR
-        : "unknown";
+        : "admin";
 
-    // 1) Publish certification / snapshot
+    // 1) Publish canonical registry snapshot using the actual deployed procedure signature:
+    //    SP_PUBLISH_CASE_TO_REGISTRY_V4(VARCHAR, VARCHAR)
     const callRes = await sfQueryResult<any>(
-      `CALL CORE.APPROVE_CASE_V1(?, ?, ?)`,
-      [caseId, actor, notes]
+      `CALL GAFAIG_DB.CORE.SP_PUBLISH_CASE_TO_REGISTRY_V4(?, ?)`,
+      [caseId, actor]
     );
 
     if (!callRes.ok) {
@@ -243,19 +291,26 @@ export async function POST(
           error: "Publish failed",
           details: callRes.error || "Unknown Snowflake error",
           hint:
-            "Ensure the app role can call CORE.APPROVE_CASE_V1 and that the procedure completes successfully.",
+            "Ensure GAFAIG_APP_ROLE has USAGE on GAFAIG_DB.CORE.SP_PUBLISH_CASE_TO_REGISTRY_V4(VARCHAR, VARCHAR).",
         },
         { status: 500 }
       );
     }
 
-    let registryId: string | null = null;
+    let registryId =
+      extractRegistryIdFromProcedureResult(
+        extractProcedureResultRow(callRes.rows)
+      ) || null;
+
     let applicationId: string | null = null;
 
     const debug: Record<string, any> = {
       caseId,
+      actor,
+      notes,
       inspectedObjects: [],
       resolutionPath: [],
+      procedureResult: callRes.rows?.[0] ?? null,
     };
 
     // 2) Discover actual available columns on real objects
@@ -286,48 +341,50 @@ export async function POST(
       });
     }
 
-    // 3) First try to resolve REGISTRY_ID directly by CASE_ID
-    for (const objectName of CORE_OBJECTS) {
-      if (registryId) break;
-      const meta = objectMeta[objectName];
-      if (!meta) continue;
+    // 3) If procedure result did not already expose REGISTRY_ID, resolve it by CASE_ID
+    if (!registryId) {
+      for (const objectName of CORE_OBJECTS) {
+        if (registryId) break;
+        const meta = objectMeta[objectName];
+        if (!meta) continue;
 
-      const res = await tryResolveRegistryIdByCaseId(
-        objectName,
-        meta.set,
-        caseId
-      );
+        const res = await tryResolveRegistryIdByCaseId(
+          objectName,
+          meta.set,
+          caseId
+        );
 
-      if (!res.ok) {
-        debug.resolutionPath.push({
-          step: `${objectName}:CASE_ID->REGISTRY_ID`,
-          ok: false,
-          error: res.error,
-        });
-        continue;
-      }
+        if (!res.ok) {
+          debug.resolutionPath.push({
+            step: `${objectName}:CASE_ID->REGISTRY_ID`,
+            ok: false,
+            error: res.error,
+          });
+          continue;
+        }
 
-      if (!res.matched) {
+        if (!res.matched) {
+          debug.resolutionPath.push({
+            step: `${objectName}:CASE_ID->REGISTRY_ID`,
+            ok: true,
+            skipped: true,
+            reason: res.reason,
+          });
+          continue;
+        }
+
+        registryId = res.row?.REGISTRY_ID || null;
+
         debug.resolutionPath.push({
           step: `${objectName}:CASE_ID->REGISTRY_ID`,
           ok: true,
-          skipped: true,
-          reason: res.reason,
+          rowCount: res.row ? 1 : 0,
+          registryId,
         });
-        continue;
       }
-
-      registryId = res.row?.REGISTRY_ID || null;
-
-      debug.resolutionPath.push({
-        step: `${objectName}:CASE_ID->REGISTRY_ID`,
-        ok: true,
-        rowCount: res.row ? 1 : 0,
-        registryId,
-      });
     }
 
-    // 4) If still missing, try to resolve APPLICATION_ID by CASE_ID
+    // 4) If still missing, resolve APPLICATION_ID by CASE_ID
     if (!registryId && !applicationId) {
       for (const objectName of CORE_OBJECTS) {
         if (applicationId) break;
