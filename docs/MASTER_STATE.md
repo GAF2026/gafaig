@@ -1,325 +1,430 @@
 # GAFAIG — MASTER STATE
-Canonical System Definition
-Last Updated: 2026-03-22
+Canonical Platform Definition
+Last Updated: 2026-03-24
 
 ---
 
 # PLATFORM IDENTITY
 
-GAFAIG — Global AI Governance Registry
+GAFAIG is the **world’s first searchable AI governance registry**.
 
-GAFAIG is a deterministic AI governance engine + global registry.
+It is **global trust infrastructure**, comparable to:
 
-It functions as:
+• financial audit systems  
+• certificate authorities  
+• regulatory registries  
+• standards organizations  
 
-• a certification authority  
-• a registry of verified AI systems  
-• a governance scoring engine  
-• a public trust infrastructure layer  
+GAFAIG is NOT:
+
+• a dashboard  
+• a scoring tool  
+• a SaaS analytics app  
+
+GAFAIG IS:
+
+A **deterministic governance engine + public certification registry**
 
 ---
 
-# CORE PRINCIPLE
+# CORE ARCHITECTURE (LOCKED)
 
-The system is case-driven and append-only.
+Two-layer system:
 
-NOT application-driven.
+## 1. PRIVATE VERIFICATION ENGINE (Snowflake)
 
----
-
-# CANONICAL DATA FLOW (LOCKED)
-
-ALL DATA MUST FOLLOW:
+Handles:
 
 CASE  
 → FINDINGS  
 → EVIDENCE  
 → EVENTS  
 → SCORING  
-→ SNAPSHOT  
-→ REGISTRY  
-→ AI SYSTEMS VIEW  
-→ UI  
+→ DECISION  
+
+Properties:
+
+• deterministic  
+• reproducible  
+• auditable  
+• org-isolated  
+• evidence never exposed publicly  
 
 ---
 
-# SYSTEM STATUS
+## 2. PUBLIC REGISTRY (Snowflake + Next.js)
 
-## FULL PIPELINE OPERATIONAL
+Exposes:
 
-The following is confirmed working end-to-end:
+• certification status  
+• score / tier / band  
+• timestamps  
+• entity identity  
+• registry ID  
 
-• CASE creation  
-• FINDINGS / EVIDENCE / EVENTS ingestion  
-• Enterprise scoring engine  
-• Score snapshot system  
-• Registry publish procedure  
-• Registry snapshot system  
-• AI systems public view  
-• Query layer integration  
+NEVER exposes:
+
+• evidence  
+• reviewer notes  
+• internal scoring logic  
+
+---
+
+# CANONICAL DATA FLOW (DO NOT CHANGE)
+
+APPLICATION (intake only)
+
+→ CASE  
+→ FINDINGS  
+→ EVIDENCE  
+→ EVENTS  
+→ SCORING  
+→ SNAPSHOT  
+→ REGISTRY  
+→ PUBLIC VIEWS  
+→ API  
+→ UI  
 
 ---
 
 # SNOWFLAKE ARCHITECTURE
 
+Account: GAFAIG1  
 Database: GAFAIG_DB  
 Schema: CORE  
+Warehouse: GAFAIG_WH  
 
 ---
 
-## CORE TABLES
+## CORE TABLES (ENGINE)
 
-• APPLICATIONS  
 • VERIFICATION_CASES  
-• FINDINGS  
-• EVIDENCE  
-• EVENTS  
-• DECISIONS  
-• REGISTRY_SNAPSHOTS  
-• REGISTRY_AI_SYSTEMS  
+• VERIFICATION_FINDINGS  
+• VERIFICATION_EVIDENCE  
+• VERIFICATION_EVENTS  
+• CASE_CONTROL_ATTESTATIONS  
+• SCORING_CONFIG  
+• SEVERITY_WEIGHTS  
 
 ---
 
-## CORE PROCEDURES
+## REGISTRY TABLES
 
-• SP_SCORE_CASE_ENTERPRISE  
-• SP_PUBLISH_CASE_TO_REGISTRY_V3  
-
----
-
-## CANONICAL VIEWS (SOURCE OF TRUTH)
-
-### V_REGISTRY_LATEST_APPROVED
-
-Guarantees:
-
-• one row per CASE_ID  
-• latest snapshot only  
-• certification fields derived  
-
-Includes:
-
-• SCORE / TIER / BAND  
-• CERTIFIED_SCORE  
-• CERTIFIED_TIER  
-• CERTIFIED_BAND  
-• CERTIFIED_AT  
-• DECISION_STATUS  
-• RENEWAL_STATUS  
+• REGISTRY_SNAPSHOTS (append-only)  
+• CASE_APPROVAL_LOG  
 
 ---
 
-### V_REGISTRY_PUBLIC
+## KEY VIEWS
 
-Thin projection of:
+### ENGINE
 
-V_REGISTRY_LATEST_APPROVED  
-
----
-
-### V_REGISTRY_AI_SYSTEMS_PUBLIC
-
-Joins:
-
-REGISTRY_AI_SYSTEMS → V_REGISTRY_LATEST_APPROVED  
-
-Guarantees:
-
-• one row per AI system  
-• registry-linked certification  
-• no UPDATED_AT dependency  
-• safe null handling  
-
-Includes:
-
-• SYSTEM metadata  
-• ENTITY / ORG  
-• SCORE / TIER / BAND  
-• CERTIFIED_* fields  
-• DECISION_STATUS  
-• RENEWAL_STATUS  
+• V_GOVERNANCE_SCORE_CASE  
 
 ---
 
-# CERTIFICATION CONTRACT (LOCKED)
+### REGISTRY (CRITICAL)
 
-The following fields define trust:
-
-CERTIFIED_SCORE  
-CERTIFIED_TIER  
-CERTIFIED_BAND  
-CERTIFIED_AT  
-DECISION_STATUS  
-RENEWAL_STATUS  
-
-These must:
-
-• originate from REGISTRY_SNAPSHOTS  
-• flow through V_REGISTRY_LATEST_APPROVED  
-• propagate into AI SYSTEMS view  
-• be consumed by UI  
+• V_REGISTRY_LATEST_APPROVED  ← source of truth  
+• V_REGISTRY_PUBLIC           ← UI/API source  
+• V_REGISTRY_PUBLIC_SEARCH    ← search surface  
+• V_REGISTRY_AI_SYSTEMS_PUBLIC  
 
 ---
 
-# QUERY LAYER (NEXT.JS)
+## PUBLISH ENGINE
 
-Location:
+Stored Procedure:
 
-/lib/queries/
+SP_PUBLISH_CASE_TO_REGISTRY_V3
 
-File:
+Properties:
 
-registry-ai-systems.ts  
-
----
-
-## CURRENT ISSUE (CRITICAL)
-
-The query layer is incorrectly mapped:
-
-certifiedTier → r.TIER  
-certifiedBand → r.BAND  
-certifiedScore → r.SCORE  
-certifiedAt → null  
-decisionStatus → null  
+• deterministic snapshot creation  
+• INSERT … SELECT (no JSON binding issues)  
+• append-only  
+• idempotent  
 
 ---
 
-## REQUIRED FIX (NEXT STEP)
+# CURRENT SYSTEM STATUS
 
-Must map:
+## FULL PIPELINE — WORKING
 
-certifiedTier → r.CERTIFIED_TIER  
-certifiedBand → r.CERTIFIED_BAND  
-certifiedScore → r.CERTIFIED_SCORE  
-certifiedAt → r.CERTIFIED_AT  
-decisionStatus → r.DECISION_STATUS  
-
----
-
-# FRONTEND ROUTES
-
-Public Registry:
-
-/registry/ai-systems  
-/registry/ai-systems/[registryId]  
-
-Current state:
-
-• data loads  
-• certification not displayed correctly  
+✔ CASE → REGISTRY complete  
+✔ scoring engine deterministic  
+✔ publish pipeline working  
+✔ snapshots created correctly  
+✔ registry IDs generated  
+✔ API responding  
+✔ UI rendering  
 
 ---
 
-# CURRENT PHASE
+## CURRENT GAP (ACTIVE WORK)
 
-REGISTRY SURFACE COMPLETION  
+We are in:
 
-Transition:
+# REGISTRY ENRICHMENT PHASE
 
-Engine works → Registry is visible, trusted, and consumable  
+Missing / being wired:
 
----
-
-# IMMEDIATE NEXT STEPS
-
-1. FIX QUERY LAYER  
-Update registry-ai-systems.ts to use CERTIFIED_* fields  
-
-2. UPDATE UI  
-Show certification fields in:
-
-/registry/ai-systems  
-/registry/ai-systems/[registryId]  
-
-3. VERIFY FLOW  
-Confirm:
-
-score → snapshot → registry → AI systems → UI  
-
-4. DEPLOY  
-Push to Vercel after UI reflects certification  
+• certified_score normalization  
+• certified_tier normalization  
+• certified_band normalization  
+• certification_status consistency  
+• valid_from  
+• valid_to  
+• certified_at  
+• last_activity_at  
 
 ---
 
-# ENGINEERING RULES
+# CRITICAL RULES (DO NOT BREAK)
 
 DO NOT:
 
-• re-architect pipeline  
-• modify core flow  
-• introduce new scoring logic  
-• use APPLICATIONS as source of truth  
+• re-architect system  
+• change data flow  
+• move logic out of Snowflake  
+• expose evidence publicly  
+• introduce non-deterministic logic  
 
 ALWAYS:
 
-• treat views as contract  
-• propagate fields forward  
-• maintain append-only integrity  
+• use Snowflake as source of truth  
+• derive UI from views (not tables)  
+• maintain deterministic outputs  
+• keep registry append-only  
 
 ---
 
-# IMPORTANT DISCOVERY
+# VIEW CONTRACT (CRITICAL)
 
-Snowflake worksheets may retain:
+UI + API depend on:
 
-• hidden compiled state  
-• stale column references  
+V_REGISTRY_PUBLIC
 
-Example error:
+This view MUST provide:
 
-invalid identifier 'UPDATED_AT'  
+• REGISTRY_ID  
+• APPLICATION_ID  
+• CASE_ID  
+• ENTITY_NAME  
+• ENTITY_TYPE  
+• COUNTRY  
 
-Resolution:
+• SCORE  
+• TIER  
+• BAND  
 
-• do not reuse corrupted worksheets  
-• use clean execution files  
-• treat run scripts as disposable  
+• CERTIFIED_SCORE  
+• CERTIFIED_TIER  
+• CERTIFIED_BAND  
+• CERTIFICATION_STATUS  
 
----
+• DECISION_STATUS  
 
-# EXECUTION SCRIPT POLICY
-
-Files like:
-
-99_RUN_PIPELINE.sql  
-
-Are:
-
-• not canonical  
-• not trusted  
-• manual only  
-
----
-
-# SYSTEM STATE SUMMARY
-
-✔ Governance engine working  
-✔ Registry snapshot system working  
-✔ Public registry views stable  
-✔ AI systems view stable  
-✔ Certification fields flowing  
-
-⚠ UI not yet reflecting certification  
+• CERTIFIED_AT  
+• APPROVED_AT  
+• PUBLISHED_AT  
 
 ---
 
-# NEXT CHAT START POINT
+# IMPORTANT CURRENT ISSUE
 
-Continue from:
+The system is failing due to:
 
-"Fix query layer and surface certification in UI"
+❌ missing columns in V_REGISTRY_PUBLIC
 
----
+Errors seen:
 
-# END STATE TARGET
-
-GAFAIG becomes:
-
-• global AI certification registry  
-• publicly queryable trust layer  
-• deterministic governance system  
+• invalid identifier VALID_FROM  
+• invalid identifier LAST_ACTIVITY_AT  
 
 ---
 
-END OF FILE
+## ROOT CAUSE
+
+UI/API expect derived fields:
+
+• validFrom  
+• lastActivityAt  
+
+But Snowflake view does not define them.
+
+---
+
+## CORRECT ARCHITECTURE (LOCKED)
+
+These fields MUST be DERIVED — NOT stored.
+
+Mapping:
+
+valid_from =
+  CERTIFIED_AT
+  OR APPROVED_AT
+  OR PUBLISHED_AT
+
+last_activity_at =
+  PUBLISHED_AT
+  OR CERTIFIED_AT
+  OR APPROVED_AT
+
+---
+
+# NEXT EXECUTION PHASE
+
+## PHASE: CERTIFICATION WIRING (IN PROGRESS)
+
+Goal:
+
+Make registry output **complete + stable**
+
+---
+
+## STEP ORDER (STRICT)
+
+1. Fix Snowflake view (V_REGISTRY_PUBLIC)
+2. Fix query layer (lib/queries/registry.ts)
+3. Fix API routes
+4. Fix UI components
+5. Validate end-to-end
+
+---
+
+# REPOSITORY
+
+GitHub:
+
+GAF2026/gafaig
+
+---
+
+# FRONTEND
+
+Framework:
+
+Next.js (App Router, TypeScript)
+
+---
+
+## KEY ROUTES
+
+### PUBLIC
+
+/  
+/mission  
+/framework  
+/registry  
+/registry/[registryId]  
+/registry/ai-systems  
+/ai-systems/[systemId]  
+/explorer  
+
+---
+
+### ADMIN
+
+/admin/login  
+/admin/applications  
+/admin/verification/[caseId]/evidence  
+/admin/verification/[caseId]/findings  
+/admin/verification/[caseId]/score  
+
+---
+
+# API LAYER
+
+## PUBLIC
+
+/api/registry  
+/api/registry/[registryId]  
+/api/verify/[registryId]  
+
+---
+
+## ADMIN
+
+/api/admin/login  
+/api/admin/logout  
+/api/admin/status  
+/api/admin/submissions  
+/api/admin/verification/*  
+/api/admin/publish  
+
+---
+
+# QUERY LAYER
+
+Location:
+
+lib/queries/
+
+Key file:
+
+registry.ts
+
+Purpose:
+
+• single source of truth for SQL  
+• prevents drift between UI and Snowflake  
+• ensures deterministic outputs  
+
+---
+
+# DEPLOYMENT
+
+Platform:
+
+Vercel
+
+Production:
+
+https://www.gafaig.com
+
+---
+
+# LOCAL DEV
+
+Start:
+
+npm run dev
+
+Clear cache:
+
+Remove-Item -Recurse -Force .next
+
+---
+
+# CURRENT PRIORITY
+
+👉 COMPLETE CERTIFICATION WIRING
+
+We are NOT:
+
+• adding features  
+• redesigning UI  
+• changing architecture  
+
+We ARE:
+
+• stabilizing registry output  
+• aligning Snowflake → API → UI  
+• ensuring all certification fields resolve  
+
+---
+
+# SUCCESS CONDITION
+
+System must:
+
+✔ return full registry record  
+✔ no SQL errors  
+✔ no missing fields  
+✔ render in UI  
+✔ match deterministic Snowflake output  
+
+---
+
+END OF MASTER STATE

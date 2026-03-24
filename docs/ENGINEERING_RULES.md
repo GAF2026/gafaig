@@ -1,39 +1,35 @@
 # GAFAIG — ENGINEERING RULES
-Canonical Development Constraints
-Last Updated: 2026-03-22
+AI + Developer Execution Guardrails
+Last Updated: 2026-03-24
 
 ---
 
 # PURPOSE
 
-This document defines the **non-negotiable engineering rules** for GAFAIG.
+This file exists to prevent:
 
-These rules ensure:
+• architecture drift  
+• Snowflake / API / UI misalignment  
+• AI-generated code errors  
+• non-deterministic behavior  
 
-• deterministic behavior  
-• architectural integrity  
-• safe AI-assisted development  
-• zero system drift  
+These rules are MANDATORY.
 
 ---
 
 # CORE PRINCIPLE
 
-GAFAIG is:
+SNOWFLAKE IS THE SOURCE OF TRUTH
 
-A deterministic governance engine + append-only registry
+Everything must originate from:
 
-NOT:
+Snowflake → Views → Query Layer → API → UI
 
-• a dashboard  
-• a mutable database  
-• an analytics tool  
+NEVER the reverse.
 
 ---
 
-# GOLDEN RULE
-
-ALL DATA MUST FLOW:
+# CANONICAL DATA FLOW (LOCKED)
 
 CASE  
 → FINDINGS  
@@ -42,247 +38,349 @@ CASE
 → SCORING  
 → SNAPSHOT  
 → REGISTRY  
-→ AI SYSTEMS VIEW  
+→ VIEWS  
+→ API  
 → UI  
 
-No exceptions.
+DO NOT CHANGE THIS FLOW.
 
 ---
 
-# IMMUTABILITY RULE
-
-The system is append-only.
-
-• REGISTRY_SNAPSHOTS is immutable  
-• SCORE_SNAPSHOTS are immutable  
-• No updates to historical rows  
-
-Allowed:
-
-• inserting new snapshots  
-• deriving latest state via views  
-
-Not allowed:
-
-• updating prior records  
-• overwriting certification history  
+# LAYER RESPONSIBILITIES
 
 ---
 
-# SOURCE OF TRUTH RULE
+## 1. SNOWFLAKE (LOGIC LAYER)
 
-Never use tables directly in the UI.
+Responsible for:
 
-Always use:
+• all computation  
+• all scoring  
+• all joins  
+• all normalization  
+• all certification outputs  
 
-• V_REGISTRY_LATEST_APPROVED  
-• V_REGISTRY_AI_SYSTEMS_PUBLIC  
+Snowflake must output:
 
-Views define the contract.
-
----
-
-# CERTIFICATION RULE
-
-The ONLY valid certification fields are:
-
-CERTIFIED_SCORE  
-CERTIFIED_TIER  
-CERTIFIED_BAND  
-CERTIFIED_AT  
-DECISION_STATUS  
-RENEWAL_STATUS  
-
-These must:
-
-• originate from REGISTRY_SNAPSHOTS  
-• flow through V_REGISTRY_LATEST_APPROVED  
-• be exposed via V_REGISTRY_AI_SYSTEMS_PUBLIC  
-• be consumed by frontend  
+✔ final, deterministic values  
+✔ no ambiguity  
+✔ no missing dependencies  
 
 ---
 
-# PROHIBITED PATTERNS
+## 2. QUERY LAYER (TRANSLATION ONLY)
+
+Location:
+
+lib/queries/
+
+Responsible for:
+
+• calling Snowflake  
+• mapping column names → camelCase  
+• SAFE fallback logic only  
+
+NOT responsible for:
+
+• business logic  
+• computation  
+• deriving new data (except fallback)
+
+---
+
+## 3. API LAYER (PASS-THROUGH)
+
+Responsible for:
+
+• returning query results  
+• applying filters  
+• formatting response  
+
+NOT responsible for:
+
+• data transformation  
+• logic  
+• calculations  
+
+---
+
+## 4. UI LAYER (DISPLAY ONLY)
+
+Responsible for:
+
+• rendering  
+• layout  
+• formatting  
+
+NOT responsible for:
+
+• logic  
+• business rules  
+• assumptions about data  
+
+---
+
+# CRITICAL RULES
+
+---
+
+## RULE 1 — NEVER REFERENCE NON-EXISTENT COLUMNS
+
+Before using any field:
+
+✔ verify it exists in Snowflake view
+
+If not:
+
+→ FIX THE VIEW  
+→ NOT the UI  
+→ NOT the API  
+
+---
+
+## RULE 2 — DO NOT INVENT DATA
+
+Never create:
+
+• fake timestamps  
+• fake certification values  
+• hardcoded tiers or scores  
+
+If data is missing:
+
+→ return NULL  
+→ fix upstream  
+
+---
+
+## RULE 3 — DERIVED FIELDS BELONG IN VIEWS
+
+Examples:
+
+valid_from  
+last_activity_at  
+
+These MUST be defined in:
+
+Snowflake views
+
+NOT:
+
+• API  
+• UI  
+• helper functions  
+
+---
+
+## RULE 4 — QUERY LAYER IS A CONTRACT
+
+File:
+
+lib/queries/registry.ts
+
+This file defines:
+
+what the UI receives
+
+It must:
+
+• only use real columns  
+• normalize safely  
+• never break schema  
+
+---
+
+## RULE 5 — NEVER DUPLICATE SQL
+
+All SQL must live in:
+
+lib/queries/
 
 DO NOT:
 
-• compute certification in frontend  
-• derive certification from SCORE/TIER/BAND  
-• bypass canonical views  
-• join directly to REGISTRY_SNAPSHOTS in UI  
-• use APPLICATIONS as a source of truth  
+• write SQL in pages  
+• write SQL in API routes  
+• duplicate queries  
 
 ---
 
-# VIEW CONTRACT RULE
-
-Views are APIs.
-
-Once stabilized:
-
-• column names must not change  
-• semantics must not change  
-• downstream consumers depend on them  
-
-Changes must be:
-
-• additive only  
-• backward compatible  
-
----
-
-# PROCEDURE RULE
-
-Procedures must:
-
-• be idempotent where possible  
-• never depend on mutable state  
-• operate only on canonical views/tables  
-• not reference non-existent columns (e.g., UPDATED_AT issues)  
-
----
-
-# QUERY LAYER RULE
-
-Next.js query layer must:
-
-• only query canonical views  
-• never contain business logic  
-• never remap semantics incorrectly  
+## RULE 6 — ALWAYS USE COALESCE FOR TIMESTAMPS
 
 Correct pattern:
 
-certifiedTier → r.CERTIFIED_TIER  
+COALESCE(PUBLISHED_AT, CERTIFIED_AT, APPROVED_AT)
 
-Incorrect pattern:
+This prevents:
 
-certifiedTier → r.TIER  
-
----
-
-# UI RULE
-
-Frontend must:
-
-• display certified fields only  
-• never infer certification  
-• never calculate governance state  
-
-UI is a renderer, not a processor.
+• null failures  
+• UI crashes  
+• missing registry data  
 
 ---
 
-# SNOWFLAKE WORKSHEET RULE
+## RULE 7 — DO NOT MODIFY WORKING SYSTEMS
 
-Worksheets are NOT reliable state.
+DO NOT TOUCH:
 
-They may retain:
+• scoring engine  
+• publish procedure  
+• snapshot system  
+• verification pipeline  
 
-• stale execution fragments  
-• hidden compiled SQL  
-• invalid column references  
+ONLY modify:
 
-Therefore:
-
-• never trust a worksheet after heavy edits  
-• always use clean execution blocks  
-• recreate run scripts when debugging  
-
----
-
-# EXECUTION SCRIPT RULE
-
-Files like:
-
-99_RUN_PIPELINE.sql  
-
-Are:
-
-• disposable  
-• non-canonical  
-• for manual testing only  
-
-Do NOT:
-
-• treat them as system logic  
-• rely on them for correctness  
+• registry views  
+• query layer  
+• API mapping  
+• UI display  
 
 ---
 
-# AI DEVELOPMENT RULE
+## RULE 8 — CLEAR CACHE AFTER STRUCTURAL CHANGES
 
-When using AI (ChatGPT):
+Whenever you change:
+
+• query files  
+• API routes  
+• data structures  
+
+Run:
+
+Remove-Item -Recurse -Force .next  
+npm run dev  
+
+---
+
+## RULE 9 — TEST AFTER EVERY CHANGE
+
+You MUST test:
+
+API:  
+http://localhost:3000/api/registry?caseId=CASE-0001  
+
+REGISTRY LIST:  
+http://localhost:3000/registry  
+
+REGISTRY DETAIL:  
+http://localhost:3000/registry/[registryId]  
+
+---
+
+## RULE 10 — FIX ROOT CAUSE, NOT SYMPTOMS
+
+If error appears:
+
+WRONG:
+
+• patch UI  
+• hide field  
+• hardcode values  
+
+CORRECT:
+
+• fix Snowflake view  
+• fix query layer  
+
+---
+
+# COMMON FAILURE PATTERNS (AVOID)
+
+---
+
+## INVALID IDENTIFIER ERRORS
+
+Cause:
+
+UI/API referencing missing columns
+
+Fix:
+
+update Snowflake view
+
+---
+
+## UNDEFINED FUNCTION ERRORS
+
+Cause:
+
+query function not exported
+
+Fix:
+
+fix lib/queries file
+
+---
+
+## EMPTY UI DATA
+
+Cause:
+
+query mismatch or missing mapping
+
+Fix:
+
+verify query layer normalization
+
+---
+
+## DUPLICATE LOGIC
+
+Cause:
+
+logic in both SQL and JS
+
+Fix:
+
+keep logic ONLY in Snowflake
+
+---
+
+# GOLDEN RULE
+
+IF DATA IS WRONG → FIX SNOWFLAKE
+
+NOT:
+
+• React  
+• API  
+• TypeScript  
+
+---
+
+# AI DEVELOPMENT SAFETY RULE
+
+When generating code:
 
 ALWAYS:
 
-• provide full file context  
-• reference canonical views  
-• avoid partial code patches  
-
-NEVER:
-
-• allow AI to re-architect system  
-• accept schema changes without validation  
-• introduce duplicate logic paths  
+1. check Snowflake schema first  
+2. verify column names  
+3. ensure deterministic output  
+4. avoid assumptions  
 
 ---
 
-# CHANGE MANAGEMENT RULE
+# FINAL CHECK BEFORE COMMIT
 
-All changes must:
+Before pushing:
 
-• preserve pipeline flow  
-• not break downstream views  
-• be tested at the view level  
-• be validated via registry output  
-
----
-
-# DEBUGGING RULE
-
-When errors occur:
-
-1. Verify canonical view definitions  
-2. Use GET_DDL to inspect live objects  
-3. Test views directly  
-4. Avoid debugging through UI first  
-5. Avoid reusing corrupted worksheets  
+✔ no SQL errors  
+✔ no runtime errors  
+✔ no missing fields  
+✔ registry renders  
+✔ API returns valid JSON  
 
 ---
 
-# STABILITY PRINCIPLE
+# END STATE
 
-Once a component works:
+System must be:
 
-LOCK IT.
-
-Do not:
-
-• refactor working views  
-• rewrite procedures  
-• optimize prematurely  
+✔ deterministic  
+✔ consistent  
+✔ auditable  
+✔ production-safe  
 
 ---
 
-# PLATFORM INTEGRITY
-
-GAFAIG must always remain:
-
-• deterministic  
-• append-only  
-• globally consistent  
-• externally verifiable  
-
----
-
-# FINAL RULE
-
-If unsure:
-
-→ Follow the data flow  
-→ Trust the views  
-→ Do not invent logic  
-
----
-
-END OF FILE
+END OF ENGINEERING RULES

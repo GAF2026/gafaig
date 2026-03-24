@@ -1,335 +1,210 @@
-import { snowflakeQuery } from "@/lib/snowflake";
+import { sfQuery } from "@/lib/snowflake";
 
-export type RegistryRecordRow = {
+export type RegistryQueryRow = {
   registryId: string;
   applicationId: string | null;
   caseId: string | null;
-
   entityName: string | null;
   entityType: string | null;
   country: string | null;
-
   certifiedScore: number | null;
   certifiedTier: string | null;
   certifiedBand: string | null;
   decisionStatus: string | null;
-
   validFrom: string | null;
   validTo: string | null;
-
   certifiedAt: string | null;
   lastActivityAt: string | null;
-
   snapshotId: string | null;
-
   modelVersion: string | null;
   renewalStatus: string | null;
   scoredAt: string | null;
+  certificationStatus: string | null;
 };
 
-export type RegistrySearchRow = {
-  registryId: string;
-  applicationId: string | null;
-  caseId: string | null;
+function asString(value: unknown): string | null {
+  if (value === null || value === undefined) return null;
+  const s = String(value).trim();
+  return s.length ? s : null;
+}
 
-  entityName: string | null;
-  entityType: string | null;
-  country: string | null;
+function asNumber(value: unknown): number | null {
+  if (value === null || value === undefined) return null;
+  const n = Number(value);
+  return Number.isFinite(n) ? n : null;
+}
 
-  certifiedScore: number | null;
-  certifiedTier: string | null;
-  certifiedBand: string | null;
-  decisionStatus: string | null;
+function normalizeRegistryRow(row: Record<string, unknown>): RegistryQueryRow {
+  return {
+    registryId: asString(row.REGISTRY_ID) ?? "",
+    applicationId: asString(row.APPLICATION_ID),
+    caseId: asString(row.CASE_ID),
+    entityName: asString(row.ENTITY_NAME),
+    entityType: asString(row.ENTITY_TYPE),
+    country: asString(row.COUNTRY),
 
-  validFrom: string | null;
-  validTo: string | null;
+    // ✅ STRICT: ONLY certified fields
+    certifiedScore: asNumber(row.CERTIFIED_SCORE),
+    certifiedTier: asString(row.CERTIFIED_TIER),
+    certifiedBand: asString(row.CERTIFIED_BAND),
 
-  certifiedAt: string | null;
-  lastActivityAt: string | null;
+    decisionStatus:
+      asString(row.DECISION_STATUS) ??
+      asString(row.REGISTRY_STATUS),
 
-  snapshotId: string | null;
+    // ✅ Use Snowflake-derived fields
+    validFrom: asString(row.VALID_FROM),
+    validTo: asString(row.VALID_TO),
 
-  modelVersion: string | null;
-  renewalStatus: string | null;
-  scoredAt: string | null;
-};
+    certifiedAt: asString(row.CERTIFIED_AT),
+    lastActivityAt: asString(row.LAST_ACTIVITY_AT),
 
-export type RegistryVerificationRow = {
-  registryId: string;
-  applicationId: string | null;
-  caseId: string | null;
+    snapshotId: asString(row.REGISTRY_SNAPSHOT_ID),
+    modelVersion: asString(row.MODEL_VERSION),
+    renewalStatus: asString(row.RENEWAL_STATUS),
 
-  entityName: string | null;
-  entityType: string | null;
-  country: string | null;
+    scoredAt: asString(row.CERTIFIED_AT),
 
-  certifiedScore: number | null;
-  certifiedTier: string | null;
-  certifiedBand: string | null;
-  decisionStatus: string | null;
+    certificationStatus: asString(row.CERTIFICATION_STATUS),
+  };
+}
 
-  validFrom: string | null;
-  validTo: string | null;
+const REGISTRY_SELECT = `
+  SELECT
+    REGISTRY_ID,
+    APPLICATION_ID,
+    CASE_ID,
+    ENTITY_NAME,
+    ENTITY_TYPE,
+    COUNTRY,
 
-  certifiedAt: string | null;
-  lastActivityAt: string | null;
+    CERTIFIED_SCORE,
+    CERTIFIED_TIER,
+    CERTIFIED_BAND,
+    CERTIFICATION_STATUS,
 
-  snapshotId: string | null;
+    DECISION_STATUS,
 
-  modelVersion: string | null;
-  renewalStatus: string | null;
-  scoredAt: string | null;
-};
+    CERTIFIED_AT,
+    VALID_FROM,
+    VALID_TO,
+    LAST_ACTIVITY_AT,
 
-type RegistrySearchFilters = {
+    REGISTRY_SNAPSHOT_ID,
+    MODEL_VERSION,
+    RENEWAL_STATUS,
+
+    REGISTRY_STATUS
+  FROM GAFAIG_DB.CORE.V_REGISTRY_PUBLIC
+`;
+
+export async function getRegistryRecords(limit = 50): Promise<RegistryQueryRow[]> {
+  const safeLimit = Math.max(1, Math.min(limit, 200));
+
+  const rows = await sfQuery<Record<string, unknown>>(
+    `
+    ${REGISTRY_SELECT}
+    ORDER BY LAST_ACTIVITY_AT DESC, REGISTRY_ID ASC
+    LIMIT ?
+    `,
+    [safeLimit]
+  );
+
+  return rows.map(normalizeRegistryRow);
+}
+
+export async function searchRegistryRecords(params: {
   q?: string;
   country?: string;
   registryId?: string;
   caseId?: string;
   applicationId?: string;
   limit?: number;
-};
+}): Promise<RegistryQueryRow[]> {
+  const safeLimit = Math.max(1, Math.min(params.limit ?? 50, 200));
 
-function firstString(value: unknown): string | null {
-  if (value === null || value === undefined) return null;
-  const s = String(value).trim();
-  return s.length ? s : null;
-}
+  const q = (params.q ?? "").trim();
+  const country = (params.country ?? "").trim();
+  const registryId = (params.registryId ?? "").trim();
+  const caseId = (params.caseId ?? "").trim();
+  const applicationId = (params.applicationId ?? "").trim();
 
-function firstNumber(value: unknown): number | null {
-  if (value === null || value === undefined || value === "") return null;
-  const n = Number(value);
-  return Number.isFinite(n) ? n : null;
-}
-
-function toIsoString(value: unknown): string | null {
-  if (value === null || value === undefined || value === "") return null;
-  if (value instanceof Date) return value.toISOString();
-
-  const s = String(value).trim();
-  if (!s) return null;
-
-  const d = new Date(s);
-  return Number.isNaN(d.getTime()) ? s : d.toISOString();
-}
-
-function normalizeRegistryRow(row: Record<string, unknown>): RegistryRecordRow {
-  return {
-    registryId: firstString(row.REGISTRY_ID) ?? "",
-    applicationId: firstString(row.APPLICATION_ID),
-    caseId: firstString(row.CASE_ID),
-
-    entityName: firstString(row.ENTITY_NAME),
-    entityType: firstString(row.ENTITY_TYPE),
-    country: firstString(row.COUNTRY),
-
-    certifiedScore: firstNumber(row.CERTIFIED_SCORE),
-    certifiedTier: firstString(row.CERTIFIED_TIER),
-    certifiedBand: firstString(row.CERTIFIED_BAND),
-    decisionStatus: firstString(row.DECISION_STATUS),
-
-    validFrom: toIsoString(row.VALID_FROM),
-    validTo: toIsoString(row.VALID_TO),
-
-    certifiedAt: toIsoString(row.CERTIFIED_AT),
-    lastActivityAt: toIsoString(row.LAST_ACTIVITY_AT),
-
-    snapshotId: firstString(row.SNAPSHOT_ID),
-
-    modelVersion: firstString(row.MODEL_VERSION),
-    renewalStatus: firstString(row.RENEWAL_STATUS),
-    scoredAt: toIsoString(row.SCORED_AT),
-  };
-}
-
-function normalizeRegistrySearchRow(
-  row: Record<string, unknown>
-): RegistrySearchRow {
-  return {
-    registryId: firstString(row.REGISTRY_ID) ?? "",
-    applicationId: firstString(row.APPLICATION_ID),
-    caseId: firstString(row.CASE_ID),
-
-    entityName: firstString(row.ENTITY_NAME),
-    entityType: firstString(row.ENTITY_TYPE),
-    country: firstString(row.COUNTRY),
-
-    certifiedScore: firstNumber(row.CERTIFIED_SCORE),
-    certifiedTier: firstString(row.CERTIFIED_TIER),
-    certifiedBand: firstString(row.CERTIFIED_BAND),
-    decisionStatus: firstString(row.DECISION_STATUS),
-
-    validFrom: toIsoString(row.VALID_FROM),
-    validTo: toIsoString(row.VALID_TO),
-
-    certifiedAt: toIsoString(row.CERTIFIED_AT),
-    lastActivityAt: toIsoString(row.LAST_ACTIVITY_AT),
-
-    snapshotId: firstString(row.SNAPSHOT_ID),
-
-    modelVersion: firstString(row.MODEL_VERSION),
-    renewalStatus: firstString(row.RENEWAL_STATUS),
-    scoredAt: toIsoString(row.SCORED_AT),
-  };
-}
-
-function normalizeRegistryVerificationRow(
-  row: Record<string, unknown>
-): RegistryVerificationRow {
-  return {
-    registryId: firstString(row.REGISTRY_ID) ?? "",
-    applicationId: firstString(row.APPLICATION_ID),
-    caseId: firstString(row.CASE_ID),
-
-    entityName: firstString(row.ENTITY_NAME),
-    entityType: firstString(row.ENTITY_TYPE),
-    country: firstString(row.COUNTRY),
-
-    certifiedScore: firstNumber(row.CERTIFIED_SCORE),
-    certifiedTier: firstString(row.CERTIFIED_TIER),
-    certifiedBand: firstString(row.CERTIFIED_BAND),
-    decisionStatus: firstString(row.DECISION_STATUS),
-
-    validFrom: toIsoString(row.VALID_FROM),
-    validTo: toIsoString(row.VALID_TO),
-
-    certifiedAt: toIsoString(row.CERTIFIED_AT),
-    lastActivityAt: toIsoString(row.LAST_ACTIVITY_AT),
-
-    snapshotId: firstString(row.SNAPSHOT_ID),
-
-    modelVersion: firstString(row.MODEL_VERSION),
-    renewalStatus: firstString(row.RENEWAL_STATUS),
-    scoredAt: toIsoString(row.SCORED_AT),
-  };
-}
-
-const BASE_SELECT = `
-  SELECT
-    REGISTRY_ID,
-    APPLICATION_ID,
-    CASE_ID,
-    ENTITY_NAME,
-    CAST(NULL AS VARCHAR)        AS ENTITY_TYPE,
-    COUNTRY,
-    CERTIFIED_SCORE,
-    CERTIFIED_TIER,
-    CERTIFIED_BAND,
-    DECISION_STATUS,
-    APPROVED_AT                  AS VALID_FROM,
-    CAST(NULL AS TIMESTAMP_NTZ)  AS VALID_TO,
-    CERTIFIED_AT,
-    PUBLISHED_AT                 AS LAST_ACTIVITY_AT,
-    CAST(NULL AS VARCHAR)        AS SNAPSHOT_ID,
-    MODEL_VERSION,
-    RENEWAL_STATUS,
-    APPROVED_AT                  AS SCORED_AT
-  FROM GAFAIG_DB.CORE.V_REGISTRY_PUBLIC
-`;
-
-function buildWhere(filters: RegistrySearchFilters) {
-  const clauses: string[] = [];
+  const conditions: string[] = [];
   const binds: unknown[] = [];
 
-  if (filters.registryId?.trim()) {
-    clauses.push(`TRIM(UPPER(REGISTRY_ID)) = TRIM(UPPER(?))`);
-    binds.push(filters.registryId.trim());
-  }
-
-  if (filters.caseId?.trim()) {
-    clauses.push(`TRIM(UPPER(CASE_ID)) = TRIM(UPPER(?))`);
-    binds.push(filters.caseId.trim());
-  }
-
-  if (filters.applicationId?.trim()) {
-    clauses.push(`TRIM(UPPER(APPLICATION_ID)) = TRIM(UPPER(?))`);
-    binds.push(filters.applicationId.trim());
-  }
-
-  if (filters.country?.trim()) {
-    clauses.push(`TRIM(UPPER(COUNTRY)) = TRIM(UPPER(?))`);
-    binds.push(filters.country.trim());
-  }
-
-  if (filters.q?.trim()) {
-    const q = `%${filters.q.trim()}%`;
-    clauses.push(`
+  if (q) {
+    conditions.push(`
       (
-        REGISTRY_ID ILIKE ?
-        OR CASE_ID ILIKE ?
-        OR APPLICATION_ID ILIKE ?
-        OR ENTITY_NAME ILIKE ?
-        OR MODEL_VERSION ILIKE ?
-        OR CERTIFIED_TIER ILIKE ?
-        OR CERTIFIED_BAND ILIKE ?
-        OR DECISION_STATUS ILIKE ?
+        UPPER(COALESCE(ENTITY_NAME, '')) LIKE UPPER(?)
+        OR UPPER(COALESCE(ENTITY_TYPE, '')) LIKE UPPER(?)
+        OR UPPER(COALESCE(COUNTRY, '')) LIKE UPPER(?)
+        OR UPPER(COALESCE(REGISTRY_ID, '')) LIKE UPPER(?)
+        OR UPPER(COALESCE(CASE_ID, '')) LIKE UPPER(?)
+        OR UPPER(COALESCE(APPLICATION_ID, '')) LIKE UPPER(?)
       )
     `);
-    binds.push(q, q, q, q, q, q, q, q);
+    const like = `%${q}%`;
+    binds.push(like, like, like, like, like, like);
   }
 
-  const where = clauses.length ? ` WHERE ${clauses.join(" AND ")}` : "";
-  return { where, binds };
+  if (country) {
+    conditions.push(`UPPER(COALESCE(COUNTRY, '')) = UPPER(?)`);
+    binds.push(country);
+  }
+
+  if (registryId) {
+    conditions.push(`UPPER(COALESCE(REGISTRY_ID, '')) = UPPER(?)`);
+    binds.push(registryId);
+  }
+
+  if (caseId) {
+    conditions.push(`UPPER(COALESCE(CASE_ID, '')) = UPPER(?)`);
+    binds.push(caseId);
+  }
+
+  if (applicationId) {
+    conditions.push(`UPPER(COALESCE(APPLICATION_ID, '')) = UPPER(?)`);
+    binds.push(applicationId);
+  }
+
+  const whereClause = conditions.length
+    ? `WHERE ${conditions.join(" AND ")}`
+    : "";
+
+  const rows = await sfQuery<Record<string, unknown>>(
+    `
+    ${REGISTRY_SELECT}
+    ${whereClause}
+    ORDER BY LAST_ACTIVITY_AT DESC, REGISTRY_ID ASC
+    LIMIT ?
+    `,
+    [...binds, safeLimit]
+  );
+
+  return rows.map(normalizeRegistryRow);
 }
 
-export async function getRegistryRecords(limit = 50): Promise<RegistryRecordRow[]> {
-  const safeLimit = Math.min(Math.max(Number(limit) || 50, 1), 200);
+export async function getRegistryRecordByRegistryId(
+  registryId: string
+): Promise<RegistryQueryRow | null> {
+  const id = registryId.trim();
+  if (!id) return null;
 
-  const sql = `
-    ${BASE_SELECT}
-    ORDER BY CERTIFIED_AT DESC NULLS LAST, REGISTRY_ID ASC
-    LIMIT ?
-  `;
+  const rows = await sfQuery<Record<string, unknown>>(
+    `
+    ${REGISTRY_SELECT}
+    WHERE UPPER(COALESCE(REGISTRY_ID, '')) = UPPER(?)
+    LIMIT 1
+    `,
+    [id]
+  );
 
-  const rows = await snowflakeQuery(sql, [safeLimit]);
-  return rows.map((row) => normalizeRegistryRow(row as Record<string, unknown>));
+  const row = rows[0];
+  return row ? normalizeRegistryRow(row) : null;
 }
 
 export async function getRegistryByRegistryId(
   registryId: string
-): Promise<RegistryRecordRow | null> {
-  const sql = `
-    ${BASE_SELECT}
-    WHERE TRIM(UPPER(REGISTRY_ID)) = TRIM(UPPER(?))
-    LIMIT 1
-  `;
-
-  const rows = await snowflakeQuery(sql, [registryId]);
-  return rows[0]
-    ? normalizeRegistryRow(rows[0] as Record<string, unknown>)
-    : null;
-}
-
-export async function searchRegistryRecords(
-  filters: RegistrySearchFilters
-): Promise<RegistrySearchRow[]> {
-  const safeLimit = Math.min(Math.max(Number(filters.limit) || 50, 1), 200);
-  const { where, binds } = buildWhere(filters);
-
-  const sql = `
-    ${BASE_SELECT}
-    ${where}
-    ORDER BY CERTIFIED_AT DESC NULLS LAST, REGISTRY_ID ASC
-    LIMIT ?
-  `;
-
-  const rows = await snowflakeQuery(sql, [...binds, safeLimit]);
-  return rows.map((row) =>
-    normalizeRegistrySearchRow(row as Record<string, unknown>)
-  );
-}
-
-export async function getRegistryVerificationByRegistryId(
-  registryId: string
-): Promise<RegistryVerificationRow | null> {
-  const sql = `
-    ${BASE_SELECT}
-    WHERE TRIM(UPPER(REGISTRY_ID)) = TRIM(UPPER(?))
-    LIMIT 1
-  `;
-
-  const rows = await snowflakeQuery(sql, [registryId]);
-  return rows[0]
-    ? normalizeRegistryVerificationRow(rows[0] as Record<string, unknown>)
-    : null;
+): Promise<RegistryQueryRow | null> {
+  return getRegistryRecordByRegistryId(registryId);
 }

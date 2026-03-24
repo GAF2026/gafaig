@@ -1,239 +1,267 @@
 # GAFAIG — CHANGELOG
-System Evolution Log
-Last Updated: 2026-03-22
+Chronological Record of Platform Development
+Last Updated: 2026-03-24
 
 ---
 
-## 2026-03-22
+## 2026-03-24
 
-### 🔥 CRITICAL MILESTONE — PIPELINE STABILIZATION
-
-Resolved major execution instability across Snowflake pipeline.
-
-#### Fixes:
-
-• Eliminated `UPDATED_AT` dependency from registry pipeline  
-• Removed invalid column references from procedures and views  
-• Rebuilt `V_REGISTRY_AI_SYSTEMS_PUBLIC` to use safe null handling  
-• Corrected `SP_PUBLISH_CASE_TO_REGISTRY_V3` update logic  
-• Ensured publish procedure no longer references non-existent columns  
-• Fixed Snowflake execution inconsistencies caused by stale worksheet state  
+### Registry Stabilization (Critical)
+- Resolved multiple runtime and SQL errors caused by missing fields in registry views.
+- Fixed invalid identifier errors:
+  - VALID_FROM
+  - LAST_ACTIVITY_AT
+- Established correct handling of derived timestamp fields using COALESCE logic.
+- Enforced rule that derived fields must be handled in query layer or view layer, not UI.
 
 ---
 
-### 🧱 REGISTRY ARCHITECTURE FINALIZED
-
-#### Established canonical registry layer:
-
-• `V_REGISTRY_LATEST_APPROVED` as single source of truth  
-• one row per CASE_ID  
-• deterministic latest snapshot selection via ROW_NUMBER  
-
-#### Introduced certification contract:
-
-• CERTIFIED_SCORE  
-• CERTIFIED_TIER  
-• CERTIFIED_BAND  
-• CERTIFIED_AT  
-• DECISION_STATUS  
-• RENEWAL_STATUS  
-
-#### Enforced append-only registry model:
-
-• no updates to prior snapshots  
-• all changes via new snapshot rows  
+### Certification Wiring (Major Milestone)
+- Introduced formal separation between:
+  - engine output (SCORE, TIER, BAND)
+  - certification output (CERTIFIED_* fields)
+- Implemented deterministic certification logic:
+  - IF TIER = 'Not Certified' → certified values = NULL
+- Added and validated fields:
+  - CERTIFICATION_STATUS
+  - CERTIFIED_SCORE
+  - CERTIFIED_TIER
+  - CERTIFIED_BAND
+- Eliminated inconsistent public representations (e.g. Band D shown as certified).
 
 ---
 
-### 🔗 AI SYSTEMS INTEGRATION COMPLETED
-
-#### `V_REGISTRY_AI_SYSTEMS_PUBLIC`:
-
-• successfully joins AI systems to registry  
-• propagates REGISTRY_ID to all systems under a case  
-• exposes certification fields to UI layer  
-• removes dependency on UPDATED_AT  
-
-#### Verified:
-
-• multiple systems share same REGISTRY_ID per case  
-• certification fields flow correctly  
-• public dataset stable and queryable  
+### Registry Enrichment (Completed)
+- Successfully wired:
+  - COUNTRY
+  - APPLICATION_ID
+- Established canonical join path:
+  REGISTRY_SNAPSHOTS → VERIFICATION_CASES → PARTICIPANTS
+- Confirmed:
+  - Snowflake view output correct
+  - API returning correct values
+  - UI rendering enriched fields
 
 ---
 
-### ⚙️ PROCEDURE HARDENING
-
-#### `SP_SCORE_CASE_ENTERPRISE`
-
-• rebuilt to align with canonical scoring view  
-• removed reliance on UPDATED_AT  
-• ensured idempotent scoring behavior  
-
-#### `SP_PUBLISH_CASE_TO_REGISTRY_V3`
-
-• fixed registry snapshot insertion logic  
-• ensured proper REGISTRY_ID generation  
-• enforced append-only writes  
-• removed invalid update column usage  
-• aligned with governance score source  
+### Query Layer Overhaul (lib/queries/registry.ts)
+- Rebuilt registry query layer to:
+  - remove references to non-existent fields
+  - normalize Snowflake output safely
+  - derive timestamps using fallback logic
+- Introduced normalization functions:
+  - asString()
+  - asNumber()
+- Added safe mapping for:
+  - validFrom
+  - lastActivityAt
+- Added consistent SELECT contract for V_REGISTRY_PUBLIC
 
 ---
 
-### 🧠 DEBUGGING BREAKTHROUGH
-
-Identified root cause of persistent errors:
-
-Snowflake worksheet state retention:
-
-• hidden compiled fragments  
-• stale SQL execution  
-• invalid column references persisting across edits  
-
-#### Resolution:
-
-• stopped reusing corrupted worksheets  
-• adopted clean execution strategy  
-• treated run scripts as disposable  
+### API Stability Fixes
+- Fixed registry API route to align with updated query layer.
+- Ensured:
+  - no direct SQL assumptions in API
+  - no transformation logic in API layer
+- Verified endpoint:
+  /api/registry
+  returns stable JSON
 
 ---
 
-### 📊 VIEW CONTRACT STABILIZATION
-
-#### Locked canonical views:
-
-• `V_REGISTRY_LATEST_APPROVED`  
-• `V_REGISTRY_PUBLIC`  
-• `V_REGISTRY_AI_SYSTEMS_PUBLIC`  
-
-#### Ensured:
-
-• consistent column definitions  
-• no backward-breaking changes  
-• certification fields standardized  
-
----
-
-### ⚠️ QUERY LAYER ISSUE IDENTIFIED
-
-Current mapping in:
-
-`lib/queries/registry-ai-systems.ts`
-
-Incorrectly uses:
-
-• SCORE  
-• TIER  
-• BAND  
-
-Instead of:
-
-• CERTIFIED_SCORE  
-• CERTIFIED_TIER  
-• CERTIFIED_BAND  
-• CERTIFIED_AT  
-• DECISION_STATUS  
-
-This is now the primary remaining gap.
+### UI Stabilization
+- Fixed registry list page:
+  /registry
+- Fixed registry detail page:
+  /registry/[registryId]
+- Removed assumptions about:
+  - valid_from
+  - last_activity_at
+- Ensured UI consumes only query-layer output.
+- Added null-safe rendering for:
+  - certification fields
+  - timestamps
+  - enrichment fields
 
 ---
 
-### 🚧 NEXT PHASE — REGISTRY UI COMPLETION
-
-Transitioning from:
-
-Backend complete → UI incomplete
-
-#### Next steps:
-
-• fix query layer mapping  
-• surface certification fields in UI  
-• update registry pages  
-• validate full end-to-end flow  
-• deploy to Vercel  
+### Cache & Build Fixes
+- Identified root cause of "ghost errors":
+  stale Next.js build cache (.next)
+- Standardized recovery procedure:
+  - stop server
+  - delete .next
+  - restart dev server
+- Eliminated mismatched code/runtime states.
 
 ---
 
-## 2026-03-21
-
-### PLATFORM STABILIZATION
-
-• confirmed full CASE → REGISTRY pipeline execution  
-• validated scoring and publish flow  
-• verified registry snapshots populate correctly  
-• confirmed AI systems view loads in UI  
-
----
-
-### QUERY LAYER INTRODUCED
-
-• created centralized Snowflake query abstraction  
-• removed inline SQL from UI routes  
-• standardized query functions  
+### Engineering Standards (Formalized)
+- Created ENGINEERING_RULES.md:
+  - Snowflake as source of truth
+  - no logic in UI/API
+  - no duplication of SQL
+  - deterministic outputs only
+- Created PROJECT_INDEX.md:
+  - full repository mapping
+  - API/UI/Snowflake linkage
+- Updated MASTER_STATE.md and CURRENT_FOCUS.md to reflect stabilization phase.
 
 ---
 
-### REGISTRY ROUTES STABILIZED
+### System Status (End of Day)
+✔ End-to-end registry pipeline working  
+✔ Snowflake views stable  
+✔ API stable  
+✔ UI stable  
+✔ Certification semantics correct  
+✔ No SQL errors  
+✔ No runtime errors  
 
-• `/registry/ai-systems` loads  
-• `/registry/ai-systems/[registryId]` loads  
+System has transitioned from:
+"working prototype"
 
----
+→
 
-## 2026-03-20
-
-### ARCHITECTURE CLARIFICATION
-
-• established canonical execution path  
-• defined registry as append-only system  
-• separated intake layer from governance engine  
-
----
-
-### SNOWFLAKE FILE ORGANIZATION
-
-• structured SQL worksheets into logical groups  
-• clarified responsibilities of each file  
-• reduced confusion across multiple SQL scripts  
+"stable registry infrastructure"
 
 ---
 
-## 2026-03-19
+## 2026-03-21 to 2026-03-23
 
-### CANONICAL SYSTEM DEFINITION
-
-• created MASTER_STATE.md  
-• defined deterministic governance architecture  
-• documented full pipeline flow  
-
----
-
-### PROJECT STRUCTURE FORMALIZED
-
-• introduced PROJECT_INDEX.md  
-• introduced ENGINEERING_RULES.md  
-• introduced CURRENT_FOCUS.md  
+### Registry Foundation Completion
+- Completed initial implementation of:
+  - V_REGISTRY_LATEST_APPROVED
+  - V_REGISTRY_PUBLIC
+- Implemented snapshot-based registry model.
+- Confirmed append-only behavior of REGISTRY_SNAPSHOTS.
+- Validated publish pipeline from admin UI.
 
 ---
 
-## SUMMARY
-
-### Current System Status
-
-✔ Governance engine operational  
-✔ Registry pipeline stable  
-✔ Public views canonical  
-✔ AI systems integration complete  
-
-⚠ Query layer incorrect  
-⚠ UI not yet reflecting certification  
+### Publish Engine Stabilization
+- Finalized SP_PUBLISH_CASE_TO_REGISTRY_V3.
+- Fixed:
+  - JSON binding issues (replaced with INSERT … SELECT)
+  - decision persistence issues
+- Ensured deterministic snapshot creation.
 
 ---
 
-### Next Critical Milestone
-
-Expose certification data correctly in UI and deploy.
+### API + UI Wiring
+- Connected:
+  - /api/registry
+  - /registry page
+  - /registry/[registryId] page
+- Introduced canonical query layer in lib/queries/registry.ts.
+- Eliminated inline SQL from UI components.
 
 ---
 
-END OF FILE
+### Verification Endpoint
+- Implemented:
+  /api/verify/[registryId]
+- Added:
+  - deterministic verification payload
+  - signature structure
+- Enabled machine-readable verification.
+
+---
+
+## 2026-03-16 to 2026-03-20
+
+### Architecture Lock-In
+- Defined GAFAIG as:
+  deterministic governance engine + global registry
+- Locked canonical data flow:
+  CASE → FINDINGS → EVIDENCE → EVENTS → SCORING → SNAPSHOT → REGISTRY
+- Separated:
+  - intake (APPLICATIONS)
+  - execution (CASES)
+
+---
+
+### Scoring Engine
+- Implemented enterprise governance scoring model.
+- Added:
+  - SEVERITY_WEIGHTS
+  - SCORING_CONFIG
+- Built V_GOVERNANCE_SCORE_CASE.
+
+---
+
+### Admin Workflow
+- Built admin interfaces for:
+  - findings
+  - evidence
+  - scoring
+- Connected admin publish action to Snowflake procedure.
+
+---
+
+### Explorer Foundation
+- Created:
+  - /explorer
+  - /explorer/organizations
+  - /explorer/systems
+- Began aggregation queries from registry views.
+
+---
+
+## 2026-03-10 to 2026-03-15
+
+### Platform Bootstrapping
+- Initialized Next.js application (App Router).
+- Configured:
+  - Snowflake connection layer
+  - environment variables
+- Set up Vercel deployment.
+
+---
+
+### Repository Structure
+- Created:
+  - app/
+  - lib/
+  - docs/
+- Introduced structured documentation approach.
+
+---
+
+### Initial Registry Concept
+- Defined registry as:
+  append-only snapshot system
+- Introduced REGISTRY_SNAPSHOTS table.
+- Designed initial registry ID format.
+
+---
+
+# CURRENT STATE SUMMARY
+
+GAFAIG is now:
+
+✔ deterministic  
+✔ auditable  
+✔ end-to-end functional  
+✔ registry-backed  
+✔ API-accessible  
+✔ UI-rendered  
+✔ production-ready (core layer)
+
+---
+
+# NEXT PHASE
+
+Explorer + Search + Intelligence
+
+Focus:
+
+• V_REGISTRY_PUBLIC_SEARCH  
+• full-text search  
+• filtering by country / tier  
+• AI systems linkage  
+
+---
+
+END OF CHANGELOG

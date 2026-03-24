@@ -1,39 +1,302 @@
 # GAFAIG — PROJECT INDEX
-Canonical File & System Map
-Last Updated: 2026-03-22
+Repository Map + Execution Guide
+Last Updated: 2026-03-24
 
 ---
 
 # PURPOSE
 
-This document provides a **complete map of the GAFAIG system**:
+This file provides:
 
-• where logic lives  
-• which files are canonical  
-• how components connect  
-• what each file is responsible for  
+• full repository structure  
+• file responsibilities  
+• system navigation guide  
+• execution map across Snowflake, API, and UI  
 
-This prevents:
-
-• file confusion  
-• duplicate logic  
-• AI hallucinated paths  
-• circular debugging  
+This is the **entry point for all development**.
 
 ---
 
-# SYSTEM OVERVIEW
+# REPOSITORY
 
-GAFAIG consists of:
+GitHub:
 
-1. Snowflake (deterministic governance engine)  
-2. Query Layer (Next.js server functions)  
-3. UI (Next.js App Router)  
-4. Execution Scripts (manual testing only)  
+GAF2026/gafaig
 
 ---
 
-# CORE DATA FLOW
+# ROOT STRUCTURE
+
+gafaig/
+├─ app/
+├─ lib/
+├─ docs/
+├─ public/
+├─ .env.local
+├─ package.json
+├─ next.config.js
+├─ postcss.config.mjs
+├─ tailwind.config.ts
+├─ tsconfig.json
+
+---
+
+# APP DIRECTORY (NEXT.JS ROUTES)
+
+app/
+
+---
+
+## PUBLIC ROUTES
+
+app/page.tsx  
+Homepage
+
+app/mission/page.tsx  
+Mission page
+
+app/framework/page.tsx  
+Framework explanation
+
+app/architecture/page.tsx  
+Architecture overview
+
+app/demo/page.tsx  
+Demo entry
+
+app/demo-script/page.tsx  
+Presentation script
+
+---
+
+## REGISTRY
+
+app/registry/page.tsx  
+→ Registry list page  
+→ consumes getRegistryRecords()
+
+app/registry/[registryId]/page.tsx  
+→ Registry detail page  
+→ consumes getRegistryByRegistryId()
+
+---
+
+## AI SYSTEMS
+
+app/registry/ai-systems/page.tsx  
+→ AI systems listing
+
+app/ai-systems/[systemId]/page.tsx  
+→ AI system detail page
+
+---
+
+## EXPLORER
+
+app/explorer/page.tsx  
+→ Overview
+
+app/explorer/organizations/page.tsx  
+→ Organizations
+
+app/explorer/systems/page.tsx  
+→ Systems
+
+---
+
+## ADMIN
+
+app/admin/login/page.tsx  
+→ Admin login
+
+app/admin/applications/page.tsx  
+→ Intake submissions
+
+app/admin/verification/[caseId]/evidence/page.tsx  
+→ Evidence workflow
+
+app/admin/verification/[caseId]/findings/page.tsx  
+→ Findings workflow
+
+app/admin/verification/[caseId]/score/page.tsx  
+→ Score + publish
+
+---
+
+# API ROUTES
+
+app/api/
+
+---
+
+## PUBLIC API
+
+app/api/registry/route.ts  
+→ Registry listing endpoint
+
+app/api/verify/[registryId]/route.ts  
+→ Verification endpoint (public proof)
+
+---
+
+## ADMIN API
+
+app/api/admin/login/route.ts  
+app/api/admin/logout/route.ts  
+app/api/admin/status/route.ts  
+
+app/api/admin/submissions/route.ts  
+
+app/api/admin/verification/findings/route.ts  
+app/api/admin/verification/evidence/route.ts  
+app/api/admin/verification/[caseId]/summaries/route.ts  
+
+app/api/admin/verification/[caseId]/publish/route.ts  
+→ Calls SP_PUBLISH_CASE_TO_REGISTRY
+
+---
+
+# LIB DIRECTORY
+
+lib/
+
+---
+
+## SNOWFLAKE
+
+lib/snowflake.ts  
+→ Snowflake connection + query execution
+
+---
+
+## QUERY LAYER (CRITICAL)
+
+lib/queries/
+
+### registry.ts
+→ Canonical registry query layer
+
+Functions:
+
+• getRegistryRecords()  
+• searchRegistryRecords()  
+• getRegistryByRegistryId()  
+
+Purpose:
+
+• single source of truth for registry SQL  
+• prevents SQL duplication  
+• normalizes Snowflake output  
+
+---
+
+## AUTH
+
+lib/auth/
+
+admin.ts  
+→ admin cookie logic
+
+require.ts  
+→ requireAdmin() middleware
+
+session.ts  
+→ session handling
+
+---
+
+# DOCS DIRECTORY
+
+docs/
+
+---
+
+MASTER_STATE.md  
+→ canonical platform definition
+
+CURRENT_FOCUS.md  
+→ active execution phase
+
+ENGINEERING_RULES.md  
+→ development constraints
+
+PROJECT_INDEX.md  
+→ this file
+
+CHANGELOG.md  
+→ historical record
+
+ROUTES.md  
+→ route documentation
+
+DB_SCHEMA.md  
+→ Snowflake schema reference
+
+DEMO_SCRIPT.md  
+→ presentation script
+
+ENV_CHECKLIST.md  
+→ environment variables
+
+---
+
+# SNOWFLAKE WORKSHEETS (LOGICAL GROUPING)
+
+---
+
+## ENGINE
+
+VERIFICATION_CASES  
+VERIFICATION_FINDINGS  
+VERIFICATION_EVIDENCE  
+VERIFICATION_EVENTS  
+
+CASE_CONTROL_ATTESTATIONS  
+SCORING_CONFIG  
+SEVERITY_WEIGHTS  
+
+---
+
+## SCORING
+
+V_GOVERNANCE_SCORE_CASE  
+
+---
+
+## REGISTRY
+
+REGISTRY_SNAPSHOTS  
+CASE_APPROVAL_LOG  
+
+---
+
+## REGISTRY VIEWS (CRITICAL)
+
+21_VIEWS_PUBLIC_REGISTRY.sql
+
+Creates:
+
+• V_REGISTRY_LATEST_APPROVED  
+• V_REGISTRY_PUBLIC  
+• V_REGISTRY_EXPORT_V1  
+
+---
+
+## PUBLISH ENGINE
+
+GAFAIG - CORE.REGISTRY_PUBLISH.sql
+
+Contains:
+
+SP_PUBLISH_CASE_TO_REGISTRY_V3
+
+---
+
+# SYSTEM FLOW MAPPING
+
+---
+
+## END-TO-END EXECUTION
 
 CASE  
 → FINDINGS  
@@ -42,257 +305,152 @@ CASE
 → SCORING  
 → SNAPSHOT  
 → REGISTRY  
-→ AI SYSTEMS VIEW  
+→ VIEW  
+→ QUERY  
+→ API  
 → UI  
 
 ---
 
-# SNOWFLAKE FILES (CANONICAL)
-
-## 🔵 SCORING
-
-### File:
-24_SP_SCORE_CASE_ENTERPRISE.sql  
-
-### Contains:
-SP_SCORE_CASE_ENTERPRISE  
-
-### Purpose:
-• calculates governance score  
-• generates score snapshot inputs  
-• deterministic scoring engine  
+## FILE RESPONSIBILITY MAP
 
 ---
 
-## 🔵 REGISTRY PUBLISH
+### Snowflake
 
-### File:
-25_PROCEDURES_APPROVAL.sql  
-
-### Contains:
-SP_PUBLISH_CASE_TO_REGISTRY_V3  
-
-### Purpose:
-• validates case approval  
-• reads governance score  
-• creates REGISTRY_SNAPSHOTS row  
-• generates REGISTRY_ID  
-• links REGISTRY_AI_SYSTEMS  
-
----
-
-## 🔵 PUBLIC REGISTRY VIEWS
-
-### File:
 21_VIEWS_PUBLIC_REGISTRY.sql  
+→ defines registry contract
 
-### Contains:
+---
 
-• V_REGISTRY_LATEST_APPROVED  
+### Query Layer
+
+lib/queries/registry.ts  
+→ defines API data structure
+
+---
+
+### API
+
+app/api/registry/route.ts  
+→ exposes registry data
+
+---
+
+### UI
+
+app/registry/page.tsx  
+→ list view
+
+app/registry/[registryId]/page.tsx  
+→ detail view
+
+---
+
+# CRITICAL FILES (DO NOT BREAK)
+
+---
+
+Snowflake:
+
 • V_REGISTRY_PUBLIC  
-• V_REGISTRY_EXPORT_V1  
-
-### Purpose:
-
-V_REGISTRY_LATEST_APPROVED  
-→ canonical registry state (1 row per case)
-
-V_REGISTRY_PUBLIC  
-→ public registry projection
-
-V_REGISTRY_EXPORT_V1  
-→ export-compatible dataset  
+• V_REGISTRY_LATEST_APPROVED  
 
 ---
 
-## 🔵 AI SYSTEMS VIEW
+Query Layer:
 
-### File:
-22_VIEWS_REGISTRY_AI_SYSTEMS_PUBLIC.sql  
-
-### Contains:
-V_REGISTRY_AI_SYSTEMS_PUBLIC  
-
-### Purpose:
-
-• joins AI systems to registry  
-• exposes certification fields  
-• provides UI-ready dataset  
+• lib/queries/registry.ts  
 
 ---
 
-# SNOWFLAKE TABLES (CORE)
+API:
 
-• APPLICATIONS  
-• VERIFICATION_CASES  
-• FINDINGS  
-• EVIDENCE  
-• EVENTS  
-• DECISIONS  
-• REGISTRY_SNAPSHOTS  
-• REGISTRY_AI_SYSTEMS  
+• /api/registry  
+• /api/verify  
 
 ---
 
-# QUERY LAYER (NEXT.JS)
+UI:
 
-Location:
-
-/lib/queries/
-
----
-
-## 🔵 AI SYSTEMS QUERY
-
-### File:
-lib/queries/registry-ai-systems.ts  
-
-### Functions:
-
-• getRegistryAiSystemsPaginated()  
-• getRegistryAiSystemsFilterOptions()  
-• getRegistryAiSystemsSummaryStats()  
-
-### Current Issue:
-
-Incorrect mapping:
-
-certifiedTier → r.TIER  
-certifiedBand → r.BAND  
-certifiedScore → r.SCORE  
-
-### Required Fix:
-
-certifiedTier → r.CERTIFIED_TIER  
-certifiedBand → r.CERTIFIED_BAND  
-certifiedScore → r.CERTIFIED_SCORE  
-certifiedAt → r.CERTIFIED_AT  
-decisionStatus → r.DECISION_STATUS  
+• /registry  
+• /registry/[registryId]  
 
 ---
 
-# FRONTEND (NEXT.JS APP ROUTER)
-
-Location:
-
-/app/
+# DEVELOPMENT WORKFLOW
 
 ---
 
-## 🔵 PUBLIC REGISTRY LIST
+## STANDARD LOOP
 
-Route:
-
-/registry/ai-systems  
-
-### Purpose:
-
-• display all certified AI systems  
-• filter / search capability  
-
----
-
-## 🔵 PUBLIC REGISTRY DETAIL
-
-Route:
-
-/registry/ai-systems/[registryId]  
-
-### Purpose:
-
-• display system-level certification  
-• show governance metadata  
+1. Update Snowflake view  
+2. Update query layer  
+3. Update API (if needed)  
+4. Update UI  
+5. Clear .next  
+6. Run npm run dev  
+7. Test endpoints  
 
 ---
 
-## 🔵 ADMIN
+## CACHE RESET
 
-Route:
-
-/admin/  
-
-### Key Pages:
-
-• /admin/applications  
-• /admin/verification/[caseId]  
+Remove-Item -Recurse -Force .next  
+npm run dev  
 
 ---
 
-# EXECUTION FILES (NON-CANONICAL)
-
-## 🔴 RUN PIPELINE
-
-Example:
-
-99_RUN_PIPELINE.sql  
-
-### Purpose:
-
-• manual execution  
-• debugging  
-• validation  
-
-### Rule:
-
-NOT part of system logic  
-May be deleted or recreated  
+# TEST URLS
 
 ---
 
-# FILE RESPONSIBILITY SUMMARY
+API:
 
-| Layer        | File                                  | Responsibility |
-|-------------|----------------------------------------|---------------|
-| Scoring      | 24_SP_SCORE_CASE_ENTERPRISE.sql       | Score engine |
-| Publish      | 25_PROCEDURES_APPROVAL.sql            | Registry write |
-| Registry     | 21_VIEWS_PUBLIC_REGISTRY.sql          | Canonical registry state |
-| AI Systems   | 22_VIEWS_REGISTRY_AI_SYSTEMS_PUBLIC.sql | Public system surface |
-| Query Layer  | registry-ai-systems.ts               | Data mapping to UI |
-| UI           | /registry pages                      | Display only |
+http://localhost:3000/api/registry?caseId=CASE-0001  
 
 ---
 
-# CURRENT STATE
+Registry:
 
-✔ Pipeline working  
-✔ Registry publish working  
-✔ Views stable  
-✔ AI systems view stable  
-✔ Certification fields present  
-
-⚠ Query layer incorrect  
-⚠ UI not showing certification correctly  
+http://localhost:3000/registry  
 
 ---
 
-# NEXT TASK MAP
+Record:
 
-1. Fix query layer mappings  
-2. Update UI to display certification  
-3. Validate full flow  
-4. Deploy to Vercel  
+http://localhost:3000/registry/[registryId]  
 
 ---
 
-# NAVIGATION GUIDE
+Verify:
 
-When debugging:
-
-• registry data → V_REGISTRY_LATEST_APPROVED  
-• system-level data → V_REGISTRY_AI_SYSTEMS_PUBLIC  
-• scoring → SP_SCORE_CASE_ENTERPRISE  
-• publish → SP_PUBLISH_CASE_TO_REGISTRY_V3  
+http://localhost:3000/api/verify/[registryId]  
 
 ---
 
-# CRITICAL RULE
+# CURRENT PRIORITY
 
-If unsure:
+CERTIFICATION WIRING
 
-→ trace data flow  
-→ find correct view  
-→ do not guess  
+Focus:
+
+• Snowflake correctness  
+• query alignment  
+• API stability  
+• UI consistency  
 
 ---
 
-# END OF FILE
+# NEXT PHASE
+
+After stabilization:
+
+• search layer (V_REGISTRY_PUBLIC_SEARCH)  
+• explorer enrichment  
+• AI systems linking  
+• production optimization  
+
+---
+
+END OF PROJECT INDEX

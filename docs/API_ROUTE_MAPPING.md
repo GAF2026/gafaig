@@ -1,6 +1,6 @@
-# GAFAIG — API ROUTE MAP
-Canonical Route Responsibilities
-Last Updated: 2026-03-22
+# GAFAIG — API ROUTE MAPPING
+Canonical Mapping of API Endpoints → System Behavior
+Last Updated: 2026-03-24
 
 ---
 
@@ -8,269 +8,385 @@ Last Updated: 2026-03-22
 
 This document defines:
 
-• every API route  
-• what each route is responsible for  
-• which Snowflake/query-layer objects it must use  
-• how data flows from backend to UI  
+• all API routes  
+• their purpose  
+• their data source  
+• how they connect to Snowflake  
+• how they connect to UI  
 
-This prevents:
-
-• duplicate SQL  
-• broken data contracts  
-• routing confusion  
-• UI calling incorrect sources  
+This is the authoritative API contract layer.
 
 ---
 
 # CORE PRINCIPLE
 
-API routes are transport + orchestration layers.
+API LAYER = PASS-THROUGH
 
-They must:
+API routes:
 
-• call query layer functions OR procedures  
-• never embed business logic  
-• never duplicate Snowflake view logic  
-• never compute certification  
+• DO NOT compute logic  
+• DO NOT transform data  
+• DO NOT invent fields  
+
+Flow must always be:
+
+Snowflake → Query Layer → API → UI
 
 ---
 
-# LAYER FLOW
+# ROOT API DIRECTORY
 
-Frontend  
-→ API Route  
-→ Query Layer / Procedure  
-→ Snowflake View / Table  
+app/api/
 
 ---
 
 # PUBLIC API ROUTES
 
-## /api/registry/ai-systems
+---
 
-### Purpose
-Return full public dataset of AI systems.
+## /api/registry
 
-### Canonical Source
-CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC
+File:
 
-### Query File
-lib/queries/registry-ai-systems.ts
+app/api/registry/route.ts
 
-### Required Fields
-SYSTEM_ID  
-REGISTRY_ID  
-CASE_ID  
-SYSTEM_NAME  
-ENTITY_NAME  
-ORG_ID  
-VERIFICATION_TYPE  
-SCORE  
-TIER  
-BAND  
-CERTIFIED_SCORE  
-CERTIFIED_TIER  
-CERTIFIED_BAND  
-CERTIFIED_AT  
-DECISION_STATUS  
-RENEWAL_STATUS  
+Purpose:
 
-### Rule
-This is the primary dataset powering the registry UI.
+Returns list of registry records.
+
+Data Source:
+
+lib/queries/registry.ts
+
+Functions:
+
+getRegistryRecords()  
+searchRegistryRecords()
+
+Snowflake Source:
+
+GAFAIG_DB.CORE.V_REGISTRY_PUBLIC
+
+Query Parameters:
+
+• limit  
+• q  
+• country  
+• registryId  
+• caseId  
+• applicationId  
+
+Response:
+
+{
+  ok: true,
+  rows: [],
+  total: number,
+  limit: number,
+  filters: {}
+}
+
+Used By:
+
+• /registry  
+• /explorer  
+• search UI  
 
 ---
 
-## /api/registry/ai-systems/[registryId]
+## /api/registry/[registryId]
 
-### Purpose
-Return AI systems filtered by registry ID.
+Handled via:
 
-### Canonical Source
-CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC
+lib/queries/registry.ts
 
-### Rule
-Must return same certification fields as list route.
+Function:
+
+getRegistryByRegistryId()
+
+Purpose:
+
+Fetch a single registry record.
+
+Snowflake Source:
+
+V_REGISTRY_PUBLIC
+
+Used By:
+
+• /registry/[registryId]
 
 ---
 
 ## /api/verify/[registryId]
 
-### Purpose
+File:
+
+app/api/verify/[registryId]/route.ts
+
+Purpose:
+
 Public verification endpoint.
 
-### Canonical Source
-CORE.V_REGISTRY_LATEST_APPROVED  
-or  
-CORE.V_REGISTRY_PUBLIC  
+Enables:
 
-### Output Fields
-REGISTRY_ID  
-CASE_ID  
-ENTITY_NAME  
-VERIFICATION_TYPE  
-CERTIFIED_SCORE  
-CERTIFIED_TIER  
-CERTIFIED_BAND  
-CERTIFIED_AT  
-DECISION_STATUS  
-RENEWAL_STATUS  
+• external validation  
+• registry trust verification  
+• machine-readable proof  
 
-### Rule
-Used for external validation of certification.
+Data Source:
+
+V_REGISTRY_PUBLIC
+
+Response:
+
+{
+  ok: true,
+  registryId: "...",
+  verified: true,
+  record: {},
+  proof: {
+    alg: "...",
+    signature: "...",
+    message: "...",
+    signedAt: "..."
+  }
+}
+
+Rules:
+
+• must be deterministic  
+• must match registry view exactly  
+• no hidden transformations  
+
+Used By:
+
+• registry detail page  
+• external consumers  
 
 ---
 
 # ADMIN API ROUTES
 
-## /api/admin/applications
+---
 
-### Purpose
-Return application intake data.
+## /api/admin/login
 
-### Source
-APPLICATIONS table / intake layer
+File:
 
-### Rule
-Not part of governance truth.
+app/api/admin/login/route.ts
+
+Purpose:
+
+• authenticate admin  
+• create session  
 
 ---
 
-## /api/admin/applications/[requestId]
+## /api/admin/logout
 
-### Purpose
-Return specific application.
+Purpose:
 
-### Source
-APPLICATIONS table
+• destroy session  
+
+---
+
+## /api/admin/status
+
+Purpose:
+
+• check authentication state  
+
+---
+
+## /api/admin/submissions
+
+Purpose:
+
+• fetch application intake data  
 
 ---
 
 ## /api/admin/verification/findings
 
-### Purpose
-Create/update findings.
+Purpose:
 
-### Source
-FINDINGS + verification workflow
+• CRUD for findings  
 
 ---
 
-## /api/admin/verification/decisions
+## /api/admin/verification/evidence
 
-### Purpose
-Store approval status.
+Purpose:
 
-### Source
-DECISIONS layer
+• manage evidence  
 
 ---
 
-## /api/admin/verification/[caseId]/score
+## /api/admin/verification/[caseId]/summaries
 
-### Purpose
-Return score for admin.
+Purpose:
 
-### Source
-SP_SCORE_CASE_ENTERPRISE  
-or  
-V_GOVERNANCE_SCORE_CASE  
-
-### Rule
-Admin-only inspection.
+• manage summaries  
 
 ---
 
-## /api/admin/verification/publish
+## /api/admin/verification/[caseId]/publish
 
-### Purpose
-Trigger registry publish.
+CRITICAL ROUTE
 
-### Procedure
-CORE.SP_PUBLISH_CASE_TO_REGISTRY_V3
+Purpose:
 
-### Rule
-ONLY path that writes to REGISTRY_SNAPSHOTS.
+Triggers registry publish.
 
----
+Flow:
 
-# QUERY LAYER CONTRACT
+API  
+→ Snowflake  
+→ SP_PUBLISH_CASE_TO_REGISTRY_V3  
+→ REGISTRY_SNAPSHOTS  
+→ V_REGISTRY_PUBLIC  
 
-## File
-lib/queries/registry-ai-systems.ts
+Response:
 
-### Must Map
+{
+  ok: true,
+  registryId: "...",
+  snapshotId: "...",
+  tier: "...",
+  band: "...",
+  score: number
+}
 
-certifiedTier → r.CERTIFIED_TIER  
-certifiedBand → r.CERTIFIED_BAND  
-certifiedScore → r.CERTIFIED_SCORE  
-certifiedAt → r.CERTIFIED_AT  
-decisionStatus → r.DECISION_STATUS  
+Used By:
 
-### Must NOT Map
-
-certifiedTier → r.TIER  
-certifiedBand → r.BAND  
-certifiedScore → r.SCORE  
-
----
-
-# ROUTE RESPONSIBILITY SUMMARY
-
-/api/registry/ai-systems  
-→ public list  
-→ uses V_REGISTRY_AI_SYSTEMS_PUBLIC  
-
-/api/registry/ai-systems/[registryId]  
-→ system detail  
-→ uses V_REGISTRY_AI_SYSTEMS_PUBLIC  
-
-/api/verify/[registryId]  
-→ certification verification  
-→ uses V_REGISTRY_LATEST_APPROVED  
-
-/api/admin/applications  
-→ intake list  
-
-/api/admin/applications/[requestId]  
-→ intake detail  
-
-/api/admin/verification/findings  
-→ findings workflow  
-
-/api/admin/verification/decisions  
-→ approval workflow  
-
-/api/admin/verification/[caseId]/score  
-→ score inspection  
-
-/api/admin/verification/publish  
-→ publish to registry  
+• /admin/verification/[caseId]/score  
 
 ---
 
-# RULES
+# QUERY LAYER DEPENDENCY
 
-1. Public routes use public views only  
-2. Admin routes may use internal tables  
-3. Never duplicate SQL from views  
-4. Never compute certification in API  
-5. Always use CERTIFIED_* fields  
+All public APIs depend on:
 
----
+lib/queries/registry.ts
 
-# DEBUGGING ORDER
+Functions:
 
-1. Verify Snowflake view  
-2. Verify query layer mapping  
-3. Verify API route  
-4. Verify UI  
+• getRegistryRecords()  
+• searchRegistryRecords()  
+• getRegistryByRegistryId()  
 
----
+Responsibilities:
 
-# CURRENT PRIORITY
-
-Fix query layer mapping so UI reflects certification correctly.
+• execute SQL  
+• map Snowflake fields  
+• normalize output  
 
 ---
 
-END OF FILE
+# SNOWFLAKE DEPENDENCIES
+
+Primary View:
+
+V_REGISTRY_PUBLIC
+
+Supporting View:
+
+V_REGISTRY_LATEST_APPROVED
+
+Source Table:
+
+REGISTRY_SNAPSHOTS
+
+---
+
+# DATA FLOW
+
+Snowflake  
+→ V_REGISTRY_PUBLIC  
+→ lib/queries/registry.ts  
+→ API  
+→ UI  
+
+---
+
+# COMMON FAILURE CASES
+
+---
+
+Invalid Identifier Error
+
+Cause:
+
+API references non-existent column
+
+Fix:
+
+Update Snowflake view  
+Update query layer  
+
+---
+
+Undefined Function Error
+
+Cause:
+
+Missing export in query layer
+
+Fix:
+
+Export function in registry.ts  
+
+---
+
+Empty Response
+
+Cause:
+
+Query mismatch or filters incorrect
+
+Fix:
+
+Validate SQL  
+Validate mapping  
+
+---
+
+# TEST ENDPOINTS
+
+---
+
+Local:
+
+http://localhost:3000/api/registry?caseId=CASE-0001  
+
+http://localhost:3000/api/verify/[registryId]  
+
+---
+
+Production:
+
+https://www.gafaig.com/api/registry  
+
+https://www.gafaig.com/api/verify/[registryId]  
+
+---
+
+# SUCCESS CRITERIA
+
+✔ API returns valid JSON  
+✔ no SQL errors  
+✔ fields match Snowflake  
+✔ UI renders correctly  
+
+---
+
+# NEXT PHASE
+
+• search endpoint improvements  
+• filtering enhancements  
+• analytics endpoints  
+
+---
+
+END OF API ROUTE MAPPING

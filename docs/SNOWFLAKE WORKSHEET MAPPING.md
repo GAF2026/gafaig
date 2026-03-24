@@ -1,340 +1,449 @@
-# GAFAIG — SNOWFLAKE WORKSHEET MAP
-Canonical Worksheet Responsibilities
-Last Updated: 2026-03-22
+# GAFAIG — SNOWFLAKE WORKSHEET MAPPING
+Execution Map of Snowflake Worksheets → System Behavior
+Last Updated: 2026-03-24
 
 ---
 
 # PURPOSE
 
-This document defines:
+This document maps:
 
-• every Snowflake worksheet  
-• what each worksheet contains  
-• what each worksheet controls  
-• when each worksheet should be used  
+• Snowflake worksheet names  
+• what each worksheet does  
+• how they connect together  
+• where to modify logic safely  
 
 This prevents:
 
 • editing the wrong file  
-• duplicate logic  
-• circular debugging  
-• breaking working systems  
+• confusion between similar scripts  
+• breaking the registry pipeline  
 
 ---
 
 # CORE PRINCIPLE
 
-Each worksheet has ONE responsibility only.
+Each worksheet controls a **specific layer** of GAFAIG.
 
-DO NOT mix:
+DO NOT:
 
-• procedures and views  
-• scoring and registry logic  
-• production logic and debug logic  
+• mix responsibilities  
+• duplicate logic  
+• guess which file to edit  
 
 ---
 
-# SYSTEM DATA FLOW (REFERENCE)
+# SYSTEM EXECUTION FLOW
 
-CASE  
+APPLICATION  
+→ CASE  
 → FINDINGS  
 → EVIDENCE  
 → EVENTS  
 → SCORING  
 → SNAPSHOT  
 → REGISTRY  
-→ AI SYSTEMS VIEW  
-→ UI  
+→ PUBLIC VIEW  
 
 ---
 
-# WORKSHEET GROUPS
+# WORKSHEET MAP (TOP TO BOTTOM)
 
 ---
 
-# 01 — ARCHIVE / BOOTSTRAP
-
-## Files
-
-GAFAIG - Applications Setup & Grants (Archive)  
-GAFAIG - Canonical Case Pipeline Bootstrap (Archive)  
-GAFAIG - Canonical Case Pipeline Write Test (Archive)  
-GAFAIG - Application Write Smoke (Archive)  
-
-## Purpose
-
-• initial schema setup  
-• early pipeline testing  
-• role grants  
-
-## Status
-
-ARCHIVED — DO NOT MODIFY
+## 1. DATA SEEDING / DEMO
 
 ---
 
-# 02 — SCORING ENGINE
-
-## File
-
-24_SP_SCORE_CASE_ENTERPRISE.sql  
-
-## Contains
-
-SP_SCORE_CASE_ENTERPRISE  
-
-## Responsibility
-
-• compute governance score  
-• aggregate weighted subscores  
-• insert score snapshots  
-• enforce deterministic scoring  
-
-## Input
-
-• V_CONTROL_SCORE_COMPONENTS  
-• V_CASE_OPERATIONAL_SCORE  
-
-## Output
-
-• CASE_SCORE_SNAPSHOTS_V2  
-
-## Rule
-
-Do not modify unless changing scoring model.
+DDL Snapshot - 2026-02-26.sql  
+→ snapshot of schema state  
+→ reference only (DO NOT MODIFY)
 
 ---
-
-# 03 — GOVERNANCE SCORE VIEW
-
-## File
-
-Worksheet containing V_GOVERNANCE_SCORE_CASE  
-
-## Responsibility
-
-• expose FINAL_SCORE  
-• expose TIER / BAND  
-• serve as source for publish procedure  
-
-## Rule
-
-This is the authoritative score source for certification.
-
----
-
-# 04 — REGISTRY PUBLISH ENGINE
-
-## File
-
-25_PROCEDURES_APPROVAL.sql  
-
-## Contains
-
-SP_PUBLISH_CASE_TO_REGISTRY_V3  
-
-## Responsibility
-
-• validate case approval  
-• read governance score  
-• generate REGISTRY_ID  
-• insert REGISTRY_SNAPSHOTS  
-• link REGISTRY_AI_SYSTEMS  
-
-## Input
-
-• V_GOVERNANCE_SCORE_CASE  
-• VERIFICATION_CASES  
-
-## Output
-
-• REGISTRY_SNAPSHOTS  
-• REGISTRY_AI_SYSTEMS  
-
-## Rule
-
-Append-only. Never update prior snapshots.
-
----
-
-# 05 — REGISTRY CORE VIEWS
-
-## File
-
-21_VIEWS_PUBLIC_REGISTRY.sql  
-
-## Contains
-
-• V_REGISTRY_LATEST_APPROVED  
-• V_REGISTRY_PUBLIC  
-• V_REGISTRY_EXPORT_V1  
-
-## Responsibility
-
-V_REGISTRY_LATEST_APPROVED:
-
-• one row per CASE_ID  
-• latest snapshot  
-• certification contract  
-
-V_REGISTRY_PUBLIC:
-
-• public-facing registry view  
-
-V_REGISTRY_EXPORT_V1:
-
-• export-compatible dataset  
-
-## Rule
-
-This is the canonical source of certification.
-
----
-
-# 06 — AI SYSTEMS PUBLIC VIEW
-
-## File
-
-22_VIEWS_REGISTRY_AI_SYSTEMS_PUBLIC.sql  
-
-## Contains
-
-V_REGISTRY_AI_SYSTEMS_PUBLIC  
-
-## Responsibility
-
-• join AI systems to registry  
-• propagate certification fields  
-• provide UI-ready dataset  
-
-## Input
-
-• REGISTRY_AI_SYSTEMS  
-• V_REGISTRY_LATEST_APPROVED  
-
-## Output
-
-• public system-level rows  
-
-## Rule
-
-No business logic. Projection only.
-
----
-
-# 07 — ADMIN / DIAGNOSTICS
-
-## File
-
-GAFAIG - Admin Unified View.sql  
-
-## Responsibility
-
-• admin inspection  
-• debugging  
-• internal validation  
-
-## Rule
-
-Not used by UI  
-Not a source of truth  
-
----
-
-# 08 — DEMO / SEED DATA
-
-## Files
 
 GAFAIG - Canonical Demo Dataset.sql  
+→ seeds complete demo data across system  
+
+---
+
 GAFAIG - Canonical Demo Seed.sql  
-
-## Purpose
-
-• generate test data  
-• simulate pipeline  
-
-## Rule
-
-Safe to rerun.
+→ inserts base entities:
+  • participants  
+  • applications  
+  • cases  
 
 ---
 
-# 09 — SMOKE TESTS / VALIDATION
-
-## Files
-
-GAFAIG - APP_ROLE Smoke.sql  
-GAFAIG - Admin Unified View Diagnostics.sql  
-
-## Purpose
-
-• validate permissions  
-• validate access  
-• confirm queries work  
+## 2. CORE PIPELINE SETUP
 
 ---
 
-# 10 — EXECUTION SCRIPTS (NON-CANONICAL)
+GAFAIG - Canonical Case Pipeline Bootstrap.sql  
+→ creates core tables:
 
-## Example
-
-99_RUN_PIPELINE.sql  
-
-## Purpose
-
-• manual execution  
-• debugging  
-• pipeline testing  
-
-## Rule
-
-• NOT canonical  
-• safe to delete  
-• recreate anytime  
+• VERIFICATION_CASES  
+• VERIFICATION_FINDINGS  
+• VERIFICATION_EVIDENCE  
+• VERIFICATION_EVENTS  
 
 ---
 
-# DATA FLOW MAPPING
-
-SP_SCORE_CASE_ENTERPRISE  
-→ CASE_SCORE_SNAPSHOTS_V2  
-→ V_GOVERNANCE_SCORE_CASE  
-→ SP_PUBLISH_CASE_TO_REGISTRY_V3  
-→ REGISTRY_SNAPSHOTS  
-→ V_REGISTRY_LATEST_APPROVED  
-→ V_REGISTRY_AI_SYSTEMS_PUBLIC  
-→ Query Layer  
-→ UI  
+GAFAIG - Canonical Case Pipeline Write Test.sql  
+→ test inserts into pipeline  
+→ validates system flow  
 
 ---
 
-# CRITICAL DEPENDENCIES
-
-Publish Procedure → V_GOVERNANCE_SCORE_CASE  
-Registry Views → REGISTRY_SNAPSHOTS  
-AI Systems View → V_REGISTRY_LATEST_APPROVED  
-UI → V_REGISTRY_AI_SYSTEMS_PUBLIC  
+## 3. APPLICATION / INTAKE
 
 ---
 
-# SAFE EDIT GUIDE
-
-Change scoring → 24_SP_SCORE_CASE_ENTERPRISE.sql  
-Change publish logic → 25_PROCEDURES_APPROVAL.sql  
-Change certification fields → 21_VIEWS_PUBLIC_REGISTRY.sql  
-Change UI dataset → 22_VIEWS_REGISTRY_AI_SYSTEMS_PUBLIC.sql  
-Debug system → Admin Unified View  
+GAFAIG - Applications Setup & Grants.sql  
+→ creates APPLICATIONS table  
+→ applies permissions  
 
 ---
 
-# FINAL RULE
+CORE.APPLICATIONS
 
-If unsure:
+Contains:
 
-→ trace the data flow  
-→ identify the correct layer  
-→ modify only that file  
+• APPLICATION_ID  
+• COUNTRY  
+• entity metadata  
 
 ---
 
-END OF FILE
+## 4. PARTICIPANT LAYER
+
+---
+
+CORE.PARTICIPANTS
+
+Contains:
+
+• PARTICIPANT_ID  
+• APPLICATION_ID  
+• COUNTRY  
+• ENTITY_TYPE  
+
+---
+
+Purpose:
+
+→ bridge CASE → APPLICATION  
+→ registry enrichment  
+
+---
+
+## 5. CASE LAYER
+
+---
+
+CORE.VERIFICATION_CASES
+
+Contains:
+
+• CASE_ID  
+• PARTICIPANT_ID  
+• ORG_ID  
+• ENTITY_NAME  
+• VERIFICATION_TYPE  
+
+---
+
+Purpose:
+
+→ connects pipeline to registry  
+→ join layer for enrichment  
+
+---
+
+## 6. VERIFICATION ENGINE
+
+---
+
+GAFAIG - CORE.V_GOVERNANCE_SCORE_CASE.sql  
+
+CRITICAL VIEW
+
+Computes:
+
+• controls score  
+• coverage score  
+• freshness score  
+• summaries score  
+• final governance score  
+
+---
+
+This is the **source of truth for scoring**
+
+---
+
+## 7. CONFIGURATION
+
+---
+
+SCORING_CONFIG  
+→ scoring weights  
+
+SEVERITY_WEIGHTS  
+→ severity multipliers  
+
+---
+
+## 8. REGISTRY SYSTEM
+
+---
+
+### SNAPSHOT TABLE
+
+CORE.REGISTRY_SNAPSHOTS
+
+Properties:
+
+• append-only  
+• immutable  
+• generated via publish procedure  
+
+Stores:
+
+• score  
+• tier  
+• band  
+• timestamps  
+• payload  
+
+---
+
+### APPROVAL LOG
+
+CORE.CASE_APPROVAL_LOG
+
+Tracks:
+
+• approval actions  
+• actor  
+• timestamps  
+
+---
+
+## 9. PUBLISH ENGINE
+
+---
+
+GAFAIG - CORE.REGISTRY_PUBLISH.sql
+
+Contains:
+
+SP_PUBLISH_CASE_TO_REGISTRY_V3
+
+Responsibilities:
+
+• reads from V_GOVERNANCE_SCORE_CASE  
+• generates snapshot  
+• inserts into REGISTRY_SNAPSHOTS  
+
+---
+
+IMPORTANT:
+
+• deterministic  
+• uses INSERT … SELECT  
+• no JSON binding issues  
+
+---
+
+## 10. REGISTRY VIEWS (MOST IMPORTANT)
+
+---
+
+21_VIEWS_PUBLIC_REGISTRY.sql
+
+Defines:
+
+---
+
+### V_REGISTRY_LATEST_APPROVED
+
+Purpose:
+
+• latest snapshot per CASE_ID  
+• prevents duplicate registry rows  
+
+---
+
+### V_REGISTRY_PUBLIC
+
+Purpose:
+
+• canonical public registry  
+• used by API + UI  
+
+Contains:
+
+• identity fields  
+• certification fields  
+• enrichment fields  
+• timestamps  
+
+---
+
+### V_REGISTRY_EXPORT_V1
+
+Purpose:
+
+• export surface  
+• identical to public view  
+
+---
+
+## 11. ENRICHMENT PATH (CRITICAL)
+
+---
+
+REGISTRY_SNAPSHOTS  
+→ VERIFICATION_CASES  
+→ PARTICIPANTS  
+
+---
+
+Provides:
+
+• COUNTRY  
+• APPLICATION_ID  
+• ENTITY_TYPE  
+
+---
+
+## 12. SEARCH LAYER (PLANNED)
+
+---
+
+V_REGISTRY_PUBLIC_SEARCH
+
+Purpose:
+
+• normalized search  
+• substring matching  
+
+---
+
+## 13. AI SYSTEMS
+
+---
+
+CORE.REGISTRY_AI_SYSTEMS  
+→ stores AI system metadata  
+
+CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC  
+→ filters public systems  
+
+---
+
+# FILE RESPONSIBILITY GUIDE
+
+---
+
+## MODIFY THIS WHEN:
+
+---
+
+### You need to change registry fields
+
+→ 21_VIEWS_PUBLIC_REGISTRY.sql  
+
+---
+
+### You need to change scoring
+
+→ CORE.V_GOVERNANCE_SCORE_CASE.sql  
+
+---
+
+### You need to change publish behavior
+
+→ CORE.REGISTRY_PUBLISH.sql  
+
+---
+
+### You need to change data model
+
+→ Bootstrap / setup files  
+
+---
+
+## NEVER MODIFY FOR UI BUGS:
+
+• REGISTRY_SNAPSHOTS  
+• publish procedure  
+• scoring engine  
+
+---
+
+# DEBUG FLOW
+
+---
+
+If something breaks:
+
+---
+
+## Registry not showing data
+
+1. Check REGISTRY_SNAPSHOTS  
+2. Check V_REGISTRY_LATEST_APPROVED  
+3. Check V_REGISTRY_PUBLIC  
+
+---
+
+## API errors
+
+Check:
+
+→ query layer  
+→ column names  
+
+---
+
+## UI errors
+
+Check:
+
+→ query mapping  
+→ null handling  
+
+---
+
+# TEST QUERIES
+
+---
+
+SELECT * FROM CORE.V_REGISTRY_PUBLIC LIMIT 10;
+
+SELECT * FROM CORE.REGISTRY_SNAPSHOTS ORDER BY CREATED_AT DESC;
+
+SELECT * FROM CORE.V_GOVERNANCE_SCORE_CASE WHERE CASE_ID = 'CASE-0001';
+
+---
+
+# CURRENT STATUS
+
+✔ full pipeline working  
+✔ publish working  
+✔ registry views working  
+✔ enrichment wired  
+✔ certification logic implemented  
+
+---
+
+# NEXT PHASE
+
+• search layer  
+• explorer analytics  
+• AI systems linking  
+
+---
+
+END OF SNOWFLAKE WORKSHEET MAPPING
