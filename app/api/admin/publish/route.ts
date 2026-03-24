@@ -1,225 +1,181 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/auth/require";
-import { normalizeId } from "@/lib/ids";
-import { snowflakeQuery } from "@/lib/snowflake";
+import { sfQuery } from "@/lib/snowflake";
 
-export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
 
-type PublishRequestBody = {
-  caseId?: string;
-};
-
-type StoredProcResult = {
-  ok?: boolean;
-  error?: string;
-  caseId?: string;
-  registryId?: string;
-  registrySnapshotId?: string;
-  entityName?: string | null;
-  status?: string | null;
-};
-
-type RegistryRow = {
-  REGISTRY_ID: string | null;
-  CASE_ID: string | null;
-  APPLICATION_ID: string | null;
-  ENTITY_NAME: string | null;
-  ENTITY_TYPE: string | null;
-  COUNTRY: string | null;
-  CERTIFIED_TIER: string | null;
-  CERTIFIED_BAND: string | null;
-  CERTIFIED_SCORE: number | string | null;
-  DECISION_STATUS: string | null;
-  VALID_FROM: string | null;
-  VALID_TO: string | null;
-  CERTIFIED_AT: string | null;
-  LAST_ACTIVITY_AT: string | null;
-};
-
-function asString(value: unknown): string | null {
-  if (value === null || value === undefined) return null;
-  const out = String(value).trim();
-  return out.length ? out : null;
+function json(data: unknown, status = 200) {
+  return NextResponse.json(data, { status });
 }
 
-function asNumber(value: unknown): number | null {
-  if (value === null || value === undefined || value === "") return null;
-  const n = Number(value);
-  return Number.isFinite(n) ? n : null;
-}
-
-function firstColumnValue(row: Record<string, unknown> | undefined) {
-  if (!row) return null;
-  const firstKey = Object.keys(row)[0];
-  return firstKey ? row[firstKey] : null;
-}
-
-function parseStoredProcPayload(
-  row: Record<string, unknown> | undefined
-): StoredProcResult | null {
-  const raw = firstColumnValue(row);
-
-  if (!raw) return null;
-
-  if (typeof raw === "object") {
-    return raw as StoredProcResult;
+function firstString(...values: unknown[]): string | null {
+  for (const value of values) {
+    if (value === null || value === undefined) continue;
+    const s = String(value).trim();
+    if (s) return s;
   }
-
-  if (typeof raw === "string") {
-    try {
-      return JSON.parse(raw) as StoredProcResult;
-    } catch {
-      return null;
-    }
-  }
-
   return null;
 }
 
-function buildVerifyEndpoint(registryId: string) {
-  return `/api/verify/${registryId}`;
-}
-
-export async function GET() {
-  return NextResponse.json(
-    { ok: false, error: "Method not allowed" },
-    { status: 405, headers: { Allow: "POST" } }
-  );
+function firstNumber(...values: unknown[]): number | null {
+  for (const value of values) {
+    if (value === null || value === undefined) continue;
+    const n = Number(value);
+    if (!Number.isNaN(n)) return n;
+  }
+  return null;
 }
 
 export async function POST(req: NextRequest) {
-  try {
-    const auth = await requireAdmin(req);
-    if (!auth.ok) {
-      return NextResponse.json(
-        { ok: false, error: auth.error ?? "Unauthorized" },
-        { status: auth.status ?? 401 }
-      );
-    }
+  const auth = await requireAdmin(req);
+  if (!auth.ok) {
+    return json(
+      { ok: false, error: auth.error ?? "Unauthorized" },
+      auth.status ?? 401
+    );
+  }
 
-    const body = (await req.json().catch(() => ({}))) as PublishRequestBody;
-    const caseId = normalizeId(body.caseId);
+  try {
+    const body = await req.json().catch(() => ({}));
+
+    const caseId = String(body?.caseId || "").trim();
+    const actor = String(body?.actor || "admin").trim() || "admin";
+    const notes = firstString(body?.notes) ?? null;
 
     if (!caseId) {
-      return NextResponse.json(
-        { ok: false, error: "Missing caseId" },
-        { status: 400 }
-      );
+      return json({ ok: false, error: "Missing caseId" }, 400);
     }
 
-    const procRows = await snowflakeQuery<Record<string, unknown>>(
-      `CALL GAFAIG_DB.CORE.SP_PUBLISH_CASE_TO_REGISTRY_V3(?)`,
-      [caseId]
-    );
-
-    const procPayload = parseStoredProcPayload(procRows[0]);
-
-    if (!procPayload) {
-      return NextResponse.json(
-        { ok: false, error: "Publish procedure returned no result." },
-        { status: 500 }
-      );
-    }
-
-    if (!procPayload.ok) {
-      return NextResponse.json(
-        {
-          ok: false,
-          error: procPayload.error ?? "Registry publish failed.",
-          caseId,
-          proc: procPayload,
-        },
-        { status: 400 }
-      );
-    }
-
-    const registryRows = await snowflakeQuery<RegistryRow>(
+    // 1) Confirm case exists in canonical score source
+    const scoreRows = await sfQuery<Record<string, unknown>>(
       `
       SELECT
-        REGISTRY_ID,
         CASE_ID,
-        APPLICATION_ID,
-        ENTITY_NAME,
-        ENTITY_TYPE,
-        COUNTRY,
-        CERTIFIED_TIER,
-        CERTIFIED_BAND,
-        CERTIFIED_SCORE,
-        DECISION_STATUS,
-        VALID_FROM,
-        VALID_TO,
-        CERTIFIED_AT,
-        LAST_ACTIVITY_AT
-      FROM GAFAIG_DB.CORE.V_REGISTRY_PUBLIC
+        ORG_ID,
+        FINAL_SCORE,
+        TIER,
+        BAND
+      FROM GAFAIG_DB.CORE.V_GOVERNANCE_SCORE_CASE
       WHERE TRIM(UPPER(CASE_ID)) = TRIM(UPPER(?))
-      ORDER BY CERTIFIED_AT DESC NULLS LAST, LAST_ACTIVITY_AT DESC NULLS LAST
       LIMIT 1
       `,
       [caseId]
     );
 
-    const row = registryRows[0];
-
-    const registryId =
-      asString(row?.REGISTRY_ID) ?? asString(procPayload.registryId);
-    const registrySnapshotId = asString(procPayload.registrySnapshotId);
-
-    if (!registryId) {
-      return NextResponse.json(
-        {
-          ok: false,
-          error: "Publish completed but no public registry record was found.",
-          caseId,
-          registrySnapshotId,
-          proc: procPayload,
-        },
-        { status: 500 }
+    const scoreRow = scoreRows?.[0];
+    if (!scoreRow) {
+      return json(
+        { ok: false, error: `Case ${caseId} not found in V_GOVERNANCE_SCORE_CASE` },
+        404
       );
     }
 
-    const certifiedTier = asString(row?.CERTIFIED_TIER);
-    const certifiedBand = asString(row?.CERTIFIED_BAND);
-    const finalScore = asNumber(row?.CERTIFIED_SCORE);
+    // 2) CALL procedure (procedure, not function)
+    const callRows = await sfQuery<Record<string, unknown>>(
+      `
+      CALL GAFAIG_DB.CORE.SP_PUBLISH_CASE_TO_REGISTRY_V4(?, ?)
+      `,
+      [caseId, actor]
+    );
 
-    return NextResponse.json({
+    const callRow = callRows?.[0] ?? null;
+    const callPayload = callRow
+      ? (Object.values(callRow)[0] as Record<string, unknown>)
+      : null;
+
+    const ok =
+      !!callPayload &&
+      (callPayload.ok === true ||
+        String(callPayload.ok).toLowerCase() === "true");
+
+    if (!ok) {
+      const errorMessage =
+        firstString(callPayload?.error) ?? "Publish procedure returned failure";
+      return json({ ok: false, error: errorMessage, result: callPayload }, 500);
+    }
+
+    // 3) Load latest snapshot written by publish
+    const snapshotRows = await sfQuery<Record<string, unknown>>(
+      `
+      SELECT
+        REGISTRY_SNAPSHOT_ID,
+        REGISTRY_ID,
+        ORG_ID,
+        CASE_ID,
+        ENTITY_NAME,
+        VERIFICATION_TYPE,
+        MODEL_VERSION,
+        SCORE,
+        TIER,
+        BAND,
+        CERTIFIED_SCORE,
+        CERTIFIED_TIER,
+        CERTIFIED_BAND,
+        CERTIFIED_AT,
+        REGISTRY_STATUS,
+        CREATED_AT
+      FROM GAFAIG_DB.CORE.REGISTRY_SNAPSHOTS
+      WHERE TRIM(UPPER(CASE_ID)) = TRIM(UPPER(?))
+      ORDER BY CREATED_AT DESC
+      LIMIT 1
+      `,
+      [caseId]
+    );
+
+    const snapshot = snapshotRows?.[0];
+    if (!snapshot) {
+      return json(
+        {
+          ok: false,
+          error: "Publish completed but no registry snapshot was found",
+          result: callPayload,
+        },
+        500
+      );
+    }
+
+    return json({
       ok: true,
-      status: "published",
       caseId,
-      registryId,
-      registrySnapshotId,
-      verifyEndpoint: buildVerifyEndpoint(registryId),
-      certifiedTier,
-      certifiedBand,
-      finalScore,
-      record: row
-        ? {
-            registryId,
-            caseId: asString(row.CASE_ID),
-            applicationId: asString(row.APPLICATION_ID),
-            entityName: asString(row.ENTITY_NAME),
-            entityType: asString(row.ENTITY_TYPE),
-            country: asString(row.COUNTRY),
-            certifiedTier,
-            certifiedBand,
-            finalScore,
-            decisionStatus: asString(row.DECISION_STATUS),
-            validFrom: asString(row.VALID_FROM),
-            validTo: asString(row.VALID_TO),
-            certifiedAt: asString(row.CERTIFIED_AT),
-            lastActivityAt: asString(row.LAST_ACTIVITY_AT),
-          }
-        : null,
-      proc: procPayload,
+      actor,
+      notes,
+      registryId:
+        firstString(snapshot.REGISTRY_ID) ??
+        firstString(callPayload?.registryId),
+      registrySnapshotId:
+        firstString(snapshot.REGISTRY_SNAPSHOT_ID) ??
+        firstString(callPayload?.registrySnapshotId),
+      orgId: firstString(snapshot.ORG_ID),
+      entityName: firstString(snapshot.ENTITY_NAME),
+      verificationType: firstString(snapshot.VERIFICATION_TYPE),
+      modelVersion: firstString(snapshot.MODEL_VERSION),
+      score: firstNumber(
+        snapshot.CERTIFIED_SCORE,
+        snapshot.SCORE,
+        callPayload?.score
+      ),
+      tier: firstString(
+        snapshot.CERTIFIED_TIER,
+        snapshot.TIER,
+        callPayload?.tier
+      ),
+      band: firstString(
+        snapshot.CERTIFIED_BAND,
+        snapshot.BAND,
+        callPayload?.band
+      ),
+      certifiedAt: firstString(snapshot.CERTIFIED_AT),
+      registryStatus: firstString(snapshot.REGISTRY_STATUS),
+      result: callPayload,
     });
-  } catch (error: unknown) {
-    return NextResponse.json(
+  } catch (e) {
+    return json(
       {
         ok: false,
-        error:
-          error instanceof Error ? error.message : "Registry publish failed.",
+        error: e instanceof Error ? e.message : "Unknown error",
       },
-      { status: 500 }
+      500
     );
   }
 }
