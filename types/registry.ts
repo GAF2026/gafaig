@@ -1,13 +1,13 @@
 export type RegistryRow = {
   registryId: string;
   applicationId: string | null;
-  caseId?: string | null;
+  caseId: string | null;
 
   entityName: string | null;
   entityType: string | null;
   country: string | null;
 
-  certifiedScore?: number | null;
+  certifiedScore: number | null;
   certifiedTier: string | null;
   certifiedBand: string | null;
   decisionStatus: string | null;
@@ -17,7 +17,12 @@ export type RegistryRow = {
 
   certifiedAt: string | null;
   lastActivityAt: string | null;
-  snapshotId?: string | null;
+  snapshotId: string | null;
+
+  modelVersion?: string | null;
+  renewalStatus?: string | null;
+  scoredAt?: string | null;
+  isCurrentlyValid?: boolean;
 };
 
 export type RegistryApiResponse =
@@ -88,11 +93,11 @@ export type VerifyApiResponse =
       record?: {
         registryId: string;
         applicationId: string | null;
-        caseId?: string | null;
+        caseId: string | null;
         entityName: string | null;
         entityType: string | null;
         country: string | null;
-        certifiedScore?: number | null;
+        certifiedScore: number | null;
         certifiedTier: string | null;
         certifiedBand: string | null;
         decisionStatus: string | null;
@@ -100,7 +105,7 @@ export type VerifyApiResponse =
         validTo: string | null;
         certifiedAt: string | null;
         lastActivityAt: string | null;
-        snapshotId?: string | null;
+        snapshotId: string | null;
         modelVersion?: string | null;
         renewalStatus?: string | null;
         scoredAt?: string | null;

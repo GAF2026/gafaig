@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "node:crypto";
-import { isGafaigRegistryId } from "@/lib/ids";
 import { getRegistryVerificationByRegistryId } from "@/lib/queries/registry";
 import type { VerifyApiResponse } from "@/types/registry";
 
@@ -15,8 +14,12 @@ function toBase64Url(buf: Buffer) {
     .replace(/=+$/g, "");
 }
 
-function safeUpper(value: string) {
+function normalizeRegistryId(value: string) {
   return String(value || "").trim().toUpperCase();
+}
+
+function isCanonicalRegistryId(value: string) {
+  return /^GAFAIG-[A-F0-9]+$/.test(normalizeRegistryId(value));
 }
 
 function parseDate(value: string | null | undefined) {
@@ -33,13 +36,17 @@ function isCurrentlyValidRecord(
     validTo: string | null;
     renewalStatus: string | null;
   },
-  now = new Date(),
+  now = new Date()
 ) {
-  if (String(row.decisionStatus || "").toLowerCase() !== "approved") {
+  const decisionStatus = String(row.decisionStatus || "").trim().toLowerCase();
+
+  // Registry rows are publicly valid when they are already published.
+  // Keep approved as valid too for compatibility.
+  if (decisionStatus !== "published" && decisionStatus !== "approved") {
     return false;
   }
 
-  const renewalStatus = String(row.renewalStatus || "").toLowerCase();
+  const renewalStatus = String(row.renewalStatus || "").trim().toLowerCase();
   if (renewalStatus === "not_certified") {
     return false;
   }
@@ -156,10 +163,10 @@ export async function OPTIONS() {
 
 export async function GET(
   _req: NextRequest,
-  ctx: { params: Promise<{ registryId: string }> },
+  ctx: { params: Promise<{ registryId: string }> }
 ) {
   const { registryId: rawRegistryId } = await ctx.params;
-  const registryId = safeUpper(rawRegistryId ?? "");
+  const registryId = normalizeRegistryId(rawRegistryId ?? "");
 
   if (!registryId) {
     const response: VerifyApiResponse = {
@@ -175,7 +182,7 @@ export async function GET(
     });
   }
 
-  if (!isGafaigRegistryId(registryId)) {
+  if (!isCanonicalRegistryId(registryId)) {
     const response: VerifyApiResponse = {
       ok: false,
       error: "Invalid registryId format",

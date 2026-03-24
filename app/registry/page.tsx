@@ -1,493 +1,181 @@
 import Link from "next/link";
-import PublicPageHero from "../_components/PublicPageHero";
-import {
-  getRegistryRecords,
-  searchRegistryRecords,
-  type RegistryRecordRow,
-  type RegistrySearchFilters,
-} from "@/lib/queries/registry";
-import { getRegistryAiSystemsSummaryStats } from "@/lib/queries/registry-ai-systems";
+import { getRegistryRecords } from "@/lib/queries/registry";
 
 export const dynamic = "force-dynamic";
 
-function formatDate(v?: string | null) {
-  if (!v) return "—";
-  const d = new Date(v);
-  if (Number.isNaN(d.getTime())) return v;
-  return d.toLocaleDateString(undefined, {
+function fmtDate(value: string | null): string {
+  if (!value) return "—";
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return value;
+  return d.toLocaleDateString("en-US", {
     year: "numeric",
     month: "short",
-    day: "2-digit",
+    day: "numeric",
   });
 }
 
-function chipClass() {
-  return "inline-flex items-center rounded-full border border-black/15 bg-black/[0.04] px-2.5 py-1 text-[12px] font-semibold leading-none text-black";
+function valueOrDash(value?: string | number | null): string | number {
+  if (value === null || value === undefined || value === "") return "—";
+  return value;
 }
 
-function inputClass() {
-  return "w-full rounded-xl border border-black/15 bg-white px-3 py-2 text-[14px] text-black placeholder:text-black/45 focus:outline-none focus:ring-2 focus:ring-black/10";
-}
+function badgeClass(text?: string | null) {
+  const v = String(text || "").toLowerCase();
 
-function buttonClass(variant: "primary" | "secondary" = "secondary") {
-  if (variant === "primary") {
-    return "inline-flex items-center justify-center rounded-xl px-4 py-2 text-[14px] font-semibold bg-black text-white hover:bg-black/90";
+  if (v.includes("published") || v.includes("approved")) {
+    return "border-emerald-200 bg-emerald-50 text-emerald-700";
   }
-  return "inline-flex items-center justify-center rounded-xl px-4 py-2 text-[14px] font-semibold border border-black/15 hover:bg-black/[0.04]";
+  if (v.includes("pending")) {
+    return "border-amber-200 bg-amber-50 text-amber-700";
+  }
+  if (v.includes("revoked") || v.includes("denied")) {
+    return "border-rose-200 bg-rose-50 text-rose-700";
+  }
+  if (v.includes("high") || v === "a") {
+    return "border-emerald-200 bg-emerald-50 text-emerald-700";
+  }
+  if (v.includes("standard") || v === "b") {
+    return "border-blue-200 bg-blue-50 text-blue-700";
+  }
+  if (v.includes("conditional") || v === "c") {
+    return "border-amber-200 bg-amber-50 text-amber-700";
+  }
+  if (v.includes("not certified") || v === "d") {
+    return "border-slate-200 bg-slate-50 text-slate-700";
+  }
+
+  return "border-slate-200 bg-slate-50 text-slate-700";
 }
 
-function cellLinkClass() {
-  return "block px-4 py-3 hover:bg-black/[0.02] focus:outline-none focus-visible:ring-2 focus-visible:ring-black/20";
-}
+export default async function RegistryPage() {
+  const rows = await getRegistryRecords(100);
 
-function StatCard({
-  label,
-  value,
-  helper,
-}: {
-  label: string;
-  value: string | number;
-  helper?: string;
-}) {
   return (
-    <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-4">
-      <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/55">
-        {label}
-      </div>
-      <div className="mt-2 text-[28px] font-semibold leading-none tracking-tight text-black">
-        {value}
-      </div>
-      {helper ? (
-        <div className="mt-2 text-[12px] leading-[1.6] text-black/60">
-          {helper}
+    <main className="mx-auto max-w-7xl px-6 py-12">
+      <div className="mb-8">
+        <div className="inline-flex rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-medium text-slate-600">
+          Public registry
         </div>
-      ) : null}
-    </div>
-  );
-}
-
-function GatewayCard({
-  eyebrow,
-  title,
-  description,
-  href,
-  cta,
-}: {
-  eyebrow: string;
-  title: string;
-  description: string;
-  href: string;
-  cta: string;
-}) {
-  return (
-    <div className="rounded-2xl border border-black/10 bg-white p-6">
-      <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/55">
-        {eyebrow}
-      </div>
-      <h3 className="mt-3 text-[22px] font-semibold leading-[1.2] tracking-tight text-black">
-        {title}
-      </h3>
-      <p className="mt-3 text-[14px] leading-[1.8] text-black/72">
-        {description}
-      </p>
-      <Link
-        href={href}
-        className="mt-5 inline-flex items-center text-[14px] font-semibold text-black underline underline-offset-4"
-      >
-        {cta}
-      </Link>
-    </div>
-  );
-}
-
-function getStats(
-  visibleRows: RegistryRecordRow[],
-  allRows: RegistryRecordRow[],
-  disclosedAiSystems: number
-) {
-  const countriesRepresented = new Set(
-    visibleRows.map((r) => (r.country || "").trim()).filter(Boolean)
-  ).size;
-
-  const latestCertificationDate =
-    visibleRows
-      .map((r) => r.certifiedAt)
-      .filter(Boolean)
-      .sort((a, b) => {
-        const at = new Date(a as string).getTime();
-        const bt = new Date(b as string).getTime();
-        return bt - at;
-      })[0] ?? null;
-
-  return {
-    certificationRecords: visibleRows.length,
-    disclosedAiSystems,
-    countriesRepresented,
-    latestCertificationDate,
-    totalCertificationRecords: allRows.length,
-  };
-}
-
-export default async function RegistryPage({
-  searchParams,
-}: {
-  searchParams?: Promise<Record<string, string | string[] | undefined>>;
-}) {
-  const sp = (await searchParams) || {};
-  const q = typeof sp.q === "string" ? sp.q.trim() : "";
-  const country = typeof sp.country === "string" ? sp.country.trim() : "";
-  const registryId =
-    typeof sp.registryId === "string" ? sp.registryId.trim() : "";
-
-  const filters: RegistrySearchFilters = {
-    q,
-    country,
-    registryId,
-    limit: 500,
-  };
-
-  const hasFilters = Boolean(q || country || registryId);
-
-  const [allRows, visibleRows, aiSystemStats] = await Promise.all([
-    getRegistryRecords(500),
-    hasFilters ? searchRegistryRecords(filters) : getRegistryRecords(500),
-    getRegistryAiSystemsSummaryStats(),
-  ]);
-
-  const rows: RegistryRecordRow[] = visibleRows.map((row) => ({
-    registryId: row.registryId,
-    applicationId: row.applicationId,
-    caseId: row.caseId,
-    entityName: row.entityName,
-    entityType: row.entityType,
-    country: row.country,
-    certifiedScore: null,
-    certifiedTier: row.certifiedTier,
-    certifiedBand: row.certifiedBand,
-    decisionStatus: row.decisionStatus,
-    validFrom: row.validFrom,
-    validTo: row.validTo,
-    certifiedAt: row.certifiedAt,
-    lastActivityAt: row.lastActivityAt,
-    snapshotId: null,
-  }));
-
-  const stats = getStats(rows, allRows, aiSystemStats.totalSystems);
-
-  return (
-    <main className="mx-auto max-w-[1180px] px-6 pb-16 pt-14">
-      <PublicPageHero
-        eyebrow="REGISTRY"
-        title="Public registry for certification records and AI systems disclosed through the GAFAIG governance workflow"
-        description="The GAFAIG Registry publishes controlled public certification outcomes derived from a deterministic governance workflow. Public records confirm certification status, linked AI systems, and governance signals while private evidence, findings, reviewer rationale, and internal assessment materials remain protected."
-        actions={
-          <>
-            <Link
-              href="/registry/ai-systems"
-              className="rounded-full border border-black bg-black px-5 py-3 text-sm font-semibold text-white transition hover:bg-black/90"
-            >
-              Explore Public AI Registry
-            </Link>
-
-            <Link
-              href="/framework"
-              className="rounded-full border border-black px-5 py-3 text-sm font-semibold transition hover:bg-black/[0.04]"
-            >
-              Read the Framework
-            </Link>
-          </>
-        }
-      />
-
-      <section className="mt-10 rounded-3xl border border-black/10 bg-white p-8 md:p-10">
-        <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
-          LIVE REGISTRY SIGNAL
-        </div>
-
-        <h2 className="mt-4 max-w-[760px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
-          Public records generated from deterministic certification workflow
-        </h2>
-
-        <p className="mt-5 max-w-[920px] text-[16px] leading-[1.85] text-black/80">
-          This registry is the public-facing layer of the GAFAIG platform. It
-          exposes certification records derived from the canonical snapshot-based
-          registry pipeline and links into the public AI systems surface.
+        <h1 className="mt-4 text-4xl font-semibold tracking-tight text-slate-900">
+          GAFAIG Registry
+        </h1>
+        <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-600">
+          Canonical public certification records derived from the GAFAIG
+          verification workflow. This surface exposes public governance outcomes
+          without revealing private evidence or reviewer materials.
         </p>
+      </div>
 
-        <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-          <StatCard
-            label="Certification Records"
-            value={stats.certificationRecords}
-            helper={
-              hasFilters
-                ? `Filtered from ${stats.totalCertificationRecords} published records`
-                : "Published public certification outcomes"
-            }
-          />
-          <StatCard
-            label="Disclosed AI Systems"
-            value={stats.disclosedAiSystems}
-            helper="Public AI systems linked to registry records"
-          />
-          <StatCard
-            label="Countries Represented"
-            value={stats.countriesRepresented}
-            helper="Countries visible in current registry results"
-          />
-          <StatCard
-            label="Latest Certification"
-            value={formatDate(stats.latestCertificationDate)}
-            helper="Most recent certification date in current results"
-          />
-        </div>
-      </section>
-
-      <section className="mt-10 grid gap-6 lg:grid-cols-2">
-        <GatewayCard
-          eyebrow="AI SYSTEMS"
-          title="Browse the public AI systems registry"
-          description="Explore system-level public disclosures, linked entity metadata, and certification outcomes for AI systems published through the registry."
-          href="/registry/ai-systems"
-          cta="Open AI Systems Registry →"
-        />
-
-        <GatewayCard
-          eyebrow="CERTIFICATION RECORDS"
-          title="Search published registry certification records"
-          description="Search public registry records by organization, country, or registry ID and open the associated certification detail page."
-          href="#search-registry"
-          cta="Search certification records ↓"
-        />
-      </section>
-
-      <section
-        id="search-registry"
-        className="mt-10 rounded-3xl border border-black/10 bg-white p-8 md:p-10"
-      >
-        <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
-          SEARCH THE REGISTRY
-        </div>
-
-        <h2 className="mt-4 max-w-[760px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
-          Search public certification records
-        </h2>
-
-        <p className="mt-5 max-w-[920px] text-[16px] leading-[1.85] text-black/80">
-          Search published certification records by organization, country, or
-          registry ID. Each record links to the official public certification
-          page.
-        </p>
-
-        <form className="mt-6 grid gap-3 md:grid-cols-4">
-          <div className="md:col-span-2">
-            <label className="mb-2 block text-[12px] font-semibold uppercase tracking-[0.16em] text-black/60">
-              Organization
-            </label>
-            <input
-              type="text"
-              name="q"
-              defaultValue={q}
-              placeholder="Search by organization name"
-              className={inputClass()}
-            />
-          </div>
-
-          <div>
-            <label className="mb-2 block text-[12px] font-semibold uppercase tracking-[0.16em] text-black/60">
-              Country
-            </label>
-            <input
-              type="text"
-              name="country"
-              defaultValue={country}
-              placeholder="Country"
-              className={inputClass()}
-            />
-          </div>
-
-          <div>
-            <label className="mb-2 block text-[12px] font-semibold uppercase tracking-[0.16em] text-black/60">
-              Registry ID
-            </label>
-            <input
-              type="text"
-              name="registryId"
-              defaultValue={registryId}
-              placeholder="GAFAIG-00000003"
-              className={inputClass()}
-            />
-          </div>
-
-          <div className="md:col-span-4 flex flex-wrap gap-2 pt-1">
-            <button type="submit" className={buttonClass("primary")}>
-              Search Registry
-            </button>
-
-            <Link href="/registry" className={buttonClass("secondary")}>
-              Clear Filters
-            </Link>
-
-            <Link href="/registry/ai-systems" className={buttonClass("secondary")}>
-              Browse AI Systems
-            </Link>
-          </div>
-        </form>
-      </section>
-
-      <section className="mt-10 rounded-3xl border border-black/10 bg-white p-8 md:p-10">
-        <div className="flex flex-wrap items-end justify-between gap-4">
-          <div>
-            <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
-              PUBLISHED RECORDS
+      <div className="rounded-3xl border border-slate-200 bg-white shadow-sm">
+        <div className="border-b border-slate-200 px-6 py-4">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h2 className="text-lg font-semibold text-slate-900">
+                Registry Records
+              </h2>
+              <p className="text-sm text-slate-500">
+                {rows.length} public record{rows.length === 1 ? "" : "s"}
+              </p>
             </div>
-            <h2 className="mt-4 max-w-[760px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
-              Public certification records
-            </h2>
-            <p className="mt-4 text-[14px] leading-[1.8] text-black/72">
-              Published records below confirm certification outcomes and provide
-              entry into the official public certification artifact.
-            </p>
-          </div>
 
-          <div className="text-[14px] text-black/65">
-            {rows.length} record{rows.length === 1 ? "" : "s"}
-            {hasFilters ? " matching current filters" : ""}
+            <div className="text-xs text-slate-500">
+              Source: V_REGISTRY_PUBLIC
+            </div>
           </div>
         </div>
 
         {rows.length === 0 ? (
-          <div className="mt-6 rounded-2xl border border-black/10 p-5">
-            <div className="font-semibold text-black">No matching records</div>
-            <p className="mt-2 text-[14px] leading-[1.7] text-black/70">
-              No public certification records matched the current search.
-            </p>
+          <div className="px-6 py-12 text-sm text-slate-500">
+            No public registry records found.
           </div>
         ) : (
-          <div className="mt-6 overflow-hidden rounded-2xl border border-black/10">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left">
-                <thead className="bg-black/[0.02]">
-                  <tr className="text-[12px] uppercase tracking-[0.16em] text-black/60">
-                    <th className="px-4 py-3 font-semibold">Entity</th>
-                    <th className="px-4 py-3 font-semibold">Status</th>
-                    <th className="px-4 py-3 font-semibold">Tier</th>
-                    <th className="px-4 py-3 font-semibold">Band</th>
-                    <th className="px-4 py-3 font-semibold">Registry ID</th>
-                    <th className="px-4 py-3 font-semibold">Certified</th>
-                  </tr>
-                </thead>
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-slate-200">
+              <thead className="bg-slate-50">
+                <tr className="text-left text-xs uppercase tracking-wide text-slate-500">
+                  <th className="px-6 py-4 font-medium">Entity</th>
+                  <th className="px-6 py-4 font-medium">Registry ID</th>
+                  <th className="px-6 py-4 font-medium">Case</th>
+                  <th className="px-6 py-4 font-medium">Tier</th>
+                  <th className="px-6 py-4 font-medium">Band</th>
+                  <th className="px-6 py-4 font-medium">Score</th>
+                  <th className="px-6 py-4 font-medium">Decision</th>
+                  <th className="px-6 py-4 font-medium">Certified</th>
+                </tr>
+              </thead>
 
-                <tbody className="divide-y divide-black/10">
-                  {rows.map((r) => {
-                    const href = `/registry/${encodeURIComponent(r.registryId)}`;
+              <tbody className="divide-y divide-slate-100 bg-white">
+                {rows.map((row) => (
+                  <tr key={row.registryId} className="align-top">
+                    <td className="px-6 py-5">
+                      <div className="font-medium text-slate-900">
+                        <Link
+                          href={`/registry/${encodeURIComponent(row.registryId)}`}
+                          className="hover:text-slate-700"
+                        >
+                          {row.entityName ?? "Unnamed Entity"}
+                        </Link>
+                      </div>
+                      <div className="mt-1 text-sm text-slate-500">
+                        {row.entityType ?? "—"}
+                        {row.country ? ` • ${row.country}` : ""}
+                      </div>
+                    </td>
 
-                    return (
-                      <tr
-                        key={r.registryId}
-                        className="text-[14px] text-black/85 transition-colors hover:bg-black/[0.04]"
+                    <td className="px-6 py-5 text-sm text-slate-700">
+                      <div className="max-w-[260px] break-all">
+                        {row.registryId}
+                      </div>
+                    </td>
+
+                    <td className="px-6 py-5 text-sm text-slate-700">
+                      {row.caseId ?? "—"}
+                    </td>
+
+                    <td className="px-6 py-5">
+                      <span
+                        className={`inline-flex rounded-full border px-3 py-1 text-xs font-medium ${badgeClass(
+                          row.certifiedTier
+                        )}`}
                       >
-                        <td className="p-0 align-top">
-                          <Link href={href} className={cellLinkClass()}>
-                            <div className="font-semibold text-black">
-                              {r.entityName ?? "Unnamed Entity"}
-                            </div>
+                        {row.certifiedTier ?? "—"}
+                      </span>
+                    </td>
 
-                            <div className="mt-1 text-[12px] text-black/60">
-                              {(r.entityType ?? "—") +
-                                (r.country ? ` · ${r.country}` : "")}
-                            </div>
-                          </Link>
-                        </td>
+                    <td className="px-6 py-5">
+                      <span
+                        className={`inline-flex rounded-full border px-3 py-1 text-xs font-medium ${badgeClass(
+                          row.certifiedBand
+                        )}`}
+                      >
+                        {row.certifiedBand ?? "—"}
+                      </span>
+                    </td>
 
-                        <td className="p-0 align-top">
-                          <Link href={href} className={cellLinkClass()}>
-                            <span className={chipClass()}>
-                              {r.decisionStatus ?? "—"}
-                            </span>
-                          </Link>
-                        </td>
+                    <td className="px-6 py-5 text-sm font-medium text-slate-900">
+                      {valueOrDash(row.certifiedScore)}
+                    </td>
 
-                        <td className="p-0 align-top">
-                          <Link href={href} className={cellLinkClass()}>
-                            {r.certifiedTier ?? "—"}
-                          </Link>
-                        </td>
+                    <td className="px-6 py-5">
+                      <span
+                        className={`inline-flex rounded-full border px-3 py-1 text-xs font-medium ${badgeClass(
+                          row.decisionStatus
+                        )}`}
+                      >
+                        {row.decisionStatus ?? "—"}
+                      </span>
+                    </td>
 
-                        <td className="p-0 align-top">
-                          <Link href={href} className={cellLinkClass()}>
-                            {r.certifiedBand ?? "—"}
-                          </Link>
-                        </td>
-
-                        <td className="p-0 align-top">
-                          <Link href={href} className={cellLinkClass()}>
-                            <span className="font-mono text-[12px] text-black underline">
-                              {r.registryId}
-                            </span>
-                          </Link>
-                        </td>
-
-                        <td className="p-0 align-top">
-                          <Link href={href} className={cellLinkClass()}>
-                            {formatDate(r.certifiedAt)}
-                          </Link>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
+                    <td className="px-6 py-5 text-sm text-slate-700">
+                      {fmtDate(row.certifiedAt)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         )}
-      </section>
-
-      <section className="mt-10 grid gap-6 lg:grid-cols-2">
-        <div className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
-          <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
-            DETERMINISTIC WORKFLOW
-          </div>
-
-          <h2 className="mt-4 max-w-[760px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
-            From governance verification to public registry disclosure
-          </h2>
-
-          <p className="mt-5 max-w-[920px] text-[16px] leading-[1.85] text-black/80">
-            Registry records are generated from a structured workflow that moves
-            from case-based verification to scoring, snapshot creation, registry
-            publication, and public disclosure.
-          </p>
-
-          <div className="mt-6 grid gap-3 md:grid-cols-5">
-            {["Case", "Evidence", "Scoring", "Snapshot", "Registry"].map(
-              (step) => (
-                <div
-                  key={step}
-                  className="rounded-2xl border border-black/10 bg-black/[0.02] px-4 py-4 text-center text-[13px] font-semibold text-black"
-                >
-                  {step}
-                </div>
-              )
-            )}
-          </div>
-        </div>
-
-        <div className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
-          <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
-            PRIVACY BOUNDARY
-          </div>
-
-          <h2 className="mt-4 max-w-[760px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
-            Public trust without exposing internal reviewer materials
-          </h2>
-
-          <p className="mt-5 max-w-[920px] text-[16px] leading-[1.85] text-black/80">
-            The registry confirms certification outcomes and linked system
-            disclosures without exposing internal evidence, findings, reviewer
-            rationales, or private assessment materials.
-          </p>
-        </div>
-      </section>
+      </div>
     </main>
   );
 }
