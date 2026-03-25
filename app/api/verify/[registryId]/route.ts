@@ -12,16 +12,14 @@ function asIsoString(value: string | null | undefined): string | null {
   return d.toISOString();
 }
 
-function canonicalizeVerificationMessage(record: Awaited<ReturnType<typeof getRegistryByRegistryId>>) {
-  if (!record) return "";
-
+function canonicalizeVerificationMessage(record: any) {
   return JSON.stringify({
     registryId: record.registryId,
-    applicationId: record.applicationId,
-    caseId: record.caseId,
     entityName: record.entityName,
     entityType: record.entityType,
     country: record.country,
+    applicationId: record.applicationId,
+    caseId: record.caseId,
     certificationStatus: record.certificationStatus,
     certifiedScore: record.certifiedScore,
     certifiedTier: record.certifiedTier,
@@ -31,9 +29,6 @@ function canonicalizeVerificationMessage(record: Awaited<ReturnType<typeof getRe
     validFrom: asIsoString(record.validFrom),
     validTo: asIsoString(record.validTo),
     lastActivityAt: asIsoString(record.lastActivityAt),
-    snapshotId: record.snapshotId,
-    modelVersion: record.modelVersion,
-    renewalStatus: record.renewalStatus,
   });
 }
 
@@ -54,9 +49,9 @@ export async function GET(
       );
     }
 
-    const record = await getRegistryByRegistryId(registryId);
+    const row = await getRegistryByRegistryId(registryId);
 
-    if (!record) {
+    if (!row) {
       return NextResponse.json(
         {
           ok: false,
@@ -66,36 +61,47 @@ export async function GET(
       );
     }
 
-    const verified =
-      String(record.decisionStatus || "").toLowerCase() === "published";
-
-    const message = canonicalizeVerificationMessage(record);
+    const verified = row.certificationStatus === "Certified";
+    const message = canonicalizeVerificationMessage(row);
     const signature = createHash("sha256").update(message).digest("hex");
-    const signedAt = asIsoString(record.lastActivityAt ?? record.certifiedAt);
+    const signedAt = asIsoString(
+      row.lastActivityAt ?? row.certifiedAt ?? row.validFrom
+    );
 
     return NextResponse.json({
       ok: true,
-      registryId: record.registryId,
       verified,
+      registryId: row.registryId,
+      entity: row.entityName,
+      entityType: row.entityType,
+      country: row.country,
+      applicationId: row.applicationId,
+      caseId: row.caseId,
+      status: row.certificationStatus,
+      tier: row.certifiedTier,
+      band: row.certifiedBand,
+      score: row.certifiedScore,
+      decisionStatus: row.decisionStatus,
+      certifiedAt: asIsoString(row.certifiedAt),
+      validFrom: asIsoString(row.validFrom),
+      validTo: asIsoString(row.validTo),
+      lastActivityAt: asIsoString(row.lastActivityAt),
       record: {
-        registryId: record.registryId,
-        applicationId: record.applicationId,
-        caseId: record.caseId,
-        entityName: record.entityName,
-        entityType: record.entityType,
-        country: record.country,
-        certificationStatus: record.certificationStatus,
-        certifiedScore: record.certifiedScore,
-        certifiedTier: record.certifiedTier,
-        certifiedBand: record.certifiedBand,
-        decisionStatus: record.decisionStatus,
-        certifiedAt: asIsoString(record.certifiedAt),
-        validFrom: asIsoString(record.validFrom),
-        validTo: asIsoString(record.validTo),
-        lastActivityAt: asIsoString(record.lastActivityAt),
-        snapshotId: record.snapshotId,
-        modelVersion: record.modelVersion,
-        renewalStatus: record.renewalStatus,
+        registryId: row.registryId,
+        entityName: row.entityName,
+        entityType: row.entityType,
+        country: row.country,
+        applicationId: row.applicationId,
+        caseId: row.caseId,
+        certificationStatus: row.certificationStatus,
+        certifiedScore: row.certifiedScore,
+        certifiedTier: row.certifiedTier,
+        certifiedBand: row.certifiedBand,
+        decisionStatus: row.decisionStatus,
+        certifiedAt: asIsoString(row.certifiedAt),
+        validFrom: asIsoString(row.validFrom),
+        validTo: asIsoString(row.validTo),
+        lastActivityAt: asIsoString(row.lastActivityAt),
       },
       proof: {
         alg: "sha256",

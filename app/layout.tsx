@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import Image from "next/image";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import SiteFooter from "./_components/SiteFooter";
@@ -44,9 +45,12 @@ function DesktopHeader() {
       <div className="mx-auto max-w-[1180px] px-6 py-4">
         <div className="flex items-center gap-6">
           <Link href="/" className="flex shrink-0 items-center gap-3">
-            <img
+            <Image
               src="/images/gafaig-lockup.png"
               alt="GAFAIG"
+              width={156}
+              height={36}
+              priority
               className="h-9 w-auto shrink-0"
             />
           </Link>
@@ -97,9 +101,12 @@ function MobileHeader() {
     <header className="lg:hidden sticky top-0 z-50 border-b border-black/10 bg-[#fcfcfb]/96 backdrop-blur">
       <div className="px-4 py-3">
         <Link href="/" className="flex items-center">
-          <img
+          <Image
             src="/images/gafaig-lockup.png"
             alt="GAFAIG"
+            width={139}
+            height={32}
+            priority
             className="h-8 w-auto shrink-0"
           />
         </Link>

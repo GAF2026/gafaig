@@ -1,4 +1,3 @@
-// app/framework/page.tsx
 import Link from "next/link";
 import PublicPageHero from "../_components/PublicPageHero";
 
@@ -9,8 +8,9 @@ export default function FrameworkPage() {
     <main className="mx-auto max-w-[1180px] px-6 pb-16 pt-14">
       <PublicPageHero
         eyebrow="FRAMEWORK"
-        title="How GAFAIG verifies human oversight across AI infrastructure"
-        description="GAFAIG applies a repeatable verification model to evaluate whether human oversight operates across an organization’s AI infrastructure. Evidence is reviewed, findings are recorded, scoring is deterministic, and certification outcomes are published through the registry."
+        title="How GAFAIG verifies AI governance in practice"
+        description="GAFAIG follows a structured process to evaluate whether human oversight is operating across an organization’s AI systems. Evidence is reviewed, findings are recorded, and certification outcomes are produced in a consistent and repeatable way."
+        secondaryDescription="Reviews take place in a controlled environment, while certification outcomes are published through the public registry. This allows others to verify governance without exposing internal materials."
         actions={
           <>
             <Link
@@ -24,115 +24,112 @@ export default function FrameworkPage() {
               href="/mission"
               className="rounded-full border border-black px-5 py-3 text-sm font-semibold transition hover:bg-black/[0.04]"
             >
-              Mission &amp; Boundaries
-            </Link>
-
-            <Link
-              href="/framework"
-              className="rounded-full border border-black px-5 py-3 text-sm font-semibold transition hover:bg-black/[0.04]"
-            >
-              Read the Framework
+              Mission &amp; Scope
             </Link>
           </>
         }
       />
 
+      {/* MODEL */}
       <section className="mt-10 rounded-3xl border border-black/10 bg-white p-8 md:p-10">
         <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
           VERIFICATION MODEL
         </div>
 
         <h2 className="mt-4 max-w-[760px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
-          Organization-wide, evidence-based, and auditable
+          Structured, evidence-based, and consistent
         </h2>
 
-        <p className="mt-5 max-w-[960px] text-[16px] leading-[1.85] text-black/80">
-          GAFAIG verification is organization-wide, evidence-based, and designed
-          to produce auditable certification outcomes. Internal evidence remains
-          private, while public disclosure is limited to controlled certification
-          outputs through the registry.
+        <p className="mt-5 max-w-[960px] text-[16px] leading-[1.9] text-black/75">
+          GAFAIG evaluates governance at the organization level using a
+          structured approach. Evidence is reviewed against defined criteria,
+          findings are recorded, and certification outcomes are produced in a
+          consistent and auditable way. Internal materials remain private, while
+          certification outcomes are made public through the registry.
         </p>
 
         <div className="mt-8 grid gap-4 md:grid-cols-2">
           <FrameworkCard
-            title="Program criteria"
-            body="GAFAIG applies structured program criteria to evaluate whether human oversight operates across the organization’s AI infrastructure."
+            title="Defined criteria"
+            body="Clear criteria are used to assess whether human oversight is in place and functioning across AI systems."
           />
 
           <FrameworkCard
-            title="Evidence-based assessment"
-            body="Evidence is collected, linked to review criteria, and assessed as part of a controlled verification process. Internal materials are not disclosed publicly."
+            title="Evidence-based review"
+            body="Organizations submit evidence that is evaluated as part of a controlled review process. Internal materials are not publicly disclosed."
           />
 
           <FrameworkCard
-            title="Deterministic scoring"
-            body="Scoring is deterministic and auditable, implemented as reproducible Snowflake-native SQL logic with consistent outputs for the same evidence inputs."
+            title="Consistent outcomes"
+            body="The evaluation process is designed to produce consistent results when the same evidence is reviewed."
           />
 
           <FrameworkCard
             title="Public certification"
-            body="Certification outcomes are published through the GAFAIG Registry. Evidence, findings, and internal assessment materials remain private."
+            body="Certification outcomes are published through the registry so they can be viewed and verified externally."
           />
         </div>
       </section>
 
+      {/* WORKFLOW */}
       <section className="mt-10 rounded-3xl border border-black/10 bg-white p-8 md:p-10">
         <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
-          VERIFICATION WORKFLOW
+          VERIFICATION PROCESS
         </div>
 
         <h2 className="mt-4 max-w-[760px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
-          Evidence to certification, then registry publication
+          From review to certification
         </h2>
 
         <div className="mt-8 grid gap-4 md:grid-cols-3">
           <WorkflowCard
-            title="1) Collect evidence"
-            body="Organizations provide governance artifacts, oversight records, and operational documentation supporting review."
+            title="1) Submit evidence"
+            body="Organizations provide documentation and records that demonstrate how AI systems are governed."
           />
 
           <WorkflowCard
-            title="2) Record findings"
-            body="Submitted evidence is assessed against program criteria. Findings capture review outcomes and remain linked to the underlying evidence."
+            title="2) Review and record findings"
+            body="Evidence is evaluated against defined criteria, and findings are recorded as part of the review."
           />
 
           <WorkflowCard
-            title="3) Score and certify"
-            body="Deterministic scoring produces certification outcomes which are then recorded and published through the public registry."
+            title="3) Determine certification"
+            body="Evaluation results lead to a certification outcome that can be published through the registry."
           />
         </div>
 
         <div className="mt-6 rounded-2xl border border-black/10 p-5">
           <div className="text-[20px] font-semibold text-black">
-            Workflow summary
+            Process summary
           </div>
           <div className="mt-3 text-[15px] leading-[1.8] text-black/75">
-            Evidence → Findings → Scoring → Decision → Certification → Registry
+            Evidence → Findings → Evaluation → Certification → Registry
           </div>
         </div>
 
         <p className="mt-5 max-w-[920px] text-[14px] leading-[1.8] text-black/72">
-          Verification records are auditable and reproducible. Given the same
-          evidence inputs, the scoring framework is designed to produce
-          consistent outcomes.
+          The process is designed so that the same inputs lead to the same
+          outcomes, supporting consistency and confidence in certification
+          results.
         </p>
       </section>
 
+      {/* TRUST */}
       <section className="mt-10 rounded-3xl border border-black/10 bg-white p-8 md:p-10">
         <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
-          ASSURANCE PROPERTIES
+          TRUST PROPERTIES
         </div>
 
         <h2 className="mt-4 max-w-[760px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
-          What gives the framework trust value
+          Why the framework can be relied on
         </h2>
 
-        <ul className="mt-6 list-disc space-y-3 pl-5 text-[15px] leading-[1.8] text-black/80">
-          <li>Organization-wide scope</li>
-          <li>Evidence-linked certification decisions</li>
-          <li>Deterministic and auditable scoring</li>
-          <li>Private verification layer with controlled public disclosure</li>
-          <li>Reproducible outputs supporting independent trust</li>
+        <ul className="mt-6 list-disc space-y-3 pl-5 text-[15px] leading-[1.8] text-black/75">
+          <li>Organization-wide evaluation</li>
+          <li>Certification based on submitted evidence</li>
+          <li>Consistent and repeatable outcomes</li>
+          <li>Private review with controlled public disclosure</li>
+          <li>Public registry for external verification</li>
         </ul>
       </section>
     </main>

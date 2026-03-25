@@ -1,12 +1,45 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { headers } from "next/headers";
 import { getRegistryByRegistryId } from "@/lib/queries/registry";
+import RegistryVerificationPanel from "@/components/registry/RegistryVerificationPanel";
+
+export const dynamic = "force-dynamic";
 
 type PageProps = {
-  params: { registryId: string };
+  params: {
+    registryId: string;
+  };
 };
 
-function fmtDate(value: string | null) {
+type VerifyApiResponse = {
+  ok: boolean;
+  verified?: boolean;
+  registryId?: string;
+  entity?: string | null;
+  entityType?: string | null;
+  country?: string | null;
+  applicationId?: string | null;
+  caseId?: string | null;
+  status?: string | null;
+  tier?: string | null;
+  band?: string | null;
+  score?: number | null;
+  decisionStatus?: string | null;
+  certifiedAt?: string | null;
+  validFrom?: string | null;
+  validTo?: string | null;
+  lastActivityAt?: string | null;
+  proof?: {
+    alg?: string | null;
+    signature?: string | null;
+    signedAt?: string | null;
+    message?: string | null;
+  } | null;
+  error?: string;
+};
+
+function fmtDate(value: string | null): string {
   if (!value) return "—";
   const d = new Date(value);
   if (Number.isNaN(d.getTime())) return value;
@@ -17,268 +50,390 @@ function fmtDate(value: string | null) {
   });
 }
 
-function fmtNumber(value: number | null) {
-  if (value === null || value === undefined) return "—";
-  return String(Number(value));
+function valueOrDash(value?: string | number | null): string | number {
+  if (value === null || value === undefined || value === "") return "—";
+  return value;
 }
 
-function valueOrDash(value: string | null) {
-  return value && value.trim() ? value : "—";
+function badgeClass(text?: string | null) {
+  const v = String(text || "").toLowerCase();
+
+  if (v.includes("not certified")) {
+    return "border-slate-200 bg-slate-50 text-slate-700";
+  }
+  if (v.includes("certified")) {
+    return "border-emerald-200 bg-emerald-50 text-emerald-700";
+  }
+  if (v.includes("published") || v.includes("approved")) {
+    return "border-blue-200 bg-blue-50 text-blue-700";
+  }
+  if (v.includes("pending")) {
+    return "border-amber-200 bg-amber-50 text-amber-700";
+  }
+  if (v === "a") {
+    return "border-emerald-200 bg-emerald-50 text-emerald-700";
+  }
+  if (v === "b") {
+    return "border-blue-200 bg-blue-50 text-blue-700";
+  }
+  if (v === "c") {
+    return "border-amber-200 bg-amber-50 text-amber-700";
+  }
+  if (v === "d") {
+    return "border-slate-200 bg-slate-50 text-slate-700";
+  }
+
+  return "border-slate-200 bg-slate-50 text-slate-700";
 }
 
-export default async function RegistryRecordPage({ params }: PageProps) {
+function getBaseUrl() {
+  const h = headers();
+  const host = h.get("x-forwarded-host") ?? h.get("host") ?? "localhost:3000";
+  const proto =
+    h.get("x-forwarded-proto") ?? (host.includes("localhost") ? "http" : "https");
+  return `${proto}://${host}`;
+}
+
+export default async function RegistryDetailPage({ params }: PageProps) {
   const registryId = decodeURIComponent(params.registryId || "").trim();
   if (!registryId) notFound();
 
-  const record = await getRegistryByRegistryId(registryId);
-  if (!record) notFound();
+  const row = await getRegistryByRegistryId(registryId);
+  if (!row) notFound();
 
-  const isCertified =
-    record.certifiedScore !== null &&
-    record.certifiedTier !== null &&
-    record.certifiedBand !== null;
+  const isCertified = row.certificationStatus === "Certified";
+
+  const baseUrl = getBaseUrl();
+  const absoluteRegistryUrl = `${baseUrl}/registry/${encodeURIComponent(
+    row.registryId
+  )}`;
+  const absoluteVerifyUrl = `${baseUrl}/api/verify/${encodeURIComponent(
+    row.registryId
+  )}`;
+
+  let verifyData: VerifyApiResponse = {
+    ok: false,
+    error: "Verification unavailable",
+  };
+
+  try {
+    const res = await fetch(absoluteVerifyUrl, { cache: "no-store" });
+    verifyData = (await res.json()) as VerifyApiResponse;
+  } catch (error) {
+    verifyData = {
+      ok: false,
+      error:
+        error instanceof Error ? error.message : "Verification unavailable",
+    };
+  }
 
   return (
-    <main className="mx-auto max-w-6xl px-6 py-10">
+    <main className="mx-auto max-w-7xl px-6 py-12">
       <div className="mb-8">
         <Link
           href="/registry"
-          className="text-sm text-slate-500 hover:text-slate-800"
+          className="inline-flex items-center text-sm text-slate-500 hover:text-slate-700"
         >
           ← Back to Registry
         </Link>
       </div>
 
-      <section className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
-        <div className="mb-8 flex flex-wrap items-center gap-3">
-          <span className="rounded-full border border-slate-200 px-4 py-1 text-sm text-slate-700">
-            {valueOrDash(record.certificationStatus)}
+      <div className="mb-8">
+        <div className="flex flex-wrap items-center gap-3">
+          <span
+            className={`inline-flex rounded-full border px-3 py-1 text-xs font-semibold ${badgeClass(
+              row.certificationStatus
+            )}`}
+          >
+            {row.certificationStatus}
           </span>
 
-          {isCertified ? (
-            <span className="rounded-full border border-slate-200 px-4 py-1 text-sm text-slate-700">
-              {valueOrDash(record.certifiedBand)}
+          <span
+            className={`inline-flex rounded-full border px-3 py-1 text-xs font-medium ${badgeClass(
+              row.decisionStatus
+            )}`}
+          >
+            {valueOrDash(row.decisionStatus)}
+          </span>
+
+          {row.certifiedTier ? (
+            <span
+              className={`inline-flex rounded-full border px-3 py-1 text-xs font-medium ${badgeClass(
+                row.certifiedTier
+              )}`}
+            >
+              {row.certifiedTier}
             </span>
           ) : null}
 
-          <span className="rounded-full border border-emerald-200 bg-emerald-50 px-4 py-1 text-sm text-emerald-700">
-            {valueOrDash(record.decisionStatus)}
-          </span>
+          {row.certifiedBand ? (
+            <span
+              className={`inline-flex rounded-full border px-3 py-1 text-xs font-medium ${badgeClass(
+                row.certifiedBand
+              )}`}
+            >
+              Band {row.certifiedBand}
+            </span>
+          ) : null}
         </div>
 
-        <div className="grid gap-8 lg:grid-cols-[1.4fr_0.8fr]">
-          <div>
-            <h1 className="text-4xl font-semibold tracking-tight text-slate-900">
-              Registry Certification Record
-            </h1>
-            <p className="mt-4 max-w-3xl text-lg leading-8 text-slate-600">
-              Official GAFAIG public certification record. This page exposes the
-              public governance signal and linked certification metadata without
-              revealing private evidence or reviewer materials.
+        <h1 className="mt-5 text-4xl font-semibold tracking-tight text-slate-900">
+          {row.entityName ?? "Registry Record"}
+        </h1>
+
+        <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-600">
+          Public certification record for this entity in the GAFAIG registry.
+          This page exposes certification status, governance signal, and
+          verification metadata without revealing private evidence.
+        </p>
+      </div>
+
+      <section className="mb-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <MetricCard
+          label="Certification Status"
+          value={valueOrDash(row.certificationStatus)}
+          tone={row.certificationStatus}
+        />
+        <MetricCard
+          label="Certified Tier"
+          value={valueOrDash(row.certifiedTier)}
+          tone={row.certifiedTier}
+        />
+        <MetricCard
+          label="Certified Band"
+          value={valueOrDash(row.certifiedBand)}
+          tone={row.certifiedBand}
+        />
+        <MetricCard
+          label="Certified Score"
+          value={valueOrDash(row.certifiedScore)}
+        />
+      </section>
+
+      <section className="mb-8 grid gap-6 xl:grid-cols-3">
+        <Panel title="Certification Overview" className="xl:col-span-2">
+          <div className="grid gap-4 md:grid-cols-2">
+            <InfoRow label="Certification Status" value={row.certificationStatus} />
+            <InfoRow label="Decision Status" value={row.decisionStatus} />
+            <InfoRow label="Certified Tier" value={row.certifiedTier} />
+            <InfoRow label="Certified Band" value={row.certifiedBand} />
+            <InfoRow
+              label="Certified Score"
+              value={
+                row.certifiedScore === null || row.certifiedScore === undefined
+                  ? "—"
+                  : String(row.certifiedScore)
+              }
+            />
+            <InfoRow label="Certified At" value={fmtDate(row.certifiedAt)} />
+            <InfoRow label="Valid From" value={fmtDate(row.validFrom)} />
+            <InfoRow label="Valid To" value={fmtDate(row.validTo)} />
+            <InfoRow label="Last Activity" value={fmtDate(row.lastActivityAt)} />
+          </div>
+        </Panel>
+
+        <Panel title="Trust Signal">
+          <div className="space-y-4">
+            <TrustItem label="Registry-backed" value="Yes" tone="Certified" />
+            <TrustItem
+              label="Verification Status"
+              value={valueOrDash(row.certificationStatus)}
+              tone={row.certificationStatus}
+            />
+            <TrustItem
+              label="Published"
+              value={fmtDate(row.lastActivityAt || row.certifiedAt)}
+              tone="published"
+            />
+            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+              <div className="text-xs font-medium uppercase tracking-wide text-slate-500">
+                Immutable Registry ID
+              </div>
+              <div className="mt-2 break-all font-mono text-sm text-slate-800">
+                {row.registryId}
+              </div>
+            </div>
+          </div>
+        </Panel>
+      </section>
+
+      <section className="mb-8 grid gap-6 xl:grid-cols-2">
+        <Panel title="Entity Profile">
+          <div className="grid gap-4 md:grid-cols-2">
+            <InfoRow label="Entity Name" value={row.entityName} />
+            <InfoRow label="Entity Type" value={row.entityType} />
+            <InfoRow label="Country" value={row.country} />
+            <InfoRow label="Application ID" value={row.applicationId} />
+            <InfoRow label="Case ID" value={row.caseId} />
+            <InfoRow label="Registry ID" value={row.registryId} mono />
+          </div>
+        </Panel>
+
+        <Panel title="Verification Endpoint">
+          <div className="space-y-4">
+            <p className="text-sm leading-6 text-slate-600">
+              External systems can verify this registry record through the public
+              verification endpoint.
             </p>
 
-            <div className="mt-6 inline-flex rounded-full border border-slate-200 bg-slate-50 px-4 py-2 text-sm text-slate-600">
-              Public registry disclosure
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            {isCertified ? (
-              <div className="rounded-2xl bg-slate-50 p-5">
-                <div className="text-xs uppercase tracking-wide text-slate-500">
-                  Score
-                </div>
-                <div className="mt-2 text-5xl font-semibold text-slate-900">
-                  {fmtNumber(record.certifiedScore)}
-                </div>
+            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+              <div className="text-xs font-medium uppercase tracking-wide text-slate-500">
+                API Endpoint
               </div>
-            ) : (
-              <div className="rounded-2xl bg-slate-50 p-5">
-                <div className="text-xs uppercase tracking-wide text-slate-500">
-                  Status
-                </div>
-                <div className="mt-2 text-2xl font-semibold text-slate-900">
-                  {valueOrDash(record.certificationStatus)}
-                </div>
-              </div>
-            )}
-
-            <div className="rounded-2xl bg-slate-50 p-5">
-              <div className="text-xs uppercase tracking-wide text-slate-500">
-                Certified
-              </div>
-              <div className="mt-2 text-2xl font-semibold text-slate-900">
-                {fmtDate(record.certifiedAt)}
+              <div className="mt-2 break-all font-mono text-sm text-slate-800">
+                /api/verify/{row.registryId}
               </div>
             </div>
 
-            <div className="rounded-2xl bg-slate-50 p-5">
-              <div className="text-xs uppercase tracking-wide text-slate-500">
-                Valid From
-              </div>
-              <div className="mt-2 text-2xl font-semibold text-slate-900">
-                {fmtDate(record.validFrom)}
-              </div>
-            </div>
-
-            <div className="rounded-2xl bg-slate-50 p-5">
-              <div className="text-xs uppercase tracking-wide text-slate-500">
-                Valid To
-              </div>
-              <div className="mt-2 text-2xl font-semibold text-slate-900">
-                {fmtDate(record.validTo)}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="mt-10 grid gap-6 lg:grid-cols-[1.4fr_0.8fr]">
-          <div className="rounded-3xl border border-slate-200 p-6">
-            <h2 className="text-xl font-semibold text-slate-800">
-              Record Identity
-            </h2>
-            <div className="mt-5 grid gap-4 md:grid-cols-3">
-              <div className="rounded-2xl bg-slate-50 p-4">
-                <div className="text-xs uppercase tracking-wide text-slate-500">
-                  Registry ID
-                </div>
-                <div className="mt-2 break-all text-xl font-medium text-slate-900">
-                  {record.registryId}
-                </div>
-              </div>
-              <div className="rounded-2xl bg-slate-50 p-4">
-                <div className="text-xs uppercase tracking-wide text-slate-500">
-                  Case ID
-                </div>
-                <div className="mt-2 text-xl font-medium text-slate-900">
-                  {valueOrDash(record.caseId)}
-                </div>
-              </div>
-              <div className="rounded-2xl bg-slate-50 p-4">
-                <div className="text-xs uppercase tracking-wide text-slate-500">
-                  Snapshot ID
-                </div>
-                <div className="mt-2 break-all text-xl font-medium text-slate-900">
-                  {valueOrDash((record as any).registrySnapshotId ?? record.snapshotId ?? null)}
-                </div>
-              </div>
-            </div>
-
-            <div className="mt-5">
+            <div className="flex flex-wrap gap-3">
               <Link
-                href={`/registry/ai-systems?registryId=${encodeURIComponent(record.registryId)}`}
-                className="inline-flex rounded-2xl border border-slate-300 px-5 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50"
+                href={`/api/verify/${encodeURIComponent(row.registryId)}`}
+                className="inline-flex items-center rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
               >
-                Browse AI Systems
+                Open Verification JSON
+              </Link>
+
+              <Link
+                href={`/registry/${encodeURIComponent(row.registryId)}`}
+                className="inline-flex items-center rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+              >
+                Canonical Permalink
               </Link>
             </div>
           </div>
+        </Panel>
+      </section>
 
-          <div className="rounded-3xl border border-slate-200 p-6">
-            <h2 className="text-xl font-semibold text-slate-800">
-              Certification Status
-            </h2>
-            <dl className="mt-5 space-y-4 text-sm">
-              <div className="flex items-center justify-between gap-4">
-                <dt className="text-slate-500">Decision Status</dt>
-                <dd className="font-medium text-slate-900">
-                  {valueOrDash(record.decisionStatus)}
-                </dd>
-              </div>
-              <div className="flex items-center justify-between gap-4">
-                <dt className="text-slate-500">Tier</dt>
-                <dd className="font-medium text-slate-900">
-                  {isCertified ? valueOrDash(record.certifiedTier) : "—"}
-                </dd>
-              </div>
-              <div className="flex items-center justify-between gap-4">
-                <dt className="text-slate-500">Band</dt>
-                <dd className="font-medium text-slate-900">
-                  {isCertified ? valueOrDash(record.certifiedBand) : "—"}
-                </dd>
-              </div>
-              <div className="flex items-center justify-between gap-4">
-                <dt className="text-slate-500">Last Activity</dt>
-                <dd className="font-medium text-slate-900">
-                  {fmtDate(record.lastActivityAt)}
-                </dd>
-              </div>
-            </dl>
-          </div>
-        </div>
+      <RegistryVerificationPanel
+        absoluteVerifyUrl={absoluteVerifyUrl}
+        absoluteRegistryUrl={absoluteRegistryUrl}
+        registryId={row.registryId}
+        entityName={row.entityName ?? "Registry Record"}
+        verifyData={verifyData}
+      />
 
-        <div className="mt-6 grid gap-6 md:grid-cols-2">
-          <div className="rounded-3xl border border-slate-200 p-6">
-            <h2 className="text-xl font-semibold text-slate-800">
-              Linked Entity
-            </h2>
-            <div className="mt-5 grid gap-4">
-              <div className="rounded-2xl bg-slate-50 p-4">
-                <div className="text-xs uppercase tracking-wide text-slate-500">
-                  Name
-                </div>
-                <div className="mt-2 text-xl font-medium text-slate-900">
-                  {valueOrDash(record.entityName)}
-                </div>
-              </div>
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="rounded-2xl bg-slate-50 p-4">
-                  <div className="text-xs uppercase tracking-wide text-slate-500">
-                    Type
-                  </div>
-                  <div className="mt-2 text-xl font-medium text-slate-900">
-                    {valueOrDash(record.entityType)}
-                  </div>
-                </div>
-                <div className="rounded-2xl bg-slate-50 p-4">
-                  <div className="text-xs uppercase tracking-wide text-slate-500">
-                    Country
-                  </div>
-                  <div className="mt-2 text-xl font-medium text-slate-900">
-                    {valueOrDash(record.country)}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="rounded-3xl border border-slate-200 p-6">
-            <h2 className="text-xl font-semibold text-slate-800">
-              Registry Metadata
-            </h2>
-            <div className="mt-5 grid gap-4">
-              <div className="rounded-2xl bg-slate-50 p-4">
-                <div className="text-xs uppercase tracking-wide text-slate-500">
-                  Application ID
-                </div>
-                <div className="mt-2 text-xl font-medium text-slate-900">
-                  {valueOrDash(record.applicationId)}
-                </div>
-              </div>
-              <div className="rounded-2xl bg-slate-50 p-4">
-                <div className="text-xs uppercase tracking-wide text-slate-500">
-                  Certified At
-                </div>
-                <div className="mt-2 text-xl font-medium text-slate-900">
-                  {fmtDate(record.certifiedAt)}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="mt-6 rounded-3xl border border-slate-200 bg-slate-50 p-6">
-          <h2 className="text-lg font-semibold text-slate-800">
-            Registry Notice
-          </h2>
-          <p className="mt-3 max-w-4xl text-sm leading-7 text-slate-600">
-            This record reflects public certification output derived from the
-            GAFAIG deterministic governance workflow. Private evidence, findings,
-            reviewer rationale, and internal assessment materials are not
-            disclosed on this public page.
+      <section className="mt-8">
+        <Panel title="Public Record Notice">
+          <p className="text-sm leading-6 text-slate-600">
+            This certification record is a controlled public disclosure derived
+            from the GAFAIG verification workflow. It communicates governance
+            outcome and certification metadata only. Private findings, evidence,
+            and internal reviewer materials are not exposed on this page.
           </p>
-        </div>
+
+          {isCertified ? (
+            <div className="mt-4 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+              This record currently carries a live certification signal in the
+              GAFAIG public registry.
+            </div>
+          ) : (
+            <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
+              This record is present in the public registry but does not
+              currently carry an active certification signal.
+            </div>
+          )}
+        </Panel>
       </section>
     </main>
+  );
+}
+
+function Panel({
+  title,
+  children,
+  className = "",
+}: {
+  title: string;
+  children: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <div
+      className={`rounded-3xl border border-slate-200 bg-white p-6 shadow-sm ${className}`}
+    >
+      <h2 className="text-lg font-semibold text-slate-900">{title}</h2>
+      <div className="mt-5">{children}</div>
+    </div>
+  );
+}
+
+function MetricCard({
+  label,
+  value,
+  tone,
+}: {
+  label: string;
+  value: string | number;
+  tone?: string | null;
+}) {
+  return (
+    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+      <div className="text-sm text-slate-500">{label}</div>
+      <div className="mt-3 flex items-center gap-3">
+        <div className="text-3xl font-semibold text-slate-900">{value}</div>
+        {tone ? (
+          <span
+            className={`inline-flex rounded-full border px-2.5 py-1 text-xs font-medium ${badgeClass(
+              tone
+            )}`}
+          >
+            {tone}
+          </span>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
+function InfoRow({
+  label,
+  value,
+  mono = false,
+}: {
+  label: string;
+  value?: string | number | null;
+  mono?: boolean;
+}) {
+  return (
+    <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+      <div className="text-xs font-medium uppercase tracking-wide text-slate-500">
+        {label}
+      </div>
+      <div
+        className={`mt-2 text-sm text-slate-900 ${
+          mono ? "break-all font-mono" : ""
+        }`}
+      >
+        {valueOrDash(value)}
+      </div>
+    </div>
+  );
+}
+
+function TrustItem({
+  label,
+  value,
+  tone,
+}: {
+  label: string;
+  value: string | number;
+  tone?: string | null;
+}) {
+  return (
+    <div className="flex items-center justify-between rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
+      <div className="text-sm text-slate-600">{label}</div>
+      <div className="flex items-center gap-2">
+        <div className="text-sm font-medium text-slate-900">{value}</div>
+        {tone ? (
+          <span
+            className={`inline-flex rounded-full border px-2.5 py-1 text-xs font-medium ${badgeClass(
+              tone
+            )}`}
+          >
+            {tone}
+          </span>
+        ) : null}
+      </div>
+    </div>
   );
 }
