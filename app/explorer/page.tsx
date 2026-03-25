@@ -1,3 +1,4 @@
+import PublicPageSection from "@/app/_components/PublicPageSection";
 import {
   getExplorerGlobalStats,
   getExplorerByCountry,
@@ -10,6 +11,18 @@ import {
 export const dynamic = "force-dynamic";
 
 type TierName = "Tier 1" | "Tier 2" | "Tier 3" | "Uncertified" | "Unknown";
+
+type ExplorerTierRow = {
+  certifiedTier: string;
+  totalRecords: number;
+  totalEntities: number;
+};
+
+type ExplorerStatusRow = {
+  certificationStatus: string;
+  totalRecords: number;
+  totalEntities: number;
+};
 
 function normalizeTier(value: string | null | undefined): TierName {
   const v = String(value || "").trim().toLowerCase();
@@ -70,14 +83,34 @@ function tierClasses(tier: string | null | undefined) {
   };
 }
 
-type ExplorerTierRow = {
-  certifiedTier: string;
-  totalRecords: number;
-  totalEntities: number;
-};
+function resolveCertifiedCounts(
+  global: Awaited<ReturnType<typeof getExplorerGlobalStats>> | null,
+  byStatus: ExplorerStatusRow[]
+) {
+  const certifiedFromStatus = byStatus.find(
+    (row) => String(row.certificationStatus || "").trim().toLowerCase() === "certified"
+  )?.totalRecords;
+
+  const notCertifiedFromStatus = byStatus.find(
+    (row) =>
+      String(row.certificationStatus || "").trim().toLowerCase() === "not certified"
+  )?.totalRecords;
+
+  const totalRecords = global?.totalRegistryRecords ?? 0;
+  const certified = certifiedFromStatus ?? global?.totalCertified ?? 0;
+
+  const notCertified =
+    notCertifiedFromStatus ??
+    (typeof totalRecords === "number" ? Math.max(totalRecords - certified, 0) : 0);
+
+  return {
+    certified,
+    notCertified,
+  };
+}
 
 export default async function ExplorerPage() {
-  const [global, byCountry, byStatus, byTier, byBand, byEntityType] =
+  const [global, byCountry, byStatusRaw, byTier, byBand, byEntityType] =
     await Promise.all([
       getExplorerGlobalStats(),
       getExplorerByCountry(),
@@ -86,6 +119,8 @@ export default async function ExplorerPage() {
       getExplorerByBand(),
       getExplorerByEntityType(),
     ]);
+
+  const byStatus = byStatusRaw as ExplorerStatusRow[];
 
   const certifiedTierRows = byTier.filter((row) => {
     const tier = normalizeTier(row.certifiedTier);
@@ -118,297 +153,312 @@ export default async function ExplorerPage() {
     ) ??
     null;
 
+  const counts = resolveCertifiedCounts(global, byStatus);
+
   const ggi = computeGGI({
     totalRecords: global?.totalRegistryRecords ?? 0,
-    totalCertified: global?.totalCertified ?? 0,
+    totalCertified: counts.certified,
     totalCountries: global?.totalCountries ?? 0,
     tiers: orderedTierRows,
   });
 
   return (
-    <main className="mx-auto max-w-7xl px-6 py-10">
-      <div className="mb-8">
-        <div className="inline-flex rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-medium text-slate-600">
-          Public analytics
-        </div>
-        <h1 className="mt-4 text-4xl font-semibold tracking-tight text-slate-900">
-          Explorer
-        </h1>
-        <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-600">
-          Global analytics derived from the GAFAIG registry. This surface turns
-          certification records into a governance intelligence layer for public
-          transparency, benchmarking, and verification.
-        </p>
-      </div>
+    <main className="mx-auto max-w-[1280px] px-6 pb-20 pt-14 md:px-8">
+      <div className="space-y-8">
+        <PublicPageSection
+          eyebrow="Public analytics"
+          title="Explorer"
+          description="Global analytics derived from the GAFAIG registry. This surface turns certification records into a governance intelligence layer for public transparency, benchmarking, and verification."
+        >
+          <div className="grid grid-cols-2 gap-4 lg:grid-cols-6">
+            <StatCard label="Records" value={global?.totalRegistryRecords} />
+            <StatCard label="Entities" value={global?.totalEntities} />
+            <StatCard label="Countries" value={global?.totalCountries} />
+            <StatCard label="Published" value={global?.totalPublished} />
+            <StatCard label="Certified" value={counts.certified} />
+            <StatCard label="Not Certified" value={counts.notCertified} />
+          </div>
+        </PublicPageSection>
 
-      <section className="mb-10 grid grid-cols-2 gap-4 lg:grid-cols-6">
-        <StatCard label="Records" value={global?.totalRegistryRecords} />
-        <StatCard label="Entities" value={global?.totalEntities} />
-        <StatCard label="Countries" value={global?.totalCountries} />
-        <StatCard label="Published" value={global?.totalPublished} />
-        <StatCard label="Certified" value={global?.totalCertified} />
-        <StatCard label="Not Certified" value={global?.totalNotCertified} />
-      </section>
+        <PublicPageSection>
+          <div className="rounded-3xl border border-black/10 bg-white p-6 md:p-8">
+            <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+              <div>
+                <div className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
+                  Global Governance Index
+                </div>
+                <h2 className="mt-2 text-2xl font-semibold text-slate-900">
+                  GGI {ggi.score}
+                </h2>
+                <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600">
+                  Composite public signal derived from registry certification
+                  coverage, tier depth, and geographic reach.
+                </p>
+              </div>
 
-      <section className="mb-10 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-        <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
-          <div>
-            <div className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
-              Global Governance Index
+              <div className="flex flex-wrap gap-2">
+                <IndexChip label={ggi.label} tone={ggi.tone} />
+                <IndexChip label={`${ggi.certifiedPct}% certified`} />
+                <IndexChip
+                  label={`${ggi.tierDepth} active tier${
+                    ggi.tierDepth === 1 ? "" : "s"
+                  }`}
+                />
+              </div>
             </div>
-            <h2 className="mt-2 text-2xl font-semibold text-slate-900">
-              GGI {ggi.score}
-            </h2>
-            <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600">
-              Composite public signal derived from registry certification
-              coverage, tier depth, and geographic reach.
-            </p>
+
+            <div className="mt-6 grid gap-6 xl:grid-cols-4">
+              <GGIScoreCard
+                title="Index Score"
+                value={ggi.score}
+                subtitle={ggi.label}
+                tone={ggi.tone}
+              />
+              <GGIScoreCard
+                title="Certification Coverage"
+                value={`${ggi.certifiedPct}%`}
+                subtitle={`${ggi.totalCertified} of ${ggi.totalRecords} records`}
+                tone="blue"
+              />
+              <GGIScoreCard
+                title="Tier Depth"
+                value={ggi.tierDepth}
+                subtitle="Certified tiers represented"
+                tone="violet"
+              />
+              <GGIScoreCard
+                title="Geographic Reach"
+                value={ggi.totalCountries}
+                subtitle="Countries represented"
+                tone="emerald"
+              />
+            </div>
+
+            <div className="mt-6 grid gap-6 xl:grid-cols-3">
+              <MetricBar
+                label="Coverage Contribution"
+                value={ggi.coverageContribution}
+                max={60}
+                tone="blue"
+              />
+              <MetricBar
+                label="Tier Depth Contribution"
+                value={ggi.depthContribution}
+                max={25}
+                tone="violet"
+              />
+              <MetricBar
+                label="Reach Contribution"
+                value={ggi.reachContribution}
+                max={15}
+                tone="emerald"
+              />
+            </div>
           </div>
+        </PublicPageSection>
 
-          <div className="flex flex-wrap gap-2">
-            <IndexChip label={ggi.label} tone={ggi.tone} />
-            <IndexChip label={`${ggi.certifiedPct}% certified`} />
-            <IndexChip label={`${ggi.tierDepth} active tier${ggi.tierDepth === 1 ? "" : "s"}`} />
+        <PublicPageSection>
+          <div className="grid gap-6 xl:grid-cols-3">
+            <div className="xl:col-span-2">
+              <TierLadder rows={orderedTierRows} />
+            </div>
+
+            <FeaturedTierCard row={featuredTier} />
           </div>
-        </div>
+        </PublicPageSection>
 
-        <div className="mt-6 grid gap-6 xl:grid-cols-4">
-          <GGIScoreCard
-            title="Index Score"
-            value={ggi.score}
-            subtitle={ggi.label}
-            tone={ggi.tone}
-          />
-          <GGIScoreCard
-            title="Certification Coverage"
-            value={`${ggi.certifiedPct}%`}
-            subtitle={`${ggi.totalCertified} of ${ggi.totalRecords} records`}
-            tone="blue"
-          />
-          <GGIScoreCard
-            title="Tier Depth"
-            value={ggi.tierDepth}
-            subtitle="Certified tiers represented"
-            tone="violet"
-          />
-          <GGIScoreCard
-            title="Geographic Reach"
-            value={ggi.totalCountries}
-            subtitle="Countries represented"
-            tone="emerald"
-          />
-        </div>
+        <PublicPageSection>
+          <div className="grid gap-6 lg:grid-cols-2 xl:grid-cols-4">
+            <BarCard
+              title="Country Distribution"
+              items={byCountry.map((row) => ({
+                label: row.country,
+                value: row.totalRecords,
+                tone: "default",
+              }))}
+            />
 
-        <div className="mt-6 grid gap-6 xl:grid-cols-3">
-          <MetricBar
-            label="Coverage Contribution"
-            value={ggi.coverageContribution}
-            max={60}
-            tone="blue"
-          />
-          <MetricBar
-            label="Tier Depth Contribution"
-            value={ggi.depthContribution}
-            max={25}
-            tone="violet"
-          />
-          <MetricBar
-            label="Reach Contribution"
-            value={ggi.reachContribution}
-            max={15}
-            tone="emerald"
-          />
-        </div>
-      </section>
+            <BarCard
+              title="Certification Status"
+              items={[
+                {
+                  label: "Certified",
+                  value: counts.certified,
+                  tone: "certified",
+                },
+                {
+                  label: "Not Certified",
+                  value: counts.notCertified,
+                  tone: "default",
+                },
+              ]}
+            />
 
-      <section className="mb-10 grid gap-6 xl:grid-cols-3">
-        <div className="xl:col-span-2">
-          <TierLadder rows={orderedTierRows} />
-        </div>
+            <BarCard
+              title="Certified Tier"
+              items={orderedTierRows.map((row) => ({
+                label: row.certifiedTier,
+                value: row.totalRecords,
+                tone: normalizeTier(row.certifiedTier),
+              }))}
+            />
 
-        <FeaturedTierCard row={featuredTier} />
-      </section>
-
-      <section className="mb-10 grid gap-6 lg:grid-cols-2 xl:grid-cols-4">
-        <BarCard
-          title="Country Distribution"
-          items={byCountry.map((row) => ({
-            label: row.country,
-            value: row.totalRecords,
-            tone: "default",
-          }))}
-        />
-
-        <BarCard
-          title="Certification Status"
-          items={byStatus.map((row) => ({
-            label: row.certificationStatus,
-            value: row.totalRecords,
-            tone:
-              row.certificationStatus === "Certified" ? "certified" : "default",
-          }))}
-        />
-
-        <BarCard
-          title="Certified Tier"
-          items={orderedTierRows.map((row) => ({
-            label: row.certifiedTier,
-            value: row.totalRecords,
-            tone: normalizeTier(row.certifiedTier),
-          }))}
-        />
-
-        <BarCard
-          title="Certified Band"
-          items={byBand.map((row) => ({
-            label: row.certifiedBand,
-            value: row.totalRecords,
-            tone: row.certifiedBand,
-          }))}
-        />
-      </section>
-
-      <section className="mb-10 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-          <div>
-            <h2 className="text-lg font-semibold text-slate-900">
-              Certification Signal
-            </h2>
-            <p className="mt-1 text-sm text-slate-600">
-              Public certification outcomes derived from published registry
-              records.
-            </p>
+            <BarCard
+              title="Certified Band"
+              items={byBand.map((row) => ({
+                label: row.certifiedBand,
+                value: row.totalRecords,
+                tone: row.certifiedBand,
+              }))}
+            />
           </div>
+        </PublicPageSection>
 
-          <div className="flex flex-wrap gap-2">
-            <SignalChip label="Certified" />
-            <SignalChip label="Published" tone="green" />
-            <SignalChip label="Registry-backed" />
+        <PublicPageSection>
+          <div className="rounded-3xl border border-black/10 bg-white p-6">
+            <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+              <div>
+                <h2 className="text-lg font-semibold text-slate-900">
+                  Certification Signal
+                </h2>
+                <p className="mt-1 text-sm text-slate-600">
+                  Public certification outcomes derived from published registry
+                  records.
+                </p>
+              </div>
+
+              <div className="flex flex-wrap gap-2">
+                <SignalChip label="Certified" />
+                <SignalChip label="Published" tone="green" />
+                <SignalChip label="Registry-backed" />
+              </div>
+            </div>
+
+            <div className="mt-6 grid gap-6 lg:grid-cols-3">
+              <MiniTableCard
+                title="Status Breakdown"
+                columns={["Status", "Records"]}
+                rows={[
+                  ["Certified", String(counts.certified)],
+                  ["Not Certified", String(counts.notCertified)],
+                ]}
+              />
+
+              <MiniTableCard
+                title="Tier Breakdown"
+                columns={["Tier", "Records"]}
+                rows={orderedTierRows.map((row) => [
+                  row.certifiedTier,
+                  String(row.totalRecords),
+                ])}
+              />
+
+              <MiniTableCard
+                title="Band Breakdown"
+                columns={["Band", "Records"]}
+                rows={byBand.map((row) => [
+                  row.certifiedBand,
+                  String(row.totalRecords),
+                ])}
+              />
+            </div>
           </div>
-        </div>
+        </PublicPageSection>
 
-        <div className="mt-6 grid gap-6 lg:grid-cols-3">
-          <MiniTableCard
-            title="Status Breakdown"
-            columns={["Status", "Records"]}
-            rows={byStatus.map((row) => [
-              row.certificationStatus,
-              String(row.totalRecords),
-            ])}
-          />
-
-          <MiniTableCard
-            title="Tier Breakdown"
-            columns={["Tier", "Records"]}
-            rows={orderedTierRows.map((row) => [
-              row.certifiedTier,
-              String(row.totalRecords),
-            ])}
-          />
-
-          <MiniTableCard
-            title="Band Breakdown"
-            columns={["Band", "Records"]}
-            rows={byBand.map((row) => [
-              row.certifiedBand,
-              String(row.totalRecords),
-            ])}
-          />
-        </div>
-      </section>
-
-      <section className="mb-10">
-        <h2 className="mb-4 text-lg font-semibold text-slate-900">
-          By Country
-        </h2>
-
-        <DataTable
-          columns={[
-            "Country",
-            "Records",
-            "Entities",
-            "Certified",
-            "Not Certified",
-          ]}
-          rows={byCountry.map((row) => [
-            row.country,
-            String(row.totalRecords),
-            String(row.totalEntities),
-            String(row.totalCertified),
-            String(row.totalNotCertified),
-          ])}
-        />
-      </section>
-
-      <section className="mb-10">
-        <h2 className="mb-4 text-lg font-semibold text-slate-900">
-          Certification Status
-        </h2>
-
-        <DataTable
-          columns={["Status", "Records", "Entities"]}
-          rows={byStatus.map((row) => [
-            row.certificationStatus,
-            String(row.totalRecords),
-            String(row.totalEntities),
-          ])}
-        />
-      </section>
-
-      <section className="mb-10 grid gap-6 xl:grid-cols-2">
-        <div>
+        <PublicPageSection>
           <h2 className="mb-4 text-lg font-semibold text-slate-900">
-            Certified Tier
+            By Country
           </h2>
 
           <DataTable
-            columns={["Tier", "Records", "Entities"]}
-            rows={orderedTierRows.map((row) => [
-              row.certifiedTier,
+            columns={[
+              "Country",
+              "Records",
+              "Entities",
+              "Certified",
+              "Not Certified",
+            ]}
+            rows={byCountry.map((row) => [
+              row.country,
               String(row.totalRecords),
               String(row.totalEntities),
+              String(row.totalCertified),
+              String(row.totalNotCertified),
             ])}
           />
-        </div>
+        </PublicPageSection>
 
-        <div>
+        <PublicPageSection>
           <h2 className="mb-4 text-lg font-semibold text-slate-900">
-            Certified Band
+            Certification Status
           </h2>
 
           <DataTable
-            columns={["Band", "Records", "Entities"]}
-            rows={byBand.map((row) => [
-              row.certifiedBand,
+            columns={["Status", "Records", "Entities"]}
+            rows={[
+              ["Certified", String(counts.certified), String(global?.totalEntities ?? 0)],
+              ["Not Certified", String(counts.notCertified), "—"],
+            ]}
+          />
+        </PublicPageSection>
+
+        <PublicPageSection>
+          <div className="grid gap-6 xl:grid-cols-2">
+            <div>
+              <h2 className="mb-4 text-lg font-semibold text-slate-900">
+                Certified Tier
+              </h2>
+
+              <DataTable
+                columns={["Tier", "Records", "Entities"]}
+                rows={orderedTierRows.map((row) => [
+                  row.certifiedTier,
+                  String(row.totalRecords),
+                  String(row.totalEntities),
+                ])}
+              />
+            </div>
+
+            <div>
+              <h2 className="mb-4 text-lg font-semibold text-slate-900">
+                Certified Band
+              </h2>
+
+              <DataTable
+                columns={["Band", "Records", "Entities"]}
+                rows={byBand.map((row) => [
+                  row.certifiedBand,
+                  String(row.totalRecords),
+                  String(row.totalEntities),
+                ])}
+              />
+            </div>
+          </div>
+        </PublicPageSection>
+
+        <PublicPageSection>
+          <h2 className="mb-4 text-lg font-semibold text-slate-900">
+            Entity Types
+          </h2>
+
+          <DataTable
+            columns={[
+              "Entity Type",
+              "Records",
+              "Entities",
+              "Certified",
+              "Not Certified",
+            ]}
+            rows={byEntityType.map((row) => [
+              row.entityType,
               String(row.totalRecords),
               String(row.totalEntities),
+              String(row.totalCertified),
+              String(row.totalNotCertified),
             ])}
           />
-        </div>
-      </section>
-
-      <section>
-        <h2 className="mb-4 text-lg font-semibold text-slate-900">
-          Entity Types
-        </h2>
-
-        <DataTable
-          columns={[
-            "Entity Type",
-            "Records",
-            "Entities",
-            "Certified",
-            "Not Certified",
-          ]}
-          rows={byEntityType.map((row) => [
-            row.entityType,
-            String(row.totalRecords),
-            String(row.totalEntities),
-            String(row.totalCertified),
-            String(row.totalNotCertified),
-          ])}
-        />
-      </section>
+        </PublicPageSection>
+      </div>
     </main>
   );
 }
@@ -531,10 +581,10 @@ function IndexChip({
     tone === "violet"
       ? "border-violet-200 bg-violet-50 text-violet-700"
       : tone === "blue"
-        ? "border-blue-200 bg-blue-50 text-blue-700"
-        : tone === "emerald"
-          ? "border-emerald-200 bg-emerald-50 text-emerald-700"
-          : "border-slate-200 bg-slate-50 text-slate-700";
+      ? "border-blue-200 bg-blue-50 text-blue-700"
+      : tone === "emerald"
+      ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+      : "border-slate-200 bg-slate-50 text-slate-700";
 
   return (
     <span
@@ -560,10 +610,10 @@ function GGIScoreCard({
     tone === "violet"
       ? "border-violet-200 bg-violet-50 text-violet-900"
       : tone === "blue"
-        ? "border-blue-200 bg-blue-50 text-blue-900"
-        : tone === "emerald"
-          ? "border-emerald-200 bg-emerald-50 text-emerald-900"
-          : "border-slate-200 bg-slate-50 text-slate-900";
+      ? "border-blue-200 bg-blue-50 text-blue-900"
+      : tone === "emerald"
+      ? "border-emerald-200 bg-emerald-50 text-emerald-900"
+      : "border-slate-200 bg-slate-50 text-slate-900";
 
   return (
     <div className={`rounded-2xl border p-5 shadow-sm ${cls}`}>
@@ -592,8 +642,8 @@ function MetricBar({
     tone === "violet"
       ? "bg-violet-600"
       : tone === "emerald"
-        ? "bg-emerald-600"
-        : "bg-blue-600";
+      ? "bg-emerald-600"
+      : "bg-blue-600";
 
   return (
     <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
@@ -651,8 +701,8 @@ function TierLadder({ rows }: { rows: ExplorerTierRow[] }) {
                       {tierName === "Tier 3"
                         ? "Highest assurance"
                         : tierName === "Tier 2"
-                          ? "Operational level"
-                          : "Foundational level"}
+                        ? "Operational level"
+                        : "Foundational level"}
                     </div>
 
                     <div className="mt-1 flex items-center gap-3">
@@ -667,7 +717,9 @@ function TierLadder({ rows }: { rows: ExplorerTierRow[] }) {
                       </span>
 
                       <span
-                        className={`text-sm ${isActive ? style.subtext : "text-slate-500"}`}
+                        className={`text-sm ${
+                          isActive ? style.subtext : "text-slate-500"
+                        }`}
                       >
                         {style.label}
                       </span>

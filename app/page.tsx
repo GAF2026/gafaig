@@ -40,8 +40,34 @@ async function getPublicMetrics(): Promise<PublicMetricsResponse | null> {
 
     const json = (await res.json()) as PublicMetricsResponse;
 
-    if (!res.ok) return null;
-    return json;
+    if (res.ok && json.ok) return json;
+
+    const reg = await fetch(`${base}/api/registry`, {
+      cache: "no-store",
+    });
+
+    const regJson = (await reg.json()) as {
+      rows?: Array<{
+        country?: string | null;
+      }>;
+    };
+
+    if (Array.isArray(regJson.rows)) {
+      const rows = regJson.rows;
+
+      return {
+        ok: true,
+        metrics: {
+          certifiedOrganizations: rows.length,
+          disclosedAiSystems: rows.length,
+          countriesRepresented: new Set(
+            rows.map((r) => r.country).filter(Boolean)
+          ).size,
+        },
+      };
+    }
+
+    return null;
   } catch {
     return null;
   }
@@ -57,267 +83,268 @@ export default async function HomePage() {
   const metrics = metricsResp && metricsResp.ok ? metricsResp.metrics : null;
 
   return (
-    <main className="mx-auto max-w-[1180px] px-6 pb-16 pt-14">
-      <PublicPageHero
-        eyebrow="AI GOVERNANCE REGISTRY"
-        title="A trusted system for verifying AI governance"
-        description="GAFAIG helps organizations demonstrate that their AI systems are governed responsibly. It provides a structured process to review evidence, assess oversight, and produce clear certification outcomes."
-        secondaryDescription="Reviews are conducted in a controlled environment, while certification results are published in a public registry. This allows organizations, partners, and regulators to verify governance without exposing sensitive internal information."
-        actions={
-          <>
+    <main className="mx-auto max-w-[1280px] px-6 pb-20 pt-14 md:px-8">
+      <div className="space-y-8">
+        <PublicPageHero
+          eyebrow="AI GOVERNANCE REGISTRY"
+          title="A trusted system for verifying AI governance"
+          description="GAFAIG helps organizations demonstrate that their AI systems are governed responsibly. It provides a structured process to review evidence, assess oversight, and produce clear certification outcomes."
+          secondaryDescription="Reviews are conducted in a controlled environment, while certification results are published in a public registry. This allows organizations, partners, and regulators to verify governance without exposing sensitive internal information."
+          actions={
+            <>
+              <Link
+                href="/mission"
+                className="rounded-full border border-black bg-black px-5 py-3 text-sm font-semibold text-white transition hover:bg-black/90"
+              >
+                Start with the Mission
+              </Link>
+
+              <Link
+                href="/registry"
+                className="rounded-full border border-black px-5 py-3 text-sm font-semibold transition hover:bg-black/[0.04]"
+              >
+                View the Registry
+              </Link>
+
+              <Link
+                href="/framework"
+                className="rounded-full border border-black px-5 py-3 text-sm font-semibold transition hover:bg-black/[0.04]"
+              >
+                See How It Works
+              </Link>
+
+              <Link
+                href="/explorer"
+                className="rounded-full border border-black px-5 py-3 text-sm font-semibold transition hover:bg-black/[0.04]"
+              >
+                Explore the Data
+              </Link>
+            </>
+          }
+        />
+
+        <section className="grid gap-4 md:grid-cols-3">
+          <PillarCard
+            eyebrow="Pillar 1"
+            title="Private Verification Engine"
+            body="A controlled review environment where organizations move through applications, evidence, findings, scoring, and certification workflow."
+            points={[
+              "Reviewer-only operational layer",
+              "Structured evidence and findings flow",
+              "Consistent certification process",
+            ]}
+            href="/admin/login"
+            cta="Open reviewer layer"
+          />
+
+          <PillarCard
+            eyebrow="Pillar 2"
+            title="Public Registry"
+            body="A public trust surface where certification outcomes are disclosed without exposing private reviewer materials, findings, or internal evidence."
+            points={[
+              "Certified organizations",
+              "Structured public certification records",
+              "Portable trust signaling",
+            ]}
+            href="/registry"
+            cta="View public registry"
+          />
+
+          <PillarCard
+            eyebrow="Pillar 3"
+            title="Global Explorer"
+            body="A discovery layer for countries, organizations, AI systems, and governance presence across the GAFAIG network."
+            points={[
+              "Organizations and systems",
+              "Country-level visibility",
+              "Global governance footprint",
+            ]}
+            href="/explorer"
+            cta="Open explorer"
+          />
+        </section>
+
+        <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
+          <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
+            WHY GAFAIG EXISTS
+          </div>
+
+          <h2 className="mt-4 max-w-[860px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
+            Organizations need a reliable way to show that AI is being governed
+            responsibly
+          </h2>
+
+          <p className="mt-5 max-w-[980px] text-[16px] leading-[1.9] text-black/75">
+            As AI systems move into real-world use, governance cannot remain a
+            general statement or policy document. Organizations need a practical
+            way to review evidence, assess oversight, make certification
+            decisions, and communicate those outcomes in a form others can
+            trust. GAFAIG provides that structure.
+          </p>
+
+          <div className="mt-7 grid gap-4 md:grid-cols-2">
+            <StatementCard
+              title="Private review remains private"
+              body="Evidence, findings, and internal assessment materials stay within the controlled verification workflow and are not exposed through the public site."
+            />
+            <StatementCard
+              title="Certification outcomes become public trust signals"
+              body="Once a certification decision is reached, structured outcomes can be surfaced through the registry and explorer for transparency, verification, and institutional reliance."
+            />
+          </div>
+        </section>
+
+        <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
+          <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
+            HOW THE SYSTEM WORKS
+          </div>
+
+          <h2 className="mt-4 max-w-[860px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
+            From private review to public trust
+          </h2>
+
+          <p className="mt-5 max-w-[960px] text-[16px] leading-[1.85] text-black/75">
+            GAFAIG is structured as a complete process. Organizations enter a
+            controlled review workflow, governance materials are assessed,
+            certification decisions are made, and public outcomes are then made
+            available through the registry and explorer.
+          </p>
+
+          <div className="mt-8 grid gap-4 md:grid-cols-5">
+            <PathCard
+              number="1"
+              title="Applications"
+              body="Organizations enter a controlled verification workflow."
+            />
+            <PathCard
+              number="2"
+              title="Evidence"
+              body="Governance artifacts and oversight records are reviewed."
+            />
+            <PathCard
+              number="3"
+              title="Scoring"
+              body="Structured scoring supports consistent outcomes."
+            />
+            <PathCard
+              number="4"
+              title="Certification"
+              body="Formal decisions determine public certification status."
+            />
+            <PathCard
+              number="5"
+              title="Registry & Explorer"
+              body="Public trust signals become visible to others."
+            />
+          </div>
+        </section>
+
+        <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
+          <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+            <div>
+              <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
+                LIVE TRUST SIGNALS
+              </div>
+
+              <h2 className="mt-4 max-w-[860px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
+                Current public governance footprint
+              </h2>
+
+              <p className="mt-4 max-w-[760px] text-[15px] leading-[1.85] text-black/72">
+                These counters are derived from GAFAIG&apos;s public registry
+                and explorer surfaces.
+              </p>
+            </div>
+
+            <div className="text-[13px] text-black/50">Public metrics</div>
+          </div>
+
+          <div className="mt-7 grid gap-4 md:grid-cols-3">
+            <MetricCard
+              label="Certified organizations"
+              value={fmt(metrics?.certifiedOrganizations)}
+            />
+            <MetricCard
+              label="Disclosed AI systems"
+              value={fmt(metrics?.disclosedAiSystems)}
+            />
+            <MetricCard
+              label="Countries represented"
+              value={fmt(metrics?.countriesRepresented)}
+            />
+          </div>
+        </section>
+
+        <section className="grid gap-4 md:grid-cols-4">
+          <FeatureCard
+            title="Mission"
+            body="Learn why independent AI governance verification is needed and what problem GAFAIG is designed to solve."
+            href="/mission"
+            cta="Read Mission"
+          />
+          <FeatureCard
+            title="Framework"
+            body="See the model behind evidence review, findings, scoring, and certification outcomes."
+            href="/framework"
+            cta="Read Framework"
+          />
+          <FeatureCard
+            title="Registry"
+            body="Browse public certification records and see how governance outcomes are disclosed."
+            href="/registry"
+            cta="Open Registry"
+          />
+          <FeatureCard
+            title="Explorer"
+            body="Explore organizations, AI systems, countries, and the broader public governance footprint."
+            href="/explorer"
+            cta="Open Explorer"
+          />
+        </section>
+
+        <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
+          <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
+            START HERE
+          </div>
+
+          <h2 className="mt-4 max-w-[860px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
+            Choose where you want to begin
+          </h2>
+
+          <div className="mt-6 flex flex-wrap gap-3">
             <Link
               href="/mission"
               className="rounded-full border border-black bg-black px-5 py-3 text-sm font-semibold text-white transition hover:bg-black/90"
             >
-              Start with the Mission
+              Mission
             </Link>
-
-            <Link
-              href="/registry"
-              className="rounded-full border border-black px-5 py-3 text-sm font-semibold transition hover:bg-black/[0.04]"
-            >
-              View the Registry
-            </Link>
-
             <Link
               href="/framework"
               className="rounded-full border border-black px-5 py-3 text-sm font-semibold transition hover:bg-black/[0.04]"
             >
-              See How It Works
+              Framework
             </Link>
-
+            <Link
+              href="/registry"
+              className="rounded-full border border-black px-5 py-3 text-sm font-semibold transition hover:bg-black/[0.04]"
+            >
+              Registry
+            </Link>
             <Link
               href="/explorer"
               className="rounded-full border border-black px-5 py-3 text-sm font-semibold transition hover:bg-black/[0.04]"
             >
-              Explore the Data
+              Explorer
             </Link>
-          </>
-        }
-      />
-
-      <section className="mt-8 grid gap-4 md:grid-cols-3">
-        <PillarCard
-          eyebrow="Pillar 1"
-          title="Private Verification Engine"
-          body="A controlled review environment where organizations move through applications, evidence, findings, scoring, and certification workflow."
-          points={[
-            "Reviewer-only operational layer",
-            "Structured evidence and findings flow",
-            "Consistent certification process",
-          ]}
-          href="/admin/login"
-          cta="Open reviewer layer"
-        />
-
-        <PillarCard
-          eyebrow="Pillar 2"
-          title="Public Registry"
-          body="A public trust surface where certification outcomes are disclosed without exposing private reviewer materials, findings, or internal evidence."
-          points={[
-            "Certified organizations",
-            "Structured public certification records",
-            "Portable trust signaling",
-          ]}
-          href="/registry"
-          cta="View public registry"
-        />
-
-        <PillarCard
-          eyebrow="Pillar 3"
-          title="Global Explorer"
-          body="A discovery layer for countries, organizations, AI systems, and governance presence across the GAFAIG network."
-          points={[
-            "Organizations and systems",
-            "Country-level visibility",
-            "Global governance footprint",
-          ]}
-          href="/explorer"
-          cta="Open explorer"
-        />
-      </section>
-
-      <section className="mt-10 rounded-3xl border border-black/10 bg-white p-8 md:p-10">
-        <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
-          WHY GAFAIG EXISTS
-        </div>
-
-        <h2 className="mt-4 max-w-[860px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
-          Organizations need a reliable way to show that AI is being governed responsibly
-        </h2>
-
-        <p className="mt-5 max-w-[980px] text-[16px] leading-[1.9] text-black/75">
-          As AI systems move into real-world use, governance cannot remain a
-          general statement or policy document. Organizations need a practical
-          way to review evidence, assess oversight, make certification
-          decisions, and communicate those outcomes in a form others can trust.
-          GAFAIG provides that structure.
-        </p>
-
-        <div className="mt-7 grid gap-4 md:grid-cols-2">
-          <StatementCard
-            title="Private review remains private"
-            body="Evidence, findings, and internal assessment materials stay within the controlled verification workflow and are not exposed through the public site."
-          />
-          <StatementCard
-            title="Certification outcomes become public trust signals"
-            body="Once a certification decision is reached, structured outcomes can be surfaced through the registry and explorer for transparency, verification, and institutional reliance."
-          />
-        </div>
-      </section>
-
-      <section className="mt-10 rounded-3xl border border-black/10 bg-white p-8 md:p-10">
-        <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
-          HOW THE SYSTEM WORKS
-        </div>
-
-        <h2 className="mt-4 max-w-[860px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
-          From private review to public trust
-        </h2>
-
-        <p className="mt-5 max-w-[960px] text-[16px] leading-[1.85] text-black/75">
-          GAFAIG is structured as a complete process. Organizations enter a
-          controlled review workflow, governance materials are assessed,
-          certification decisions are made, and public outcomes are then made
-          available through the registry and explorer.
-        </p>
-
-        <div className="mt-8 grid gap-4 md:grid-cols-5">
-          <PathCard
-            number="1"
-            title="Applications"
-            body="Organizations enter a controlled verification workflow."
-          />
-          <PathCard
-            number="2"
-            title="Evidence"
-            body="Governance artifacts and oversight records are reviewed."
-          />
-          <PathCard
-            number="3"
-            title="Scoring"
-            body="Structured scoring supports consistent outcomes."
-          />
-          <PathCard
-            number="4"
-            title="Certification"
-            body="Formal decisions determine public certification status."
-          />
-          <PathCard
-            number="5"
-            title="Registry & Explorer"
-            body="Public trust signals become visible to others."
-          />
-        </div>
-      </section>
-
-      <section className="mt-10 rounded-3xl border border-black/10 bg-white p-8 md:p-10">
-        <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-          <div>
-            <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
-              LIVE TRUST SIGNALS
-            </div>
-
-            <h2 className="mt-4 max-w-[860px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
-              Current public governance footprint
-            </h2>
-
-            <p className="mt-4 max-w-[760px] text-[15px] leading-[1.85] text-black/72">
-              These counters are derived from GAFAIG&apos;s public registry and
-              explorer surfaces.
-            </p>
+            <Link
+              href="/demo"
+              className="rounded-full border border-black px-5 py-3 text-sm font-semibold transition hover:bg-black/[0.04]"
+            >
+              Demo
+            </Link>
           </div>
-
-          <div className="text-[13px] text-black/50">
-            Public metrics
-          </div>
-        </div>
-
-        <div className="mt-7 grid gap-4 md:grid-cols-3">
-          <MetricCard
-            label="Certified organizations"
-            value={fmt(metrics?.certifiedOrganizations)}
-          />
-          <MetricCard
-            label="Disclosed AI systems"
-            value={fmt(metrics?.disclosedAiSystems)}
-          />
-          <MetricCard
-            label="Countries represented"
-            value={fmt(metrics?.countriesRepresented)}
-          />
-        </div>
-      </section>
-
-      <section className="mt-10 grid gap-4 md:grid-cols-4">
-        <FeatureCard
-          title="Mission"
-          body="Learn why independent AI governance verification is needed and what problem GAFAIG is designed to solve."
-          href="/mission"
-          cta="Read Mission"
-        />
-        <FeatureCard
-          title="Framework"
-          body="See the model behind evidence review, findings, scoring, and certification outcomes."
-          href="/framework"
-          cta="Read Framework"
-        />
-        <FeatureCard
-          title="Registry"
-          body="Browse public certification records and see how governance outcomes are disclosed."
-          href="/registry"
-          cta="Open Registry"
-        />
-        <FeatureCard
-          title="Explorer"
-          body="Explore organizations, AI systems, countries, and the broader public governance footprint."
-          href="/explorer"
-          cta="Open Explorer"
-        />
-      </section>
-
-      <section className="mt-10 rounded-3xl border border-black/10 bg-white p-8 md:p-10">
-        <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
-          START HERE
-        </div>
-
-        <h2 className="mt-4 max-w-[860px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
-          Choose where you want to begin
-        </h2>
-
-        <div className="mt-6 flex flex-wrap gap-3">
-          <Link
-            href="/mission"
-            className="rounded-full border border-black bg-black px-5 py-3 text-sm font-semibold text-white transition hover:bg-black/90"
-          >
-            Mission
-          </Link>
-          <Link
-            href="/framework"
-            className="rounded-full border border-black px-5 py-3 text-sm font-semibold transition hover:bg-black/[0.04]"
-          >
-            Framework
-          </Link>
-          <Link
-            href="/registry"
-            className="rounded-full border border-black px-5 py-3 text-sm font-semibold transition hover:bg-black/[0.04]"
-          >
-            Registry
-          </Link>
-          <Link
-            href="/explorer"
-            className="rounded-full border border-black px-5 py-3 text-sm font-semibold transition hover:bg-black/[0.04]"
-          >
-            Explorer
-          </Link>
-          <Link
-            href="/demo"
-            className="rounded-full border border-black px-5 py-3 text-sm font-semibold transition hover:bg-black/[0.04]"
-          >
-            Demo
-          </Link>
-        </div>
-      </section>
+        </section>
+      </div>
     </main>
   );
 }
