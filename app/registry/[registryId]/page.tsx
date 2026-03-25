@@ -12,32 +12,6 @@ type PageProps = {
   };
 };
 
-type VerifyApiResponse = {
-  ok?: boolean;
-  verified?: boolean;
-  registryId?: string;
-  entity?: string;
-  entityType?: string | null;
-  country?: string | null;
-  applicationId?: string | null;
-  caseId?: string | null;
-  status?: string | null;
-  tier?: string | null;
-  band?: string | null;
-  score?: number | null;
-  decisionStatus?: string | null;
-  certifiedAt?: string | null;
-  validFrom?: string | null;
-  validTo?: string | null;
-  lastActivityAt?: string | null;
-  proof?: {
-    alg?: string;
-    signature?: string;
-    signedAt?: string;
-    message?: string;
-  };
-};
-
 function fmtDate(value: string | null): string {
   if (!value) return "—";
   const d = new Date(value);
@@ -60,9 +34,11 @@ function badgeClass(text?: string | null) {
   if (v.includes("certified")) {
     return "border-emerald-200 bg-emerald-50 text-emerald-700";
   }
+
   if (v.includes("not certified")) {
     return "border-slate-200 bg-slate-50 text-slate-700";
   }
+
   if (v.includes("published") || v.includes("approved")) {
     return "border-blue-200 bg-blue-50 text-blue-700";
   }
@@ -75,6 +51,7 @@ async function getBaseUrl() {
   const host = h.get("x-forwarded-host") ?? h.get("host") ?? "localhost:3000";
   const proto =
     h.get("x-forwarded-proto") ?? (host.includes("localhost") ? "http" : "https");
+
   return `${proto}://${host}`;
 }
 
@@ -93,13 +70,13 @@ export default async function RegistryDetailPage({ params }: PageProps) {
     row.registryId
   )}`;
 
-  let verifyData: VerifyApiResponse = { ok: false };
+  let verifyData: any = null;
 
   try {
     const res = await fetch(absoluteVerifyUrl, { cache: "no-store" });
-    verifyData = (await res.json()) as VerifyApiResponse;
+    verifyData = await res.json();
   } catch {
-    verifyData = { ok: false };
+    verifyData = null;
   }
 
   return (
@@ -145,9 +122,7 @@ export default async function RegistryDetailPage({ params }: PageProps) {
 
           <div className="mt-6 rounded-2xl border border-black/10 bg-white p-4">
             <div className="text-xs uppercase text-black/50">Registry ID</div>
-            <div className="mt-2 break-all font-mono text-sm">
-              {row.registryId}
-            </div>
+            <div className="mt-2 break-all font-mono text-sm">{row.registryId}</div>
           </div>
         </PublicPageSection>
 
@@ -168,9 +143,9 @@ export default async function RegistryDetailPage({ params }: PageProps) {
           <RegistryVerificationPanel
             absoluteVerifyUrl={absoluteVerifyUrl}
             absoluteRegistryUrl={absoluteRegistryUrl}
-            registryId={row.registryId}
+            registryId={String(row.registryId)}
             entityName={row.entityName ?? ""}
-            verifyData={verifyData}
+            verifyData={verifyData ?? null}
           />
         </PublicPageSection>
 
