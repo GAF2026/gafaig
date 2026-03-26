@@ -86,7 +86,7 @@ export default async function HomePage() {
     <main className="mx-auto max-w-[1280px] px-6 pb-20 pt-14 md:px-8">
       <div className="space-y-8">
         <PublicPageHero
-          eyebrow="AI GOVERNANCE REGISTRY"
+          eyebrow="GLOBAL AUTHORITY FOR AI GOVERNANCE"
           title="A trusted system for verifying AI governance"
           description="GAFAIG helps organizations demonstrate that their AI systems are governed responsibly. It provides a structured process to review evidence, assess oversight, and produce clear certification outcomes."
           secondaryDescription="Reviews are conducted in a controlled environment, while certification results are published in a public registry. This allows organizations, partners, and regulators to verify governance without exposing sensitive internal information."
