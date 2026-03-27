@@ -1,391 +1,559 @@
-# GAFAIG — UI COMPONENT MAP
-Canonical UI Structure & Responsibilities
-Last Updated: 2026-03-22
+# GAFAIG — UI Component Mapping
+Frontend Component Architecture & Responsibilities
+Last Updated: 2026-03-25
 
 ---
 
 # PURPOSE
 
-This document defines:
+This document maps UI components to:
 
-• all major UI routes  
-• key components per route  
-• data sources for each component  
-• mapping between UI and API/query layer  
+• location in codebase  
+• responsibility  
+• data source  
+• consuming pages  
 
 This prevents:
 
-• UI pulling wrong data  
-• duplicate rendering logic  
-• inconsistent certification display  
-• confusion between pages  
+• UI inconsistency  
+• duplicated logic  
+• misuse of components  
+• business logic leaking into UI  
 
 ---
 
-# CORE PRINCIPLE
+# CORE RULE
 
-UI is a **pure rendering layer**
+UI is a DISPLAY LAYER ONLY.
 
-It must:
+Components may:
 
-• display data only  
-• not compute certification  
-• not infer governance logic  
-• rely entirely on API/query layer  
+• render data  
+• format values  
+• display status  
 
----
-
-# DATA FLOW
-
-Snowflake  
-→ Query Layer  
-→ API Route  
-→ UI Component  
-
----
-
-# PUBLIC UI ROUTES
-
-## 1. /registry/ai-systems
-
-### Purpose
-Display all registered AI systems globally.
-
----
-
-### Data Source
-
-API:
-`/api/registry/ai-systems`
-
-Query:
-`CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC`
-
----
-
-### Key Components
-
-#### RegistryPage (page.tsx)
-
-Top-level container.
-
-Responsibilities:
-
-• fetch data  
-• pass to child components  
-• manage loading state  
-
----
-
-#### RegistryTable / RegistryGrid
-
-Displays list of systems.
-
-Columns:
-
-• System Name  
-• Organization (ENTITY_NAME)  
-• Registry ID  
-• Certified Tier  
-• Certified Band  
-• Certified Score  
-• Decision Status  
-
----
-
-#### RegistryFilters
-
-Optional filtering UI.
-
-Future fields:
-
-• country  
-• tier  
-• band  
-
----
-
-#### RegistrySummaryStats
-
-Top-level metrics:
-
-• total systems  
-• total organizations  
-• total countries  
-
----
-
-### Required Field Mapping
-
-UI must use:
-
-certifiedTier → CERTIFIED_TIER  
-certifiedBand → CERTIFIED_BAND  
-certifiedScore → CERTIFIED_SCORE  
-certifiedAt → CERTIFIED_AT  
-decisionStatus → DECISION_STATUS  
-
----
-
-## 2. /registry/ai-systems/[registryId]
-
-### Purpose
-Display details for a specific registry entry.
-
----
-
-### Data Source
-
-API:
-`/api/registry/ai-systems/[registryId]`
-
-Query:
-`CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC`
-
----
-
-### Key Components
-
-#### RegistryDetailPage
-
-Top-level page.
-
-Responsibilities:
-
-• fetch system(s) by REGISTRY_ID  
-• pass to detail components  
-
----
-
-#### RegistryHeader
-
-Displays:
-
-• System Name  
-• Registry ID  
-• Organization  
-• Verification Type  
-
----
-
-#### CertificationPanel
-
-Core certification display.
-
-Fields:
-
-• Certified Tier  
-• Certified Band  
-• Certified Score  
-• Certified At  
-• Decision Status  
-
----
-
-#### SystemMetadataPanel
-
-Displays:
-
-• Intended Use  
-• System Type  
-• Deployment Status  
-• Risk Tier  
-• Oversight Model  
-• Evaluation Protocol  
-
----
-
-#### GovernanceSummary
-
-Optional future component:
-
-• breakdown of score  
-• subscores  
-• events  
-
----
-
-# ADMIN UI ROUTES
-
-## 3. /admin/applications
-
-### Purpose
-View intake applications.
-
----
-
-### Components
-
-#### ApplicationsTable
-
-Displays:
-
-• application ID  
-• entity  
-• status  
-
----
-
-## 4. /admin/verification/[caseId]
-
-### Purpose
-Case-level verification workflow.
-
----
-
-### Components
-
-#### FindingsPanel
-
-• create/update findings  
-
-#### EvidencePanel
-
-• attach evidence  
-
-#### EventsPanel
-
-• track events  
-
-#### DecisionPanel
-
-• approve / reject case  
-
-#### ScorePanel
-
-• display score  
-
----
-
-## 5. /admin/verification/[caseId]/score
-
-### Purpose
-Score inspection.
-
----
-
-### Components
-
-#### ScoreBreakdown
-
-Displays:
-
-• subscores  
-• weighted calculations  
-
----
-
-# COMPONENT RESPONSIBILITY RULES
-
-## DO
-
-• display data passed from API  
-• format values for readability  
-• handle loading / empty states  
-
----
-
-## DO NOT
+Components may NOT:
 
 • compute certification  
-• derive score logic  
-• infer tier/band  
-• modify backend data  
+• derive score / tier / band  
+• override API values  
+• fetch directly from Snowflake  
+• contain business logic  
 
 ---
 
-# CERTIFICATION DISPLAY RULE
+# ARCHITECTURE
 
-UI must ONLY display:
-
-CERTIFIED_SCORE  
-CERTIFIED_TIER  
-CERTIFIED_BAND  
-CERTIFIED_AT  
-DECISION_STATUS  
-
-Never display raw SCORE/TIER/BAND as certification.
+Snowflake
+→ Views
+→ Query Layer
+→ API
+→ UI Components
+→ Pages
 
 ---
 
-# ERROR PREVENTION
+# GLOBAL LAYOUT COMPONENTS
 
-## Common mistake
+## PublicPageHero
 
-Using:
+Location:
+app/_components/PublicPageHero.tsx
 
-r.TIER  
-r.BAND  
-r.SCORE  
+Purpose:
+Primary hero section across all public pages
 
-Instead of:
+Used in:
+• homepage (/)
+• mission
+• framework
+• demo
+• registry
+• explorer
 
-r.CERTIFIED_TIER  
-r.CERTIFIED_BAND  
-r.CERTIFIED_SCORE  
+Features:
+• eyebrow text (system identity)
+• title
+• description
+• secondary description
+• CTA buttons
 
----
-
-# STATE MANAGEMENT
-
-Minimal state required:
-
-• loading  
-• error  
-• data  
-
-No derived governance state in frontend.
-
----
-
-# FUTURE COMPONENTS
-
-## Certification Badge
-
-Visual indicator:
-
-• Certified  
-• Not Certified  
+Rules:
+• no data fetching
+• purely presentational
 
 ---
 
-## Registry Search
+## PublicPageSection
 
-Search by:
+Location:
+app/_components/PublicPageSection.tsx
 
-• system name  
-• organization  
-• registry ID  
+Purpose:
+Standardized section wrapper for all pages
 
----
+Used in:
+• all public pages
 
-## Public Verification Widget
+Features:
+• consistent spacing
+• consistent typography
+• unified container styling
 
-Embeddable component using:
-
-`/api/verify/[registryId]`
-
----
-
-# CURRENT PRIORITY
-
-Fix UI to correctly display certification fields from query layer.
+Rules:
+• must wrap all major sections
+• enforces layout consistency
 
 ---
 
-# SUCCESS CRITERIA
+# REGISTRY COMPONENTS
 
-• Registry list shows certified fields  
-• Detail page shows certification breakdown  
-• No fallback to raw score fields  
-• UI reflects true registry state  
+## RegistryVerificationPanel
+
+Location:
+components/registry/RegistryVerificationPanel.tsx
+
+Purpose:
+Display verification status and proof
+
+Used in:
+• /registry/[registryId]
+
+Data Source:
+→ /api/verify/[registryId]
+
+Displays:
+• verification status
+• registry ID
+• entity
+• certification status
+• score / tier / band
+• proof payload
+
+Rules:
+• does NOT compute verification
+• consumes API output only
 
 ---
 
-# FINAL RULE
+# HOMEPAGE COMPONENTS
 
-UI reflects truth — it does not create truth.
+## PillarCard
+
+Location:
+app/page.tsx
+
+Purpose:
+Display system pillars
+
+Used in:
+• homepage
+
+Displays:
+• pillar title
+• description
+• bullet points
+• CTA
 
 ---
 
-END OF FILE
+## MetricCard
+
+Location:
+app/page.tsx
+
+Purpose:
+Display homepage trust metrics
+
+Used in:
+• homepage
+
+Data Source:
+→ /api/public/metrics (fallback to /api/registry)
+
+Displays:
+• certified organizations
+• AI systems
+• countries
+
+Rules:
+• fallback allowed (UI resilience)
+• no computation of certification
+
+---
+
+## StatementCard
+
+Location:
+app/page.tsx
+
+Purpose:
+Explain system concepts
+
+Used in:
+• homepage
+
+---
+
+## PathCard
+
+Location:
+app/page.tsx
+
+Purpose:
+Show system flow
+
+Used in:
+• homepage
+
+Displays:
+CASE → FINDINGS → EVIDENCE → EVENTS → SCORING → REGISTRY
+
+---
+
+## FeatureCard
+
+Location:
+app/page.tsx
+
+Purpose:
+Navigation cards
+
+Used in:
+• homepage
+
+---
+
+# REGISTRY PAGE COMPONENTS
+
+## Registry Table (inline)
+
+Location:
+app/registry/page.tsx
+
+Purpose:
+Display registry records
+
+Data Source:
+→ /api/registry
+
+Displays:
+• entity
+• country
+• certification status
+• tier
+• band
+• score
+
+Rules:
+• no computation
+• direct API mapping
+
+---
+
+## StatusBadge (inline)
+
+Purpose:
+Visual status indicator
+
+Displays:
+• Certified
+• Not Certified
+• Published
+
+Rules:
+• purely visual mapping
+
+---
+
+# REGISTRY DETAIL COMPONENTS
+
+## Metric (inline)
+
+Purpose:
+Display key metrics
+
+Displays:
+• score
+• certifiedAt
+• country
+• entity type
+
+---
+
+## Info (inline)
+
+Purpose:
+Display metadata fields
+
+Displays:
+• decision status
+• validFrom
+• validTo
+• applicationId
+• caseId
+
+---
+
+# EXPLORER COMPONENTS
+
+## StatCard
+
+Location:
+app/explorer/page.tsx
+
+Purpose:
+Top-level metrics
+
+Displays:
+• total records
+• entities
+• countries
+• certified
+• not certified
+
+Data Source:
+→ explorer queries
+
+---
+
+## TierLadder
+
+Purpose:
+Display certification tiers
+
+Displays:
+• Tier 3
+• Tier 2
+• Tier 1
+
+Data Source:
+→ explorer aggregation
+
+Rules:
+• uses API data
+• no tier calculation
+
+---
+
+## FeaturedTierCard
+
+Purpose:
+Highlight highest tier
+
+Displays:
+• top certification tier
+
+---
+
+## GGIScoreCard
+
+Purpose:
+Display Global Governance Index
+
+Displays:
+• score
+• classification
+• breakdown
+
+Rules:
+• uses precomputed values
+
+---
+
+## MetricBar
+
+Purpose:
+Visual metric contribution
+
+Displays:
+• coverage
+• depth
+• reach
+
+---
+
+## BarCard
+
+Purpose:
+Distribution charts
+
+Displays:
+• country distribution
+• certification status
+• tier distribution
+• band distribution
+
+---
+
+## MiniTableCard
+
+Purpose:
+Compact tables
+
+---
+
+## DataTable
+
+Purpose:
+Full table display
+
+Used in:
+• explorer sections
+
+---
+
+# BADGE SYSTEM
+
+## Badge Rendering (API-driven)
+
+Route:
+→ /api/badge/[registryId]
+
+Assets:
+public/images/
+
+• gafaig-badge-tier-1.png  
+• gafaig-badge-tier-2.png  
+• gafaig-badge-tier-3.png  
+
+Used in:
+• registry detail page
+• external embeds
+
+Rules:
+• tier → image mapping only
+• no logic beyond mapping
+
+---
+
+# NAVIGATION / LAYOUT
+
+## app/layout.tsx
+
+Purpose:
+Global layout
+
+Controls:
+• header
+• footer
+• global spacing
+• branding (gafaig-lockup.png)
+
+---
+
+# AUTH COMPONENTS
+
+## middleware.ts
+
+Purpose:
+Protect admin routes
+
+Applies to:
+• /admin/*
+• /api/admin/*
+
+---
+
+## Auth utilities
+
+Location:
+lib/auth/
+
+Purpose:
+• session handling
+• cookie validation
+
+---
+
+# DESIGN SYSTEM
+
+## Layout Rules
+
+• max width: 1280px  
+• padding: px-6 md:px-8  
+• spacing: space-y-8  
+• cards: rounded-3xl border bg-white  
+
+---
+
+## Typography
+
+• eyebrow: uppercase tracking  
+• titles: large, bold  
+• body: readable spacing  
+• labels: subdued  
+
+---
+
+# DATA FLOW (UI LEVEL)
+
+API Response
+→ Component Props
+→ UI Rendering
+
+No transformations beyond formatting.
+
+---
+
+# COMPONENT RESPONSIBILITY MODEL
+
+Each component must:
+
+• have a single responsibility  
+• consume API data  
+• not introduce logic  
+• remain reusable  
+
+---
+
+# ANTI-PATTERNS (FORBIDDEN)
+
+DO NOT:
+
+• compute certification in UI  
+• infer missing fields  
+• override API results  
+• hardcode values  
+• duplicate components unnecessarily  
+
+---
+
+# DEBUGGING RULE
+
+If UI is incorrect:
+
+TRACE:
+
+Component
+→ API
+→ Query
+→ View
+→ Snowflake
+
+Fix at the SOURCE.
+
+---
+
+# MOST CRITICAL COMPONENTS
+
+If only a few matter:
+
+1. PublicPageHero  
+2. PublicPageSection  
+3. RegistryVerificationPanel  
+4. TierLadder  
+5. StatCard  
+
+---
+
+# END STATE
+
+A clean, unified UI system where:
+
+• components are reusable  
+• layout is consistent  
+• data is accurate  
+• no business logic leaks into UI  
+
+---

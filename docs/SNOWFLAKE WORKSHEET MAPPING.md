@@ -1,449 +1,434 @@
-# GAFAIG — SNOWFLAKE WORKSHEET MAPPING
-Execution Map of Snowflake Worksheets → System Behavior
-Last Updated: 2026-03-24
+# GAFAIG — Snowflake Worksheet Mapping
+Execution Map of Worksheets → System Functions
+Last Updated: 2026-03-25
 
 ---
 
 # PURPOSE
 
-This document maps:
+This document maps Snowflake worksheets to:
 
-• Snowflake worksheet names  
-• what each worksheet does  
-• how they connect together  
-• where to modify logic safely  
+• system components  
+• execution roles  
+• data flow stages  
 
 This prevents:
 
-• editing the wrong file  
-• confusion between similar scripts  
-• breaking the registry pipeline  
+• running incorrect scripts  
+• modifying wrong layers  
+• breaking canonical architecture  
 
 ---
 
-# CORE PRINCIPLE
+# 🧠 HOW TO USE THIS DOCUMENT
 
-Each worksheet controls a **specific layer** of GAFAIG.
+When working in Snowflake:
 
-DO NOT:
-
-• mix responsibilities  
-• duplicate logic  
-• guess which file to edit  
+1. Identify the task  
+2. Locate the correct worksheet below  
+3. Execute ONLY within that scope  
 
 ---
 
-# SYSTEM EXECUTION FLOW
+# 🔵 CORE EXECUTION WORKSHEETS (ACTIVE)
 
-APPLICATION  
-→ CASE  
-→ FINDINGS  
-→ EVIDENCE  
-→ EVENTS  
-→ SCORING  
-→ SNAPSHOT  
-→ REGISTRY  
-→ PUBLIC VIEW  
+## Environment Setup
+
+00_CORE_SETUP  
+→ initializes roles, warehouse, database, schema  
+
+01_REBUILD_ENVIRONMENT_CANONICAL  
+→ full canonical rebuild (safe reset order)  
 
 ---
 
-# WORKSHEET MAP (TOP TO BOTTOM)
+## Core Tables
+
+11_TABLES_APPLICATIONS  
+→ application intake layer  
+
+12_TABLES_PARTICIPANTS  
+→ entity / participant identity  
+
+14_TABLES_EVIDENCE  
+→ evidence storage  
+
+14_TABLES_REGISTRY_AI_SYSTEMS  
+→ AI systems registry  
+
+16_TABLES_CASE_SCORE_SNAPSHOTS  
+→ score snapshot storage  
+
+17_TABLES_DECISIONS  
+→ governance decisions  
+
+18_TABLES_REGISTRY_ENTITIES  
+→ registry entities  
 
 ---
 
-## 1. DATA SEEDING / DEMO
+## Core Views
+
+21_VIEWS_PUBLIC_REGISTRY  
+→ main registry output  
+
+22_VIEWS_EXPLORER_STATS  
+→ explorer analytics  
+
+22_VIEWS_REGISTRY_AI_SYSTEMS_PUBLIC  
+→ AI systems public view  
+
+GAFAIG - Public Registry Search  
+→ normalized search  
+
+GAFAIG - Public Registry Summary  
+→ aggregated registry metrics  
 
 ---
 
-DDL Snapshot - 2026-02-26.sql  
-→ snapshot of schema state  
-→ reference only (DO NOT MODIFY)
+## Core Scoring
+
+GAFAIG - Governance Scoring (Enterprise v1.0)  
+→ scoring engine logic  
+
+24_SP_SCORE_CASE_ENTERPRISE  
+→ scoring execution procedure  
 
 ---
 
-GAFAIG - Canonical Demo Dataset.sql  
-→ seeds complete demo data across system  
+## Core Publish (CRITICAL)
+
+GAFAIG - CORE.REGISTRY_PUBLISH  
+
+→ canonical publish procedure  
+→ certification enforcement  
+→ registry snapshot creation  
 
 ---
 
-GAFAIG - Canonical Demo Seed.sql  
-→ inserts base entities:
-  • participants  
-  • applications  
-  • cases  
+## Registry System
+
+GAFAIG - True Global Registry  
+→ registry architecture reference  
 
 ---
 
-## 2. CORE PIPELINE SETUP
+## Approval & Decision
+
+25_PROCEDURES_APPROVAL  
+→ approval workflow  
+
+GAFAIG - Verify Decision + Registry  
+→ decision + publish validation  
 
 ---
 
-GAFAIG - Canonical Case Pipeline Bootstrap.sql  
-→ creates core tables:
+# 🟡 VALIDATION & DIAGNOSTICS
 
-• VERIFICATION_CASES  
-• VERIFICATION_FINDINGS  
-• VERIFICATION_EVIDENCE  
-• VERIFICATION_EVENTS  
+## Registry Validation
 
----
+GAFAIG - Public Registry Diagnostics  
+→ inspect registry outputs  
 
-GAFAIG - Canonical Case Pipeline Write Test.sql  
-→ test inserts into pipeline  
-→ validates system flow  
+98_SMOKE_TEST_REGISTRY_PUBLIC_SURFACES  
+→ validate UI-facing data  
 
----
-
-## 3. APPLICATION / INTAKE
+98_DIAGNOSTICS_PUBLIC_VIEWS  
+→ validate view integrity  
 
 ---
 
-GAFAIG - Applications Setup & Grants.sql  
-→ creates APPLICATIONS table  
-→ applies permissions  
+## System Diagnostics
+
+99_ENVIRONMENT_DIAGNOSTICS  
+→ overall environment health  
+
+98_ENVIRONMENT_DIAGNOSTICS_REGISTRY  
+→ registry-specific diagnostics  
 
 ---
 
-CORE.APPLICATIONS
+## Pipeline Validation
 
-Contains:
+GAFAIG - End-to-End Pipeline Smoke Test  
+→ full system test  
 
-• APPLICATION_ID  
-• COUNTRY  
-• entity metadata  
+GAFAIG - Verify Registry Publish  
+→ publish validation  
 
----
+GAFAIG - Verify Case Pipeline  
+→ case flow validation  
 
-## 4. PARTICIPANT LAYER
+GAFAIG - Trace Canonical Case Flow  
+→ full pipeline tracing  
 
----
-
-CORE.PARTICIPANTS
-
-Contains:
-
-• PARTICIPANT_ID  
-• APPLICATION_ID  
-• COUNTRY  
-• ENTITY_TYPE  
+97_SMOKE_TEST_APPLICATION_TO_CASE  
+→ intake → case conversion  
 
 ---
 
-Purpose:
+## Admin Diagnostics
 
-→ bridge CASE → APPLICATION  
-→ registry enrichment  
-
----
-
-## 5. CASE LAYER
+GAFAIG - Admin Unified View Diagnostics  
+→ admin view validation  
 
 ---
 
-CORE.VERIFICATION_CASES
+# 🟢 DEMO & DATA SEEDING
 
-Contains:
+## Core Demo
 
-• CASE_ID  
-• PARTICIPANT_ID  
-• ORG_ID  
-• ENTITY_NAME  
-• VERIFICATION_TYPE  
+GAFAIG - Canonical Demo Dataset  
+→ base dataset  
 
----
+GAFAIG - Canonical Demo Seed  
+→ seed execution  
 
-Purpose:
-
-→ connects pipeline to registry  
-→ join layer for enrichment  
+30_DEMO_ENTERPRISE_CONTROL_FRAMEWORK  
+→ control framework  
 
 ---
 
-## 6. VERIFICATION ENGINE
+## Multi-Entity / Multi-Case
+
+GAFAIG - Canonical Multi-Case Pipeline Seed  
+→ multi-case simulation  
+
+GAFAIG - Canonical Multi-Entity Demo Seed  
+→ multi-entity simulation  
 
 ---
 
-GAFAIG - CORE.V_GOVERNANCE_SCORE_CASE.sql  
+## Decision Seeding
 
-CRITICAL VIEW
+DATA_BACKFILL_DEMO_DECISIONS  
+→ decision population  
 
-Computes:
-
-• controls score  
-• coverage score  
-• freshness score  
-• summaries score  
-• final governance score  
+31_DEMO_DECISIONS_SEEDING  
+→ demo decision scenarios  
 
 ---
 
-This is the **source of truth for scoring**
+## Participants
+
+33_DEMO_PARTICIPANTS_CURATED_SEED  
+→ curated participant data  
 
 ---
 
-## 7. CONFIGURATION
+# 🟠 SUPPORT WORKSHEETS
+
+## Explorer / Registry Support
+
+GAFAIG - Registry AI Systems  
+→ AI system data  
+
+GAFAIG - Admin Unified View  
+→ admin consolidated view  
 
 ---
 
-SCORING_CONFIG  
-→ scoring weights  
+## Scoring Support
 
-SEVERITY_WEIGHTS  
-→ severity multipliers  
+GAFAIG - Scoring Model v1  
+→ scoring reference  
 
----
-
-## 8. REGISTRY SYSTEM
+GAFAIG - Scoring Smoke Test  
+→ scoring validation  
 
 ---
 
-### SNAPSHOT TABLE
+## Verification Flow
 
-CORE.REGISTRY_SNAPSHOTS
+GAFAIG - Verification Workflow  
+→ workflow reference  
 
-Properties:
-
-• append-only  
-• immutable  
-• generated via publish procedure  
-
-Stores:
-
-• score  
-• tier  
-• band  
-• timestamps  
-• payload  
+GAFAIG - Verification Case Pipeline  
+→ case pipeline  
 
 ---
 
-### APPROVAL LOG
+## Normalization
 
-CORE.CASE_APPROVAL_LOG
-
-Tracks:
-
-• approval actions  
-• actor  
-• timestamps  
+GAFAIG - NORMALIZATION SUPPORT VIEW REBUILD  
+→ normalization layer rebuild  
 
 ---
 
-## 9. PUBLISH ENGINE
+## Security
+
+GAFAIG - Security Grants  
+→ access control  
+
+GAFAIG - APP_ROLE Smoke  
+→ role validation  
 
 ---
 
-GAFAIG - CORE.REGISTRY_PUBLISH.sql
+# 🔴 ARCHIVE WORKSHEETS (DO NOT RUN)
 
-Contains:
-
-SP_PUBLISH_CASE_TO_REGISTRY_V3
-
-Responsibilities:
-
-• reads from V_GOVERNANCE_SCORE_CASE  
-• generates snapshot  
-• inserts into REGISTRY_SNAPSHOTS  
+These are deprecated and MUST NOT be used.
 
 ---
 
-IMPORTANT:
+## Legacy Engine
 
-• deterministic  
-• uses INSERT … SELECT  
-• no JSON binding issues  
-
----
-
-## 10. REGISTRY VIEWS (MOST IMPORTANT)
+GAFAIG - Deterministic Governance Scoring Engine v1.0 (Archive)  
+GAFAIG - Governance Scoring (Archive - Legacy)  
 
 ---
 
-21_VIEWS_PUBLIC_REGISTRY.sql
+## Legacy Pipeline
 
-Defines:
-
----
-
-### V_REGISTRY_LATEST_APPROVED
-
-Purpose:
-
-• latest snapshot per CASE_ID  
-• prevents duplicate registry rows  
+GAFAIG - Canonical Case Pipeline Bootstrap (Archive)  
+GAFAIG - Canonical Case Pipeline Write Test (Archive)  
+GAFAIG - Canonical Verification Case Write (Archive)  
+GAFAIG - Canonical Verification Case Write v2 (Archive)  
 
 ---
 
-### V_REGISTRY_PUBLIC
+## Legacy Triggers
 
-Purpose:
-
-• canonical public registry  
-• used by API + UI  
-
-Contains:
-
-• identity fields  
-• certification fields  
-• enrichment fields  
-• timestamps  
+GAFAIG - Canonical Event Trigger (Archive)  
+GAFAIG - Canonical Event Trigger v2 (Archive)  
+GAFAIG - Canonical Submission Trigger (Archive)  
 
 ---
 
-### V_REGISTRY_EXPORT_V1
+## Legacy Registry
 
-Purpose:
-
-• export surface  
-• identical to public view  
+GAFAIG - CORE.REGISTRY_SNAPSHOTS (Archive - Pre-Canonical)  
+GAFAIG - Demo Registry Dataset (Archive - Legacy Demo Seed)  
 
 ---
 
-## 11. ENRICHMENT PATH (CRITICAL)
+## Legacy Environment
+
+GAFAIG - Applications Setup & Grants (Archive)  
+GAFAIG - Fix Verification Cases Access (Archive)  
+GAFAIG - GET_DDL Export (Archive)  
 
 ---
 
-REGISTRY_SNAPSHOTS  
-→ VERIFICATION_CASES  
-→ PARTICIPANTS  
+## Legacy Investigation
+
+GAFAIG - Identify True Write Table (Archive)  
+GAFAIG - Identify Verification Case Write Path (Archive)  
+GAFAIG - Inspect Events Schema (Archive)  
+GAFAIG - Find Case Creation Mechanism (Archive)  
 
 ---
 
-Provides:
+## Legacy Migration
 
-• COUNTRY  
-• APPLICATION_ID  
-• ENTITY_TYPE  
+GAFAIG - Migration - Snapshot Tier Band Backfill (Archive)  
 
 ---
 
-## 12. SEARCH LAYER (PLANNED)
+## Legacy Demo
+
+GAFAIG - Demo Evidence Summaries (Archive)  
 
 ---
 
-V_REGISTRY_PUBLIC_SEARCH
+## Legacy Auto Publish
 
-Purpose:
-
-• normalized search  
-• substring matching  
+GAFAIG - Auto Publish From Case (Archive)  
 
 ---
 
-## 13. AI SYSTEMS
+## Legacy Grants
+
+GAFAIG - Grants (Archive)  
+23_GRANTS_REGISTRY_AI_SYSTEMS_PUBLIC  
 
 ---
 
-CORE.REGISTRY_AI_SYSTEMS  
-→ stores AI system metadata  
+## Legacy Rebuild
 
-CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC  
-→ filters public systems  
+01_REBUILD_ENVIRONMENT (Archive)  
 
 ---
 
-# FILE RESPONSIBILITY GUIDE
+## Legacy Tables
+
+10_TABLES_SUBMISSIONS  
+13_TABLES_FINDINGS  
+15_TABLES_EVENTS  
 
 ---
 
-## MODIFY THIS WHEN:
+## Legacy Views
+
+20_VIEWS_VERIFICATION_CASE_DETAIL  
 
 ---
 
-### You need to change registry fields
+## Legacy Sync
 
-→ 21_VIEWS_PUBLIC_REGISTRY.sql  
-
----
-
-### You need to change scoring
-
-→ CORE.V_GOVERNANCE_SCORE_CASE.sql  
+40_PARTICIPANTS_AUTOSYNC  
 
 ---
 
-### You need to change publish behavior
+# ⚪ UNUSED
 
-→ CORE.REGISTRY_PUBLISH.sql  
+Untitled  
+Untitled 1  
 
----
-
-### You need to change data model
-
-→ Bootstrap / setup files  
+→ ignore or delete  
 
 ---
 
-## NEVER MODIFY FOR UI BUGS:
+# 🧠 CRITICAL WORKSHEETS
 
-• REGISTRY_SNAPSHOTS  
-• publish procedure  
-• scoring engine  
+If only a few matter, use:
 
----
-
-# DEBUG FLOW
-
----
-
-If something breaks:
+1. GAFAIG - CORE.REGISTRY_PUBLISH  
+2. GAFAIG - Governance Scoring (Enterprise v1.0)  
+3. 24_SP_SCORE_CASE_ENTERPRISE  
+4. 21_VIEWS_PUBLIC_REGISTRY  
+5. 22_VIEWS_EXPLORER_STATS  
 
 ---
 
-## Registry not showing data
+# EXECUTION FLOW (WORKSHEET LEVEL)
 
-1. Check REGISTRY_SNAPSHOTS  
-2. Check V_REGISTRY_LATEST_APPROVED  
-3. Check V_REGISTRY_PUBLIC  
+Scoring:
 
----
+→ Governance Scoring (Enterprise v1.0)  
+→ SP_SCORE_CASE_ENTERPRISE  
 
-## API errors
+Publishing:
 
-Check:
+→ CORE.REGISTRY_PUBLISH  
 
-→ query layer  
-→ column names  
+Registry:
 
----
+→ VIEWS_PUBLIC_REGISTRY  
 
-## UI errors
+Explorer:
 
-Check:
-
-→ query mapping  
-→ null handling  
+→ VIEWS_EXPLORER_STATS  
 
 ---
 
-# TEST QUERIES
+# FINAL RULE
+
+Always execute within the correct worksheet context.
+
+If unsure:
+
+→ STOP  
+→ REFER TO THIS FILE  
 
 ---
 
-SELECT * FROM CORE.V_REGISTRY_PUBLIC LIMIT 10;
+# END STATE
 
-SELECT * FROM CORE.REGISTRY_SNAPSHOTS ORDER BY CREATED_AT DESC;
+A fully controlled Snowflake execution environment with:
 
-SELECT * FROM CORE.V_GOVERNANCE_SCORE_CASE WHERE CASE_ID = 'CASE-0001';
-
----
-
-# CURRENT STATUS
-
-✔ full pipeline working  
-✔ publish working  
-✔ registry views working  
-✔ enrichment wired  
-✔ certification logic implemented  
+• zero ambiguity  
+• deterministic execution  
+• stable registry outputs  
 
 ---
-
-# NEXT PHASE
-
-• search layer  
-• explorer analytics  
-• AI systems linking  
-
----
-
-END OF SNOWFLAKE WORKSHEET MAPPING

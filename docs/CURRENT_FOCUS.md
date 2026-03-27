@@ -1,6 +1,6 @@
 # GAFAIG — CURRENT FOCUS
 Execution Control Document
-Last Updated: 2026-03-24
+Last Updated: 2026-03-25
 
 ---
 
@@ -8,283 +8,271 @@ Last Updated: 2026-03-24
 
 Complete the transition from:
 
-"Engine exists"
+"System works internally"
 
 →
 
-"Global Registry is fully populated, consistent, and externally consumable"
+"Global registry is authoritative, consistent, and externally trusted"
 
 ---
 
 # CURRENT PHASE
 
-# REGISTRY ENRICHMENT — CERTIFICATION WIRING
-
-This is a **critical stabilization phase**
-
-We are NOT building new features.
-
-We are ensuring:
-
-• registry outputs are complete  
-• Snowflake → API → UI alignment is exact  
-• certification data is fully resolved  
+Registry Enrichment (Post-Engine Stabilization)
 
 ---
 
-# WHAT IS ALREADY COMPLETE (LOCKED — DO NOT TOUCH)
+# WHAT IS LOCKED (DO NOT TOUCH)
 
-The following systems are WORKING:
+The following systems are COMPLETE and MUST NOT be modified:
 
-• verification workflow (findings / evidence / events)  
-• enterprise scoring engine (deterministic)  
+• verification workflow (cases → findings → evidence → events)  
+• deterministic scoring engine (V_GOVERNANCE_SCORE_CASE)  
 • score snapshot system  
-• registry publish procedure (SP_PUBLISH_CASE_TO_REGISTRY_V3)  
-• registry snapshot system (append-only)  
-• registry ID generation  
-• V_REGISTRY_LATEST_APPROVED  
-• V_REGISTRY_PUBLIC (base version exists)  
-• API /api/registry  
-• UI /registry page  
-• UI /registry/[registryId] page  
+• registry publish procedure (SP_PUBLISH_CASE_TO_REGISTRY_V4 / V3 wrapper)  
+• registry snapshot table (append-only)  
+• V_REGISTRY_LATEST_APPROVED (canonical source of truth)  
+• V_REGISTRY_PUBLIC  
+• V_REGISTRY_PUBLIC_SEARCH  
+• V_REGISTRY_AI_SYSTEMS_PUBLIC  
+• query layer (lib/queries)  
+• API pass-through architecture  
+• public registry UI pages  
 
 ---
 
-# CURRENT PROBLEM (BLOCKING)
+# CRITICAL SYSTEM RULE
 
-The system is failing due to:
+DO NOT:
 
-## ❌ Missing / incorrect registry fields
-
-Errors observed:
-
-• invalid identifier VALID_FROM  
-• invalid identifier LAST_ACTIVITY_AT  
-
----
-
-# ROOT CAUSE
-
-Mismatch between:
-
-Snowflake view → API → UI
-
-Specifically:
-
-The UI expects **derived certification fields**
-that are NOT present in Snowflake views.
+• re-architect  
+• introduce frontend logic  
+• duplicate Snowflake logic  
+• override engine outputs  
+• mutate snapshots  
 
 ---
 
-# REQUIRED FIX STRATEGY (LOCKED)
+# MAJOR FIX COMPLETED (2026-03-25)
 
-## DO NOT ADD NEW TABLE COLUMNS
+Certification inconsistency resolved.
 
-## DO NOT MODIFY PIPELINE
+Previous issue:
 
-## DO NOT TOUCH ENGINE
+• DECISIONS table could override engine tier/band ❌  
+• registry showed inconsistent certification outputs ❌  
 
----
+Resolution:
 
-## FIX MUST BE DONE HERE:
+• ENGINE is now the single source of truth for:
+  - score
+  - tier
+  - band
 
-### 1. Snowflake View Layer (PRIMARY)
+• DECISIONS now only control:
+  - approval status
+  - publish authorization
 
-File:
+Result:
 
-21_VIEWS_PUBLIC_REGISTRY.sql
-
-We must define derived fields:
-
----
-
-### REQUIRED DERIVED FIELDS
-
-valid_from =
-  CERTIFIED_AT
-  OR APPROVED_AT
-  OR PUBLISHED_AT
-
-last_activity_at =
-  PUBLISHED_AT
-  OR CERTIFIED_AT
-  OR APPROVED_AT
+• deterministic certification  
+• no conflicting outputs  
+• registry integrity restored  
 
 ---
 
-### REQUIRED CERTIFICATION FIELDS
+# CURRENT SYSTEM TRUTH MODEL
 
-Ensure ALL exist:
+Certification logic:
 
-• CERTIFIED_SCORE  
-• CERTIFIED_TIER  
-• CERTIFIED_BAND  
-• CERTIFICATION_STATUS  
+IF decision_status IN (approved, published, certified):
 
----
+→ certified_score = engine score  
+→ certified_tier = engine tier  
+→ certified_band = engine band  
 
-## 2. Query Layer (SECONDARY)
+ELSE:
 
-File:
-
-lib/queries/registry.ts
-
-Must:
-
-• STOP referencing non-existent columns  
-• ONLY map from existing Snowflake fields  
-• derive missing values safely  
+→ no certification  
 
 ---
 
-## 3. API Layer
+# ACTIVE DEVELOPMENT AREAS
 
-File:
+## 1. EXPLORER DATA INTEGRITY
 
-/api/registry/route.ts
+Ensure Explorer reflects true registry state.
 
-Must:
+Verify:
 
-• pass through normalized query output  
-• NOT introduce transformations  
+• record counts  
+• certified vs non-certified  
+• country distribution  
+• tier distribution  
+• band distribution  
 
----
+Source:
 
-## 4. UI Layer
-
-Pages:
-
-/registry  
-/registry/[registryId]
-
-Must:
-
-• rely ONLY on query layer  
-• NOT assume missing fields  
-• gracefully handle null values  
+CORE.V_REGISTRY_PUBLIC  
+CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC  
 
 ---
 
-# CURRENT EXECUTION ORDER (STRICT)
+## 2. REGISTRY DATA COMPLETENESS
 
-Follow exactly:
+Ensure all required fields are consistently populated:
 
-### STEP 1
-Fix Snowflake view
-
-### STEP 2
-Fix query layer
-
-### STEP 3
-Fix API
-
-### STEP 4
-Fix UI
-
-### STEP 5
-Clear .next and restart dev
+• certifiedScore  
+• certifiedTier  
+• certifiedBand  
+• certifiedAt  
+• decisionStatus  
+• validFrom  
+• validTo  
+• country  
+• entityType  
 
 ---
 
-# TESTING CHECKLIST (MANDATORY)
+## 3. COUNTRY NORMALIZATION
 
-After each step, test:
+Problem:
+
+• inconsistent country values across records  
+
+Goal:
+
+• standardized country mapping  
+• consistent explorer grouping  
 
 ---
 
-## API
+## 4. CERTIFICATION DISTRIBUTION VALIDATION
 
-http://localhost:3000/api/registry?caseId=CASE-0001
+Ensure:
+
+• tier distribution is meaningful  
+• band distribution reflects actual scoring  
+• no artificial inflation from legacy data  
+
+---
+
+## 5. VERIFY ENDPOINT VALIDATION
+
+Endpoint:
+
+/api/verify/[registryId]
 
 Must return:
 
-• ok: true  
-• full registry record  
-• NO SQL errors  
+• registryId  
+• entity  
+• certification status  
+• score  
+• tier  
+• band  
+• signed payload  
+
+Goal:
+
+• deterministic verification  
+• external trust surface  
 
 ---
 
-## REGISTRY LIST
+## 6. UI CONSISTENCY (PUBLIC LAYER)
 
-http://localhost:3000/registry
+Ensure all public pages are aligned:
 
-Must:
+• homepage  
+• mission  
+• framework  
+• demo  
+• registry  
+• registry detail  
+• explorer  
 
-• load without crash  
-• show records  
-• show score / tier / band  
+Rules:
 
----
-
-## REGISTRY DETAIL
-
-http://localhost:3000/registry/[registryId]
-
-Must:
-
-• load without crash  
-• show certification fields  
-• show timestamps  
+• consistent layout  
+• consistent typography  
+• consistent spacing  
+• no page-specific hacks  
 
 ---
 
-# FAILURE CONDITIONS (DO NOT IGNORE)
+# VALIDATION CHECKLIST
 
-If you see:
+Before moving forward, confirm:
 
-• SQL compilation error  
-• invalid identifier  
-• undefined function  
-• page crash  
-
-STOP and fix immediately
-
----
-
-# CRITICAL ENGINEERING RULE
-
-👉 THE VIEW DEFINES THE PLATFORM
-
-Everything must align to:
-
-V_REGISTRY_PUBLIC
+✔ publish → registry snapshot is correct  
+✔ registry view reflects engine outputs  
+✔ API returns correct certification data  
+✔ UI displays correct certification data  
+✔ explorer metrics match registry  
 
 ---
 
-# SUCCESS DEFINITION
+# TESTING FLOW
 
-The system is COMPLETE when:
+Use canonical test case:
 
-✔ no SQL errors  
-✔ no runtime errors  
-✔ registry API stable  
-✔ registry UI stable  
-✔ certification fields visible  
-✔ timestamps consistent  
+CASE-0001
+
+Steps:
+
+1. Run:
+
+CALL CORE.SP_PUBLISH_CASE_TO_REGISTRY_V3('CASE-0001');
+
+2. Validate:
+
+SELECT * FROM CORE.V_REGISTRY_PUBLIC WHERE CASE_ID = 'CASE-0001';
+
+3. Check:
+
+/api/registry  
+/api/verify/[registryId]  
+
+4. Confirm UI:
+
+/registry  
+/registry/[registryId]  
+/explorer  
+
+---
+
+# SUCCESS CRITERIA
+
+The system is considered correct when:
+
+• registry shows engine-aligned certification  
+• no mismatch between score and tier  
+• explorer reflects real data  
+• verification endpoint is accurate  
+• UI is consistent across all pages  
 
 ---
 
 # NEXT PHASE (AFTER COMPLETION)
 
-Once stable:
+Global Registry Expansion
 
-→ Explorer enrichment  
-→ AI systems linking  
-→ certification verification endpoint hardening  
-→ production deployment validation  
-
----
-
-# FINAL REMINDER
-
-This is NOT a feature phase.
-
-This is a:
-
-# SYSTEM STABILIZATION PHASE
-
-Precision matters more than speed.
+• increase dataset coverage  
+• onboard real organizations  
+• expand AI systems registry  
+• enhance explorer analytics  
 
 ---
 
-END OF CURRENT FOCUS
+# EXECUTION DIRECTIVE
+
+Continue forward.
+
+Do not revisit completed systems.
+
+Do not introduce new architecture.
+
+Only enrich and validate the registry layer.
+
+---

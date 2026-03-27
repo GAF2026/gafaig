@@ -23,11 +23,11 @@ function valueOrDash(value?: string | number | null): string | number {
 function badgeClass(text?: string | null) {
   const v = String(text || "").toLowerCase();
 
-  if (v.includes("certified")) {
-    return "border-emerald-200 bg-emerald-50 text-emerald-700";
-  }
   if (v.includes("not certified")) {
     return "border-slate-200 bg-slate-50 text-slate-700";
+  }
+  if (v.includes("certified")) {
+    return "border-emerald-200 bg-emerald-50 text-emerald-700";
   }
   if (v.includes("published") || v.includes("approved")) {
     return "border-blue-200 bg-blue-50 text-blue-700";
@@ -51,8 +51,6 @@ export default async function RegistryPage() {
   return (
     <main className="mx-auto max-w-[1280px] px-6 pb-20 pt-14 md:px-8">
       <div className="space-y-8">
-
-        {/* HERO SECTION */}
         <PublicPageSection
           eyebrow="Public registry"
           title="GAFAIG Registry"
@@ -65,9 +63,8 @@ export default async function RegistryPage() {
           </div>
         </PublicPageSection>
 
-        {/* TABLE SECTION */}
         <PublicPageSection>
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mb-6">
+          <div className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h2 className="text-lg font-semibold text-black">
                 Registry Records
@@ -107,86 +104,99 @@ export default async function RegistryPage() {
                   {rows.map((row) => {
                     const isCertified =
                       row.certificationStatus === "Certified";
+                    const href = `/registry/${encodeURIComponent(
+                      row.registryId
+                    )}`;
 
                     return (
                       <tr
                         key={row.registryId}
-                        className={isCertified ? "bg-emerald-50/30" : ""}
+                        className={`group ${isCertified ? "bg-emerald-50/30" : ""} hover:bg-black/[0.03]`}
                       >
                         <td className="px-6 py-5">
-                          <div className="font-medium text-black">
-                            <Link
-                              href={`/registry/${encodeURIComponent(
-                                row.registryId
-                              )}`}
-                              className="hover:opacity-70"
-                            >
+                          <Link href={href} className="block">
+                            <div className="font-medium text-black group-hover:underline">
                               {row.entityName ?? "Unnamed Entity"}
-                            </Link>
-                          </div>
-
-                          <div className="mt-1 text-sm text-black/60">
-                            {row.entityType ?? "—"}
-                            {row.country ? ` • ${row.country}` : ""}
-                          </div>
+                            </div>
+                            <div className="mt-1 text-sm text-black/60">
+                              {row.entityType ?? "—"}
+                              {row.country ? ` • ${row.country}` : ""}
+                            </div>
+                          </Link>
                         </td>
 
                         <td className="px-6 py-5 text-sm text-black/70">
-                          <div className="max-w-[260px] break-all">
-                            {row.registryId}
-                          </div>
+                          <Link href={href} className="block">
+                            <div className="max-w-[260px] break-all">
+                              {row.registryId}
+                            </div>
+                          </Link>
                         </td>
 
                         <td className="px-6 py-5 text-sm text-black/70">
-                          {row.caseId ?? "—"}
+                          <Link href={href} className="block">
+                            {row.caseId ?? "—"}
+                          </Link>
                         </td>
 
                         <td className="px-6 py-5">
-                          <span
-                            className={`inline-flex rounded-full border px-3 py-1 text-xs font-semibold ${badgeClass(
-                              row.certificationStatus
-                            )}`}
-                          >
-                            {row.certificationStatus}
-                          </span>
+                          <Link href={href} className="block">
+                            <span
+                              className={`inline-flex rounded-full border px-3 py-1 text-xs font-semibold ${badgeClass(
+                                row.certificationStatus
+                              )}`}
+                            >
+                              {row.certificationStatus}
+                            </span>
+                          </Link>
                         </td>
 
                         <td className="px-6 py-5">
-                          <span
-                            className={`inline-flex rounded-full border px-3 py-1 text-xs ${badgeClass(
-                              row.certifiedTier
-                            )}`}
-                          >
-                            {row.certifiedTier ?? "—"}
-                          </span>
+                          <Link href={href} className="block">
+                            <span
+                              className={`inline-flex rounded-full border px-3 py-1 text-xs ${badgeClass(
+                                row.certifiedTier
+                              )}`}
+                            >
+                              {row.certifiedTier ?? "—"}
+                            </span>
+                          </Link>
                         </td>
 
                         <td className="px-6 py-5">
-                          <span
-                            className={`inline-flex rounded-full border px-3 py-1 text-xs ${badgeClass(
-                              row.certifiedBand
-                            )}`}
-                          >
-                            {row.certifiedBand ?? "—"}
-                          </span>
+                          <Link href={href} className="block">
+                            <span
+                              className={`inline-flex rounded-full border px-3 py-1 text-xs ${badgeClass(
+                                row.certifiedBand
+                              )}`}
+                            >
+                              {row.certifiedBand ?? "—"}
+                            </span>
+                          </Link>
                         </td>
 
                         <td className="px-6 py-5 text-sm font-semibold text-black">
-                          {valueOrDash(row.certifiedScore)}
+                          <Link href={href} className="block">
+                            {valueOrDash(row.certifiedScore)}
+                          </Link>
                         </td>
 
                         <td className="px-6 py-5">
-                          <span
-                            className={`inline-flex rounded-full border px-3 py-1 text-xs ${badgeClass(
-                              row.decisionStatus
-                            )}`}
-                          >
-                            {row.decisionStatus ?? "—"}
-                          </span>
+                          <Link href={href} className="block">
+                            <span
+                              className={`inline-flex rounded-full border px-3 py-1 text-xs ${badgeClass(
+                                row.decisionStatus
+                              )}`}
+                            >
+                              {row.decisionStatus ?? "—"}
+                            </span>
+                          </Link>
                         </td>
 
                         <td className="px-6 py-5 text-sm text-black/70">
-                          {fmtDate(row.certifiedAt)}
+                          <Link href={href} className="block">
+                            {fmtDate(row.certifiedAt)}
+                          </Link>
                         </td>
                       </tr>
                     );
@@ -211,9 +221,7 @@ function StatCard({
   return (
     <div className="rounded-2xl border border-black/10 bg-white p-6">
       <div className="text-sm text-black/60">{label}</div>
-      <div className="mt-2 text-3xl font-semibold text-black">
-        {value}
-      </div>
+      <div className="mt-2 text-3xl font-semibold text-black">{value}</div>
     </div>
   );
 }

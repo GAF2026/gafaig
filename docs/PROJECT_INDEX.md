@@ -1,125 +1,72 @@
 # GAFAIG — PROJECT INDEX
-Repository Map + Execution Guide
-Last Updated: 2026-03-24
-
----
-
-# PURPOSE
-
-This file provides:
-
-• full repository structure  
-• file responsibilities  
-• system navigation guide  
-• execution map across Snowflake, API, and UI  
-
-This is the **entry point for all development**.
+System Map & File Architecture
+Last Updated: 2026-03-25
 
 ---
 
 # REPOSITORY
 
 GitHub:
-
 GAF2026/gafaig
+
+Production:
+https://www.gafaig.com
+
+Deployment:
+Vercel (project: gafaig-vercel)
 
 ---
 
-# ROOT STRUCTURE
+# PLATFORM OVERVIEW
+
+GAFAIG is composed of:
+
+1) Snowflake (core engine + registry)
+2) Query Layer (controlled access)
+3) API Layer (pass-through)
+4) Frontend (Next.js UI)
+
+---
+
+# TOP-LEVEL STRUCTURE
 
 gafaig/
 ├─ app/
+├─ components/
 ├─ lib/
-├─ docs/
 ├─ public/
-├─ .env.local
+├─ docs/
 ├─ package.json
-├─ next.config.js
-├─ postcss.config.mjs
-├─ tailwind.config.ts
 ├─ tsconfig.json
+├─ next.config.js
 
 ---
 
 # APP DIRECTORY (NEXT.JS ROUTES)
 
 app/
+├─ layout.tsx
+├─ page.tsx
+├─ mission/page.tsx
+├─ framework/page.tsx
+├─ demo/page.tsx
+├─ explorer/page.tsx
+├─ registry/page.tsx
+├─ registry/[registryId]/page.tsx
+├─ registry/ai-systems/page.tsx
+├─ registry/ai-systems/[systemId]/page.tsx
 
 ---
 
-## PUBLIC ROUTES
+# ADMIN ROUTES
 
-app/page.tsx  
-Homepage
-
-app/mission/page.tsx  
-Mission page
-
-app/framework/page.tsx  
-Framework explanation
-
-app/architecture/page.tsx  
-Architecture overview
-
-app/demo/page.tsx  
-Demo entry
-
-app/demo-script/page.tsx  
-Presentation script
-
----
-
-## REGISTRY
-
-app/registry/page.tsx  
-→ Registry list page  
-→ consumes getRegistryRecords()
-
-app/registry/[registryId]/page.tsx  
-→ Registry detail page  
-→ consumes getRegistryByRegistryId()
-
----
-
-## AI SYSTEMS
-
-app/registry/ai-systems/page.tsx  
-→ AI systems listing
-
-app/ai-systems/[systemId]/page.tsx  
-→ AI system detail page
-
----
-
-## EXPLORER
-
-app/explorer/page.tsx  
-→ Overview
-
-app/explorer/organizations/page.tsx  
-→ Organizations
-
-app/explorer/systems/page.tsx  
-→ Systems
-
----
-
-## ADMIN
-
-app/admin/login/page.tsx  
-→ Admin login
-
-app/admin/applications/page.tsx  
-→ Intake submissions
-
-app/admin/verification/[caseId]/evidence/page.tsx  
-→ Evidence workflow
-
-app/admin/verification/[caseId]/findings/page.tsx  
-→ Findings workflow
-
-app/admin/verification/[caseId]/score/page.tsx  
-→ Score + publish
+app/admin/
+├─ login/page.tsx
+├─ applications/page.tsx
+├─ verification/[caseId]/findings/page.tsx
+├─ verification/[caseId]/evidence/page.tsx
+├─ verification/[caseId]/score/page.tsx
+├─ verification/[caseId]/publish/page.tsx
 
 ---
 
@@ -127,330 +74,283 @@ app/admin/verification/[caseId]/score/page.tsx
 
 app/api/
 
----
+## PUBLIC
 
-## PUBLIC API
+/api/registry  
+→ reads CORE.V_REGISTRY_PUBLIC  
 
-app/api/registry/route.ts  
-→ Registry listing endpoint
+/api/registry/search  
+→ reads CORE.V_REGISTRY_PUBLIC_SEARCH  
 
-app/api/verify/[registryId]/route.ts  
-→ Verification endpoint (public proof)
+/api/registry/[registryId]  
+→ single registry record  
 
----
+/api/registry/[registryId]/ai-systems  
+→ reads CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC  
 
-## ADMIN API
+/api/verify/[registryId]  
+→ verification payload + proof  
 
-app/api/admin/login/route.ts  
-app/api/admin/logout/route.ts  
-app/api/admin/status/route.ts  
+/api/badge/[registryId]  
+→ certification badge image  
 
-app/api/admin/submissions/route.ts  
-
-app/api/admin/verification/findings/route.ts  
-app/api/admin/verification/evidence/route.ts  
-app/api/admin/verification/[caseId]/summaries/route.ts  
-
-app/api/admin/verification/[caseId]/publish/route.ts  
-→ Calls SP_PUBLISH_CASE_TO_REGISTRY
+/api/explorer/*  
+→ explorer metrics endpoints  
 
 ---
 
-# LIB DIRECTORY
+## ADMIN
 
-lib/
+/api/admin/login  
+/api/admin/logout  
+/api/admin/status  
+
+/api/admin/verification/findings  
+/api/admin/verification/evidence  
+/api/admin/verification/events  
+/api/admin/verification/decisions  
 
 ---
 
-## SNOWFLAKE
+# COMPONENTS
 
-lib/snowflake.ts  
-→ Snowflake connection + query execution
+components/
+
+## PUBLIC
+
+components/registry/
+├─ RegistryVerificationPanel.tsx
+
+app/_components/
+├─ PublicPageHero.tsx
+├─ PublicPageSection.tsx
 
 ---
 
-## QUERY LAYER (CRITICAL)
+# QUERY LAYER
 
 lib/queries/
 
-### registry.ts
-→ Canonical registry query layer
+├─ registry.ts
+→ registry queries
 
-Functions:
+├─ registry-ai-systems.ts
+→ AI systems queries
 
-• getRegistryRecords()  
-• searchRegistryRecords()  
-• getRegistryByRegistryId()  
-
-Purpose:
-
-• single source of truth for registry SQL  
-• prevents SQL duplication  
-• normalizes Snowflake output  
+├─ explorer.ts
+→ explorer analytics queries
 
 ---
 
-## AUTH
+# CORE INFRA
 
-lib/auth/
+lib/
 
-admin.ts  
-→ admin cookie logic
+├─ snowflake.ts
+→ connection + query execution
 
-require.ts  
-→ requireAdmin() middleware
-
-session.ts  
-→ session handling
+├─ auth/
+→ authentication logic
 
 ---
 
-# DOCS DIRECTORY
+# PUBLIC ASSETS
+
+public/
+
+├─ images/
+│  ├─ gafaig-lockup.png
+│  ├─ gafaig-badge-tier-1.png
+│  ├─ gafaig-badge-tier-2.png
+│  ├─ gafaig-badge-tier-3.png
+
+---
+
+# DOCS (CANONICAL SYSTEM MEMORY)
 
 docs/
 
----
+├─ MASTER_STATE.md
+→ system architecture
 
-MASTER_STATE.md  
-→ canonical platform definition
+├─ CURRENT_FOCUS.md
+→ execution phase
 
-CURRENT_FOCUS.md  
-→ active execution phase
+├─ ENGINEERING_RULES.md
+→ constraints
 
-ENGINEERING_RULES.md  
-→ development constraints
-
-PROJECT_INDEX.md  
+├─ PROJECT_INDEX.md
 → this file
 
-CHANGELOG.md  
-→ historical record
-
-ROUTES.md  
-→ route documentation
-
-DB_SCHEMA.md  
-→ Snowflake schema reference
-
-DEMO_SCRIPT.md  
-→ presentation script
-
-ENV_CHECKLIST.md  
-→ environment variables
+├─ CHANGELOG.md
+→ history
 
 ---
 
-# SNOWFLAKE WORKSHEETS (LOGICAL GROUPING)
+# SNOWFLAKE STRUCTURE
+
+Database:
+GAFAIG_DB
+
+Schema:
+CORE
+
+Warehouse:
+GAFAIG_WH
 
 ---
 
-## ENGINE
+# CORE TABLES
 
-VERIFICATION_CASES  
-VERIFICATION_FINDINGS  
-VERIFICATION_EVIDENCE  
-VERIFICATION_EVENTS  
-
-CASE_CONTROL_ATTESTATIONS  
-SCORING_CONFIG  
-SEVERITY_WEIGHTS  
-
----
-
-## SCORING
-
-V_GOVERNANCE_SCORE_CASE  
+CORE.APPLICATIONS  
+CORE.VERIFICATION_CASES  
+CORE.VERIFICATION_FINDINGS  
+CORE.VERIFICATION_EVIDENCE  
+CORE.VERIFICATION_EVENTS  
+CORE.DECISIONS  
+CORE.REGISTRY_SNAPSHOTS  
+CORE.REGISTRY_AI_SYSTEMS  
 
 ---
 
-## REGISTRY
+# CORE VIEWS
 
-REGISTRY_SNAPSHOTS  
-CASE_APPROVAL_LOG  
+CORE.V_GOVERNANCE_SCORE_CASE  
+→ deterministic scoring engine  
+
+CORE.V_REGISTRY_LATEST_APPROVED  
+→ latest snapshot per case  
+
+CORE.V_REGISTRY_PUBLIC  
+→ main registry view  
+
+CORE.V_REGISTRY_PUBLIC_SEARCH  
+→ search index  
+
+CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC  
+→ AI systems  
 
 ---
 
-## REGISTRY VIEWS (CRITICAL)
-
-21_VIEWS_PUBLIC_REGISTRY.sql
-
-Creates:
-
-• V_REGISTRY_LATEST_APPROVED  
-• V_REGISTRY_PUBLIC  
-• V_REGISTRY_EXPORT_V1  
-
----
-
-## PUBLISH ENGINE
+# CORE PROCEDURES
 
 GAFAIG - CORE.REGISTRY_PUBLISH.sql
 
 Contains:
 
-SP_PUBLISH_CASE_TO_REGISTRY_V3
+CORE.SP_PUBLISH_CASE_TO_REGISTRY_V4  
+CORE.SP_PUBLISH_CASE_TO_REGISTRY_V3  
+
+Purpose:
+
+→ publish case into registry  
+→ enforce certification logic  
 
 ---
 
-# SYSTEM FLOW MAPPING
-
----
-
-## END-TO-END EXECUTION
+# DATA FLOW MAPPING
 
 CASE  
-→ FINDINGS  
-→ EVIDENCE  
-→ EVENTS  
-→ SCORING  
-→ SNAPSHOT  
-→ REGISTRY  
-→ VIEW  
-→ QUERY  
-→ API  
-→ UI  
+→ CORE.VERIFICATION_CASES  
+
+FINDINGS  
+→ CORE.VERIFICATION_FINDINGS  
+
+EVIDENCE  
+→ CORE.VERIFICATION_EVIDENCE  
+
+EVENTS  
+→ CORE.VERIFICATION_EVENTS  
+
+SCORING  
+→ CORE.V_GOVERNANCE_SCORE_CASE  
+
+DECISION  
+→ CORE.DECISIONS  
+
+PUBLISH  
+→ SP_PUBLISH_CASE_TO_REGISTRY  
+
+SNAPSHOT  
+→ CORE.REGISTRY_SNAPSHOTS  
+
+PUBLIC  
+→ V_REGISTRY_PUBLIC  
+
+API  
+→ /api/registry  
+
+UI  
+→ /registry  
 
 ---
 
-## FILE RESPONSIBILITY MAP
+# IDENTIFIER FLOW
+
+CASE_ID → CASE-0001  
+REGISTRY_ID → GAFAIG-XXXXXXXX  
+
+All joins must normalize:
+
+TRIM + UPPER  
 
 ---
 
-### Snowflake
+# DEPLOYMENT FLOW
 
-21_VIEWS_PUBLIC_REGISTRY.sql  
-→ defines registry contract
+Local:
 
----
-
-### Query Layer
-
-lib/queries/registry.ts  
-→ defines API data structure
-
----
-
-### API
-
-app/api/registry/route.ts  
-→ exposes registry data
-
----
-
-### UI
-
-app/registry/page.tsx  
-→ list view
-
-app/registry/[registryId]/page.tsx  
-→ detail view
-
----
-
-# CRITICAL FILES (DO NOT BREAK)
-
----
-
-Snowflake:
-
-• V_REGISTRY_PUBLIC  
-• V_REGISTRY_LATEST_APPROVED  
-
----
-
-Query Layer:
-
-• lib/queries/registry.ts  
-
----
-
-API:
-
-• /api/registry  
-• /api/verify  
-
----
-
-UI:
-
-• /registry  
-• /registry/[registryId]  
-
----
-
-# DEVELOPMENT WORKFLOW
-
----
-
-## STANDARD LOOP
-
-1. Update Snowflake view  
-2. Update query layer  
-3. Update API (if needed)  
-4. Update UI  
-5. Clear .next  
-6. Run npm run dev  
-7. Test endpoints  
-
----
-
-## CACHE RESET
-
-Remove-Item -Recurse -Force .next  
 npm run dev  
 
----
+Build:
 
-# TEST URLS
+npm run build  
 
----
+Deploy:
 
-API:
+git push → Vercel  
 
-http://localhost:3000/api/registry?caseId=CASE-0001  
+Project:
 
----
-
-Registry:
-
-http://localhost:3000/registry  
+gafaig-vercel  
 
 ---
 
-Record:
+# ENVIRONMENT VARIABLES
 
-http://localhost:3000/registry/[registryId]  
+Used:
 
----
-
-Verify:
-
-http://localhost:3000/api/verify/[registryId]  
-
----
-
-# CURRENT PRIORITY
-
-CERTIFICATION WIRING
-
-Focus:
-
-• Snowflake correctness  
-• query alignment  
-• API stability  
-• UI consistency  
+NEXT_PUBLIC_SITE_URL  
+SNOWFLAKE_ACCOUNT  
+SNOWFLAKE_USER  
+SNOWFLAKE_PASSWORD  
+SNOWFLAKE_DATABASE  
+SNOWFLAKE_SCHEMA  
+SNOWFLAKE_WAREHOUSE  
 
 ---
 
-# NEXT PHASE
+# SYSTEM CONTRACT
 
-After stabilization:
+Snowflake → Views → Query Layer → API → UI
 
-• search layer (V_REGISTRY_PUBLIC_SEARCH)  
-• explorer enrichment  
-• AI systems linking  
-• production optimization  
+No exceptions.
 
 ---
 
-END OF PROJECT INDEX
+# PURPOSE OF THIS FILE
+
+Prevent:
+
+• file confusion  
+• incorrect edits  
+• broken data flow  
+• architectural drift  
+
+---
+
+# END STATE
+
+A fully mapped, deterministic, and globally trusted AI governance system.
+
+---

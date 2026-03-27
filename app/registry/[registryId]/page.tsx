@@ -6,10 +6,14 @@ import PublicPageSection from "@/app/_components/PublicPageSection";
 
 export const dynamic = "force-dynamic";
 
+type RouteParams = {
+  registryId?: string;
+  id?: string;
+  slug?: string;
+};
+
 type PageProps = {
-  params: {
-    registryId: string;
-  };
+  params: Promise<RouteParams> | RouteParams;
 };
 
 function fmtDate(value: string | null): string {
@@ -31,19 +35,62 @@ function valueOrDash(value?: string | number | null): string | number {
 function badgeClass(text?: string | null) {
   const v = String(text || "").toLowerCase();
 
-  if (v.includes("certified")) {
-    return "border-emerald-200 bg-emerald-50 text-emerald-700";
-  }
-
   if (v.includes("not certified")) {
     return "border-slate-200 bg-slate-50 text-slate-700";
+  }
+
+  if (v.includes("certified")) {
+    return "border-emerald-200 bg-emerald-50 text-emerald-700";
   }
 
   if (v.includes("published") || v.includes("approved")) {
     return "border-blue-200 bg-blue-50 text-blue-700";
   }
 
+  if (v === "a") {
+    return "border-emerald-200 bg-emerald-50 text-emerald-700";
+  }
+
+  if (v === "b") {
+    return "border-blue-200 bg-blue-50 text-blue-700";
+  }
+
+  if (v === "c") {
+    return "border-amber-200 bg-amber-50 text-amber-700";
+  }
+
+  if (v === "d") {
+    return "border-slate-200 bg-slate-50 text-slate-700";
+  }
+
   return "border-slate-200 bg-slate-50 text-slate-700";
+}
+
+function scoreTone(score?: number | null) {
+  if (score === null || score === undefined) {
+    return "border-slate-200 bg-slate-50 text-slate-700";
+  }
+  if (score >= 90) {
+    return "border-emerald-200 bg-emerald-50 text-emerald-700";
+  }
+  if (score >= 80) {
+    return "border-blue-200 bg-blue-50 text-blue-700";
+  }
+  if (score >= 70) {
+    return "border-amber-200 bg-amber-50 text-amber-700";
+  }
+  return "border-slate-200 bg-slate-50 text-slate-700";
+}
+
+function formatScore(value?: number | null) {
+  if (value === null || value === undefined || Number.isNaN(value)) return "—";
+  return Number(value).toFixed(0);
+}
+
+function pctWidth(value?: number | null) {
+  if (value === null || value === undefined || Number.isNaN(value)) return "0%";
+  const safe = Math.max(0, Math.min(100, Number(value)));
+  return `${safe}%`;
 }
 
 async function getBaseUrl() {
@@ -56,11 +103,25 @@ async function getBaseUrl() {
 }
 
 export default async function RegistryDetailPage({ params }: PageProps) {
-  const registryId = decodeURIComponent(params.registryId || "").trim();
-  if (!registryId) notFound();
+  const resolvedParams = await Promise.resolve(params);
+
+  const rawRegistryId =
+    resolvedParams?.registryId ??
+    resolvedParams?.id ??
+    resolvedParams?.slug ??
+    "";
+
+  const registryId = decodeURIComponent(rawRegistryId).trim();
+
+  if (!registryId) {
+    notFound();
+  }
 
   const row = await getRegistryByRegistryId(registryId);
-  if (!row) notFound();
+
+  if (!row || !row.registryId) {
+    notFound();
+  }
 
   const baseUrl = await getBaseUrl();
   const absoluteVerifyUrl = `${baseUrl}/api/verify/${encodeURIComponent(
@@ -74,10 +135,16 @@ export default async function RegistryDetailPage({ params }: PageProps) {
 
   try {
     const res = await fetch(absoluteVerifyUrl, { cache: "no-store" });
-    verifyData = await res.json();
+    if (res.ok) {
+      verifyData = await res.json();
+    }
   } catch {
     verifyData = null;
   }
+
+  const score = row.certifiedScore ?? row.score;
+  const tier = row.certifiedTier ?? row.tier;
+  const band = row.certifiedBand ?? row.band;
 
   return (
     <main className="mx-auto max-w-[1280px] px-6 pb-20 pt-14 md:px-8">
@@ -85,7 +152,7 @@ export default async function RegistryDetailPage({ params }: PageProps) {
         <PublicPageSection
           eyebrow="Certification record"
           title={row.entityName ?? "Registry Record"}
-          description="This is the canonical public certification record issued by GAFAIG. It reflects governance outcome, tier classification, and verification status."
+          description="Canonical public certification record issued by GAFAIG. This record reflects governance outcome, tier classification, and public verification status without exposing private evidence."
         >
           <div className="mb-6 flex flex-wrap items-center gap-3">
             <span
@@ -93,31 +160,43 @@ export default async function RegistryDetailPage({ params }: PageProps) {
                 row.certificationStatus
               )}`}
             >
-              {row.certificationStatus}
+              {row.certificationStatus ?? "—"}
             </span>
 
             <span
               className={`rounded-full border px-3 py-1 text-xs ${badgeClass(
-                row.certifiedTier
+                tier
               )}`}
             >
-              {row.certifiedTier ?? "—"}
+              {tier ?? "—"}
             </span>
 
             <span
               className={`rounded-full border px-3 py-1 text-xs ${badgeClass(
-                row.certifiedBand
+                band
               )}`}
             >
-              Band {row.certifiedBand ?? "—"}
+              Band {band ?? "—"}
+            </span>
+
+            <span
+              className={`rounded-full border px-3 py-1 text-xs ${badgeClass(
+                row.decisionStatus
+              )}`}
+            >
+              {row.decisionStatus ?? "—"}
             </span>
           </div>
 
           <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
-            <Metric label="Score" value={row.certifiedScore} />
-            <Metric label="Certified At" value={fmtDate(row.certifiedAt)} />
-            <Metric label="Country" value={row.country} />
-            <Metric label="Entity Type" value={row.entityType} />
+            <MetricCard
+              label="Certified Score"
+              value={formatScore(score)}
+              tone={scoreTone(score)}
+            />
+            <MetricCard label="Certified At" value={fmtDate(row.certifiedAt)} />
+            <MetricCard label="Country" value={row.country} />
+            <MetricCard label="Entity Type" value={row.entityType} />
           </div>
 
           <div className="mt-6 rounded-2xl border border-black/10 bg-white p-4">
@@ -126,20 +205,97 @@ export default async function RegistryDetailPage({ params }: PageProps) {
           </div>
         </PublicPageSection>
 
-        <div className="mt-10">
-          <PublicPageSection title="Certification Details">
-            <div className="grid gap-4 md:grid-cols-2">
-              <Info label="Decision Status" value={row.decisionStatus} />
-              <Info label="Valid From" value={fmtDate(row.validFrom)} />
-              <Info label="Valid To" value={fmtDate(row.validTo)} />
-              <Info label="Last Activity" value={fmtDate(row.lastActivityAt)} />
-              <Info label="Application ID" value={row.applicationId} />
-              <Info label="Case ID" value={row.caseId} />
-            </div>
-          </PublicPageSection>
-        </div>
+        <PublicPageSection
+          title="Certification Summary"
+          description="Public summary of certification state, validity window, and source workflow identifiers."
+        >
+          <div className="grid gap-4 md:grid-cols-2">
+            <InfoCard label="Decision Status" value={row.decisionStatus} />
+            <InfoCard label="Certification Status" value={row.certificationStatus} />
+            <InfoCard label="Valid From" value={fmtDate(row.validFrom)} />
+            <InfoCard label="Valid To" value={fmtDate(row.validTo)} />
+            <InfoCard label="Published At" value={fmtDate(row.publishedAt)} />
+            <InfoCard label="Last Activity" value={fmtDate(row.lastActivityAt)} />
+            <InfoCard label="Application ID" value={row.applicationId} />
+            <InfoCard label="Case ID" value={row.caseId} />
+            <InfoCard label="Model Version" value={row.modelVersion} />
+            <InfoCard label="Snapshot ID" value={row.snapshotId} mono />
+          </div>
+        </PublicPageSection>
 
-        <PublicPageSection title="Verification">
+        <PublicPageSection
+          title="Governance Outcome"
+          description="Public certification fields derived from the underlying GAFAIG governance engine and registry publication workflow."
+        >
+          <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
+            <div className="rounded-2xl border border-black/10 bg-white p-6">
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <div className="text-xs uppercase text-black/50">
+                    Governance Score
+                  </div>
+                  <div className="mt-2 text-5xl font-semibold text-black">
+                    {formatScore(score)}
+                  </div>
+                </div>
+
+                <div className="text-right">
+                  <div className="text-xs uppercase text-black/50">Band</div>
+                  <div
+                    className={`mt-2 inline-flex rounded-full border px-4 py-2 text-lg font-semibold ${badgeClass(
+                      band
+                    )}`}
+                  >
+                    {band ?? "—"}
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-6">
+                <div className="mb-2 flex items-center justify-between text-sm">
+                  <span className="text-black/60">Certification strength</span>
+                  <span className="font-medium text-black">
+                    {formatScore(score)} / 100
+                  </span>
+                </div>
+                <div className="h-3 overflow-hidden rounded-full bg-black/5">
+                  <div
+                    className="h-full rounded-full bg-black"
+                    style={{ width: pctWidth(score) }}
+                  />
+                </div>
+              </div>
+
+              <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
+                <MiniMetric label="Tier" value={tier} />
+                <MiniMetric label="Band" value={band} />
+                <MiniMetric label="Status" value={row.certificationStatus} />
+              </div>
+            </div>
+
+            <div className="rounded-2xl border border-black/10 bg-white p-6">
+              <div className="text-xs uppercase text-black/50">
+                Record Attributes
+              </div>
+
+              <div className="mt-4 space-y-4">
+                <AttributeRow label="Entity">{valueOrDash(row.entityName)}</AttributeRow>
+                <AttributeRow label="Country">{valueOrDash(row.country)}</AttributeRow>
+                <AttributeRow label="Verification Type">
+                  {valueOrDash(row.registryStatus ?? row.decisionStatus)}
+                </AttributeRow>
+                <AttributeRow label="Workflow Type">
+                  {valueOrDash(row.modelVersion)}
+                </AttributeRow>
+              </div>
+            </div>
+          </div>
+        </PublicPageSection>
+
+        <PublicPageSection
+          title="Verification"
+          description="Live verification surface for external parties validating this certification record."
+        >
           <RegistryVerificationPanel
             absoluteVerifyUrl={absoluteVerifyUrl}
             absoluteRegistryUrl={absoluteRegistryUrl}
@@ -150,10 +306,12 @@ export default async function RegistryDetailPage({ params }: PageProps) {
         </PublicPageSection>
 
         <PublicPageSection title="Public Record Notice">
-          <p className="text-sm text-black/70">
-            This certification record represents a controlled public disclosure.
-            Private findings, evidence, and internal review materials are not
-            exposed.
+          <p className="text-sm leading-6 text-black/70">
+            This certification record is a controlled public disclosure. It
+            exposes registry outcome, certification fields, and external
+            verification metadata only. Private findings, evidence, internal
+            deliberations, and proprietary source materials are not disclosed in
+            this surface.
           </p>
         </PublicPageSection>
       </div>
@@ -161,22 +319,43 @@ export default async function RegistryDetailPage({ params }: PageProps) {
   );
 }
 
-function Metric({
+function MetricCard({
   label,
   value,
+  tone,
 }: {
   label: string;
   value?: string | number | null;
+  tone?: string;
 }) {
   return (
-    <div className="rounded-2xl border border-black/10 bg-white p-4">
+    <div className={`rounded-2xl border p-4 ${tone ?? "border-black/10 bg-white"}`}>
       <div className="text-xs text-black/50">{label}</div>
-      <div className="mt-1 text-xl font-semibold">{valueOrDash(value)}</div>
+      <div className="mt-2 text-xl font-semibold">{valueOrDash(value)}</div>
     </div>
   );
 }
 
-function Info({
+function InfoCard({
+  label,
+  value,
+  mono = false,
+}: {
+  label: string;
+  value?: string | number | null;
+  mono?: boolean;
+}) {
+  return (
+    <div className="rounded-2xl border border-black/10 bg-white p-4">
+      <div className="text-xs text-black/50">{label}</div>
+      <div className={`mt-2 text-sm ${mono ? "break-all font-mono" : ""}`}>
+        {valueOrDash(value)}
+      </div>
+    </div>
+  );
+}
+
+function MiniMetric({
   label,
   value,
 }: {
@@ -184,9 +363,26 @@ function Info({
   value?: string | number | null;
 }) {
   return (
-    <div className="rounded-2xl border border-black/10 bg-white p-4">
-      <div className="text-xs text-black/50">{label}</div>
-      <div className="mt-1 text-sm">{valueOrDash(value)}</div>
+    <div className="rounded-xl border border-black/10 bg-black/[0.02] p-4">
+      <div className="text-xs uppercase text-black/50">{label}</div>
+      <div className="mt-2 text-base font-medium text-black">
+        {valueOrDash(value)}
+      </div>
+    </div>
+  );
+}
+
+function AttributeRow({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="border-b border-black/5 pb-3 last:border-b-0 last:pb-0">
+      <div className="text-xs uppercase text-black/50">{label}</div>
+      <div className="mt-1 text-sm text-black">{children}</div>
     </div>
   );
 }

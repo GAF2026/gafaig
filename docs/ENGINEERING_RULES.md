@@ -1,35 +1,192 @@
 # GAFAIG — ENGINEERING RULES
-AI + Developer Execution Guardrails
-Last Updated: 2026-03-24
-
----
-
-# PURPOSE
-
-This file exists to prevent:
-
-• architecture drift  
-• Snowflake / API / UI misalignment  
-• AI-generated code errors  
-• non-deterministic behavior  
-
-These rules are MANDATORY.
+Non-Negotiable System Constraints
+Last Updated: 2026-03-25
 
 ---
 
 # CORE PRINCIPLE
 
-SNOWFLAKE IS THE SOURCE OF TRUTH
+Snowflake is the ONLY source of truth.
 
-Everything must originate from:
-
-Snowflake → Views → Query Layer → API → UI
-
-NEVER the reverse.
+All certification, scoring, and registry outputs MUST originate from Snowflake.
 
 ---
 
-# CANONICAL DATA FLOW (LOCKED)
+# ARCHITECTURE RULE
+
+The system is strictly layered:
+
+Snowflake (truth)
+→ Views
+→ Query Layer
+→ API
+→ UI
+
+NO LAYER may bypass the one before it.
+
+---
+
+# ABSOLUTE PROHIBITIONS
+
+DO NOT:
+
+• compute scores in API  
+• compute scores in UI  
+• derive certification in UI  
+• override engine outputs anywhere  
+• duplicate SQL logic across files  
+• mutate historical records  
+• update registry snapshots  
+• introduce “temporary fixes” in frontend  
+• hardcode values to “make UI look right”  
+• create parallel data flows  
+
+---
+
+# ENGINE AUTHORITY RULE (CRITICAL)
+
+The following fields MUST come ONLY from:
+
+CORE.V_GOVERNANCE_SCORE_CASE
+
+• FINAL_SCORE  
+• TIER  
+• BAND  
+
+---
+
+# CERTIFICATION RULE (UPDATED)
+
+Certification is ENGINE-DETERMINED.
+
+DECISIONS can:
+
+• approve  
+• reject  
+• publish  
+
+DECISIONS CANNOT:
+
+• override score  
+• override tier  
+• override band  
+
+---
+
+## CORRECT MODEL
+
+IF decision_status IN (approved, published, certified):
+
+→ certified_score = engine score  
+→ certified_tier = engine tier  
+→ certified_band = engine band  
+
+ELSE:
+
+→ no certification  
+
+---
+
+# SNAPSHOT RULE
+
+CORE.REGISTRY_SNAPSHOTS is:
+
+• append-only  
+• immutable  
+• historical  
+
+DO NOT:
+
+• update rows  
+• delete rows  
+• “fix” data in place  
+
+ALL changes must occur through:
+
+→ new snapshot insertion  
+
+---
+
+# VIEW CONTRACT RULE
+
+Views define the system contract.
+
+Critical views:
+
+• V_GOVERNANCE_SCORE_CASE  
+• V_REGISTRY_LATEST_APPROVED  
+• V_REGISTRY_PUBLIC  
+• V_REGISTRY_PUBLIC_SEARCH  
+• V_REGISTRY_AI_SYSTEMS_PUBLIC  
+
+Rules:
+
+• UI MUST consume views  
+• API MUST consume views  
+• NO direct table joins in UI/API  
+
+---
+
+# API RULES
+
+API is a pass-through layer.
+
+DO:
+
+• call query layer  
+• return Snowflake results  
+
+DO NOT:
+
+• compute values  
+• reshape certification logic  
+• infer missing fields  
+• apply business rules  
+
+---
+
+# QUERY LAYER RULE
+
+Location:
+
+lib/queries/
+
+Purpose:
+
+• centralize SQL usage  
+• prevent duplication  
+• ensure consistency  
+
+Rules:
+
+• ALL queries go through query layer  
+• NO inline SQL in API routes  
+• NO inline SQL in UI  
+
+---
+
+# FRONTEND RULES
+
+Frontend is a display layer ONLY.
+
+DO:
+
+• render data  
+• format data  
+• display status  
+
+DO NOT:
+
+• compute certification  
+• apply business logic  
+• derive tier/band/score  
+• fix backend issues  
+
+---
+
+# DATA FLOW RULE
+
+ALL data must follow:
 
 CASE  
 → FINDINGS  
@@ -37,350 +194,118 @@ CASE
 → EVENTS  
 → SCORING  
 → SNAPSHOT  
-→ REGISTRY  
-→ VIEWS  
+→ DECISION  
+→ REGISTRY SNAPSHOT  
+→ PUBLIC VIEWS  
 → API  
 → UI  
 
-DO NOT CHANGE THIS FLOW.
+NO shortcuts allowed.
 
 ---
 
-# LAYER RESPONSIBILITIES
+# NAMING RULES
+
+Use canonical identifiers:
+
+CASE_ID  
+REGISTRY_ID  
+APPLICATION_ID  
+
+Formats:
+
+CASE-0001  
+GAFAIG-XXXXXXXX  
+
+All comparisons must use:
+
+TRIM + UPPER normalization
 
 ---
 
-## 1. SNOWFLAKE (LOGIC LAYER)
+# SQL SAFETY RULES
 
-Responsible for:
+When inserting JSON:
 
-• all computation  
-• all scoring  
-• all joins  
-• all normalization  
-• all certification outputs  
+USE:
 
-Snowflake must output:
-
-✔ final, deterministic values  
-✔ no ambiguity  
-✔ no missing dependencies  
-
----
-
-## 2. QUERY LAYER (TRANSLATION ONLY)
-
-Location:
-
-lib/queries/
-
-Responsible for:
-
-• calling Snowflake  
-• mapping column names → camelCase  
-• SAFE fallback logic only  
-
-NOT responsible for:
-
-• business logic  
-• computation  
-• deriving new data (except fallback)
-
----
-
-## 3. API LAYER (PASS-THROUGH)
-
-Responsible for:
-
-• returning query results  
-• applying filters  
-• formatting response  
-
-NOT responsible for:
-
-• data transformation  
-• logic  
-• calculations  
-
----
-
-## 4. UI LAYER (DISPLAY ONLY)
-
-Responsible for:
-
-• rendering  
-• layout  
-• formatting  
-
-NOT responsible for:
-
-• logic  
-• business rules  
-• assumptions about data  
-
----
-
-# CRITICAL RULES
-
----
-
-## RULE 1 — NEVER REFERENCE NON-EXISTENT COLUMNS
-
-Before using any field:
-
-✔ verify it exists in Snowflake view
-
-If not:
-
-→ FIX THE VIEW  
-→ NOT the UI  
-→ NOT the API  
-
----
-
-## RULE 2 — DO NOT INVENT DATA
-
-Never create:
-
-• fake timestamps  
-• fake certification values  
-• hardcoded tiers or scores  
-
-If data is missing:
-
-→ return NULL  
-→ fix upstream  
-
----
-
-## RULE 3 — DERIVED FIELDS BELONG IN VIEWS
-
-Examples:
-
-valid_from  
-last_activity_at  
-
-These MUST be defined in:
-
-Snowflake views
-
-NOT:
-
-• API  
-• UI  
-• helper functions  
-
----
-
-## RULE 4 — QUERY LAYER IS A CONTRACT
-
-File:
-
-lib/queries/registry.ts
-
-This file defines:
-
-what the UI receives
-
-It must:
-
-• only use real columns  
-• normalize safely  
-• never break schema  
-
----
-
-## RULE 5 — NEVER DUPLICATE SQL
-
-All SQL must live in:
-
-lib/queries/
+INSERT ... SELECT PARSE_JSON(?)
 
 DO NOT:
 
-• write SQL in pages  
-• write SQL in API routes  
-• duplicate queries  
+INSERT ... VALUES (...)
 
 ---
 
-## RULE 6 — ALWAYS USE COALESCE FOR TIMESTAMPS
+# ERROR HANDLING RULE
 
-Correct pattern:
+Fail explicitly.
 
-COALESCE(PUBLISHED_AT, CERTIFIED_AT, APPROVED_AT)
+DO NOT:
 
-This prevents:
-
-• null failures  
-• UI crashes  
-• missing registry data  
+• silently ignore errors  
+• fallback to fake data  
+• return partial certification  
 
 ---
 
-## RULE 7 — DO NOT MODIFY WORKING SYSTEMS
+# TESTING RULE
 
-DO NOT TOUCH:
+Before deploying any change:
 
-• scoring engine  
-• publish procedure  
-• snapshot system  
-• verification pipeline  
-
-ONLY modify:
-
-• registry views  
-• query layer  
-• API mapping  
-• UI display  
+✔ validate Snowflake query  
+✔ validate API response  
+✔ validate UI rendering  
+✔ confirm no drift between layers  
 
 ---
 
-## RULE 8 — CLEAR CACHE AFTER STRUCTURAL CHANGES
+# DEPLOYMENT RULE
 
-Whenever you change:
+System must:
 
-• query files  
-• API routes  
-• data structures  
-
-Run:
-
-Remove-Item -Recurse -Force .next  
-npm run dev  
+• build clean (no TypeScript errors)  
+• deploy clean (Vercel)  
+• return consistent outputs  
 
 ---
 
-## RULE 9 — TEST AFTER EVERY CHANGE
+# TRUST RULE (MOST IMPORTANT)
 
-You MUST test:
+GAFAIG is trust infrastructure.
 
-API:  
-http://localhost:3000/api/registry?caseId=CASE-0001  
+Therefore:
 
-REGISTRY LIST:  
-http://localhost:3000/registry  
-
-REGISTRY DETAIL:  
-http://localhost:3000/registry/[registryId]  
+• outputs must be deterministic  
+• outputs must be explainable  
+• outputs must be consistent across all layers  
 
 ---
 
-## RULE 10 — FIX ROOT CAUSE, NOT SYMPTOMS
+# IF SOMETHING LOOKS WRONG
 
-If error appears:
+DO NOT fix it in UI.
 
-WRONG:
+TRACE BACK:
 
-• patch UI  
-• hide field  
-• hardcode values  
+UI → API → Query → View → Snapshot → Engine
 
-CORRECT:
-
-• fix Snowflake view  
-• fix query layer  
+Fix at the SOURCE.
 
 ---
 
-# COMMON FAILURE PATTERNS (AVOID)
+# ENGINEERING PHILOSOPHY
+
+Correctness > Convenience  
+Determinism > Flexibility  
+Integrity > Speed  
 
 ---
 
-## INVALID IDENTIFIER ERRORS
+# FINAL RULE
 
-Cause:
+If a change violates any rule in this file:
 
-UI/API referencing missing columns
-
-Fix:
-
-update Snowflake view
+DO NOT IMPLEMENT IT.
 
 ---
-
-## UNDEFINED FUNCTION ERRORS
-
-Cause:
-
-query function not exported
-
-Fix:
-
-fix lib/queries file
-
----
-
-## EMPTY UI DATA
-
-Cause:
-
-query mismatch or missing mapping
-
-Fix:
-
-verify query layer normalization
-
----
-
-## DUPLICATE LOGIC
-
-Cause:
-
-logic in both SQL and JS
-
-Fix:
-
-keep logic ONLY in Snowflake
-
----
-
-# GOLDEN RULE
-
-IF DATA IS WRONG → FIX SNOWFLAKE
-
-NOT:
-
-• React  
-• API  
-• TypeScript  
-
----
-
-# AI DEVELOPMENT SAFETY RULE
-
-When generating code:
-
-ALWAYS:
-
-1. check Snowflake schema first  
-2. verify column names  
-3. ensure deterministic output  
-4. avoid assumptions  
-
----
-
-# FINAL CHECK BEFORE COMMIT
-
-Before pushing:
-
-✔ no SQL errors  
-✔ no runtime errors  
-✔ no missing fields  
-✔ registry renders  
-✔ API returns valid JSON  
-
----
-
-# END STATE
-
-System must be:
-
-✔ deterministic  
-✔ consistent  
-✔ auditable  
-✔ production-safe  
-
----
-
-END OF ENGINEERING RULES

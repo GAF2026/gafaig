@@ -30,6 +30,10 @@ export type RegistryQueryRow = {
   tier: string | null;
   band: string | null;
   scoredAt: string | null;
+
+  badgeImageUrl?: string | null;
+  badgeLabel?: string | null;
+  badgeTier?: string | null;
 };
 
 function asString(value: unknown): string | null {
@@ -41,66 +45,31 @@ function asString(value: unknown): string | null {
 function asNumber(value: unknown): number | null {
   if (value === null || value === undefined || value === "") return null;
   const n = Number(value);
-  return Number.isFinite(n) ? n : null;
+  return Number.isNaN(n) ? null : n;
 }
 
-function normalizeDateLike(value: unknown): string | null {
-  return asString(value);
+function normalizeId(value: string): string {
+  return String(value || "")
+    .normalize("NFKD")
+    .toUpperCase()
+    .replace(/[^A-Z0-9]/g, "");
 }
 
 function normalizeRegistryRow(row: Record<string, unknown>): RegistryQueryRow {
-  const certifiedAt =
-    normalizeDateLike(row.CERTIFIED_AT) ??
-    normalizeDateLike(row.APPROVED_AT) ??
-    normalizeDateLike(row.PUBLISHED_AT);
+  const certificationStatus = asString(row.CERTIFICATION_STATUS);
+  const certifiedScore = asNumber(row.CERTIFIED_SCORE);
+  const certifiedTier = asString(row.CERTIFIED_TIER);
+  const certifiedBand = asString(row.CERTIFIED_BAND);
+  const decisionStatus = asString(row.DECISION_STATUS);
 
-  const approvedAt =
-    normalizeDateLike(row.APPROVED_AT) ??
-    normalizeDateLike(row.CERTIFIED_AT) ??
-    normalizeDateLike(row.PUBLISHED_AT);
+  const validFrom = asString(row.VALID_FROM);
+  const validTo = asString(row.VALID_TO);
+  const certifiedAt = asString(row.CERTIFIED_AT);
+  const approvedAt = asString(row.APPROVED_AT);
+  const publishedAt = asString(row.PUBLISHED_AT);
+  const lastActivityAt = asString(row.LAST_ACTIVITY_AT);
 
-  const publishedAt =
-    normalizeDateLike(row.PUBLISHED_AT) ??
-    normalizeDateLike(row.CERTIFIED_AT) ??
-    normalizeDateLike(row.APPROVED_AT);
-
-  const validFrom =
-    normalizeDateLike(row.VALID_FROM) ??
-    normalizeDateLike(row.CERTIFIED_AT) ??
-    normalizeDateLike(row.APPROVED_AT);
-
-  const validTo = normalizeDateLike(row.VALID_TO);
-
-  const lastActivityAt =
-    normalizeDateLike(row.LAST_ACTIVITY_AT) ??
-    normalizeDateLike(row.PUBLISHED_AT) ??
-    normalizeDateLike(row.CERTIFIED_AT) ??
-    normalizeDateLike(row.APPROVED_AT);
-
-  const certifiedScore =
-    asNumber(row.CERTIFIED_SCORE) ??
-    asNumber(row.SCORE);
-
-  const certifiedTier =
-    asString(row.CERTIFIED_TIER) ??
-    asString(row.TIER);
-
-  const certifiedBand =
-    asString(row.CERTIFIED_BAND) ??
-    asString(row.BAND);
-
-  const certificationStatus =
-    asString(row.CERTIFICATION_STATUS) ??
-    (certifiedTier ? "Certified" : null);
-
-  const decisionStatus =
-    asString(row.DECISION_STATUS) ??
-    asString(row.REGISTRY_STATUS);
-
-  const scoredAt =
-    normalizeDateLike(row.CERTIFIED_AT) ??
-    normalizeDateLike(row.APPROVED_AT) ??
-    normalizeDateLike(row.PUBLISHED_AT);
+  const scoredAt = certifiedAt ?? approvedAt ?? publishedAt ?? lastActivityAt;
 
   return {
     registryId: asString(row.REGISTRY_ID) ?? "",
@@ -132,50 +101,24 @@ function normalizeRegistryRow(row: Record<string, unknown>): RegistryQueryRow {
     tier: asString(row.TIER),
     band: asString(row.BAND),
     scoredAt,
+
+    badgeImageUrl: asString(row.BADGE_IMAGE_URL),
+    badgeLabel: asString(row.BADGE_LABEL),
+    badgeTier: asString(row.BADGE_TIER),
   };
 }
 
-const REGISTRY_SELECT = `
-  SELECT
-    REGISTRY_ID,
-    APPLICATION_ID,
-    CASE_ID,
-    ENTITY_NAME,
-    ENTITY_TYPE,
-    COUNTRY,
-
-    CERTIFICATION_STATUS,
-    CERTIFIED_SCORE,
-    CERTIFIED_TIER,
-    CERTIFIED_BAND,
-    DECISION_STATUS,
-
-    VALID_FROM,
-    VALID_TO,
-    CERTIFIED_AT,
-    APPROVED_AT,
-    PUBLISHED_AT,
-    LAST_ACTIVITY_AT,
-
-    REGISTRY_SNAPSHOT_ID,
-    MODEL_VERSION,
-    RENEWAL_STATUS,
-    REGISTRY_STATUS,
-
-    SCORE,
-    TIER,
-    BAND
-  FROM GAFAIG_DB.CORE.V_REGISTRY_PUBLIC
-`;
+const REGISTRY_SOURCE = "GAFAIG_DB.CORE.REGISTRY_PUBLIC_READTHROUGH";
 
 export async function getRegistryRecords(
-  limit = 50
+  limit = 100
 ): Promise<RegistryQueryRow[]> {
-  const safeLimit = Math.max(1, Math.min(limit, 200));
+  const safeLimit = Math.max(1, Math.min(limit, 1000));
 
   const rows = await sfQuery<Record<string, unknown>>(
     `
-    ${REGISTRY_SELECT}
+    SELECT *
+    FROM ${REGISTRY_SOURCE}
     ORDER BY COALESCE(PUBLISHED_AT, CERTIFIED_AT, APPROVED_AT) DESC, REGISTRY_ID ASC
     LIMIT ?
     `,
@@ -193,85 +136,62 @@ export async function searchRegistryRecords(params: {
   applicationId?: string;
   limit?: number;
 }): Promise<RegistryQueryRow[]> {
-  const safeLimit = Math.max(1, Math.min(params.limit ?? 50, 200));
+  const rows = await getRegistryRecords(params.limit ?? 500);
 
-  const q = (params.q ?? "").trim();
-  const country = (params.country ?? "").trim();
-  const registryId = (params.registryId ?? "").trim();
-  const caseId = (params.caseId ?? "").trim();
-  const applicationId = (params.applicationId ?? "").trim();
+  const q = (params.q ?? "").trim().toUpperCase();
+  const country = normalizeId(params.country ?? "");
+  const registryId = normalizeId(params.registryId ?? "");
+  const caseId = normalizeId(params.caseId ?? "");
+  const applicationId = normalizeId(params.applicationId ?? "");
 
-  const conditions: string[] = [];
-  const binds: unknown[] = [];
+  return rows.filter((row) => {
+    if (country && normalizeId(row.country ?? "") !== country) return false;
+    if (registryId && normalizeId(row.registryId) !== registryId) return false;
+    if (caseId && normalizeId(row.caseId ?? "") !== caseId) return false;
+    if (applicationId && normalizeId(row.applicationId ?? "") !== applicationId) {
+      return false;
+    }
 
-  if (q) {
-    conditions.push(`
-      (
-        UPPER(COALESCE(ENTITY_NAME, '')) LIKE UPPER(?)
-        OR UPPER(COALESCE(ENTITY_TYPE, '')) LIKE UPPER(?)
-        OR UPPER(COALESCE(COUNTRY, '')) LIKE UPPER(?)
-        OR UPPER(COALESCE(REGISTRY_ID, '')) LIKE UPPER(?)
-        OR UPPER(COALESCE(CASE_ID, '')) LIKE UPPER(?)
-        OR UPPER(COALESCE(APPLICATION_ID, '')) LIKE UPPER(?)
-      )
-    `);
-    const like = `%${q}%`;
-    binds.push(like, like, like, like, like, like);
-  }
+    if (q) {
+      const haystack = [
+        row.entityName ?? "",
+        row.entityType ?? "",
+        row.country ?? "",
+        row.registryId ?? "",
+        row.caseId ?? "",
+        row.applicationId ?? "",
+      ]
+        .join(" ")
+        .toUpperCase();
 
-  if (country) {
-    conditions.push(`UPPER(COALESCE(COUNTRY, '')) = UPPER(?)`);
-    binds.push(country);
-  }
+      if (!haystack.includes(q)) return false;
+    }
 
-  if (registryId) {
-    conditions.push(`UPPER(COALESCE(REGISTRY_ID, '')) = UPPER(?)`);
-    binds.push(registryId);
-  }
-
-  if (caseId) {
-    conditions.push(`UPPER(COALESCE(CASE_ID, '')) = UPPER(?)`);
-    binds.push(caseId);
-  }
-
-  if (applicationId) {
-    conditions.push(`UPPER(COALESCE(APPLICATION_ID, '')) = UPPER(?)`);
-    binds.push(applicationId);
-  }
-
-  const whereClause = conditions.length
-    ? `WHERE ${conditions.join(" AND ")}`
-    : "";
-
-  const rows = await sfQuery<Record<string, unknown>>(
-    `
-    ${REGISTRY_SELECT}
-    ${whereClause}
-    ORDER BY COALESCE(PUBLISHED_AT, CERTIFIED_AT, APPROVED_AT) DESC, REGISTRY_ID ASC
-    LIMIT ?
-    `,
-    [...binds, safeLimit]
-  );
-
-  return rows.map(normalizeRegistryRow);
+    return true;
+  });
 }
 
 export async function getRegistryRecordByRegistryId(
   registryId: string
 ): Promise<RegistryQueryRow | null> {
-  const id = registryId.trim();
+  const id = String(registryId || "").trim();
   if (!id) return null;
 
   const rows = await sfQuery<Record<string, unknown>>(
     `
-    ${REGISTRY_SELECT}
-    WHERE UPPER(COALESCE(REGISTRY_ID, '')) = UPPER(?)
+    SELECT *
+    FROM GAFAIG_DB.CORE.REGISTRY_PUBLIC_READTHROUGH
+    WHERE UPPER(REGEXP_REPLACE(REGISTRY_ID, '[^A-Za-z0-9]', '')) =
+          UPPER(REGEXP_REPLACE(?, '[^A-Za-z0-9]', ''))
     LIMIT 1
     `,
     [id]
   );
 
-  if (rows.length === 0) return null;
+  if (!rows || rows.length === 0) {
+    return null;
+  }
+
   return normalizeRegistryRow(rows[0]);
 }
 

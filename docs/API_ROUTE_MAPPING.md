@@ -1,392 +1,774 @@
-# GAFAIG — API ROUTE MAPPING
-Canonical Mapping of API Endpoints → System Behavior
-Last Updated: 2026-03-24
+# GAFAIG — API Route Mapping
+Canonical API Surface Map
+Last Updated: 2026-03-25
 
 ---
 
 # PURPOSE
 
-This document defines:
+This document maps all API routes to:
 
-• all API routes  
-• their purpose  
-• their data source  
-• how they connect to Snowflake  
-• how they connect to UI  
+• route path  
+• purpose  
+• Snowflake source  
+• frontend consumer  
+• system role  
 
-This is the authoritative API contract layer.
+This prevents:
 
----
-
-# CORE PRINCIPLE
-
-API LAYER = PASS-THROUGH
-
-API routes:
-
-• DO NOT compute logic  
-• DO NOT transform data  
-• DO NOT invent fields  
-
-Flow must always be:
-
-Snowflake → Query Layer → API → UI
+• API confusion  
+• duplicate logic  
+• incorrect route edits  
+• business logic drift into the API layer  
 
 ---
 
-# ROOT API DIRECTORY
+# CORE RULE
 
-app/api/
+API routes are PASS-THROUGH ONLY.
+
+They may:
+
+• call query layer  
+• call Snowflake procedures  
+• return canonical results  
+
+They may NOT:
+
+• compute certification  
+• derive score / tier / band  
+• override Snowflake truth  
+• contain business logic  
+
+---
+
+# ARCHITECTURE
+
+Snowflake
+→ Views / Procedures
+→ Query Layer
+→ API Route
+→ UI
+
+No exceptions.
 
 ---
 
 # PUBLIC API ROUTES
 
----
+## Registry
 
-## /api/registry
-
-File:
-
-app/api/registry/route.ts
-
+### /api/registry
 Purpose:
+Return canonical public registry records.
 
-Returns list of registry records.
+Source:
+CORE.V_REGISTRY_PUBLIC
 
-Data Source:
-
+Query layer:
 lib/queries/registry.ts
 
-Functions:
+Frontend consumers:
+• /registry
+• homepage fallback metrics
+• explorer supporting checks
 
-getRegistryRecords()  
-searchRegistryRecords()
-
-Snowflake Source:
-
-GAFAIG_DB.CORE.V_REGISTRY_PUBLIC
-
-Query Parameters:
-
-• limit  
-• q  
-• country  
-• registryId  
-• caseId  
-• applicationId  
-
-Response:
-
-{
-  ok: true,
-  rows: [],
-  total: number,
-  limit: number,
-  filters: {}
-}
-
-Used By:
-
-• /registry  
-• /explorer  
-• search UI  
+Returns:
+• registryId
+• entityName
+• entityType
+• country
+• applicationId
+• caseId
+• certificationStatus
+• certifiedScore
+• certifiedTier
+• certifiedBand
+• decisionStatus
+• certifiedAt
+• validFrom
+• validTo
+• lastActivityAt
 
 ---
 
-## /api/registry/[registryId]
+### /api/registry/search
+Purpose:
+Search public registry records.
 
-Handled via:
+Source:
+CORE.V_REGISTRY_PUBLIC_SEARCH
 
+Frontend consumers:
+• registry search UI
+
+Returns:
+Search-filtered public registry rows
+
+---
+
+### /api/registry/[registryId]
+Purpose:
+Return a single registry record.
+
+Source:
+CORE.V_REGISTRY_PUBLIC
+
+Query layer:
 lib/queries/registry.ts
 
-Function:
-
-getRegistryByRegistryId()
-
-Purpose:
-
-Fetch a single registry record.
-
-Snowflake Source:
-
-V_REGISTRY_PUBLIC
-
-Used By:
-
+Frontend consumers:
 • /registry/[registryId]
 
+Returns:
+Single canonical public record
+
 ---
 
-## /api/verify/[registryId]
-
-File:
-
-app/api/verify/[registryId]/route.ts
-
+### /api/registry/[registryId]/ai-systems
 Purpose:
+Return AI systems attached to a registry record.
 
-Public verification endpoint.
+Source:
+CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC
 
-Enables:
+Frontend consumers:
+• /registry/ai-systems
+• /registry/ai-systems/[systemId]
+• registry detail supporting AI system surfaces
 
-• external validation  
-• registry trust verification  
-• machine-readable proof  
+Returns:
+Public AI system disclosures
 
-Data Source:
+---
 
-V_REGISTRY_PUBLIC
+## Verification
 
-Response:
+### /api/verify/[registryId]
+Purpose:
+Return public verification payload for a registry record.
 
-{
-  ok: true,
-  registryId: "...",
-  verified: true,
-  record: {},
-  proof: {
-    alg: "...",
-    signature: "...",
-    message: "...",
-    signedAt: "..."
-  }
-}
+Source:
+CORE.V_REGISTRY_PUBLIC
+plus verification proof generation logic
 
-Rules:
+Frontend consumers:
+• /registry/[registryId]
+• RegistryVerificationPanel
+• external verification consumers
 
-• must be deterministic  
-• must match registry view exactly  
-• no hidden transformations  
+Returns:
+• ok
+• verified
+• registryId
+• entity
+• entityType
+• country
+• applicationId
+• caseId
+• status
+• tier
+• band
+• score
+• decisionStatus
+• certifiedAt
+• validFrom
+• validTo
+• lastActivityAt
+• proof
+  - alg
+  - signature
+  - signedAt
+  - message
 
-Used By:
+Role:
+Public trust verification surface
 
-• registry detail page  
-• external consumers  
+---
+
+## Badge
+
+### /api/badge/[registryId]
+Purpose:
+Return tier badge image for a certified registry record.
+
+Source:
+CORE.V_REGISTRY_PUBLIC
+
+Frontend consumers:
+• /registry/[registryId]
+• external badge embedding
+• certification preview surfaces
+
+Assets:
+• /public/images/gafaig-badge-tier-1.png
+• /public/images/gafaig-badge-tier-2.png
+• /public/images/gafaig-badge-tier-3.png
+
+Behavior:
+• resolve certification tier
+• redirect to correct badge image
+• no business logic beyond mapping tier → asset
+
+---
+
+## Explorer
+
+### /api/explorer
+Purpose:
+Return public explorer analytics summary.
+
+Source:
+CORE.V_REGISTRY_PUBLIC
+CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC
+
+Query layer:
+lib/queries/explorer.ts
+
+Frontend consumers:
+• /explorer
+
+Returns:
+Explorer metrics and distributions
+
+---
+
+### /api/public/metrics
+Purpose:
+Return lightweight homepage trust metrics.
+
+Source:
+Explorer / registry summary layer
+
+Frontend consumers:
+• homepage (/)
+
+Returns:
+• certifiedOrganizations
+• disclosedAiSystems
+• countriesRepresented
+
+Fallback:
+Homepage may fall back to /api/registry if this route fails
 
 ---
 
 # ADMIN API ROUTES
 
+These routes are protected and may only be used within admin workflows.
+
 ---
 
-## /api/admin/login
+## Authentication
 
-File:
-
-app/api/admin/login/route.ts
-
+### /api/admin/login
 Purpose:
+Authenticate admin session
 
-• authenticate admin  
-• create session  
+Frontend consumers:
+• /admin/login
 
 ---
 
-## /api/admin/logout
-
+### /api/admin/logout
 Purpose:
+Terminate admin session
 
-• destroy session  
+Frontend consumers:
+• admin authenticated surfaces
 
 ---
 
-## /api/admin/status
-
+### /api/admin/status
 Purpose:
+Return current admin session status
 
-• check authentication state  
+Frontend consumers:
+• middleware-protected admin UI
+• admin auth checks
 
 ---
 
-## /api/admin/submissions
+## Applications
 
+### /api/admin/applications
 Purpose:
+Application list / intake operations
 
-• fetch application intake data  
+Source:
+CORE.APPLICATIONS
+
+Frontend consumers:
+• /admin/applications
 
 ---
 
-## /api/admin/verification/findings
-
+### /api/admin/applications/[requestId]
 Purpose:
+Single application access
 
-• CRUD for findings  
+Source:
+CORE.APPLICATIONS
+
+Frontend consumers:
+• /admin/applications/[requestId]
 
 ---
 
-## /api/admin/verification/evidence
-
+### /api/admin/applications/convert-to-case
 Purpose:
+Convert approved intake into verification case
 
-• manage evidence  
+Source:
+Applications + case creation procedure
+
+Frontend consumers:
+• admin workflow
 
 ---
 
-## /api/admin/verification/[caseId]/summaries
-
+### /api/admin/applications/start-verification
 Purpose:
+Start verification for an application
 
-• manage summaries  
+Source:
+case creation / verification workflow layer
+
+Frontend consumers:
+• admin workflow
 
 ---
 
-## /api/admin/verification/[caseId]/publish
-
-CRITICAL ROUTE
-
+### /api/admin/applications/status
 Purpose:
+Update or inspect application status
 
-Triggers registry publish.
+Source:
+CORE.APPLICATIONS
 
-Flow:
-
-API  
-→ Snowflake  
-→ SP_PUBLISH_CASE_TO_REGISTRY_V3  
-→ REGISTRY_SNAPSHOTS  
-→ V_REGISTRY_PUBLIC  
-
-Response:
-
-{
-  ok: true,
-  registryId: "...",
-  snapshotId: "...",
-  tier: "...",
-  band: "...",
-  score: number
-}
-
-Used By:
-
-• /admin/verification/[caseId]/score  
+Frontend consumers:
+• admin workflow
 
 ---
 
-# QUERY LAYER DEPENDENCY
+## Participants
 
-All public APIs depend on:
+### /api/admin/participants
+Purpose:
+List / create / manage participants
 
-lib/queries/registry.ts
+Source:
+CORE.PARTICIPANTS
 
-Functions:
-
-• getRegistryRecords()  
-• searchRegistryRecords()  
-• getRegistryByRegistryId()  
-
-Responsibilities:
-
-• execute SQL  
-• map Snowflake fields  
-• normalize output  
+Frontend consumers:
+• /admin/participants
 
 ---
 
-# SNOWFLAKE DEPENDENCIES
+### /api/admin/participants/[participantId]
+Purpose:
+Single participant detail
 
-Primary View:
+Source:
+CORE.PARTICIPANTS
 
-V_REGISTRY_PUBLIC
-
-Supporting View:
-
-V_REGISTRY_LATEST_APPROVED
-
-Source Table:
-
-REGISTRY_SNAPSHOTS
+Frontend consumers:
+• /admin/participants/[id]
 
 ---
 
-# DATA FLOW
+### /api/admin/participants/search
+Purpose:
+Search participants
 
-Snowflake  
-→ V_REGISTRY_PUBLIC  
-→ lib/queries/registry.ts  
-→ API  
-→ UI  
+Source:
+CORE.PARTICIPANTS
 
----
-
-# COMMON FAILURE CASES
+Frontend consumers:
+• admin participant selection UI
 
 ---
 
-Invalid Identifier Error
+## Verification Core
 
-Cause:
+### /api/admin/verification
+Purpose:
+General verification workflow access
 
-API references non-existent column
-
-Fix:
-
-Update Snowflake view  
-Update query layer  
+Frontend consumers:
+• /admin/verification
 
 ---
 
-Undefined Function Error
+### /api/admin/verification/[caseId]
+Purpose:
+Case-level verification access
 
-Cause:
+Source:
+CORE.VERIFICATION_CASES
 
-Missing export in query layer
-
-Fix:
-
-Export function in registry.ts  
-
----
-
-Empty Response
-
-Cause:
-
-Query mismatch or filters incorrect
-
-Fix:
-
-Validate SQL  
-Validate mapping  
+Frontend consumers:
+• /admin/verification/[caseId]
 
 ---
 
-# TEST ENDPOINTS
+### /api/admin/verification/cases
+Purpose:
+Case list / retrieval
+
+Source:
+CORE.VERIFICATION_CASES
+
+Frontend consumers:
+• verification admin surfaces
 
 ---
 
-Local:
+### /api/admin/verification/status
+Purpose:
+Verification status updates / reads
 
-http://localhost:3000/api/registry?caseId=CASE-0001  
+Source:
+CORE.VERIFICATION_CASES
 
-http://localhost:3000/api/verify/[registryId]  
-
----
-
-Production:
-
-https://www.gafaig.com/api/registry  
-
-https://www.gafaig.com/api/verify/[registryId]  
+Frontend consumers:
+• verification admin surfaces
 
 ---
 
-# SUCCESS CRITERIA
+## Findings
 
-✔ API returns valid JSON  
-✔ no SQL errors  
-✔ fields match Snowflake  
-✔ UI renders correctly  
+### /api/admin/verification/findings
+Purpose:
+Create / read / update findings
 
----
+Source:
+CORE.VERIFICATION_FINDINGS
 
-# NEXT PHASE
-
-• search endpoint improvements  
-• filtering enhancements  
-• analytics endpoints  
+Frontend consumers:
+• /admin/verification/[caseId]/findings
 
 ---
 
-END OF API ROUTE MAPPING
+### /api/admin/verification/[caseId]/findings
+Purpose:
+Case-specific findings retrieval
+
+Source:
+CORE.VERIFICATION_FINDINGS
+
+Frontend consumers:
+• findings UI
+
+---
+
+## Evidence
+
+### /api/admin/verification/evidence
+Purpose:
+General evidence access
+
+Source:
+CORE.VERIFICATION_EVIDENCE
+
+Frontend consumers:
+• evidence admin surfaces
+
+---
+
+### /api/admin/verification/[caseId]/evidence
+Purpose:
+Case-specific evidence retrieval
+
+Source:
+CORE.VERIFICATION_EVIDENCE
+
+Frontend consumers:
+• /admin/verification/[caseId]/evidence
+
+---
+
+### /api/admin/verification/evidence/link
+Purpose:
+Link evidence to findings
+
+Source:
+finding/evidence mapping layer
+
+Frontend consumers:
+• evidence workflow
+
+---
+
+### /api/admin/verification/evidence/upload
+Purpose:
+Upload evidence
+
+Source:
+CORE.VERIFICATION_EVIDENCE
+
+Frontend consumers:
+• evidence workflow
+
+---
+
+### /api/admin/verification/finding-evidence
+Purpose:
+Inspect finding ↔ evidence linkages
+
+Source:
+mapping layer
+
+Frontend consumers:
+• findings / evidence workflow
+
+---
+
+## Events
+
+### /api/admin/verification/events
+Purpose:
+Create / read verification events
+
+Source:
+CORE.VERIFICATION_EVENTS
+
+Frontend consumers:
+• /admin/verification/[caseId]/events
+
+---
+
+## Decisions
+
+### /api/admin/verification/decisions
+Purpose:
+Write governance decision rows
+
+Source:
+CORE.DECISIONS
+
+Frontend consumers:
+• /admin/verification/[caseId]/decisions
+
+Important:
+DECISIONS authorize approval/publish status
+They do NOT override engine score / tier / band
+
+---
+
+## Scoring
+
+### /api/admin/verification/[caseId]/score
+Purpose:
+Return case score information
+
+Source:
+CORE.V_GOVERNANCE_SCORE_CASE
+score snapshots
+
+Frontend consumers:
+• /admin/verification/[caseId]/score
+
+---
+
+## Publishing
+
+### /api/admin/verification/[caseId]/publish
+Purpose:
+Publish approved case to registry
+
+Source:
+CORE.SP_PUBLISH_CASE_TO_REGISTRY_V3 / V4
+
+Frontend consumers:
+• /admin/verification/[caseId]/publish
+
+Important:
+This is the only valid publish path
+
+---
+
+### /api/admin/publish
+Purpose:
+General publish entry point / compatibility layer
+
+Source:
+registry publish procedure
+
+Frontend consumers:
+• admin publishing actions
+
+---
+
+## Summaries
+
+### /api/admin/verification/[caseId]/summaries
+Purpose:
+Return case summary content
+
+Source:
+verification summary layer
+
+Frontend consumers:
+• admin verification UI
+
+---
+
+## Assignments
+
+### /api/admin/verification/assignments
+Purpose:
+Case assignment operations
+
+Frontend consumers:
+• /admin/verification/[caseId]/assignments
+
+---
+
+### /api/admin/verification/[caseId]/assignments
+Purpose:
+Case-level assignment access
+
+Frontend consumers:
+• assignment UI
+
+---
+
+## AI Systems
+
+### /api/admin/verification/[caseId]/ai-systems
+Purpose:
+Manage AI systems linked to case
+
+Source:
+CORE.REGISTRY_AI_SYSTEMS or related case-level AI systems layer
+
+Frontend consumers:
+• /admin/verification/[caseId]/ai-systems
+
+---
+
+# SUPPORT / DEBUG ROUTES
+
+These are operational helpers, not core public trust surfaces.
+
+### /api/admin/debug/snowflake
+Purpose:
+Snowflake connectivity / admin diagnostics
+
+---
+
+### /api/debug/sf
+Purpose:
+Snowflake connectivity diagnostics
+
+---
+
+### /api/admin/email-test
+Purpose:
+Email testing
+
+---
+
+### /api/admin/demo-login
+Purpose:
+Demo admin access
+
+---
+
+### /api/admin/metrics
+Purpose:
+Admin dashboard metrics
+
+---
+
+# OTHER PUBLIC UTILITY ROUTES
+
+### /api/apply
+Purpose:
+Application submission entry
+
+---
+
+### /api/submit
+Purpose:
+Submission handling
+
+---
+
+### /api/renewal
+Purpose:
+Renewal workflow entry
+
+---
+
+### /api/ask
+Purpose:
+Question / intake endpoint
+
+---
+
+### /api/participants
+Purpose:
+Public participant-related access
+
+---
+
+### /api/participants/[slug]
+Purpose:
+Single participant public access
+
+---
+
+# MOST CRITICAL ROUTES
+
+If only a few matter, they are:
+
+1. /api/registry
+2. /api/verify/[registryId]
+3. /api/badge/[registryId]
+4. /api/explorer
+5. /api/admin/verification/[caseId]/publish
+
+---
+
+# FILE OWNERSHIP MAP
+
+## Public trust routes
+
+/app/api/registry/*
+/app/api/verify/*
+/app/api/badge/*
+/app/api/explorer/*
+/app/api/public/metrics
+
+---
+
+## Admin workflow routes
+
+/app/api/admin/verification/*
+/app/api/admin/applications/*
+/app/api/admin/login
+/app/api/admin/logout
+/app/api/admin/status
+
+---
+
+# FINAL RULE
+
+If an API route appears to contain business logic:
+
+→ it is wrong  
+→ trace logic back into Snowflake  
+
+---
+
+# END STATE
+
+A fully controlled API surface where:
+
+• Snowflake determines truth  
+• API transports truth  
+• UI displays truth  
+
+--- 

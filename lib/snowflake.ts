@@ -1,262 +1,183 @@
+import fs from "fs";
+import path from "path";
 import snowflake from "snowflake-sdk";
 
-type QueryError = {
-  ok: false;
-  rows: [];
-  error: string;
-};
+type BindValue =
+  | string
+  | number
+  | boolean
+  | null
+  | Date
+  | Uint8Array;
 
-type QuerySuccess<T> = {
-  ok: true;
-  rows: T[];
-};
+let connectionPromise: Promise<snowflake.Connection> | null = null;
 
-export type SfQueryResult<T> = QuerySuccess<T> | QueryError;
-
-function env(name: string): string | undefined {
+function getEnv(name: string): string | null {
   const value = process.env[name];
-  if (typeof value !== "string") return undefined;
-  const trimmed = value.trim();
-  return trimmed.length > 0 ? trimmed : undefined;
+  if (!value || !value.trim()) return null;
+  return value.trim();
 }
 
-function requireEnv(value: string | undefined, name: string): string {
+function requireEnv(name: string): string {
+  const value = getEnv(name);
   if (!value) {
     throw new Error(`Missing required environment variable: ${name}`);
   }
   return value;
 }
 
-function getSnowflakeEnv() {
-  const account = env("SNOWFLAKE_ACCOUNT");
-  const username = env("SNOWFLAKE_USER") ?? env("SNOWFLAKE_USERNAME");
-  const warehouse = env("SNOWFLAKE_WAREHOUSE");
-  const database = env("SNOWFLAKE_DATABASE");
-  const schema = env("SNOWFLAKE_SCHEMA");
-  const role = env("SNOWFLAKE_ROLE");
+function loadPrivateKey(): string {
+  const privateKeyPath = requireEnv("SNOWFLAKE_PRIVATE_KEY_PATH");
+  const resolvedPath = path.resolve(process.cwd(), privateKeyPath);
 
-  const password = env("SNOWFLAKE_PASSWORD");
-  const privateKey = env("SNOWFLAKE_PRIVATE_KEY");
-  const privateKeyPath = env("SNOWFLAKE_PRIVATE_KEY_PATH");
-  const privateKeyPass = env("SNOWFLAKE_PRIVATE_KEY_PASSPHRASE");
-
-  return {
-    account,
-    username,
-    warehouse,
-    database,
-    schema,
-    role,
-    password,
-    privateKey,
-    privateKeyPath,
-    privateKeyPass,
-  };
-}
-
-function normalizePem(raw: string): string {
-  return raw.replace(/\r\n/g, "\n").trim();
-}
-
-function buildConnectionConfig(): snowflake.ConnectionOptions {
-  const {
-    account,
-    username,
-    warehouse,
-    database,
-    schema,
-    role,
-    password,
-    privateKey,
-    privateKeyPath,
-    privateKeyPass,
-  } = getSnowflakeEnv();
-
-  const cfg: snowflake.ConnectionOptions = {
-    account: requireEnv(account, "SNOWFLAKE_ACCOUNT"),
-    username: requireEnv(username, "SNOWFLAKE_USER or SNOWFLAKE_USERNAME"),
-    warehouse: requireEnv(warehouse, "SNOWFLAKE_WAREHOUSE"),
-    database: requireEnv(database, "SNOWFLAKE_DATABASE"),
-    schema: requireEnv(schema, "SNOWFLAKE_SCHEMA"),
-    clientSessionKeepAlive: false,
-  };
-
-  if (role) {
-    cfg.role = role;
+  if (!fs.existsSync(resolvedPath)) {
+    throw new Error(`Snowflake private key file not found: ${resolvedPath}`);
   }
 
-  if (password) {
-    cfg.password = password;
-    return cfg;
-  }
+  return fs.readFileSync(resolvedPath, "utf8");
+}
 
-  if (privateKey) {
-    cfg.authenticator = "SNOWFLAKE_JWT";
-    cfg.privateKey = normalizePem(privateKey);
-    if (privateKeyPass) {
-      cfg.privateKeyPass = privateKeyPass;
+async function getConnection(): Promise<snowflake.Connection> {
+  if (connectionPromise) return connectionPromise;
+
+  connectionPromise = new Promise((resolve, reject) => {
+    const account = requireEnv("SNOWFLAKE_ACCOUNT");
+    const username =
+      getEnv("SNOWFLAKE_USER") ??
+      getEnv("SNOWFLAKE_USERNAME") ??
+      requireEnv("SNOWFLAKE_USER");
+
+    const warehouse = getEnv("SNOWFLAKE_WAREHOUSE") ?? "GAFAIG_WH";
+    const database = getEnv("SNOWFLAKE_DATABASE") ?? "GAFAIG_DB";
+    const schema = getEnv("SNOWFLAKE_SCHEMA") ?? "CORE";
+    const role = getEnv("SNOWFLAKE_ROLE") ?? "GAFAIG_APP_ROLE";
+
+    const password = getEnv("SNOWFLAKE_PASSWORD");
+    const privateKeyPath = getEnv("SNOWFLAKE_PRIVATE_KEY_PATH");
+
+    const config: Record<string, unknown> = {
+      account,
+      username,
+      warehouse,
+      database,
+      schema,
+      role,
+      clientSessionKeepAlive: true,
+    };
+
+    if (password) {
+      config.password = password;
+    } else if (privateKeyPath) {
+      config.authenticator = "SNOWFLAKE_JWT";
+      config.privateKey = loadPrivateKey();
+    } else {
+      connectionPromise = null;
+      reject(
+        new Error(
+          "Missing Snowflake auth. Provide SNOWFLAKE_PASSWORD or SNOWFLAKE_PRIVATE_KEY_PATH."
+        )
+      );
+      return;
     }
-    return cfg;
-  }
 
-  if (privateKeyPath) {
-    cfg.authenticator = "SNOWFLAKE_JWT";
-    cfg.privateKeyPath = privateKeyPath;
-    if (privateKeyPass) {
-      cfg.privateKeyPass = privateKeyPass;
-    }
-    return cfg;
-  }
+    const connection = snowflake.createConnection(
+      config as snowflake.ConnectionOptions
+    );
 
-  throw new Error(
-    "Missing Snowflake auth configuration. Provide SNOWFLAKE_PASSWORD or SNOWFLAKE_PRIVATE_KEY or SNOWFLAKE_PRIVATE_KEY_PATH.",
-  );
-}
-
-export function createConnection(): snowflake.Connection {
-  return snowflake.createConnection(buildConnectionConfig());
-}
-
-async function connectNewConnection(): Promise<snowflake.Connection> {
-  const connection = createConnection();
-
-  await new Promise<void>((resolve, reject) => {
     connection.connect((err) => {
       if (err) {
+        connectionPromise = null;
         reject(err);
         return;
       }
-      resolve();
+      resolve(connection);
     });
   });
 
-  return connection;
+  return connectionPromise;
 }
 
-async function executeOnConnection<T = any>(
+function splitStatements(sqlText: string): string[] {
+  return sqlText
+    .split(";")
+    .map((s) => s.trim())
+    .filter(Boolean);
+}
+
+function executeStatement<T = Record<string, unknown>>(
   connection: snowflake.Connection,
   sqlText: string,
-  binds: any[] = [],
+  binds: BindValue[] = []
 ): Promise<T[]> {
-  return new Promise<T[]>((resolve, reject) => {
+  return new Promise((resolve, reject) => {
     connection.execute({
       sqlText,
       binds,
-      complete: (execErr, _stmt, rows) => {
-        if (execErr) {
-          reject(execErr);
+      complete: (err, _stmt, rows) => {
+        if (err) {
+          reject(err);
           return;
         }
-
         resolve((rows ?? []) as T[]);
       },
     });
   });
 }
 
-async function destroyConnectionQuietly(connection: snowflake.Connection) {
-  await new Promise<void>((resolve) => {
-    try {
-      connection.destroy((_err, _conn) => resolve());
-    } catch {
-      resolve();
-    }
-  });
+async function ensureCanonicalContext(
+  connection: snowflake.Connection
+): Promise<void> {
+  const database = getEnv("SNOWFLAKE_DATABASE") ?? "GAFAIG_DB";
+  const schema = getEnv("SNOWFLAKE_SCHEMA") ?? "CORE";
+  const warehouse = getEnv("SNOWFLAKE_WAREHOUSE") ?? "GAFAIG_WH";
+  const role = getEnv("SNOWFLAKE_ROLE") ?? "GAFAIG_APP_ROLE";
+
+  await executeStatement(connection, `USE ROLE ${role}`);
+  await executeStatement(connection, `USE WAREHOUSE ${warehouse}`);
+  await executeStatement(connection, `USE DATABASE ${database}`);
+  await executeStatement(connection, `USE SCHEMA ${schema}`);
 }
 
-async function runQuery<T = any>(sqlText: string, binds: any[] = []): Promise<T[]> {
-  const connection = await connectNewConnection();
+export async function sfQuery<T = Record<string, unknown>>(
+  sqlText: string,
+  binds: BindValue[] = []
+): Promise<T[]> {
+  const connection = await getConnection();
+  await ensureCanonicalContext(connection);
 
-  try {
-    await executeOnConnection(connection, "ALTER SESSION SET AUTOCOMMIT = TRUE");
+  const statements = splitStatements(sqlText);
 
-    const rows = await executeOnConnection<T>(connection, sqlText, binds);
+  if (statements.length === 0) return [];
 
-    try {
-      await executeOnConnection(connection, "COMMIT");
-    } catch {
-      // harmless when no transaction is open
-    }
-
-    return rows;
-  } catch (error) {
-    try {
-      await executeOnConnection(connection, "ROLLBACK");
-    } catch {
-      // ignore rollback failures
-    }
-    throw error;
-  } finally {
-    await destroyConnectionQuietly(connection);
+  if (statements.length === 1) {
+    return executeStatement<T>(connection, statements[0], binds);
   }
-}
 
-export async function sfQuery<T = any>(
-  sqlText: string,
-  binds: any[] = [],
-): Promise<T[]> {
-  return runQuery<T>(sqlText, binds);
-}
-
-export async function snowflakeQuery<T = any>(
-  sqlText: string,
-  binds: any[] = [],
-): Promise<T[]> {
-  return runQuery<T>(sqlText, binds);
-}
-
-export async function executeQuery<T = any>(
-  sqlText: string,
-  binds: any[] = [],
-): Promise<T[]> {
-  return runQuery<T>(sqlText, binds);
-}
-
-export async function sfQueryResult<T = any>(
-  sqlText: string,
-  binds: any[] = [],
-): Promise<SfQueryResult<T>> {
-  try {
-    const rows = await runQuery<T>(sqlText, binds);
-    return {
-      ok: true,
-      rows,
-    };
-  } catch (error: any) {
-    return {
-      ok: false,
-      rows: [],
-      error: error?.message || "Snowflake query failed.",
-    };
+  let lastRows: T[] = [];
+  for (let i = 0; i < statements.length; i += 1) {
+    const statementBinds = i === statements.length - 1 ? binds : [];
+    lastRows = await executeStatement<T>(connection, statements[i], statementBinds);
   }
+  return lastRows;
 }
 
-export function snowflakeCtx() {
-  const {
-    account,
-    username,
-    warehouse,
-    database,
-    schema,
-    role,
-    password,
-    privateKey,
-    privateKeyPath,
-  } = getSnowflakeEnv();
+export async function sfExec(
+  sqlText: string,
+  binds: BindValue[] = []
+): Promise<void> {
+  await sfQuery(sqlText, binds);
+}
 
-  return {
-    account: account ?? null,
-    username: username ?? null,
-    warehouse: warehouse ?? null,
-    database: database ?? null,
-    schema: schema ?? null,
-    role: role ?? null,
-    authMode: password
-      ? "password"
-      : privateKey
-        ? "privateKey"
-        : privateKeyPath
-          ? "privateKeyPath"
-          : "missing",
-  };
+export async function sfContext(): Promise<Record<string, unknown> | null> {
+  const rows = await sfQuery<Record<string, unknown>>(
+    `
+    SELECT
+      CURRENT_ACCOUNT() AS ACCOUNT,
+      CURRENT_ROLE() AS ROLE,
+      CURRENT_WAREHOUSE() AS WAREHOUSE,
+      CURRENT_DATABASE() AS DATABASE,
+      CURRENT_SCHEMA() AS SCHEMA
+    `
+  );
+  return rows[0] ?? null;
 }
