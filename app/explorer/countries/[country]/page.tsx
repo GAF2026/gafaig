@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { sfQuery } from "@/lib/snowflake";
-import PublicPageHero from "@/app/components/PublicPageHero";
 
 export const dynamic = "force-dynamic";
 
@@ -144,11 +143,47 @@ export default async function ExplorerCountryDetailPage({
 
   return (
     <main className="mx-auto max-w-[1180px] px-6 pb-16 pt-14">
-      <PublicPageHero
-        eyebrow="EXPLORER"
-        title={`Explorer — ${country}`}
-        description={`Public country-level drill-down for GAFAIG-certified organizations and disclosed AI systems in ${country}.`}
-      />
+      <section className="rounded-3xl border border-black/10 bg-white px-8 py-10 md:px-10 md:py-12">
+        <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
+          EXPLORER
+        </div>
+
+        <h1 className="mt-4 max-w-[760px] text-[36px] font-semibold leading-[1.08] tracking-tight text-black md:text-[52px]">
+          Explorer — {country}
+        </h1>
+
+        <p className="mt-5 max-w-[820px] text-[17px] leading-[1.7] text-black/72">
+          Public country-level drill-down for GAFAIG-certified organizations and
+          disclosed AI systems in {country}.
+        </p>
+
+        <div className="mt-8 flex flex-wrap gap-3">
+          <Link
+            href="/explorer"
+            className="rounded-full border border-black bg-black px-5 py-3 text-sm font-semibold text-white transition hover:bg-black/90"
+          >
+            Back to explorer
+          </Link>
+          <Link
+            href="/explorer/countries"
+            className="rounded-full border border-black px-5 py-3 text-sm font-semibold transition hover:bg-black/[0.04]"
+          >
+            All countries
+          </Link>
+          <Link
+            href="/explorer/organizations"
+            className="rounded-full border border-black px-5 py-3 text-sm font-semibold transition hover:bg-black/[0.04]"
+          >
+            View organizations
+          </Link>
+          <Link
+            href="/explorer/systems"
+            className="rounded-full border border-black px-5 py-3 text-sm font-semibold transition hover:bg-black/[0.04]"
+          >
+            View systems
+          </Link>
+        </div>
+      </section>
 
       <section className="mt-10 grid gap-4 md:grid-cols-4">
         <MetricCard label="Organizations" value={String(totalOrganizations)} />
