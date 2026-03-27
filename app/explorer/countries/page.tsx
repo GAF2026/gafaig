@@ -1,44 +1,44 @@
 import Link from "next/link";
-import { sfQueryResult } from "@/lib/snowflake";
-import PublicPageHero from "../../_components/PublicPageHero";
+import { sfQuery } from "@/lib/snowflake";
 
 export const dynamic = "force-dynamic";
 
 type CountryOrgRow = {
+  REGISTRY_ID: string;
+  ENTITY_NAME: string;
   COUNTRY: string | null;
-  ORGANIZATION_COUNT: number | null;
-  APPROVED_COUNT: number | null;
-  TIER_A_COUNT: number | null;
-  TIER_B_COUNT: number | null;
-  TIER_C_COUNT: number | null;
+  CERTIFIED_TIER: string | null;
+  CERTIFIED_BAND: string | null;
+  DECISION_STATUS: string;
+  CERTIFIED_AT: string | null;
 };
 
 type CountrySystemRow = {
+  SYSTEM_ID: string;
+  REGISTRY_ID: string | null;
+  ENTITY_NAME: string | null;
+  SYSTEM_NAME: string | null;
+  SYSTEM_TYPE: string | null;
+  DEPLOYMENT_STATUS: string | null;
+  OVERSIGHT_LEVEL: string | null;
+  RISK_TIER: string | null;
   COUNTRY: string | null;
-  SYSTEM_COUNT: number | null;
-  AVG_GOVERNANCE_MATURITY_SCORE: number | null;
-  HIGH_RISK_SYSTEM_COUNT: number | null;
-  MEDIUM_RISK_SYSTEM_COUNT: number | null;
-  LOW_RISK_SYSTEM_COUNT: number | null;
+  CERTIFIED_TIER: string | null;
+  CERTIFIED_BAND: string | null;
+  GOVERNANCE_MATURITY_SCORE: number | null;
 };
 
 type CountryRow = {
   country: string;
-  organizationCount: number;
-  approvedCount: number;
-  tierACount: number;
-  tierBCount: number;
-  tierCCount: number;
-  systemCount: number;
-  avgGovernanceMaturityScore: number | null;
-  highRiskSystemCount: number;
-  mediumRiskSystemCount: number;
-  lowRiskSystemCount: number;
+  organizations: number;
+  approvedOrganizations: number;
+  systems: number;
+  avgMaturity: number | null;
+  highRisk: number;
+  mediumRisk: number;
+  lowRisk: number;
+  topTierMix: string;
 };
-
-function num(value: number | null | undefined) {
-  return Number(value ?? 0);
-}
 
 function formatScore(value: number | null | undefined) {
   if (value === null || value === undefined || Number.isNaN(Number(value))) {
@@ -47,281 +47,278 @@ function formatScore(value: number | null | undefined) {
   return `${Math.round(Number(value))} / 100`;
 }
 
-function scoreNarrative(value: number | null | undefined) {
-  if (value === null || value === undefined || Number.isNaN(Number(value))) {
-    return "No published maturity average yet.";
-  }
+function average(values: Array<number | null | undefined>) {
+  const usable = values
+    .map((v) => (v === null || v === undefined ? null : Number(v)))
+    .filter((v): v is number => v !== null && !Number.isNaN(v));
 
-  const n = Number(value);
-  if (n >= 90) return "Very strong public governance maturity.";
-  if (n >= 75) return "Solid public governance maturity.";
-  if (n >= 60) return "Developing governance maturity.";
-  return "Limited published governance maturity.";
+  if (usable.length === 0) return null;
+  return usable.reduce((sum, v) => sum + v, 0) / usable.length;
 }
 
-function sortRows(rows: CountryRow[]) {
-  return [...rows].sort((a, b) => {
-    if (b.organizationCount !== a.organizationCount) {
-      return b.organizationCount - a.organizationCount;
-    }
-    if (b.systemCount !== a.systemCount) {
-      return b.systemCount - a.systemCount;
-    }
-    return a.country.localeCompare(b.country);
-  });
+function normalizeCountry(value: string | null | undefined) {
+  return String(value || "").trim();
+}
+
+function tierMixLabel(rows: CountryOrgRow[]) {
+  const counts = rows.reduce((acc, row) => {
+    const tier = String(row.CERTIFIED_TIER ?? "").trim().toUpperCase();
+    if (tier) acc[tier] = (acc[tier] ?? 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
+
+  const entries = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+  if (entries.length === 0) return "—";
+
+  return entries
+    .slice(0, 2)
+    .map(([tier, count]) => `${tier} (${count})`)
+    .join(" · ");
 }
 
 export default async function ExplorerCountriesPage() {
-  const [orgRes, systemRes] = await Promise.all([
-    sfQueryResult<CountryOrgRow>(
+  const [orgRows, systemRows] = await Promise.all([
+    sfQuery<CountryOrgRow>(
       `
       SELECT
+        REGISTRY_ID,
+        ENTITY_NAME,
         COUNTRY,
-        COUNT(*) AS ORGANIZATION_COUNT,
-        SUM(IFF(UPPER(COALESCE(DECISION_STATUS, '')) = 'APPROVED', 1, 0)) AS APPROVED_COUNT,
-        SUM(IFF(UPPER(COALESCE(CERTIFIED_BAND, '')) = 'A', 1, 0)) AS TIER_A_COUNT,
-        SUM(IFF(UPPER(COALESCE(CERTIFIED_BAND, '')) = 'B', 1, 0)) AS TIER_B_COUNT,
-        SUM(IFF(UPPER(COALESCE(CERTIFIED_BAND, '')) = 'C', 1, 0)) AS TIER_C_COUNT
+        CERTIFIED_TIER,
+        CERTIFIED_BAND,
+        DECISION_STATUS,
+        CERTIFIED_AT
       FROM GAFAIG_DB.CORE.V_REGISTRY_PUBLIC
-      WHERE COUNTRY IS NOT NULL
-      GROUP BY COUNTRY
-      ORDER BY ORGANIZATION_COUNT DESC, COUNTRY ASC
+      ORDER BY COUNTRY ASC, ENTITY_NAME ASC
       `
     ),
-    sfQueryResult<CountrySystemRow>(
+    sfQuery<CountrySystemRow>(
       `
       SELECT
+        s.SYSTEM_ID,
+        s.REGISTRY_ID,
+        r.ENTITY_NAME,
+        s.SYSTEM_NAME,
+        s.SYSTEM_TYPE,
+        s.DEPLOYMENT_STATUS,
+        s.OVERSIGHT_LEVEL,
+        s.RISK_TIER,
         r.COUNTRY,
-        COUNT(*) AS SYSTEM_COUNT,
-        AVG(
-          CASE
-            WHEN UPPER(COALESCE(r.CERTIFIED_BAND, '')) = 'A' THEN 95
-            WHEN UPPER(COALESCE(r.CERTIFIED_BAND, '')) = 'B' THEN 85
-            WHEN UPPER(COALESCE(r.CERTIFIED_BAND, '')) = 'C' THEN 75
-            ELSE NULL
-          END
-        ) AS AVG_GOVERNANCE_MATURITY_SCORE,
-        SUM(IFF(UPPER(COALESCE(s.RISK_TIER, '')) = 'HIGH', 1, 0)) AS HIGH_RISK_SYSTEM_COUNT,
-        SUM(IFF(UPPER(COALESCE(s.RISK_TIER, '')) = 'MEDIUM', 1, 0)) AS MEDIUM_RISK_SYSTEM_COUNT,
-        SUM(IFF(UPPER(COALESCE(s.RISK_TIER, '')) = 'LOW', 1, 0)) AS LOW_RISK_SYSTEM_COUNT
+        r.CERTIFIED_TIER,
+        r.CERTIFIED_BAND,
+        CASE
+          WHEN UPPER(COALESCE(r.CERTIFIED_BAND, '')) = 'A' THEN 95
+          WHEN UPPER(COALESCE(r.CERTIFIED_BAND, '')) = 'B' THEN 85
+          WHEN UPPER(COALESCE(r.CERTIFIED_BAND, '')) = 'C' THEN 75
+          ELSE NULL
+        END AS GOVERNANCE_MATURITY_SCORE
       FROM GAFAIG_DB.CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC s
       LEFT JOIN GAFAIG_DB.CORE.V_REGISTRY_PUBLIC r
         ON s.REGISTRY_ID = r.REGISTRY_ID
-      WHERE r.COUNTRY IS NOT NULL
-      GROUP BY r.COUNTRY
-      ORDER BY SYSTEM_COUNT DESC, r.COUNTRY ASC
+      ORDER BY r.COUNTRY ASC, s.SYSTEM_NAME ASC
       `
     ),
   ]);
 
-  const orgRows = orgRes.ok ? orgRes.rows ?? [] : [];
-  const systemRows = systemRes.ok ? systemRes.rows ?? [] : [];
-
   const byCountry = new Map<string, CountryRow>();
 
   for (const row of orgRows) {
-    const country = String(row.COUNTRY ?? "").trim();
+    const country = normalizeCountry(row.COUNTRY);
     if (!country) continue;
 
-    byCountry.set(country, {
+    const current = byCountry.get(country) ?? {
       country,
-      organizationCount: num(row.ORGANIZATION_COUNT),
-      approvedCount: num(row.APPROVED_COUNT),
-      tierACount: num(row.TIER_A_COUNT),
-      tierBCount: num(row.TIER_B_COUNT),
-      tierCCount: num(row.TIER_C_COUNT),
-      systemCount: 0,
-      avgGovernanceMaturityScore: null,
-      highRiskSystemCount: 0,
-      mediumRiskSystemCount: 0,
-      lowRiskSystemCount: 0,
-    });
+      organizations: 0,
+      approvedOrganizations: 0,
+      systems: 0,
+      avgMaturity: null,
+      highRisk: 0,
+      mediumRisk: 0,
+      lowRisk: 0,
+      topTierMix: "—",
+    };
+
+    current.organizations += 1;
+
+    if (String(row.DECISION_STATUS ?? "").toUpperCase() === "APPROVED") {
+      current.approvedOrganizations += 1;
+    }
+
+    byCountry.set(country, current);
   }
 
   for (const row of systemRows) {
-    const country = String(row.COUNTRY ?? "").trim();
+    const country = normalizeCountry(row.COUNTRY);
     if (!country) continue;
 
-    const existing = byCountry.get(country) ?? {
+    const current = byCountry.get(country) ?? {
       country,
-      organizationCount: 0,
-      approvedCount: 0,
-      tierACount: 0,
-      tierBCount: 0,
-      tierCCount: 0,
-      systemCount: 0,
-      avgGovernanceMaturityScore: null,
-      highRiskSystemCount: 0,
-      mediumRiskSystemCount: 0,
-      lowRiskSystemCount: 0,
+      organizations: 0,
+      approvedOrganizations: 0,
+      systems: 0,
+      avgMaturity: null,
+      highRisk: 0,
+      mediumRisk: 0,
+      lowRisk: 0,
+      topTierMix: "—",
     };
 
-    existing.systemCount = num(row.SYSTEM_COUNT);
-    existing.avgGovernanceMaturityScore =
-      row.AVG_GOVERNANCE_MATURITY_SCORE === null ||
-      row.AVG_GOVERNANCE_MATURITY_SCORE === undefined
-        ? null
-        : Number(row.AVG_GOVERNANCE_MATURITY_SCORE);
-    existing.highRiskSystemCount = num(row.HIGH_RISK_SYSTEM_COUNT);
-    existing.mediumRiskSystemCount = num(row.MEDIUM_RISK_SYSTEM_COUNT);
-    existing.lowRiskSystemCount = num(row.LOW_RISK_SYSTEM_COUNT);
+    current.systems += 1;
 
-    byCountry.set(country, existing);
+    const risk = String(row.RISK_TIER ?? "").trim().toUpperCase();
+    if (risk === "HIGH") current.highRisk += 1;
+    if (risk === "MEDIUM") current.mediumRisk += 1;
+    if (risk === "LOW") current.lowRisk += 1;
+
+    byCountry.set(country, current);
   }
 
-  const rows = sortRows(Array.from(byCountry.values()));
+  const orgRowsByCountry = new Map<string, CountryOrgRow[]>();
+  for (const row of orgRows) {
+    const country = normalizeCountry(row.COUNTRY);
+    if (!country) continue;
+    const arr = orgRowsByCountry.get(country) ?? [];
+    arr.push(row);
+    orgRowsByCountry.set(country, arr);
+  }
 
-  const totalCountries = rows.length;
-  const totalOrganizations = rows.reduce(
-    (sum, row) => sum + row.organizationCount,
-    0
-  );
-  const totalSystems = rows.reduce((sum, row) => sum + row.systemCount, 0);
+  const systemRowsByCountry = new Map<string, CountrySystemRow[]>();
+  for (const row of systemRows) {
+    const country = normalizeCountry(row.COUNTRY);
+    if (!country) continue;
+    const arr = systemRowsByCountry.get(country) ?? [];
+    arr.push(row);
+    systemRowsByCountry.set(country, arr);
+  }
+
+  for (const [country, current] of byCountry.entries()) {
+    const systems = systemRowsByCountry.get(country) ?? [];
+    current.avgMaturity = average(
+      systems.map((row) => row.GOVERNANCE_MATURITY_SCORE)
+    );
+    current.topTierMix = tierMixLabel(orgRowsByCountry.get(country) ?? []);
+    byCountry.set(country, current);
+  }
+
+  const countries = Array.from(byCountry.values()).sort((a, b) => {
+    if (b.organizations !== a.organizations) {
+      return b.organizations - a.organizations;
+    }
+    return a.country.localeCompare(b.country);
+  });
 
   return (
     <main className="mx-auto max-w-[1180px] px-6 pb-16 pt-14">
-      <PublicPageHero
-        eyebrow="EXPLORER"
-        title="Explorer — Countries"
-        description="Public country-level view of the GAFAIG registry, showing where certified organizations and disclosed AI systems are represented, along with public governance maturity and risk distribution where available."
-        actions={
-          <>
-            <Link
-              href="/explorer"
-              className="rounded-full border border-black bg-black px-5 py-3 text-sm font-semibold text-white transition hover:bg-black/90"
-            >
-              Back to explorer
-            </Link>
-            <Link
-              href="/explorer/organizations"
-              className="rounded-full border border-black px-5 py-3 text-sm font-semibold transition hover:bg-black/[0.04]"
-            >
-              View organizations
-            </Link>
-            <Link
-              href="/explorer/systems"
-              className="rounded-full border border-black px-5 py-3 text-sm font-semibold transition hover:bg-black/[0.04]"
-            >
-              View systems
-            </Link>
-            <Link
-              href="/explorer/map"
-              className="rounded-full border border-black px-5 py-3 text-sm font-semibold transition hover:bg-black/[0.04]"
-            >
-              Open map
-            </Link>
-          </>
-        }
-      />
+      <section className="rounded-3xl border border-black/10 bg-white px-8 py-10 md:px-10 md:py-12">
+        <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
+          EXPLORER
+        </div>
 
-      {!orgRes.ok ? (
-        <ErrorBox message={orgRes.error} />
-      ) : !systemRes.ok ? (
-        <ErrorBox message={systemRes.error} />
-      ) : (
-        <>
-          <section className="mt-10 grid gap-4 md:grid-cols-3">
-            <MetricCard
-              label="Countries represented"
-              value={String(totalCountries)}
-            />
-            <MetricCard
-              label="Certified organizations"
-              value={String(totalOrganizations)}
-            />
-            <MetricCard
-              label="Disclosed AI systems"
-              value={String(totalSystems)}
-            />
-          </section>
+        <h1 className="mt-4 max-w-[760px] text-[36px] font-semibold leading-[1.08] tracking-tight text-black md:text-[52px]">
+          Explorer — Countries
+        </h1>
 
-          <section className="mt-10 rounded-3xl border border-black/10 bg-white p-8 md:p-10">
-            <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
-              COUNTRIES
-            </div>
+        <p className="mt-5 max-w-[820px] text-[17px] leading-[1.7] text-black/72">
+          Country-level public explorer view for GAFAIG-certified organizations
+          and disclosed AI systems. Compare organization counts, disclosed
+          system activity, and governance maturity across countries.
+        </p>
 
-            <h2 className="mt-4 max-w-[760px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
-              Country-level public governance visibility
-            </h2>
+        <div className="mt-8 flex flex-wrap gap-3">
+          <Link
+            href="/explorer"
+            className="rounded-full border border-black bg-black px-5 py-3 text-sm font-semibold text-white transition hover:bg-black/90"
+          >
+            Back to explorer
+          </Link>
+          <Link
+            href="/explorer/organizations"
+            className="rounded-full border border-black px-5 py-3 text-sm font-semibold transition hover:bg-black/[0.04]"
+          >
+            View organizations
+          </Link>
+          <Link
+            href="/explorer/systems"
+            className="rounded-full border border-black px-5 py-3 text-sm font-semibold transition hover:bg-black/[0.04]"
+          >
+            View systems
+          </Link>
+        </div>
+      </section>
 
-            {rows.length === 0 ? (
-              <div className="mt-8 rounded-2xl border border-black/10 p-6 text-sm text-black/70">
-                No country-level public registry data is available yet.
-              </div>
-            ) : (
-              <div className="mt-8 grid gap-4">
-                {rows.map((row) => (
-                  <div
-                    key={row.country}
-                    className="rounded-2xl border border-black/10 p-5"
-                  >
-                    <div className="flex flex-wrap items-start justify-between gap-4">
-                      <div>
-                        <h2 className="text-[22px] font-semibold text-black">
-                          <Link
-                            href={`/explorer/countries/${encodeURIComponent(
-                              row.country
-                            )}`}
-                            className="hover:underline"
-                          >
-                            {row.country}
-                          </Link>
-                        </h2>
-                        <p className="mt-2 text-[14px] leading-[1.8] text-black/70">
-                          {scoreNarrative(row.avgGovernanceMaturityScore)}
-                        </p>
-                      </div>
+      <section className="mt-10 grid gap-4 md:grid-cols-4">
+        <MetricCard label="Countries" value={String(countries.length)} />
+        <MetricCard label="Organizations" value={String(orgRows.length)} />
+        <MetricCard label="Disclosed systems" value={String(systemRows.length)} />
+        <MetricCard
+          label="Avg maturity"
+          value={formatScore(
+            average(systemRows.map((row) => row.GOVERNANCE_MATURITY_SCORE))
+          )}
+        />
+      </section>
 
-                      <div className="rounded-xl border border-black/10 px-4 py-3">
-                        <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-black/55">
-                          Avg maturity
-                        </div>
-                        <div className="mt-2 text-[20px] font-semibold text-black">
-                          {formatScore(row.avgGovernanceMaturityScore)}
-                        </div>
-                      </div>
-                    </div>
+      <section className="mt-10 rounded-3xl border border-black/10 bg-white p-8 md:p-10">
+        <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
+          COUNTRY DIRECTORY
+        </div>
 
-                    <div className="mt-5 grid gap-4 md:grid-cols-4">
-                      <Info
-                        label="Organizations"
-                        value={String(row.organizationCount)}
-                      />
-                      <Info
-                        label="Approved orgs"
-                        value={String(row.approvedCount)}
-                      />
-                      <Info
-                        label="Disclosed systems"
-                        value={String(row.systemCount)}
-                      />
-                      <Info
-                        label="Band mix"
-                        value={`A:${row.tierACount}  B:${row.tierBCount}  C:${row.tierCCount}`}
-                      />
-                    </div>
+        <h2 className="mt-4 max-w-[760px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
+          Public country-level explorer
+        </h2>
 
-                    <div className="mt-4 grid gap-4 md:grid-cols-3">
-                      <Info
-                        label="High-risk systems"
-                        value={String(row.highRiskSystemCount)}
-                      />
-                      <Info
-                        label="Medium-risk systems"
-                        value={String(row.mediumRiskSystemCount)}
-                      />
-                      <Info
-                        label="Low-risk systems"
-                        value={String(row.lowRiskSystemCount)}
-                      />
+        {countries.length === 0 ? (
+          <div className="mt-8 rounded-2xl border border-black/10 p-6 text-sm text-black/70">
+            No public country explorer data available.
+          </div>
+        ) : (
+          <div className="mt-8 grid gap-4">
+            {countries.map((row) => (
+              <div
+                key={row.country}
+                className="rounded-2xl border border-black/10 p-5"
+              >
+                <div className="flex flex-wrap items-start justify-between gap-4">
+                  <div>
+                    <h3 className="text-[20px] font-semibold text-black">
+                      <Link
+                        href={`/explorer/countries/${encodeURIComponent(
+                          row.country
+                        )}`}
+                        className="hover:underline"
+                      >
+                        {row.country}
+                      </Link>
+                    </h3>
+                    <div className="mt-2 text-[14px] text-black/65">
+                      {row.organizations} organizations · {row.systems} systems
                     </div>
                   </div>
-                ))}
+
+                  <Link
+                    href={`/explorer/countries/${encodeURIComponent(row.country)}`}
+                    className="inline-flex items-center rounded-full border border-black px-4 py-2 text-sm font-medium transition hover:bg-black hover:text-white"
+                  >
+                    View country detail
+                  </Link>
+                </div>
+
+                <div className="mt-5 grid gap-4 md:grid-cols-6">
+                  <Info label="Organizations" value={String(row.organizations)} />
+                  <Info
+                    label="Approved orgs"
+                    value={String(row.approvedOrganizations)}
+                  />
+                  <Info label="Systems" value={String(row.systems)} />
+                  <Info label="Avg maturity" value={formatScore(row.avgMaturity)} />
+                  <Info label="High-risk systems" value={String(row.highRisk)} />
+                  <Info label="Tier mix" value={row.topTierMix} />
+                </div>
               </div>
-            )}
-          </section>
-        </>
-      )}
+            ))}
+          </div>
+        )}
+      </section>
     </main>
   );
 }
@@ -344,15 +341,6 @@ function Info({ label, value }: { label: string; value: string }) {
         {label}
       </div>
       <div className="mt-2 text-[14px] text-black/85">{value}</div>
-    </div>
-  );
-}
-
-function ErrorBox({ message }: { message: string }) {
-  return (
-    <div className="mt-10 rounded-2xl border border-red-200 bg-red-50 p-5 text-sm text-red-700">
-      Failed to load country explorer data.
-      <div className="mt-2 break-words text-red-600">{message}</div>
     </div>
   );
 }
