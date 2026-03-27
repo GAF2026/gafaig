@@ -118,8 +118,8 @@ export default async function ExplorerCountryDetailPage({
     ),
   ]);
 
-  const orgRows = orgRes.ok ? orgRes.rows ?? [] : [];
-  const systemRows = systemRes.ok ? systemRes.rows ?? [] : [];
+  const orgRows = Array.isArray(orgRes) ? orgRes : [];
+  const systemRows = Array.isArray(systemRes) ? systemRes : [];
 
   const totalOrganizations = orgRows.length;
   const approvedOrganizations = orgRows.filter(
