@@ -1,6 +1,5 @@
 import Link from "next/link";
-import { sfQueryResult } from "@/lib/snowflake";
-import PublicPageHero from "../../_components/PublicPageHero";
+import { sfQuery } from "@/lib/snowflake";
 
 export const dynamic = "force-dynamic";
 
@@ -11,23 +10,42 @@ type OrganizationRow = {
   COUNTRY: string | null;
   CERTIFIED_TIER: string | null;
   CERTIFIED_BAND: string | null;
-  DECISION_STATUS: string;
+  CERTIFIED_SCORE: number | null;
+  CERTIFICATION_STATUS: string | null;
+  DECISION_STATUS: string | null;
   CERTIFIED_AT: string | null;
+  VALID_TO: string | null;
 };
 
-function formatDate(v?: string | null) {
-  if (!v) return "—";
-  const d = new Date(v);
-  if (Number.isNaN(d.getTime())) return v;
-  return d.toLocaleDateString(undefined, {
+function formatDate(value: string | null | undefined) {
+  if (!value) return "—";
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "—";
+
+  return date.toLocaleDateString("en-US", {
     year: "numeric",
     month: "short",
-    day: "2-digit",
+    day: "numeric",
   });
 }
 
+function formatScore(value: number | null | undefined) {
+  if (value === null || value === undefined || Number.isNaN(Number(value))) {
+    return "—";
+  }
+  return `${Math.round(Number(value))} / 100`;
+}
+
+function tierBandLabel(tier: string | null, band: string | null) {
+  if (tier && band) return `${tier} · Band ${band}`;
+  if (tier) return tier;
+  if (band) return `Band ${band}`;
+  return "—";
+}
+
 export default async function ExplorerOrganizationsPage() {
-  const res = await sfQueryResult<OrganizationRow>(
+  const rows = await sfQuery<OrganizationRow>(
     `
     SELECT
       REGISTRY_ID,
@@ -36,64 +54,100 @@ export default async function ExplorerOrganizationsPage() {
       COUNTRY,
       CERTIFIED_TIER,
       CERTIFIED_BAND,
+      CERTIFIED_SCORE,
+      CERTIFICATION_STATUS,
       DECISION_STATUS,
-      CERTIFIED_AT
+      CERTIFIED_AT,
+      VALID_TO
     FROM GAFAIG_DB.CORE.V_REGISTRY_PUBLIC
     ORDER BY ENTITY_NAME ASC
     `
   );
 
-  const rows = res.ok ? res.rows ?? [] : [];
-
   return (
     <main className="mx-auto max-w-[1180px] px-6 pb-16 pt-14">
-      <PublicPageHero
-        eyebrow="EXPLORER"
-        title="Explorer — Organizations"
-        description="Public view of organizations represented in the GAFAIG registry, including certification status, tier, band, and country."
-        actions={
-          <>
-            <Link
-              href="/explorer"
-              className="rounded-full border border-black bg-black px-5 py-3 text-sm font-semibold text-white transition hover:bg-black/90"
-            >
-              Back to explorer
-            </Link>
-            <Link
-              href="/explorer/systems"
-              className="rounded-full border border-black px-5 py-3 text-sm font-semibold transition hover:bg-black/[0.04]"
-            >
-              View systems
-            </Link>
-            <Link
-              href="/explorer/countries"
-              className="rounded-full border border-black px-5 py-3 text-sm font-semibold transition hover:bg-black/[0.04]"
-            >
-              View countries
-            </Link>
-          </>
-        }
-      />
+      <section className="rounded-3xl border border-black/10 bg-white px-8 py-10 md:px-10 md:py-12">
+        <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
+          EXPLORER
+        </div>
 
-      {!res.ok ? (
-        <div className="mt-10 rounded-2xl border border-red-200 bg-red-50 p-5 text-sm text-red-700">
-          Failed to load organizations.
-          <div className="mt-2 break-words text-red-600">{res.error}</div>
+        <h1 className="mt-4 max-w-[760px] text-[36px] font-semibold leading-[1.08] tracking-tight text-black md:text-[52px]">
+          Explorer — Organizations
+        </h1>
+
+        <p className="mt-5 max-w-[820px] text-[17px] leading-[1.7] text-black/72">
+          Public organization-level explorer for GAFAIG-certified entities and
+          their registry records.
+        </p>
+
+        <div className="mt-8 flex flex-wrap gap-3">
+          <Link
+            href="/explorer"
+            className="rounded-full border border-black bg-black px-5 py-3 text-sm font-semibold text-white transition hover:bg-black/90"
+          >
+            Back to explorer
+          </Link>
+          <Link
+            href="/explorer/countries"
+            className="rounded-full border border-black px-5 py-3 text-sm font-semibold transition hover:bg-black/[0.04]"
+          >
+            View countries
+          </Link>
+          <Link
+            href="/explorer/systems"
+            className="rounded-full border border-black px-5 py-3 text-sm font-semibold transition hover:bg-black/[0.04]"
+          >
+            View systems
+          </Link>
         </div>
-      ) : rows.length === 0 ? (
-        <div className="mt-10 rounded-2xl border border-black/10 bg-white p-6 text-sm text-black/70">
-          No public organizations found.
+      </section>
+
+      <section className="mt-10 grid gap-4 md:grid-cols-4">
+        <MetricCard label="Organizations" value={String(rows.length)} />
+        <MetricCard
+          label="Certified"
+          value={String(
+            rows.filter((row) =>
+              String(row.CERTIFICATION_STATUS ?? "")
+                .toUpperCase()
+                .includes("CERTIFIED")
+            ).length
+          )}
+        />
+        <MetricCard
+          label="Approved"
+          value={String(
+            rows.filter(
+              (row) => String(row.DECISION_STATUS ?? "").toUpperCase() === "APPROVED"
+            ).length
+          )}
+        />
+        <MetricCard
+          label="Countries"
+          value={String(
+            new Set(
+              rows
+                .map((row) => String(row.COUNTRY ?? "").trim())
+                .filter(Boolean)
+            ).size
+          )}
+        />
+      </section>
+
+      <section className="mt-10 rounded-3xl border border-black/10 bg-white p-8 md:p-10">
+        <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
+          ORGANIZATION DIRECTORY
         </div>
-      ) : (
-        <section className="mt-10 rounded-3xl border border-black/10 bg-white p-8 md:p-10">
-          <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
-            ORGANIZATIONS
+
+        <h2 className="mt-4 text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
+          Public registry organizations
+        </h2>
+
+        {rows.length === 0 ? (
+          <div className="mt-8 rounded-2xl border border-black/10 p-6 text-sm text-black/70">
+            No public organization data available.
           </div>
-
-          <h2 className="mt-4 max-w-[760px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
-            Certified organizations in the public registry
-          </h2>
-
+        ) : (
           <div className="mt-8 grid gap-4">
             {rows.map((row) => (
               <div
@@ -102,16 +156,11 @@ export default async function ExplorerOrganizationsPage() {
               >
                 <div className="flex flex-wrap items-start justify-between gap-4">
                   <div>
-                    <h2 className="text-[20px] font-semibold text-black">
-                      <Link
-                        href={`/registry/${encodeURIComponent(row.REGISTRY_ID)}`}
-                        className="hover:underline"
-                      >
-                        {row.ENTITY_NAME}
-                      </Link>
-                    </h2>
+                    <h3 className="text-[20px] font-semibold text-black">
+                      {row.ENTITY_NAME}
+                    </h3>
                     <div className="mt-2 text-[14px] text-black/65">
-                      {row.REGISTRY_ID}
+                      {row.COUNTRY || "—"} · {row.ENTITY_TYPE || "—"}
                     </div>
                   </div>
 
@@ -119,37 +168,63 @@ export default async function ExplorerOrganizationsPage() {
                     href={`/registry/${encodeURIComponent(row.REGISTRY_ID)}`}
                     className="inline-flex items-center rounded-full border border-black px-4 py-2 text-sm font-medium transition hover:bg-black hover:text-white"
                   >
-                    View certification
+                    View registry record
                   </Link>
                 </div>
 
-                <div className="mt-5 grid gap-4 md:grid-cols-5">
-                  <Info label="Entity type" value={row.ENTITY_TYPE} />
-                  <Info label="Country" value={row.COUNTRY} />
-                  <Info label="Status" value={row.DECISION_STATUS} />
-                  <Info label="Tier" value={row.CERTIFIED_TIER} />
-                  <Info label="Band" value={row.CERTIFIED_BAND} />
-                </div>
-
-                <div className="mt-4 text-[14px] text-black/70">
-                  Certified at: {formatDate(row.CERTIFIED_AT)}
+                <div className="mt-5 grid gap-4 md:grid-cols-6">
+                  <Info
+                    label="Tier / Band"
+                    value={tierBandLabel(row.CERTIFIED_TIER, row.CERTIFIED_BAND)}
+                  />
+                  <Info
+                    label="Certified score"
+                    value={formatScore(row.CERTIFIED_SCORE)}
+                  />
+                  <Info
+                    label="Certification"
+                    value={row.CERTIFICATION_STATUS || "—"}
+                  />
+                  <Info
+                    label="Decision"
+                    value={row.DECISION_STATUS || "—"}
+                  />
+                  <Info
+                    label="Certified at"
+                    value={formatDate(row.CERTIFIED_AT)}
+                  />
+                  <Info
+                    label="Valid to"
+                    value={formatDate(row.VALID_TO)}
+                  />
                 </div>
               </div>
             ))}
           </div>
-        </section>
-      )}
+        )}
+      </section>
     </main>
   );
 }
 
-function Info({ label, value }: { label: string; value: string | null }) {
+function MetricCard({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-2xl border border-black/10 bg-white p-5">
+      <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/60">
+        {label}
+      </div>
+      <div className="mt-2 text-[28px] font-semibold text-black">{value}</div>
+    </div>
+  );
+}
+
+function Info({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-xl border border-black/5 px-3 py-3">
       <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-black/55">
         {label}
       </div>
-      <div className="mt-2 text-[14px] text-black/85">{value ?? "—"}</div>
+      <div className="mt-2 text-[14px] text-black/85">{value}</div>
     </div>
   );
 }
