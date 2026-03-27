@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { sfQueryResult } from "@/lib/snowflake";
+import { sfQuery } from "@/lib/snowflake";
 import { requireAdmin } from "@/lib/auth/require";
 import { normalizeId } from "@/lib/ids";
 
@@ -91,75 +91,77 @@ export async function GET(
       );
     }
 
-    const envRes = await sfQueryResult<EnvRow>(`
-      SELECT
-        CURRENT_ACCOUNT()   AS CURRENT_ACCOUNT,
-        CURRENT_REGION()    AS CURRENT_REGION,
-        CURRENT_DATABASE()  AS CURRENT_DATABASE,
-        CURRENT_SCHEMA()    AS CURRENT_SCHEMA,
-        CURRENT_ROLE()      AS CURRENT_ROLE,
-        CURRENT_WAREHOUSE() AS CURRENT_WAREHOUSE
-    `);
-
-    if (!envRes.ok) {
+    let envRows: EnvRow[] = [];
+    try {
+      envRows = await sfQuery<EnvRow>(`
+        SELECT
+          CURRENT_ACCOUNT()   AS CURRENT_ACCOUNT,
+          CURRENT_REGION()    AS CURRENT_REGION,
+          CURRENT_DATABASE()  AS CURRENT_DATABASE,
+          CURRENT_SCHEMA()    AS CURRENT_SCHEMA,
+          CURRENT_ROLE()      AS CURRENT_ROLE,
+          CURRENT_WAREHOUSE() AS CURRENT_WAREHOUSE
+      `);
+    } catch (error) {
       return NextResponse.json(
         {
           ok: false,
           error: "Snowflake not reachable from app",
-          details: envRes.error || "Unknown Snowflake error",
+          details: error instanceof Error ? error.message : "Unknown Snowflake error",
         },
         { status: 500 }
       );
     }
 
-    const scoreRes = await sfQueryResult<ScoreRow>(
-      `
-      SELECT
-        vc.CASE_ID,
-        vc.PARTICIPANT_ID,
-        vc.STANDARD_CODE,
-        vc.STANDARD_VERSION,
-        vc.STATUS AS CASE_STATUS,
+    let scoreRows: ScoreRow[] = [];
+    try {
+      scoreRows = await sfQuery<ScoreRow>(
+        `
+        SELECT
+          vc.CASE_ID,
+          vc.PARTICIPANT_ID,
+          vc.STANDARD_CODE,
+          vc.STANDARD_VERSION,
+          vc.STATUS AS CASE_STATUS,
 
-        cs.SCORE,
-        cs.SUBSCORE_CONTROLS,
-        cs.SUBSCORE_COVERAGE,
-        cs.SUBSCORE_FRESHNESS,
-        cs.SUBSCORE_OPERATIONAL,
+          cs.SCORE,
+          cs.SUBSCORE_CONTROLS,
+          cs.SUBSCORE_COVERAGE,
+          cs.SUBSCORE_FRESHNESS,
+          cs.SUBSCORE_OPERATIONAL,
 
-        tb.TIER,
-        tb.BAND,
-        rs.RENEWAL_STATUS,
-        cs.EVENTS_90D,
-        TO_VARCHAR(cs.SCORED_AT, 'YYYY-MM-DD HH24:MI:SS') AS SCORED_AT
+          tb.TIER,
+          tb.BAND,
+          rs.RENEWAL_STATUS,
+          cs.EVENTS_90D,
+          TO_VARCHAR(cs.SCORED_AT, 'YYYY-MM-DD HH24:MI:SS') AS SCORED_AT
 
-      FROM GAFAIG_DB.CORE.VERIFICATION_CASES vc
-      LEFT JOIN GAFAIG_DB.CORE.V_CASE_SCORE_ENTERPRISE cs
-        ON TRIM(UPPER(cs.CASE_ID)) = TRIM(UPPER(vc.CASE_ID))
-      LEFT JOIN GAFAIG_DB.CORE.V_CASE_TIER_BAND tb
-        ON TRIM(UPPER(tb.CASE_ID)) = TRIM(UPPER(vc.CASE_ID))
-      LEFT JOIN GAFAIG_DB.CORE.V_CASE_RENEWAL_STATUS rs
-        ON TRIM(UPPER(rs.CASE_ID)) = TRIM(UPPER(vc.CASE_ID))
+        FROM GAFAIG_DB.CORE.VERIFICATION_CASES vc
+        LEFT JOIN GAFAIG_DB.CORE.V_CASE_SCORE_ENTERPRISE cs
+          ON TRIM(UPPER(cs.CASE_ID)) = TRIM(UPPER(vc.CASE_ID))
+        LEFT JOIN GAFAIG_DB.CORE.V_CASE_TIER_BAND tb
+          ON TRIM(UPPER(tb.CASE_ID)) = TRIM(UPPER(vc.CASE_ID))
+        LEFT JOIN GAFAIG_DB.CORE.V_CASE_RENEWAL_STATUS rs
+          ON TRIM(UPPER(rs.CASE_ID)) = TRIM(UPPER(vc.CASE_ID))
 
-      WHERE TRIM(UPPER(vc.CASE_ID)) = TRIM(UPPER(?))
-      LIMIT 1
-      `,
-      [caseId]
-    );
-
-    if (!scoreRes.ok) {
+        WHERE TRIM(UPPER(vc.CASE_ID)) = TRIM(UPPER(?))
+        LIMIT 1
+        `,
+        [caseId]
+      );
+    } catch (error) {
       return NextResponse.json(
         {
           ok: false,
           error: "Snowflake query failed",
-          details: scoreRes.error || "Unknown query error",
-          snowflakeEnv: envRes.rows?.[0] ?? null,
+          details: error instanceof Error ? error.message : "Unknown query error",
+          snowflakeEnv: envRows[0] ?? null,
         },
         { status: 500 }
       );
     }
 
-    const row = scoreRes.rows?.[0];
+    const row = scoreRows[0];
 
     if (!row) {
       return NextResponse.json(
@@ -168,43 +170,47 @@ export async function GET(
           error: `No score found for caseId=${caseId}`,
           hint:
             "This CASE_ID does not resolve against the canonical enterprise scoring layer.",
-          snowflakeEnv: envRes.rows?.[0] ?? null,
+          snowflakeEnv: envRows[0] ?? null,
         },
         { status: 404 }
       );
     }
 
-    const countsRes = await sfQueryResult<CountsRow>(
-      `
-      WITH finding_counts AS (
+    let countsRows: CountsRow[] = [];
+    try {
+      countsRows = await sfQuery<CountsRow>(
+        `
+        WITH finding_counts AS (
+          SELECT
+            COUNT(*) AS FINDINGS_TOTAL,
+            COUNT_IF(LOWER(COALESCE(RESULT, '')) NOT IN ('na', 'n/a', 'not_applicable')) AS FINDINGS_SCORED,
+            COUNT_IF(LOWER(COALESCE(RESULT, '')) IN ('na', 'n/a', 'not_applicable')) AS FINDINGS_NA,
+            COUNT_IF(EVIDENCE_IDS IS NOT NULL AND ARRAY_SIZE(EVIDENCE_IDS) > 0) AS FINDINGS_WITH_EVIDENCE
+          FROM GAFAIG_DB.CORE.VERIFICATION_FINDINGS
+          WHERE TRIM(UPPER(CASE_ID)) = TRIM(UPPER(?))
+        ),
+        evidence_counts AS (
+          SELECT
+            COUNT(*) AS EVIDENCE_TOTAL
+          FROM GAFAIG_DB.CORE.VERIFICATION_EVIDENCE
+          WHERE TRIM(UPPER(CASE_ID)) = TRIM(UPPER(?))
+        )
         SELECT
-          COUNT(*) AS FINDINGS_TOTAL,
-          COUNT_IF(LOWER(COALESCE(RESULT, '')) NOT IN ('na', 'n/a', 'not_applicable')) AS FINDINGS_SCORED,
-          COUNT_IF(LOWER(COALESCE(RESULT, '')) IN ('na', 'n/a', 'not_applicable')) AS FINDINGS_NA,
-          COUNT_IF(EVIDENCE_IDS IS NOT NULL AND ARRAY_SIZE(EVIDENCE_IDS) > 0) AS FINDINGS_WITH_EVIDENCE
-        FROM GAFAIG_DB.CORE.VERIFICATION_FINDINGS
-        WHERE TRIM(UPPER(CASE_ID)) = TRIM(UPPER(?))
-      ),
-      evidence_counts AS (
-        SELECT
-          COUNT(*) AS EVIDENCE_TOTAL
-        FROM GAFAIG_DB.CORE.VERIFICATION_EVIDENCE
-        WHERE TRIM(UPPER(CASE_ID)) = TRIM(UPPER(?))
-      )
-      SELECT
-        fc.FINDINGS_TOTAL,
-        fc.FINDINGS_SCORED,
-        fc.FINDINGS_NA,
-        fc.FINDINGS_WITH_EVIDENCE,
-        ec.EVIDENCE_TOTAL
-      FROM finding_counts fc
-      CROSS JOIN evidence_counts ec
-      `,
-      [caseId, caseId]
-    );
+          fc.FINDINGS_TOTAL,
+          fc.FINDINGS_SCORED,
+          fc.FINDINGS_NA,
+          fc.FINDINGS_WITH_EVIDENCE,
+          ec.EVIDENCE_TOTAL
+        FROM finding_counts fc
+        CROSS JOIN evidence_counts ec
+        `,
+        [caseId, caseId]
+      );
+    } catch {
+      countsRows = [];
+    }
 
-    const counts = countsRes.ok && countsRes.rows?.[0] ? countsRes.rows[0] : null;
-
+    const counts = countsRows[0] ?? null;
     const mapped = mapTier(row.TIER, row.BAND);
 
     return NextResponse.json({
@@ -236,7 +242,7 @@ export async function GET(
         evidenceTotal: toNum(counts?.EVIDENCE_TOTAL, 0),
         evidenceWithSummary: 0,
       },
-      snowflakeEnv: envRes.rows?.[0] ?? null,
+      snowflakeEnv: envRows[0] ?? null,
     });
   } catch (error) {
     return NextResponse.json(
