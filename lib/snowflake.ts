@@ -30,6 +30,9 @@ async function connectIfNeeded() {
   });
 }
 
+/**
+ * Canonical query function
+ */
 export async function sfQuery<T = any>(
   sql: string,
   binds: any[] = []
@@ -50,7 +53,12 @@ export async function sfQuery<T = any>(
 }
 
 /**
- * TEMP COMPATIBILITY EXPORTS (fixes Vercel build immediately)
+ * TYPE EXPORT (fixes Vercel build)
+ */
+export type sfQueryResult<T = any> = T[];
+
+/**
+ * TEMP COMPATIBILITY EXPORTS
  */
 export const executeQuery = sfQuery;
 export const snowflakeQuery = sfQuery;
