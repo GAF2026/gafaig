@@ -64,7 +64,7 @@ export async function GET(req: NextRequest, ctx: { params: Promise<{ caseId: str
       summaries: "GAFAIG_DB.CORE.EVIDENCE_SUMMARIES",
     };
 
-    const sfCtx = snowflakeCtx();
+    const sfCtx = snowflakeCtx;
 
     // 1) Evidence IDs (case-only vs case+org for diagnostics)
     const evidenceSqlCaseOnly = `
@@ -224,7 +224,7 @@ export async function POST(req: NextRequest, ctx: { params: Promise<{ caseId: st
       evidence: "GAFAIG_DB.CORE.VERIFICATION_EVIDENCE",
     };
 
-    const sfCtx = snowflakeCtx();
+    const sfCtx = snowflakeCtx;
     const warnings: string[] = [];
 
     let allowedEvidenceIds: string[] = [];

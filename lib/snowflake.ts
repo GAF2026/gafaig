@@ -1,7 +1,11 @@
-import snowflake, { Connection, ConnectionOptions, RowStatement } from "snowflake-sdk";
+import snowflake, {
+  Connection,
+  ConnectionOptions,
+  RowStatement,
+} from "snowflake-sdk";
 
 type SnowflakePrimitive = string | number | boolean | null;
-type SnowflakeBind = SnowflakePrimitive | Date;
+type SnowflakeBind = SnowflakePrimitive;
 
 export type SnowflakeCtx = {
   account: string;
@@ -106,15 +110,39 @@ async function connectIfNeeded(): Promise<Connection> {
   return connectionPromise;
 }
 
+function normalizeBind(value: unknown): SnowflakeBind {
+  if (value === null || value === undefined) {
+    return null;
+  }
+
+  if (value instanceof Date) {
+    return value.toISOString();
+  }
+
+  if (
+    typeof value === "string" ||
+    typeof value === "number" ||
+    typeof value === "boolean"
+  ) {
+    return value;
+  }
+
+  return String(value);
+}
+
+function normalizeBinds(binds: unknown[] = []): SnowflakeBind[] {
+  return binds.map(normalizeBind);
+}
+
 function executeStatement<T>(
   conn: Connection,
   sqlText: string,
-  binds: SnowflakeBind[] = []
+  binds: unknown[] = []
 ): Promise<T[]> {
   return new Promise<T[]>((resolve, reject) => {
     conn.execute({
       sqlText,
-      binds,
+      binds: normalizeBinds(binds),
       complete: (err, _stmt: RowStatement, rows: T[] | undefined) => {
         if (err) {
           reject(err);
@@ -128,7 +156,7 @@ function executeStatement<T>(
 
 export async function sfQuery<T = Record<string, unknown>>(
   sqlText: string,
-  binds: SnowflakeBind[] = []
+  binds: unknown[] = []
 ): Promise<T[]> {
   const conn = await connectIfNeeded();
   return executeStatement<T>(conn, sqlText, binds);
@@ -140,7 +168,7 @@ export async function sfQuery<T = Record<string, unknown>>(
  */
 export async function executeQuery<T = Record<string, unknown>>(
   sqlText: string,
-  binds: SnowflakeBind[] = []
+  binds: unknown[] = []
 ): Promise<T[]> {
   return sfQuery<T>(sqlText, binds);
 }
@@ -151,13 +179,12 @@ export async function executeQuery<T = Record<string, unknown>>(
  */
 export async function snowflakeQuery<T = Record<string, unknown>>(
   sqlText: string,
-  binds: SnowflakeBind[] = []
+  binds: unknown[] = []
 ): Promise<T[]> {
   return sfQuery<T>(sqlText, binds);
 }
 
 /**
- * Temporary compatibility export.
  * Historical code expects a symbol named sfQueryResult.
  * In the current system, queries return rows directly.
  */

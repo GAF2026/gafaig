@@ -90,7 +90,7 @@ export async function GET(req: NextRequest) {
       {
         ok: false,
         error: e instanceof Error ? e.message : "GET failed",
-        ctx: snowflakeCtx(),
+        ctx: snowflakeCtx,
       },
       500
     );
@@ -220,7 +220,7 @@ export async function POST(req: NextRequest) {
         {
           ok: false,
           error: "Decision row was inserted but is still not readable after save.",
-          ctx: snowflakeCtx(),
+          ctx: snowflakeCtx,
         },
         500
       );
@@ -238,7 +238,7 @@ export async function POST(req: NextRequest) {
       {
         ok: false,
         error: e instanceof Error ? e.message : "POST failed",
-        ctx: snowflakeCtx(),
+        snowflakeCtx,
       },
       500
     );

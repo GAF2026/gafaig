@@ -69,7 +69,7 @@ export async function GET(req: NextRequest) {
         createdAt: row.CREATED_AT ?? null,
         updatedAt: row.UPDATED_AT ?? null,
       })),
-      ctx: snowflakeCtx(),
+      ctx: snowflakeCtx,
       table: FINDINGS_TABLE,
     });
   } catch (e: any) {
@@ -77,7 +77,7 @@ export async function GET(req: NextRequest) {
       {
         ok: false,
         error: e?.message || "Failed to load findings",
-        ctx: snowflakeCtx(),
+        ctx: snowflakeCtx,
         table: FINDINGS_TABLE,
       },
       500
@@ -192,7 +192,7 @@ export async function POST(req: NextRequest) {
           findingId,
           caseId,
           attemptedOrgId: orgId,
-          ctx: snowflakeCtx(),
+          ctx: snowflakeCtx,
           table: FINDINGS_TABLE,
         },
         500
@@ -215,7 +215,7 @@ export async function POST(req: NextRequest) {
         createdAt: insertedRow.CREATED_AT ?? null,
         updatedAt: insertedRow.UPDATED_AT ?? null,
       },
-      ctx: snowflakeCtx(),
+      ctx: snowflakeCtx,
       table: FINDINGS_TABLE,
     });
   } catch (e: any) {
@@ -223,7 +223,7 @@ export async function POST(req: NextRequest) {
       {
         ok: false,
         error: e?.message || "Failed to create finding",
-        ctx: snowflakeCtx(),
+        ctx: snowflakeCtx,
         table: FINDINGS_TABLE,
       },
       500
