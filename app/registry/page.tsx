@@ -17,10 +17,6 @@ type RegistryRow = {
   VALID_FROM: string | null;
   VALID_TO: string | null;
   CERTIFIED_AT: string | null;
-  LAST_ACTIVITY_AT: string | null;
-  CERTIFICATION_STATUS: string | null;
-  LIFECYCLE_STATUS: string | null;
-  RENEWAL_STATUS: string | null;
 };
 
 type CountryOptionRow = {
@@ -57,6 +53,10 @@ function normalizeString(value: string | string[] | undefined) {
   return String(value || "").trim();
 }
 
+function certificationStatus(row: RegistryRow) {
+  return row.CERTIFIED_AT ? "Certified" : "Not Certified";
+}
+
 export default async function RegistryPage({
   searchParams,
 }: {
@@ -69,7 +69,7 @@ export default async function RegistryPage({
   const country = normalizeString(searchParams?.country);
 
   const whereParts: string[] = [];
-  const binds: Array<string | number | boolean | null> = [];
+  const binds: Array<string | number | null> = [];
 
   if (q) {
     whereParts.push(`
@@ -107,15 +107,11 @@ export default async function RegistryPage({
         DECISION_STATUS,
         VALID_FROM,
         VALID_TO,
-        CERTIFIED_AT,
-        LAST_ACTIVITY_AT,
-        CERTIFICATION_STATUS,
-        LIFECYCLE_STATUS,
-        RENEWAL_STATUS
+        CERTIFIED_AT
       FROM GAFAIG_DB.CORE.V_REGISTRY_PUBLIC
       ${whereClause}
       ORDER BY
-        CASE WHEN CERTIFICATION_STATUS = 'Certified' THEN 0 ELSE 1 END ASC,
+        CASE WHEN CERTIFIED_AT IS NOT NULL THEN 0 ELSE 1 END ASC,
         CERTIFIED_AT DESC NULLS LAST,
         ENTITY_NAME ASC
       LIMIT 100
@@ -133,11 +129,9 @@ export default async function RegistryPage({
   ]);
 
   const totalRecords = rows.length;
-  const certifiedRecords = rows.filter(
-    (row) => String(row.CERTIFICATION_STATUS || "").trim() === "Certified"
-  ).length;
-  const activeRecords = rows.filter(
-    (row) => String(row.LIFECYCLE_STATUS || "").trim() === "Active"
+  const certifiedRecords = rows.filter((row) => !!row.CERTIFIED_AT).length;
+  const publishedRecords = rows.filter(
+    (row) => String(row.DECISION_STATUS || "").trim().toLowerCase() === "published"
   ).length;
 
   return (
@@ -153,8 +147,8 @@ export default async function RegistryPage({
 
         <p className="mt-5 max-w-[860px] text-[17px] leading-[1.7] text-black/72">
           Canonical public certification records issued by GAFAIG. Browse
-          entities, verify certification status, and inspect publicly disclosed
-          governance outcomes.
+          entities, verify public certification status, and inspect registry
+          trust records.
         </p>
 
         <form className="mt-8 grid gap-4 md:grid-cols-[1.3fr_0.7fr_auto]">
@@ -217,20 +211,17 @@ export default async function RegistryPage({
       <section className="mt-10 grid gap-4 md:grid-cols-3">
         <MetricCard label="Visible records" value={String(totalRecords)} />
         <MetricCard label="Certified" value={String(certifiedRecords)} />
-        <MetricCard label="Active lifecycle" value={String(activeRecords)} />
+        <MetricCard label="Published" value={String(publishedRecords)} />
       </section>
 
       <section className="mt-10 rounded-3xl border border-black/10 bg-white p-8 md:p-10">
-        <div className="flex flex-wrap items-end justify-between gap-4">
-          <div>
-            <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
-              PUBLIC RECORDS
-            </div>
-            <h2 className="mt-4 text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
-              Registry directory
-            </h2>
-          </div>
+        <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
+          PUBLIC RECORDS
         </div>
+
+        <h2 className="mt-4 text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
+          Registry directory
+        </h2>
 
         {rows.length === 0 ? (
           <div className="mt-8 rounded-2xl border border-black/10 p-6 text-sm text-black/70">
@@ -247,9 +238,8 @@ export default async function RegistryPage({
                 <div className="flex flex-wrap items-start justify-between gap-5">
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap gap-2">
-                      <StatusPill value={row.CERTIFICATION_STATUS || "—"} />
-                      <StatusPill value={row.LIFECYCLE_STATUS || "—"} subtle />
-                      <StatusPill value={row.RENEWAL_STATUS || "—"} subtle />
+                      <StatusPill value={certificationStatus(row)} />
+                      <StatusPill value={row.DECISION_STATUS || "—"} subtle />
                     </div>
 
                     <div className="mt-4 text-[24px] font-semibold tracking-tight text-black">
@@ -273,9 +263,11 @@ export default async function RegistryPage({
                   </div>
                 </div>
 
-                <div className="mt-5 grid gap-3 md:grid-cols-5">
-                  <Info label="Tier / Band" value={tierBandLabel(row.CERTIFIED_TIER, row.CERTIFIED_BAND)} />
-                  <Info label="Decision" value={row.DECISION_STATUS || "—"} />
+                <div className="mt-5 grid gap-3 md:grid-cols-4">
+                  <Info
+                    label="Tier / Band"
+                    value={tierBandLabel(row.CERTIFIED_TIER, row.CERTIFIED_BAND)}
+                  />
                   <Info label="Certified at" value={formatDate(row.CERTIFIED_AT)} />
                   <Info label="Valid from" value={formatDate(row.VALID_FROM)} />
                   <Info label="Valid to" value={formatDate(row.VALID_TO)} />
@@ -284,7 +276,6 @@ export default async function RegistryPage({
                 <div className="mt-5 flex flex-wrap gap-x-5 gap-y-1 text-sm text-black/55">
                   <span>Application: {row.APPLICATION_ID || "—"}</span>
                   <span>Case: {row.CASE_ID || "—"}</span>
-                  <span>Last activity: {formatDate(row.LAST_ACTIVITY_AT)}</span>
                 </div>
               </Link>
             ))}
@@ -333,10 +324,8 @@ function StatusPill({
     classes += " border-emerald-300 bg-emerald-50 text-emerald-700";
   } else if (!subtle && normalized === "not certified") {
     classes += " border-zinc-300 bg-zinc-50 text-zinc-700";
-  } else if (normalized === "active") {
+  } else if (normalized === "published") {
     classes += " border-blue-300 bg-blue-50 text-blue-700";
-  } else if (normalized === "valid") {
-    classes += " border-violet-300 bg-violet-50 text-violet-700";
   } else {
     classes += " border-black/10 bg-black/[0.03] text-black/65";
   }
