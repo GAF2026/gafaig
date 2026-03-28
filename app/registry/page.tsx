@@ -1,227 +1,345 @@
 import Link from "next/link";
-import { getRegistryRecords } from "@/lib/queries/registry";
-import PublicPageSection from "@/app/_components/PublicPageSection";
+import { sfQuery } from "@/lib/snowflake";
 
 export const dynamic = "force-dynamic";
 
-function fmtDate(value: string | null): string {
+type RegistryRow = {
+  REGISTRY_ID: string;
+  APPLICATION_ID: string | null;
+  CASE_ID: string | null;
+  ENTITY_NAME: string | null;
+  ENTITY_TYPE: string | null;
+  COUNTRY: string | null;
+  CERTIFIED_SCORE: number | null;
+  CERTIFIED_TIER: string | null;
+  CERTIFIED_BAND: string | null;
+  DECISION_STATUS: string | null;
+  VALID_FROM: string | null;
+  VALID_TO: string | null;
+  CERTIFIED_AT: string | null;
+  LAST_ACTIVITY_AT: string | null;
+  CERTIFICATION_STATUS: string | null;
+  LIFECYCLE_STATUS: string | null;
+  RENEWAL_STATUS: string | null;
+};
+
+type CountryOptionRow = {
+  COUNTRY: string | null;
+};
+
+function formatDate(value: string | null | undefined) {
   if (!value) return "—";
-  const d = new Date(value);
-  if (Number.isNaN(d.getTime())) return value;
-  return d.toLocaleDateString("en-US", {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  return date.toLocaleDateString("en-US", {
     year: "numeric",
     month: "short",
     day: "numeric",
   });
 }
 
-function valueOrDash(value?: string | number | null): string | number {
-  if (value === null || value === undefined || value === "") return "—";
-  return value;
+function formatScore(value: number | null | undefined) {
+  if (value === null || value === undefined || Number.isNaN(Number(value))) {
+    return "—";
+  }
+  return `${Math.round(Number(value))} / 100`;
 }
 
-function badgeClass(text?: string | null) {
-  const v = String(text || "").toLowerCase();
-
-  if (v.includes("not certified")) {
-    return "border-slate-200 bg-slate-50 text-slate-700";
-  }
-  if (v.includes("certified")) {
-    return "border-emerald-200 bg-emerald-50 text-emerald-700";
-  }
-  if (v.includes("published") || v.includes("approved")) {
-    return "border-blue-200 bg-blue-50 text-blue-700";
-  }
-  if (v.includes("pending")) {
-    return "border-amber-200 bg-amber-50 text-amber-700";
-  }
-
-  return "border-slate-200 bg-slate-50 text-slate-700";
+function tierBandLabel(tier: string | null, band: string | null) {
+  if (tier && band) return `${tier} · Band ${band}`;
+  if (tier) return tier;
+  if (band) return `Band ${band}`;
+  return "—";
 }
 
-export default async function RegistryPage() {
-  const rows = await getRegistryRecords(100);
+function normalizeString(value: string | string[] | undefined) {
+  if (Array.isArray(value)) return value[0]?.trim() || "";
+  return String(value || "").trim();
+}
 
-  const total = rows.length;
-  const certified = rows.filter(
-    (r) => r.certificationStatus === "Certified"
+export default async function RegistryPage({
+  searchParams,
+}: {
+  searchParams?: {
+    q?: string | string[];
+    country?: string | string[];
+  };
+}) {
+  const q = normalizeString(searchParams?.q);
+  const country = normalizeString(searchParams?.country);
+
+  const whereParts: string[] = [];
+  const binds: Array<string | number | boolean | null> = [];
+
+  if (q) {
+    whereParts.push(`
+      (
+        UPPER(COALESCE(ENTITY_NAME, '')) LIKE UPPER(?)
+        OR UPPER(COALESCE(REGISTRY_ID, '')) LIKE UPPER(?)
+        OR UPPER(COALESCE(APPLICATION_ID, '')) LIKE UPPER(?)
+        OR UPPER(COALESCE(CASE_ID, '')) LIKE UPPER(?)
+      )
+    `);
+    const like = `%${q}%`;
+    binds.push(like, like, like, like);
+  }
+
+  if (country) {
+    whereParts.push(`UPPER(COALESCE(COUNTRY, '')) = UPPER(?)`);
+    binds.push(country);
+  }
+
+  const whereClause = whereParts.length ? `WHERE ${whereParts.join(" AND ")}` : "";
+
+  const [rows, countries] = await Promise.all([
+    sfQuery<RegistryRow>(
+      `
+      SELECT
+        REGISTRY_ID,
+        APPLICATION_ID,
+        CASE_ID,
+        ENTITY_NAME,
+        ENTITY_TYPE,
+        COUNTRY,
+        CERTIFIED_SCORE,
+        CERTIFIED_TIER,
+        CERTIFIED_BAND,
+        DECISION_STATUS,
+        VALID_FROM,
+        VALID_TO,
+        CERTIFIED_AT,
+        LAST_ACTIVITY_AT,
+        CERTIFICATION_STATUS,
+        LIFECYCLE_STATUS,
+        RENEWAL_STATUS
+      FROM GAFAIG_DB.CORE.V_REGISTRY_PUBLIC
+      ${whereClause}
+      ORDER BY
+        CASE WHEN CERTIFICATION_STATUS = 'Certified' THEN 0 ELSE 1 END ASC,
+        CERTIFIED_AT DESC NULLS LAST,
+        ENTITY_NAME ASC
+      LIMIT 100
+      `,
+      binds
+    ),
+    sfQuery<CountryOptionRow>(
+      `
+      SELECT DISTINCT COUNTRY
+      FROM GAFAIG_DB.CORE.V_REGISTRY_PUBLIC
+      WHERE COUNTRY IS NOT NULL
+      ORDER BY COUNTRY ASC
+      `
+    ),
+  ]);
+
+  const totalRecords = rows.length;
+  const certifiedRecords = rows.filter(
+    (row) => String(row.CERTIFICATION_STATUS || "").trim() === "Certified"
   ).length;
-  const notCertified = total - certified;
+  const activeRecords = rows.filter(
+    (row) => String(row.LIFECYCLE_STATUS || "").trim() === "Active"
+  ).length;
 
   return (
-    <main className="mx-auto max-w-[1280px] px-6 pb-20 pt-14 md:px-8">
-      <div className="space-y-8">
-        <PublicPageSection
-          eyebrow="Public registry"
-          title="GAFAIG Registry"
-          description="Canonical public certification records derived from the GAFAIG verification workflow. This surface exposes governance outcomes without revealing private evidence."
-        >
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-            <StatCard label="Total Records" value={total} />
-            <StatCard label="Certified" value={certified} />
-            <StatCard label="Not Certified" value={notCertified} />
+    <main className="mx-auto max-w-[1240px] px-6 pb-16 pt-14">
+      <section className="rounded-3xl border border-black/10 bg-white px-8 py-10 md:px-10 md:py-12">
+        <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
+          REGISTRY
+        </div>
+
+        <h1 className="mt-4 max-w-[780px] text-[36px] font-semibold leading-[1.08] tracking-tight text-black md:text-[52px]">
+          Global AI Governance Registry
+        </h1>
+
+        <p className="mt-5 max-w-[860px] text-[17px] leading-[1.7] text-black/72">
+          Canonical public certification records issued by GAFAIG. Browse
+          entities, verify certification status, and inspect publicly disclosed
+          governance outcomes.
+        </p>
+
+        <form className="mt-8 grid gap-4 md:grid-cols-[1.3fr_0.7fr_auto]">
+          <div>
+            <label
+              htmlFor="q"
+              className="mb-2 block text-[12px] font-semibold uppercase tracking-[0.16em] text-black/55"
+            >
+              Search
+            </label>
+            <input
+              id="q"
+              name="q"
+              defaultValue={q}
+              placeholder="Entity, registry ID, application ID, or case ID"
+              className="w-full rounded-2xl border border-black/10 px-4 py-3 text-[15px] outline-none transition focus:border-black/30"
+            />
           </div>
-        </PublicPageSection>
 
-        <PublicPageSection>
-          <div className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <h2 className="text-lg font-semibold text-black">
-                Registry Records
-              </h2>
-              <p className="text-sm text-black/60">
-                {rows.length} public record{rows.length === 1 ? "" : "s"}
-              </p>
-            </div>
-
-            <div className="text-xs text-black/50">
-              Source: V_REGISTRY_PUBLIC
-            </div>
+          <div>
+            <label
+              htmlFor="country"
+              className="mb-2 block text-[12px] font-semibold uppercase tracking-[0.16em] text-black/55"
+            >
+              Country
+            </label>
+            <select
+              id="country"
+              name="country"
+              defaultValue={country}
+              className="w-full rounded-2xl border border-black/10 bg-white px-4 py-3 text-[15px] outline-none transition focus:border-black/30"
+            >
+              <option value="">All countries</option>
+              {countries.map((row) => (
+                <option key={row.COUNTRY || "Unknown"} value={row.COUNTRY || ""}>
+                  {row.COUNTRY}
+                </option>
+              ))}
+            </select>
           </div>
 
-          {rows.length === 0 ? (
-            <div className="text-sm text-black/60">
-              No public registry records found.
+          <div className="flex items-end gap-3">
+            <button
+              type="submit"
+              className="rounded-full border border-black bg-black px-5 py-3 text-sm font-semibold text-white transition hover:bg-black/90"
+            >
+              Apply
+            </button>
+
+            <Link
+              href="/registry"
+              className="rounded-full border border-black px-5 py-3 text-sm font-semibold transition hover:bg-black/[0.04]"
+            >
+              Reset
+            </Link>
+          </div>
+        </form>
+      </section>
+
+      <section className="mt-10 grid gap-4 md:grid-cols-3">
+        <MetricCard label="Visible records" value={String(totalRecords)} />
+        <MetricCard label="Certified" value={String(certifiedRecords)} />
+        <MetricCard label="Active lifecycle" value={String(activeRecords)} />
+      </section>
+
+      <section className="mt-10 rounded-3xl border border-black/10 bg-white p-8 md:p-10">
+        <div className="flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
+              PUBLIC RECORDS
             </div>
-          ) : (
-            <div className="overflow-x-auto rounded-2xl border border-black/10">
-              <table className="min-w-full divide-y divide-black/10">
-                <thead className="bg-black/[0.03]">
-                  <tr className="text-left text-xs uppercase tracking-wide text-black/50">
-                    <th className="px-6 py-4 font-medium">Entity</th>
-                    <th className="px-6 py-4 font-medium">Registry ID</th>
-                    <th className="px-6 py-4 font-medium">Case</th>
-                    <th className="px-6 py-4 font-medium">Certification</th>
-                    <th className="px-6 py-4 font-medium">Tier</th>
-                    <th className="px-6 py-4 font-medium">Band</th>
-                    <th className="px-6 py-4 font-medium">Score</th>
-                    <th className="px-6 py-4 font-medium">Decision</th>
-                    <th className="px-6 py-4 font-medium">Certified At</th>
-                  </tr>
-                </thead>
+            <h2 className="mt-4 text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
+              Registry directory
+            </h2>
+          </div>
+        </div>
 
-                <tbody className="divide-y divide-black/5 bg-white">
-                  {rows.map((row) => {
-                    const isCertified =
-                      row.certificationStatus === "Certified";
-                    const href = `/registry/${encodeURIComponent(
-                      row.registryId
-                    )}`;
+        {rows.length === 0 ? (
+          <div className="mt-8 rounded-2xl border border-black/10 p-6 text-sm text-black/70">
+            No registry records matched your current filters.
+          </div>
+        ) : (
+          <div className="mt-8 grid gap-4">
+            {rows.map((row) => (
+              <Link
+                key={row.REGISTRY_ID}
+                href={`/registry/${encodeURIComponent(row.REGISTRY_ID)}`}
+                className="rounded-2xl border border-black/10 p-5 transition hover:bg-black/[0.03]"
+              >
+                <div className="flex flex-wrap items-start justify-between gap-5">
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap gap-2">
+                      <StatusPill value={row.CERTIFICATION_STATUS || "—"} />
+                      <StatusPill value={row.LIFECYCLE_STATUS || "—"} subtle />
+                      <StatusPill value={row.RENEWAL_STATUS || "—"} subtle />
+                    </div>
 
-                    return (
-                      <tr
-                        key={row.registryId}
-                        className={`group ${isCertified ? "bg-emerald-50/30" : ""} hover:bg-black/[0.03]`}
-                      >
-                        <td className="px-6 py-5">
-                          <Link href={href} className="block">
-                            <div className="font-medium text-black group-hover:underline">
-                              {row.entityName ?? "Unnamed Entity"}
-                            </div>
-                            <div className="mt-1 text-sm text-black/60">
-                              {row.entityType ?? "—"}
-                              {row.country ? ` • ${row.country}` : ""}
-                            </div>
-                          </Link>
-                        </td>
+                    <div className="mt-4 text-[24px] font-semibold tracking-tight text-black">
+                      {row.ENTITY_NAME || row.REGISTRY_ID}
+                    </div>
 
-                        <td className="px-6 py-5 text-sm text-black/70">
-                          <Link href={href} className="block">
-                            <div className="max-w-[260px] break-all">
-                              {row.registryId}
-                            </div>
-                          </Link>
-                        </td>
+                    <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm text-black/65">
+                      <span>{row.ENTITY_TYPE || "Organization"}</span>
+                      <span>{row.COUNTRY || "Unknown country"}</span>
+                      <span>{row.REGISTRY_ID}</span>
+                    </div>
+                  </div>
 
-                        <td className="px-6 py-5 text-sm text-black/70">
-                          <Link href={href} className="block">
-                            {row.caseId ?? "—"}
-                          </Link>
-                        </td>
+                  <div className="shrink-0 text-right">
+                    <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/50">
+                      Certified score
+                    </div>
+                    <div className="mt-1 text-[22px] font-semibold text-black">
+                      {formatScore(row.CERTIFIED_SCORE)}
+                    </div>
+                  </div>
+                </div>
 
-                        <td className="px-6 py-5">
-                          <Link href={href} className="block">
-                            <span
-                              className={`inline-flex rounded-full border px-3 py-1 text-xs font-semibold ${badgeClass(
-                                row.certificationStatus
-                              )}`}
-                            >
-                              {row.certificationStatus}
-                            </span>
-                          </Link>
-                        </td>
+                <div className="mt-5 grid gap-3 md:grid-cols-5">
+                  <Info label="Tier / Band" value={tierBandLabel(row.CERTIFIED_TIER, row.CERTIFIED_BAND)} />
+                  <Info label="Decision" value={row.DECISION_STATUS || "—"} />
+                  <Info label="Certified at" value={formatDate(row.CERTIFIED_AT)} />
+                  <Info label="Valid from" value={formatDate(row.VALID_FROM)} />
+                  <Info label="Valid to" value={formatDate(row.VALID_TO)} />
+                </div>
 
-                        <td className="px-6 py-5">
-                          <Link href={href} className="block">
-                            <span
-                              className={`inline-flex rounded-full border px-3 py-1 text-xs ${badgeClass(
-                                row.certifiedTier
-                              )}`}
-                            >
-                              {row.certifiedTier ?? "—"}
-                            </span>
-                          </Link>
-                        </td>
-
-                        <td className="px-6 py-5">
-                          <Link href={href} className="block">
-                            <span
-                              className={`inline-flex rounded-full border px-3 py-1 text-xs ${badgeClass(
-                                row.certifiedBand
-                              )}`}
-                            >
-                              {row.certifiedBand ?? "—"}
-                            </span>
-                          </Link>
-                        </td>
-
-                        <td className="px-6 py-5 text-sm font-semibold text-black">
-                          <Link href={href} className="block">
-                            {valueOrDash(row.certifiedScore)}
-                          </Link>
-                        </td>
-
-                        <td className="px-6 py-5">
-                          <Link href={href} className="block">
-                            <span
-                              className={`inline-flex rounded-full border px-3 py-1 text-xs ${badgeClass(
-                                row.decisionStatus
-                              )}`}
-                            >
-                              {row.decisionStatus ?? "—"}
-                            </span>
-                          </Link>
-                        </td>
-
-                        <td className="px-6 py-5 text-sm text-black/70">
-                          <Link href={href} className="block">
-                            {fmtDate(row.certifiedAt)}
-                          </Link>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </PublicPageSection>
-      </div>
+                <div className="mt-5 flex flex-wrap gap-x-5 gap-y-1 text-sm text-black/55">
+                  <span>Application: {row.APPLICATION_ID || "—"}</span>
+                  <span>Case: {row.CASE_ID || "—"}</span>
+                  <span>Last activity: {formatDate(row.LAST_ACTIVITY_AT)}</span>
+                </div>
+              </Link>
+            ))}
+          </div>
+        )}
+      </section>
     </main>
   );
 }
 
-function StatCard({
-  label,
-  value,
-}: {
-  label: string;
-  value: number;
-}) {
+function MetricCard({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-2xl border border-black/10 bg-white p-6">
-      <div className="text-sm text-black/60">{label}</div>
-      <div className="mt-2 text-3xl font-semibold text-black">{value}</div>
+    <div className="rounded-2xl border border-black/10 bg-white p-5">
+      <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/60">
+        {label}
+      </div>
+      <div className="mt-2 text-[28px] font-semibold text-black">{value}</div>
     </div>
   );
+}
+
+function Info({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-xl border border-black/5 px-3 py-3">
+      <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-black/55">
+        {label}
+      </div>
+      <div className="mt-2 text-[14px] text-black/85">{value}</div>
+    </div>
+  );
+}
+
+function StatusPill({
+  value,
+  subtle = false,
+}: {
+  value: string;
+  subtle?: boolean;
+}) {
+  const normalized = String(value || "").trim().toLowerCase();
+
+  let classes =
+    "inline-flex rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.14em]";
+
+  if (!subtle && normalized === "certified") {
+    classes += " border-emerald-300 bg-emerald-50 text-emerald-700";
+  } else if (!subtle && normalized === "not certified") {
+    classes += " border-zinc-300 bg-zinc-50 text-zinc-700";
+  } else if (normalized === "active") {
+    classes += " border-blue-300 bg-blue-50 text-blue-700";
+  } else if (normalized === "valid") {
+    classes += " border-violet-300 bg-violet-50 text-violet-700";
+  } else {
+    classes += " border-black/10 bg-black/[0.03] text-black/65";
+  }
+
+  return <span className={classes}>{value}</span>;
 }
