@@ -8,10 +8,13 @@ type CountryOrgRow = {
   ENTITY_NAME: string;
   ENTITY_TYPE: string | null;
   COUNTRY: string | null;
+  CERTIFIED_SCORE: number | null;
   CERTIFIED_TIER: string | null;
+  CERTIFIED_TIER_LEVEL: string | null;
   CERTIFIED_BAND: string | null;
-  DECISION_STATUS: string;
+  CERTIFICATION_STATUS: string | null;
   CERTIFIED_AT: string | null;
+  VALID_TO: string | null;
 };
 
 type CountrySystemRow = {
@@ -23,13 +26,26 @@ type CountrySystemRow = {
   DEPLOYMENT_STATUS: string | null;
   OVERSIGHT_LEVEL: string | null;
   RISK_TIER: string | null;
+  COUNTRY: string | null;
   CERTIFIED_TIER: string | null;
+  CERTIFIED_TIER_LEVEL: string | null;
   CERTIFIED_BAND: string | null;
   GOVERNANCE_MATURITY_SCORE: number | null;
 };
 
-function decodeCountryParam(value: string) {
-  return decodeURIComponent(String(value || "")).trim();
+function normalizeCountry(value: string | null | undefined) {
+  return String(value || "").trim();
+}
+
+function formatDate(value: string | null | undefined) {
+  if (!value) return "—";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "—";
+  return date.toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
 }
 
 function formatScore(value: number | null | undefined) {
@@ -48,17 +64,29 @@ function average(values: Array<number | null | undefined>) {
   return usable.reduce((sum, v) => sum + v, 0) / usable.length;
 }
 
-function joinTierBand(tier: string | null, band: string | null) {
-  if (tier && band) return `${tier} / ${band}`;
-  return tier ?? band ?? "—";
+function tierBandLabel(
+  tier: string | null | undefined,
+  tierLevel: string | null | undefined,
+  band: string | null | undefined
+) {
+  const bestTier = String(tierLevel || tier || "").trim();
+  const bestBand = String(band || "").trim();
+
+  if (bestTier && bestBand) return `${bestTier} · Band ${bestBand}`;
+  if (bestTier) return bestTier;
+  if (bestBand) return `Band ${bestBand}`;
+  return "—";
 }
 
-export default async function ExplorerCountryDetailPage({
-  params,
-}: {
-  params: { country: string };
-}) {
-  const country = decodeCountryParam(params.country);
+type PageProps = {
+  params: {
+    country: string;
+  };
+};
+
+export default async function ExplorerCountryDetailPage({ params }: PageProps) {
+  const countryParam = decodeURIComponent(params.country);
+  const country = normalizeCountry(countryParam);
 
   const [orgRows, systemRows] = await Promise.all([
     sfQuery<CountryOrgRow>(
@@ -68,12 +96,15 @@ export default async function ExplorerCountryDetailPage({
         ENTITY_NAME,
         ENTITY_TYPE,
         COUNTRY,
+        CERTIFIED_SCORE,
         CERTIFIED_TIER,
+        CERTIFIED_TIER_LEVEL,
         CERTIFIED_BAND,
-        DECISION_STATUS,
-        CERTIFIED_AT
+        CERTIFICATION_STATUS,
+        CERTIFIED_AT,
+        VALID_TO
       FROM GAFAIG_DB.CORE.V_REGISTRY_PUBLIC
-      WHERE COUNTRY = ?
+      WHERE UPPER(TRIM(COUNTRY)) = UPPER(TRIM(?))
       ORDER BY ENTITY_NAME ASC
       `,
       [country]
@@ -89,7 +120,9 @@ export default async function ExplorerCountryDetailPage({
         s.DEPLOYMENT_STATUS,
         s.OVERSIGHT_LEVEL,
         s.RISK_TIER,
+        r.COUNTRY,
         r.CERTIFIED_TIER,
+        r.CERTIFIED_TIER_LEVEL,
         r.CERTIFIED_BAND,
         CASE
           WHEN UPPER(COALESCE(r.CERTIFIED_BAND, '')) = 'A' THEN 95
@@ -100,46 +133,24 @@ export default async function ExplorerCountryDetailPage({
       FROM GAFAIG_DB.CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC s
       LEFT JOIN GAFAIG_DB.CORE.V_REGISTRY_PUBLIC r
         ON s.REGISTRY_ID = r.REGISTRY_ID
-      WHERE r.COUNTRY = ?
+      WHERE UPPER(TRIM(r.COUNTRY)) = UPPER(TRIM(?))
       ORDER BY s.SYSTEM_NAME ASC
       `,
       [country]
     ),
   ]);
 
-  const totalOrganizations = orgRows.length;
-  const approvedOrganizations = orgRows.filter(
-    (row) => String(row.DECISION_STATUS ?? "").toUpperCase() === "APPROVED"
+  const certifiedCount = orgRows.filter((row) => row.CERTIFIED_SCORE !== null).length;
+  const avgMaturity = average(systemRows.map((row) => row.GOVERNANCE_MATURITY_SCORE));
+  const highRisk = systemRows.filter(
+    (row) => String(row.RISK_TIER ?? "").trim().toUpperCase() === "HIGH"
   ).length;
-  const totalSystems = systemRows.length;
-  const avgMaturity = average(
-    systemRows.map((row) => row.GOVERNANCE_MATURITY_SCORE)
-  );
-
-  const highRiskCount = systemRows.filter(
-    (row) => String(row.RISK_TIER ?? "").toUpperCase() === "HIGH"
+  const mediumRisk = systemRows.filter(
+    (row) => String(row.RISK_TIER ?? "").trim().toUpperCase() === "MEDIUM"
   ).length;
-  const mediumRiskCount = systemRows.filter(
-    (row) => String(row.RISK_TIER ?? "").toUpperCase() === "MEDIUM"
+  const lowRisk = systemRows.filter(
+    (row) => String(row.RISK_TIER ?? "").trim().toUpperCase() === "LOW"
   ).length;
-  const lowRiskCount = systemRows.filter(
-    (row) => String(row.RISK_TIER ?? "").toUpperCase() === "LOW"
-  ).length;
-
-  if (!country) {
-    return (
-      <main className="mx-auto max-w-[1180px] px-6 pb-16 pt-14">
-        <div className="rounded-2xl border border-black/10 bg-white p-6">
-          <div className="text-[18px] font-semibold text-black">
-            Country not found
-          </div>
-          <p className="mt-3 text-[15px] text-black/70">
-            No country parameter was provided.
-          </p>
-        </div>
-      </main>
-    );
-  }
 
   return (
     <main className="mx-auto max-w-[1180px] px-6 pb-16 pt-14">
@@ -149,12 +160,12 @@ export default async function ExplorerCountryDetailPage({
         </div>
 
         <h1 className="mt-4 max-w-[760px] text-[36px] font-semibold leading-[1.08] tracking-tight text-black md:text-[52px]">
-          Explorer — {country}
+          Explorer — {country || "Country"}
         </h1>
 
         <p className="mt-5 max-w-[820px] text-[17px] leading-[1.7] text-black/72">
-          Public country-level drill-down for GAFAIG-certified organizations and
-          disclosed AI systems in {country}.
+          Country-level public explorer detail for GAFAIG-certified organizations
+          and disclosed AI systems.
         </p>
 
         <div className="mt-8 flex flex-wrap gap-3">
@@ -174,100 +185,95 @@ export default async function ExplorerCountryDetailPage({
             href="/explorer/organizations"
             className="rounded-full border border-black px-5 py-3 text-sm font-semibold transition hover:bg-black/[0.04]"
           >
-            View organizations
+            Organizations
           </Link>
           <Link
             href="/explorer/systems"
             className="rounded-full border border-black px-5 py-3 text-sm font-semibold transition hover:bg-black/[0.04]"
           >
-            View systems
+            Systems
           </Link>
         </div>
       </section>
 
       <section className="mt-10 grid gap-4 md:grid-cols-4">
-        <MetricCard label="Organizations" value={String(totalOrganizations)} />
-        <MetricCard
-          label="Approved organizations"
-          value={String(approvedOrganizations)}
-        />
-        <MetricCard label="Disclosed systems" value={String(totalSystems)} />
+        <MetricCard label="Organizations" value={String(orgRows.length)} />
+        <MetricCard label="Certified" value={String(certifiedCount)} />
+        <MetricCard label="Systems" value={String(systemRows.length)} />
         <MetricCard label="Avg maturity" value={formatScore(avgMaturity)} />
       </section>
 
       <section className="mt-10 rounded-3xl border border-black/10 bg-white p-8 md:p-10">
         <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
-          COUNTRY DETAIL
+          COUNTRY OVERVIEW
         </div>
 
-        <h2 className="mt-4 max-w-[760px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
+        <h2 className="mt-4 text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
           {country}
         </h2>
 
         <div className="mt-8 grid gap-4 md:grid-cols-4">
-          <Info label="Organizations" value={String(totalOrganizations)} />
-          <Info
-            label="Approved orgs"
-            value={String(approvedOrganizations)}
-          />
-          <Info label="Systems" value={String(totalSystems)} />
+          <Info label="High-risk systems" value={String(highRisk)} />
+          <Info label="Medium-risk systems" value={String(mediumRisk)} />
+          <Info label="Low-risk systems" value={String(lowRisk)} />
           <Info label="Avg maturity" value={formatScore(avgMaturity)} />
-        </div>
-
-        <div className="mt-4 grid gap-4 md:grid-cols-3">
-          <Info label="High-risk systems" value={String(highRiskCount)} />
-          <Info label="Medium-risk systems" value={String(mediumRiskCount)} />
-          <Info label="Low-risk systems" value={String(lowRiskCount)} />
         </div>
       </section>
 
       <section className="mt-10 rounded-3xl border border-black/10 bg-white p-8 md:p-10">
-        <div className="flex items-center justify-between gap-4">
-          <div>
-            <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
-              ORGANIZATIONS
-            </div>
-            <h3 className="mt-3 text-[28px] font-semibold tracking-tight text-black">
-              Certified organizations in {country}
-            </h3>
-          </div>
-
-          <Link
-            href="/explorer/countries"
-            className="rounded-full border border-black px-4 py-2 text-sm font-semibold transition hover:bg-black hover:text-white"
-          >
-            Back to countries
-          </Link>
+        <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
+          ORGANIZATIONS
         </div>
+
+        <h2 className="mt-4 text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
+          Registry organizations in {country}
+        </h2>
 
         {orgRows.length === 0 ? (
           <div className="mt-8 rounded-2xl border border-black/10 p-6 text-sm text-black/70">
-            No organizations found for this country.
+            No public organization data available for this country.
           </div>
         ) : (
           <div className="mt-8 grid gap-4">
             {orgRows.map((row) => (
               <div
-                key={`${row.REGISTRY_ID}-${row.ENTITY_NAME}`}
+                key={row.REGISTRY_ID}
                 className="rounded-2xl border border-black/10 p-5"
               >
                 <div className="flex flex-wrap items-start justify-between gap-4">
                   <div>
-                    <div className="text-[20px] font-semibold text-black">
+                    <h3 className="text-[20px] font-semibold text-black">
                       {row.ENTITY_NAME}
-                    </div>
+                    </h3>
                     <div className="mt-2 text-[14px] text-black/65">
-                      {joinTierBand(row.CERTIFIED_TIER, row.CERTIFIED_BAND)} ·{" "}
-                      {row.DECISION_STATUS}
+                      {row.ENTITY_TYPE || "—"}
                     </div>
                   </div>
 
                   <Link
                     href={`/registry/${encodeURIComponent(row.REGISTRY_ID)}`}
-                    className="rounded-full border border-black px-4 py-2 text-sm font-semibold transition hover:bg-black hover:text-white"
+                    className="inline-flex items-center rounded-full border border-black px-4 py-2 text-sm font-medium transition hover:bg-black hover:text-white"
                   >
                     View registry record
                   </Link>
+                </div>
+
+                <div className="mt-5 grid gap-4 md:grid-cols-5">
+                  <Info
+                    label="Tier / Band"
+                    value={tierBandLabel(
+                      row.CERTIFIED_TIER,
+                      row.CERTIFIED_TIER_LEVEL,
+                      row.CERTIFIED_BAND
+                    )}
+                  />
+                  <Info label="Score" value={formatScore(row.CERTIFIED_SCORE)} />
+                  <Info
+                    label="Certification"
+                    value={row.CERTIFICATION_STATUS || "—"}
+                  />
+                  <Info label="Certified at" value={formatDate(row.CERTIFIED_AT)} />
+                  <Info label="Valid to" value={formatDate(row.VALID_TO)} />
                 </div>
               </div>
             ))}
@@ -277,29 +283,51 @@ export default async function ExplorerCountryDetailPage({
 
       <section className="mt-10 rounded-3xl border border-black/10 bg-white p-8 md:p-10">
         <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
-          DISCLOSED SYSTEMS
+          AI SYSTEMS
         </div>
-        <h3 className="mt-3 text-[28px] font-semibold tracking-tight text-black">
-          AI systems associated with {country}
-        </h3>
+
+        <h2 className="mt-4 text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
+          Disclosed systems in {country}
+        </h2>
 
         {systemRows.length === 0 ? (
           <div className="mt-8 rounded-2xl border border-black/10 p-6 text-sm text-black/70">
-            No AI systems found for this country.
+            No disclosed AI systems available for this country.
           </div>
         ) : (
           <div className="mt-8 grid gap-4">
             {systemRows.map((row) => (
               <div
-                key={`${row.SYSTEM_ID}-${row.SYSTEM_NAME ?? ""}`}
+                key={row.SYSTEM_ID}
                 className="rounded-2xl border border-black/10 p-5"
               >
-                <div className="text-[18px] font-semibold text-black">
-                  {row.SYSTEM_NAME ?? row.SYSTEM_ID}
-                </div>
+                <h3 className="text-[20px] font-semibold text-black">
+                  {row.SYSTEM_NAME || row.SYSTEM_ID}
+                </h3>
+
                 <div className="mt-2 text-[14px] text-black/65">
-                  {(row.SYSTEM_TYPE ?? "—")} · {(row.RISK_TIER ?? "—")} ·{" "}
-                  {(row.OVERSIGHT_LEVEL ?? "—")}
+                  {(row.ENTITY_NAME || "Unknown entity")} · {(row.SYSTEM_TYPE || "—")}
+                </div>
+
+                <div className="mt-5 grid gap-4 md:grid-cols-5">
+                  <Info label="Risk tier" value={row.RISK_TIER || "—"} />
+                  <Info label="Oversight" value={row.OVERSIGHT_LEVEL || "—"} />
+                  <Info
+                    label="Deployment"
+                    value={row.DEPLOYMENT_STATUS || "—"}
+                  />
+                  <Info
+                    label="Tier / Band"
+                    value={tierBandLabel(
+                      row.CERTIFIED_TIER,
+                      row.CERTIFIED_TIER_LEVEL,
+                      row.CERTIFIED_BAND
+                    )}
+                  />
+                  <Info
+                    label="Maturity"
+                    value={formatScore(row.GOVERNANCE_MATURITY_SCORE)}
+                  />
                 </div>
               </div>
             ))}
@@ -310,13 +338,7 @@ export default async function ExplorerCountryDetailPage({
   );
 }
 
-function MetricCard({
-  label,
-  value,
-}: {
-  label: string;
-  value: string;
-}) {
+function MetricCard({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-2xl border border-black/10 bg-white p-5">
       <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/60">
@@ -327,13 +349,7 @@ function MetricCard({
   );
 }
 
-function Info({
-  label,
-  value,
-}: {
-  label: string;
-  value: string;
-}) {
+function Info({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-xl border border-black/5 px-3 py-3">
       <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-black/55">

@@ -3,14 +3,25 @@ import { sfQuery } from "@/lib/snowflake";
 
 export const dynamic = "force-dynamic";
 
+type CountryStatsRow = {
+  COUNTRY: string;
+  TOTAL_RECORDS: number;
+  TOTAL_ENTITIES: number;
+  TOTAL_REGISTRY_IDS: number;
+  TOTAL_CERTIFIED: number;
+  TOTAL_NOT_CERTIFIED: number;
+  LAST_ACTIVITY_AT: string | null;
+};
+
 type CountryOrgRow = {
   REGISTRY_ID: string;
   ENTITY_NAME: string;
   COUNTRY: string | null;
   CERTIFIED_TIER: string | null;
+  CERTIFIED_TIER_LEVEL: string | null;
   CERTIFIED_BAND: string | null;
-  DECISION_STATUS: string;
   CERTIFIED_AT: string | null;
+  CERTIFICATION_STATUS: string | null;
 };
 
 type CountrySystemRow = {
@@ -24,6 +35,7 @@ type CountrySystemRow = {
   RISK_TIER: string | null;
   COUNTRY: string | null;
   CERTIFIED_TIER: string | null;
+  CERTIFIED_TIER_LEVEL: string | null;
   CERTIFIED_BAND: string | null;
   GOVERNANCE_MATURITY_SCORE: number | null;
 };
@@ -62,8 +74,11 @@ function normalizeCountry(value: string | null | undefined) {
 
 function tierMixLabel(rows: CountryOrgRow[]) {
   const counts = rows.reduce((acc, row) => {
-    const tier = String(row.CERTIFIED_TIER ?? "").trim().toUpperCase();
-    if (tier) acc[tier] = (acc[tier] ?? 0) + 1;
+    const tierLevel = String(row.CERTIFIED_TIER_LEVEL ?? "").trim();
+    const tier = tierLevel || String(row.CERTIFIED_TIER ?? "").trim();
+    if (tier) {
+      acc[tier] = (acc[tier] ?? 0) + 1;
+    }
     return acc;
   }, {} as Record<string, number>);
 
@@ -77,23 +92,33 @@ function tierMixLabel(rows: CountryOrgRow[]) {
 }
 
 export default async function ExplorerCountriesPage() {
-  const [orgRows, systemRows] = await Promise.all([
-    sfQuery<CountryOrgRow>(
-      `
+  const [countryStatsRows, orgRows, systemRows] = await Promise.all([
+    sfQuery<CountryStatsRow>(`
+      SELECT
+        COUNTRY,
+        TOTAL_RECORDS,
+        TOTAL_ENTITIES,
+        TOTAL_REGISTRY_IDS,
+        TOTAL_CERTIFIED,
+        TOTAL_NOT_CERTIFIED,
+        LAST_ACTIVITY_AT
+      FROM GAFAIG_DB.CORE.V_REGISTRY_STATS_BY_COUNTRY
+      ORDER BY TOTAL_RECORDS DESC, COUNTRY ASC
+    `),
+    sfQuery<CountryOrgRow>(`
       SELECT
         REGISTRY_ID,
         ENTITY_NAME,
         COUNTRY,
         CERTIFIED_TIER,
+        CERTIFIED_TIER_LEVEL,
         CERTIFIED_BAND,
-        DECISION_STATUS,
-        CERTIFIED_AT
+        CERTIFIED_AT,
+        CERTIFICATION_STATUS
       FROM GAFAIG_DB.CORE.V_REGISTRY_PUBLIC
       ORDER BY COUNTRY ASC, ENTITY_NAME ASC
-      `
-    ),
-    sfQuery<CountrySystemRow>(
-      `
+    `),
+    sfQuery<CountrySystemRow>(`
       SELECT
         s.SYSTEM_ID,
         s.REGISTRY_ID,
@@ -105,6 +130,7 @@ export default async function ExplorerCountriesPage() {
         s.RISK_TIER,
         r.COUNTRY,
         r.CERTIFIED_TIER,
+        r.CERTIFIED_TIER_LEVEL,
         r.CERTIFIED_BAND,
         CASE
           WHEN UPPER(COALESCE(r.CERTIFIED_BAND, '')) = 'A' THEN 95
@@ -116,35 +142,26 @@ export default async function ExplorerCountriesPage() {
       LEFT JOIN GAFAIG_DB.CORE.V_REGISTRY_PUBLIC r
         ON s.REGISTRY_ID = r.REGISTRY_ID
       ORDER BY r.COUNTRY ASC, s.SYSTEM_NAME ASC
-      `
-    ),
+    `),
   ]);
 
   const byCountry = new Map<string, CountryRow>();
 
-  for (const row of orgRows) {
+  for (const row of countryStatsRows) {
     const country = normalizeCountry(row.COUNTRY);
     if (!country) continue;
 
-    const current = byCountry.get(country) ?? {
+    byCountry.set(country, {
       country,
-      organizations: 0,
-      approvedOrganizations: 0,
+      organizations: Number(row.TOTAL_ENTITIES ?? 0),
+      approvedOrganizations: Number(row.TOTAL_CERTIFIED ?? 0),
       systems: 0,
       avgMaturity: null,
       highRisk: 0,
       mediumRisk: 0,
       lowRisk: 0,
       topTierMix: "—",
-    };
-
-    current.organizations += 1;
-
-    if (String(row.DECISION_STATUS ?? "").toUpperCase() === "APPROVED") {
-      current.approvedOrganizations += 1;
-    }
-
-    byCountry.set(country, current);
+    });
   }
 
   for (const row of systemRows) {

@@ -1,278 +1,267 @@
 # GAFAIG — CURRENT FOCUS
 Execution Control Document
-Last Updated: 2026-03-25
+Last Updated: 2026-03-27
 
 ---
 
-# PRIMARY OBJECTIVE
+# 🎯 PRIMARY OBJECTIVE
 
-Complete the transition from:
+Complete transition from:
 
-"System works internally"
+"System compiles and deploys"
 
 →
 
-"Global registry is authoritative, consistent, and externally trusted"
+"Global AI Governance Registry is fully validated, consistent, and production-grade"
 
 ---
 
-# CURRENT PHASE
+# 📍 CURRENT PHASE
 
-Registry Enrichment (Post-Engine Stabilization)
+Registry Surface Completion → Explorer Validation
+
+(Post-Deployment Stabilization)
 
 ---
 
-# WHAT IS LOCKED (DO NOT TOUCH)
+# ✅ WHAT IS COMPLETE (LOCKED — DO NOT TOUCH)
 
-The following systems are COMPLETE and MUST NOT be modified:
+The following systems are WORKING and must NOT be modified:
 
-• verification workflow (cases → findings → evidence → events)  
-• deterministic scoring engine (V_GOVERNANCE_SCORE_CASE)  
+• verification workflow (findings / evidence / events)  
+• deterministic enterprise scoring engine  
 • score snapshot system  
-• registry publish procedure (SP_PUBLISH_CASE_TO_REGISTRY_V4 / V3 wrapper)  
-• registry snapshot table (append-only)  
-• V_REGISTRY_LATEST_APPROVED (canonical source of truth)  
+• registry snapshot system (append-only)  
+• publish procedure (SP_PUBLISH_CASE_TO_REGISTRY_V3)  
+• registry ID reuse logic (no duplicates)  
+• V_REGISTRY_LATEST_APPROVED  
 • V_REGISTRY_PUBLIC  
-• V_REGISTRY_PUBLIC_SEARCH  
 • V_REGISTRY_AI_SYSTEMS_PUBLIC  
-• query layer (lib/queries)  
-• API pass-through architecture  
-• public registry UI pages  
+• registry UI pages  
+• badge API (/api/badge/[registryId])  
+• verification API (/api/verify/[registryId])  
+• Snowflake connection (key-pair auth)  
+• Vercel deployment pipeline  
 
 ---
 
-# CRITICAL SYSTEM RULE
+# ⚠️ CURRENT REALITY
 
-DO NOT:
+## SYSTEM STATE
 
-• re-architect  
-• introduce frontend logic  
-• duplicate Snowflake logic  
-• override engine outputs  
-• mutate snapshots  
+✔ Deploying successfully  
+✔ Compiling successfully  
+✔ Core registry functioning  
+✔ Badge + verification endpoints working  
 
----
+⚠️ Explorer pages:
 
-# MAJOR FIX COMPLETED (2026-03-25)
-
-Certification inconsistency resolved.
-
-Previous issue:
-
-• DECISIONS table could override engine tier/band ❌  
-• registry showed inconsistent certification outputs ❌  
-
-Resolution:
-
-• ENGINE is now the single source of truth for:
-  - score
-  - tier
-  - band
-
-• DECISIONS now only control:
-  - approval status
-  - publish authorization
-
-Result:
-
-• deterministic certification  
-• no conflicting outputs  
-• registry integrity restored  
+• compile successfully  
+• NOT fully validated at runtime  
+• some pages load, some need testing  
 
 ---
 
-# CURRENT SYSTEM TRUTH MODEL
+# 🔥 CURRENT WORK (ACTIVE)
 
-Certification logic:
+## 1. Explorer Page Validation (PRIMARY TASK)
 
-IF decision_status IN (approved, published, certified):
+Test ALL explorer routes end-to-end:
 
-→ certified_score = engine score  
-→ certified_tier = engine tier  
-→ certified_band = engine band  
+• /explorer  
+• /explorer/countries  
+• /explorer/countries/[country]  
+• /explorer/map  
+• /explorer/organizations  
+• /explorer/systems  
 
-ELSE:
+For each page confirm:
 
-→ no certification  
+• loads without error  
+• data appears  
+• counts are correct  
+• links resolve  
+• no empty or broken states  
 
 ---
 
-# ACTIVE DEVELOPMENT AREAS
+## 2. Registry Verification (CRITICAL)
 
-## 1. EXPLORER DATA INTEGRITY
+Confirm for known registryId:
 
-Ensure Explorer reflects true registry state.
+• /registry/[registryId] loads  
+• /api/badge/[registryId] returns image redirect  
+• /api/verify/[registryId] returns signed JSON  
+
+---
+
+## 3. Data Integrity Checks
 
 Verify:
 
-• record counts  
-• certified vs non-certified  
-• country distribution  
-• tier distribution  
-• band distribution  
+• registryId matches across:
+  - REGISTRY_SNAPSHOTS  
+  - V_REGISTRY_PUBLIC  
+  - UI  
 
-Source:
-
-CORE.V_REGISTRY_PUBLIC  
-CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC  
+• no duplicate registry IDs  
+• publish reuses same ID  
+• certified fields populated correctly  
 
 ---
 
-## 2. REGISTRY DATA COMPLETENESS
+# 🧱 CURRENT TECHNICAL STATE
 
-Ensure all required fields are consistently populated:
+## Snowflake Access Layer
 
-• certifiedScore  
-• certifiedTier  
-• certifiedBand  
-• certifiedAt  
-• decisionStatus  
-• validFrom  
-• validTo  
-• country  
-• entityType  
+Primary:
 
----
+sfQuery()
 
-## 3. COUNTRY NORMALIZATION
+Temporary compatibility layer exists:
 
-Problem:
+• executeQuery  
+• snowflakeQuery  
+• sfQueryResult  
+• snowflakeCtx  
 
-• inconsistent country values across records  
-
-Goal:
-
-• standardized country mapping  
-• consistent explorer grouping  
+⚠️ These are temporary and should NOT be expanded further
 
 ---
 
-## 4. CERTIFICATION DISTRIBUTION VALIDATION
+## Registry Query Layer
 
-Ensure:
+File:
 
-• tier distribution is meaningful  
-• band distribution reflects actual scoring  
-• no artificial inflation from legacy data  
+lib/queries/registry.ts  
 
----
+Current behavior:
 
-## 5. VERIFY ENDPOINT VALIDATION
+• uses REGISTRY_PUBLIC_READTHROUGH  
+• ensures stable lookup  
 
-Endpoint:
+⚠️ Needs future decision:
 
-/api/verify/[registryId]
-
-Must return:
-
-• registryId  
-• entity  
-• certification status  
-• score  
-• tier  
-• band  
-• signed payload  
-
-Goal:
-
-• deterministic verification  
-• external trust surface  
+• keep readthrough  
+OR  
+• revert to V_REGISTRY_PUBLIC  
 
 ---
 
-## 6. UI CONSISTENCY (PUBLIC LAYER)
+## Explorer Pages
 
-Ensure all public pages are aligned:
+Recently fixed:
 
-• homepage  
-• mission  
-• framework  
-• demo  
-• registry  
-• registry detail  
-• explorer  
+• removed sfQueryResult usage  
+• removed .ok / .rows / .error patterns  
+• converted to direct sfQuery  
 
-Rules:
+⚠️ Current issue:
 
-• consistent layout  
-• consistent typography  
-• consistent spacing  
-• no page-specific hacks  
+• duplicated SQL across pages  
+• no shared query layer yet  
 
 ---
 
-# VALIDATION CHECKLIST
+# ❗ CURRENT RISKS
 
-Before moving forward, confirm:
-
-✔ publish → registry snapshot is correct  
-✔ registry view reflects engine outputs  
-✔ API returns correct certification data  
-✔ UI displays correct certification data  
-✔ explorer metrics match registry  
+• explorer pages may silently fail at runtime  
+• data aggregation inconsistencies  
+• duplicate SQL logic across UI  
+• temporary compatibility layer becoming permanent  
 
 ---
 
-# TESTING FLOW
+# 🚫 DO NOT DO
 
-Use canonical test case:
-
-CASE-0001
-
-Steps:
-
-1. Run:
-
-CALL CORE.SP_PUBLISH_CASE_TO_REGISTRY_V3('CASE-0001');
-
-2. Validate:
-
-SELECT * FROM CORE.V_REGISTRY_PUBLIC WHERE CASE_ID = 'CASE-0001';
-
-3. Check:
-
-/api/registry  
-/api/verify/[registryId]  
-
-4. Confirm UI:
-
-/registry  
-/registry/[registryId]  
-/explorer  
+• DO NOT re-architect  
+• DO NOT move logic to frontend  
+• DO NOT introduce new query abstractions  
+• DO NOT change Snowflake views  
+• DO NOT modify scoring  
+• DO NOT modify publish pipeline  
 
 ---
 
-# SUCCESS CRITERIA
+# ▶️ NEXT STEPS (STRICT ORDER)
 
-The system is considered correct when:
+## STEP 1 — TESTING
 
-• registry shows engine-aligned certification  
-• no mismatch between score and tier  
-• explorer reflects real data  
-• verification endpoint is accurate  
-• UI is consistent across all pages  
+User tests all pages listed above
 
----
-
-# NEXT PHASE (AFTER COMPLETION)
-
-Global Registry Expansion
-
-• increase dataset coverage  
-• onboard real organizations  
-• expand AI systems registry  
-• enhance explorer analytics  
+→ Identify which pages fail  
+→ Capture exact behavior  
 
 ---
 
-# EXECUTION DIRECTIVE
+## STEP 2 — FIXES
 
-Continue forward.
+Fix ONLY:
 
-Do not revisit completed systems.
+• runtime errors  
+• missing data bindings  
+• incorrect queries  
 
-Do not introduce new architecture.
-
-Only enrich and validate the registry layer.
+NO architectural changes  
 
 ---
+
+## STEP 3 — STABILIZATION
+
+Once all pages load correctly:
+
+• confirm consistent data  
+• confirm registry linkage  
+• confirm explorer aggregation  
+
+---
+
+## STEP 4 — CLEANUP (NEXT PHASE)
+
+After validation:
+
+• remove compatibility exports from snowflake.ts  
+• consolidate queries into query layer  
+• eliminate duplicated SQL  
+• standardize on sfQuery  
+
+---
+
+# 🧠 SUCCESS CRITERIA
+
+System is considered stable when:
+
+✔ all explorer pages load  
+✔ registry pages load  
+✔ badge + verify APIs work  
+✔ no runtime errors  
+✔ data is consistent across UI and Snowflake  
+✔ no duplicate registry IDs  
+✔ publish behaves deterministically  
+
+---
+
+# 🔄 CURRENT STATE SUMMARY
+
+You are NOT building anymore.
+
+You are:
+
+→ validating  
+→ stabilizing  
+→ confirming correctness  
+
+---
+
+# 🚀 NEXT CHAT START POINT
+
+Continue with:
+
+1. testing explorer pages  
+2. reporting which pages fail  
+3. fixing issues incrementally  
+
+DO NOT restart architecture  
+DO NOT introduce new patterns  
+
+Continue from THIS state exactly.

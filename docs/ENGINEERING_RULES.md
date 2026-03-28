@@ -1,192 +1,37 @@
 # GAFAIG — ENGINEERING RULES
-Non-Negotiable System Constraints
-Last Updated: 2026-03-25
+Non-Negotiable Development Constraints
+Last Updated: 2026-03-27
 
 ---
 
-# CORE PRINCIPLE
+# 🧠 PURPOSE
 
-Snowflake is the ONLY source of truth.
+These rules define:
 
-All certification, scoring, and registry outputs MUST originate from Snowflake.
+• how GAFAIG must be built  
+• what is allowed vs forbidden  
+• how to prevent architectural drift  
 
----
-
-# ARCHITECTURE RULE
-
-The system is strictly layered:
-
-Snowflake (truth)
-→ Views
-→ Query Layer
-→ API
-→ UI
-
-NO LAYER may bypass the one before it.
+These rules are **strict and non-negotiable**.
 
 ---
 
-# ABSOLUTE PROHIBITIONS
+# 🔒 RULE #1 — DO NOT RE-ARCHITECT
 
-DO NOT:
+The architecture is COMPLETE.
 
-• compute scores in API  
-• compute scores in UI  
-• derive certification in UI  
-• override engine outputs anywhere  
-• duplicate SQL logic across files  
-• mutate historical records  
-• update registry snapshots  
-• introduce “temporary fixes” in frontend  
-• hardcode values to “make UI look right”  
-• create parallel data flows  
+You must NOT:
+
+• redesign the system  
+• introduce new pipelines  
+• create alternate flows  
+• bypass the canonical data flow  
 
 ---
 
-# ENGINE AUTHORITY RULE (CRITICAL)
+# 🔄 RULE #2 — FOLLOW THE CANONICAL FLOW
 
-The following fields MUST come ONLY from:
-
-CORE.V_GOVERNANCE_SCORE_CASE
-
-• FINAL_SCORE  
-• TIER  
-• BAND  
-
----
-
-# CERTIFICATION RULE (UPDATED)
-
-Certification is ENGINE-DETERMINED.
-
-DECISIONS can:
-
-• approve  
-• reject  
-• publish  
-
-DECISIONS CANNOT:
-
-• override score  
-• override tier  
-• override band  
-
----
-
-## CORRECT MODEL
-
-IF decision_status IN (approved, published, certified):
-
-→ certified_score = engine score  
-→ certified_tier = engine tier  
-→ certified_band = engine band  
-
-ELSE:
-
-→ no certification  
-
----
-
-# SNAPSHOT RULE
-
-CORE.REGISTRY_SNAPSHOTS is:
-
-• append-only  
-• immutable  
-• historical  
-
-DO NOT:
-
-• update rows  
-• delete rows  
-• “fix” data in place  
-
-ALL changes must occur through:
-
-→ new snapshot insertion  
-
----
-
-# VIEW CONTRACT RULE
-
-Views define the system contract.
-
-Critical views:
-
-• V_GOVERNANCE_SCORE_CASE  
-• V_REGISTRY_LATEST_APPROVED  
-• V_REGISTRY_PUBLIC  
-• V_REGISTRY_PUBLIC_SEARCH  
-• V_REGISTRY_AI_SYSTEMS_PUBLIC  
-
-Rules:
-
-• UI MUST consume views  
-• API MUST consume views  
-• NO direct table joins in UI/API  
-
----
-
-# API RULES
-
-API is a pass-through layer.
-
-DO:
-
-• call query layer  
-• return Snowflake results  
-
-DO NOT:
-
-• compute values  
-• reshape certification logic  
-• infer missing fields  
-• apply business rules  
-
----
-
-# QUERY LAYER RULE
-
-Location:
-
-lib/queries/
-
-Purpose:
-
-• centralize SQL usage  
-• prevent duplication  
-• ensure consistency  
-
-Rules:
-
-• ALL queries go through query layer  
-• NO inline SQL in API routes  
-• NO inline SQL in UI  
-
----
-
-# FRONTEND RULES
-
-Frontend is a display layer ONLY.
-
-DO:
-
-• render data  
-• format data  
-• display status  
-
-DO NOT:
-
-• compute certification  
-• apply business logic  
-• derive tier/band/score  
-• fix backend issues  
-
----
-
-# DATA FLOW RULE
-
-ALL data must follow:
+ALL data MUST follow:
 
 CASE  
 → FINDINGS  
@@ -194,118 +39,319 @@ CASE
 → EVENTS  
 → SCORING  
 → SNAPSHOT  
-→ DECISION  
-→ REGISTRY SNAPSHOT  
+→ REGISTRY  
 → PUBLIC VIEWS  
 → API  
 → UI  
 
-NO shortcuts allowed.
+No shortcuts. No bypassing.
 
 ---
 
-# NAMING RULES
+# ❄️ RULE #3 — SNOWFLAKE IS THE SOURCE OF TRUTH
 
-Use canonical identifiers:
+ALL:
 
-CASE_ID  
-REGISTRY_ID  
-APPLICATION_ID  
+• scoring  
+• certification  
+• aggregation  
+• joins  
+• registry state  
 
-Formats:
-
-CASE-0001  
-GAFAIG-XXXXXXXX  
-
-All comparisons must use:
-
-TRIM + UPPER normalization
+MUST exist in Snowflake.
 
 ---
 
-# SQL SAFETY RULES
+## ❌ FORBIDDEN
 
-When inserting JSON:
-
-USE:
-
-INSERT ... SELECT PARSE_JSON(?)
-
-DO NOT:
-
-INSERT ... VALUES (...)
+• computing scores in API  
+• deriving certification in UI  
+• joining data in frontend  
+• patching missing data in code  
 
 ---
 
-# ERROR HANDLING RULE
+# 🔌 RULE #4 — API IS PASS-THROUGH ONLY
 
-Fail explicitly.
+API must:
 
-DO NOT:
+• call Snowflake  
+• return results  
 
-• silently ignore errors  
-• fallback to fake data  
-• return partial certification  
+API must NOT:
 
----
-
-# TESTING RULE
-
-Before deploying any change:
-
-✔ validate Snowflake query  
-✔ validate API response  
-✔ validate UI rendering  
-✔ confirm no drift between layers  
+• compute  
+• transform  
+• interpret governance logic  
 
 ---
 
-# DEPLOYMENT RULE
+# 🧱 RULE #5 — USE sfQuery ONLY (GOING FORWARD)
 
-System must:
+Canonical function:
 
-• build clean (no TypeScript errors)  
-• deploy clean (Vercel)  
-• return consistent outputs  
+sfQuery()
 
 ---
 
-# TRUST RULE (MOST IMPORTANT)
+## ⚠️ CURRENT TEMPORARY STATE
 
-GAFAIG is trust infrastructure.
+Compatibility exports exist:
 
-Therefore:
+• executeQuery  
+• snowflakeQuery  
+• sfQueryResult  
+• snowflakeCtx  
 
-• outputs must be deterministic  
-• outputs must be explainable  
-• outputs must be consistent across all layers  
+These are:
 
----
-
-# IF SOMETHING LOOKS WRONG
-
-DO NOT fix it in UI.
-
-TRACE BACK:
-
-UI → API → Query → View → Snapshot → Engine
-
-Fix at the SOURCE.
+• temporary  
+• allowed only for stability  
 
 ---
 
-# ENGINEERING PHILOSOPHY
+## 🚫 DO NOT
 
-Correctness > Convenience  
-Determinism > Flexibility  
-Integrity > Speed  
+• introduce new wrappers  
+• expand compatibility layer  
+• write new code using legacy patterns  
+
+---
+
+# 🧩 RULE #6 — UI IS DISPLAY ONLY
+
+UI must:
+
+• render data  
+
+UI must NOT:
+
+• compute certification  
+• derive tier/band  
+• calculate scores  
 
 ---
 
-# FINAL RULE
+# 📦 RULE #7 — REGISTRY IS IMMUTABLE
 
-If a change violates any rule in this file:
+CORE.REGISTRY_SNAPSHOTS:
 
-DO NOT IMPLEMENT IT.
+• append-only  
+• never updated  
+• never deleted  
 
 ---
+
+## 🚫 DO NOT
+
+• update registry rows  
+• overwrite snapshots  
+• mutate certification history  
+
+---
+
+# 🆔 RULE #8 — REGISTRY ID IS DETERMINISTIC
+
+• same CASE → same REGISTRY_ID  
+• never regenerate  
+• never duplicate  
+
+---
+
+# ⚙️ RULE #9 — PUBLISH IS AUTHORITATIVE
+
+Procedure:
+
+SP_PUBLISH_CASE_TO_REGISTRY_V3  
+
+Controls:
+
+• certification creation  
+• snapshot insertion  
+• registry ID reuse  
+
+---
+
+## 🚫 DO NOT
+
+• create alternative publish logic  
+• manually insert registry rows  
+• bypass publish procedure  
+
+---
+
+# 📂 RULE #10 — QUERY LAYER STRUCTURE
+
+Preferred:
+
+lib/queries/*  
+
+---
+
+## CURRENT STATE
+
+• explorer pages use direct sfQuery  
+• SQL duplication exists  
+
+---
+
+## FUTURE STATE
+
+• shared query modules  
+• no duplication  
+• clean abstraction  
+
+---
+
+# ⚠️ RULE #11 — TEMPORARY PATTERNS MUST NOT SPREAD
+
+Allowed temporarily:
+
+• compatibility exports  
+• readthrough registry layer  
+• duplicated SQL  
+
+---
+
+## 🚫 DO NOT
+
+• replicate these patterns  
+• expand their usage  
+• treat them as permanent  
+
+---
+
+# 🧪 RULE #12 — FIX ONLY WHAT IS BROKEN
+
+Current phase:
+
+Validation + stabilization  
+
+---
+
+## DO:
+
+• fix runtime errors  
+• fix missing data  
+• fix broken queries  
+
+---
+
+## DO NOT:
+
+• refactor working systems  
+• introduce new abstractions  
+• optimize prematurely  
+
+---
+
+# 🔍 RULE #13 — DEBUGGING APPROACH
+
+Always debug in this order:
+
+1. Snowflake (data exists?)  
+2. View (returns row?)  
+3. Query layer (correct call?)  
+4. API (returns data?)  
+5. UI (renders correctly?)  
+
+---
+
+# 🚫 RULE #14 — NO UI-LEVEL PATCHES
+
+If data is wrong:
+
+→ FIX IN SNOWFLAKE  
+
+NOT:
+
+→ patch in API  
+→ patch in UI  
+
+---
+
+# 🔐 RULE #15 — AUTH IS SERVER-SIDE
+
+Use:
+
+• middleware.ts  
+• requireAdmin()  
+
+---
+
+## DO NOT
+
+• trust client-side auth  
+• bypass session checks  
+
+---
+
+# 🚀 RULE #16 — DEPLOYMENT DISCIPLINE
+
+Before deploy:
+
+• npm run build must pass  
+• no TypeScript errors  
+• no missing imports  
+
+---
+
+## AFTER DEPLOY
+
+• test routes  
+• validate data  
+• confirm registry integrity  
+
+---
+
+# 🔥 RULE #17 — NEVER BREAK THESE
+
+• scoring engine  
+• registry snapshot system  
+• publish procedure  
+• Snowflake views  
+• canonical data flow  
+
+---
+
+# 🧠 RULE #18 — SYSTEM MINDSET
+
+You are NOT:
+
+• building a frontend app  
+• experimenting with patterns  
+
+You ARE:
+
+• maintaining a governance infrastructure system  
+• enforcing deterministic certification  
+
+---
+
+# ▶️ NEXT PHASE RULES
+
+After validation:
+
+• remove compatibility exports  
+• consolidate queries  
+• standardize on sfQuery  
+• eliminate duplication  
+
+---
+
+# 🧠 FINAL PRINCIPLE
+
+If unsure:
+
+→ DO NOTHING  
+→ ask  
+→ verify against MASTER_STATE.md  
+
+---
+
+This system must remain:
+
+✔ deterministic  
+✔ auditable  
+✔ immutable  
+✔ Snowflake-driven  

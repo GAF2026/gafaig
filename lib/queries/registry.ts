@@ -108,7 +108,7 @@ function normalizeRegistryRow(row: Record<string, unknown>): RegistryQueryRow {
   };
 }
 
-const REGISTRY_SOURCE = "GAFAIG_DB.CORE.REGISTRY_PUBLIC_READTHROUGH";
+const REGISTRY_SOURCE = "GAFAIG_DB.CORE.V_REGISTRY_PUBLIC";
 
 export async function getRegistryRecords(
   limit = 100
@@ -180,7 +180,7 @@ export async function getRegistryRecordByRegistryId(
   const rows = await sfQuery<Record<string, unknown>>(
     `
     SELECT *
-    FROM GAFAIG_DB.CORE.REGISTRY_PUBLIC_READTHROUGH
+    FROM ${REGISTRY_SOURCE}
     WHERE UPPER(REGEXP_REPLACE(REGISTRY_ID, '[^A-Za-z0-9]', '')) =
           UPPER(REGEXP_REPLACE(?, '[^A-Za-z0-9]', ''))
     LIMIT 1
