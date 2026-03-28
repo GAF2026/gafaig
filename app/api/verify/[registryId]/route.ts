@@ -1,125 +1,137 @@
-import { NextRequest, NextResponse } from "next/server";
-import { createHash } from "node:crypto";
-import { getRegistryByRegistryId } from "@/lib/queries/registry";
+import { NextResponse } from "next/server";
+import { createHmac } from "crypto";
+import { sfQuery } from "@/lib/snowflake";
 
-export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-function asIsoString(value: string | null | undefined): string | null {
+type VerifyRow = {
+  REGISTRY_ID: string;
+  APPLICATION_ID: string | null;
+  CASE_ID: string | null;
+  ENTITY_NAME: string | null;
+  ENTITY_TYPE: string | null;
+  COUNTRY: string | null;
+  CERTIFIED_SCORE: number | null;
+  CERTIFIED_TIER: string | null;
+  CERTIFIED_BAND: string | null;
+  DECISION_STATUS: string | null;
+  VALID_FROM: string | null;
+  VALID_TO: string | null;
+  CERTIFIED_AT: string | null;
+};
+
+function jsonUtc(value: string | null | undefined) {
   if (!value) return null;
-  const d = new Date(value);
-  if (Number.isNaN(d.getTime())) return value;
-  return d.toISOString();
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  return date.toISOString();
 }
 
-function canonicalizeVerificationMessage(record: any) {
-  return JSON.stringify({
-    registryId: record.registryId,
-    entityName: record.entityName,
-    entityType: record.entityType,
-    country: record.country,
-    applicationId: record.applicationId,
-    caseId: record.caseId,
-    certificationStatus: record.certificationStatus,
-    certifiedScore: record.certifiedScore,
-    certifiedTier: record.certifiedTier,
-    certifiedBand: record.certifiedBand,
-    decisionStatus: record.decisionStatus,
-    certifiedAt: asIsoString(record.certifiedAt),
-    validFrom: asIsoString(record.validFrom),
-    validTo: asIsoString(record.validTo),
-    lastActivityAt: asIsoString(record.lastActivityAt),
-  });
+function signPayload(message: string) {
+  const secret =
+    process.env.GAFAIG_VERIFY_SIGNING_SECRET ||
+    process.env.GAFAIG_REGISTRY_SIGNATURE_SECRET ||
+    process.env.GAFAIG_SESSION_SECRET ||
+    "gafaig-dev-signing-secret";
+
+  return createHmac("sha256", secret).update(message).digest("hex");
 }
 
 export async function GET(
-  _request: NextRequest,
+  _req: Request,
   { params }: { params: { registryId: string } }
 ) {
-  try {
-    const registryId = decodeURIComponent(params.registryId || "").trim();
+  const registryId = String(params.registryId || "").trim();
 
-    if (!registryId) {
-      return NextResponse.json(
-        {
-          ok: false,
-          error: "Missing registryId",
-        },
-        { status: 400 }
-      );
-    }
-
-    const row = await getRegistryByRegistryId(registryId);
-
-    if (!row) {
-      return NextResponse.json(
-        {
-          ok: false,
-          error: "Registry record not found",
-        },
-        { status: 404 }
-      );
-    }
-
-    const verified = row.certificationStatus === "Certified";
-    const message = canonicalizeVerificationMessage(row);
-    const signature = createHash("sha256").update(message).digest("hex");
-    const signedAt = asIsoString(
-      row.lastActivityAt ?? row.certifiedAt ?? row.validFrom
-    );
-
-    return NextResponse.json({
-      ok: true,
-      verified,
-      registryId: row.registryId,
-      entity: row.entityName,
-      entityType: row.entityType,
-      country: row.country,
-      applicationId: row.applicationId,
-      caseId: row.caseId,
-      status: row.certificationStatus,
-      tier: row.certifiedTier,
-      band: row.certifiedBand,
-      score: row.certifiedScore,
-      decisionStatus: row.decisionStatus,
-      certifiedAt: asIsoString(row.certifiedAt),
-      validFrom: asIsoString(row.validFrom),
-      validTo: asIsoString(row.validTo),
-      lastActivityAt: asIsoString(row.lastActivityAt),
-      record: {
-        registryId: row.registryId,
-        entityName: row.entityName,
-        entityType: row.entityType,
-        country: row.country,
-        applicationId: row.applicationId,
-        caseId: row.caseId,
-        certificationStatus: row.certificationStatus,
-        certifiedScore: row.certifiedScore,
-        certifiedTier: row.certifiedTier,
-        certifiedBand: row.certifiedBand,
-        decisionStatus: row.decisionStatus,
-        certifiedAt: asIsoString(row.certifiedAt),
-        validFrom: asIsoString(row.validFrom),
-        validTo: asIsoString(row.validTo),
-        lastActivityAt: asIsoString(row.lastActivityAt),
-      },
-      proof: {
-        alg: "sha256",
-        signature,
-        message,
-        signedAt,
-      },
-    });
-  } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "Verification lookup failed";
-
+  if (!registryId) {
     return NextResponse.json(
       {
         ok: false,
-        error: message,
+        verified: false,
+        error: "Missing registryId",
       },
-      { status: 500 }
+      { status: 400 }
     );
   }
+
+  const rows = await sfQuery<VerifyRow>(
+    `
+    SELECT
+      REGISTRY_ID,
+      APPLICATION_ID,
+      CASE_ID,
+      ENTITY_NAME,
+      ENTITY_TYPE,
+      COUNTRY,
+      CERTIFIED_SCORE,
+      CERTIFIED_TIER,
+      CERTIFIED_BAND,
+      DECISION_STATUS,
+      VALID_FROM,
+      VALID_TO,
+      CERTIFIED_AT
+    FROM GAFAIG_DB.CORE.V_REGISTRY_PUBLIC
+    WHERE REGISTRY_ID = ?
+    LIMIT 1
+    `,
+    [registryId]
+  );
+
+  const row = rows[0];
+
+  if (!row) {
+    return NextResponse.json(
+      {
+        ok: false,
+        verified: false,
+        registryId,
+        error: "Registry record not found",
+      },
+      { status: 404 }
+    );
+  }
+
+  const certificationStatus = row.CERTIFIED_AT ? "Certified" : "Not Certified";
+  const verified = certificationStatus === "Certified";
+
+  const record = {
+    registryId: row.REGISTRY_ID,
+    entityName: row.ENTITY_NAME,
+    entityType: row.ENTITY_TYPE,
+    country: row.COUNTRY,
+    applicationId: row.APPLICATION_ID,
+    caseId: row.CASE_ID,
+    certificationStatus,
+    certifiedScore:
+      row.CERTIFIED_SCORE === null || row.CERTIFIED_SCORE === undefined
+        ? null
+        : Number(row.CERTIFIED_SCORE),
+    certifiedTier: row.CERTIFIED_TIER,
+    certifiedBand: row.CERTIFIED_BAND,
+    decisionStatus: row.DECISION_STATUS,
+    certifiedAt: jsonUtc(row.CERTIFIED_AT),
+    validFrom: jsonUtc(row.VALID_FROM),
+    validTo: jsonUtc(row.VALID_TO),
+  };
+
+  const signedAt = new Date().toISOString();
+  const message = JSON.stringify({
+    ...record,
+    signedAt,
+  });
+
+  const signature = signPayload(message);
+
+  return NextResponse.json({
+    ok: true,
+    verified,
+    registryId: row.REGISTRY_ID,
+    proof: {
+      alg: "HS256",
+      signature,
+      signedAt,
+      message,
+    },
+    record,
+  });
 }
