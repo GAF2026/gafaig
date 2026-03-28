@@ -1,371 +1,139 @@
 # GAFAIG — SNOWFLAKE WORKSHEET MAPPING
-Canonical SQL File & Worksheet Intelligence
-Last Updated: 2026-03-27
+Last Updated: 2026-03-28
 
 ---
 
-# 🧠 PURPOSE
+# PURPOSE
 
-Defines:
-
-• what each Snowflake worksheet / SQL file does  
-• how files relate to the system  
-• where logic lives  
-• what is safe vs unsafe to modify  
-
-This prevents confusion when navigating Snowflake.
+This file maps the major Snowflake worksheets to their intended purpose so future chats do not lose time re-discovering which worksheet/file is authoritative versus diagnostic versus archive.
 
 ---
 
-# ❄️ ENVIRONMENT
+# CORE PLATFORM WORKSHEETS
 
-Account: GAFAIG1  
-Database: GAFAIG_DB  
-Schema: CORE  
-Warehouse: GAFAIG_WH  
-
----
-
-# 🔒 CORE PRINCIPLE
-
-Snowflake is the **ONLY source of truth**.
-
-ALL:
-
-• scoring  
-• certification  
-• registry  
-• aggregation  
-
-MUST live here.
-
----
-
-# 🧱 FILE CATEGORIES
-
----
-
-## 1. CORE TABLE DEFINITIONS
-
+## GAFAIG - CORE.REGISTRY_PUBLISH.sql
 Purpose:
+- Canonical registry publish layer
+- Contains / relates to registry publish procedure logic
+- Responsible for append-only publish workflow and canonical registry identity behavior
+Notes:
+- `SP_PUBLISH_CASE_TO_REGISTRY_V3` is a wrapper
+- `SP_PUBLISH_CASE_TO_REGISTRY_V4` contains the real publish logic
 
-• define persistent system state  
-
-Key Tables:
-
-• APPLICATIONS  
-• VERIFICATION_CASES  
-• VERIFICATION_FINDINGS  
-• VERIFICATION_FINDING_EVIDENCE  
-• VERIFICATION_EVIDENCE  
-• VERIFICATION_EVENTS  
-• SCORE_SNAPSHOTS  
-• REGISTRY_SNAPSHOTS  
-
----
-
-## 2. SCORING ENGINE FILES
-
----
-
-### CONTROL STRUCTURE
-
-Files:
-
-• CONTROL_CATALOG.sql  
-• CONTROL_WEIGHTS.sql  
-• SEVERITY_WEIGHTS.sql  
-• SCORING_MODEL_VERSIONS.sql  
-
+## 21_VIEWS_PUBLIC_REGISTRY.sql
 Purpose:
+- Canonical public registry view layer
+- Defines / supports public registry surface
+- Used by public registry routes and detail pages
+Key outputs:
+- public certification fields
+- public timestamps
+- public decision / certification status
 
-• define scoring logic inputs  
-
----
-
-### NORMALIZATION + SCORING
-
-Files:
-
-• V_FINDING_NORMALIZED.sql  
-• V_FINDING_EVIDENCE_IDS.sql  
-• V_CONTROL_EVIDENCE_FRESHNESS.sql  
-• V_CONTROL_SCORE_COMPONENTS.sql  
-• V_CASE_OPERATIONAL_SCORE.sql  
-• V_GOVERNANCE_SCORE_CASE.sql  
-• V_CASE_TIER_BAND.sql  
-
+## 22_VIEWS_REGISTRY_AI_SYSTEMS_PUBLIC.sql
 Purpose:
+- Canonical public AI-systems registry surface
+- Public-facing AI system projection tied to registry records
+Notes:
+- view includes richer derived output than the base `REGISTRY_AI_SYSTEMS` table
+- public routes and organization/system explorer rely on this view
 
-• transform raw findings into governance score  
-
----
-
-### SCORING PROCEDURE
-
-File:
-
-• SP_SCORE_CASE_ENTERPRISE.sql  
-
+## 22_VIEWS_EXPLORER_STATS.sql
 Purpose:
+- Explorer metrics and public analytics layer
+- Supports aggregate explorer counts and derived public governance metrics
 
-• compute score  
-• generate score snapshot  
-
----
-
-## 3. REGISTRY SYSTEM FILES
-
----
-
-### REGISTRY TABLE
-
-File:
-
-• REGISTRY_SNAPSHOTS.sql  
-
+## GAFAIG - Governance Scoring (Enterprise v1.2).sql
 Purpose:
+- Deterministic enterprise scoring engine
+- Scoring model / score generation / certified scoring basis
+Notes:
+- critical upstream source for registry-certified outputs
 
-• append-only certification history  
-• NEVER updated  
-
----
-
-### REGISTRY VIEWS
-
-Files:
-
-• V_REGISTRY_LATEST_APPROVED.sql  
-• V_REGISTRY_PUBLIC.sql  
-• V_REGISTRY_PUBLIC_SEARCH.sql  
-• V_REGISTRY_AI_SYSTEMS_PUBLIC.sql  
-
+## GAFAIG - Canonical Certified Case Seed.sql
 Purpose:
+- canonical seed used to create a certifiable demo case
+- used for validation of scoring + publish + public certification outputs
+Notes:
+- was used in certification wiring completion and validation of CASE-1001
 
-• expose registry to API/UI  
-
----
-
-### PUBLISH PROCEDURE
-
-File:
-
-• SP_PUBLISH_CASE_TO_REGISTRY_V3.sql  
-
+## DATA_BACKFILL_DEMO_DECISIONS.sql
 Purpose:
+- demo / data backfill support for decisions-related scenarios
+Notes:
+- diagnostic / support usage, not the main production publish definition
 
-• publish certification  
-• create snapshot  
-• reuse REGISTRY_ID  
-
----
-
-### CRITICAL BEHAVIOR
-
-• same CASE → same REGISTRY_ID  
-• no duplicates allowed  
-• append-only writes  
-• deterministic output  
-
----
-
-## 4. AI SYSTEMS FILES
-
----
-
-Files:
-
-• REGISTRY_AI_SYSTEMS.sql  
-• V_REGISTRY_AI_SYSTEMS_PUBLIC.sql  
-
+## 17_TABLES_DECISIONS.sql
 Purpose:
+- table definition / schema reference for `CORE.DECISIONS`
+Notes:
+- used to confirm actual live column names during certification-wiring diagnostics
 
-• map systems to registry  
-• expose systems publicly  
-
----
-
-## 5. DEMO / SEED DATA
-
----
-
-Files:
-
-• Canonical Demo Dataset.sql  
-• Canonical Demo Seed.sql  
-
+## 14_TABLES_REGISTRY_AI_SYSTEMS.sql
 Purpose:
-
-• populate demo cases  
-• enable UI testing  
-
----
-
-## 6. ARCHIVE FILES (DO NOT USE)
+- base table definition for `CORE.REGISTRY_AI_SYSTEMS`
+Notes:
+- base table does not necessarily expose every field shown in public AI-systems view
+- used during AI-systems linkage validation
 
 ---
 
-Examples:
+# NEW OPERATOR / VALIDATION WORKSHEET
 
-• Application Write Smoke (Archive).sql  
-• Auto Publish From Case (Archive).sql  
-• Canonical Case Pipeline Bootstrap (Archive).sql  
-• Canonical Enterprise Engine Bootstrap (Archive).sql  
-
+## GAFAIG - Certification Wiring Validation + AI Systems Demo Link.sql
 Purpose:
-
-• historical development  
-• reference only  
-
-⚠️ DO NOT EXECUTE  
-⚠️ DO NOT MODIFY  
-
----
-
-# 🔄 FILE INTERCONNECTION
-
----
-
-## SCORING FLOW
-
-VERIFICATION_FINDINGS  
-→ V_FINDING_NORMALIZED  
-→ V_CONTROL_SCORE_COMPONENTS  
-→ V_CASE_OPERATIONAL_SCORE  
-→ V_GOVERNANCE_SCORE_CASE  
-→ V_CASE_TIER_BAND  
+- non-core operator script
+- preserves validation work previously performed in `Untitled.sql`
+Contains:
+- certified field validation queries
+- registry detail verification queries
+- AI-system public view verification queries
+- publish procedure DDL inspection commands
+- `REGISTRY_AI_SYSTEMS` table DDL inspection
+- optional demo AI-system insert for CASE-1001 / known registry ID
+- revalidation queries after insert / publish
+Status:
+- recommended helper worksheet
+- not a core architecture definition file
 
 ---
 
-## SNAPSHOT FLOW
+# TEMPORARY / SCRATCHPAD WORK
 
-SP_SCORE_CASE_ENTERPRISE  
-→ SCORE_SNAPSHOTS  
-
----
-
-## REGISTRY FLOW
-
-SP_PUBLISH_CASE_TO_REGISTRY_V3  
-→ REGISTRY_SNAPSHOTS  
-
----
-
-## PUBLIC FLOW
-
-REGISTRY_SNAPSHOTS  
-→ V_REGISTRY_LATEST_APPROVED  
-→ V_REGISTRY_PUBLIC  
-→ API → UI  
+## Untitled.sql
+Purpose:
+- temporary scratchpad only
+Used for:
+- quick DDL inspection
+- ad hoc validation queries
+- one-off demo inserts
+- publish-call verification
+Rule:
+- do not treat `Untitled.sql` as canonical
+- preserve anything important by moving it into a named worksheet/file
 
 ---
 
-# ⚠️ CURRENT STATE
+# ARCHITECTURAL NOTES
 
-## STABLE
+## Publish Chain
+- `SP_PUBLISH_CASE_TO_REGISTRY_V3(VARCHAR)` delegates to `SP_PUBLISH_CASE_TO_REGISTRY_V4(VARCHAR, VARCHAR)`
+- `V4` is the real logic layer
+- AI-system registry-ID alignment for existing case-linked systems already exists in `V4`
 
-• scoring engine  
-• registry snapshots  
-• publish procedure  
-• public views  
+## AI Systems
+- `CORE.REGISTRY_AI_SYSTEMS` = base table
+- `CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC` = public projection / derived surface
+- If organization page shows zero systems for a registry ID, first verify matching rows actually exist in `V_REGISTRY_AI_SYSTEMS_PUBLIC` for that `REGISTRY_ID`
 
----
-
-## RECENTLY VALIDATED
-
-• REGISTRY_ID reuse  
-• append-only behavior  
-• badge + registry alignment  
-
----
-
-## TEMPORARY ADJUSTMENTS
-
-• REGISTRY_PUBLIC_READTHROUGH used in app layer  
-• protects against timing inconsistencies  
+## Certification Wiring
+- certification wiring is complete
+- production pages confirmed working:
+  - `/registry/[registryId]`
+  - `/organizations/[registryId]`
 
 ---
 
-# 🔥 DO NOT MODIFY
-
-• REGISTRY_SNAPSHOTS structure  
-• V_REGISTRY_LATEST_APPROVED  
-• SP_PUBLISH_CASE_TO_REGISTRY_V3  
-• scoring views  
-
-These are LOCKED.
-
----
-
-# ⚠️ SAFE TO MODIFY (CAREFULLY)
-
-• search view (V_REGISTRY_PUBLIC_SEARCH)  
-• AI systems projection (if needed)  
-
-ONLY if necessary and aligned with architecture.
-
----
-
-# 🧠 DEBUGGING GUIDE
-
----
-
-## If registry page fails:
-
-Check:
-
-• REGISTRY_SNAPSHOTS  
-• V_REGISTRY_LATEST_APPROVED  
-• V_REGISTRY_PUBLIC  
-
----
-
-## If badge fails:
-
-Check:
-
-• registryId exists  
-• V_REGISTRY_PUBLIC returns row  
-
----
-
-## If explorer fails:
-
-Check:
-
-• V_REGISTRY_PUBLIC  
-• V_REGISTRY_AI_SYSTEMS_PUBLIC  
-
----
-
-## If publish fails:
-
-Check:
-
-• SP_PUBLISH_CASE_TO_REGISTRY_V3  
-• input caseId  
-• scoring views  
-
----
-
-# ▶️ NEXT PHASE
-
-After validation:
-
-• review readthrough layer necessity  
-• optimize public views  
-• ensure search performance  
-• finalize Snowflake → API contract  
-
----
-
-# 🧠 SUMMARY
-
-Snowflake is:
-
-✔ deterministic  
-✔ authoritative  
-✔ append-only  
-✔ registry-backed  
-
-All application behavior depends on it.
+# NEXT PHASE
+- lifecycle wiring
+- then optional upstream AI-system intake / authoring automation

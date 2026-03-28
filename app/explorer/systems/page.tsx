@@ -14,7 +14,7 @@ type SystemRow = {
   RISK_TIER: string | null;
   CERTIFIED_TIER: string | null;
   CERTIFIED_BAND: string | null;
-  GOVERNANCE_MATURITY_SCORE: number | null;
+  CERTIFIED_SCORE: number | null;
 };
 
 function formatScore(value: number | null | undefined) {
@@ -45,12 +45,7 @@ export default async function ExplorerSystemsPage() {
       s.RISK_TIER,
       r.CERTIFIED_TIER,
       r.CERTIFIED_BAND,
-      CASE
-        WHEN UPPER(COALESCE(r.CERTIFIED_BAND, '')) = 'A' THEN 95
-        WHEN UPPER(COALESCE(r.CERTIFIED_BAND, '')) = 'B' THEN 85
-        WHEN UPPER(COALESCE(r.CERTIFIED_BAND, '')) = 'C' THEN 75
-        ELSE NULL
-      END AS GOVERNANCE_MATURITY_SCORE
+      r.CERTIFIED_SCORE
     FROM GAFAIG_DB.CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC s
     LEFT JOIN GAFAIG_DB.CORE.V_REGISTRY_PUBLIC r
       ON s.REGISTRY_ID = r.REGISTRY_ID
@@ -69,20 +64,6 @@ export default async function ExplorerSystemsPage() {
   const lowRiskCount = rows.filter(
     (row) => String(row.RISK_TIER ?? "").trim().toUpperCase() === "LOW"
   ).length;
-
-  const avgMaturity = (() => {
-    const usable = rows
-      .map((row) =>
-        row.GOVERNANCE_MATURITY_SCORE === null ||
-        row.GOVERNANCE_MATURITY_SCORE === undefined
-          ? null
-          : Number(row.GOVERNANCE_MATURITY_SCORE)
-      )
-      .filter((v): v is number => v !== null && !Number.isNaN(v));
-
-    if (usable.length === 0) return null;
-    return usable.reduce((sum, v) => sum + v, 0) / usable.length;
-  })();
 
   return (
     <main className="mx-auto max-w-[1180px] px-6 pb-16 pt-14">
@@ -126,11 +107,10 @@ export default async function ExplorerSystemsPage() {
         <MetricCard label="Systems" value={String(rows.length)} />
         <MetricCard label="High risk" value={String(highRiskCount)} />
         <MetricCard label="Medium risk" value={String(mediumRiskCount)} />
-        <MetricCard label="Avg maturity" value={formatScore(avgMaturity)} />
+        <MetricCard label="Low risk" value={String(lowRiskCount)} />
       </section>
 
-      <section className="mt-10 grid gap-4 md:grid-cols-3">
-        <MetricCard label="Low risk" value={String(lowRiskCount)} />
+      <section className="mt-10 grid gap-4 md:grid-cols-2">
         <MetricCard
           label="Linked registry records"
           value={String(rows.filter((row) => !!row.REGISTRY_ID).length)}
@@ -181,7 +161,7 @@ export default async function ExplorerSystemsPage() {
                   ) : null}
                 </div>
 
-                <div className="mt-5 grid gap-4 md:grid-cols-6">
+                <div className="mt-5 grid gap-4 md:grid-cols-7">
                   <Info label="System type" value={row.SYSTEM_TYPE || "—"} />
                   <Info
                     label="Deployment"
@@ -193,15 +173,16 @@ export default async function ExplorerSystemsPage() {
                   />
                   <Info label="Risk tier" value={row.RISK_TIER || "—"} />
                   <Info
-                    label="Tier / Band"
-                    value={tierBandLabel(
-                      row.CERTIFIED_TIER,
-                      row.CERTIFIED_BAND
-                    )}
+                    label="Certified score"
+                    value={formatScore(row.CERTIFIED_SCORE)}
                   />
                   <Info
-                    label="Maturity"
-                    value={formatScore(row.GOVERNANCE_MATURITY_SCORE)}
+                    label="Tier"
+                    value={row.CERTIFIED_TIER || "—"}
+                  />
+                  <Info
+                    label="Band"
+                    value={row.CERTIFIED_BAND || "—"}
                   />
                 </div>
               </div>

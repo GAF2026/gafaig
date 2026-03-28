@@ -1,171 +1,99 @@
+CHANGELOG.md
 # GAFAIG — CHANGELOG
 
 ---
 
-## 2026-03-27
+## 2026-03-28
 
-### 🚀 Deployment Stabilization (CRITICAL MILESTONE)
-- Achieved successful production deployment on Vercel after resolving multiple TypeScript and module errors.
-- Eliminated legacy query wrapper pattern (`sfQueryResult`, `.ok`, `.rows`, `.error`) across explorer and organization pages.
-- Standardized runtime queries to use `sfQuery()` as the canonical Snowflake access method.
-- Restored full build pipeline integrity (`npm run build` passes successfully).
+### Certification Wiring — Completed
+- Completed end-to-end certification wiring across Snowflake, API, and UI.
+- Confirmed public registry records now surface certified fields correctly.
+- Verified working public record routes:
+  - `/registry/[registryId]`
+  - `/organizations/[registryId]`
+- Confirmed deterministic certified outputs now render publicly:
+  - `CERTIFIED_SCORE`
+  - `CERTIFIED_TIER`
+  - `CERTIFIED_BAND`
+  - `CERTIFIED_AT`
+  - `DECISION_STATUS`
+  - `CERTIFICATION_STATUS`
+  - `VALID_FROM`
+  - `VALID_TO`
+  - `LAST_ACTIVITY_AT`
 
----
+### Snowflake Publish Chain
+- Verified `SP_PUBLISH_CASE_TO_REGISTRY_V3` is a wrapper over `SP_PUBLISH_CASE_TO_REGISTRY_V4`.
+- Confirmed the real publish logic remains in `SP_PUBLISH_CASE_TO_REGISTRY_V4`.
+- Confirmed `SP_PUBLISH_CASE_TO_REGISTRY_V4` already includes AI-system registry-ID alignment for existing case-linked AI systems.
+- Determined no core publish procedure rewrite was required at this stage.
 
-### 🧠 Snowflake Query Layer Compatibility (TEMPORARY STABILIZATION)
-- Introduced temporary compatibility exports in `lib/snowflake.ts`:
-  - `executeQuery`
-  - `snowflakeQuery`
-  - `sfQueryResult`
-  - `snowflakeCtx`
-- Purpose:
-  - prevent widespread refactor during deployment stabilization
-  - allow legacy files to compile
-- Marked as **temporary scaffolding** to be removed in post-validation cleanup.
+### Registry + Organization Production Validation
+- Deployed and validated production behavior on `www.gafaig.com`.
+- Confirmed public registry detail page renders certification summary, governance outcome, and verification surface.
+- Confirmed public organization detail page resolves the same registry identity and displays certification metadata consistently.
 
----
+### AI Systems Visibility
+- Confirmed `CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC` is populated and working.
+- Confirmed public AI-system data already exists for multiple registry IDs.
+- Identified that the temporary “0 systems” issue on a given organization page was caused by data alignment, not UI or API defects.
+- Verified organization page system counts and system cards render correctly once a matching AI-system row exists for the target registry ID.
 
-### 📦 Registry System Stability
-- Confirmed deterministic registry ID reuse:
-  - Same CASE → same REGISTRY_ID
-  - No duplicate registry IDs created during republish
-- Verified publish procedure (`SP_PUBLISH_CASE_TO_REGISTRY_V3`) correctly:
-  - inserts append-only snapshots
-  - aligns AI systems
-  - pulls from canonical scoring view
-- Registry snapshots confirmed append-only and immutable.
+### Scratchpad / Validation Work
+- Used `Untitled.sql` as a temporary operational scratchpad to:
+  - inspect DDL for publish procedures
+  - inspect DDL for `REGISTRY_AI_SYSTEMS`
+  - validate certified public registry fields
+  - validate AI-system public view rows
+  - test one-off AI-system linkage to a known certified registry record
+- Determined that the scratchpad work did not require mandatory changes to canonical core Snowflake definition files.
 
----
+### New Snowflake Operator Script
+- Added a recommended non-core helper script:
+  - `GAFAIG - Certification Wiring Validation + AI Systems Demo Link.sql`
+- Purpose of the helper script:
+  - preserve validation queries
+  - preserve procedure/view inspection commands
+  - preserve demo AI-system linkage workflow
+  - provide a repeatable operator validation sequence without modifying core architecture
 
-### 🏷 Badge API Stabilization
-- Fixed `/api/badge/[registryId]`:
-  - corrected registry lookup issues
-  - implemented fallback logic for:
-    - tier
-    - band
-    - score
-  - added optional `badgeImageUrl` override support
-- Confirmed proper redirect behavior (307 → badge image).
+### Next.js / TypeScript Stabilization
+- Fixed multiple server-route compatibility issues related to the Snowflake helper layer.
+- Removed incorrect callable usage of `snowflakeCtx()`.
+- Standardized those usages to `snowflakeCtx`.
+- Fixed debug/API imports to use canonical `sfQuery`.
+- Resolved Snowflake bind typing issues in `lib/snowflake.ts` by normalizing bind inputs before execution.
+- Restored successful production build and successful deployment to Vercel.
 
----
-
-### 🔍 Registry Query Layer Adjustment
-- Updated `lib/queries/registry.ts` to use:
-  - `REGISTRY_PUBLIC_READTHROUGH`
-- Purpose:
-  - eliminate inconsistent reads from snapshot timing
-  - ensure stable registry lookups
-- Marked for future architectural decision (readthrough vs direct view).
-
----
-
-### 🌐 Explorer Pages Refactor (CRITICAL FIX)
-Refactored all explorer-related pages to remove legacy query wrapper usage:
-
-Updated pages:
-
-- `/app/explorer/countries/page.tsx`
-- `/app/explorer/countries/[country]/page.tsx`
-- `/app/explorer/map/page.tsx`
-- `/app/explorer/organizations/page.tsx`
-- `/app/explorer/systems/page.tsx`
-- `/app/organizations/[registryId]/page.tsx`
-
-Changes:
-
-- replaced `sfQueryResult` with `sfQuery`
-- removed `.ok`, `.rows`, `.error` patterns
-- enforced direct array return from Snowflake queries
-- eliminated TypeScript build errors across explorer system
+### Architecture Confirmation
+- Confirmed certification wiring is now complete and production-valid.
+- Confirmed there is no remaining required core SQL patch before lifecycle work.
+- Confirmed next recommended platform phase is:
+  - **Lifecycle wiring**
+- Clarified that future AI-system work should focus on upstream intake / authoring workflow, not certification wiring.
 
 ---
 
-### 🧱 Query Layer Direction Clarified
-- Established `sfQuery()` as the single future standard.
-- Identified need to:
-  - consolidate duplicated SQL queries
-  - move repeated logic into shared query modules
-- Deferred until after runtime validation phase.
+## CURRENT SYSTEM STATUS
+
+### Locked / Working
+- verification workflow
+- deterministic scoring engine
+- registry snapshot system
+- public registry surface
+- certification wiring
+- registry detail page
+- organization detail page
+- AI systems public view
+- publish wrapper/procedure chain
+- production deployment on Vercel
+
+### Current Gap Categories
+- lifecycle (`VALID_TO`, renewal / expiry transitions)
+- upstream AI-system intake / authoring automation
+- optional operator-script consolidation
 
 ---
 
-### ⚠️ Temporary Technical Debt (INTENTIONAL)
-Accepted for deployment stabilization:
-
-- compatibility exports in `lib/snowflake.ts`
-- duplicated SQL across explorer pages
-- readthrough registry layer usage
-
-These are explicitly marked for removal in next phase.
-
----
-
-### 📊 System Status (Post-Deployment)
-
-✔ Build passes  
-✔ Deployment stable  
-✔ Registry pages functional  
-✔ Badge + verification APIs working  
-✔ Snowflake connectivity stable  
-
-⚠ Explorer pages:
-- compile successfully
-- require runtime validation
-
----
-
-### 🎯 Transition to Validation Phase
-System moved from:
-
-"Fix build errors"
-
-→
-
-"Validate runtime behavior"
-
-Next focus:
-
-- test all explorer routes
-- confirm data integrity
-- ensure registry consistency across UI and Snowflake
-
----
-
-## PRIOR STATE (SUMMARY)
-
-### Core Architecture
-- Established canonical deterministic pipeline:
-  CASE → FINDINGS → EVIDENCE → EVENTS → SCORING → SNAPSHOT → REGISTRY
-
-### Scoring Engine
-- Implemented Enterprise Governance Scoring (v1.0)
-- Deterministic scoring only (no ML)
-
-### Registry System
-- Append-only snapshot architecture
-- Public projection via Snowflake views
-
-### API Layer
-- Pass-through architecture enforced
-- No business logic outside Snowflake
-
-### UI
-- Registry and explorer surfaces implemented
-- Query layer abstraction introduced
-
----
-
-# 🔥 CURRENT POSITION
-
-GAFAIG is now:
-
-✔ deployed  
-✔ operational  
-✔ query-stable  
-✔ registry-consistent  
-
-Remaining work:
-
-→ runtime validation  
-→ query consolidation  
-→ cleanup of temporary compatibility layer  
+## NEXT PHASE
+- Start lifecycle wiring.

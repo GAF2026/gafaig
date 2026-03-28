@@ -26,7 +26,9 @@ type OrganizationSystemRow = {
   DEPLOYMENT_STATUS: string | null;
   OVERSIGHT_LEVEL: string | null;
   RISK_TIER: string | null;
-  GOVERNANCE_MATURITY_SCORE: number | null;
+  CERTIFIED_SCORE: number | null;
+  CERTIFIED_TIER: string | null;
+  CERTIFIED_BAND: string | null;
 };
 
 function formatDate(value: string | null | undefined) {
@@ -95,24 +97,19 @@ export default async function OrganizationDetailPage({
   const systemRows = await sfQuery<OrganizationSystemRow>(
     `
     SELECT
-      s.SYSTEM_ID,
-      s.REGISTRY_ID,
-      s.SYSTEM_NAME,
-      s.SYSTEM_TYPE,
-      s.DEPLOYMENT_STATUS,
-      s.OVERSIGHT_LEVEL,
-      s.RISK_TIER,
-      CASE
-        WHEN UPPER(COALESCE(r.CERTIFIED_BAND, '')) = 'A' THEN 95
-        WHEN UPPER(COALESCE(r.CERTIFIED_BAND, '')) = 'B' THEN 85
-        WHEN UPPER(COALESCE(r.CERTIFIED_BAND, '')) = 'C' THEN 75
-        ELSE NULL
-      END AS GOVERNANCE_MATURITY_SCORE
-    FROM GAFAIG_DB.CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC s
-    LEFT JOIN GAFAIG_DB.CORE.V_REGISTRY_PUBLIC r
-      ON s.REGISTRY_ID = r.REGISTRY_ID
-    WHERE s.REGISTRY_ID = ?
-    ORDER BY s.SYSTEM_NAME ASC
+      SYSTEM_ID,
+      REGISTRY_ID,
+      SYSTEM_NAME,
+      SYSTEM_TYPE,
+      DEPLOYMENT_STATUS,
+      OVERSIGHT_LEVEL,
+      RISK_TIER,
+      CERTIFIED_SCORE,
+      CERTIFIED_TIER,
+      CERTIFIED_BAND
+    FROM GAFAIG_DB.CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC
+    WHERE REGISTRY_ID = ?
+    ORDER BY SYSTEM_NAME ASC
     `,
     [registryId]
   );
@@ -120,20 +117,6 @@ export default async function OrganizationDetailPage({
   const highRiskCount = systemRows.filter(
     (system) => String(system.RISK_TIER ?? "").trim().toUpperCase() === "HIGH"
   ).length;
-
-  const avgMaturity = (() => {
-    const usable = systemRows
-      .map((system) =>
-        system.GOVERNANCE_MATURITY_SCORE === null ||
-        system.GOVERNANCE_MATURITY_SCORE === undefined
-          ? null
-          : Number(system.GOVERNANCE_MATURITY_SCORE)
-      )
-      .filter((v): v is number => v !== null && !Number.isNaN(v));
-
-    if (usable.length === 0) return null;
-    return usable.reduce((sum, v) => sum + v, 0) / usable.length;
-  })();
 
   return (
     <main className="mx-auto max-w-[1180px] px-6 pb-16 pt-14">
@@ -207,7 +190,6 @@ export default async function OrganizationDetailPage({
           <div className="grid gap-3 md:grid-cols-2">
             <MetricCard label="Systems" value={String(systemRows.length)} />
             <MetricCard label="High risk" value={String(highRiskCount)} />
-            <MetricCard label="Avg maturity" value={formatScore(avgMaturity)} />
           </div>
         </div>
 
@@ -226,7 +208,7 @@ export default async function OrganizationDetailPage({
                   {system.SYSTEM_NAME || system.SYSTEM_ID}
                 </div>
 
-                <div className="mt-5 grid gap-4 md:grid-cols-6">
+                <div className="mt-5 grid gap-4 md:grid-cols-8">
                   <Info label="System ID" value={system.SYSTEM_ID} />
                   <Info label="Type" value={system.SYSTEM_TYPE || "—"} />
                   <Info
@@ -239,8 +221,16 @@ export default async function OrganizationDetailPage({
                   />
                   <Info label="Risk tier" value={system.RISK_TIER || "—"} />
                   <Info
-                    label="Maturity"
-                    value={formatScore(system.GOVERNANCE_MATURITY_SCORE)}
+                    label="Certified score"
+                    value={formatScore(system.CERTIFIED_SCORE)}
+                  />
+                  <Info
+                    label="Tier"
+                    value={system.CERTIFIED_TIER || "—"}
+                  />
+                  <Info
+                    label="Band"
+                    value={system.CERTIFIED_BAND || "—"}
                   />
                 </div>
               </div>
