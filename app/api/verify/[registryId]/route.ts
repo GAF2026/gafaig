@@ -115,11 +115,13 @@ export async function GET(
   };
 
   const signedAt = new Date().toISOString();
-  const message = JSON.stringify({
+
+  const messageObject = {
     ...record,
     signedAt,
-  });
+  };
 
+  const message = JSON.stringify(messageObject);
   const signature = signPayload(message);
 
   return NextResponse.json({
@@ -130,7 +132,7 @@ export async function GET(
       alg: "HS256",
       signature,
       signedAt,
-      message,
+      message: messageObject,
     },
     record,
   });
