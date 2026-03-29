@@ -35,20 +35,92 @@ function formatDate(value: string | null | undefined) {
   });
 }
 
-function buildSvg({
+function baseOrigin() {
+  return (
+    process.env.NEXT_PUBLIC_BASE_URL ||
+    process.env.NEXT_PUBLIC_SITE_URL ||
+    "https://www.gafaig.com"
+  ).replace(/\/$/, "");
+}
+
+/**
+ * Badge asset mapping.
+ *
+ * Adjust only these paths if your actual PNG filenames differ.
+ * Current default assumes assets live in:
+ * public/images/gafaig-badge-tier-1.png
+ * public/images/gafaig-badge-tier-2.png
+ * public/images/gafaig-badge-tier-3.png
+ */
+function resolveBadgeImageUrl(row: BadgeRow) {
+  const origin = baseOrigin();
+
+  if (!row.CERTIFIED_AT) return null;
+
+  const tier = String(row.CERTIFIED_TIER || "").trim().toLowerCase();
+  const band = String(row.CERTIFIED_BAND || "").trim().toUpperCase();
+
+  if (tier.includes("tier 1") || tier.includes("tier-1") || band === "A") {
+    return `${origin}/images/gafaig-badge-tier-1.png`;
+  }
+
+  if (tier.includes("tier 2") || tier.includes("tier-2") || band === "B") {
+    return `${origin}/images/gafaig-badge-tier-2.png`;
+  }
+
+  if (tier.includes("tier 3") || tier.includes("tier-3") || band === "C") {
+    return `${origin}/images/gafaig-badge-tier-3.png`;
+  }
+
+  // Safe default for certified records.
+  return `${origin}/images/gafaig-badge-tier-1.png`;
+}
+
+function buildSvgWithPngAsset({
   registryId,
   entityName,
   status,
   subtitle,
-  accent,
-  accentText,
+  badgeImageUrl,
 }: {
   registryId: string;
   entityName: string;
   status: string;
   subtitle: string;
-  accent: string;
-  accentText: string;
+  badgeImageUrl: string;
+}) {
+  const safeRegistryId = escapeXml(registryId);
+  const safeEntityName = escapeXml(entityName);
+  const safeStatus = escapeXml(status);
+  const safeSubtitle = escapeXml(subtitle);
+  const safeBadgeImageUrl = escapeXml(badgeImageUrl);
+
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1200" height="320" viewBox="0 0 1200 320" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="GAFAIG certification badge">
+  <rect width="1200" height="320" rx="26" fill="#F7F7F8"/>
+  <rect x="2" y="2" width="1196" height="316" rx="24" stroke="#D9D9DE" stroke-width="2"/>
+
+  <rect x="28" y="52" width="248" height="216" rx="28" fill="#FFFFFF"/>
+  <image x="28" y="52" width="248" height="216" href="${safeBadgeImageUrl}" preserveAspectRatio="xMidYMid meet" />
+
+  <text x="326" y="82" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="700" letter-spacing="3" fill="#7A7A84">CERTIFICATION STATUS</text>
+  <text x="326" y="140" font-family="Arial, Helvetica, sans-serif" font-size="64" font-weight="700" fill="#111111">${safeStatus}</text>
+  <text x="326" y="196" font-family="Arial, Helvetica, sans-serif" font-size="28" font-weight="700" fill="#2E2E33">${safeEntityName}</text>
+  <text x="326" y="236" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="500" fill="#4A4A52">${safeSubtitle}</text>
+  <text x="326" y="278" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="500" fill="#6C6C75">Registry ID ${safeRegistryId}</text>
+</svg>`;
+}
+
+function buildFallbackSvg({
+  registryId,
+  entityName,
+  status,
+  subtitle,
+}: {
+  registryId: string;
+  entityName: string;
+  status: string;
+  subtitle: string;
 }) {
   const safeRegistryId = escapeXml(registryId);
   const safeEntityName = escapeXml(entityName);
@@ -56,12 +128,13 @@ function buildSvg({
   const safeSubtitle = escapeXml(subtitle);
 
   return `<?xml version="1.0" encoding="UTF-8"?>
-<svg width="1200" height="320" viewBox="0 0 1200 320" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="GAFAIG certification badge">
+<svg width="1200" height="320" viewBox="0 0 1200 320" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="GAFAIG certification badge unavailable">
   <rect width="1200" height="320" rx="26" fill="#F7F7F8"/>
   <rect x="2" y="2" width="1196" height="316" rx="24" stroke="#D9D9DE" stroke-width="2"/>
-  <rect x="28" y="52" width="248" height="216" rx="28" fill="${accent}"/>
-  <text x="152" y="122" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="44" font-weight="700" fill="${accentText}">GAFAIG</text>
-  <text x="152" y="176" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="28" font-weight="700" fill="${accentText}">${safeStatus}</text>
+
+  <rect x="28" y="52" width="248" height="216" rx="28" fill="#5B5B61"/>
+  <text x="152" y="122" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="44" font-weight="700" fill="#FFFFFF">GAFAIG</text>
+  <text x="152" y="176" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="28" font-weight="700" fill="#FFFFFF">${safeStatus}</text>
 
   <text x="326" y="82" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="700" letter-spacing="3" fill="#7A7A84">CERTIFICATION STATUS</text>
   <text x="326" y="140" font-family="Arial, Helvetica, sans-serif" font-size="64" font-weight="700" fill="#111111">${safeStatus}</text>
@@ -78,13 +151,11 @@ export async function GET(
   const registryId = decodeURIComponent(String(params.registryId || "").trim());
 
   if (!registryId) {
-    const svg = buildSvg({
+    const svg = buildFallbackSvg({
       registryId: "Unknown",
       entityName: "Missing registry identifier",
       status: "Unavailable",
       subtitle: "Unable to confirm certification",
-      accent: "#5B5B61",
-      accentText: "#FFFFFF",
     });
 
     return new Response(svg, {
@@ -118,13 +189,11 @@ export async function GET(
   const row = rows[0];
 
   if (!row) {
-    const svg = buildSvg({
+    const svg = buildFallbackSvg({
       registryId,
       entityName: "Registry record not found",
       status: "Unavailable",
       subtitle: "Unable to confirm certification",
-      accent: "#5B5B61",
-      accentText: "#FFFFFF",
     });
 
     return new Response(svg, {
@@ -138,6 +207,8 @@ export async function GET(
 
   const certified = !!row.CERTIFIED_AT;
   const status = certified ? "Certified" : "Unavailable";
+
+  const entityName = row.ENTITY_NAME || "GAFAIG Public Record";
 
   const tierBand =
     row.CERTIFIED_TIER && row.CERTIFIED_BAND
@@ -153,14 +224,23 @@ export async function GET(
     ? `${tierBand} • Score ${score} • Valid to ${formatDate(row.VALID_TO)}`
     : "Unable to confirm certification";
 
-  const svg = buildSvg({
-    registryId: row.REGISTRY_ID,
-    entityName: row.ENTITY_NAME || "GAFAIG Public Record",
-    status,
-    subtitle,
-    accent: certified ? "#16A34A" : "#5B5B61",
-    accentText: "#FFFFFF",
-  });
+  const badgeImageUrl = resolveBadgeImageUrl(row);
+
+  const svg =
+    certified && badgeImageUrl
+      ? buildSvgWithPngAsset({
+          registryId: row.REGISTRY_ID,
+          entityName,
+          status,
+          subtitle,
+          badgeImageUrl,
+        })
+      : buildFallbackSvg({
+          registryId: row.REGISTRY_ID,
+          entityName,
+          status,
+          subtitle,
+        });
 
   return new Response(svg, {
     status: 200,
