@@ -61,7 +61,7 @@ export default function DemoPage() {
         />
       </section>
 
-      {/* FLOW */}
+      {/* WALKTHROUGH */}
       <section className="mt-10 rounded-3xl border border-black/10 bg-white p-8 md:p-10">
         <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
           WALKTHROUGH
@@ -111,6 +111,69 @@ export default function DemoPage() {
         </div>
       </section>
 
+      {/* 🔥 LIVE DEMO RECORD (NEW) */}
+      <section className="mt-10 rounded-3xl border border-black/10 bg-white p-8 md:p-10">
+        <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
+          LIVE DEMO RECORD
+        </div>
+
+        <h2 className="mt-4 max-w-[760px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
+          See a real certification
+        </h2>
+
+        <p className="mt-5 max-w-3xl text-[15px] leading-[1.8] text-black/70">
+          This is a real GAFAIG certification generated through the full verification process.
+          You can open the public record, inspect the verification payload, and view the badge.
+        </p>
+
+        <div className="mt-8 grid gap-4 md:grid-cols-3">
+          <Link
+            href="/registry/GAFAIG-4ce7c7a28d1b4894a5d2c23050875e29"
+            className="rounded-2xl border border-black/10 p-5 transition hover:bg-black/[0.03]"
+          >
+            <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-black/45">
+              Registry Record
+            </div>
+            <div className="mt-2 text-[18px] font-semibold text-black">
+              View certification
+            </div>
+            <p className="mt-2 text-[14px] text-black/70">
+              Open the public certification record in the registry.
+            </p>
+          </Link>
+
+          <Link
+            href="/api/verify/GAFAIG-4ce7c7a28d1b4894a5d2c23050875e29"
+            className="rounded-2xl border border-black/10 p-5 transition hover:bg-black/[0.03]"
+          >
+            <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-black/45">
+              Verification Proof
+            </div>
+            <div className="mt-2 text-[18px] font-semibold text-black">
+              View signed payload
+            </div>
+            <p className="mt-2 text-[14px] text-black/70">
+              Inspect the cryptographic verification response.
+            </p>
+          </Link>
+
+          <Link
+            href="/badge/GAFAIG-4ce7c7a28d1b4894a5d2c23050875e29"
+            className="rounded-2xl border border-black/10 p-5 transition hover:bg-black/[0.03]"
+          >
+            <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-black/45">
+              Certification Badge
+            </div>
+            <div className="mt-2 text-[18px] font-semibold text-black">
+              View badge
+            </div>
+            <p className="mt-2 text-[14px] text-black/70">
+              Open the embeddable certification badge.
+            </p>
+          </Link>
+        </div>
+      </section>
+
       {/* QUICK STORY */}
       <section className="mt-10 rounded-3xl border border-black/10 bg-white p-8 md:p-10">
         <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
@@ -122,179 +185,49 @@ export default function DemoPage() {
         </h2>
 
         <div className="mt-8 grid gap-4 md:grid-cols-2">
-          <TalkCard
-            time="0:00–0:15"
-            title="What GAFAIG does"
-            body="GAFAIG provides a structured way to verify that AI systems are governed responsibly."
-          />
-
-          <TalkCard
-            time="0:15–0:30"
-            title="Private review"
-            body="All evaluation work takes place in a controlled environment separate from the public site."
-          />
-
-          <TalkCard
-            time="0:30–0:45"
-            title="Structured evaluation"
-            body="Evidence is reviewed, findings are recorded, and certification decisions are made in a consistent way."
-          />
-
-          <TalkCard
-            time="0:45–1:00"
-            title="Public results"
-            body="Certification outcomes are published in the registry and explorer for others to view and verify."
-          />
-        </div>
-      </section>
-
-      {/* WHAT THIS SHOWS */}
-      <section className="mt-10 rounded-3xl border border-black/10 bg-white p-8 md:p-10">
-        <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
-          WHAT THIS DEMONSTRATES
-        </div>
-
-        <h2 className="mt-4 max-w-[760px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
-          What you should take away
-        </h2>
-
-        <div className="mt-8 grid gap-4 md:grid-cols-2">
-          <BulletCard
-            title="Private and public separation"
-            items={[
-              "Review work is not visible on the public site",
-              "Internal materials remain private",
-              "Public pages only show certification outcomes",
-            ]}
-          />
-
-          <BulletCard
-            title="Structured process"
-            items={[
-              "Organizations follow a consistent workflow",
-              "Evidence is reviewed in a defined way",
-              "Certification outcomes are repeatable",
-            ]}
-          />
-
-          <BulletCard
-            title="Public trust layer"
-            items={[
-              "Certification results are visible in the registry",
-              "Organizations can be browsed publicly",
-              "Outcomes can be independently verified",
-            ]}
-          />
-
-          <BulletCard
-            title="Global visibility"
-            items={[
-              "Explorer shows countries and systems",
-              "Governance coverage becomes visible at scale",
-              "The system forms a public network of trust",
-            ]}
-          />
+          <TalkCard time="0:00–0:15" title="What GAFAIG does" body="GAFAIG provides a structured way to verify that AI systems are governed responsibly." />
+          <TalkCard time="0:15–0:30" title="Private review" body="All evaluation work takes place in a controlled environment separate from the public site." />
+          <TalkCard time="0:30–0:45" title="Structured evaluation" body="Evidence is reviewed, findings are recorded, and certification decisions are made in a consistent way." />
+          <TalkCard time="0:45–1:00" title="Public results" body="Certification outcomes are published in the registry and explorer for others to view and verify." />
         </div>
       </section>
     </main>
   );
 }
 
-function ValueCard({
-  label,
-  title,
-  body,
-}: {
-  label: string;
-  title: string;
-  body: string;
-}) {
+/* COMPONENTS */
+
+function ValueCard({ label, title, body }: any) {
   return (
     <div className="rounded-2xl border border-black/10 bg-white p-5">
-      <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-black/45">
-        {label}
-      </div>
-      <div className="mt-3 text-[20px] font-semibold tracking-tight text-black">
-        {title}
-      </div>
-      <p className="mt-3 text-[14px] leading-[1.8] text-black/70">{body}</p>
+      <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-black/45">{label}</div>
+      <div className="mt-3 text-[20px] font-semibold text-black">{title}</div>
+      <p className="mt-3 text-[14px] text-black/70">{body}</p>
     </div>
   );
 }
 
-function StepRow({
-  step,
-  title,
-  body,
-  href,
-  cta,
-}: {
-  step: string;
-  title: string;
-  body: string;
-  href: string;
-  cta: string;
-}) {
+function StepRow({ step, title, body, href, cta }: any) {
   return (
-    <div className="flex flex-col gap-4 rounded-2xl border border-black/10 p-5 md:flex-row md:items-center md:justify-between">
-      <div className="max-w-3xl">
-        <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-black/45">
-          {step}
-        </div>
-        <div className="mt-2 text-[18px] font-semibold text-black">{title}</div>
-        <p className="mt-2 text-[14px] leading-[1.8] text-black/70">{body}</p>
+    <div className="flex flex-col gap-4 rounded-2xl border border-black/10 p-5 md:flex-row md:justify-between">
+      <div>
+        <div className="text-[11px] uppercase text-black/45">{step}</div>
+        <div className="mt-2 text-[18px] font-semibold">{title}</div>
+        <p className="mt-2 text-[14px] text-black/70">{body}</p>
       </div>
-
-      <div className="shrink-0">
-        <Link
-          href={href}
-          className="inline-flex items-center rounded-full border border-black px-4 py-2 text-sm font-medium transition hover:bg-black hover:text-white"
-        >
-          {cta}
-        </Link>
-      </div>
+      <Link href={href} className="rounded-full border border-black px-4 py-2 text-sm hover:bg-black hover:text-white">
+        {cta}
+      </Link>
     </div>
   );
 }
 
-function TalkCard({
-  time,
-  title,
-  body,
-}: {
-  time: string;
-  title: string;
-  body: string;
-}) {
+function TalkCard({ time, title, body }: any) {
   return (
     <div className="rounded-2xl border border-black/10 p-5">
-      <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-black/45">
-        {time}
-      </div>
-      <div className="mt-2 text-[18px] font-semibold text-black">{title}</div>
-      <p className="mt-3 text-[14px] leading-[1.8] text-black/70">{body}</p>
-    </div>
-  );
-}
-
-function BulletCard({
-  title,
-  items,
-}: {
-  title: string;
-  items: string[];
-}) {
-  return (
-    <div className="rounded-2xl border border-black/10 p-5">
-      <div className="text-[18px] font-semibold text-black">{title}</div>
-      <ul className="mt-4 space-y-3 text-[14px] leading-[1.8] text-black/70">
-        {items.map((item) => (
-          <li key={item} className="flex gap-3">
-            <span className="mt-[9px] h-1.5 w-1.5 shrink-0 rounded-full bg-black" />
-            <span>{item}</span>
-          </li>
-        ))}
-      </ul>
+      <div className="text-[11px] uppercase text-black/45">{time}</div>
+      <div className="mt-2 text-[18px] font-semibold">{title}</div>
+      <p className="mt-3 text-[14px] text-black/70">{body}</p>
     </div>
   );
 }
