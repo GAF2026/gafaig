@@ -1,4 +1,5 @@
 import Link from "next/link";
+import PublicButtonLink from "@/app/_components/PublicButtonLink";
 import { sfQuery } from "@/lib/snowflake";
 
 export const dynamic = "force-dynamic";
@@ -190,20 +191,26 @@ export default async function RegistryPage({
             </select>
           </div>
 
+          {/* ✅ FIXED BUTTON SECTION */}
           <div className="flex items-end gap-3">
             <button
               type="submit"
-              className="rounded-full border border-black bg-black px-5 py-3 text-sm font-semibold text-white transition hover:bg-black/90"
+              className="
+                inline-flex items-center justify-center
+                h-[44px] px-5
+                rounded-full
+                border border-black
+                bg-black text-white
+                text-sm font-semibold
+                transition hover:bg-black/90
+              "
             >
               Apply
             </button>
 
-            <Link
-              href="/registry"
-              className="rounded-full border border-black px-5 py-3 text-sm font-semibold transition hover:bg-black/[0.04]"
-            >
+            <PublicButtonLink href="/registry" variant="secondary">
               Reset
-            </Link>
+            </PublicButtonLink>
           </div>
         </form>
       </section>
@@ -284,51 +291,4 @@ export default async function RegistryPage({
       </section>
     </main>
   );
-}
-
-function MetricCard({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-2xl border border-black/10 bg-white p-5">
-      <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/60">
-        {label}
-      </div>
-      <div className="mt-2 text-[28px] font-semibold text-black">{value}</div>
-    </div>
-  );
-}
-
-function Info({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-xl border border-black/5 px-3 py-3">
-      <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-black/55">
-        {label}
-      </div>
-      <div className="mt-2 text-[14px] text-black/85">{value}</div>
-    </div>
-  );
-}
-
-function StatusPill({
-  value,
-  subtle = false,
-}: {
-  value: string;
-  subtle?: boolean;
-}) {
-  const normalized = String(value || "").trim().toLowerCase();
-
-  let classes =
-    "inline-flex rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.14em]";
-
-  if (!subtle && normalized === "certified") {
-    classes += " border-emerald-300 bg-emerald-50 text-emerald-700";
-  } else if (!subtle && normalized === "not certified") {
-    classes += " border-zinc-300 bg-zinc-50 text-zinc-700";
-  } else if (normalized === "published") {
-    classes += " border-blue-300 bg-blue-50 text-blue-700";
-  } else {
-    classes += " border-black/10 bg-black/[0.03] text-black/65";
-  }
-
-  return <span className={classes}>{value}</span>;
 }
