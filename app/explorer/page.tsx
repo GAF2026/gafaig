@@ -1,4 +1,5 @@
 import Link from "next/link";
+import PublicButtonLink from "@/app/_components/PublicButtonLink";
 import { sfQuery } from "@/lib/snowflake";
 
 export const dynamic = "force-dynamic";
@@ -122,36 +123,25 @@ export default async function ExplorerPage() {
         </p>
 
         <div className="mt-8 flex flex-wrap gap-3">
-          <Link
-            href="/registry"
-            className="rounded-full border border-black bg-black px-5 py-3 text-sm font-semibold text-white transition hover:bg-black/90"
-          >
+          <PublicButtonLink href="/registry" variant="primary">
             View registry
-          </Link>
-          <Link
-            href="/explorer/countries"
-            className="rounded-full border border-black px-5 py-3 text-sm font-semibold transition hover:bg-black/[0.04]"
-          >
+          </PublicButtonLink>
+
+          <PublicButtonLink href="/explorer/countries" variant="secondary">
             Countries
-          </Link>
-          <Link
-            href="/explorer/organizations"
-            className="rounded-full border border-black px-5 py-3 text-sm font-semibold transition hover:bg-black/[0.04]"
-          >
+          </PublicButtonLink>
+
+          <PublicButtonLink href="/explorer/organizations" variant="secondary">
             Organizations
-          </Link>
-          <Link
-            href="/explorer/systems"
-            className="rounded-full border border-black px-5 py-3 text-sm font-semibold transition hover:bg-black/[0.04]"
-          >
+          </PublicButtonLink>
+
+          <PublicButtonLink href="/explorer/systems" variant="secondary">
             Systems
-          </Link>
-          <Link
-            href="/explorer/map"
-            className="rounded-full border border-black px-5 py-3 text-sm font-semibold transition hover:bg-black/[0.04]"
-          >
+          </PublicButtonLink>
+
+          <PublicButtonLink href="/explorer/map" variant="secondary">
             Map
-          </Link>
+          </PublicButtonLink>
         </div>
       </section>
 
