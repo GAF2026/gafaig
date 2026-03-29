@@ -86,45 +86,43 @@ function buildSvgWithPngAsset({
   const safeBadgeImageUrl = escapeXml(badgeImageUrl);
 
   return `<?xml version="1.0" encoding="UTF-8"?>
-<svg width="1200" height="320" viewBox="0 0 1200 320" fill="none" xmlns="http://www.w3.org/2000/svg">
+<svg width="1400" height="360" viewBox="0 0 1400 360" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1400" height="360" rx="28" fill="#F7F7F8"/>
+  <rect x="2" y="2" width="1396" height="356" rx="26" stroke="#D9D9DE" stroke-width="2"/>
 
-  <rect width="1200" height="320" rx="26" fill="#F7F7F8"/>
-  <rect x="2" y="2" width="1196" height="316" rx="24" stroke="#D9D9DE" stroke-width="2"/>
+  <!-- Left trust mark area -->
+  <rect x="34" y="54" width="340" height="252" rx="28" fill="#F1F3F5"/>
 
-  <!-- Left badge panel -->
-  <rect x="34" y="54" width="270" height="212" rx="24" fill="#F1F3F5"/>
-
-  <!-- Badge image enlarged -->
+  <!-- Badge asset deliberately enlarged -->
   <image
-    x="55"
-    y="103"
-    width="228"
-    height="114"
+    x="52"
+    y="104"
+    width="304"
+    height="152"
     href="${safeBadgeImageUrl}"
     preserveAspectRatio="xMidYMid meet"
   />
 
   <!-- Right content -->
-  <text x="350" y="82" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="700" letter-spacing="3" fill="#7A7A84">
+  <text x="420" y="96" font-family="Arial, Helvetica, sans-serif" font-size="26" font-weight="700" letter-spacing="3" fill="#7A7A84">
     CERTIFICATION STATUS
   </text>
 
-  <text x="350" y="148" font-family="Arial, Helvetica, sans-serif" font-size="66" font-weight="700" fill="#111111">
+  <text x="420" y="170" font-family="Arial, Helvetica, sans-serif" font-size="74" font-weight="700" fill="#111111">
     ${safeStatus}
   </text>
 
-  <text x="350" y="205" font-family="Arial, Helvetica, sans-serif" font-size="30" font-weight="700" fill="#2E2E33">
+  <text x="420" y="238" font-family="Arial, Helvetica, sans-serif" font-size="30" font-weight="700" fill="#2E2E33">
     ${safeEntityName}
   </text>
 
-  <text x="350" y="246" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="500" fill="#4A4A52">
+  <text x="420" y="286" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="500" fill="#4A4A52">
     ${safeSubtitle}
   </text>
 
-  <text x="350" y="288" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="500" fill="#6C6C75">
+  <text x="420" y="332" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="500" fill="#6C6C75">
     Registry ID ${safeRegistryId}
   </text>
-
 </svg>`;
 }
 
@@ -145,19 +143,33 @@ function buildFallbackSvg({
   const safeSubtitle = escapeXml(subtitle);
 
   return `<?xml version="1.0" encoding="UTF-8"?>
-<svg width="1200" height="320" viewBox="0 0 1200 320" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="GAFAIG certification badge unavailable">
-  <rect width="1200" height="320" rx="26" fill="#F7F7F8"/>
-  <rect x="2" y="2" width="1196" height="316" rx="24" stroke="#D9D9DE" stroke-width="2"/>
+<svg width="1400" height="360" viewBox="0 0 1400 360" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1400" height="360" rx="28" fill="#F7F7F8"/>
+  <rect x="2" y="2" width="1396" height="356" rx="26" stroke="#D9D9DE" stroke-width="2"/>
 
-  <rect x="28" y="52" width="248" height="216" rx="28" fill="#5B5B61"/>
-  <text x="152" y="122" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="44" font-weight="700" fill="#FFFFFF">GAFAIG</text>
-  <text x="152" y="176" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="28" font-weight="700" fill="#FFFFFF">${safeStatus}</text>
+  <rect x="34" y="54" width="340" height="252" rx="28" fill="#5B5B61"/>
+  <text x="204" y="146" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="52" font-weight="700" fill="#FFFFFF">GAFAIG</text>
+  <text x="204" y="212" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="30" font-weight="700" fill="#FFFFFF">${safeStatus}</text>
 
-  <text x="326" y="82" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="700" letter-spacing="3" fill="#7A7A84">CERTIFICATION STATUS</text>
-  <text x="326" y="140" font-family="Arial, Helvetica, sans-serif" font-size="64" font-weight="700" fill="#111111">${safeStatus}</text>
-  <text x="326" y="196" font-family="Arial, Helvetica, sans-serif" font-size="28" font-weight="700" fill="#2E2E33">${safeEntityName}</text>
-  <text x="326" y="236" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="500" fill="#4A4A52">${safeSubtitle}</text>
-  <text x="326" y="278" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="500" fill="#6C6C75">Registry ID ${safeRegistryId}</text>
+  <text x="420" y="96" font-family="Arial, Helvetica, sans-serif" font-size="26" font-weight="700" letter-spacing="3" fill="#7A7A84">
+    CERTIFICATION STATUS
+  </text>
+
+  <text x="420" y="170" font-family="Arial, Helvetica, sans-serif" font-size="74" font-weight="700" fill="#111111">
+    ${safeStatus}
+  </text>
+
+  <text x="420" y="238" font-family="Arial, Helvetica, sans-serif" font-size="30" font-weight="700" fill="#2E2E33">
+    ${safeEntityName}
+  </text>
+
+  <text x="420" y="286" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="500" fill="#4A4A52">
+    ${safeSubtitle}
+  </text>
+
+  <text x="420" y="332" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="500" fill="#6C6C75">
+    Registry ID ${safeRegistryId}
+  </text>
 </svg>`;
 }
 
