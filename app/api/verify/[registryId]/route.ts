@@ -147,8 +147,7 @@ export async function GET(
   return NextResponse.json({
     ok: true,
     verified,
-    registryId: row.REGISTRY_ID,
-    routeVersion: "verify-v4-object-message",
+    registryId: row.REGISTRY_ID,    
     proof: {
       alg: "HS256",
       signature,
