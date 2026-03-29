@@ -13,20 +13,23 @@ export default function DemoPage() {
       <PublicPageHero
         eyebrow="DEMO"
         title="See how GAFAIG works in practice"
-        description="This walkthrough shows how GAFAIG moves from private review to public certification. You’ll see how organizations are evaluated, how decisions are made, and how results appear in the registry and explorer."
-        secondaryDescription="The process begins in a controlled reviewer environment and ends with public certification outcomes. Internal materials remain private, while results are published for others to verify."
+        description="GAFAIG turns private governance review into public certification that others can verify. This demo follows one case from internal review to public proof."
+        secondaryDescription="The process begins inside a controlled reviewer workflow, moves through structured findings, evidence, and scoring, and ends with a public registry record, verification payload, and badge."
         actions={
           <>
             <PublicButtonLink href="/admin/login" variant="primary">
               Start the demo
             </PublicButtonLink>
 
-            <PublicButtonLink href={`/admin/verification/${DEMO_CASE_ID}/findings`} variant="secondary">
+            <PublicButtonLink
+              href={`/admin/verification/${DEMO_CASE_ID}/findings`}
+              variant="secondary"
+            >
               Open CASE-0001
             </PublicButtonLink>
 
-            <PublicButtonLink href="/registry" variant="secondary">
-              View the registry
+            <PublicButtonLink href={`/registry/${DEMO_REGISTRY_ID}`} variant="secondary">
+              View live certification
             </PublicButtonLink>
           </>
         }
@@ -34,30 +37,55 @@ export default function DemoPage() {
 
       <section className="mt-10 grid gap-4 md:grid-cols-4">
         <ValueCard
-          label="What this is"
-          title="Governance verification"
-          body="GAFAIG verifies whether human oversight is working across an organization’s AI systems."
+          label="What GAFAIG proves"
+          title="Governance can be verified"
+          body="GAFAIG shows whether human oversight is actually functioning across an organization’s AI systems."
         />
         <ValueCard
-          label="Where it happens"
-          title="Private review"
-          body="All evaluation activity takes place in a controlled environment that is separate from the public site."
+          label="How it works"
+          title="Private review first"
+          body="Assessment work happens in a controlled workflow before anything becomes visible to the public."
         />
         <ValueCard
-          label="System of record"
-          title="Structured data"
-          body="All activity is recorded in a structured system that supports consistency and traceability."
+          label="Why it matters"
+          title="Public trust record"
+          body="Certification outcomes are published as durable records that others can inspect and verify."
         />
         <ValueCard
-          label="What becomes public"
-          title="Registry & explorer"
-          body="Only certification outcomes are published, allowing others to view and verify results."
+          label="What you will see"
+          title="Case to certification"
+          body="This walkthrough follows one case through findings, evidence, score, publication, registry, verification, and badge."
         />
       </section>
 
       <section className="mt-10 rounded-3xl border border-black/10 bg-white p-8 md:p-10">
         <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
-          GUIDED DEMO FLOW
+          DEMO NARRATIVE
+        </div>
+
+        <h2 className="mt-4 max-w-[760px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
+          The story this demo tells
+        </h2>
+
+        <div className="mt-6 grid gap-4 md:grid-cols-3">
+          <NarrativeCard
+            title="1. Review happens privately"
+            body="A case begins in a reviewer workflow where governance materials are assessed in a structured environment."
+          />
+          <NarrativeCard
+            title="2. Certification is generated"
+            body="The case moves through evidence, findings, and deterministic scoring to produce a certification outcome."
+          />
+          <NarrativeCard
+            title="3. Proof becomes public"
+            body="The outcome is published as a registry record with a live verification payload and badge."
+          />
+        </div>
+      </section>
+
+      <section className="mt-10 rounded-3xl border border-black/10 bg-white p-8 md:p-10">
+        <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
+          GUIDED CASE FLOW
         </div>
 
         <h2 className="mt-4 max-w-[760px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
@@ -65,101 +93,64 @@ export default function DemoPage() {
         </h2>
 
         <p className="mt-5 max-w-3xl text-[15px] leading-[1.8] text-black/70">
-          This guided demo follows one real GAFAIG case through the exact sequence that matters:
-          reviewer workflow, evidence review, scoring, publication, registry visibility, and
-          cryptographic verification.
+          This is the canonical GAFAIG demo path. Each step shows a different layer
+          of the system and why that layer matters.
         </p>
 
         <div className="mt-8 grid gap-4">
           <GuidedStep
             step="1"
-            label="Open findings"
-            title="Start with the case review"
-            body="Begin inside the private reviewer workflow for CASE-0001. This is where findings are examined and the structured review begins."
+            label="Private workflow"
+            title="Open the case review"
+            body="Start inside the reviewer environment for CASE-0001. This is where the governance review begins."
             href={`/admin/verification/${DEMO_CASE_ID}/findings`}
             cta="Open findings"
           />
 
           <GuidedStep
             step="2"
-            label="Inspect evidence"
-            title="Review submitted governance evidence"
-            body="Move into the evidence layer to see how materials are attached to the case and used in the deterministic review process."
+            label="Evidence layer"
+            title="Inspect submitted governance materials"
+            body="Move into the evidence surface to see how structured materials support case evaluation."
             href={`/admin/verification/${DEMO_CASE_ID}/evidence`}
             cta="Open evidence"
           />
 
           <GuidedStep
             step="3"
-            label="View score"
-            title="See the governance score and certification outcome"
-            body="Open the score surface to inspect the deterministic output for the case, including final score, tier, and band."
+            label="Deterministic outcome"
+            title="View score, tier, and band"
+            body="Open the score surface to inspect the case result generated through the GAFAIG scoring process."
             href={`/admin/verification/${DEMO_CASE_ID}/score`}
             cta="Open score"
           />
 
           <GuidedStep
             step="4"
-            label="Open registry record"
-            title="See the public certification result"
-            body="After publication, the case appears in the public registry as a controlled certification record without exposing private evidence."
+            label="Public certification"
+            title="Open the registry record"
+            body="See the public certification record created from the reviewed case without exposing private evidence."
             href={`/registry/${DEMO_REGISTRY_ID}`}
             cta="Open registry record"
           />
 
           <GuidedStep
             step="5"
-            label="Verify proof"
-            title="Inspect the signed verification payload"
-            body="Open the live verification endpoint to view the signed public payload linked to the certification record."
-            href={`/api/verify/${DEMO_REGISTRY_ID}`}
+            label="Verification"
+            title="Inspect the trust layer"
+            body="Open the public verification experience to confirm the certification through the signed payload."
+            href={`/verify/${DEMO_REGISTRY_ID}`}
             cta="Open verification"
           />
 
           <GuidedStep
             step="6"
-            label="View badge"
-            title="Open the embeddable badge asset"
-            body="See the certification badge generated from the same public registry record and verification chain."
+            label="Badge"
+            title="View the embeddable certification badge"
+            body="See the public badge generated from the same certification output and trust chain."
             href={`/badge/${DEMO_REGISTRY_ID}`}
             cta="Open badge"
           />
-        </div>
-      </section>
-
-      <section className="mt-10 rounded-3xl border border-black/10 bg-white p-8 md:p-10">
-        <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
-          CASE SNAPSHOT
-        </div>
-
-        <h2 className="mt-4 max-w-[760px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
-          What this demo case proves
-        </h2>
-
-        <div className="mt-8 grid gap-4 md:grid-cols-3">
-          <SnapshotCard
-            title="Private review exists"
-            body="The case is grounded in the reviewer workflow, not a mock public-only page."
-          />
-          <SnapshotCard
-            title="Certification is deterministic"
-            body="The score, tier, and band are generated through the structured GAFAIG process."
-          />
-          <SnapshotCard
-            title="Public proof is verifiable"
-            body="The registry record, verification endpoint, and badge all point to the same certification outcome."
-          />
-        </div>
-
-        <div className="mt-8 rounded-2xl border border-black/10 bg-black/[0.02] p-5">
-          <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-black/50">
-            Demo identifiers
-          </div>
-
-          <div className="mt-4 grid gap-3 md:grid-cols-2">
-            <Info label="Case ID" value={DEMO_CASE_ID} />
-            <Info label="Registry ID" value={DEMO_REGISTRY_ID} />
-          </div>
         </div>
       </section>
 
@@ -169,92 +160,89 @@ export default function DemoPage() {
         </div>
 
         <h2 className="mt-4 max-w-[760px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
-          See a real certification
+          The record behind the story
         </h2>
 
         <p className="mt-5 max-w-3xl text-[15px] leading-[1.8] text-black/70">
-          This is a real GAFAIG certification generated through the full verification process.
-          You can open the public record, inspect the verification payload, and view the badge.
+          This demo is anchored to a live GAFAIG certification. You can open the
+          public record, verification experience, raw API proof, and badge directly.
         </p>
 
-        <div className="mt-8 grid gap-4 md:grid-cols-3">
-          <Link
+        <div className="mt-8 grid gap-4 md:grid-cols-4">
+          <ActionCard
+            eyebrow="Registry record"
+            title="Open certification"
+            body="View the live public certification record."
             href={`/registry/${DEMO_REGISTRY_ID}`}
-            className="rounded-2xl border border-black/10 p-5 transition hover:bg-black/[0.03]"
-          >
-            <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-black/45">
-              Registry Record
-            </div>
-            <div className="mt-2 text-[18px] font-semibold text-black">
-              View certification
-            </div>
-            <p className="mt-2 text-[14px] text-black/70">
-              Open the public certification record in the registry.
-            </p>
-          </Link>
-
-          <Link
+          />
+          <ActionCard
+            eyebrow="Verification UX"
+            title="Open verify page"
+            body="View the human-readable trust layer."
+            href={`/verify/${DEMO_REGISTRY_ID}`}
+          />
+          <ActionCard
+            eyebrow="Verification API"
+            title="Open signed payload"
+            body="Inspect the raw verification response."
             href={`/api/verify/${DEMO_REGISTRY_ID}`}
-            className="rounded-2xl border border-black/10 p-5 transition hover:bg-black/[0.03]"
-          >
-            <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-black/45">
-              Verification Proof
-            </div>
-            <div className="mt-2 text-[18px] font-semibold text-black">
-              View signed payload
-            </div>
-            <p className="mt-2 text-[14px] text-black/70">
-              Inspect the cryptographic verification response.
-            </p>
-          </Link>
-
-          <Link
+          />
+          <ActionCard
+            eyebrow="Badge"
+            title="Open badge"
+            body="See the embeddable certification badge."
             href={`/badge/${DEMO_REGISTRY_ID}`}
-            className="rounded-2xl border border-black/10 p-5 transition hover:bg-black/[0.03]"
-          >
-            <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-black/45">
-              Certification Badge
-            </div>
-            <div className="mt-2 text-[18px] font-semibold text-black">
-              View badge
-            </div>
-            <p className="mt-2 text-[14px] text-black/70">
-              Open the embeddable certification badge.
-            </p>
-          </Link>
+          />
         </div>
       </section>
 
-      <section className="mt-10 rounded-3xl border border-black/10 bg-white p-8 md:p-10">
-        <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
-          QUICK OVERVIEW
+      <section className="mt-10 grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
+        <div className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
+          <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
+            CASE SNAPSHOT
+          </div>
+
+          <h2 className="mt-4 text-[28px] font-semibold tracking-tight text-black md:text-[34px]">
+            Demo identifiers
+          </h2>
+
+          <div className="mt-6 grid gap-3">
+            <Info label="Case ID" value={DEMO_CASE_ID} />
+            <Info label="Registry ID" value={DEMO_REGISTRY_ID} />
+            <Info
+              label="Primary public outcome"
+              value="Certified · Band A · Score 100/100"
+            />
+          </div>
         </div>
 
-        <h2 className="mt-4 max-w-[760px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
-          A one-minute walkthrough
-        </h2>
+        <div className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
+          <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
+            PRESENTER NOTES
+          </div>
 
-        <div className="mt-8 grid gap-4 md:grid-cols-2">
-          <TalkCard
-            time="0:00–0:15"
-            title="What GAFAIG does"
-            body="GAFAIG provides a structured way to verify that AI systems are governed responsibly."
-          />
-          <TalkCard
-            time="0:15–0:30"
-            title="Private review"
-            body="All evaluation work takes place in a controlled environment separate from the public site."
-          />
-          <TalkCard
-            time="0:30–0:45"
-            title="Structured evaluation"
-            body="Evidence is reviewed, findings are recorded, and certification decisions are made in a consistent way."
-          />
-          <TalkCard
-            time="0:45–1:00"
-            title="Public results"
-            body="Certification outcomes are published in the registry and explorer for others to view and verify."
-          />
+          <h2 className="mt-4 text-[28px] font-semibold tracking-tight text-black md:text-[34px]">
+            How to tell the story live
+          </h2>
+
+          <div className="mt-6 grid gap-4">
+            <PresenterNote
+              label="Opening"
+              body="Start with the problem: organizations can claim AI governance, but others need a way to verify it."
+            />
+            <PresenterNote
+              label="Middle"
+              body="Show that GAFAIG does not begin on the public site. It begins inside a structured private review workflow."
+            />
+            <PresenterNote
+              label="Proof"
+              body="Then show that the result becomes a public certification record with a live verification experience and badge."
+            />
+            <PresenterNote
+              label="Close"
+              body="End on the idea that GAFAIG creates trust infrastructure: not just dashboards, but verifiable public certification."
+            />
+          </div>
         </div>
       </section>
     </main>
@@ -276,7 +264,22 @@ function ValueCard({
         {label}
       </div>
       <div className="mt-3 text-[20px] font-semibold text-black">{title}</div>
-      <p className="mt-3 text-[14px] text-black/70">{body}</p>
+      <p className="mt-3 text-[14px] leading-[1.75] text-black/70">{body}</p>
+    </div>
+  );
+}
+
+function NarrativeCard({
+  title,
+  body,
+}: {
+  title: string;
+  body: string;
+}) {
+  return (
+    <div className="rounded-2xl border border-black/10 p-5">
+      <div className="text-[18px] font-semibold text-black">{title}</div>
+      <p className="mt-3 text-[14px] leading-[1.75] text-black/70">{body}</p>
     </div>
   );
 }
@@ -325,35 +328,44 @@ function GuidedStep({
   );
 }
 
-function SnapshotCard({
+function ActionCard({
+  eyebrow,
   title,
   body,
+  href,
 }: {
+  eyebrow: string;
   title: string;
   body: string;
+  href: string;
 }) {
   return (
-    <div className="rounded-2xl border border-black/10 p-5">
-      <div className="text-[18px] font-semibold text-black">{title}</div>
-      <p className="mt-3 text-[14px] leading-[1.75] text-black/70">{body}</p>
-    </div>
+    <Link
+      href={href}
+      className="rounded-2xl border border-black/10 p-5 transition hover:bg-black/[0.03]"
+    >
+      <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-black/45">
+        {eyebrow}
+      </div>
+      <div className="mt-2 text-[18px] font-semibold text-black">{title}</div>
+      <p className="mt-2 text-[14px] leading-[1.75] text-black/70">{body}</p>
+    </Link>
   );
 }
 
-function TalkCard({
-  time,
-  title,
+function PresenterNote({
+  label,
   body,
 }: {
-  time: string;
-  title: string;
+  label: string;
   body: string;
 }) {
   return (
     <div className="rounded-2xl border border-black/10 p-5">
-      <div className="text-[11px] uppercase text-black/45">{time}</div>
-      <div className="mt-2 text-[18px] font-semibold">{title}</div>
-      <p className="mt-3 text-[14px] text-black/70">{body}</p>
+      <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-black/45">
+        {label}
+      </div>
+      <p className="mt-3 text-[14px] leading-[1.75] text-black/70">{body}</p>
     </div>
   );
 }
