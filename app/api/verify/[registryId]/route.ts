@@ -118,9 +118,28 @@ export async function GET(
   const signedAt = new Date().toISOString();
 
   const messageObject = {
-    ...record,
+    registryId: record.registryId,
+    entityName: record.entityName,
+    entityType: record.entityType,
+    country: record.country,
+    applicationId: record.applicationId,
+    caseId: record.caseId,
+    certificationStatus: record.certificationStatus,
+    certifiedScore: record.certifiedScore,
+    certifiedTier: record.certifiedTier,
+    certifiedBand: record.certifiedBand,
+    decisionStatus: record.decisionStatus,
+    certifiedAt: record.certifiedAt,
+    validFrom: record.validFrom,
+    validTo: record.validTo,
     signedAt,
   };
+
+  if (typeof messageObject === "string") {
+    throw new Error("messageObject incorrectly stringified");
+  }
+
+  console.log("TYPE CHECK:", typeof messageObject);
 
   const message = JSON.stringify(messageObject);
   const signature = signPayload(message);
@@ -129,11 +148,12 @@ export async function GET(
     ok: true,
     verified,
     registryId: row.REGISTRY_ID,
+    routeVersion: "verify-v4-object-message",
     proof: {
       alg: "HS256",
       signature,
       signedAt,
-      message: messageObject,
+      message: JSON.parse(message),
     },
     record,
   });
