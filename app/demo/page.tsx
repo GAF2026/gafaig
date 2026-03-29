@@ -209,13 +209,35 @@ function ValueCard({ label, title, body }: any) {
 
 function StepRow({ step, title, body, href, cta }: any) {
   return (
-    <div className="flex flex-col gap-4 rounded-2xl border border-black/10 p-5 md:flex-row md:justify-between">
+    <div className="flex flex-col gap-4 rounded-2xl border border-black/10 p-5 md:flex-row md:items-center md:justify-between">
+      
       <div>
-        <div className="text-[11px] uppercase text-black/45">{step}</div>
-        <div className="mt-2 text-[18px] font-semibold">{title}</div>
-        <p className="mt-2 text-[14px] text-black/70">{body}</p>
+        <div className="text-[11px] uppercase tracking-[0.14em] text-black/45">
+          {step}
+        </div>
+
+        <div className="mt-2 text-[18px] font-semibold text-black">
+          {title}
+        </div>
+
+        <p className="mt-2 text-[14px] text-black/70 max-w-[520px]">
+          {body}
+        </p>
       </div>
-      <Link href={href} className="rounded-full border border-black px-4 py-2 text-sm hover:bg-black hover:text-white">
+
+      <Link
+        href={href}
+        className="
+          inline-flex items-center justify-center
+          h-[42px] px-5
+          rounded-full
+          border border-black
+          text-sm font-semibold text-black
+          whitespace-nowrap
+          transition
+          hover:bg-black hover:text-white
+        "
+      >
         {cta}
       </Link>
     </div>
