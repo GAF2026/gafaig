@@ -3,6 +3,7 @@ import { createHmac } from "crypto";
 import { sfQuery } from "@/lib/snowflake";
 
 export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 type VerifyRow = {
   REGISTRY_ID: string;
