@@ -7,15 +7,8 @@ type MapRow = {
   COUNTRY: string | null;
   TOTAL_RECORDS: number;
   TOTAL_CERTIFIED: number;
-  AVG_CERTIFIED_SCORE: number | null;
+  TOTAL_NOT_CERTIFIED: number;
 };
-
-function formatScore(value: number | null | undefined) {
-  if (value === null || value === undefined || Number.isNaN(Number(value))) {
-    return "—";
-  }
-  return `${Math.round(Number(value))} / 100`;
-}
 
 export default async function ExplorerMapPage() {
   const rows = await sfQuery<MapRow>(
@@ -24,7 +17,7 @@ export default async function ExplorerMapPage() {
       COALESCE(COUNTRY, 'Unknown') AS COUNTRY,
       COUNT(*) AS TOTAL_RECORDS,
       SUM(CASE WHEN CERTIFICATION_STATUS = 'Certified' THEN 1 ELSE 0 END) AS TOTAL_CERTIFIED,
-      AVG(CERTIFIED_SCORE) AS AVG_CERTIFIED_SCORE
+      SUM(CASE WHEN CERTIFICATION_STATUS <> 'Certified' OR CERTIFICATION_STATUS IS NULL THEN 1 ELSE 0 END) AS TOTAL_NOT_CERTIFIED
     FROM GAFAIG_DB.CORE.V_REGISTRY_PUBLIC
     GROUP BY COALESCE(COUNTRY, 'Unknown')
     ORDER BY TOTAL_RECORDS DESC, COUNTRY ASC
@@ -90,7 +83,7 @@ export default async function ExplorerMapPage() {
 
                 <div className="grid gap-3 md:grid-cols-2">
                   <Info label="Certified" value={String(row.TOTAL_CERTIFIED)} />
-                  <Info label="Avg score" value={formatScore(row.AVG_CERTIFIED_SCORE)} />
+                  <Info label="Not certified" value={String(row.TOTAL_NOT_CERTIFIED)} />
                 </div>
               </div>
             </div>

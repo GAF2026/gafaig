@@ -14,15 +14,8 @@ type SystemRow = {
   RISK_TIER: string | null;
   CERTIFIED_TIER: string | null;
   CERTIFIED_BAND: string | null;
-  CERTIFIED_SCORE: number | null;
+  CERTIFICATION_STATUS: string | null;
 };
-
-function formatScore(value: number | null | undefined) {
-  if (value === null || value === undefined || Number.isNaN(Number(value))) {
-    return "—";
-  }
-  return `${Math.round(Number(value))} / 100`;
-}
 
 function tierBandLabel(tier: string | null, band: string | null) {
   if (tier && band) return `${tier} · Band ${band}`;
@@ -45,7 +38,7 @@ export default async function ExplorerSystemsPage() {
       s.RISK_TIER,
       r.CERTIFIED_TIER,
       r.CERTIFIED_BAND,
-      r.CERTIFIED_SCORE
+      r.CERTIFICATION_STATUS
     FROM GAFAIG_DB.CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC s
     LEFT JOIN GAFAIG_DB.CORE.V_REGISTRY_PUBLIC r
       ON s.REGISTRY_ID = r.REGISTRY_ID
@@ -173,16 +166,16 @@ export default async function ExplorerSystemsPage() {
                   />
                   <Info label="Risk tier" value={row.RISK_TIER || "—"} />
                   <Info
-                    label="Certified score"
-                    value={formatScore(row.CERTIFIED_SCORE)}
+                    label="Certification"
+                    value={row.CERTIFICATION_STATUS || "—"}
                   />
                   <Info
-                    label="Tier"
-                    value={row.CERTIFIED_TIER || "—"}
+                    label="Tier / Band"
+                    value={tierBandLabel(row.CERTIFIED_TIER, row.CERTIFIED_BAND)}
                   />
                   <Info
-                    label="Band"
-                    value={row.CERTIFIED_BAND || "—"}
+                    label="Registry ID"
+                    value={row.REGISTRY_ID || "—"}
                   />
                 </div>
               </div>
