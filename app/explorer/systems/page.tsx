@@ -2,6 +2,7 @@ import Link from "next/link";
 import { sfQuery } from "@/lib/snowflake";
 
 export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 type SystemRow = {
   SYSTEM_ID: string;
@@ -24,6 +25,18 @@ function tierBandLabel(tier: string | null, band: string | null) {
   return "—";
 }
 
+function riskBadgeClass(riskTier: string | null) {
+  const value = String(riskTier ?? "").trim().toUpperCase();
+
+  if (value === "HIGH") {
+    return "border-black/15 bg-black text-white";
+  }
+  if (value === "MEDIUM") {
+    return "border-black/15 bg-black/10 text-black";
+  }
+  return "border-black/10 bg-white text-black/75";
+}
+
 export default async function ExplorerSystemsPage() {
   const rows = await sfQuery<SystemRow>(
     `
@@ -40,7 +53,10 @@ export default async function ExplorerSystemsPage() {
       s.CERTIFIED_BAND,
       s.CERTIFICATION_STATUS
     FROM GAFAIG_DB.CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC s
-    ORDER BY s.SYSTEM_NAME ASC
+    ORDER BY
+      COALESCE(s.ENTITY_NAME, '') ASC,
+      COALESCE(s.DISPLAY_ORDER, 999999) ASC,
+      s.SYSTEM_NAME ASC
     `
   );
 
@@ -57,7 +73,7 @@ export default async function ExplorerSystemsPage() {
   ).length;
 
   return (
-    <main className="mx-auto max-w-[1180px] px-6 pb-16 pt-14">
+    <main className="mx-auto max-w-[1240px] px-6 pb-16 pt-14">
       <section className="rounded-3xl border border-black/10 bg-white px-8 py-10 md:px-10 md:py-12">
         <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
           EXPLORER
@@ -67,7 +83,7 @@ export default async function ExplorerSystemsPage() {
           Explorer — Systems
         </h1>
 
-        <p className="mt-5 max-w-[820px] text-[17px] leading-[1.7] text-black/72">
+        <p className="mt-5 max-w-[840px] text-[17px] leading-[1.7] text-black/72">
           Public AI system-level explorer for disclosed systems associated with
           GAFAIG registry records.
         </p>
@@ -91,10 +107,16 @@ export default async function ExplorerSystemsPage() {
           >
             View organizations
           </Link>
+          <Link
+            href="/registry/ai-systems"
+            className="rounded-full border border-black px-5 py-3 text-sm font-semibold transition hover:bg-black/[0.04]"
+          >
+            AI systems registry
+          </Link>
         </div>
       </section>
 
-      <section className="mt-10 grid gap-4 md:grid-cols-4">
+      <section className="mt-10 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <MetricCard label="Systems" value={String(rows.length)} />
         <MetricCard label="High risk" value={String(highRiskCount)} />
         <MetricCard label="Medium risk" value={String(mediumRiskCount)} />
@@ -133,37 +155,75 @@ export default async function ExplorerSystemsPage() {
               SYSTEM DIRECTORY
             </div>
 
-            <h2 className="mt-4 text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
-              Public AI systems
-            </h2>
+            <div className="mt-4 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+              <div>
+                <h2 className="text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
+                  Public AI systems
+                </h2>
+                <p className="mt-3 max-w-[760px] text-[15px] leading-[1.7] text-black/68">
+                  Publicly disclosed systems connected to canonical registry
+                  records and displayed through the GAFAIG public contract.
+                </p>
+              </div>
 
-            <div className="mt-8 grid gap-4">
+              <div className="rounded-2xl border border-black/10 px-4 py-3 text-sm text-black/70">
+                {rows.length} disclosed system{rows.length === 1 ? "" : "s"}
+              </div>
+            </div>
+
+            <div className="mt-8 grid gap-5">
               {rows.map((row) => (
-                <div
+                <article
                   key={row.SYSTEM_ID}
-                  className="rounded-2xl border border-black/10 p-5"
+                  className="rounded-[28px] border border-black/10 bg-white p-6 shadow-sm"
                 >
-                  <div className="flex flex-wrap items-start justify-between gap-4">
-                    <div>
-                      <h3 className="text-[20px] font-semibold text-black">
+                  <div className="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span
+                          className={`inline-flex rounded-full border px-3 py-1 text-[12px] font-semibold uppercase tracking-[0.14em] ${riskBadgeClass(
+                            row.RISK_TIER
+                          )}`}
+                        >
+                          {row.RISK_TIER || "Unknown risk"}
+                        </span>
+
+                        <span className="inline-flex rounded-full border border-black/10 px-3 py-1 text-[12px] font-semibold uppercase tracking-[0.14em] text-black/70">
+                          {row.CERTIFICATION_STATUS || "—"}
+                        </span>
+                      </div>
+
+                      <h3 className="mt-4 text-[24px] font-semibold leading-tight text-black md:text-[30px]">
                         {row.SYSTEM_NAME || row.SYSTEM_ID}
                       </h3>
-                      <div className="mt-2 text-[14px] text-black/65">
+
+                      <div className="mt-2 text-[16px] text-black/62">
                         {row.ENTITY_NAME || "Unknown organization"}
                       </div>
                     </div>
 
-                    {row.REGISTRY_ID ? (
+                    <div className="flex flex-wrap gap-3 xl:justify-end">
                       <Link
-                        href={`/registry/${encodeURIComponent(row.REGISTRY_ID)}`}
-                        className="inline-flex items-center rounded-full border border-black px-4 py-2 text-sm font-medium transition hover:bg-black hover:text-white"
+                        href={`/registry/ai-systems/${encodeURIComponent(
+                          row.SYSTEM_ID
+                        )}`}
+                        className="inline-flex items-center rounded-full border border-black bg-black px-5 py-3 text-sm font-semibold text-white transition hover:bg-black/90"
                       >
-                        View registry record
+                        View system detail
                       </Link>
-                    ) : null}
+
+                      {row.REGISTRY_ID ? (
+                        <Link
+                          href={`/registry/${encodeURIComponent(row.REGISTRY_ID)}`}
+                          className="inline-flex items-center rounded-full border border-black px-5 py-3 text-sm font-semibold transition hover:bg-black/[0.04]"
+                        >
+                          View registry record
+                        </Link>
+                      ) : null}
+                    </div>
                   </div>
 
-                  <div className="mt-5 grid gap-4 md:grid-cols-7">
+                  <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-7">
                     <Info label="System type" value={row.SYSTEM_TYPE || "—"} />
                     <Info
                       label="Deployment"
@@ -182,9 +242,14 @@ export default async function ExplorerSystemsPage() {
                       label="Tier / Band"
                       value={tierBandLabel(row.CERTIFIED_TIER, row.CERTIFIED_BAND)}
                     />
-                    <Info label="Registry ID" value={row.REGISTRY_ID || "—"} />
+                    <Info
+                      label="Registry ID"
+                      value={row.REGISTRY_ID || "—"}
+                      mono
+                      breakAll
+                    />
                   </div>
-                </div>
+                </article>
               ))}
             </div>
           </section>
@@ -205,13 +270,31 @@ function MetricCard({ label, value }: { label: string; value: string }) {
   );
 }
 
-function Info({ label, value }: { label: string; value: string }) {
+function Info({
+  label,
+  value,
+  mono = false,
+  breakAll = false,
+}: {
+  label: string;
+  value: string;
+  mono?: boolean;
+  breakAll?: boolean;
+}) {
   return (
-    <div className="rounded-xl border border-black/5 px-3 py-3">
+    <div className="rounded-2xl border border-black/6 bg-black/[0.015] px-4 py-4">
       <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-black/55">
         {label}
       </div>
-      <div className="mt-2 text-[14px] text-black/85">{value}</div>
+      <div
+        className={[
+          "mt-3 text-[15px] leading-[1.55] text-black/88",
+          mono ? "font-mono text-[14px]" : "",
+          breakAll ? "break-all" : "",
+        ].join(" ")}
+      >
+        {value}
+      </div>
     </div>
   );
 }
