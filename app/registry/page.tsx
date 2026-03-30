@@ -11,10 +11,10 @@ type RegistryRow = {
   ENTITY_NAME: string | null;
   ENTITY_TYPE: string | null;
   COUNTRY: string | null;
-  CERTIFIED_SCORE: number | null;
   CERTIFIED_TIER: string | null;
   CERTIFIED_BAND: string | null;
   DECISION_STATUS: string | null;
+  CERTIFICATION_STATUS: string | null;
   VALID_FROM: string | null;
   VALID_TO: string | null;
   CERTIFIED_AT: string | null;
@@ -35,13 +35,6 @@ function formatDate(value: string | null | undefined) {
   });
 }
 
-function formatScore(value: number | null | undefined) {
-  if (value === null || value === undefined || Number.isNaN(Number(value))) {
-    return "—";
-  }
-  return `${Math.round(Number(value))} / 100`;
-}
-
 function tierBandLabel(tier: string | null, band: string | null) {
   if (tier && band) return `${tier} · Band ${band}`;
   if (tier) return tier;
@@ -55,7 +48,7 @@ function normalizeString(value: string | string[] | undefined) {
 }
 
 function certificationStatus(row: RegistryRow) {
-  return row.CERTIFIED_AT ? "Certified" : "Not Certified";
+  return row.CERTIFICATION_STATUS || (row.CERTIFIED_AT ? "Certified" : "Not Certified");
 }
 
 export default async function RegistryPage({
@@ -102,10 +95,10 @@ export default async function RegistryPage({
         ENTITY_NAME,
         ENTITY_TYPE,
         COUNTRY,
-        CERTIFIED_SCORE,
         CERTIFIED_TIER,
         CERTIFIED_BAND,
         DECISION_STATUS,
+        CERTIFICATION_STATUS,
         VALID_FROM,
         VALID_TO,
         CERTIFIED_AT
@@ -130,7 +123,9 @@ export default async function RegistryPage({
   ]);
 
   const totalRecords = rows.length;
-  const certifiedRecords = rows.filter((row) => !!row.CERTIFIED_AT).length;
+  const certifiedRecords = rows.filter(
+    (row) => String(certificationStatus(row)).trim().toLowerCase() === "certified"
+  ).length;
   const publishedRecords = rows.filter(
     (row) => String(row.DECISION_STATUS || "").trim().toLowerCase() === "published"
   ).length;
@@ -256,15 +251,6 @@ export default async function RegistryPage({
                       <span>{row.ENTITY_TYPE || "Organization"}</span>
                       <span>{row.COUNTRY || "Unknown country"}</span>
                       <span>{row.REGISTRY_ID}</span>
-                    </div>
-                  </div>
-
-                  <div className="shrink-0 text-right">
-                    <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/50">
-                      Certified score
-                    </div>
-                    <div className="mt-1 text-[22px] font-semibold text-black">
-                      {formatScore(row.CERTIFIED_SCORE)}
                     </div>
                   </div>
                 </div>
