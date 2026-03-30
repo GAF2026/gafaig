@@ -13,7 +13,6 @@ type RegistryRecord = {
   ENTITY_NAME: string | null;
   ENTITY_TYPE: string | null;
   COUNTRY: string | null;
-  CERTIFIED_SCORE: number | null;
   CERTIFIED_TIER: string | null;
   CERTIFIED_BAND: string | null;
   DECISION_STATUS: string | null;
@@ -33,19 +32,11 @@ type PublicSystemRow = {
   RISK_TIER: string | null;
   DEVELOPER_ORGANIZATION: string | null;
   PUBLIC_SUMMARY: string | null;
-  CERTIFIED_SCORE: number | null;
   CERTIFIED_TIER: string | null;
   CERTIFIED_BAND: string | null;
 };
 
 /* ================= HELPERS ================= */
-
-function formatScore(value: number | null | undefined) {
-  if (value === null || value === undefined || Number.isNaN(Number(value))) {
-    return "—";
-  }
-  return `${Math.round(Number(value))} / 100`;
-}
 
 function formatDate(value: string | null | undefined) {
   if (!value) return "—";
@@ -110,7 +101,19 @@ export default async function RegistryDetailPage({
   const [records, systems] = await Promise.all([
     sfQuery<RegistryRecord>(
       `
-      SELECT *
+      SELECT
+        REGISTRY_ID,
+        APPLICATION_ID,
+        CASE_ID,
+        ENTITY_NAME,
+        ENTITY_TYPE,
+        COUNTRY,
+        CERTIFIED_TIER,
+        CERTIFIED_BAND,
+        DECISION_STATUS,
+        VALID_FROM,
+        VALID_TO,
+        CERTIFIED_AT
       FROM GAFAIG_DB.CORE.V_REGISTRY_PUBLIC
       WHERE REGISTRY_ID = ?
       LIMIT 1
@@ -119,7 +122,19 @@ export default async function RegistryDetailPage({
     ),
     sfQuery<PublicSystemRow>(
       `
-      SELECT *
+      SELECT
+        SYSTEM_ID,
+        REGISTRY_ID,
+        CASE_ID,
+        SYSTEM_NAME,
+        SYSTEM_TYPE,
+        DEPLOYMENT_STATUS,
+        OVERSIGHT_LEVEL,
+        RISK_TIER,
+        DEVELOPER_ORGANIZATION,
+        PUBLIC_SUMMARY,
+        CERTIFIED_TIER,
+        CERTIFIED_BAND
       FROM GAFAIG_DB.CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC
       WHERE REGISTRY_ID = ?
       ORDER BY SYSTEM_NAME ASC
@@ -135,8 +150,6 @@ export default async function RegistryDetailPage({
 
   return (
     <main className="mx-auto max-w-[1240px] px-6 pb-16 pt-14">
-      {/* ================= HERO ================= */}
-
       <section className="rounded-3xl border border-black/10 bg-white px-8 py-10 md:px-10 md:py-12">
         <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
           CERTIFICATION RECORD
@@ -198,13 +211,14 @@ export default async function RegistryDetailPage({
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1 lg:min-w-[260px]">
-            <MetricCard label="Certified score" value={formatScore(record.CERTIFIED_SCORE)} />
+            <MetricCard
+              label="Certification"
+              value={tierBandLabel(record.CERTIFIED_TIER, record.CERTIFIED_BAND)}
+            />
             <MetricCard label="Valid to" value={formatDate(record.VALID_TO)} />
           </div>
         </div>
       </section>
-
-      {/* ================= SUMMARY GRID ================= */}
 
       <section className="mt-10 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <MetricCard label="Registry ID" value={record.REGISTRY_ID} mono />
@@ -215,8 +229,6 @@ export default async function RegistryDetailPage({
         />
         <MetricCard label="Certified at" value={formatDate(record.CERTIFIED_AT)} />
       </section>
-
-      {/* ================= CERTIFICATION DETAILS ================= */}
 
       <section className="mt-10 rounded-3xl border border-black/10 bg-white p-8 md:p-10">
         <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
@@ -246,16 +258,14 @@ export default async function RegistryDetailPage({
           <InfoCard label="Decision status" value={record.DECISION_STATUS || "—"} />
           <InfoCard label="Application ID" value={record.APPLICATION_ID || "—"} mono />
           <InfoCard label="Case ID" value={record.CASE_ID || "—"} mono />
-          <InfoCard label="Certified score" value={formatScore(record.CERTIFIED_SCORE)} />
           <InfoCard label="Certified tier" value={record.CERTIFIED_TIER || "—"} />
           <InfoCard label="Certified band" value={record.CERTIFIED_BAND || "—"} />
+          <InfoCard label="Tier / Band" value={tierBandLabel(record.CERTIFIED_TIER, record.CERTIFIED_BAND)} />
           <InfoCard label="Valid from" value={formatDate(record.VALID_FROM)} />
           <InfoCard label="Valid to" value={formatDate(record.VALID_TO)} />
           <InfoCard label="Certified at" value={formatDate(record.CERTIFIED_AT)} />
         </div>
       </section>
-
-      {/* ================= SYSTEMS ================= */}
 
       <section className="mt-10 rounded-3xl border border-black/10 bg-white p-8 md:p-10">
         <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
@@ -319,10 +329,10 @@ export default async function RegistryDetailPage({
 
                   <div className="shrink-0 text-right">
                     <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/50">
-                      Certified score
+                      Certification
                     </div>
                     <div className="mt-1 text-[20px] font-semibold text-black">
-                      {formatScore(system.CERTIFIED_SCORE)}
+                      {tierBandLabel(system.CERTIFIED_TIER, system.CERTIFIED_BAND)}
                     </div>
                   </div>
                 </div>
