@@ -8,7 +8,6 @@ type ExplorerSummaryRow = {
   COUNTRY: string | null;
   TOTAL_RECORDS: number;
   TOTAL_CERTIFIED: number;
-  AVG_CERTIFIED_SCORE: number | null;
 };
 
 type ExplorerRecentRow = {
@@ -16,18 +15,10 @@ type ExplorerRecentRow = {
   ENTITY_NAME: string | null;
   COUNTRY: string | null;
   CERTIFICATION_STATUS: string | null;
-  CERTIFIED_SCORE: number | null;
   CERTIFIED_TIER: string | null;
   CERTIFIED_BAND: string | null;
   CERTIFIED_AT: string | null;
 };
-
-function formatScore(value: number | null | undefined) {
-  if (value === null || value === undefined || Number.isNaN(Number(value))) {
-    return "—";
-  }
-  return `${Math.round(Number(value))} / 100`;
-}
 
 function formatDate(value: string | null | undefined) {
   if (!value) return "—";
@@ -54,8 +45,7 @@ export default async function ExplorerPage() {
       SELECT
         COALESCE(COUNTRY, 'Unknown') AS COUNTRY,
         COUNT(*) AS TOTAL_RECORDS,
-        SUM(CASE WHEN CERTIFICATION_STATUS = 'Certified' THEN 1 ELSE 0 END) AS TOTAL_CERTIFIED,
-        AVG(CERTIFIED_SCORE) AS AVG_CERTIFIED_SCORE
+        SUM(CASE WHEN CERTIFICATION_STATUS = 'Certified' THEN 1 ELSE 0 END) AS TOTAL_CERTIFIED
       FROM GAFAIG_DB.CORE.V_REGISTRY_PUBLIC
       GROUP BY COALESCE(COUNTRY, 'Unknown')
       ORDER BY TOTAL_RECORDS DESC, COUNTRY ASC
@@ -68,7 +58,6 @@ export default async function ExplorerPage() {
         ENTITY_NAME,
         COUNTRY,
         CERTIFICATION_STATUS,
-        CERTIFIED_SCORE,
         CERTIFIED_TIER,
         CERTIFIED_BAND,
         CERTIFIED_AT
@@ -93,18 +82,6 @@ export default async function ExplorerPage() {
     TOTAL_CERTIFIED: 0,
     TOTAL_COUNTRIES: 0,
   };
-
-  const averageCertifiedScore =
-    countryRows.length > 0
-      ? countryRows
-          .map((r) => Number(r.AVG_CERTIFIED_SCORE))
-          .filter((n) => Number.isFinite(n))
-          .reduce((a, b) => a + b, 0) /
-        Math.max(
-          1,
-          countryRows.filter((r) => Number.isFinite(Number(r.AVG_CERTIFIED_SCORE))).length
-        )
-      : 0;
 
   return (
     <main className="mx-auto max-w-[1180px] px-6 pb-16 pt-14">
@@ -145,14 +122,10 @@ export default async function ExplorerPage() {
         </div>
       </section>
 
-      <section className="mt-10 grid gap-4 md:grid-cols-4">
+      <section className="mt-10 grid gap-4 md:grid-cols-3">
         <MetricCard label="Registry records" value={String(totals.TOTAL_RECORDS)} />
         <MetricCard label="Certified records" value={String(totals.TOTAL_CERTIFIED)} />
         <MetricCard label="Countries" value={String(totals.TOTAL_COUNTRIES)} />
-        <MetricCard
-          label="Avg certified score"
-          value={totals.TOTAL_CERTIFIED > 0 ? `${Math.round(averageCertifiedScore)} / 100` : "—"}
-        />
       </section>
 
       <section className="mt-10 grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
@@ -178,14 +151,6 @@ export default async function ExplorerPage() {
                     </div>
                     <div className="mt-2 text-sm text-black/65">
                       {row.TOTAL_RECORDS} records · {row.TOTAL_CERTIFIED} certified
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-xs font-semibold uppercase tracking-[0.16em] text-black/50">
-                      Avg score
-                    </div>
-                    <div className="mt-1 text-lg font-semibold text-black">
-                      {formatScore(row.AVG_CERTIFIED_SCORE)}
                     </div>
                   </div>
                 </div>
