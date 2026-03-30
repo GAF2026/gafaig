@@ -1,322 +1,364 @@
 # GAFAIG — MASTER STATE
 Canonical Architecture & Platform Memory
-Last Updated: 2026-03-27
+Last Updated: 2026-03-29
 
-# 🧠 PLATFORM DEFINITION
+---
 
-GAFAIG (Global Authority for AI Governance) is the world’s first searchable AI governance registry powered by a deterministic verification engine.
+# PLATFORM IDENTITY
 
-It is global trust infrastructure analogous to:
+GAFAIG = Global Authority for AI Governance
 
-• financial audit systems  
-• certificate authorities  
-• regulatory registries  
-• standards bodies  
+GAFAIG is the world’s first:
+→ deterministic AI governance certification engine
+→ global, searchable AI governance registry
 
 GAFAIG is NOT:
-
-• a dashboard  
-• a scoring tool  
-• a simple database  
+• a dashboard
+• a scoring toy
+• a simple database
 
 GAFAIG IS:
+• trust infrastructure
+• certification authority for AI governance
+• registry of verified AI systems and organizations
 
-A deterministic governance engine + public registry system
+Comparable to:
+• financial audit systems
+• certificate authorities (SSL)
+• regulatory registries
+• standards organizations
 
-# 🔒 CANONICAL DATA FLOW (LOCKED)
+---
 
-ALL DATA MUST FOLLOW THIS FLOW:
+# REPOSITORY + DEPLOYMENT
 
-APPLICATION (intake only)  
-→ CASE  
-→ VERIFICATION_FINDINGS  
-→ VERIFICATION_EVIDENCE  
-→ VERIFICATION_EVENTS  
-→ SCORING (deterministic)  
-→ SCORE SNAPSHOT  
-→ REGISTRY SNAPSHOT (append-only)  
-→ PUBLIC VIEWS  
-→ API  
-→ UI  
-
-# ❄️ SNOWFLAKE IS SOURCE OF TRUTH
-
-ALL:
-
-• joins  
-• scoring  
-• aggregation  
-• certification state  
-• registry projection  
-
-MUST happen in Snowflake.
-
-❌ NO frontend-derived data  
-❌ NO API business logic  
-❌ NO UI transformations of certification  
-
-# 🧮 SCORING ENGINE (ENTERPRISE v1.0)
-
-Deterministic (NO ML)
-
-Inputs:
-
-• VERIFICATION_FINDINGS  
-• VERIFICATION_FINDING_EVIDENCE  
-• VERIFICATION_EVIDENCE (freshness)  
-• CONTROL_CATALOG  
-• CONTROL_WEIGHTS  
-• SEVERITY_WEIGHTS  
-
-Outputs:
-
-• V_GOVERNANCE_SCORE_CASE  
-• V_CASE_TIER_BAND  
-• V_CASE_SCORE_ENTERPRISE  
-
-Execution:
-
-• SP_SCORE_CASE_ENTERPRISE  
-
-# 📦 REGISTRY SYSTEM (LOCKED)
-
-## Core Table
-
-CORE.REGISTRY_SNAPSHOTS  
-→ append-only  
-→ never updated  
-→ never overwritten  
-
-## Canonical View
-
-V_REGISTRY_LATEST_APPROVED  
-→ latest approved snapshot per case  
-
-## Public Views
-
-• V_REGISTRY_PUBLIC  
-• V_REGISTRY_PUBLIC_SEARCH  
-• V_REGISTRY_AI_SYSTEMS_PUBLIC  
-
-These power ALL:
-
-• registry pages  
-• explorer  
-• API  
-
-# 📤 PUBLISH SYSTEM (CRITICAL)
-
-Canonical Procedure:
-
-CORE.SP_PUBLISH_CASE_TO_REGISTRY_V3  
-
-(extended internally to V4 logic where needed)
-
-## Guaranteed Behavior
-
-• REUSES existing REGISTRY_ID for a case  
-• NEVER creates duplicate registry IDs  
-• INSERTS append-only snapshot  
-• aligns AI systems to registry  
-• pulls score from V_GOVERNANCE_SCORE_CASE  
-
-# 🆔 REGISTRY ID RULE (LOCKED)
-
-• Format: GAFAIG-XXXXXXXX  
-• Deterministic per CASE  
-• Same CASE → same REGISTRY_ID forever  
-• No duplicates allowed  
-
-# 🧩 PUBLIC CONTRACT (CRITICAL)
-
-Registry fields exposed:
-
-• registryId  
-• applicationId  
-• caseId  
-• entityName  
-• entityType  
-• country  
-• certifiedTier  
-• certifiedBand  
-• certifiedScore  
-• certificationStatus  
-• decisionStatus  
-• certifiedAt  
-• validFrom  
-• validTo  
-• lastActivityAt  
-
-# 🔌 API LAYER (PASS-THROUGH ONLY)
-
-Pattern:
-
-Snowflake → Query Layer → API → UI  
-
-NO:
-
-• scoring in API  
-• joins in API  
-• fallback logic  
-
-# 🧱 QUERY LAYER
-
-Primary interface:
-
-lib/snowflake.ts → sfQuery()
-
-## CURRENT STATE (IMPORTANT)
-
-Temporary compatibility exports exist:
-
-• executeQuery  
-• snowflakeQuery  
-• sfQueryResult  
-• snowflakeCtx  
-
-⚠️ Transitional only  
-→ Long-term: standardize ONLY on sfQuery
-
-# 📂 REGISTRY QUERY LAYER
-
-Primary file:
-
-lib/queries/registry.ts  
-
-## CURRENT STATE
-
-Uses:
-
-REGISTRY_PUBLIC_READTHROUGH  
-
-Reason:
-
-• ensures reliable lookup  
-• protects against snapshot/view timing issues  
-
-⚠️ Future decision required:
-
-• keep readthrough layer  
-OR  
-• revert fully to V_REGISTRY_PUBLIC  
-
-# 🌐 PUBLIC ROUTES
-
-## Registry
-
-• /registry  
-• /registry/[registryId]  
-• /registry/ai-systems  
-• /registry/ai-systems/[systemId]  
-
-## Explorer
-
-• /explorer  
-• /explorer/countries  
-• /explorer/countries/[country]  
-• /explorer/map  
-• /explorer/organizations  
-• /explorer/systems  
-
-## API
-
-• /api/registry  
-• /api/registry/search  
-• /api/registry/[registryId]/ai-systems  
-• /api/badge/[registryId]  
-• /api/verify/[registryId]  
-
-# 🏷 BADGE SYSTEM
-
-Route:
-
-/api/badge/[registryId]
-
-Behavior:
-
-• fetch registry row  
-• determine badge via tier / band / score  
-• optional override via badgeImageUrl  
-• redirect → image  
-
-# 🔐 AUTH SYSTEM
-
-Admin routes protected via:
-
-• middleware.ts  
-• requireAdmin()  
-
-Session:
-
-• GAFAIG_SESSION_SECRET  
-• cookie-based auth  
-
-# 🚀 DEPLOYMENT
-
-Platform:
-
-Vercel  
+GitHub:
+GAF2026/gafaig
 
 Production:
+https://www.gafaig.com
 
-https://www.gafaig.com  
+Hosting:
+Vercel
 
-## CURRENT STATUS
+Framework:
+Next.js (App Router) + TypeScript
 
-✔ Build successful  
-✔ Deployment stable  
-✔ Explorer + registry compiling  
-✔ Snowflake connected  
+---
 
-# ⚠️ CURRENT STATE SUMMARY
+# SNOWFLAKE ENVIRONMENT (SOURCE OF TRUTH)
 
-## WORKING
+Account:
+GAFAIG1
 
-• registry page  
-• badge API  
-• publish pipeline  
-• registry snapshots  
-• Snowflake connectivity  
-• Vercel deployment  
-• explorer pages compile  
+Database:
+GAFAIG_DB
 
-## PARTIALLY VERIFIED
+Schema:
+CORE
 
-• explorer pages (some load, some need testing)  
-• country + system aggregations  
+Warehouse:
+GAFAIG_WH
 
-## KNOWN TEMPORARY AREAS
+Role:
+GAFAIG_APP_ROLE
 
-• compatibility exports in snowflake.ts  
-• readthrough registry layer  
-• duplicated SQL across explorer pages  
+---
 
-# 🔥 CRITICAL RULES (DO NOT BREAK)
+# NON-NEGOTIABLE PRINCIPLE
 
-• DO NOT re-architect  
-• DO NOT move logic to frontend  
-• DO NOT compute certification outside Snowflake  
-• DO NOT mutate registry snapshots  
-• DO NOT generate new registry IDs for same case  
+SNOWFLAKE IS THE SYSTEM OF RECORD
 
-# ▶️ NEXT PHASE
+ALL:
+• joins
+• scoring
+• aggregation
+• certification logic
 
-Registry Surface Completion → Explorer Validation → Query Consolidation  
+MUST exist in Snowflake
 
-Immediate goals:
+NEVER:
+• compute certification in UI
+• compute certification in API
+• duplicate logic outside Snowflake
 
-1. Validate ALL explorer routes  
-2. Confirm runtime data correctness  
-3. Remove legacy query wrapper patterns  
-4. Consolidate query layer  
-5. Normalize Snowflake access (sfQuery only)  
+---
 
-# 🧠 SYSTEM STATUS
+# CANONICAL DATA FLOW (LOCKED)
 
-GAFAIG is now:
+ALL DATA MUST FOLLOW:
 
-✔ a working deterministic governance engine  
-✔ a functioning global registry  
-✔ deployed infrastructure  
-✔ API-complete  
-✔ UI-complete (pending validation pass)
+CASE
+→ FINDINGS
+→ EVIDENCE
+→ EVENTS
+→ SCORING
+→ SCORE SNAPSHOT
+→ REGISTRY SNAPSHOT
+→ PUBLIC VIEWS
+→ API
+→ UI
+
+NO SHORTCUTS
+NO BYPASSES
+
+---
+
+# CORE TABLES
+
+VERIFICATION_CASES
+VERIFICATION_FINDINGS
+VERIFICATION_EVIDENCE
+VERIFICATION_FINDING_EVIDENCE
+VERIFICATION_EVENTS
+
+CASE_SCORE_SNAPSHOTS_V2
+DECISIONS
+
+REGISTRY_SNAPSHOTS
+REGISTRY_AI_SYSTEMS
+
+---
+
+# CORE VIEWS (CANONICAL)
+
+V_GOVERNANCE_SCORE_CASE
+→ deterministic governance score
+
+V_CASE_TIER_BAND
+→ tier + band mapping
+
+V_REGISTRY_LATEST_APPROVED
+→ latest approved snapshot per case
+
+V_REGISTRY_PUBLIC
+→ PUBLIC CONTRACT (registry UI + API)
+
+V_REGISTRY_PUBLIC_SEARCH
+→ search-optimized projection
+
+V_REGISTRY_AI_SYSTEMS_PUBLIC
+→ AI systems joined to registry certification
+
+---
+
+# CORE PROCEDURES
+
+SP_SCORE_CASE_ENTERPRISE
+→ computes deterministic score + snapshot
+
+SP_PUBLISH_CASE_TO_REGISTRY_V3
+→ publishes certified/approved case into registry
+→ append-only snapshot system
+→ generates registry_id
+→ aligns AI systems
+
+---
+
+# REGISTRY CONTRACT (PUBLIC)
+
+Each registry record exposes:
+
+registryId
+applicationId
+caseId
+
+entityName
+entityType
+country
+
+certifiedScore
+certifiedTier
+certifiedBand
+
+decisionStatus
+certificationStatus
+
+validFrom
+validTo
+
+certifiedAt
+publishedAt
+
+renewalStatus
+lifecycleStatus
+
+---
+
+# PUBLIC SURFACES
+
+Pages:
+
+/
+ /mission
+ /framework
+ /demo
+ /demo-script
+
+/registry
+/registry/[registryId]
+
+/registry/ai-systems
+/registry/ai-systems/[systemId]
+
+/explorer
+/explorer/organizations
+/explorer/systems
+/explorer/countries
+/explorer/map
+
+---
+
+# API CONTRACT
+
+/api/registry
+→ reads V_REGISTRY_PUBLIC
+
+/api/registry/search
+→ reads V_REGISTRY_PUBLIC_SEARCH
+
+/api/registry/[registryId]/ai-systems
+→ reads V_REGISTRY_AI_SYSTEMS_PUBLIC
+
+/api/verify/[registryId]
+→ returns signed verification JSON
+
+---
+
+# ADMIN SURFACE
+
+/admin/login
+/admin/applications
+/admin/verification/[caseId]/evidence
+/admin/verification/[caseId]/findings
+/admin/verification/[caseId]/score
+/admin/verification/[caseId]/publish
+
+---
+
+# QUERY LAYER
+
+lib/snowflake.ts
+→ connection + execution
+
+lib/queries/*
+→ canonical query layer
+
+RULE:
+API = thin pass-through
+NO business logic in API
+
+---
+
+# AUTH MODEL
+
+middleware.ts protects:
+• /admin/*
+• /api/admin/*
+
+Session:
+GAFAIG_SESSION_SECRET
+
+Legacy support:
+gafaig_admin cookie (temporary)
+
+---
+
+# CURRENT SYSTEM STATUS
+
+✔ End-to-end pipeline working
+✔ CASE → REGISTRY → UI fully functional
+✔ Deterministic scoring engine stable
+✔ Publish procedure stable
+✔ Registry views stable
+✔ Explorer working
+✔ Verification endpoint working
+
+---
+
+# CANONICAL DEMO STATE (LOCKED)
+
+PRIMARY CASE:
+
+CASE-0001
+→ GAFAIG Certified Demo Org
+→ Certified
+→ Score = 100
+→ Tier = Certified
+→ Band = A
+
+This is the flagship certification record.
+
+---
+
+# MULTI-CASE EXPANSION (IN PROGRESS)
+
+Target:
+
+CASE-0002 → Anthropic → Not Certified
+CASE-0003 → Google DeepMind → Not Certified
+CASE-0004 → Microsoft → Not Certified
+CASE-0005 → NVIDIA → Not Certified
+
+RULE:
+All cases MUST:
+• produce governance score row
+• pass through scoring engine
+• publish via SP_PUBLISH_CASE_TO_REGISTRY_V3
+
+NO manual registry inserts
+
+---
+
+# CRITICAL ENGINEERING RULES
+
+DO NOT:
+• re-architect system
+• bypass scoring engine
+• bypass publish procedure
+• insert directly into registry snapshots
+• compute certification in UI/API
+
+ALWAYS:
+• follow canonical pipeline
+• use Snowflake views as truth
+• keep append-only snapshot model
+
+---
+
+# CURRENT FOCUS
+
+Registry Enrichment (Post-Engine Stabilization)
+
+Goal:
+→ Fully populated, realistic registry
+→ Clean multi-entity demo
+→ Strong explorer surfaces
+→ Production-ready verification UX
+
+---
+
+# NEXT PHASES
+
+1. Multi-case canonical expansion (scoreable cases)
+2. Verification UX polish
+3. Demo narrative (investor-ready)
+4. Explorer analytics enrichment
+
+---
+
+# KEY TAKEAWAY
+
+GAFAIG is not a frontend project.
+
+It is a:
+→ deterministic certification engine
+→ backed by Snowflake
+→ surfaced through a registry
+
+ALL TRUST COMES FROM:
+Snowflake → Views → Deterministic Logic
+
+NOT from UI.
+
+---

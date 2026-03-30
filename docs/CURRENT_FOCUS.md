@@ -1,267 +1,278 @@
 # GAFAIG — CURRENT FOCUS
 Execution Control Document
-Last Updated: 2026-03-27
+Last Updated: 2026-03-29
 
 ---
 
-# 🎯 PRIMARY OBJECTIVE
+# PRIMARY OBJECTIVE
 
-Complete transition from:
+Complete the transition from:
 
-"System compiles and deploys"
+"Engine exists"
 
 →
 
-"Global AI Governance Registry is fully validated, consistent, and production-grade"
+"Global AI governance registry is fully populated, trusted, and externally consumable"
 
 ---
 
-# 📍 CURRENT PHASE
+# CURRENT PHASE
 
-Registry Surface Completion → Explorer Validation
-
-(Post-Deployment Stabilization)
+Registry Enrichment (Post-Engine Stabilization)
 
 ---
 
-# ✅ WHAT IS COMPLETE (LOCKED — DO NOT TOUCH)
+# WHAT IS ALREADY COMPLETE (DO NOT TOUCH)
 
-The following systems are WORKING and must NOT be modified:
+The following systems are WORKING and LOCKED:
 
-• verification workflow (findings / evidence / events)  
-• deterministic enterprise scoring engine  
-• score snapshot system  
-• registry snapshot system (append-only)  
-• publish procedure (SP_PUBLISH_CASE_TO_REGISTRY_V3)  
-• registry ID reuse logic (no duplicates)  
-• V_REGISTRY_LATEST_APPROVED  
-• V_REGISTRY_PUBLIC  
-• V_REGISTRY_AI_SYSTEMS_PUBLIC  
-• registry UI pages  
-• badge API (/api/badge/[registryId])  
-• verification API (/api/verify/[registryId])  
-• Snowflake connection (key-pair auth)  
-• Vercel deployment pipeline  
+• verification workflow (cases / findings / evidence / events)
+• deterministic enterprise scoring engine (v1)
+• score snapshot system (append-only)
+• publish procedure (SP_PUBLISH_CASE_TO_REGISTRY_V3)
+• registry snapshot system (append-only)
+• V_REGISTRY_LATEST_APPROVED (source of truth)
+• V_REGISTRY_PUBLIC (public contract)
+• V_REGISTRY_AI_SYSTEMS_PUBLIC (AI systems projection)
+• /registry page (list)
+• /registry/[registryId] page (detail)
+• /registry/ai-systems pages
+• query registry layer (Snowflake → API → UI)
+• verification endpoint (/api/verify/[registryId])
 
----
-
-# ⚠️ CURRENT REALITY
-
-## SYSTEM STATE
-
-✔ Deploying successfully  
-✔ Compiling successfully  
-✔ Core registry functioning  
-✔ Badge + verification endpoints working  
-
-⚠️ Explorer pages:
-
-• compile successfully  
-• NOT fully validated at runtime  
-• some pages load, some need testing  
+DO NOT:
+• modify working scoring logic
+• rewrite registry views
+• bypass publish procedure
+• introduce UI-level logic
 
 ---
 
-# 🔥 CURRENT WORK (ACTIVE)
+# CURRENT GAP
 
-## 1. Explorer Page Validation (PRIMARY TASK)
+The system is correct but not yet fully expressive.
 
-Test ALL explorer routes end-to-end:
+Gaps:
 
-• /explorer  
-• /explorer/countries  
-• /explorer/countries/[country]  
-• /explorer/map  
-• /explorer/organizations  
-• /explorer/systems  
-
-For each page confirm:
-
-• loads without error  
-• data appears  
-• counts are correct  
-• links resolve  
-• no empty or broken states  
+• Only one canonical certified case (CASE-0001)
+• Multi-case demo expansion not yet successfully scoring/publishing
+• Explorer surfaces not yet rich (limited entities/countries)
+• Registry lacks realistic distribution of certification states
+• Demo dataset fragmentation (multiple legacy seed files)
+• No enforced single canonical seeding system
 
 ---
 
-## 2. Registry Verification (CRITICAL)
+# ACTIVE WORKSTREAMS
 
-Confirm for known registryId:
+## 1. CANONICAL MULTI-CASE EXPANSION
 
-• /registry/[registryId] loads  
-• /api/badge/[registryId] returns image redirect  
-• /api/verify/[registryId] returns signed JSON  
+Goal:
+→ Introduce multiple organizations into registry while preserving canonical architecture
 
----
+Target cases:
 
-## 3. Data Integrity Checks
+• CASE-0001 → Certified (flagship)
+• CASE-0002 → Not Certified (Anthropic)
+• CASE-0003 → Not Certified (Google DeepMind)
+• CASE-0004 → Not Certified (Microsoft)
+• CASE-0005 → Not Certified (NVIDIA)
 
-Verify:
+Requirements:
 
-• registryId matches across:
-  - REGISTRY_SNAPSHOTS  
-  - V_REGISTRY_PUBLIC  
-  - UI  
+• MUST produce governance score row (V_GOVERNANCE_SCORE_CASE)
+• MUST pass through SP_SCORE_CASE_ENTERPRISE
+• MUST publish via SP_PUBLISH_CASE_TO_REGISTRY_V3
+• MUST NOT insert directly into registry tables
 
-• no duplicate registry IDs  
-• publish reuses same ID  
-• certified fields populated correctly  
+Current blocker:
 
----
+• expansion cases failing to produce governance score rows
+• error: "No governance score row found for case"
 
-# 🧱 CURRENT TECHNICAL STATE
+Resolution direction:
 
-## Snowflake Access Layer
-
-Primary:
-
-sfQuery()
-
-Temporary compatibility layer exists:
-
-• executeQuery  
-• snowflakeQuery  
-• sfQueryResult  
-• snowflakeCtx  
-
-⚠️ These are temporary and should NOT be expanded further
+→ align expansion seed with full control structure used by CASE-0001
+→ ensure findings + evidence satisfy scoring view requirements
 
 ---
 
-## Registry Query Layer
+## 2. CANONICAL SEED CONSOLIDATION
 
-File:
+Goal:
+→ ONE source of truth seeding system
 
-lib/queries/registry.ts  
+Required state:
 
-Current behavior:
+• ONE canonical seed for CASE-0001 (certified)
+• ONE canonical expansion seed (multi-case)
+• ALL legacy seed files deprecated
 
-• uses REGISTRY_PUBLIC_READTHROUGH  
-• ensures stable lookup  
+Actions:
 
-⚠️ Needs future decision:
+• remove or archive:
+  - DEMO seeds
+  - BACKFILL scripts
+  - legacy expansion attempts
 
-• keep readthrough  
-OR  
-• revert to V_REGISTRY_PUBLIC  
-
----
-
-## Explorer Pages
-
-Recently fixed:
-
-• removed sfQueryResult usage  
-• removed .ok / .rows / .error patterns  
-• converted to direct sfQuery  
-
-⚠️ Current issue:
-
-• duplicated SQL across pages  
-• no shared query layer yet  
+• enforce deterministic rebuild from:
+  CASE → FINDINGS → EVIDENCE → EVENTS → SCORE → PUBLISH
 
 ---
 
-# ❗ CURRENT RISKS
+## 3. REGISTRY DATA COMPLETION
 
-• explorer pages may silently fail at runtime  
-• data aggregation inconsistencies  
-• duplicate SQL logic across UI  
-• temporary compatibility layer becoming permanent  
+Goal:
+→ Ensure all public contract fields populate consistently
 
----
+Fields to validate:
 
-# 🚫 DO NOT DO
+• certifiedScore
+• certifiedTier
+• certifiedBand
+• certifiedAt
+• decisionStatus
+• certificationStatus
+• validFrom / validTo
+• lifecycleStatus
+• renewalStatus
+• country normalization
 
-• DO NOT re-architect  
-• DO NOT move logic to frontend  
-• DO NOT introduce new query abstractions  
-• DO NOT change Snowflake views  
-• DO NOT modify scoring  
-• DO NOT modify publish pipeline  
+Source:
 
----
-
-# ▶️ NEXT STEPS (STRICT ORDER)
-
-## STEP 1 — TESTING
-
-User tests all pages listed above
-
-→ Identify which pages fail  
-→ Capture exact behavior  
+→ CORE.V_REGISTRY_PUBLIC (ONLY)
 
 ---
 
-## STEP 2 — FIXES
+## 4. EXPLORER ENRICHMENT
 
-Fix ONLY:
+Goal:
+→ Transform explorer into meaningful global surface
 
-• runtime errors  
-• missing data bindings  
-• incorrect queries  
+Current state:
 
-NO architectural changes  
+• limited to single entity
+• minimal distribution
 
----
+Target state:
 
-## STEP 3 — STABILIZATION
+• multiple organizations
+• multiple countries (US + UK minimum)
+• multiple AI systems
+• meaningful distribution of:
+  - tier
+  - risk
+  - oversight
 
-Once all pages load correctly:
+Sources:
 
-• confirm consistent data  
-• confirm registry linkage  
-• confirm explorer aggregation  
-
----
-
-## STEP 4 — CLEANUP (NEXT PHASE)
-
-After validation:
-
-• remove compatibility exports from snowflake.ts  
-• consolidate queries into query layer  
-• eliminate duplicated SQL  
-• standardize on sfQuery  
+• V_REGISTRY_PUBLIC
+• V_REGISTRY_AI_SYSTEMS_PUBLIC
 
 ---
 
-# 🧠 SUCCESS CRITERIA
+## 5. VERIFICATION UX (TRUST SURFACE)
 
-System is considered stable when:
+Goal:
+→ Make verification endpoint production-grade
 
-✔ all explorer pages load  
-✔ registry pages load  
-✔ badge + verify APIs work  
-✔ no runtime errors  
-✔ data is consistent across UI and Snowflake  
-✔ no duplicate registry IDs  
-✔ publish behaves deterministically  
+Endpoint:
 
----
+/api/verify/[registryId]
 
-# 🔄 CURRENT STATE SUMMARY
+Enhancements:
 
-You are NOT building anymore.
+• signed payload clarity
+• certification metadata visibility
+• lifecycle state visibility
+• trust messaging ("Certified by GAFAIG")
 
-You are:
+Constraint:
 
-→ validating  
-→ stabilizing  
-→ confirming correctness  
+• NO logic outside Snowflake
+• API is presentation only
 
 ---
 
-# 🚀 NEXT CHAT START POINT
+## 6. DEMO NARRATIVE (EXTERNAL READINESS)
 
-Continue with:
+Goal:
+→ Turn GAFAIG into a compelling, explainable system
 
-1. testing explorer pages  
-2. reporting which pages fail  
-3. fixing issues incrementally  
+Narrative must communicate:
 
-DO NOT restart architecture  
-DO NOT introduce new patterns  
+• how certification works
+• why deterministic scoring matters
+• why registry is trustworthy
+• difference between certified vs non-certified entities
 
-Continue from THIS state exactly.
+Surfaces:
+
+• /demo
+• /demo-script
+
+---
+
+# CRITICAL RULE
+
+DO NOT:
+
+• re-architect system
+• change scoring engine assumptions
+• introduce frontend-derived data
+• bypass canonical pipeline
+• create parallel data paths
+
+---
+
+# SUCCESS CRITERIA
+
+The phase is complete when:
+
+• multiple cases successfully score and publish
+• registry shows mixed certification states
+• explorer shows multiple entities and countries
+• all registry fields populate consistently
+• only canonical seed files exist
+• verification endpoint reflects real certification state
+
+---
+
+# EXECUTION PRIORITY
+
+1. Fix multi-case scoring (BLOCKER)
+2. Re-run publish for expansion cases
+3. Attach AI systems post-publish
+4. Validate registry + explorer surfaces
+5. Consolidate seed system
+6. Polish verification UX
+7. Finalize demo narrative
+
+---
+
+# KEY INSIGHT
+
+The system is not broken.
+
+The issue is:
+
+→ expansion data does not satisfy scoring engine requirements
+
+Solution is NOT to bypass logic.
+
+Solution is to:
+
+→ align data with deterministic scoring expectations
+
+---
+
+# FINAL STATE TARGET
+
+GAFAIG operates as:
+
+→ a deterministic certification engine
+→ producing verifiable registry outputs
+→ across multiple real-world entities
+→ with a clean, single-source data pipeline
+
+---

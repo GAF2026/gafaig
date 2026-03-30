@@ -1,559 +1,383 @@
-# GAFAIG — UI Component Mapping
-Frontend Component Architecture & Responsibilities
-Last Updated: 2026-03-25
+# GAFAIG — UI COMPONENT MAPPING
+Canonical UI Layer Map
+Last Updated: 2026-03-29
 
 ---
 
-# PURPOSE
+# PRINCIPLE
 
-This document maps UI components to:
+UI IS PRESENTATION ONLY
 
-• location in codebase  
-• responsibility  
-• data source  
-• consuming pages  
+UI MUST:
+• display data from API
+• reflect Snowflake truth
+• remain stateless (no business logic)
 
-This prevents:
+UI MUST NOT:
+• compute certification
+• derive scoring
+• perform data transformations beyond formatting
 
-• UI inconsistency  
-• duplicated logic  
-• misuse of components  
-• business logic leaking into UI  
-
----
-
-# CORE RULE
-
-UI is a DISPLAY LAYER ONLY.
-
-Components may:
-
-• render data  
-• format values  
-• display status  
-
-Components may NOT:
-
-• compute certification  
-• derive score / tier / band  
-• override API values  
-• fetch directly from Snowflake  
-• contain business logic  
+ALL LOGIC EXISTS IN SNOWFLAKE
 
 ---
 
-# ARCHITECTURE
+# COMPONENT DIRECTORY
 
-Snowflake
-→ Views
-→ Query Layer
-→ API
-→ UI Components
-→ Pages
+app/_components/
 
 ---
 
-# GLOBAL LAYOUT COMPONENTS
+# CORE COMPONENTS
 
-## PublicPageHero
+---
 
-Location:
-app/_components/PublicPageHero.tsx
+## 1. PublicPageHero.tsx
 
 Purpose:
-Primary hero section across all public pages
+→ Standard page header across public pages
+
+Props:
+• eyebrow (string)
+• title (string)
+• description (string, optional)
+• secondaryDescription (string, optional)
+• actions (ReactNode, optional)
 
 Used in:
-• homepage (/)
-• mission
-• framework
-• demo
-• registry
-• explorer
+• /registry
+• /explorer
+• /demo
+• /mission
+• /framework
 
-Features:
-• eyebrow text (system identity)
-• title
-• description
-• secondary description
-• CTA buttons
-
-Rules:
-• no data fetching
-• purely presentational
-
----
-
-## PublicPageSection
-
-Location:
-app/_components/PublicPageSection.tsx
-
-Purpose:
-Standardized section wrapper for all pages
-
-Used in:
-• all public pages
-
-Features:
-• consistent spacing
+Design:
 • consistent typography
-• unified container styling
-
-Rules:
-• must wrap all major sections
-• enforces layout consistency
+• consistent spacing
+• unified visual identity
 
 ---
 
-# REGISTRY COMPONENTS
-
-## RegistryVerificationPanel
-
-Location:
-components/registry/RegistryVerificationPanel.tsx
+## 2. PublicButtonLink.tsx
 
 Purpose:
-Display verification status and proof
+→ Standard button for navigation links
+
+Props:
+• href
+• children
+• variant (primary / secondary)
 
 Used in:
-• /registry/[registryId]
+• hero actions
+• navigation sections
+• registry/explorer pages
 
-Data Source:
-→ /api/verify/[registryId]
+Variants:
 
-Displays:
-• verification status
-• registry ID
-• entity
-• certification status
-• score / tier / band
-• proof payload
+Primary:
+• black background
+• white text
 
-Rules:
-• does NOT compute verification
-• consumes API output only
+Secondary:
+• bordered
+• subtle hover background
 
----
-
-# HOMEPAGE COMPONENTS
-
-## PillarCard
-
-Location:
-app/page.tsx
-
-Purpose:
-Display system pillars
-
-Used in:
-• homepage
-
-Displays:
-• pillar title
-• description
-• bullet points
-• CTA
+Rule:
+→ ALL buttons across GAFAIG must use this component
 
 ---
 
-## MetricCard
-
-Location:
-app/page.tsx
+## 3. RegistryCard.tsx
 
 Purpose:
-Display homepage trust metrics
-
-Used in:
-• homepage
-
-Data Source:
-→ /api/public/metrics (fallback to /api/registry)
-
-Displays:
-• certified organizations
-• AI systems
-• countries
-
-Rules:
-• fallback allowed (UI resilience)
-• no computation of certification
-
----
-
-## StatementCard
-
-Location:
-app/page.tsx
-
-Purpose:
-Explain system concepts
-
-Used in:
-• homepage
-
----
-
-## PathCard
-
-Location:
-app/page.tsx
-
-Purpose:
-Show system flow
-
-Used in:
-• homepage
-
-Displays:
-CASE → FINDINGS → EVIDENCE → EVENTS → SCORING → REGISTRY
-
----
-
-## FeatureCard
-
-Location:
-app/page.tsx
-
-Purpose:
-Navigation cards
-
-Used in:
-• homepage
-
----
-
-# REGISTRY PAGE COMPONENTS
-
-## Registry Table (inline)
-
-Location:
-app/registry/page.tsx
-
-Purpose:
-Display registry records
+→ Display registry record summary
 
 Data Source:
 → /api/registry
 
 Displays:
-• entity
+• entityName
 • country
-• certification status
-• tier
-• band
-• score
-
-Rules:
-• no computation
-• direct API mapping
-
----
-
-## StatusBadge (inline)
-
-Purpose:
-Visual status indicator
-
-Displays:
-• Certified
-• Not Certified
-• Published
-
-Rules:
-• purely visual mapping
-
----
-
-# REGISTRY DETAIL COMPONENTS
-
-## Metric (inline)
-
-Purpose:
-Display key metrics
-
-Displays:
-• score
-• certifiedAt
-• country
-• entity type
-
----
-
-## Info (inline)
-
-Purpose:
-Display metadata fields
-
-Displays:
-• decision status
-• validFrom
-• validTo
-• applicationId
-• caseId
-
----
-
-# EXPLORER COMPONENTS
-
-## StatCard
-
-Location:
-app/explorer/page.tsx
-
-Purpose:
-Top-level metrics
-
-Displays:
-• total records
-• entities
-• countries
-• certified
-• not certified
-
-Data Source:
-→ explorer queries
-
----
-
-## TierLadder
-
-Purpose:
-Display certification tiers
-
-Displays:
-• Tier 3
-• Tier 2
-• Tier 1
-
-Data Source:
-→ explorer aggregation
-
-Rules:
-• uses API data
-• no tier calculation
-
----
-
-## FeaturedTierCard
-
-Purpose:
-Highlight highest tier
-
-Displays:
-• top certification tier
-
----
-
-## GGIScoreCard
-
-Purpose:
-Display Global Governance Index
-
-Displays:
-• score
-• classification
-• breakdown
-
-Rules:
-• uses precomputed values
-
----
-
-## MetricBar
-
-Purpose:
-Visual metric contribution
-
-Displays:
-• coverage
-• depth
-• reach
-
----
-
-## BarCard
-
-Purpose:
-Distribution charts
-
-Displays:
-• country distribution
-• certification status
-• tier distribution
-• band distribution
-
----
-
-## MiniTableCard
-
-Purpose:
-Compact tables
-
----
-
-## DataTable
-
-Purpose:
-Full table display
+• certifiedTier
+• certifiedBand
+• certifiedScore
+• decisionStatus
+• certificationStatus
 
 Used in:
-• explorer sections
+• /registry page
 
 ---
 
-# BADGE SYSTEM
+## 4. ExplorerCard.tsx
 
-## Badge Rendering (API-driven)
+Purpose:
+→ Generic card for explorer metrics
 
-Route:
-→ /api/badge/[registryId]
-
-Assets:
-public/images/
-
-• gafaig-badge-tier-1.png  
-• gafaig-badge-tier-2.png  
-• gafaig-badge-tier-3.png  
+Displays:
+• counts
+• labels
+• distribution summaries
 
 Used in:
-• registry detail page
-• external embeds
-
-Rules:
-• tier → image mapping only
-• no logic beyond mapping
+• /explorer
+• /explorer/organizations
+• /explorer/systems
+• /explorer/countries
 
 ---
 
-# NAVIGATION / LAYOUT
-
-## app/layout.tsx
+## 5. PublishCertificationButton.tsx
 
 Purpose:
-Global layout
-
-Controls:
-• header
-• footer
-• global spacing
-• branding (gafaig-lockup.png)
-
----
-
-# AUTH COMPONENTS
-
-## middleware.ts
-
-Purpose:
-Protect admin routes
-
-Applies to:
-• /admin/*
-• /api/admin/*
-
----
-
-## Auth utilities
+→ Admin action to trigger certification publish
 
 Location:
-lib/auth/
+• admin verification score page
 
-Purpose:
-• session handling
-• cookie validation
+Behavior:
+• calls publish endpoint
+• triggers SP_PUBLISH_CASE_TO_REGISTRY_V3 indirectly
+
+Rule:
+→ must not compute certification
+→ only trigger backend flow
 
 ---
 
-# DESIGN SYSTEM
+## 6. Badge Rendering (Route-Based)
 
-## Layout Rules
+Path:
+app/badge/[registryId]/route.ts
 
-• max width: 1280px  
-• padding: px-6 md:px-8  
-• spacing: space-y-8  
-• cards: rounded-3xl border bg-white  
+Purpose:
+→ Generate certification badge
+
+Uses:
+• /api/verify/[registryId]
+
+Displays:
+• entityName
+• certifiedTier
+• certifiedBand
+• certification status
+
+Future:
+→ unify with visual badge system
+
+---
+
+# PAGE → COMPONENT MAPPING
+
+---
+
+## /registry
+
+Components:
+• PublicPageHero
+• PublicButtonLink
+• RegistryCard
+
+Data:
+→ /api/registry
+
+---
+
+## /registry/[registryId]
+
+Components:
+• PublicPageHero
+• PublicButtonLink
+
+Displays:
+• full registry record
+• AI systems list
+
+Data:
+→ /api/registry
+→ /api/registry/[registryId]/ai-systems
+
+---
+
+## /registry/ai-systems
+
+Components:
+• PublicPageHero
+• ExplorerCard (optional reuse)
+
+Data:
+→ /api/registry/[registryId]/ai-systems
+
+---
+
+## /explorer
+
+Components:
+• PublicPageHero
+• ExplorerCard
+• PublicButtonLink
+
+Data:
+→ /api/registry
+
+---
+
+## /explorer/organizations
+
+Components:
+• PublicPageHero
+• ExplorerCard
+
+Data:
+→ aggregated registry data
+
+---
+
+## /explorer/systems
+
+Components:
+• PublicPageHero
+• ExplorerCard
+
+Data:
+→ V_REGISTRY_AI_SYSTEMS_PUBLIC
+
+---
+
+## /explorer/countries
+
+Components:
+• PublicPageHero
+• ExplorerCard
+
+Data:
+→ country aggregation from registry
+
+---
+
+## /explorer/map
+
+Components:
+• PublicPageHero
+
+Data:
+→ country distribution
+
+---
+
+## /verify/[registryId]
+
+Components:
+• PublicPageHero
+• structured JSON display
+
+Data:
+→ /api/verify/[registryId]
+
+---
+
+## /demo
+
+Components:
+• PublicPageHero
+• PublicButtonLink
+
+Purpose:
+→ walkthrough of GAFAIG system
+
+---
+
+## /demo-script
+
+Components:
+• PublicPageHero
+
+Purpose:
+→ narrative explanation of platform
+
+---
+
+# DESIGN SYSTEM RULES
+
+---
+
+## Buttons
+
+ALL buttons must:
+
+• use PublicButtonLink
+• maintain consistent padding and radius
+• follow primary/secondary variants
+
+---
+
+## Layout
+
+• max-width containers
+• consistent spacing (mt-*, p-*)
+• responsive grid usage
 
 ---
 
 ## Typography
 
-• eyebrow: uppercase tracking  
-• titles: large, bold  
-• body: readable spacing  
-• labels: subdued  
+• consistent font sizes
+• controlled line heights
+• no ad-hoc styling
 
 ---
 
-# DATA FLOW (UI LEVEL)
+## Cards
 
-API Response
-→ Component Props
-→ UI Rendering
-
-No transformations beyond formatting.
+• rounded-3xl
+• border border-black/10
+• white background
 
 ---
 
-# COMPONENT RESPONSIBILITY MODEL
+# DATA FLOW (UI PERSPECTIVE)
 
-Each component must:
+UI Component
+→ API Route
+→ Query Layer
+→ Snowflake View
+→ Snowflake Tables
 
-• have a single responsibility  
-• consume API data  
-• not introduce logic  
-• remain reusable  
+UI MUST NOT SKIP LAYERS
 
 ---
 
-# ANTI-PATTERNS (FORBIDDEN)
+# ANTI-PATTERNS (DO NOT DO)
 
 DO NOT:
 
-• compute certification in UI  
-• infer missing fields  
-• override API results  
-• hardcode values  
-• duplicate components unnecessarily  
+• compute score in UI
+• compute tier/band in UI
+• hardcode certification values
+• join datasets in UI
+• duplicate Snowflake logic
 
 ---
 
-# DEBUGGING RULE
+# FUTURE COMPONENTS (PLANNED)
 
-If UI is incorrect:
-
-TRACE:
-
-Component
-→ API
-→ Query
-→ View
-→ Snowflake
-
-Fix at the SOURCE.
+• CertificationBadge (unified visual system)
+• TierIndicator (A / B / C / Certified)
+• ScoreGauge (visual score representation)
+• LifecycleStatusBadge (Active / Expiring / Expired)
+• CountryDistributionChart
 
 ---
 
-# MOST CRITICAL COMPONENTS
+# PURPOSE
 
-If only a few matter:
+This file ensures:
 
-1. PublicPageHero  
-2. PublicPageSection  
-3. RegistryVerificationPanel  
-4. TierLadder  
-5. StatCard  
-
----
-
-# END STATE
-
-A clean, unified UI system where:
-
-• components are reusable  
-• layout is consistent  
-• data is accurate  
-• no business logic leaks into UI  
+• UI remains consistent
+• components are reusable
+• no logic leaks into frontend
+• clean separation of concerns
+• stable visual system across GAFAIG
 
 ---

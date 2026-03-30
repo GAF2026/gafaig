@@ -1,414 +1,340 @@
 # GAFAIG — PROJECT INDEX
-System Map & File Intelligence
-Last Updated: 2026-03-27
+System Map & File Architecture
+Last Updated: 2026-03-29
 
 ---
 
-# 🧠 PURPOSE
+# REPOSITORY
 
-This document defines:
+GitHub:
+GAF2026/gafaig
 
-• full system structure  
-• where logic lives  
-• how files connect  
-• what NOT to touch  
+Production:
+https://www.gafaig.com
 
-This is the **map of the entire GAFAIG system**.
-
----
-
-# 🧱 CORE ARCHITECTURE
-
-GAFAIG is a **two-layer system**:
-
-## 1. PRIVATE ENGINE (Snowflake)
-
-Handles:
-
-• verification  
-• evidence  
-• scoring  
-• certification  
-• registry snapshots  
-
-## 2. PUBLIC REGISTRY (Next.js + API)
-
-Handles:
-
-• read-only display  
-• search  
-• explorer  
-• badge + verification endpoints  
+Framework:
+Next.js (App Router) + TypeScript
 
 ---
 
-# 🔄 EXECUTION FLOW (CANONICAL)
-
-CASE  
-→ FINDINGS  
-→ EVIDENCE  
-→ EVENTS  
-→ SCORING  
-→ SCORE SNAPSHOT  
-→ REGISTRY SNAPSHOT  
-→ PUBLIC VIEWS  
-→ QUERY LAYER  
-→ API  
-→ UI  
-
----
-
-# ❄️ SNOWFLAKE (SOURCE OF TRUTH)
-
-Database: GAFAIG_DB  
-Schema: CORE  
-
----
-
-## 🔑 CORE TABLES
-
-### Intake / Workflow
-
-• APPLICATIONS  
-• VERIFICATION_CASES  
-• VERIFICATION_FINDINGS  
-• VERIFICATION_FINDING_EVIDENCE  
-• VERIFICATION_EVIDENCE  
-• VERIFICATION_EVENTS  
-
----
-
-### Scoring
-
-• CONTROL_CATALOG  
-• CONTROL_WEIGHTS  
-• SEVERITY_WEIGHTS  
-• SCORING_MODEL_VERSIONS  
-
----
-
-### Output
-
-• SCORE_SNAPSHOTS  
-• REGISTRY_SNAPSHOTS (append-only, critical)  
-
----
-
-## 📊 CORE VIEWS
-
-### Scoring
-
-• V_FINDING_NORMALIZED  
-• V_CONTROL_SCORE_COMPONENTS  
-• V_CASE_OPERATIONAL_SCORE  
-• V_GOVERNANCE_SCORE_CASE  
-• V_CASE_TIER_BAND  
-
----
-
-### Registry
-
-• V_REGISTRY_LATEST_APPROVED (canonical)  
-• V_REGISTRY_PUBLIC  
-• V_REGISTRY_PUBLIC_SEARCH  
-• V_REGISTRY_AI_SYSTEMS_PUBLIC  
-
----
-
-## ⚙️ STORED PROCEDURES
-
-### Scoring
-
-• SP_SCORE_CASE_ENTERPRISE  
-
-### Publishing
-
-• SP_PUBLISH_CASE_TO_REGISTRY_V3 (canonical)  
-
----
-
-# 🌐 NEXT.JS APPLICATION (APP ROUTER)
-
-Root:
+# ROOT STRUCTURE
 
 gafaig/
 
+├─ app/
+├─ lib/
+├─ docs/
+├─ public/
+├─ styles/
+├─ middleware.ts
+├─ next.config.js
+├─ package.json
+├─ tsconfig.json
+
 ---
 
-## 📂 APP DIRECTORY
+# APP DIRECTORY (NEXT.JS ROUTES)
 
 app/
 
-### Public Pages
-
-• page.tsx → homepage  
-• registry/page.tsx  
-• registry/[registryId]/page.tsx  
-• registry/ai-systems/page.tsx  
-• registry/ai-systems/[systemId]/page.tsx  
+├─ page.tsx                     → Homepage
+├─ layout.tsx                   → Global layout
 
 ---
 
-### Explorer Pages
+## PUBLIC PAGES
 
-• explorer/page.tsx  
-• explorer/countries/page.tsx  
-• explorer/countries/[country]/page.tsx  
-• explorer/map/page.tsx  
-• explorer/organizations/page.tsx  
-• explorer/systems/page.tsx  
+├─ mission/page.tsx
+├─ framework/page.tsx
+├─ demo/page.tsx
+├─ demo-script/page.tsx
 
 ---
 
-### Organization Detail
+## REGISTRY
 
-• organizations/[registryId]/page.tsx  
-
----
-
-### Admin Pages
-
-• admin/login/page.tsx  
-• admin/applications/page.tsx  
-• admin/verification/[caseId]/findings/page.tsx  
-• admin/verification/[caseId]/evidence/page.tsx  
-• admin/verification/[caseId]/score/page.tsx  
-• admin/verification/[caseId]/publish/page.tsx  
+├─ registry/
+│  ├─ page.tsx                  → Registry list (V_REGISTRY_PUBLIC)
+│  ├─ [registryId]/
+│  │  └─ page.tsx               → Registry detail
+│  ├─ ai-systems/
+│  │  ├─ page.tsx               → AI systems list
+│  │  └─ [systemId]/
+│  │     └─ page.tsx            → AI system detail
 
 ---
 
-## 🔌 API ROUTES
+## EXPLORER
+
+├─ explorer/
+│  ├─ page.tsx                  → Explorer overview
+│  ├─ organizations/page.tsx
+│  ├─ systems/page.tsx
+│  ├─ countries/page.tsx
+│  └─ map/page.tsx
+
+---
+
+## VERIFY
+
+├─ verify/
+│  └─ [registryId]/
+│     └─ page.tsx               → Verification UI
+
+---
+
+## BADGE
+
+├─ badge/
+│  └─ [registryId]/
+│     └─ route.ts               → Badge endpoint
+
+---
+
+## ADMIN
+
+├─ admin/
+│  ├─ login/page.tsx
+│  ├─ applications/page.tsx
+│  └─ verification/
+│     └─ [caseId]/
+│        ├─ evidence/page.tsx
+│        ├─ findings/page.tsx
+│        ├─ score/page.tsx
+│        └─ publish/page.tsx
+
+---
+
+# API ROUTES
 
 app/api/
 
-### Public
+---
 
-• registry/route.ts  
-• registry/search/route.ts  
-• registry/[registryId]/ai-systems/route.ts  
-• badge/[registryId]/route.ts  
-• verify/[registryId]/route.ts  
+## REGISTRY API
+
+├─ registry/
+│  ├─ route.ts                  → GET registry list
+│  ├─ search/route.ts           → Search endpoint
+│  └─ [registryId]/
+│     └─ ai-systems/route.ts    → Systems by registry
 
 ---
 
-### Admin
+## VERIFY API
 
-• admin/login/route.ts  
-• admin/logout/route.ts  
-• admin/verification/findings/route.ts  
-• admin/verification/events/route.ts  
-• admin/verification/decisions/route.ts  
-• admin/verification/[caseId]/summaries/route.ts  
+├─ verify/
+│  └─ [registryId]/
+│     └─ route.ts               → Signed verification payload
 
 ---
 
-# 🧱 QUERY LAYER
+## ADMIN API
 
-Location:
+├─ admin/
+│  ├─ login/route.ts
+│  ├─ logout/route.ts
+│  ├─ status/route.ts
+│  └─ verification/
+│     ├─ findings/route.ts
+│     ├─ events/route.ts
+│     ├─ decisions/route.ts
+│     └─ evidence/
+│        └─ summary/route.ts
+
+---
+
+# COMPONENTS
+
+app/_components/
+
+├─ PublicPageHero.tsx           → Page header
+├─ PublicButtonLink.tsx         → Standard button
+├─ PublishCertificationButton.tsx
+├─ RegistryCard.tsx
+├─ ExplorerCard.tsx
+
+RULE:
+All UI must remain presentation-only
+
+---
+
+# LIB (CORE LOGIC LAYER)
 
 lib/
 
 ---
 
-## Core File
+## SNOWFLAKE
 
-lib/snowflake.ts  
-
-### Current State
-
-Primary:
-
-• sfQuery()
-
-Temporary compatibility (DO NOT EXPAND):
-
-• executeQuery  
-• snowflakeQuery  
-• sfQueryResult  
-• snowflakeCtx  
+├─ snowflake.ts                 → Connection + execution
 
 ---
 
-## Registry Queries
+## QUERY LAYER
 
-lib/queries/registry.ts  
+lib/queries/
 
-### Responsibilities
+├─ registry.ts
+├─ registry-search.ts
+├─ registry-ai-systems.ts
+├─ explorer.ts
 
-• registry lookup  
-• normalization  
-• API consumption  
+RULE:
+Snowflake → Query Layer → API → UI
 
-### Current Behavior
-
-• uses REGISTRY_PUBLIC_READTHROUGH  
-• fallback protection for registry lookups  
-
----
-
-# 🧩 UI COMPONENTS
-
-app/components/
-
-Examples:
-
-• PublicPageHero.tsx  
-• buttons / cards / layout components  
+NO business logic outside Snowflake
 
 ---
 
-# 🔐 AUTH SYSTEM
+## AUTH
 
-Files:
+lib/auth/
 
-• middleware.ts  
-• lib/auth/require.ts  
-• lib/auth/session.ts  
-• lib/auth/admin.ts  
-
----
-
-# 🧠 KEY DESIGN RULES
-
-## Snowflake First
-
-ALL logic must live in Snowflake:
-
-• scoring  
-• joins  
-• aggregation  
-• certification  
+├─ require.ts
+├─ admin.ts
+├─ session.ts
 
 ---
 
-## API = Pass-through
+# DOCS (CANONICAL SYSTEM MEMORY)
 
-API must:
+docs/
 
-• call Snowflake  
-• return data  
-
-NOT:
-
-• compute  
-• transform  
-• derive  
-
----
-
-## UI = Display Only
-
-UI must:
-
-• render data  
-
-NOT:
-
-• calculate certification  
-• compute scores  
+├─ MASTER_STATE.md
+├─ CURRENT_FOCUS.md
+├─ CHANGELOG.md
+├─ PROJECT_INDEX.md
+├─ API_ROUTE_MAPPING.md
+├─ UI_COMPONENT_MAPPING.md
+├─ SNOWFLAKE_WORKSHEET_MAPPING.md
+├─ GAFAIG_SNOWFLAKE_SQL_FILE_SUMMARY.md
+├─ GAFAIG_VS_CODE_File_Tree.md
+├─ ENGINEERING_RULES.md
 
 ---
 
-## Registry = Immutable
+# SNOWFLAKE SYSTEM (LOGICAL MAPPING)
 
-• REGISTRY_SNAPSHOTS is append-only  
-• NEVER update rows  
-• NEVER overwrite history  
+Database:
+GAFAIG_DB
 
----
-
-# ⚠️ CURRENT STATE (IMPORTANT)
-
-## Working
-
-• deployment  
-• registry pages  
-• badge API  
-• verification API  
-• publish pipeline  
-• Snowflake connectivity  
+Schema:
+CORE
 
 ---
 
-## Recently Fixed
+## TABLES
 
-• removed legacy query wrapper pattern  
-• standardized explorer pages to sfQuery  
-• fixed Vercel build errors  
-• resolved module import issues  
+CORE.VERIFICATION_CASES
+CORE.VERIFICATION_FINDINGS
+CORE.VERIFICATION_EVIDENCE
+CORE.VERIFICATION_FINDING_EVIDENCE
+CORE.VERIFICATION_EVENTS
 
----
+CORE.CASE_SCORE_SNAPSHOTS_V2
+CORE.DECISIONS
 
-## Temporary Technical Debt
-
-• compatibility exports in snowflake.ts  
-• duplicated SQL in explorer pages  
-• registry readthrough layer  
-
----
-
-# 🔥 NEXT ACTION ZONES
-
-## 1. Explorer Validation
-
-Test:
-
-• countries  
-• map  
-• organizations  
-• systems  
+CORE.REGISTRY_SNAPSHOTS
+CORE.REGISTRY_AI_SYSTEMS
 
 ---
 
-## 2. Registry Integrity
+## VIEWS
 
-Verify:
+CORE.V_GOVERNANCE_SCORE_CASE
+CORE.V_CASE_TIER_BAND
 
-• registryId consistency  
-• snapshot correctness  
-• publish determinism  
-
----
-
-## 3. Query Consolidation (NEXT PHASE)
-
-• move SQL into query layer  
-• remove duplication  
-• standardize access  
+CORE.V_REGISTRY_LATEST_APPROVED
+CORE.V_REGISTRY_PUBLIC
+CORE.V_REGISTRY_PUBLIC_SEARCH
+CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC
 
 ---
 
-## 4. Snowflake Layer Cleanup
+## PROCEDURES
 
-• remove compatibility exports  
-• enforce sfQuery only  
-
----
-
-# 🧠 SYSTEM STATUS
-
-GAFAIG is now:
-
-✔ fully deployed  
-✔ registry operational  
-✔ API complete  
-✔ UI complete  
-✔ deterministic engine active  
-
-Remaining:
-
-→ runtime validation  
-→ query consolidation  
-→ technical debt cleanup  
+CORE.SP_SCORE_CASE_ENTERPRISE
+CORE.SP_PUBLISH_CASE_TO_REGISTRY_V3
 
 ---
 
-# 📌 FINAL NOTE
+# EXECUTION FLOW (FILE MAPPING)
 
-This file is the **map of truth**.
+Snowflake SQL Files →
+→ Tables
+→ Views
+→ Procedures
 
-If something is unclear in future chats:
+↓
 
-→ refer here first  
-→ do NOT guess  
-→ do NOT re-architect  
+lib/queries/*
+↓
+
+API routes (app/api/*)
+
+↓
+
+UI pages (app/*)
+
+---
+
+# DEPLOYMENT FLOW
+
+Local:
+
+npm run dev
+
+Production:
+
+git add .
+git commit -m "message"
+git push origin main
+
+↓
+
+Vercel auto-deploy
+
+---
+
+# CRITICAL RULES
+
+DO NOT:
+
+• add business logic to UI
+• compute certification in API
+• bypass Snowflake views
+• insert directly into registry tables
+• create parallel data paths
+
+ALWAYS:
+
+• use Snowflake views as truth
+• follow canonical pipeline
+• keep append-only model
+• use query layer
+
+---
+
+# CURRENT SYSTEM STATE
+
+✔ Engine working
+✔ Registry working
+✔ Explorer working
+✔ Verification working
+
+⚠️ Expansion incomplete
+⚠️ Seed system not fully consolidated
+
+---
+
+# PURPOSE OF THIS FILE
+
+This file ensures:
+
+• full system visibility
+• no confusion about file roles
+• clear mapping from Snowflake → UI
+• continuity across development sessions
+
+---

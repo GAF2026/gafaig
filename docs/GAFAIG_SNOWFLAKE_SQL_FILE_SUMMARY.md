@@ -1,296 +1,368 @@
 # GAFAIG — SNOWFLAKE SQL FILE SUMMARY
-Canonical SQL File Inventory & Purpose
-Last Updated: 2026-03-27
+Complete SQL File Inventory + Purpose Map
+Last Updated: 2026-03-29
 
 ---
 
-# 🧠 PURPOSE
+# PURPOSE
 
 This document provides:
 
-• a complete inventory of Snowflake SQL files  
-• what each file does  
-• how files are grouped  
-• what is active vs archive  
+• full list of Snowflake SQL files  
+• purpose of each file  
+• how files relate to the GAFAIG system  
+• which files are active vs deprecated  
 
-This prevents confusion when navigating Snowflake worksheets.
-
----
-
-# ❄️ ENVIRONMENT
-
-Database: GAFAIG_DB  
-Schema: CORE  
-Warehouse: GAFAIG_WH  
+Goal:
+→ eliminate confusion  
+→ ensure correct execution order  
+→ maintain single canonical system  
 
 ---
 
-# 🔒 CORE RULE
+# EXECUTION ORDER (CRITICAL)
 
-Only **ACTIVE files** define the system.
+ALL FILES MUST BE RUN IN THIS ORDER:
 
-Archive files are **reference only**.
-
----
-
-# 🧱 ACTIVE SQL FILES
-
----
-
-## 🟦 1. TABLE DEFINITIONS
-
-These define persistent data structures.
-
-• CORE.APPLICATIONS.sql  
-• CORE.VERIFICATION_CASES.sql  
-• CORE.VERIFICATION_FINDINGS.sql  
-• CORE.VERIFICATION_FINDING_EVIDENCE.sql  
-• CORE.VERIFICATION_EVIDENCE.sql  
-• CORE.VERIFICATION_EVENTS.sql  
-• CORE.SCORE_SNAPSHOTS.sql  
-• CORE.REGISTRY_SNAPSHOTS.sql  
-• CORE.REGISTRY_AI_SYSTEMS.sql  
+1. TABLES  
+2. VIEWS  
+3. SCORING ENGINE  
+4. PROCEDURES  
+5. SEEDS  
 
 ---
 
-## 🟩 2. SCORING ENGINE
+# 1. TABLE FILES
 
 ---
 
-### Inputs
+## CORE PIPELINE TABLES
 
-• CORE.CONTROL_CATALOG.sql  
-• CORE.CONTROL_WEIGHTS.sql  
-• CORE.SEVERITY_WEIGHTS.sql  
-• CORE.SCORING_MODEL_VERSIONS.sql  
+01_TABLES_CASES.sql  
+→ creates CORE.VERIFICATION_CASES  
+→ root of entire pipeline  
 
----
+02_TABLES_FINDINGS.sql  
+→ creates CORE.VERIFICATION_FINDINGS  
+→ control-level evaluation layer  
 
-### Processing Views
+03_TABLES_EVIDENCE.sql  
+→ creates CORE.VERIFICATION_EVIDENCE  
+→ evidence objects  
 
-• CORE.V_FINDING_NORMALIZED.sql  
-• CORE.V_FINDING_EVIDENCE_IDS.sql  
-• CORE.V_CONTROL_EVIDENCE_FRESHNESS.sql  
-• CORE.V_CONTROL_SCORE_COMPONENTS.sql  
-• CORE.V_CASE_OPERATIONAL_SCORE.sql  
-• CORE.V_GOVERNANCE_SCORE_CASE.sql  
-• CORE.V_CASE_TIER_BAND.sql  
+04_TABLES_FINDING_EVIDENCE.sql  
+→ creates CORE.VERIFICATION_FINDING_EVIDENCE  
+→ mapping between findings and evidence  
 
----
-
-### Execution
-
-• CORE.SP_SCORE_CASE_ENTERPRISE.sql  
+05_TABLES_EVENTS.sql  
+→ creates CORE.VERIFICATION_EVENTS  
+→ audit/event trail  
 
 ---
 
-## 🟨 3. REGISTRY SYSTEM
+## SCORING + DECISION TABLES
+
+16_TABLES_SCORE_SNAPSHOTS.sql  
+→ creates CORE.CASE_SCORE_SNAPSHOTS_V2  
+→ append-only scoring history  
+
+17_TABLES_DECISIONS.sql  
+→ creates CORE.DECISIONS  
+→ certification decisions  
 
 ---
 
-### Table
+## REGISTRY TABLES
 
-• CORE.REGISTRY_SNAPSHOTS.sql  
+18_TABLES_REGISTRY_SNAPSHOTS.sql  
+→ creates CORE.REGISTRY_SNAPSHOTS  
+→ append-only registry output  
 
----
-
-### Views
-
-• CORE.V_REGISTRY_LATEST_APPROVED.sql  
-• CORE.V_REGISTRY_PUBLIC.sql  
-• CORE.V_REGISTRY_PUBLIC_SEARCH.sql  
-• CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC.sql  
+19_TABLES_REGISTRY_AI_SYSTEMS.sql  
+→ creates CORE.REGISTRY_AI_SYSTEMS  
+→ AI systems linked to registry  
 
 ---
 
-### Publish Procedure
+# 2. VIEW FILES (LOGIC LAYER)
 
-• CORE.SP_PUBLISH_CASE_TO_REGISTRY_V3.sql  
-
----
-
-## 🟪 4. AI SYSTEMS
-
-• CORE.REGISTRY_AI_SYSTEMS.sql  
-• CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC.sql  
+ALL BUSINESS LOGIC LIVES HERE
 
 ---
 
-## 🟧 5. DEMO / SEED
+## SCORING VIEWS
 
-• GAFAIG - Canonical Demo Dataset.sql  
-• GAFAIG - Canonical Demo Seed.sql  
+20_VIEWS_SCORING.sql  
 
----
+Defines:
 
-# 🧊 ARCHIVE SQL FILES (DO NOT USE)
+• CORE.V_GOVERNANCE_SCORE_CASE  
+→ deterministic governance score  
 
-These exist for history only.
-
----
-
-## Bootstrap / Early System
-
-• GAFAIG - Applications Setup & Grants (Archive - Early Bootstrap).sql  
-• GAFAIG - Canonical Case Pipeline Bootstrap (Archive).sql  
-• GAFAIG - Canonical Enterprise Engine Bootstrap (Archive).sql  
+• CORE.V_CASE_TIER_BAND  
+→ tier + band classification  
 
 ---
 
-## Old Procedures
+## REGISTRY VIEWS
 
-• GAFAIG - Auto Publish From Case (Archive - Old 2-Arg Procedure).sql  
+21_VIEWS_PUBLIC_REGISTRY.sql  
 
----
+Defines:
 
-## Test / Smoke
-
-• GAFAIG - Application Write Smoke (Archive).sql  
-• GAFAIG - Canonical Case Pipeline Write Test (Archive).sql  
-
----
-
-## Diagnostics
-
-• GAFAIG - Admin Unified View Diagnostics.sql  
-
----
-
-# 🔄 SYSTEM FLOW (FILE-LEVEL)
-
----
-
-## SCORING
-
-VERIFICATION_FINDINGS  
-→ V_FINDING_NORMALIZED  
-→ V_CONTROL_SCORE_COMPONENTS  
-→ V_CASE_OPERATIONAL_SCORE  
-→ V_GOVERNANCE_SCORE_CASE  
-→ V_CASE_TIER_BAND  
-
----
-
-## SNAPSHOT
-
-SP_SCORE_CASE_ENTERPRISE  
-→ SCORE_SNAPSHOTS  
-
----
-
-## REGISTRY
-
-SP_PUBLISH_CASE_TO_REGISTRY_V3  
-→ REGISTRY_SNAPSHOTS  
-
----
-
-## PUBLIC
-
-REGISTRY_SNAPSHOTS  
-→ V_REGISTRY_LATEST_APPROVED  
-→ V_REGISTRY_PUBLIC  
-→ V_REGISTRY_PUBLIC_SEARCH  
-→ V_REGISTRY_AI_SYSTEMS_PUBLIC  
-
----
-
-# ⚠️ CURRENT STATE
-
-## STABLE
-
-• scoring engine  
-• registry system  
-• publish pipeline  
-• public views  
-
----
-
-## VALIDATED
-
-• registry ID reuse  
-• append-only behavior  
-• deterministic certification  
-
----
-
-## TEMPORARY PATTERNS
-
-• REGISTRY_PUBLIC_READTHROUGH (app-layer helper)  
-• used to stabilize registry lookup  
-
----
-
-# 🔥 DO NOT MODIFY
-
-• CORE.REGISTRY_SNAPSHOTS  
 • CORE.V_REGISTRY_LATEST_APPROVED  
-• CORE.SP_PUBLISH_CASE_TO_REGISTRY_V3  
-• scoring views  
+→ latest approved snapshot per case  
 
-These are LOCKED.
-
----
-
-# ⚠️ MODIFY WITH CAUTION
+• CORE.V_REGISTRY_PUBLIC  
+→ canonical public registry contract  
 
 • CORE.V_REGISTRY_PUBLIC_SEARCH  
+→ search-optimized view  
+
+---
+
+## AI SYSTEMS VIEW
+
+22_VIEWS_REGISTRY_AI_SYSTEMS.sql  
+
+Defines:
+
 • CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC  
 
----
+IMPORTANT:
 
-# 🧠 DEBUGGING MAP
-
----
-
-## Registry issues
-
-Check:
-
-• REGISTRY_SNAPSHOTS  
-• V_REGISTRY_LATEST_APPROVED  
-• V_REGISTRY_PUBLIC  
+→ must join to V_REGISTRY_PUBLIC  
+→ NOT directly to snapshots  
+→ ensures certification propagation  
 
 ---
 
-## Badge issues
+# 3. SCORING ENGINE FILE
 
-Check:
+30_SCORING_ENGINE_ENTERPRISE.sql  
 
-• registryId exists  
-• V_REGISTRY_PUBLIC returns row  
+Defines:
 
----
+• CONTROL_CATALOG  
+• CONTROL_WEIGHTS  
+• SEVERITY_WEIGHTS  
+• SCORING_MODEL_VERSIONS  
 
-## Explorer issues
+• supporting views:
+  - V_FINDING_NORMALIZED  
+  - V_CONTROL_SCORE_COMPONENTS  
+  - V_CASE_OPERATIONAL_SCORE  
 
-Check:
+Purpose:
 
-• V_REGISTRY_PUBLIC  
-• V_REGISTRY_AI_SYSTEMS_PUBLIC  
-
----
-
-## Publish issues
-
-Check:
-
-• SP_PUBLISH_CASE_TO_REGISTRY_V3  
-• scoring views  
+→ deterministic scoring engine  
+→ no ML, fully explainable  
 
 ---
 
-# ▶️ NEXT PHASE
-
-• validate explorer outputs  
-• optimize search performance  
-• consolidate query usage  
-• finalize Snowflake → API contract  
+# 4. PROCEDURE FILES
 
 ---
 
-# 🧠 SUMMARY
+## SCORE PROCEDURE
 
-These SQL files define the **entire GAFAIG system**.
+40_PROC_SCORE_CASE_ENTERPRISE.sql  
 
-Everything else (API, UI) is just a projection of this layer.
+Defines:
+
+CORE.SP_SCORE_CASE_ENTERPRISE(caseId)  
+
+Purpose:
+
+→ compute governance score  
+→ create score snapshot  
+→ populate scoring views  
+
+---
+
+## PUBLISH PROCEDURE
+
+41_PROC_PUBLISH_CASE.sql  
+
+Defines:
+
+CORE.SP_PUBLISH_CASE_TO_REGISTRY_V3(caseId)  
+
+Purpose:
+
+→ validate case approval  
+→ pull governance score  
+→ insert registry snapshot  
+→ generate registry_id  
+→ align AI systems  
+
+CRITICAL:
+
+→ ONLY entry point into registry  
+
+---
+
+# 5. SEED FILES
+
+---
+
+## CANONICAL CERTIFIED SEED
+
+GAFAIG - FINAL_CANONICAL_CASE_0001_SEED.sql  
+
+Creates:
+
+• CASE-0001  
+• full 12-control findings  
+• complete evidence set  
+• events  
+• scoring  
+• decision  
+• publish  
+• AI systems  
+
+Result:
+
+→ certified flagship record  
+
+---
+
+## MULTI-CASE EXPANSION
+
+GAFAIG - FINAL_CANONICAL_MULTI_CASE_EXPANSION.sql  
+GAFAIG - FINAL_CANONICAL_MULTI_CASE_EXPANSION_V2.sql  
+
+Purpose:
+
+→ expand registry with multiple entities  
+
+Targets:
+
+• CASE-0002 (Anthropic)  
+• CASE-0003 (Google DeepMind)  
+• CASE-0004 (Microsoft)  
+• CASE-0005 (NVIDIA)  
+
+Requirement:
+
+→ MUST produce governance score row  
+→ MUST follow full control structure  
+
+Current status:
+
+→ initial versions failed due to:
+  • insufficient scoring inputs  
+  • Snowflake ARRAY_CONSTRUCT limitation  
+
+---
+
+# 6. LEGACY / ARCHIVE FILES
+
+DO NOT USE
+
+---
+
+Examples:
+
+GAFAIG - DEMO_SEED.sql  
+GAFAIG - CANONICAL_DEMO_SEED.sql  
+GAFAIG - DATA_BACKFILL_DEMO_DECISIONS.sql  
+GAFAIG - AUTO_PUBLISH_ARCHIVE.sql  
+GAFAIG - CANONICAL_PIPELINE_BOOTSTRAP.sql  
+
+Reason:
+
+→ bypass canonical flow  
+→ create duplicate registry entries  
+→ inconsistent data states  
+
+---
+
+# SYSTEM RELATIONSHIP MAP
+
+SQL FILES → TABLES / VIEWS / PROCEDURES  
+
+↓
+
+SNOWFLAKE (EXECUTION LAYER)  
+
+↓
+
+QUERY LAYER (lib/queries)  
+
+↓
+
+API ROUTES  
+
+↓
+
+UI  
+
+---
+
+# CRITICAL RULES
+
+DO NOT:
+
+• run files out of order  
+• insert directly into registry tables  
+• bypass scoring procedure  
+• maintain multiple seed systems  
+
+ALWAYS:
+
+• use canonical seed files  
+• validate views after execution  
+• maintain append-only model  
+• ensure scoring precedes publish  
+
+---
+
+# VALIDATION CHECKPOINTS
+
+---
+
+## AFTER SCORING
+
+SELECT * FROM CORE.V_GOVERNANCE_SCORE_CASE;  
+
+SELECT * FROM CORE.V_CASE_TIER_BAND;  
+
+---
+
+## AFTER PUBLISH
+
+SELECT * FROM CORE.V_REGISTRY_PUBLIC;  
+
+---
+
+## AFTER AI SYSTEMS
+
+SELECT * FROM CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC;  
+
+---
+
+# KEY INSIGHT
+
+The SQL layer is not just schema.
+
+It is:
+
+→ the governance engine  
+→ the certification logic  
+→ the registry authority  
+
+Everything else is a projection layer.
+
+---
+
+# PURPOSE OF THIS FILE
+
+This file ensures:
+
+• complete visibility into SQL layer  
+• clear file responsibilities  
+• correct execution order  
+• no duplication or confusion  
+
+---

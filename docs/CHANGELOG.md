@@ -1,99 +1,293 @@
-CHANGELOG.md
 # GAFAIG — CHANGELOG
+
+---
+
+## 2026-03-29
+
+### Canonical System Stabilization (CRITICAL)
+- Confirmed full end-to-end GAFAIG pipeline is operational:
+  CASE → FINDINGS → EVIDENCE → EVENTS → SCORING → SNAPSHOT → REGISTRY → AI SYSTEMS → UI
+- Verified Snowflake as the single source of truth across all layers.
+- Locked deterministic architecture and eliminated ambiguity between intake and engine layers.
+
+---
+
+### Registry Certification Pipeline (LOCKED)
+- Confirmed SP_PUBLISH_CASE_TO_REGISTRY_V3 as canonical publish procedure.
+- Verified append-only REGISTRY_SNAPSHOTS behavior.
+- Validated V_REGISTRY_LATEST_APPROVED as authoritative source for latest approved records.
+- Confirmed V_REGISTRY_PUBLIC as the public contract layer.
+
+---
+
+### Certification Propagation (CRITICAL FIX)
+- Ensured certification fields propagate correctly:
+  • certifiedScore
+  • certifiedTier
+  • certifiedBand
+  • certifiedAt
+  • decisionStatus
+  • renewalStatus
+- Confirmed V_REGISTRY_AI_SYSTEMS_PUBLIC correctly joins to V_REGISTRY_PUBLIC.
+- Established rule: AI systems inherit certification from registry (not computed independently).
+
+---
+
+### Canonical Demo State Established
+- Defined CASE-0001 as the flagship certified demo case.
+- Verified:
+  • Score = 100
+  • Tier = Certified
+  • Band = A
+  • Certified status propagates to AI systems
+- Removed duplicate/legacy certified case (CASE-1001).
+
+---
+
+### Verification Endpoint Stabilization
+- Fixed /api/verify/[registryId] to return clean, structured JSON payload.
+- Eliminated malformed payload issues.
+- Confirmed endpoint returns verifiable certification data.
+
+---
+
+### UI System Improvements
+- Standardized button components across GAFAIG.
+- Unified PublicPageHero usage across pages.
+- Fixed explorer navigation and button inconsistencies.
+- Improved demo walkthrough UX and pill styling.
+
+---
+
+### Explorer Surface Activation
+- Confirmed explorer pages load correctly:
+  • /explorer
+  • /explorer/organizations
+  • /explorer/systems
+  • /explorer/countries
+  • /explorer/map
+- Validated explorer uses:
+  • V_REGISTRY_PUBLIC
+  • V_REGISTRY_AI_SYSTEMS_PUBLIC
+
+---
+
+### Registry UX Completion
+- Confirmed:
+  • /registry page loads
+  • /registry/[registryId] detail page loads
+  • AI systems display correctly
+- Verified certification data renders properly on registry detail pages.
+
+---
+
+### Seed System Issues Identified (CRITICAL)
+- Discovered multiple conflicting seed files:
+  • canonical demo seeds
+  • backfill scripts
+  • legacy demo datasets
+- Identified root cause of inconsistent registry state:
+  → multiple uncontrolled seed sources
+
+---
+
+### Canonical Seed Strategy Defined
+- Established requirement:
+  → ONE canonical seed system
+- Defined structure:
+  • CASE-0001 seed (certified)
+  • multi-case expansion seed (non-certified cases)
+- Deprecated:
+  • backfill scripts
+  • legacy demo seeds
+  • duplicate registry insert paths
+
+---
+
+### Multi-Case Expansion Attempt (FAILED - DIAGNOSED)
+- Attempted expansion with CASE-0002 → CASE-0005.
+- Cases created, but failed to publish.
+- Error identified:
+  "No governance score row found for case"
+
+---
+
+### Root Cause Identified (CRITICAL INSIGHT)
+- Expansion cases did not produce rows in:
+  • V_GOVERNANCE_SCORE_CASE
+  • V_CASE_TIER_BAND
+- Cause:
+  → insufficient or structurally incomplete findings/evidence for scoring engine
+- Conclusion:
+  → scoring engine is strict and requires full control coverage
+
+---
+
+### Multi-Case Expansion V2 (PARTIAL FAILURE)
+- Introduced full 12-control structure to match CASE-0001.
+- Encountered Snowflake limitation:
+  → ARRAY_CONSTRUCT(...) not valid in VALUES clause
+- Result:
+  → seed file not executable as written
+
+---
+
+### Snowflake Compatibility Issue Identified
+- VARIANT / ARRAY usage requires:
+  • INSERT ... SELECT pattern
+  OR
+  • JSON-safe insertion methods
+- Identified need to refactor seed files for Snowflake compatibility.
+
+---
+
+### System State Conclusion
+- Platform architecture is correct and stable.
+- Certification pipeline is functioning.
+- Registry and explorer surfaces are working.
+- Primary blocker:
+  → expansion data not satisfying scoring engine requirements
 
 ---
 
 ## 2026-03-28
 
-### Certification Wiring — Completed
-- Completed end-to-end certification wiring across Snowflake, API, and UI.
-- Confirmed public registry records now surface certified fields correctly.
-- Verified working public record routes:
-  - `/registry/[registryId]`
-  - `/organizations/[registryId]`
-- Confirmed deterministic certified outputs now render publicly:
-  - `CERTIFIED_SCORE`
-  - `CERTIFIED_TIER`
-  - `CERTIFIED_BAND`
-  - `CERTIFIED_AT`
-  - `DECISION_STATUS`
-  - `CERTIFICATION_STATUS`
-  - `VALID_FROM`
-  - `VALID_TO`
-  - `LAST_ACTIVITY_AT`
-
-### Snowflake Publish Chain
-- Verified `SP_PUBLISH_CASE_TO_REGISTRY_V3` is a wrapper over `SP_PUBLISH_CASE_TO_REGISTRY_V4`.
-- Confirmed the real publish logic remains in `SP_PUBLISH_CASE_TO_REGISTRY_V4`.
-- Confirmed `SP_PUBLISH_CASE_TO_REGISTRY_V4` already includes AI-system registry-ID alignment for existing case-linked AI systems.
-- Determined no core publish procedure rewrite was required at this stage.
-
-### Registry + Organization Production Validation
-- Deployed and validated production behavior on `www.gafaig.com`.
-- Confirmed public registry detail page renders certification summary, governance outcome, and verification surface.
-- Confirmed public organization detail page resolves the same registry identity and displays certification metadata consistently.
-
-### AI Systems Visibility
-- Confirmed `CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC` is populated and working.
-- Confirmed public AI-system data already exists for multiple registry IDs.
-- Identified that the temporary “0 systems” issue on a given organization page was caused by data alignment, not UI or API defects.
-- Verified organization page system counts and system cards render correctly once a matching AI-system row exists for the target registry ID.
-
-### Scratchpad / Validation Work
-- Used `Untitled.sql` as a temporary operational scratchpad to:
-  - inspect DDL for publish procedures
-  - inspect DDL for `REGISTRY_AI_SYSTEMS`
-  - validate certified public registry fields
-  - validate AI-system public view rows
-  - test one-off AI-system linkage to a known certified registry record
-- Determined that the scratchpad work did not require mandatory changes to canonical core Snowflake definition files.
-
-### New Snowflake Operator Script
-- Added a recommended non-core helper script:
-  - `GAFAIG - Certification Wiring Validation + AI Systems Demo Link.sql`
-- Purpose of the helper script:
-  - preserve validation queries
-  - preserve procedure/view inspection commands
-  - preserve demo AI-system linkage workflow
-  - provide a repeatable operator validation sequence without modifying core architecture
-
-### Next.js / TypeScript Stabilization
-- Fixed multiple server-route compatibility issues related to the Snowflake helper layer.
-- Removed incorrect callable usage of `snowflakeCtx()`.
-- Standardized those usages to `snowflakeCtx`.
-- Fixed debug/API imports to use canonical `sfQuery`.
-- Resolved Snowflake bind typing issues in `lib/snowflake.ts` by normalizing bind inputs before execution.
-- Restored successful production build and successful deployment to Vercel.
-
-### Architecture Confirmation
-- Confirmed certification wiring is now complete and production-valid.
-- Confirmed there is no remaining required core SQL patch before lifecycle work.
-- Confirmed next recommended platform phase is:
-  - **Lifecycle wiring**
-- Clarified that future AI-system work should focus on upstream intake / authoring workflow, not certification wiring.
+### Verification Payload Fix
+- Cleaned verification endpoint response structure.
+- Removed nested/incorrect payload fields.
+- Ensured consistent JSON format for external consumption.
 
 ---
 
-## CURRENT SYSTEM STATUS
-
-### Locked / Working
-- verification workflow
-- deterministic scoring engine
-- registry snapshot system
-- public registry surface
-- certification wiring
-- registry detail page
-- organization detail page
-- AI systems public view
-- publish wrapper/procedure chain
-- production deployment on Vercel
-
-### Current Gap Categories
-- lifecycle (`VALID_TO`, renewal / expiry transitions)
-- upstream AI-system intake / authoring automation
-- optional operator-script consolidation
+### Badge Route Fix
+- Fixed badge route rendering issues.
+- Improved registry badge integration.
+- Adjusted layout and scaling behavior.
 
 ---
 
-## NEXT PHASE
-- Start lifecycle wiring.
+### Registry Page Fixes
+- Fixed navigation buttons and routing issues.
+- Standardized link components using PublicButtonLink.
+
+---
+
+## 2026-03-26
+
+### Documentation System Expansion
+- Created and maintained canonical documents:
+  • MASTER_STATE.md
+  • CURRENT_FOCUS.md
+  • CHANGELOG.md
+  • PROJECT_INDEX.md
+  • API_ROUTE_MAPPING.md
+  • UI_COMPONENT_MAPPING.md
+  • SNOWFLAKE_WORKSHEET_MAPPING.md
+  • GAFAIG_SNOWFLAKE_SQL_FILE_SUMMARY.md
+  • GAFAIG_VS_CODE_File_Tree.md
+  • ENGINEERING_RULES.md
+
+---
+
+### Canonical Chat Starter System
+- Established structured new chat continuation protocol.
+- Ensured continuity across long-running development sessions.
+- Defined rules for maintaining architectural consistency.
+
+---
+
+## 2026-03-24
+
+### Snowflake File Mapping
+- Cataloged all Snowflake SQL files.
+- Identified relationships between:
+  • tables
+  • views
+  • procedures
+- Improved visibility into system dependencies.
+
+---
+
+### VS Code File Tree Mapping
+- Generated full GAFAIG file tree structure.
+- Established mapping between:
+  • UI pages
+  • API routes
+  • Snowflake query layer
+
+---
+
+## 2026-03-23
+
+### Query Layer Stabilization
+- Implemented canonical query layer pattern:
+  Snowflake → Query Functions → API → UI
+- Removed logic from API routes.
+- Standardized data access patterns.
+
+---
+
+### Event + Decision Persistence Fixes
+- Fixed:
+  • verification event insertion
+  • decision persistence logic
+- Ensured consistency in:
+  • caseId normalization
+  • JSON handling (PARSE_JSON)
+
+---
+
+## 2026-03-22
+
+### Architecture Lock (CRITICAL MILESTONE)
+- Finalized GAFAIG as:
+  → case-first deterministic governance engine
+- Locked canonical data flow.
+- Eliminated alternative architectures and ambiguity.
+
+---
+
+### Scoring Engine Stabilization
+- Finalized enterprise scoring engine (v1).
+- Ensured deterministic scoring (no ML).
+- Established control-based scoring model.
+
+---
+
+## 2026-03-21
+
+### Registry Completion Phase Initiated
+- Transitioned from:
+  "Surface the Engine"
+  → "Registry Completion"
+- Began exposing scoring outputs to public registry.
+
+---
+
+## 2026-03-19
+
+### Initial Canonical Architecture Definition
+- Defined GAFAIG as global AI governance registry.
+- Established foundational principles:
+  • deterministic scoring
+  • Snowflake as source of truth
+  • append-only snapshot model
+
+---
+
+# SUMMARY
+
+GAFAIG has reached:
+
+✔ Stable deterministic certification engine  
+✔ Working registry + explorer surfaces  
+✔ Clean canonical architecture  
+
+Remaining work:
+
+→ multi-case expansion (scoreable + publishable)  
+→ seed system consolidation  
+→ verification UX polish  
+→ demo narrative completion  
+
+---

@@ -1,418 +1,349 @@
 # GAFAIG — API ROUTE MAPPING
-Canonical API Surface & Data Contracts
-Last Updated: 2026-03-27
+Canonical API Layer Map
+Last Updated: 2026-03-29
 
 ---
 
-# 🧠 PURPOSE
+# PRINCIPLE
 
-Defines:
+API LAYER IS A THIN PASS-THROUGH
 
-• all API routes  
-• their data sources  
-• their responsibilities  
-• their allowed behavior  
+API MUST:
+• call Snowflake views or procedures
+• return structured JSON
+• NOT compute business logic
+• NOT compute certification
 
-This is the **contract between Snowflake → API → UI**
-
----
-
-# 🔒 CORE RULE
-
-ALL API routes must:
-
-• read from Snowflake  
-• use query layer (sfQuery or lib/queries)  
-• return normalized JSON  
-
-API routes must NOT:
-
-• compute scores  
-• derive certification  
-• perform business logic  
-• transform governance logic  
+ALL CERTIFICATION LOGIC EXISTS IN SNOWFLAKE
 
 ---
 
-# 🌐 PUBLIC API ROUTES
+# BASE PATH
+
+app/api/
 
 ---
 
-## 📊 REGISTRY LIST
+# PUBLIC API ROUTES
 
-### Route
+---
 
+## 1. REGISTRY LIST
+
+Route:
 /api/registry
 
-### Method
-
+Method:
 GET
 
-### Query Params
+Source:
+CORE.V_REGISTRY_PUBLIC
 
-• limit  
-• q (search)  
-• country  
-• registryId  
-• caseId  
-• applicationId  
+Query Params (optional):
+• limit
+• q (search string)
+• country
+• registryId
+• caseId
+• applicationId
 
-### Data Source
+Purpose:
+→ Returns list of registry records
 
-CORE.V_REGISTRY_PUBLIC  
-
-### Purpose
-
-• list registry records  
-• power /registry page  
+Used by:
+• /registry page
+• Explorer pages
 
 ---
 
-## 🔍 REGISTRY SEARCH
+## 2. REGISTRY SEARCH
 
-### Route
-
+Route:
 /api/registry/search
 
-### Method
-
+Method:
 GET
 
-### Query Params
+Source:
+CORE.V_REGISTRY_PUBLIC_SEARCH
 
-• q  
+Query Params:
+• q (search string)
 
-### Data Source
+Purpose:
+→ Optimized search across registry fields
 
-CORE.V_REGISTRY_PUBLIC_SEARCH  
-
-### Purpose
-
-• fast search  
-• normalized uppercase matching  
-• powers search UI  
+Notes:
+• Uses normalized uppercase fields
+• Uses concatenated search column (q)
 
 ---
 
-## 📄 REGISTRY AI SYSTEMS
+## 3. REGISTRY AI SYSTEMS
 
-### Route
-
+Route:
 /api/registry/[registryId]/ai-systems
 
-### Method
-
+Method:
 GET
 
-### Data Source
+Source:
+CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC
 
-CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC  
+Params:
+• registryId (path)
 
-### Purpose
+Purpose:
+→ Returns AI systems associated with a registry record
 
-• list AI systems tied to a registry  
-• power registry detail page  
+Used by:
+• /registry/[registryId] page
+• /registry/ai-systems page
 
 ---
 
-## 🏷 BADGE API
+## 4. VERIFY ENDPOINT
 
-### Route
-
-/api/badge/[registryId]
-
-### Method
-
-GET
-
-### Flow
-
-1. fetch registry record  
-2. determine badge image:
-   • certifiedTier  
-   • certifiedBand  
-   • certifiedScore  
-3. optional override:
-   • badgeImageUrl  
-4. redirect (307) → badge image  
-
-### Data Source
-
-lib/queries/registry.ts  
-
-→ REGISTRY_PUBLIC_READTHROUGH  
-
-### Purpose
-
-• embeddable certification badge  
-• external verification display  
-
----
-
-## 🔐 VERIFICATION API
-
-### Route
-
+Route:
 /api/verify/[registryId]
 
-### Method
-
+Method:
 GET
 
-### Data Source
+Source:
+CORE.V_REGISTRY_PUBLIC
 
-CORE.V_REGISTRY_PUBLIC  
+Params:
+• registryId (path)
 
-### Output
+Purpose:
+→ Returns verification payload (proof JSON)
 
-Signed JSON:
+Response includes:
+• registryId
+• entityName
+• certifiedScore
+• certifiedTier
+• certifiedBand
+• certifiedAt
+• decisionStatus
+• validFrom
+• validTo
 
-{
-  registryId,
-  entityName,
-  certificationStatus,
-  certifiedTier,
-  certifiedBand,
-  certifiedAt,
-  validTo,
-  signature: {
-    alg,
-    signedAt
-  }
-}
+Notes:
+• May include signature metadata
+• Must not expose internal/private data
 
-### Purpose
-
-• cryptographic verification  
-• external trust integration  
-
----
-
-# 🔧 ADMIN API ROUTES
+Used by:
+• /verify/[registryId] page
+• badge route
+• external verification
 
 ---
 
-## 🔐 AUTH
+# ADMIN API ROUTES
+
+---
+
+## AUTH
+
+---
 
 ### Login
 
+Route:
 /api/admin/login
 
+Method:
 POST
 
-• validates password  
-• sets session cookie  
+Purpose:
+→ Authenticate admin user
 
 ---
 
 ### Logout
 
+Route:
 /api/admin/logout
 
+Method:
 POST
 
-• clears session  
+Purpose:
+→ End admin session
 
 ---
 
 ### Status
 
+Route:
 /api/admin/status
 
+Method:
 GET
 
-• returns session state  
+Purpose:
+→ Check admin authentication state
 
 ---
 
-## 📥 FINDINGS
+## VERIFICATION WORKFLOW
 
-### Route
+---
 
+### Findings
+
+Route:
 /api/admin/verification/findings
 
+Method:
 GET / POST
 
-### Data Source
+Purpose:
+→ Retrieve or create findings
 
-CORE.VERIFICATION_FINDINGS  
-
-### Purpose
-
-• create / read findings  
+Tables:
+CORE.VERIFICATION_FINDINGS
 
 ---
 
-## 📎 EVIDENCE
+### Evidence Summary
 
-### Route
+Route:
+/api/admin/verification/evidence/summary
 
-/api/admin/verification/evidence
-
-GET / POST
-
-### Data Source
-
-CORE.VERIFICATION_EVIDENCE  
-
-### Purpose
-
-• upload and manage evidence  
-
----
-
-## 🔗 FINDING → EVIDENCE
-
-### Route
-
-/api/admin/verification/finding-evidence
-
-POST
-
-### Data Source
-
-CORE.VERIFICATION_FINDING_EVIDENCE  
-
----
-
-## 🧾 EVENTS
-
-### Route
-
-/api/admin/verification/events
-
-POST
-
-### Data Source
-
-CORE.VERIFICATION_EVENTS  
-
-### Notes
-
-• uses INSERT ... SELECT with PARSE_JSON(?)  
-
----
-
-## ⚖️ DECISIONS
-
-### Route
-
-/api/admin/verification/decisions
-
-POST
-
-### Flow
-
-• insert decision  
-• emit verification event  
-
----
-
-## 📊 SUMMARIES
-
-### Route
-
-/api/admin/verification/[caseId]/summaries
-
+Method:
 GET
 
-### Purpose
+Purpose:
+→ Summarize evidence for a case
 
-• aggregate case-level data  
-• used in admin UI  
-
----
-
-# 🧱 QUERY LAYER USAGE
+Tables:
+CORE.VERIFICATION_EVIDENCE
 
 ---
 
-## Primary Function
+### Events
 
-sfQuery<T>()
+Route:
+/api/admin/verification/events
 
-Used by:
+Method:
+POST
 
-• explorer pages  
-• API routes  
-• registry lookups  
+Purpose:
+→ Insert verification events
 
----
+Tables:
+CORE.VERIFICATION_EVENTS
 
-## CURRENT STATE
-
-Temporary compatibility layer exists:
-
-• executeQuery  
-• snowflakeQuery  
-• sfQueryResult  
-• snowflakeCtx  
-
-⚠️ DO NOT USE IN NEW CODE  
-
-Future state:
-
-→ ALL routes use sfQuery only  
+Important:
+→ Use PARSE_JSON(?) when inserting JSON
 
 ---
 
-# 📂 REGISTRY QUERY FILE
+### Decisions
 
-lib/queries/registry.ts  
+Route:
+/api/admin/verification/decisions
 
-### Responsibilities
+Method:
+POST
 
-• getRegistryByRegistryId  
-• normalize registry row  
-• handle readthrough fallback  
+Purpose:
+→ Insert decision record
 
-### Current Behavior
+Tables:
+CORE.DECISIONS
 
-Uses:
-
-REGISTRY_PUBLIC_READTHROUGH  
-
----
-
-# ⚠️ KNOWN LIMITATIONS
-
-• duplicated SQL across explorer routes  
-• registry readthrough layer introduces redundancy  
-• compatibility exports still present  
+Important:
+• normalize CASE_ID (uppercase)
+• ensure valid decision status
 
 ---
 
-# 🔥 DO NOT BREAK
+# INTERNAL FLOW (IMPORTANT)
 
-• DO NOT compute certification in API  
-• DO NOT derive tier/band in API  
-• DO NOT bypass Snowflake views  
-• DO NOT introduce business logic  
+API DOES NOT DO THIS:
 
----
+✘ scoring
+✘ tier calculation
+✘ certification logic
+✘ aggregation
 
-# ▶️ NEXT PHASE
+API ONLY DOES:
 
-After validation:
-
-1. remove compatibility exports  
-2. centralize queries into lib/queries  
-3. standardize ALL API routes  
-4. eliminate duplicated SQL  
+✔ call Snowflake view
+✔ call Snowflake procedure
+✔ return JSON
 
 ---
 
-# 🧠 SUMMARY
+# DATA FLOW
 
-API layer is:
+Snowflake Tables
+→ Snowflake Views
+→ Query Layer (lib/queries)
+→ API Routes
+→ UI
 
-✔ pass-through  
-✔ Snowflake-driven  
-✔ deterministic  
-✔ stable  
+---
 
-Remaining work:
+# ERROR HANDLING
 
-→ validation  
-→ consolidation  
-→ cleanup  
+API must:
+
+• return structured JSON:
+  { ok: true, data: ... }
+  { ok: false, error: ... }
+
+• NOT throw raw SQL errors to client
+• log internal errors safely
+
+---
+
+# SECURITY
+
+Admin routes protected by:
+
+middleware.ts
+
+Protected paths:
+• /admin/*
+• /api/admin/*
+
+Public routes:
+• /api/registry
+• /api/verify
+• /api/registry/search
+
+---
+
+# KEY RULES
+
+DO NOT:
+
+• add business logic in API
+• compute certification in API
+• bypass Snowflake views
+• mutate registry data directly
+
+ALWAYS:
+
+• read from canonical views
+• write through procedures or tables upstream of scoring
+• maintain deterministic pipeline
+
+---
+
+# PURPOSE
+
+This file ensures:
+
+• API layer remains thin and consistent
+• no logic leaks outside Snowflake
+• clear mapping between endpoints and data sources
+• stability across system evolution
+
+---
