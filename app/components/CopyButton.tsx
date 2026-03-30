@@ -10,15 +10,16 @@ export default function CopyButton({ value }: { value: string }) {
       await navigator.clipboard.writeText(value);
       setCopied(true);
       setTimeout(() => setCopied(false), 1200);
-    } catch (e) {
-      console.error("Copy failed", e);
+    } catch (error) {
+      console.error("Copy failed", error);
     }
   }
 
   return (
     <button
+      type="button"
       onClick={handleCopy}
-      className="text-[11px] font-medium text-black/50 hover:text-black transition"
+      className="shrink-0 text-[11px] font-medium text-black/50 transition hover:text-black"
     >
       {copied ? "Copied" : "Copy"}
     </button>
