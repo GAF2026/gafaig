@@ -1,14 +1,14 @@
 import Link from "next/link";
 import { sfQuery } from "@/lib/snowflake";
+import CopyButton from "@/app/components/CopyButton";
 
 export const dynamic = "force-dynamic";
-export const revalidate = 0;
 
 type SystemRow = {
   SYSTEM_ID: string;
-  REGISTRY_ID: string | null;
+  REGISTRY_ID: string;
   ENTITY_NAME: string | null;
-  SYSTEM_NAME: string | null;
+  SYSTEM_NAME: string;
   SYSTEM_TYPE: string | null;
   DEPLOYMENT_STATUS: string | null;
   OVERSIGHT_LEVEL: string | null;
@@ -16,78 +16,47 @@ type SystemRow = {
   CERTIFIED_TIER: string | null;
   CERTIFIED_BAND: string | null;
   CERTIFICATION_STATUS: string | null;
-  DISPLAY_ORDER?: number | null;
+  DISPLAY_ORDER: number | null;
 };
 
-function tierBandLabel(tier: string | null, band: string | null) {
-  if (tier && band) return `${tier} · Band ${band}`;
-  if (tier) return tier;
-  if (band) return `Band ${band}`;
-  return "—";
-}
-
-function riskBadgeClass(riskTier: string | null) {
-  const value = String(riskTier ?? "").trim().toUpperCase();
-
-  if (value === "HIGH") {
-    return "border-black/15 bg-black text-white";
-  }
-  if (value === "MEDIUM") {
-    return "border-black/15 bg-black/10 text-black";
-  }
-  return "border-black/10 bg-white text-black/75";
-}
-
 export default async function ExplorerSystemsPage() {
-  const rows = await sfQuery<SystemRow>(
-    `
+  const rows = await sfQuery<SystemRow>(`
     SELECT
-      s.SYSTEM_ID,
-      s.REGISTRY_ID,
-      s.ENTITY_NAME,
-      s.SYSTEM_NAME,
-      s.SYSTEM_TYPE,
-      s.DEPLOYMENT_STATUS,
-      s.OVERSIGHT_LEVEL,
-      s.RISK_TIER,
-      s.CERTIFIED_TIER,
-      s.CERTIFIED_BAND,
-      s.CERTIFICATION_STATUS,
-      s.DISPLAY_ORDER
-    FROM GAFAIG_DB.CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC s
-    ORDER BY
-      COALESCE(s.ENTITY_NAME, '') ASC,
-      COALESCE(s.DISPLAY_ORDER, 999999) ASC,
-      s.SYSTEM_NAME ASC
-    `
-  );
+      SYSTEM_ID,
+      REGISTRY_ID,
+      ENTITY_NAME,
+      SYSTEM_NAME,
+      SYSTEM_TYPE,
+      DEPLOYMENT_STATUS,
+      OVERSIGHT_LEVEL,
+      RISK_TIER,
+      CERTIFIED_TIER,
+      CERTIFIED_BAND,
+      CERTIFICATION_STATUS,
+      DISPLAY_ORDER
+    FROM GAFAIG_DB.CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC
+    ORDER BY DISPLAY_ORDER ASC, SYSTEM_NAME ASC
+  `);
 
-  const highRiskCount = rows.filter(
-    (row) => String(row.RISK_TIER ?? "").trim().toUpperCase() === "HIGH"
-  ).length;
-
-  const mediumRiskCount = rows.filter(
-    (row) => String(row.RISK_TIER ?? "").trim().toUpperCase() === "MEDIUM"
-  ).length;
-
-  const lowRiskCount = rows.filter(
-    (row) => String(row.RISK_TIER ?? "").trim().toUpperCase() === "LOW"
-  ).length;
+  const total = rows.length;
+  const highRisk = rows.filter((r) => r.RISK_TIER === "High").length;
+  const mediumRisk = rows.filter((r) => r.RISK_TIER === "Medium").length;
+  const lowRisk = rows.filter((r) => r.RISK_TIER === "Low").length;
 
   return (
-    <main className="mx-auto max-w-[1240px] px-6 pb-16 pt-14">
+    <main className="mx-auto max-w-[1180px] px-6 pb-16 pt-14">
+      {/* HEADER */}
       <section className="rounded-3xl border border-black/10 bg-white px-8 py-10 md:px-10 md:py-12">
         <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
           EXPLORER
         </div>
 
-        <h1 className="mt-4 max-w-[760px] text-[36px] font-semibold leading-[1.08] tracking-tight text-black md:text-[52px]">
+        <h1 className="mt-4 text-[36px] font-semibold leading-[1.08] tracking-tight text-black md:text-[52px]">
           Explorer — Systems
         </h1>
 
-        <p className="mt-5 max-w-[840px] text-[17px] leading-[1.7] text-black/72">
-          Public AI system-level explorer for disclosed systems associated with
-          GAFAIG registry records.
+        <p className="mt-5 max-w-[820px] text-[17px] leading-[1.7] text-black/72">
+          Public AI system-level explorer for disclosed systems associated with GAFAIG registry records.
         </p>
 
         <div className="mt-8 flex flex-wrap gap-3">
@@ -97,203 +66,133 @@ export default async function ExplorerSystemsPage() {
           >
             Back to explorer
           </Link>
+
           <Link
             href="/explorer/countries"
             className="rounded-full border border-black px-5 py-3 text-sm font-semibold transition hover:bg-black/[0.04]"
           >
             View countries
           </Link>
+
           <Link
             href="/explorer/organizations"
             className="rounded-full border border-black px-5 py-3 text-sm font-semibold transition hover:bg-black/[0.04]"
           >
             View organizations
           </Link>
-          <Link
-            href="/registry/ai-systems"
-            className="rounded-full border border-black px-5 py-3 text-sm font-semibold transition hover:bg-black/[0.04]"
-          >
-            AI systems registry
-          </Link>
         </div>
       </section>
 
-      <section className="mt-10 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <MetricCard label="Systems" value={String(rows.length)} />
-        <MetricCard label="High risk" value={String(highRiskCount)} />
-        <MetricCard label="Medium risk" value={String(mediumRiskCount)} />
-        <MetricCard label="Low risk" value={String(lowRiskCount)} />
+      {/* STATS */}
+      <section className="mt-10 grid gap-4 md:grid-cols-4">
+        <Stat label="Systems" value={String(total)} />
+        <Stat label="High Risk" value={String(highRisk)} />
+        <Stat label="Medium Risk" value={String(mediumRisk)} />
+        <Stat label="Low Risk" value={String(lowRisk)} />
       </section>
 
-      {rows.length === 0 ? (
-        <section className="mt-10 rounded-3xl border border-black/10 bg-white p-8 md:p-10">
-          <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
-            SYSTEM DIRECTORY
-          </div>
+      {/* SYSTEM LIST */}
+      <section className="mt-10 rounded-3xl border border-black/10 bg-white p-8 md:p-10">
+        <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
+          SYSTEM DIRECTORY
+        </div>
 
-          <h2 className="mt-4 text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
-            Public AI systems
-          </h2>
+        <h2 className="mt-4 text-[32px] font-semibold tracking-tight text-black">
+          Public AI systems
+        </h2>
 
-          <div className="mt-8 rounded-2xl border border-black/10 p-6 text-sm text-black/70">
+        {rows.length === 0 ? (
+          <div className="mt-6 rounded-xl border border-black/10 px-4 py-6 text-sm text-black/60">
             No public AI systems have been published yet.
           </div>
-        </section>
-      ) : (
-        <>
-          <section className="mt-10 grid gap-4 md:grid-cols-2">
-            <MetricCard
-              label="Linked registry records"
-              value={String(rows.filter((row) => !!row.REGISTRY_ID).length)}
-            />
-            <MetricCard
-              label="With organization"
-              value={String(rows.filter((row) => !!row.ENTITY_NAME).length)}
-            />
-          </section>
-
-          <section className="mt-10 rounded-3xl border border-black/10 bg-white p-8 md:p-10">
-            <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
-              SYSTEM DIRECTORY
-            </div>
-
-            <div className="mt-4 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-              <div>
-                <h2 className="text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
-                  Public AI systems
-                </h2>
-                <p className="mt-3 max-w-[760px] text-[15px] leading-[1.7] text-black/68">
-                  Publicly disclosed systems connected to canonical registry
-                  records and displayed through the GAFAIG public contract.
-                </p>
-              </div>
-
-              <div className="rounded-2xl border border-black/10 px-4 py-3 text-sm text-black/70">
-                {rows.length} disclosed system{rows.length === 1 ? "" : "s"}
-              </div>
-            </div>
-
-            <div className="mt-8 grid gap-5">
-              {rows.map((row) => (
-                <article
-                  key={row.SYSTEM_ID}
-                  className="group relative rounded-[28px] border border-black/10 bg-white p-6 shadow-sm transition hover:border-black/20 hover:bg-black/[0.015]"
-                >
-                  <Link
-                    href={`/registry/ai-systems/${encodeURIComponent(row.SYSTEM_ID)}`}
-                    className="absolute inset-0 rounded-[28px]"
-                    aria-label={`View details for ${row.SYSTEM_NAME || row.SYSTEM_ID}`}
-                  />
-
-                  <div className="relative z-10 flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
-                    <div className="min-w-0 flex-1">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <span
-                          className={`inline-flex rounded-full border px-3 py-1 text-[12px] font-semibold uppercase tracking-[0.14em] ${riskBadgeClass(
-                            row.RISK_TIER
-                          )}`}
-                        >
-                          {row.RISK_TIER || "Unknown risk"}
-                        </span>
-
-                        <span className="inline-flex rounded-full border border-black/10 px-3 py-1 text-[12px] font-semibold uppercase tracking-[0.14em] text-black/70">
-                          {row.CERTIFICATION_STATUS || "—"}
-                        </span>
-                      </div>
-
-                      <h3 className="mt-4 text-[24px] font-semibold leading-tight text-black transition group-hover:underline md:text-[30px]">
-                        {row.SYSTEM_NAME || row.SYSTEM_ID}
-                      </h3>
-
-                      <div className="mt-2 text-[16px] text-black/62">
-                        {row.ENTITY_NAME || "Unknown organization"}
-                      </div>
+        ) : (
+          <div className="mt-8 space-y-6">
+            {rows.map((row) => (
+              <div
+                key={row.SYSTEM_ID}
+                className="rounded-2xl border border-black/10 p-6"
+              >
+                {/* HEADER */}
+                <div className="flex flex-wrap items-start justify-between gap-4">
+                  <div>
+                    <div className="text-[20px] font-semibold text-black">
+                      {row.SYSTEM_NAME}
                     </div>
 
-                    <div className="relative z-20 flex flex-wrap gap-3 xl:justify-end">
-                      <Link
-                        href={`/registry/ai-systems/${encodeURIComponent(
-                          row.SYSTEM_ID
-                        )}`}
-                        className="inline-flex items-center rounded-full border border-black bg-black px-5 py-3 text-sm font-semibold text-white transition hover:bg-black/90"
-                      >
-                        View system detail
-                      </Link>
-
-                      {row.REGISTRY_ID ? (
-                        <Link
-                          href={`/registry/${encodeURIComponent(row.REGISTRY_ID)}`}
-                          className="inline-flex items-center rounded-full border border-black px-5 py-3 text-sm font-semibold transition hover:bg-black/[0.04]"
-                        >
-                          View registry record
-                        </Link>
-                      ) : null}
+                    <div className="mt-1 text-sm text-black/60">
+                      {row.ENTITY_NAME || "Unknown organization"}
                     </div>
                   </div>
 
-                  <div className="relative z-10 mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-7">
-                    <Info label="System type" value={row.SYSTEM_TYPE || "—"} />
-                    <Info
-                      label="Deployment"
-                      value={row.DEPLOYMENT_STATUS || "—"}
-                    />
-                    <Info
-                      label="Oversight"
-                      value={row.OVERSIGHT_LEVEL || "—"}
-                    />
-                    <Info label="Risk tier" value={row.RISK_TIER || "—"} />
-                    <Info
-                      label="Certification"
-                      value={row.CERTIFICATION_STATUS || "—"}
-                    />
-                    <Info
-                      label="Tier / Band"
-                      value={tierBandLabel(row.CERTIFIED_TIER, row.CERTIFIED_BAND)}
-                    />
+                  <div className="flex gap-2">
+                    <Link
+                      href={`/registry/ai-systems/${row.SYSTEM_ID}`}
+                      className="rounded-full border border-black bg-black px-4 py-2 text-xs font-semibold text-white transition hover:bg-black/90"
+                    >
+                      View system
+                    </Link>
 
-                    <div className="rounded-2xl border border-black/6 bg-black/[0.015] px-4 py-4">
-                      <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-black/55">
-                        Registry ID
-                      </div>
+                    <Link
+                      href={`/registry/${row.REGISTRY_ID}`}
+                      className="rounded-full border border-black px-4 py-2 text-xs font-semibold transition hover:bg-black/[0.04]"
+                    >
+                      View registry
+                    </Link>
+                  </div>
+                </div>
 
-                      <div className="mt-3 flex items-start gap-2">
-                        <div className="min-w-0 break-all font-mono text-[13px] leading-tight text-black/85">
-                          {row.REGISTRY_ID || "—"}
-                        </div>
+                {/* META GRID */}
+                <div className="mt-5 grid gap-3 md:grid-cols-3 lg:grid-cols-6">
+                  <Info label="System Type" value={row.SYSTEM_TYPE} />
+                  <Info label="Deployment" value={row.DEPLOYMENT_STATUS} />
+                  <Info label="Oversight" value={row.OVERSIGHT_LEVEL} />
+                  <Info label="Risk Tier" value={row.RISK_TIER} />
+                  <Info label="Certification" value={row.CERTIFICATION_STATUS} />
 
-                        {row.REGISTRY_ID && (
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.preventDefault();
-                              e.stopPropagation();
-                              navigator.clipboard.writeText(row.REGISTRY_ID!);
-                            }}
-                            className="shrink-0 text-[11px] text-black/50 transition hover:text-black"
-                          >
-                            Copy
-                          </button>
-                        )}
-                      </div>
+                  <div className="rounded-lg border border-black/5 px-3 py-2">
+                    <div className="text-[10px] uppercase tracking-[0.18em] text-black/50">
+                      Tier / Band
+                    </div>
+                    <div className="mt-1 text-[13px] text-black/85">
+                      {row.CERTIFIED_TIER
+                        ? `${row.CERTIFIED_TIER} · ${row.CERTIFIED_BAND}`
+                        : "—"}
                     </div>
                   </div>
-                </article>
-              ))}
-            </div>
-          </section>
-        </>
-      )}
+
+                  {/* REGISTRY ID (FIXED + COPYABLE) */}
+                  <div className="rounded-lg border border-black/5 px-3 py-2 col-span-full md:col-span-3 lg:col-span-2">
+                    <div className="text-[10px] uppercase tracking-[0.18em] text-black/50">
+                      Registry ID
+                    </div>
+
+                    <div className="mt-1 flex items-center justify-between gap-2">
+                      <div className="font-mono text-[11px] text-black/80 break-all">
+                        {row.REGISTRY_ID}
+                      </div>
+
+                      <CopyButton value={row.REGISTRY_ID} />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
     </main>
   );
 }
 
-function MetricCard({ label, value }: { label: string; value: string }) {
+function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-2xl border border-black/10 bg-white p-5">
-      <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/60">
+    <div className="rounded-2xl border border-black/10 p-5">
+      <div className="text-[11px] uppercase tracking-[0.18em] text-black/55">
         {label}
       </div>
-      <div className="mt-2 text-[28px] font-semibold text-black">{value}</div>
+      <div className="mt-2 text-[22px] font-semibold text-black">
+        {value}
+      </div>
     </div>
   );
 }
@@ -301,27 +200,17 @@ function MetricCard({ label, value }: { label: string; value: string }) {
 function Info({
   label,
   value,
-  mono = false,
-  breakAll = false,
 }: {
   label: string;
-  value: string;
-  mono?: boolean;
-  breakAll?: boolean;
+  value: string | null;
 }) {
   return (
-    <div className="rounded-2xl border border-black/6 bg-black/[0.015] px-4 py-4">
-      <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-black/55">
+    <div className="rounded-lg border border-black/5 px-3 py-2">
+      <div className="text-[10px] uppercase tracking-[0.18em] text-black/50">
         {label}
       </div>
-      <div
-        className={[
-          "mt-3 text-[15px] leading-[1.55] text-black/88",
-          mono ? "font-mono text-[14px]" : "",
-          breakAll ? "break-all" : "",
-        ].join(" ")}
-      >
-        {value}
+      <div className="mt-1 text-[13px] text-black/85">
+        {value || "—"}
       </div>
     </div>
   );
