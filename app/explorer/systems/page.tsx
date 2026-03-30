@@ -30,18 +30,16 @@ export default async function ExplorerSystemsPage() {
     SELECT
       s.SYSTEM_ID,
       s.REGISTRY_ID,
-      r.ENTITY_NAME,
+      s.ENTITY_NAME,
       s.SYSTEM_NAME,
       s.SYSTEM_TYPE,
       s.DEPLOYMENT_STATUS,
       s.OVERSIGHT_LEVEL,
       s.RISK_TIER,
-      r.CERTIFIED_TIER,
-      r.CERTIFIED_BAND,
-      r.CERTIFICATION_STATUS
+      s.CERTIFIED_TIER,
+      s.CERTIFIED_BAND,
+      s.CERTIFICATION_STATUS
     FROM GAFAIG_DB.CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC s
-    LEFT JOIN GAFAIG_DB.CORE.V_REGISTRY_PUBLIC r
-      ON s.REGISTRY_ID = r.REGISTRY_ID
     ORDER BY s.SYSTEM_NAME ASC
     `
   );
@@ -103,86 +101,95 @@ export default async function ExplorerSystemsPage() {
         <MetricCard label="Low risk" value={String(lowRiskCount)} />
       </section>
 
-      <section className="mt-10 grid gap-4 md:grid-cols-2">
-        <MetricCard
-          label="Linked registry records"
-          value={String(rows.filter((row) => !!row.REGISTRY_ID).length)}
-        />
-        <MetricCard
-          label="With organization"
-          value={String(rows.filter((row) => !!row.ENTITY_NAME).length)}
-        />
-      </section>
-
-      <section className="mt-10 rounded-3xl border border-black/10 bg-white p-8 md:p-10">
-        <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
-          SYSTEM DIRECTORY
-        </div>
-
-        <h2 className="mt-4 text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
-          Public AI systems
-        </h2>
-
-        {rows.length === 0 ? (
-          <div className="mt-8 rounded-2xl border border-black/10 p-6 text-sm text-black/70">
-            No public system data available.
+      {rows.length === 0 ? (
+        <section className="mt-10 rounded-3xl border border-black/10 bg-white p-8 md:p-10">
+          <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
+            SYSTEM DIRECTORY
           </div>
-        ) : (
-          <div className="mt-8 grid gap-4">
-            {rows.map((row) => (
-              <div
-                key={row.SYSTEM_ID}
-                className="rounded-2xl border border-black/10 p-5"
-              >
-                <div className="flex flex-wrap items-start justify-between gap-4">
-                  <div>
-                    <h3 className="text-[20px] font-semibold text-black">
-                      {row.SYSTEM_NAME || row.SYSTEM_ID}
-                    </h3>
-                    <div className="mt-2 text-[14px] text-black/65">
-                      {row.ENTITY_NAME || "Unknown organization"}
+
+          <h2 className="mt-4 text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
+            Public AI systems
+          </h2>
+
+          <div className="mt-8 rounded-2xl border border-black/10 p-6 text-sm text-black/70">
+            No public AI systems have been published yet.
+          </div>
+        </section>
+      ) : (
+        <>
+          <section className="mt-10 grid gap-4 md:grid-cols-2">
+            <MetricCard
+              label="Linked registry records"
+              value={String(rows.filter((row) => !!row.REGISTRY_ID).length)}
+            />
+            <MetricCard
+              label="With organization"
+              value={String(rows.filter((row) => !!row.ENTITY_NAME).length)}
+            />
+          </section>
+
+          <section className="mt-10 rounded-3xl border border-black/10 bg-white p-8 md:p-10">
+            <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
+              SYSTEM DIRECTORY
+            </div>
+
+            <h2 className="mt-4 text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
+              Public AI systems
+            </h2>
+
+            <div className="mt-8 grid gap-4">
+              {rows.map((row) => (
+                <div
+                  key={row.SYSTEM_ID}
+                  className="rounded-2xl border border-black/10 p-5"
+                >
+                  <div className="flex flex-wrap items-start justify-between gap-4">
+                    <div>
+                      <h3 className="text-[20px] font-semibold text-black">
+                        {row.SYSTEM_NAME || row.SYSTEM_ID}
+                      </h3>
+                      <div className="mt-2 text-[14px] text-black/65">
+                        {row.ENTITY_NAME || "Unknown organization"}
+                      </div>
                     </div>
+
+                    {row.REGISTRY_ID ? (
+                      <Link
+                        href={`/registry/${encodeURIComponent(row.REGISTRY_ID)}`}
+                        className="inline-flex items-center rounded-full border border-black px-4 py-2 text-sm font-medium transition hover:bg-black hover:text-white"
+                      >
+                        View registry record
+                      </Link>
+                    ) : null}
                   </div>
 
-                  {row.REGISTRY_ID ? (
-                    <Link
-                      href={`/registry/${encodeURIComponent(row.REGISTRY_ID)}`}
-                      className="inline-flex items-center rounded-full border border-black px-4 py-2 text-sm font-medium transition hover:bg-black hover:text-white"
-                    >
-                      View registry record
-                    </Link>
-                  ) : null}
+                  <div className="mt-5 grid gap-4 md:grid-cols-7">
+                    <Info label="System type" value={row.SYSTEM_TYPE || "—"} />
+                    <Info
+                      label="Deployment"
+                      value={row.DEPLOYMENT_STATUS || "—"}
+                    />
+                    <Info
+                      label="Oversight"
+                      value={row.OVERSIGHT_LEVEL || "—"}
+                    />
+                    <Info label="Risk tier" value={row.RISK_TIER || "—"} />
+                    <Info
+                      label="Certification"
+                      value={row.CERTIFICATION_STATUS || "—"}
+                    />
+                    <Info
+                      label="Tier / Band"
+                      value={tierBandLabel(row.CERTIFIED_TIER, row.CERTIFIED_BAND)}
+                    />
+                    <Info label="Registry ID" value={row.REGISTRY_ID || "—"} />
+                  </div>
                 </div>
-
-                <div className="mt-5 grid gap-4 md:grid-cols-7">
-                  <Info label="System type" value={row.SYSTEM_TYPE || "—"} />
-                  <Info
-                    label="Deployment"
-                    value={row.DEPLOYMENT_STATUS || "—"}
-                  />
-                  <Info
-                    label="Oversight"
-                    value={row.OVERSIGHT_LEVEL || "—"}
-                  />
-                  <Info label="Risk tier" value={row.RISK_TIER || "—"} />
-                  <Info
-                    label="Certification"
-                    value={row.CERTIFICATION_STATUS || "—"}
-                  />
-                  <Info
-                    label="Tier / Band"
-                    value={tierBandLabel(row.CERTIFIED_TIER, row.CERTIFIED_BAND)}
-                  />
-                  <Info
-                    label="Registry ID"
-                    value={row.REGISTRY_ID || "—"}
-                  />
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </section>
+              ))}
+            </div>
+          </section>
+        </>
+      )}
     </main>
   );
 }
