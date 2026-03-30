@@ -9,7 +9,6 @@ type Row = {
   ENTITY_NAME: string | null;
   COUNTRY: string | null;
   CERTIFICATION_STATUS: string | null;
-  CERTIFIED_SCORE: number | null;
   CERTIFIED_TIER: string | null;
   CERTIFIED_BAND: string | null;
   CERTIFIED_AT: string | null;
@@ -19,6 +18,7 @@ type Row = {
 function formatDate(v?: string | null) {
   if (!v) return "—";
   const d = new Date(v);
+  if (Number.isNaN(d.getTime())) return v;
   return d.toLocaleDateString("en-US", {
     month: "short",
     day: "numeric",
@@ -26,9 +26,11 @@ function formatDate(v?: string | null) {
   });
 }
 
-function formatScore(v?: number | null) {
-  if (v == null) return "—";
-  return `${Math.round(v)} / 100`;
+function tierBandLabel(tier: string | null, band: string | null) {
+  if (tier && band) return `${tier} · ${band}`;
+  if (tier) return tier;
+  if (band) return band;
+  return "—";
 }
 
 export default async function Page() {
@@ -38,18 +40,16 @@ export default async function Page() {
       ENTITY_NAME,
       COUNTRY,
       CERTIFICATION_STATUS,
-      CERTIFIED_SCORE,
       CERTIFIED_TIER,
       CERTIFIED_BAND,
       CERTIFIED_AT,
       VALID_TO
     FROM CORE.V_REGISTRY_PUBLIC
-    ORDER BY CERTIFIED_AT DESC NULLS LAST
+    ORDER BY CERTIFIED_AT DESC NULLS LAST, ENTITY_NAME ASC
   `);
 
   return (
     <main className="mx-auto max-w-[1180px] px-6 pb-16 pt-14">
-      {/* HERO */}
       <section className="rounded-3xl border border-black/10 bg-white px-8 py-10 md:px-10 md:py-12">
         <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
           EXPLORER
@@ -72,7 +72,6 @@ export default async function Page() {
         </div>
       </section>
 
-      {/* LIST */}
       <section className="mt-10 grid gap-4">
         {rows.map((r) => (
           <Link
@@ -93,10 +92,10 @@ export default async function Page() {
 
               <div className="text-right">
                 <div className="text-xs uppercase text-black/50">
-                  Score
+                  Status
                 </div>
                 <div className="text-lg font-semibold">
-                  {formatScore(r.CERTIFIED_SCORE)}
+                  {r.CERTIFICATION_STATUS || "—"}
                 </div>
               </div>
             </div>
@@ -104,11 +103,7 @@ export default async function Page() {
             <div className="mt-4 grid grid-cols-4 gap-3 text-sm">
               <div>
                 <div className="text-xs text-black/50">Tier/Band</div>
-                <div>
-                  {r.CERTIFIED_TIER && r.CERTIFIED_BAND
-                    ? `${r.CERTIFIED_TIER} · ${r.CERTIFIED_BAND}`
-                    : "—"}
-                </div>
+                <div>{tierBandLabel(r.CERTIFIED_TIER, r.CERTIFIED_BAND)}</div>
               </div>
 
               <div>

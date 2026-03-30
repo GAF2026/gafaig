@@ -1,4 +1,5 @@
 import Link from "next/link";
+import PublicButtonLink from "@/app/_components/PublicButtonLink";
 import { sfQuery } from "@/lib/snowflake";
 
 export const dynamic = "force-dynamic";
@@ -7,15 +8,8 @@ type CountryRow = {
   COUNTRY: string | null;
   TOTAL_RECORDS: number;
   TOTAL_CERTIFIED: number;
-  AVG_CERTIFIED_SCORE: number | null;
+  TOTAL_NOT_CERTIFIED: number;
 };
-
-function formatScore(value: number | null | undefined) {
-  if (value === null || value === undefined || Number.isNaN(Number(value))) {
-    return "—";
-  }
-  return `${Math.round(Number(value))} / 100`;
-}
 
 export default async function ExplorerCountriesPage() {
   const rows = await sfQuery<CountryRow>(
@@ -24,7 +18,7 @@ export default async function ExplorerCountriesPage() {
       COALESCE(COUNTRY, 'Unknown') AS COUNTRY,
       COUNT(*) AS TOTAL_RECORDS,
       SUM(CASE WHEN CERTIFICATION_STATUS = 'Certified' THEN 1 ELSE 0 END) AS TOTAL_CERTIFIED,
-      AVG(CERTIFIED_SCORE) AS AVG_CERTIFIED_SCORE
+      SUM(CASE WHEN CERTIFICATION_STATUS <> 'Certified' OR CERTIFICATION_STATUS IS NULL THEN 1 ELSE 0 END) AS TOTAL_NOT_CERTIFIED
     FROM GAFAIG_DB.CORE.V_REGISTRY_PUBLIC
     GROUP BY COALESCE(COUNTRY, 'Unknown')
     ORDER BY TOTAL_RECORDS DESC, COUNTRY ASC
@@ -51,24 +45,15 @@ export default async function ExplorerCountriesPage() {
         </p>
 
         <div className="mt-8 flex flex-wrap gap-3">
-          <Link
-            href="/explorer"
-            className="rounded-full border border-black bg-black px-5 py-3 text-sm font-semibold text-white transition hover:bg-black/90"
-          >
+          <PublicButtonLink href="/explorer" variant="primary">
             Back to explorer
-          </Link>
-          <Link
-            href="/explorer/map"
-            className="rounded-full border border-black px-5 py-3 text-sm font-semibold transition hover:bg-black/[0.04]"
-          >
+          </PublicButtonLink>
+          <PublicButtonLink href="/explorer/map" variant="secondary">
             View map
-          </Link>
-          <Link
-            href="/explorer/organizations"
-            className="rounded-full border border-black px-5 py-3 text-sm font-semibold transition hover:bg-black/[0.04]"
-          >
+          </PublicButtonLink>
+          <PublicButtonLink href="/explorer/organizations" variant="secondary">
             Organizations
-          </Link>
+          </PublicButtonLink>
         </div>
       </section>
 
@@ -106,7 +91,7 @@ export default async function ExplorerCountriesPage() {
 
                 <div className="grid gap-3 md:grid-cols-2">
                   <Info label="Certified" value={String(row.TOTAL_CERTIFIED)} />
-                  <Info label="Avg score" value={formatScore(row.AVG_CERTIFIED_SCORE)} />
+                  <Info label="Not certified" value={String(row.TOTAL_NOT_CERTIFIED)} />
                 </div>
               </div>
             </Link>
