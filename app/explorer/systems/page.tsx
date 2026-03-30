@@ -16,6 +16,7 @@ type SystemRow = {
   CERTIFIED_TIER: string | null;
   CERTIFIED_BAND: string | null;
   CERTIFICATION_STATUS: string | null;
+  DISPLAY_ORDER?: number | null;
 };
 
 function tierBandLabel(tier: string | null, band: string | null) {
@@ -51,7 +52,8 @@ export default async function ExplorerSystemsPage() {
       s.RISK_TIER,
       s.CERTIFIED_TIER,
       s.CERTIFIED_BAND,
-      s.CERTIFICATION_STATUS
+      s.CERTIFICATION_STATUS,
+      s.DISPLAY_ORDER
     FROM GAFAIG_DB.CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC s
     ORDER BY
       COALESCE(s.ENTITY_NAME, '') ASC,
@@ -175,9 +177,15 @@ export default async function ExplorerSystemsPage() {
               {rows.map((row) => (
                 <article
                   key={row.SYSTEM_ID}
-                  className="rounded-[28px] border border-black/10 bg-white p-6 shadow-sm"
+                  className="group relative rounded-[28px] border border-black/10 bg-white p-6 shadow-sm transition hover:border-black/20 hover:bg-black/[0.015]"
                 >
-                  <div className="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
+                  <Link
+                    href={`/registry/ai-systems/${encodeURIComponent(row.SYSTEM_ID)}`}
+                    className="absolute inset-0 rounded-[28px]"
+                    aria-label={`View details for ${row.SYSTEM_NAME || row.SYSTEM_ID}`}
+                  />
+
+                  <div className="relative z-10 flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
                     <div className="min-w-0 flex-1">
                       <div className="flex flex-wrap items-center gap-2">
                         <span
@@ -193,7 +201,7 @@ export default async function ExplorerSystemsPage() {
                         </span>
                       </div>
 
-                      <h3 className="mt-4 text-[24px] font-semibold leading-tight text-black md:text-[30px]">
+                      <h3 className="mt-4 text-[24px] font-semibold leading-tight text-black transition group-hover:underline md:text-[30px]">
                         {row.SYSTEM_NAME || row.SYSTEM_ID}
                       </h3>
 
@@ -202,7 +210,7 @@ export default async function ExplorerSystemsPage() {
                       </div>
                     </div>
 
-                    <div className="flex flex-wrap gap-3 xl:justify-end">
+                    <div className="relative z-20 flex flex-wrap gap-3 xl:justify-end">
                       <Link
                         href={`/registry/ai-systems/${encodeURIComponent(
                           row.SYSTEM_ID
@@ -223,7 +231,7 @@ export default async function ExplorerSystemsPage() {
                     </div>
                   </div>
 
-                  <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-7">
+                  <div className="relative z-10 mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-7">
                     <Info label="System type" value={row.SYSTEM_TYPE || "—"} />
                     <Info
                       label="Deployment"
