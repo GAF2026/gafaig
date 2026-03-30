@@ -58,6 +58,10 @@ function fmtDate(value: string | null | undefined) {
   });
 }
 
+function clean(value: string | null | undefined) {
+  return value && value.trim().length > 0 ? value : "—";
+}
+
 function boolLabel(value: boolean | null | undefined) {
   if (value === true) return "Required";
   if (value === false) return "Not required";
@@ -69,10 +73,6 @@ function tierBandLabel(tier: string | null, band: string | null) {
   if (tier) return tier;
   if (band) return `Band ${band}`;
   return "—";
-}
-
-function clean(value: string | null | undefined) {
-  return value && value.trim().length > 0 ? value : "—";
 }
 
 function riskBadgeClass(riskTier: string | null) {
@@ -158,8 +158,9 @@ export default async function RegistryAiSystemDetailPage({ params }: PageProps) 
     notFound();
   }
 
-  const title = row.SYSTEM_NAME || row.SYSTEM_ID;
-  const organizationName = row.ENTITY_NAME || row.DEVELOPER_ORGANIZATION || "Unknown organization";
+  const pageTitle = row.SYSTEM_NAME || row.SYSTEM_ID;
+  const organizationName =
+    row.ENTITY_NAME || row.DEVELOPER_ORGANIZATION || "Unknown organization";
 
   return (
     <main className="mx-auto max-w-[1240px] px-6 pb-16 pt-14">
@@ -193,7 +194,7 @@ export default async function RegistryAiSystemDetailPage({ params }: PageProps) 
         </div>
 
         <h1 className="mt-5 max-w-[920px] text-[36px] font-semibold leading-[1.08] tracking-tight text-black md:text-[52px]">
-          {title}
+          {pageTitle}
         </h1>
 
         <p className="mt-4 max-w-[860px] text-[17px] leading-[1.7] text-black/72">
@@ -255,7 +256,7 @@ export default async function RegistryAiSystemDetailPage({ params }: PageProps) 
           </div>
 
           <div className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            <InfoCard label="System name" value={title} />
+            <InfoCard label="System name" value={pageTitle} />
             <InfoCard label="Organization" value={organizationName} />
             <InfoCard label="System type" value={clean(row.SYSTEM_TYPE)} />
             <InfoCard label="Deployment" value={clean(row.DEPLOYMENT_STATUS)} />
