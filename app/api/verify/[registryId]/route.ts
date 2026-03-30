@@ -12,7 +12,6 @@ type VerifyRow = {
   ENTITY_NAME: string | null;
   ENTITY_TYPE: string | null;
   COUNTRY: string | null;
-  CERTIFIED_SCORE: number | null;
   CERTIFIED_TIER: string | null;
   CERTIFIED_BAND: string | null;
   DECISION_STATUS: string | null;
@@ -64,7 +63,6 @@ export async function GET(
       ENTITY_NAME,
       ENTITY_TYPE,
       COUNTRY,
-      CERTIFIED_SCORE,
       CERTIFIED_TIER,
       CERTIFIED_BAND,
       DECISION_STATUS,
@@ -94,6 +92,7 @@ export async function GET(
 
   const certificationStatus = row.CERTIFIED_AT ? "Certified" : "Not Certified";
   const verified = certificationStatus === "Certified";
+  const signedAt = new Date().toISOString();
 
   const record = {
     registryId: row.REGISTRY_ID,
@@ -103,10 +102,6 @@ export async function GET(
     applicationId: row.APPLICATION_ID,
     caseId: row.CASE_ID,
     certificationStatus,
-    certifiedScore:
-      row.CERTIFIED_SCORE === null || row.CERTIFIED_SCORE === undefined
-        ? null
-        : Number(row.CERTIFIED_SCORE),
     certifiedTier: row.CERTIFIED_TIER,
     certifiedBand: row.CERTIFIED_BAND,
     decisionStatus: row.DECISION_STATUS,
@@ -114,8 +109,6 @@ export async function GET(
     validFrom: jsonUtc(row.VALID_FROM),
     validTo: jsonUtc(row.VALID_TO),
   };
-
-  const signedAt = new Date().toISOString();
 
   const messageObject = {
     registryId: record.registryId,
@@ -125,7 +118,6 @@ export async function GET(
     applicationId: record.applicationId,
     caseId: record.caseId,
     certificationStatus: record.certificationStatus,
-    certifiedScore: record.certifiedScore,
     certifiedTier: record.certifiedTier,
     certifiedBand: record.certifiedBand,
     decisionStatus: record.decisionStatus,
@@ -135,19 +127,13 @@ export async function GET(
     signedAt,
   };
 
-  if (typeof messageObject === "string") {
-    throw new Error("messageObject incorrectly stringified");
-  }
-
-  console.log("TYPE CHECK:", typeof messageObject);
-
   const message = JSON.stringify(messageObject);
   const signature = signPayload(message);
 
   return NextResponse.json({
     ok: true,
     verified,
-    registryId: row.REGISTRY_ID,    
+    registryId: row.REGISTRY_ID,
     proof: {
       alg: "HS256",
       signature,
