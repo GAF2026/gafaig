@@ -250,12 +250,32 @@ export default async function ExplorerSystemsPage() {
                       label="Tier / Band"
                       value={tierBandLabel(row.CERTIFIED_TIER, row.CERTIFIED_BAND)}
                     />
-                    <Info
-                      label="Registry ID"
-                      value={row.REGISTRY_ID || "—"}
-                      mono
-                      breakAll
-                    />
+
+                    <div className="rounded-2xl border border-black/6 bg-black/[0.015] px-4 py-4">
+                      <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-black/55">
+                        Registry ID
+                      </div>
+
+                      <div className="mt-3 flex items-start gap-2">
+                        <div className="min-w-0 break-all font-mono text-[13px] leading-tight text-black/85">
+                          {row.REGISTRY_ID || "—"}
+                        </div>
+
+                        {row.REGISTRY_ID && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              navigator.clipboard.writeText(row.REGISTRY_ID!);
+                            }}
+                            className="shrink-0 text-[11px] text-black/50 transition hover:text-black"
+                          >
+                            Copy
+                          </button>
+                        )}
+                      </div>
+                    </div>
                   </div>
                 </article>
               ))}
