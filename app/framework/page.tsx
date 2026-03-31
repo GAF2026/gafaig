@@ -9,8 +9,8 @@ export default function FrameworkPage() {
       <PublicPageHero
         eyebrow="FRAMEWORK"
         title="How GAFAIG verifies AI governance in practice"
-        description="GAFAIG follows a structured process to evaluate whether human oversight is operating across an organization’s AI systems. Evidence is reviewed, findings are recorded, and certification outcomes are produced in a consistent and repeatable way."
-        secondaryDescription="Reviews take place in a controlled environment, while certification outcomes are published through the public registry. This allows others to verify governance without exposing internal materials."
+        description="GAFAIG operates a deterministic verification framework for AI governance. It evaluates whether human oversight is functioning across an organization’s AI systems, records structured findings, and produces certification outcomes that can be published to a public registry."
+        secondaryDescription="The framework is designed to separate private review from public trust. Evidence, findings, and assessment workflow remain inside a controlled verification environment, while certification results are disclosed through a verifiable public registry."
         actions={
           <>
             <Link
@@ -30,71 +30,126 @@ export default function FrameworkPage() {
         }
       />
 
-      {/* MODEL */}
       <section className="mt-10 rounded-3xl border border-black/10 bg-white p-8 md:p-10">
         <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
-          VERIFICATION MODEL
+          WHAT THE FRAMEWORK IS
         </div>
 
-        <h2 className="mt-4 max-w-[760px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
-          Structured, evidence-based, and consistent
+        <h2 className="mt-4 max-w-[820px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
+          A deterministic model for producing verifiable certification outcomes
         </h2>
 
-        <p className="mt-5 max-w-[960px] text-[16px] leading-[1.9] text-black/75">
-          GAFAIG evaluates governance at the organization level using a
-          structured approach. Evidence is reviewed against defined criteria,
-          findings are recorded, and certification outcomes are produced in a
-          consistent and auditable way. Internal materials remain private, while
-          certification outcomes are made public through the registry.
+        <p className="mt-5 max-w-[980px] text-[16px] leading-[1.9] text-black/75">
+          GAFAIG is not a self-attestation tool, policy repository, or advisory
+          checklist. It is a structured verification framework designed to
+          evaluate governance evidence, produce reproducible outcomes, and
+          publish certification records that can be independently verified.
         </p>
 
         <div className="mt-8 grid gap-4 md:grid-cols-2">
           <FrameworkCard
-            title="Defined criteria"
-            body="Clear criteria are used to assess whether human oversight is in place and functioning across AI systems."
+            title="Deterministic by design"
+            body="The framework is structured so that the same verified inputs lead to the same certification outcome. This supports consistency, repeatability, and institutional trust."
           />
 
           <FrameworkCard
             title="Evidence-based review"
-            body="Organizations submit evidence that is evaluated as part of a controlled review process. Internal materials are not publicly disclosed."
+            body="Certification is not based on declarations alone. Organizations move through a controlled process where governance materials are reviewed and findings are recorded against defined criteria."
           />
 
           <FrameworkCard
-            title="Consistent outcomes"
-            body="The evaluation process is designed to produce consistent results when the same evidence is reviewed."
+            title="Private verification layer"
+            body="Evidence, findings, and internal assessment workflow remain within the controlled verification engine. Sensitive operational materials are not exposed through the public site."
           />
 
           <FrameworkCard
-            title="Public certification"
-            body="Certification outcomes are published through the registry so they can be viewed and verified externally."
+            title="Public registry layer"
+            body="Certification outcomes are published through a registry of record so external parties can review public certification status, linked systems, badge signals, and proof endpoints."
           />
         </div>
       </section>
 
-      {/* WORKFLOW */}
+      <section className="mt-10 rounded-3xl border border-black/10 bg-white p-8 md:p-10">
+        <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
+          TWO-LAYER ARCHITECTURE
+        </div>
+
+        <h2 className="mt-4 max-w-[820px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
+          Private verification, public trust
+        </h2>
+
+        <p className="mt-5 max-w-[960px] text-[16px] leading-[1.9] text-black/75">
+          GAFAIG is built on a two-layer model. A controlled verification engine
+          handles review workflow privately, while the public registry discloses
+          certification outcomes in a form that can be externally relied on.
+        </p>
+
+        <div className="mt-8 grid gap-4 md:grid-cols-2">
+          <ArchitectureCard
+            eyebrow="Layer 1"
+            title="Private Verification Engine"
+            body="Organizations move through application intake, evidence review, findings, events, scoring, and certification workflow. This is the operational layer used to produce structured outcomes."
+            points={[
+              "Controlled reviewer environment",
+              "Structured evidence and findings flow",
+              "Deterministic certification workflow",
+            ]}
+          />
+
+          <ArchitectureCard
+            eyebrow="Layer 2"
+            title="Public Registry"
+            body="Certification outcomes are disclosed through a public registry of record. Badge links, proof endpoints, and linked system pages allow external parties to validate public trust signals."
+            points={[
+              "Canonical certification records",
+              "Badge and proof verification layer",
+              "Linked public AI systems and explorer surfaces",
+            ]}
+          />
+        </div>
+      </section>
+
       <section className="mt-10 rounded-3xl border border-black/10 bg-white p-8 md:p-10">
         <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
           VERIFICATION PROCESS
         </div>
 
-        <h2 className="mt-4 max-w-[760px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
-          From review to certification
+        <h2 className="mt-4 max-w-[820px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
+          From review workflow to certification record
         </h2>
 
-        <div className="mt-8 grid gap-4 md:grid-cols-3">
-          <WorkflowCard
-            title="1) Submit evidence"
-            body="Organizations provide documentation and records that demonstrate how AI systems are governed."
-          />
+        <p className="mt-5 max-w-[960px] text-[16px] leading-[1.85] text-black/75">
+          The framework follows a structured sequence. Governance materials are
+          submitted, reviewed, recorded as findings, evaluated through the
+          engine, and translated into certification outcomes that can be
+          published through the public registry.
+        </p>
 
+        <div className="mt-8 grid gap-4 md:grid-cols-5">
           <WorkflowCard
-            title="2) Review and record findings"
-            body="Evidence is evaluated against defined criteria, and findings are recorded as part of the review."
+            number="1"
+            title="Application"
+            body="Organizations enter a controlled verification workflow."
           />
-
           <WorkflowCard
-            title="3) Determine certification"
-            body="Evaluation results lead to a certification outcome that can be published through the registry."
+            number="2"
+            title="Evidence"
+            body="Governance materials and oversight records are submitted and reviewed."
+          />
+          <WorkflowCard
+            number="3"
+            title="Findings"
+            body="Structured findings are recorded against defined review criteria."
+          />
+          <WorkflowCard
+            number="4"
+            title="Certification"
+            body="Deterministic evaluation supports a formal certification outcome."
+          />
+          <WorkflowCard
+            number="5"
+            title="Registry"
+            body="Public certification records are published and can be externally verified."
           />
         </div>
 
@@ -103,34 +158,70 @@ export default function FrameworkPage() {
             Process summary
           </div>
           <div className="mt-3 text-[15px] leading-[1.8] text-black/75">
-            Evidence → Findings → Evaluation → Certification → Registry
+            Application → Evidence → Findings → Certification → Registry
           </div>
         </div>
-
-        <p className="mt-5 max-w-[920px] text-[14px] leading-[1.8] text-black/72">
-          The process is designed so that the same inputs lead to the same
-          outcomes, supporting consistency and confidence in certification
-          results.
-        </p>
       </section>
 
-      {/* TRUST */}
       <section className="mt-10 rounded-3xl border border-black/10 bg-white p-8 md:p-10">
         <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
           TRUST PROPERTIES
         </div>
 
-        <h2 className="mt-4 max-w-[760px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
+        <h2 className="mt-4 max-w-[820px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
           Why the framework can be relied on
         </h2>
 
-        <ul className="mt-6 list-disc space-y-3 pl-5 text-[15px] leading-[1.8] text-black/75">
-          <li>Organization-wide evaluation</li>
-          <li>Certification based on submitted evidence</li>
-          <li>Consistent and repeatable outcomes</li>
-          <li>Private review with controlled public disclosure</li>
-          <li>Public registry for external verification</li>
-        </ul>
+        <div className="mt-7 grid gap-4 md:grid-cols-2">
+          <TrustCard
+            title="Reproducible outcomes"
+            body="The framework is designed so the same verified inputs produce the same certification result."
+          />
+          <TrustCard
+            title="Controlled private review"
+            body="Internal materials remain within the verification engine rather than being exposed through the public site."
+          />
+          <TrustCard
+            title="Public registry of record"
+            body="Certification records are published through a canonical public registry that supports external verification."
+          />
+          <TrustCard
+            title="Portable trust signals"
+            body="Badge endpoints, proof payloads, and linked system records allow certification outcomes to be relied on beyond the registry page itself."
+          />
+        </div>
+      </section>
+
+      <section className="mt-10 rounded-3xl border border-black/10 bg-white p-8 md:p-10">
+        <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
+          WHAT THE FRAMEWORK PRODUCES
+        </div>
+
+        <h2 className="mt-4 max-w-[820px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
+          Certification records that others can verify
+        </h2>
+
+        <p className="mt-5 max-w-[960px] text-[16px] leading-[1.9] text-black/75">
+          The output of the framework is not simply an internal assessment. It
+          is a public certification record that can be viewed through the
+          registry, explored across organizations and systems, and checked
+          through verification and badge endpoints.
+        </p>
+
+        <div className="mt-8 flex flex-wrap gap-3">
+          <Link
+            href="/registry"
+            className="rounded-full border border-black bg-black px-5 py-3 text-sm font-semibold text-white transition hover:bg-black/90"
+          >
+            View public registry
+          </Link>
+          <Link
+            href="/explorer"
+            className="rounded-full border border-black px-5 py-3 text-sm font-semibold transition hover:bg-black/[0.04]"
+          >
+            Open explorer
+          </Link>
+        </div>
       </section>
     </main>
   );
@@ -151,7 +242,59 @@ function FrameworkCard({
   );
 }
 
+function ArchitectureCard({
+  eyebrow,
+  title,
+  body,
+  points,
+}: {
+  eyebrow: string;
+  title: string;
+  body: string;
+  points: string[];
+}) {
+  return (
+    <div className="rounded-2xl border border-black/10 p-6">
+      <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-black/45">
+        {eyebrow}
+      </div>
+      <div className="mt-3 text-[24px] font-semibold leading-[1.25] tracking-tight text-black">
+        {title}
+      </div>
+      <p className="mt-4 text-[15px] leading-[1.8] text-black/72">{body}</p>
+      <ul className="mt-5 space-y-3 text-[14px] leading-[1.7] text-black/72">
+        {points.map((item) => (
+          <li key={item} className="flex gap-3">
+            <span className="mt-[8px] h-1.5 w-1.5 shrink-0 rounded-full bg-black" />
+            <span>{item}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
 function WorkflowCard({
+  number,
+  title,
+  body,
+}: {
+  number: string;
+  title: string;
+  body: string;
+}) {
+  return (
+    <div className="rounded-2xl border border-black/10 p-5">
+      <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/55">
+        {number}
+      </div>
+      <div className="mt-2 text-[16px] font-semibold text-black">{title}</div>
+      <p className="mt-2 text-[14px] leading-[1.7] text-black/72">{body}</p>
+    </div>
+  );
+}
+
+function TrustCard({
   title,
   body,
 }: {
@@ -159,9 +302,11 @@ function WorkflowCard({
   body: string;
 }) {
   return (
-    <div className="rounded-2xl border border-black/10 p-5">
-      <div className="text-[20px] font-semibold text-black">{title}</div>
-      <p className="mt-3 text-[14px] leading-[1.8] text-black/75">{body}</p>
+    <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
+      <div className="text-[18px] font-semibold tracking-tight text-black">
+        {title}
+      </div>
+      <p className="mt-3 text-[15px] leading-[1.8] text-black/72">{body}</p>
     </div>
   );
 }
