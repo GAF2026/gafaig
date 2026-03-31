@@ -8,113 +8,181 @@ export default function MissionPage() {
     <main className="mx-auto max-w-[1180px] px-6 pb-16 pt-14">
       <PublicPageHero
         eyebrow="MISSION"
-        title="Helping organizations demonstrate responsible AI governance"
-        description="GAFAIG provides an independent way to verify that human oversight is operating across an organization’s AI systems. It enables organizations to review governance practices, assess oversight, and publish clear certification outcomes."
-        secondaryDescription="Reviews take place in a controlled environment, while certification results are made available through a public registry. This allows organizations, partners, and regulators to confirm governance without exposing internal materials."
+        title="Why GAFAIG exists"
+        description="GAFAIG exists because AI governance must become independently verifiable. As AI systems move into products, infrastructure, operations, and decision-making, organizations need more than internal policy statements or self-declared controls. They need a structured way to demonstrate that human oversight is actually functioning."
+        secondaryDescription="GAFAIG provides that infrastructure. It operates a controlled verification framework and a public registry of record where certification outcomes can be published, inspected, and independently verified without exposing private evidence, findings, or internal review workflow."
         actions={
           <>
             <Link
               href="/framework"
-              className="rounded-full border border-black px-5 py-3 text-sm font-semibold transition hover:bg-black/[0.04]"
+              className="rounded-full border border-black bg-black px-5 py-3 text-sm font-semibold text-white transition hover:bg-black/90"
             >
               See how it works
             </Link>
 
             <Link
               href="/registry"
-              className="rounded-full border border-black bg-black px-5 py-3 text-sm font-semibold text-white transition hover:bg-black/90"
+              className="rounded-full border border-black px-5 py-3 text-sm font-semibold transition hover:bg-black/[0.04]"
             >
-              View certified organizations
+              View the registry
             </Link>
           </>
         }
       />
 
-      {/* PURPOSE */}
       <section className="mt-10 rounded-3xl border border-black/10 bg-white p-8 md:p-10">
         <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
-          PURPOSE
+          THE PROBLEM
         </div>
 
-        <h2 className="mt-4 max-w-[760px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
-          Why GAFAIG exists
+        <h2 className="mt-4 max-w-[820px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
+          AI governance cannot remain a private claim
         </h2>
 
-        <p className="mt-5 max-w-[960px] text-[16px] leading-[1.9] text-black/75">
+        <p className="mt-5 max-w-[980px] text-[16px] leading-[1.9] text-black/75">
           Organizations are increasingly relying on AI across products,
           operations, and decision-making. At the same time, responsibility for
           oversight is often distributed across teams, systems, and processes.
-          GAFAIG provides a structured way to confirm that oversight is actually
-          functioning in practice.
+          In that environment, governance can easily become fragmented,
+          inconsistently applied, or impossible for others to verify from the
+          outside.
+        </p>
+
+        <p className="mt-5 max-w-[980px] text-[16px] leading-[1.9] text-black/75">
+          GAFAIG exists to close that gap. It creates a structured way to
+          determine whether oversight is operating in practice, produce a formal
+          certification outcome, and publish that outcome through a public trust
+          surface.
         </p>
       </section>
 
-      {/* WHAT + MODEL */}
       <section className="mt-10 grid gap-4 md:grid-cols-2">
         <InfoListCard
-          title="What certification shows"
+          title="Why independent verification matters"
           items={[
-            "Human responsibility for AI oversight is clearly assigned",
-            "Operational controls support responsible AI use",
-            "Oversight activity is documented and verifiable",
-            "Evaluation results are consistent and reproducible",
-            "Certification outcomes are published in the registry",
+            "Organizations need a credible way to demonstrate active oversight",
+            "Partners and regulators need more than self-attestation",
+            "Governance outcomes must be reproducible and externally reviewable",
+            "Certification should become a durable public trust signal",
+            "Public confidence depends on verifiable infrastructure, not marketing claims",
           ]}
         />
 
         <InfoListCard
-          title="How certification is shared"
+          title="What GAFAIG provides"
           items={[
-            "Certification applies at the organization level",
-            "Only controlled information is made public",
-            "Internal evidence remains private",
-            "Certification outcomes can be independently verified",
-            "Registry publication supports external trust",
+            "A controlled verification framework for governance review",
+            "Deterministic certification outcomes",
+            "A public registry of record for disclosed certifications",
+            "Badge and proof surfaces for independent verification",
+            "A clear boundary between private review and public trust",
           ]}
         />
       </section>
 
-      {/* BOUNDARIES */}
       <section className="mt-10 rounded-3xl border border-black/10 bg-white p-8 md:p-10">
         <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
-          SCOPE AND DISCLOSURE
+          WHAT GAFAIG IS
         </div>
 
-        <h2 className="mt-4 max-w-[760px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
-          What is reviewed and what is made public
+        <h2 className="mt-4 max-w-[820px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
+          Trust infrastructure for AI governance
         </h2>
 
         <div className="mt-8 grid gap-4 md:grid-cols-3">
           <BoundaryCard
-            title="Scope"
-            body="Certification applies across the organization, including the people, controls, and oversight processes supporting AI systems."
+            title="Verification system"
+            body="GAFAIG is a structured verification system that evaluates whether human oversight is functioning across an organization’s AI environment."
           />
 
           <BoundaryCard
-            title="Public disclosure"
-            body="The registry publishes certification outcomes only. Evidence, findings, and internal assessment materials are not exposed."
+            title="Certification authority"
+            body="GAFAIG produces formal certification outcomes rather than informal governance impressions or self-scored checklists."
           />
 
           <BoundaryCard
-            title="Decision basis"
-            body="Certification decisions are based on submitted evidence and structured evaluation methods designed to produce consistent and auditable outcomes."
+            title="Registry of record"
+            body="GAFAIG publishes public certification records that can be inspected and verified without exposing private evidence or reviewer workflow."
           />
         </div>
       </section>
 
-      {/* STRUCTURE */}
+      <section className="mt-10 rounded-3xl border border-black/10 bg-white p-8 md:p-10">
+        <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
+          PRIVATE REVIEW, PUBLIC TRUST
+        </div>
+
+        <h2 className="mt-4 max-w-[820px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
+          What is reviewed and what is disclosed
+        </h2>
+
+        <div className="mt-8 grid gap-4 md:grid-cols-3">
+          <BoundaryCard
+            title="Private review layer"
+            body="Evidence, findings, and internal workflow are reviewed inside a controlled verification environment and are not exposed through the public site."
+          />
+
+          <BoundaryCard
+            title="Public certification layer"
+            body="Only certification outcomes, registry identifiers, validity windows, linked systems, and trust surfaces are disclosed through the public registry."
+          />
+
+          <BoundaryCard
+            title="Verifiable trust signal"
+            body="Each public certification record is designed to be externally relied on through linked registry pages, badge surfaces, and proof endpoints."
+          />
+        </div>
+      </section>
+
       <section className="mt-10 grid gap-4 md:grid-cols-2">
         <TextCard
           eyebrow="INDEPENDENCE"
           title="Independent evaluation"
-          body="GAFAIG operates independently from the organizations it evaluates. Certification outcomes are based on submitted evidence and structured review methods designed to support consistency and trust."
+          body="GAFAIG operates independently from the organizations it evaluates. Certification outcomes are produced through structured review methods designed to support consistency, reproducibility, and institutional trust."
         />
 
         <TextCard
-          eyebrow="PARTICIPATION"
-          title="Ongoing participation"
-          body="Organizations participate on an ongoing basis to demonstrate that oversight remains active over time and to maintain their certification status in the registry."
+          eyebrow="CONTINUITY"
+          title="Ongoing governance, not one-time optics"
+          body="The mission is not simply to certify once. It is to support an ongoing model in which organizations demonstrate that oversight remains active over time and that public trust signals continue to reflect real governance conditions."
         />
+      </section>
+
+      <section className="mt-10 rounded-3xl border border-black/10 bg-white p-8 md:p-10">
+        <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
+          MISSION IN PRACTICE
+        </div>
+
+        <h2 className="mt-4 max-w-[820px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
+          The mission is simple
+        </h2>
+
+        <p className="mt-5 max-w-[980px] text-[16px] leading-[1.9] text-black/75">
+          Make AI governance visible, structured, and independently verifiable.
+        </p>
+
+        <div className="mt-8 flex flex-wrap gap-3">
+          <Link
+            href="/framework"
+            className="rounded-full border border-black bg-black px-5 py-3 text-sm font-semibold text-white transition hover:bg-black/90"
+          >
+            Read the framework
+          </Link>
+
+          <Link
+            href="/registry"
+            className="rounded-full border border-black px-5 py-3 text-sm font-semibold transition hover:bg-black/[0.04]"
+          >
+            Open the registry
+          </Link>
+
+          <Link
+            href="/explorer"
+            className="rounded-full border border-black px-5 py-3 text-sm font-semibold transition hover:bg-black/[0.04]"
+          >
+            Explore the data
+          </Link>
+        </div>
       </section>
     </main>
   );
