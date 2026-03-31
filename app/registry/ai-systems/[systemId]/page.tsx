@@ -191,6 +191,12 @@ export default async function RegistryAiSystemDetailPage({ params }: PageProps) 
               {row.DECISION_STATUS}
             </span>
           ) : null}
+
+          {row.CERTIFIED_TIER || row.CERTIFIED_BAND ? (
+            <span className="inline-flex rounded-full border border-black/10 bg-white px-3 py-1 text-[12px] font-semibold uppercase tracking-[0.14em] text-black/70">
+              {tierBandLabel(row.CERTIFIED_TIER, row.CERTIFIED_BAND)}
+            </span>
+          ) : null}
         </div>
 
         <h1 className="mt-5 max-w-[920px] text-[36px] font-semibold leading-[1.08] tracking-tight text-black md:text-[52px]">
@@ -198,7 +204,7 @@ export default async function RegistryAiSystemDetailPage({ params }: PageProps) 
         </h1>
 
         <p className="mt-4 max-w-[860px] text-[17px] leading-[1.7] text-black/72">
-          Public disclosure record for an AI system associated with a GAFAIG registry certification.
+          Public disclosure record for an AI system associated with a GAFAIG certification record. This page shows the public system profile, certification context, and the registry linkage that supports external trust.
         </p>
 
         <div className="mt-8 flex flex-wrap gap-3">
@@ -229,12 +235,15 @@ export default async function RegistryAiSystemDetailPage({ params }: PageProps) 
 
       <section className="mt-10 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <MetricCard label="Certification" value={clean(row.CERTIFICATION_STATUS)} />
-        <MetricCard label="Tier / Band" value={tierBandLabel(row.CERTIFIED_TIER, row.CERTIFIED_BAND)} />
+        <MetricCard
+          label="Tier / Band"
+          value={tierBandLabel(row.CERTIFIED_TIER, row.CERTIFIED_BAND)}
+        />
         <MetricCard label="Lifecycle" value={clean(row.LIFECYCLE_STATUS)} />
         <MetricCard label="Valid to" value={fmtDate(row.VALID_TO)} />
       </section>
 
-      <section className="mt-10 grid gap-6 xl:grid-cols-[1.25fr_0.75fr]">
+      <section className="mt-10 grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
         <div className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
           <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
             SYSTEM PROFILE
@@ -274,13 +283,16 @@ export default async function RegistryAiSystemDetailPage({ params }: PageProps) 
         <div className="grid gap-6">
           <section className="rounded-3xl border border-black/10 bg-white p-8">
             <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
-              CERTIFICATION
+              CERTIFICATION CONTEXT
             </div>
 
             <div className="mt-6 grid gap-3">
               <InfoCard label="Certification status" value={clean(row.CERTIFICATION_STATUS)} />
               <InfoCard label="Decision status" value={clean(row.DECISION_STATUS)} />
-              <InfoCard label="Tier / Band" value={tierBandLabel(row.CERTIFIED_TIER, row.CERTIFIED_BAND)} />
+              <InfoCard
+                label="Tier / Band"
+                value={tierBandLabel(row.CERTIFIED_TIER, row.CERTIFIED_BAND)}
+              />
               <InfoCard label="Issued" value={fmtDate(row.CERTIFIED_AT)} />
               <InfoCard label="Valid from" value={fmtDate(row.VALID_FROM)} />
               <InfoCard label="Valid to" value={fmtDate(row.VALID_TO)} />
@@ -293,6 +305,10 @@ export default async function RegistryAiSystemDetailPage({ params }: PageProps) 
             <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
               REGISTRY LINKAGE
             </div>
+
+            <p className="mt-4 text-[15px] leading-[1.8] text-black/70">
+              This system record is linked to a public GAFAIG certification record. That registry record is the canonical public trust surface for certification status, validity window, and verification endpoints.
+            </p>
 
             <div className="mt-6 grid gap-3">
               <MonoCard label="System ID" value={row.SYSTEM_ID} />
@@ -307,25 +323,25 @@ export default async function RegistryAiSystemDetailPage({ params }: PageProps) 
 
       <section className="mt-10 rounded-3xl border border-black/10 bg-white p-8 md:p-10">
         <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
-          DISCLOSURE NOTES
+          WHY THIS PAGE EXISTS
         </div>
 
         <h2 className="mt-4 text-[28px] font-semibold leading-[1.18] tracking-tight text-black md:text-[34px]">
-          Public record scope
+          Public system context without exposing private review
         </h2>
 
         <div className="mt-6 grid gap-4 lg:grid-cols-3">
           <NarrativeCard
             title="Public transparency"
-            body="This page discloses public-facing system metadata associated with a GAFAIG registry record. It is designed to support transparency without exposing private reviewer workflows or internal evidence."
+            body="This page discloses public-facing system metadata associated with a GAFAIG certification. It helps external parties understand what system is covered and how it sits within the public trust surface."
           />
           <NarrativeCard
-            title="Private verification engine"
-            body="GAFAIG’s verification engine operates privately through application intake, evidence review, findings, events, scoring, and certification workflow. Those internal materials are not exposed on this public page."
+            title="Private verification remains private"
+            body="GAFAIG’s verification engine operates privately through intake, evidence review, findings, scoring, and certification workflow. Those internal materials are not exposed here."
           />
           <NarrativeCard
             title="Registry-linked trust"
-            body="Each system record is connected to a public registry outcome so visitors can evaluate the system in the context of an issued certification and its validity window."
+            body="Each public system record is connected to a registry certification record so visitors can evaluate the system in the context of an issued certification and its validity window."
           />
         </div>
       </section>
