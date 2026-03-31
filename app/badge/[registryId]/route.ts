@@ -71,8 +71,8 @@ function statusColors(status: string | null | undefined) {
 }
 
 function buildSvg(row: BadgeRow, baseUrl: string) {
-  const width = 1600;
-  const height = 900;
+  const width = 1440;
+  const height = 760;
 
   const entityName = clean(row.ENTITY_NAME, row.REGISTRY_ID);
   const status = clean(row.CERTIFICATION_STATUS, row.CERTIFIED_AT ? "Certified" : "Published");
@@ -83,81 +83,93 @@ function buildSvg(row: BadgeRow, baseUrl: string) {
   const verificationUrl = `${baseUrl}/api/verify/${encodeURIComponent(row.REGISTRY_ID)}`;
   const colors = statusColors(status);
 
-  const entityNameFont = entityName.length > 34 ? 42 : entityName.length > 22 ? 52 : 60;
-  const registryFont = row.REGISTRY_ID.length > 28 ? 20 : 22;
+  const entityNameFont =
+    entityName.length > 34 ? 40 : entityName.length > 24 ? 50 : 58;
+
+  const registryFont =
+    row.REGISTRY_ID.length > 30 ? 18 : row.REGISTRY_ID.length > 24 ? 20 : 22;
+
+  const tierBandFont =
+    tierBand.length > 22 ? 22 : tierBand.length > 16 ? 26 : 30;
+
+  const validToFont =
+    validTo.length > 14 ? 22 : 26;
+
+  const verificationFont =
+    verificationUrl.length > 90 ? 16 : 18;
 
   return `<?xml version="1.0" encoding="UTF-8"?>
 <svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="GAFAIG certification badge for ${esc(entityName)}">
   <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="1600" y2="900" gradientUnits="userSpaceOnUse">
+    <linearGradient id="bg" x1="0" y1="0" x2="${width}" y2="${height}" gradientUnits="userSpaceOnUse">
       <stop offset="0%" stop-color="#F8FAFC"/>
       <stop offset="55%" stop-color="#FFFFFF"/>
       <stop offset="100%" stop-color="#F3F4F6"/>
     </linearGradient>
-    <linearGradient id="panel" x1="160" y1="120" x2="1440" y2="780" gradientUnits="userSpaceOnUse">
+    <linearGradient id="panel" x1="100" y1="70" x2="1340" y2="690" gradientUnits="userSpaceOnUse">
       <stop offset="0%" stop-color="#FFFFFF"/>
       <stop offset="100%" stop-color="#FCFCFD"/>
     </linearGradient>
-    <filter id="shadow" x="100" y="70" width="1400" height="760" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
-      <feDropShadow dx="0" dy="14" stdDeviation="28" flood-color="#101828" flood-opacity="0.10"/>
+    <filter id="shadow" x="60" y="40" width="1320" height="680" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="12" stdDeviation="22" flood-color="#101828" flood-opacity="0.10"/>
     </filter>
   </defs>
 
   <rect width="${width}" height="${height}" fill="url(#bg)"/>
 
   <g filter="url(#shadow)">
-    <rect x="140" y="100" width="1320" height="700" rx="32" fill="url(#panel)" stroke="#E4E7EC" stroke-width="2"/>
+    <rect x="80" y="60" width="1280" height="620" rx="28" fill="url(#panel)" stroke="#E4E7EC" stroke-width="2"/>
   </g>
 
-  <rect x="140" y="100" width="1320" height="10" rx="5" fill="${colors.accent}"/>
+  <rect x="80" y="60" width="1280" height="10" rx="5" fill="${colors.accent}"/>
 
-  <text x="220" y="182" fill="#667085" font-family="Inter, Arial, sans-serif" font-size="20" font-weight="700" letter-spacing="4">GAFAIG CERTIFICATION BADGE</text>
+  <text x="160" y="138" fill="#667085" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="700" letter-spacing="4">GAFAIG CERTIFICATION BADGE</text>
 
-  <rect x="220" y="212" width="148" height="42" rx="21" fill="${colors.pillBg}" stroke="${colors.pillBorder}" stroke-width="2"/>
-  <text x="294" y="239" text-anchor="middle" fill="${colors.pillText}" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="700" letter-spacing="1">${esc(status.toUpperCase())}</text>
+  <rect x="160" y="172" width="150" height="40" rx="20" fill="${colors.pillBg}" stroke="${colors.pillBorder}" stroke-width="2"/>
+  <text x="235" y="198" text-anchor="middle" fill="${colors.pillText}" font-family="Inter, Arial, sans-serif" font-size="16" font-weight="800" letter-spacing="1">${esc(status.toUpperCase())}</text>
 
-  <rect x="382" y="212" width="154" height="42" rx="21" fill="#F8FAFC" stroke="#D0D5DD" stroke-width="2"/>
-  <text x="459" y="239" text-anchor="middle" fill="#344054" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="700" letter-spacing="1">${esc(decision.toUpperCase())}</text>
+  <rect x="324" y="172" width="152" height="40" rx="20" fill="#F8FAFC" stroke="#D0D5DD" stroke-width="2"/>
+  <text x="400" y="198" text-anchor="middle" fill="#344054" font-family="Inter, Arial, sans-serif" font-size="16" font-weight="800" letter-spacing="1">${esc(decision.toUpperCase())}</text>
 
-  <text x="220" y="334" fill="#101828" font-family="Inter, Arial, sans-serif" font-size="${entityNameFont}" font-weight="800">${esc(entityName)}</text>
+  <text x="160" y="298" fill="#0F172A" font-family="Inter, Arial, sans-serif" font-size="${entityNameFont}" font-weight="800">${esc(entityName)}</text>
 
-  <text x="220" y="390" fill="#475467" font-family="Inter, Arial, sans-serif" font-size="26" font-weight="500">Public certification record issued through the GAFAIG registry of record.</text>
-
-  <g>
-    <rect x="220" y="454" width="470" height="116" rx="20" fill="#FFFFFF" stroke="#EAECF0" stroke-width="2"/>
-    <text x="250" y="490" fill="#667085" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="700" letter-spacing="1.5">REGISTRY ID</text>
-    <text x="250" y="534" fill="#101828" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="${registryFont}" font-weight="700">${esc(row.REGISTRY_ID)}</text>
-  </g>
+  <text x="160" y="352" fill="#475467" font-family="Inter, Arial, sans-serif" font-size="22" font-weight="500">Public certification record issued through the GAFAIG registry of record.</text>
 
   <g>
-    <rect x="720" y="454" width="240" height="116" rx="20" fill="#FFFFFF" stroke="#EAECF0" stroke-width="2"/>
-    <text x="750" y="490" fill="#667085" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="700" letter-spacing="1.5">COUNTRY</text>
-    <text x="750" y="534" fill="#101828" font-family="Inter, Arial, sans-serif" font-size="30" font-weight="700">${esc(clean(row.COUNTRY))}</text>
+    <rect x="160" y="420" width="470" height="110" rx="18" fill="#FFFFFF" stroke="#DDE3EA" stroke-width="2"/>
+    <text x="190" y="455" fill="#667085" font-family="Inter, Arial, sans-serif" font-size="16" font-weight="700" letter-spacing="1.5">REGISTRY ID</text>
+    <text x="190" y="502" fill="#101828" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="${registryFont}" font-weight="700">${esc(row.REGISTRY_ID)}</text>
   </g>
 
   <g>
-    <rect x="980" y="454" width="240" height="116" rx="20" fill="#FFFFFF" stroke="#EAECF0" stroke-width="2"/>
-    <text x="1010" y="490" fill="#667085" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="700" letter-spacing="1.5">TIER / BAND</text>
-    <text x="1010" y="534" fill="#101828" font-family="Inter, Arial, sans-serif" font-size="30" font-weight="700">${esc(tierBand)}</text>
+    <rect x="660" y="420" width="250" height="110" rx="18" fill="#FFFFFF" stroke="#DDE3EA" stroke-width="2"/>
+    <text x="690" y="455" fill="#667085" font-family="Inter, Arial, sans-serif" font-size="16" font-weight="700" letter-spacing="1.5">COUNTRY</text>
+    <text x="690" y="502" fill="#101828" font-family="Inter, Arial, sans-serif" font-size="28" font-weight="700">${esc(clean(row.COUNTRY))}</text>
   </g>
 
   <g>
-    <rect x="1240" y="454" width="170" height="116" rx="20" fill="${colors.accentSoft}" stroke="${colors.pillBorder}" stroke-width="2"/>
-    <text x="1270" y="490" fill="#067647" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="700" letter-spacing="1.5">VALID TO</text>
-    <text x="1270" y="534" fill="#065F46" font-family="Inter, Arial, sans-serif" font-size="28" font-weight="800">${esc(validTo)}</text>
+    <rect x="930" y="420" width="280" height="110" rx="18" fill="#FFFFFF" stroke="#DDE3EA" stroke-width="2"/>
+    <text x="960" y="455" fill="#667085" font-family="Inter, Arial, sans-serif" font-size="16" font-weight="700" letter-spacing="1.5">TIER / BAND</text>
+    <text x="960" y="502" fill="#101828" font-family="Inter, Arial, sans-serif" font-size="${tierBandFont}" font-weight="700">${esc(tierBand)}</text>
   </g>
 
-  <rect x="220" y="612" width="1190" height="118" rx="22" fill="#0F172A"/>
-  <text x="250" y="650" fill="#98A2B3" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="700" letter-spacing="1.5">VERIFICATION ENDPOINT</text>
-  <text x="250" y="696" fill="#FFFFFF" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="20" font-weight="600">${esc(verificationUrl)}</text>
-
-  <text x="250" y="768" fill="#667085" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="600">Issued ${esc(issuedAt)} • Public trust surface only • Private review materials not disclosed</text>
-
-  <g transform="translate(1240 170)">
-    <circle cx="72" cy="72" r="72" fill="${colors.accentSoft}" stroke="${colors.pillBorder}" stroke-width="4"/>
-    <circle cx="72" cy="72" r="50" fill="${colors.accent}" opacity="0.16"/>
-    <path d="M49 74L64 89L97 56" stroke="${colors.accent}" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+  <g>
+    <rect x="1210" y="420" width="150" height="110" rx="18" fill="${colors.accentSoft}" stroke="${colors.pillBorder}" stroke-width="2"/>
+    <text x="1236" y="455" fill="#067647" font-family="Inter, Arial, sans-serif" font-size="16" font-weight="700" letter-spacing="1.5">VALID TO</text>
+    <text x="1236" y="506" fill="#065F46" font-family="Inter, Arial, sans-serif" font-size="${validToFont}" font-weight="800">${esc(validTo)}</text>
   </g>
+
+  <rect x="160" y="568" width="1200" height="104" rx="20" fill="#0B1736"/>
+  <text x="190" y="606" fill="#98A2B3" font-family="Inter, Arial, sans-serif" font-size="16" font-weight="700" letter-spacing="1.5">VERIFICATION ENDPOINT</text>
+  <text x="190" y="649" fill="#FFFFFF" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="${verificationFont}" font-weight="600">${esc(verificationUrl)}</text>
+
+  <g transform="translate(1130 150)">
+    <circle cx="95" cy="95" r="78" fill="${colors.accentSoft}" stroke="${colors.pillBorder}" stroke-width="4"/>
+    <circle cx="95" cy="95" r="52" fill="${colors.accent}" opacity="0.16"/>
+    <path d="M67 98L86 117L124 79" stroke="${colors.accent}" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+
+  <text x="160" y="708" fill="#667085" font-family="Inter, Arial, sans-serif" font-size="16" font-weight="600">Issued ${esc(issuedAt)} • Public trust surface only • Private review materials not disclosed</text>
 </svg>`;
 }
 
