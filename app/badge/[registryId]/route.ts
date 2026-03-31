@@ -89,11 +89,14 @@ function buildSvg(row: BadgeRow, baseUrl: string) {
   const registryFont =
     row.REGISTRY_ID.length > 30 ? 18 : row.REGISTRY_ID.length > 24 ? 20 : 22;
 
+  const countryFont =
+    clean(row.COUNTRY).length > 14 ? 22 : 28;
+
   const tierBandFont =
-    tierBand.length > 22 ? 22 : tierBand.length > 16 ? 26 : 30;
+    tierBand.length > 22 ? 20 : tierBand.length > 16 ? 24 : 28;
 
   const validToFont =
-    validTo.length > 14 ? 22 : 26;
+    validTo.length > 14 ? 18 : validTo.length > 10 ? 22 : 24;
 
   const verificationFont =
     verificationUrl.length > 90 ? 16 : 18;
@@ -144,19 +147,19 @@ function buildSvg(row: BadgeRow, baseUrl: string) {
   <g>
     <rect x="660" y="420" width="250" height="110" rx="18" fill="#FFFFFF" stroke="#DDE3EA" stroke-width="2"/>
     <text x="690" y="455" fill="#667085" font-family="Inter, Arial, sans-serif" font-size="16" font-weight="700" letter-spacing="1.5">COUNTRY</text>
-    <text x="690" y="502" fill="#101828" font-family="Inter, Arial, sans-serif" font-size="28" font-weight="700">${esc(clean(row.COUNTRY))}</text>
+    <text x="690" y="505" fill="#101828" font-family="Inter, Arial, sans-serif" font-size="${countryFont}" font-weight="700">${esc(clean(row.COUNTRY))}</text>
   </g>
 
   <g>
-    <rect x="930" y="420" width="280" height="110" rx="18" fill="#FFFFFF" stroke="#DDE3EA" stroke-width="2"/>
+    <rect x="930" y="420" width="250" height="110" rx="18" fill="#FFFFFF" stroke="#DDE3EA" stroke-width="2"/>
     <text x="960" y="455" fill="#667085" font-family="Inter, Arial, sans-serif" font-size="16" font-weight="700" letter-spacing="1.5">TIER / BAND</text>
-    <text x="960" y="502" fill="#101828" font-family="Inter, Arial, sans-serif" font-size="${tierBandFont}" font-weight="700">${esc(tierBand)}</text>
+    <text x="960" y="505" fill="#101828" font-family="Inter, Arial, sans-serif" font-size="${tierBandFont}" font-weight="700">${esc(tierBand)}</text>
   </g>
 
   <g>
-    <rect x="1210" y="420" width="150" height="110" rx="18" fill="${colors.accentSoft}" stroke="${colors.pillBorder}" stroke-width="2"/>
-    <text x="1236" y="455" fill="#067647" font-family="Inter, Arial, sans-serif" font-size="16" font-weight="700" letter-spacing="1.5">VALID TO</text>
-    <text x="1236" y="506" fill="#065F46" font-family="Inter, Arial, sans-serif" font-size="${validToFont}" font-weight="800">${esc(validTo)}</text>
+    <rect x="1200" y="420" width="160" height="110" rx="18" fill="${colors.accentSoft}" stroke="${colors.pillBorder}" stroke-width="2"/>
+    <text x="1226" y="455" fill="#067647" font-family="Inter, Arial, sans-serif" font-size="16" font-weight="700" letter-spacing="1.5">VALID TO</text>
+    <text x="1226" y="505" fill="#065F46" font-family="Inter, Arial, sans-serif" font-size="${validToFont}" font-weight="800">${esc(validTo)}</text>
   </g>
 
   <rect x="160" y="568" width="1200" height="104" rx="20" fill="#0B1736"/>
