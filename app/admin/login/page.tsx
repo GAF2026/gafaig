@@ -16,7 +16,7 @@ export default function AdminLoginPage() {
   const demoPassword = useMemo(
     () =>
       process.env.NEXT_PUBLIC_DEMO_PASSWORD ??
-      "Use the configured public evaluator password",
+      "Use the configured evaluator credential",
     []
   );
 
@@ -36,7 +36,7 @@ export default function AdminLoginPage() {
       const data = await res.json().catch(() => null);
 
       if (!res.ok) {
-        setError(data?.error || "Unable to enable demo access");
+        setError(data?.error || "Unable to enable reviewer access");
         return;
       }
 
@@ -65,9 +65,10 @@ export default function AdminLoginPage() {
   return (
     <main className="mx-auto max-w-[1180px] px-6 pb-16 pt-14">
       <PublicPageHero
-        eyebrow="DEMO WALKTHROUGH"
-        title="Reviewer access"
-        description="This step demonstrates that GAFAIG has a controlled reviewer layer separate from the public registry. After access is enabled, continue into the Snowflake-backed applications workflow."
+        eyebrow="PRIVATE VERIFICATION LAYER"
+        title="Controlled reviewer access"
+        description="This page demonstrates that GAFAIG maintains a private verification environment separate from the public registry. Reviewer access is required for operational workflow, while certification records remain publicly viewable through the registry."
+        secondaryDescription="Use the demo evaluator credential to enter the private review layer, then continue into the Snowflake-backed applications workflow. This access exists only for the demonstration environment and is not part of the public registry experience."
         actions={
           <>
             <Link
@@ -80,7 +81,7 @@ export default function AdminLoginPage() {
               href="/registry"
               className="rounded-full border border-black px-5 py-3 text-sm font-semibold transition hover:bg-black/[0.04]"
             >
-              Skip to public registry
+              View public registry
             </Link>
           </>
         }
@@ -89,21 +90,22 @@ export default function AdminLoginPage() {
       <div className="mt-10 grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
         <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
           <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
-            REVIEWER ACCESS
+            EVALUATOR ACCESS
           </div>
 
           <h2 className="mt-4 max-w-[760px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
-            Enable demo access
+            Enter the private review environment
           </h2>
 
           <p className="mt-5 text-[15px] leading-[1.85] text-black/70">
-            Use the evaluator password below, then continue to the applications
-            page.
+            This step is part of the live GAFAIG walkthrough. It shows that the
+            verification workflow operates in a controlled reviewer layer that
+            is distinct from the public trust surface.
           </p>
 
           <div className="mt-6 rounded-2xl border border-black/10 bg-neutral-50 p-5">
             <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-black/45">
-              Public evaluator password
+              Demo evaluator credential
             </div>
 
             <div className="mt-3 break-all font-mono text-[14px] leading-[1.8] text-black/85">
@@ -116,7 +118,7 @@ export default function AdminLoginPage() {
                 onClick={usePassword}
                 className="inline-flex items-center rounded-full border border-black px-4 py-2 text-sm font-medium transition hover:bg-black hover:text-white"
               >
-                Use this password
+                Use this credential
               </button>
 
               <button
@@ -124,7 +126,7 @@ export default function AdminLoginPage() {
                 onClick={copyPassword}
                 className="inline-flex items-center rounded-full border border-black/15 px-4 py-2 text-sm font-medium transition hover:bg-black/[0.04]"
               >
-                Copy password
+                Copy credential
               </button>
             </div>
           </div>
@@ -132,18 +134,18 @@ export default function AdminLoginPage() {
           <div className="mt-6 grid gap-4 md:grid-cols-3">
             <MiniStep
               step="Step 1"
-              title="Use public demo credential"
-              body="Paste or auto-fill the evaluator password."
+              title="Load evaluator credential"
+              body="Paste or auto-fill the demo credential used for the walkthrough."
             />
             <MiniStep
               step="Step 2"
               title="Enable reviewer access"
-              body="This sets the demo access cookie for the walkthrough."
+              body="This sets a short-lived demo access cookie for the private verification layer."
             />
             <MiniStep
               step="Step 3"
               title="Open applications"
-              body="Continue into the private operational workflow."
+              body="Continue into the operational workflow where review activity begins."
             />
           </div>
 
@@ -152,7 +154,7 @@ export default function AdminLoginPage() {
               htmlFor="password"
               className="text-[11px] font-semibold uppercase tracking-[0.16em] text-black/45"
             >
-              Demo password
+              Evaluator credential
             </label>
 
             <input
@@ -163,7 +165,7 @@ export default function AdminLoginPage() {
                 setPassword(e.target.value);
                 if (error) setError(null);
               }}
-              placeholder="Enter evaluator password"
+              placeholder="Enter evaluator credential"
               className="mt-3 w-full rounded-2xl border border-black/10 px-4 py-4 text-[15px] outline-none transition focus:border-black"
               autoComplete="current-password"
             />
@@ -182,14 +184,14 @@ export default function AdminLoginPage() {
               disabled={busy || !password.trim()}
               className="inline-flex items-center rounded-full bg-black px-5 py-3 text-sm font-medium text-white transition hover:bg-black/90 disabled:cursor-not-allowed disabled:opacity-50"
             >
-              {busy ? "Enabling access..." : "Continue to applications"}
+              {busy ? "Enabling reviewer access..." : "Continue to applications"}
             </button>
           </div>
 
           <p className="mt-6 text-[14px] leading-[1.8] text-black/60">
-            Successful login sets a short-lived demo cookie for evaluator
-            access. This is for the walkthrough only and should be rotated or
-            removed after judging is complete.
+            This credential is limited to the demonstration environment. Public
+            certification records remain viewable through the registry without
+            reviewer access.
           </p>
         </section>
 
@@ -199,18 +201,20 @@ export default function AdminLoginPage() {
           </div>
 
           <h2 className="mt-4 max-w-[760px] text-[28px] font-semibold leading-[1.2] tracking-tight text-black">
-            Private layer proof
+            Proof of the private layer
           </h2>
 
           <p className="mt-5 text-[15px] leading-[1.85] text-black/70">
-            This page exists to show that GAFAIG maintains a private reviewer
-            environment distinct from the public trust layer.
+            GAFAIG is built on a two-layer model. Public certification records
+            can be viewed without reviewer access, while operational workflow is
+            restricted to a controlled verification environment.
           </p>
 
           <div className="mt-6 space-y-4">
             <InfoCard text="Reviewer access is controlled." />
             <InfoCard text="Operational workflow is separate from public certification pages." />
-            <InfoCard text="The next step is the Snowflake-backed applications view." />
+            <InfoCard text="The next step opens the Snowflake-backed applications view." />
+            <InfoCard text="Public registry records remain accessible without evaluator credentials." />
           </div>
         </aside>
       </div>
