@@ -449,7 +449,7 @@ export default async function RegistryDetailPage({
                 <Link
                   href={badgeUrl}
                   target="_blank"
-                  className="inline-flex items-center rounded-full border border-black bg-black px-5 py-3 text-sm font-semibold text-white transition hover:bg-black/90"
+                  className="inline-flex shrink-0 items-center justify-center rounded-full border border-black bg-black px-5 py-3 text-center text-sm font-semibold text-white transition hover:bg-black/90"
                 >
                   Open badge
                 </Link>
@@ -474,7 +474,7 @@ export default async function RegistryDetailPage({
                 <Link
                   href={verifyUrl}
                   target="_blank"
-                  className="inline-flex items-center rounded-full border border-black bg-black px-5 py-3 text-sm font-semibold text-white transition hover:bg-black/90"
+                  className="inline-flex shrink-0 items-center justify-center rounded-full border border-black bg-black px-5 py-3 text-center text-sm font-semibold text-white transition hover:bg-black/90"
                 >
                   Open proof JSON
                 </Link>
