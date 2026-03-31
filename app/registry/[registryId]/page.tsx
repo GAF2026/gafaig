@@ -1,19 +1,24 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { sfQuery } from "@/lib/snowflake";
-import CopyButton from "@/app/components/CopyButton";
 
 export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
-/* ================= TYPES ================= */
+type PageProps = {
+  params: {
+    registryId: string;
+  };
+};
 
-type RegistryRecord = {
+type RegistryRow = {
   REGISTRY_ID: string;
   APPLICATION_ID: string | null;
   CASE_ID: string | null;
   ENTITY_NAME: string | null;
   ENTITY_TYPE: string | null;
   COUNTRY: string | null;
+  CERTIFICATION_STATUS: string | null;
   CERTIFIED_TIER: string | null;
   CERTIFIED_BAND: string | null;
   DECISION_STATUS: string | null;
@@ -22,32 +27,24 @@ type RegistryRecord = {
   CERTIFIED_AT: string | null;
 };
 
-type PublicSystemRow = {
+type LinkedSystemRow = {
   SYSTEM_ID: string;
-  REGISTRY_ID: string;
+  REGISTRY_ID: string | null;
+  APPLICATION_ID: string | null;
   CASE_ID: string | null;
   SYSTEM_NAME: string | null;
   SYSTEM_TYPE: string | null;
+  INTENDED_USE: string | null;
   DEPLOYMENT_STATUS: string | null;
   OVERSIGHT_LEVEL: string | null;
   RISK_TIER: string | null;
   DEVELOPER_ORGANIZATION: string | null;
-  PUBLIC_SUMMARY: string | null;
+  CERTIFICATION_STATUS: string | null;
   CERTIFIED_TIER: string | null;
   CERTIFIED_BAND: string | null;
 };
 
-type VerifyFetchResult = {
-  ok: boolean;
-  status: number | null;
-  payload: unknown | null;
-  pretty: string | null;
-  error: string | null;
-};
-
-/* ================= HELPERS ================= */
-
-function formatDate(value: string | null | undefined) {
+function fmtDate(value: string | null | undefined) {
   if (!value) return "—";
   const d = new Date(value);
   if (Number.isNaN(d.getTime())) return "—";
@@ -58,6 +55,10 @@ function formatDate(value: string | null | undefined) {
   });
 }
 
+function clean(value: string | null | undefined) {
+  return value && value.trim().length > 0 ? value : "—";
+}
+
 function tierBandLabel(tier: string | null, band: string | null) {
   if (tier && band) return `${tier} · Band ${band}`;
   if (tier) return tier;
@@ -65,158 +66,44 @@ function tierBandLabel(tier: string | null, band: string | null) {
   return "—";
 }
 
-function certificationStatus(record: RegistryRecord) {
-  return record.CERTIFIED_AT ? "Certified" : "Not Certified";
-}
-
-function statusBadgeClass(value: string) {
-  const normalized = value.trim().toLowerCase();
+function statusBadgeClass(value: string | null | undefined) {
+  const normalized = String(value ?? "").trim().toLowerCase();
 
   if (normalized === "certified") {
-    return "border-emerald-200 bg-emerald-50 text-emerald-800";
+    return "border-emerald-200 bg-emerald-50 text-emerald-700";
   }
   if (normalized === "published") {
-    return "border-sky-200 bg-sky-50 text-sky-800";
+    return "border-sky-200 bg-sky-50 text-sky-700";
   }
+
   return "border-black/10 bg-white text-black/70";
 }
 
-function riskBadgeClass(riskTier: string | null) {
-  const value = String(riskTier ?? "").trim().toUpperCase();
+function riskBadgeClass(value: string | null | undefined) {
+  const normalized = String(value ?? "").trim().toLowerCase();
 
-  if (value === "HIGH") {
-    return "border-black/15 bg-black text-white";
+  if (normalized === "high") {
+    return "border-black bg-black text-white";
   }
-  if (value === "MEDIUM") {
+  if (normalized === "medium") {
     return "border-black/15 bg-black/10 text-black";
   }
-  if (value === "LOW") {
+  if (normalized === "low") {
     return "border-black/10 bg-white text-black/80";
   }
+
   return "border-black/10 bg-white text-black/65";
 }
 
-function baseOrigin() {
-  return (
-    process.env.NEXT_PUBLIC_BASE_URL ||
-    process.env.NEXT_PUBLIC_SITE_URL ||
-    "https://www.gafaig.com"
-  ).replace(/\/$/, "");
-}
-
-async function getVerificationPayload(
-  registryId: string
-): Promise<VerifyFetchResult> {
-  const url = `${baseOrigin()}/api/verify/${encodeURIComponent(registryId)}`;
-
-  try {
-    const response = await fetch(url, {
-      cache: "no-store",
-      next: { revalidate: 0 },
-    });
-
-    const text = await response.text();
-    let payload: unknown = null;
-
-    try {
-      payload = text ? JSON.parse(text) : null;
-    } catch {
-      payload = text;
-    }
-
-    return {
-      ok: response.ok,
-      status: response.status,
-      payload,
-      pretty:
-        payload == null
-          ? null
-          : typeof payload === "string"
-          ? payload
-          : JSON.stringify(payload, null, 2),
-      error: response.ok ? null : `Verification endpoint returned ${response.status}.`,
-    };
-  } catch (error) {
-    return {
-      ok: false,
-      status: null,
-      payload: null,
-      pretty: null,
-      error:
-        error instanceof Error
-          ? error.message
-          : "Unable to fetch verification payload.",
-    };
-  }
-}
-
-function getProofSignedAt(payload: unknown): string | null {
-  if (!payload || typeof payload !== "object") return null;
-
-  const p = payload as Record<string, unknown>;
-  const candidates = [
-    p.signedAt,
-    p.signed_at,
-    p.issuedAt,
-    p.issued_at,
-    p.timestamp,
-  ];
-
-  for (const candidate of candidates) {
-    if (typeof candidate === "string" && candidate.trim()) {
-      return candidate;
-    }
-  }
-
-  if (
-    p.proof &&
-    typeof p.proof === "object" &&
-    p.proof !== null &&
-    typeof (p.proof as Record<string, unknown>).signedAt === "string"
-  ) {
-    return (p.proof as Record<string, string>).signedAt;
-  }
-
-  return null;
-}
-
-function getProofAlgorithm(payload: unknown): string | null {
-  if (!payload || typeof payload !== "object") return null;
-
-  const p = payload as Record<string, unknown>;
-  const candidates = [p.alg, p.algorithm];
-
-  for (const candidate of candidates) {
-    if (typeof candidate === "string" && candidate.trim()) {
-      return candidate;
-    }
-  }
-
-  if (
-    p.proof &&
-    typeof p.proof === "object" &&
-    p.proof !== null &&
-    typeof (p.proof as Record<string, unknown>).alg === "string"
-  ) {
-    return (p.proof as Record<string, string>).alg;
-  }
-
-  return null;
-}
-
-/* ================= PAGE ================= */
-
-export default async function RegistryDetailPage({
-  params,
-}: {
-  params: { registryId: string };
-}) {
+export default async function RegistryRecordPage({ params }: PageProps) {
   const registryId = decodeURIComponent(params.registryId || "").trim();
 
-  if (!registryId) notFound();
+  if (!registryId) {
+    notFound();
+  }
 
-  const [records, systems, verify] = await Promise.all([
-    sfQuery<RegistryRecord>(
+  const [registryRows, linkedSystems] = await Promise.all([
+    sfQuery<RegistryRow>(
       `
       SELECT
         REGISTRY_ID,
@@ -225,6 +112,7 @@ export default async function RegistryDetailPage({
         ENTITY_NAME,
         ENTITY_TYPE,
         COUNTRY,
+        CERTIFICATION_STATUS,
         CERTIFIED_TIER,
         CERTIFIED_BAND,
         DECISION_STATUS,
@@ -232,45 +120,45 @@ export default async function RegistryDetailPage({
         VALID_TO,
         CERTIFIED_AT
       FROM GAFAIG_DB.CORE.V_REGISTRY_PUBLIC
-      WHERE REGISTRY_ID = ?
+      WHERE UPPER(TRIM(REGISTRY_ID)) = UPPER(TRIM(?))
       LIMIT 1
       `,
       [registryId]
     ),
-    sfQuery<PublicSystemRow>(
+    sfQuery<LinkedSystemRow>(
       `
       SELECT
         SYSTEM_ID,
         REGISTRY_ID,
+        APPLICATION_ID,
         CASE_ID,
         SYSTEM_NAME,
         SYSTEM_TYPE,
+        INTENDED_USE,
         DEPLOYMENT_STATUS,
         OVERSIGHT_LEVEL,
         RISK_TIER,
         DEVELOPER_ORGANIZATION,
-        PUBLIC_SUMMARY,
+        CERTIFICATION_STATUS,
         CERTIFIED_TIER,
         CERTIFIED_BAND
       FROM GAFAIG_DB.CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC
-      WHERE REGISTRY_ID = ?
-      ORDER BY SYSTEM_NAME ASC
+      WHERE UPPER(TRIM(REGISTRY_ID)) = UPPER(TRIM(?))
+      ORDER BY COALESCE(DISPLAY_ORDER, 100), SYSTEM_NAME
       `,
       [registryId]
     ),
-    getVerificationPayload(registryId),
   ]);
 
-  const record = records[0];
-  if (!record) notFound();
+  const row = registryRows[0];
 
-  const certStatus = certificationStatus(record);
-  const verifyUrl = `/api/verify/${encodeURIComponent(record.REGISTRY_ID)}`;
-  const badgeUrl = `/badge/${encodeURIComponent(record.REGISTRY_ID)}`;
-  const absoluteVerifyUrl = `${baseOrigin()}${verifyUrl}`;
-  const absoluteBadgeUrl = `${baseOrigin()}${badgeUrl}`;
-  const signedAt = getProofSignedAt(verify.payload);
-  const proofAlg = getProofAlgorithm(verify.payload);
+  if (!row) {
+    notFound();
+  }
+
+  const verificationUrl = `/api/verify/${encodeURIComponent(row.REGISTRY_ID)}`;
+  const badgeUrl = `/badge/${encodeURIComponent(row.REGISTRY_ID)}`;
+  const entityName = row.ENTITY_NAME || row.REGISTRY_ID;
 
   return (
     <main className="mx-auto max-w-[1240px] px-6 pb-16 pt-14">
@@ -279,136 +167,134 @@ export default async function RegistryDetailPage({
           CERTIFICATION RECORD
         </div>
 
-        <div className="mt-6 flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
-          <div className="min-w-0 flex-1">
-            <div className="flex flex-wrap items-center gap-2">
-              <span
-                className={`inline-flex rounded-full border px-3 py-1 text-[12px] font-semibold uppercase tracking-[0.14em] ${statusBadgeClass(
-                  certStatus
-                )}`}
-              >
-                {certStatus}
-              </span>
+        <div className="mt-6 flex flex-wrap gap-2">
+          <span
+            className={`inline-flex rounded-full border px-3 py-1 text-[12px] font-semibold uppercase tracking-[0.14em] ${statusBadgeClass(
+              row.CERTIFICATION_STATUS
+            )}`}
+          >
+            {clean(row.CERTIFICATION_STATUS)}
+          </span>
 
-              <span
-                className={`inline-flex rounded-full border px-3 py-1 text-[12px] font-semibold uppercase tracking-[0.14em] ${statusBadgeClass(
-                  record.DECISION_STATUS || "—"
-                )}`}
-              >
-                {record.DECISION_STATUS || "—"}
-              </span>
+          <span
+            className={`inline-flex rounded-full border px-3 py-1 text-[12px] font-semibold uppercase tracking-[0.14em] ${statusBadgeClass(
+              row.DECISION_STATUS
+            )}`}
+          >
+            {clean(row.DECISION_STATUS)}
+          </span>
 
-              <span className="inline-flex rounded-full border border-black/10 bg-white px-3 py-1 text-[12px] font-semibold uppercase tracking-[0.14em] text-black/70">
-                {tierBandLabel(record.CERTIFIED_TIER, record.CERTIFIED_BAND)}
-              </span>
-            </div>
+          {(row.CERTIFIED_TIER || row.CERTIFIED_BAND) && (
+            <span className="inline-flex rounded-full border border-black/10 bg-white px-3 py-1 text-[12px] font-semibold uppercase tracking-[0.14em] text-black/70">
+              {tierBandLabel(row.CERTIFIED_TIER, row.CERTIFIED_BAND)}
+            </span>
+          )}
+        </div>
 
-            <h1 className="mt-5 max-w-[900px] text-[36px] font-semibold leading-[1.08] tracking-tight text-black md:text-[52px]">
-              {record.ENTITY_NAME || "Unnamed Entity"}
+        <div className="mt-5 flex flex-col gap-8 lg:flex-row lg:items-start lg:justify-between">
+          <div className="max-w-[760px]">
+            <h1 className="text-[36px] font-semibold leading-[1.08] tracking-tight text-black md:text-[52px]">
+              {entityName}
             </h1>
 
-            <p className="mt-4 max-w-[860px] text-[17px] leading-[1.72] text-black/72">
+            <p className="mt-4 text-[16px] leading-[1.8] text-black/72">
               Canonical public certification record issued by GAFAIG. This page
-              summarizes the public certification outcome, presents the live
-              trust surface, and links directly to any disclosed AI systems
-              associated with the record.
+              summarizes public certification outcome, validity window, trust
+              surfaces, and any disclosed AI systems associated with the record.
             </p>
 
             <div className="mt-8 flex flex-wrap gap-3">
               <Link
                 href="/registry"
-                className="rounded-full border border-black bg-black px-5 py-3 text-sm font-semibold text-white transition hover:bg-black/90"
+                className="inline-flex items-center justify-center rounded-full border border-black bg-black px-5 py-3 text-sm font-semibold text-white transition hover:bg-black/90"
               >
                 Back to registry
               </Link>
 
               <Link
-                href={verifyUrl}
-                className="rounded-full border border-black px-5 py-3 text-sm font-semibold transition hover:bg-black/[0.04]"
-                target="_blank"
+                href={verificationUrl}
+                className="inline-flex min-w-[132px] items-center justify-center rounded-full border border-black px-5 py-3 text-center text-sm font-semibold transition hover:bg-black/[0.04]"
               >
-                View verification
+                Open proof JSON
               </Link>
 
               <Link
                 href={badgeUrl}
-                className="rounded-full border border-black px-5 py-3 text-sm font-semibold transition hover:bg-black/[0.04]"
-                target="_blank"
+                className="inline-flex min-w-[132px] items-center justify-center rounded-full border border-black px-5 py-3 text-center text-sm font-semibold transition hover:bg-black/[0.04]"
               >
                 Open badge
               </Link>
 
-              {systems.length > 0 ? (
-                <Link
-                  href={`/registry/ai-systems/${encodeURIComponent(
-                    systems[0].SYSTEM_ID
-                  )}`}
-                  className="rounded-full border border-black px-5 py-3 text-sm font-semibold transition hover:bg-black/[0.04]"
+              {linkedSystems.length > 0 && (
+                <a
+                  href="#linked-systems"
+                  className="inline-flex min-w-[148px] items-center justify-center rounded-full border border-black px-5 py-3 text-center text-sm font-semibold transition hover:bg-black/[0.04]"
                 >
                   View linked systems
-                </Link>
-              ) : null}
+                </a>
+              )}
             </div>
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1 lg:min-w-[260px]">
-            <MetricCard
+          <div className="grid min-w-[280px] gap-3 sm:grid-cols-2 lg:grid-cols-1">
+            <HeroMetric
               label="Certification"
-              value={tierBandLabel(record.CERTIFIED_TIER, record.CERTIFIED_BAND)}
+              value={tierBandLabel(row.CERTIFIED_TIER, row.CERTIFIED_BAND)}
             />
-            <MetricCard label="Valid to" value={formatDate(record.VALID_TO)} />
+            <HeroMetric label="Valid to" value={fmtDate(row.VALID_TO)} />
           </div>
         </div>
       </section>
 
       <section className="mt-10 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <MetricCard label="Registry ID" value={record.REGISTRY_ID} mono />
-        <MetricCard label="Country" value={record.COUNTRY || "—"} />
+        <MetricCard label="Registry ID" value={row.REGISTRY_ID} mono />
+        <MetricCard label="Country" value={clean(row.COUNTRY)} />
         <MetricCard
           label="Tier / Band"
-          value={tierBandLabel(record.CERTIFIED_TIER, record.CERTIFIED_BAND)}
+          value={tierBandLabel(row.CERTIFIED_TIER, row.CERTIFIED_BAND)}
         />
-        <MetricCard label="Certified at" value={formatDate(record.CERTIFIED_AT)} />
+        <MetricCard label="Certified at" value={fmtDate(row.CERTIFIED_AT)} />
       </section>
 
-      <section className="mt-10 grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
+      <section className="mt-10 grid gap-6 xl:grid-cols-[1.02fr_0.98fr]">
         <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
-          <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
-            CERTIFICATION SUMMARY
-          </div>
-
-          <div className="mt-4 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+          <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
             <div>
-              <h2 className="text-[30px] font-semibold leading-[1.16] tracking-tight text-black md:text-[36px]">
-                Public registry details
+              <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
+                PUBLIC REGISTRY DETAILS
+              </div>
+
+              <h2 className="mt-4 text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
+                Certification record summary
               </h2>
-              <p className="mt-3 max-w-[760px] text-[15px] leading-[1.72] text-black/68">
+
+              <p className="mt-4 max-w-[760px] text-[15px] leading-[1.8] text-black/70">
                 Core public certification metadata associated with this registry
                 record.
               </p>
             </div>
 
-            <div className="rounded-2xl border border-black/10 px-4 py-3 text-sm text-black/70">
-              {systems.length} linked system{systems.length === 1 ? "" : "s"}
+            <div className="rounded-full border border-black/10 px-3 py-1.5 text-[12px] font-medium text-black/65">
+              {linkedSystems.length} linked system{linkedSystems.length === 1 ? "" : "s"}
             </div>
           </div>
 
-          <div className="mt-8 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-            <InfoCard label="Registry ID" value={record.REGISTRY_ID} mono />
-            <InfoCard label="Entity type" value={record.ENTITY_TYPE || "—"} />
-            <InfoCard label="Certification status" value={certStatus} />
-            <InfoCard label="Decision status" value={record.DECISION_STATUS || "—"} />
-            <InfoCard label="Application ID" value={record.APPLICATION_ID || "—"} mono />
-            <InfoCard label="Case ID" value={record.CASE_ID || "—"} mono />
-            <InfoCard label="Certified tier" value={record.CERTIFIED_TIER || "—"} />
-            <InfoCard label="Certified band" value={record.CERTIFIED_BAND || "—"} />
+          <div className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            <InfoCard label="Registry ID" value={row.REGISTRY_ID} mono />
+            <InfoCard label="Entity type" value={clean(row.ENTITY_TYPE)} />
+            <InfoCard label="Certification status" value={clean(row.CERTIFICATION_STATUS)} />
+            <InfoCard label="Decision status" value={clean(row.DECISION_STATUS)} />
+            <InfoCard label="Application ID" value={clean(row.APPLICATION_ID)} />
+            <InfoCard label="Case ID" value={clean(row.CASE_ID)} />
+            <InfoCard label="Certified tier" value={clean(row.CERTIFIED_TIER)} />
+            <InfoCard label="Certified band" value={clean(row.CERTIFIED_BAND)} />
             <InfoCard
               label="Tier / Band"
-              value={tierBandLabel(record.CERTIFIED_TIER, record.CERTIFIED_BAND)}
+              value={tierBandLabel(row.CERTIFIED_TIER, row.CERTIFIED_BAND)}
             />
-            <InfoCard label="Valid from" value={formatDate(record.VALID_FROM)} />
-            <InfoCard label="Valid to" value={formatDate(record.VALID_TO)} />
-            <InfoCard label="Certified at" value={formatDate(record.CERTIFIED_AT)} />
+            <InfoCard label="Valid from" value={fmtDate(row.VALID_FROM)} />
+            <InfoCard label="Valid to" value={fmtDate(row.VALID_TO)} />
+            <InfoCard label="Certified at" value={fmtDate(row.CERTIFIED_AT)} />
           </div>
         </section>
 
@@ -417,214 +303,209 @@ export default async function RegistryDetailPage({
             LIVE TRUST SURFACE
           </div>
 
-          <h2 className="mt-4 text-[30px] font-semibold leading-[1.16] tracking-tight text-black md:text-[36px]">
+          <h2 className="mt-4 text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
             Verification, badge, and proof
           </h2>
 
+          <p className="mt-4 text-[15px] leading-[1.8] text-black/70">
+            This panel exposes the public trust layer for the registry record.
+            It provides a direct verification endpoint, a portable badge
+            surface, and the canonical public identifiers needed to validate the
+            certification externally.
+          </p>
+
           <div className="mt-8 grid gap-4">
-            <div className="rounded-2xl border border-black/6 bg-black/[0.015] px-4 py-4">
-              <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-black/55">
-                Registry ID
-              </div>
-              <div className="mt-3 flex items-start gap-2">
-                <div className="min-w-0 break-all font-mono text-[13px] leading-tight text-black/85">
-                  {record.REGISTRY_ID}
-                </div>
-                <CopyButton value={record.REGISTRY_ID} />
-              </div>
+            <TrustSurfaceCard
+              label="Registry ID"
+              description="Canonical public identifier for this certification record."
+              value={row.REGISTRY_ID}
+              mono
+            />
+
+            <TrustActionCard
+              label="Verification proof"
+              description="Open the live verification payload for this registry record."
+              href={verificationUrl}
+              hrefLabel="Open proof JSON"
+              value={verificationUrl}
+            />
+
+            <TrustActionCard
+              label="Verification badge"
+              description="Open the embeddable public badge for this certification record."
+              href={badgeUrl}
+              hrefLabel="Open badge"
+              value={badgeUrl}
+            />
+          </div>
+
+          <div className="mt-8 grid gap-3 sm:grid-cols-2">
+            <InfoCard label="Status" value={clean(row.CERTIFICATION_STATUS)} />
+            <InfoCard label="Decision" value={clean(row.DECISION_STATUS)} />
+            <InfoCard
+              label="Tier / Band"
+              value={tierBandLabel(row.CERTIFIED_TIER, row.CERTIFIED_BAND)}
+            />
+            <InfoCard label="Issued at" value={fmtDate(row.CERTIFIED_AT)} />
+            <InfoCard label="Valid through" value={fmtDate(row.VALID_TO)} />
+            <InfoCard label="Proof surface" value="Verification endpoint live" />
+          </div>
+
+          <div className="mt-8 rounded-2xl border border-black/10 bg-black/[0.02] p-5">
+            <div className="text-[18px] font-semibold tracking-tight text-black">
+              Why this matters
             </div>
-
-            <div className="rounded-2xl border border-black/6 bg-black/[0.015] p-5">
-              <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                <div>
-                  <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-black/55">
-                    Verification badge
-                  </div>
-                  <div className="mt-3 text-sm leading-[1.7] text-black/72">
-                    Open the embeddable public badge for this certification
-                    record.
-                  </div>
-                </div>
-
-                <Link
-                  href={badgeUrl}
-                  target="_blank"
-                  className="inline-flex shrink-0 items-center justify-center rounded-full border border-black bg-black px-5 py-3 text-center text-sm font-semibold text-white transition hover:bg-black/90"
-                >
-                  Open badge
-                </Link>
-              </div>
-
-              <div className="mt-4 break-all rounded-xl bg-white px-4 py-3 font-mono text-[12px] text-black/70">
-                {absoluteBadgeUrl}
-              </div>
-            </div>
-
-            <div className="rounded-2xl border border-black/6 bg-black/[0.015] p-5">
-              <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                <div>
-                  <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-black/55">
-                    Verification proof
-                  </div>
-                  <div className="mt-3 text-sm leading-[1.7] text-black/72">
-                    Open the live verification payload for this registry record.
-                  </div>
-                </div>
-
-                <Link
-                  href={verifyUrl}
-                  target="_blank"
-                  className="inline-flex shrink-0 items-center justify-center rounded-full border border-black bg-black px-5 py-3 text-center text-sm font-semibold text-white transition hover:bg-black/90"
-                >
-                  Open proof JSON
-                </Link>
-              </div>
-
-              <div className="mt-4 break-all rounded-xl bg-white px-4 py-3 font-mono text-[12px] text-black/70">
-                {absoluteVerifyUrl}
-              </div>
-            </div>
-
-            <div className="grid gap-3 sm:grid-cols-2">
-              <InfoSmall label="Status" value={certStatus} />
-              <InfoSmall label="Decision" value={record.DECISION_STATUS || "—"} />
-              <InfoSmall
-                label="Tier / Band"
-                value={tierBandLabel(record.CERTIFIED_TIER, record.CERTIFIED_BAND)}
-              />
-              <InfoSmall label="Signed at" value={signedAt ? formatDate(signedAt) : "—"} />
-              <InfoSmall label="Algorithm" value={proofAlg || "—"} />
-              <InfoSmall
-                label="Proof fetch"
-                value={
-                  verify.ok
-                    ? `Live (${verify.status ?? "OK"})`
-                    : verify.error || "Unavailable"
-                }
-              />
-            </div>
-
-            <details className="rounded-2xl border border-black/8 bg-white p-5">
-              <summary className="cursor-pointer text-sm font-semibold text-black">
-                View proof payload
-              </summary>
-
-              {verify.pretty ? (
-                <pre className="mt-4 overflow-x-auto rounded-xl bg-black px-4 py-4 text-[12px] leading-[1.7] text-white">
-                  {verify.pretty}
-                </pre>
-              ) : (
-                <div className="mt-4 rounded-xl border border-black/8 bg-black/[0.015] px-4 py-4 text-sm text-black/70">
-                  Verification payload is not currently available.
-                </div>
-              )}
-            </details>
+            <p className="mt-3 text-[15px] leading-[1.8] text-black/72">
+              GAFAIG separates private verification workflow from public trust
+              surfaces. Evidence and findings remain private. Certification
+              status, validity window, badge access, and proof payloads become
+              public and verifiable.
+            </p>
           </div>
         </section>
       </section>
 
-      <section className="mt-10 rounded-3xl border border-black/10 bg-white p-8 md:p-10">
-        <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
-          LINKED AI SYSTEMS
-        </div>
-
-        <div className="mt-4 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+      <section
+        id="linked-systems"
+        className="mt-10 rounded-3xl border border-black/10 bg-white p-8 md:p-10"
+      >
+        <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
           <div>
-            <h2 className="text-[30px] font-semibold leading-[1.16] tracking-tight text-black md:text-[36px]">
+            <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
+              LINKED AI SYSTEMS
+            </div>
+
+            <h2 className="mt-4 text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
               Systems under this certification
             </h2>
-            <p className="mt-3 max-w-[760px] text-[15px] leading-[1.72] text-black/68">
+
+            <p className="mt-4 max-w-[820px] text-[15px] leading-[1.8] text-black/70">
               Publicly disclosed AI systems associated with this certification
-              record. Each links directly to its public system detail page.
+              record. Each row links directly to its public system detail page.
             </p>
           </div>
 
-          <div className="rounded-2xl border border-black/10 px-4 py-3 text-sm text-black/70">
-            {systems.length} disclosed system{systems.length === 1 ? "" : "s"}
+          <div className="rounded-full border border-black/10 px-3 py-1.5 text-[12px] font-medium text-black/65">
+            {linkedSystems.length} disclosed system{linkedSystems.length === 1 ? "" : "s"}
           </div>
         </div>
 
-        {systems.length === 0 ? (
-          <div className="mt-8 rounded-2xl border border-black/10 p-6 text-sm text-black/70">
-            No public AI systems are associated with this registry record.
-          </div>
-        ) : (
-          <div className="mt-8 grid gap-4">
-            {systems.map((system) => (
-              <Link
+        <div className="mt-8 grid gap-4">
+          {linkedSystems.length === 0 ? (
+            <div className="rounded-2xl border border-black/10 p-6 text-sm text-black/70">
+              No public AI systems are associated with this registry record.
+            </div>
+          ) : (
+            linkedSystems.map((system) => (
+              <div
                 key={system.SYSTEM_ID}
-                href={`/registry/ai-systems/${encodeURIComponent(system.SYSTEM_ID)}`}
-                className="group block rounded-2xl border border-black/10 p-5 transition hover:bg-black/[0.02]"
+                className="rounded-2xl border border-black/10 p-5"
               >
                 <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                   <div className="min-w-0 flex-1">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span
-                        className={`inline-flex rounded-full border px-3 py-1 text-[12px] font-semibold uppercase tracking-[0.14em] ${riskBadgeClass(
-                          system.RISK_TIER
-                        )}`}
-                      >
-                        {system.RISK_TIER || "Unknown risk"}
-                      </span>
+                    <div className="flex flex-wrap gap-2">
+                      {system.RISK_TIER ? (
+                        <span
+                          className={`inline-flex rounded-full border px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] ${riskBadgeClass(
+                            system.RISK_TIER
+                          )}`}
+                        >
+                          {system.RISK_TIER}
+                        </span>
+                      ) : null}
 
-                      <span className="inline-flex rounded-full border border-black/10 bg-white px-3 py-1 text-[12px] font-semibold uppercase tracking-[0.14em] text-black/70">
-                        {tierBandLabel(system.CERTIFIED_TIER, system.CERTIFIED_BAND)}
-                      </span>
+                      {system.CERTIFICATION_STATUS ? (
+                        <span
+                          className={`inline-flex rounded-full border px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] ${statusBadgeClass(
+                            system.CERTIFICATION_STATUS
+                          )}`}
+                        >
+                          {system.CERTIFICATION_STATUS}
+                        </span>
+                      ) : null}
+
+                      {(system.CERTIFIED_TIER || system.CERTIFIED_BAND) && (
+                        <span className="inline-flex rounded-full border border-black/10 bg-white px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-black/70">
+                          {tierBandLabel(system.CERTIFIED_TIER, system.CERTIFIED_BAND)}
+                        </span>
+                      )}
                     </div>
 
-                    <div className="mt-4 text-[22px] font-semibold tracking-tight text-black group-hover:underline">
-                      {system.SYSTEM_NAME || system.SYSTEM_ID}
+                    <div className="mt-4 text-[24px] font-semibold tracking-tight text-black">
+                      {clean(system.SYSTEM_NAME)}
                     </div>
 
                     <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm text-black/65">
-                      <span>{system.SYSTEM_TYPE || "—"}</span>
-                      <span>{system.DEPLOYMENT_STATUS || "—"}</span>
-                      <span>{system.OVERSIGHT_LEVEL || "—"}</span>
+                      <span>{clean(system.SYSTEM_TYPE)}</span>
+                      <span>{clean(system.DEPLOYMENT_STATUS)}</span>
+                      <span>{clean(system.OVERSIGHT_LEVEL)}</span>
                     </div>
                   </div>
 
-                  <div className="shrink-0 text-right">
-                    <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/50">
+                  <div className="text-left lg:text-right">
+                    <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-black/55">
                       Certification
                     </div>
-                    <div className="mt-1 text-[20px] font-semibold text-black">
+                    <div className="mt-2 text-[16px] font-semibold text-black">
                       {tierBandLabel(system.CERTIFIED_TIER, system.CERTIFIED_BAND)}
                     </div>
                   </div>
                 </div>
 
                 <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-                  <InfoSmall label="System ID" value={system.SYSTEM_ID} mono />
-                  <InfoSmall label="Risk tier" value={system.RISK_TIER || "—"} />
-                  <InfoSmall
+                  <InfoCard label="System ID" value={system.SYSTEM_ID} mono />
+                  <InfoCard label="Risk tier" value={clean(system.RISK_TIER)} />
+                  <InfoCard
                     label="Tier / Band"
                     value={tierBandLabel(system.CERTIFIED_TIER, system.CERTIFIED_BAND)}
                   />
-                  <InfoSmall
+                  <InfoCard
                     label="Developer"
-                    value={system.DEVELOPER_ORGANIZATION || "—"}
+                    value={clean(system.DEVELOPER_ORGANIZATION)}
                   />
                 </div>
 
-                {system.PUBLIC_SUMMARY ? (
-                  <p className="mt-4 text-sm leading-[1.72] text-black/72">
-                    {system.PUBLIC_SUMMARY}
-                  </p>
-                ) : null}
-
-                <div className="mt-4 text-sm font-semibold text-black underline">
-                  View system detail →
+                <div className="mt-5 text-[14px] leading-[1.8] text-black/68">
+                  {system.INTENDED_USE && system.INTENDED_USE.trim().length > 0
+                    ? system.INTENDED_USE
+                    : `${clean(system.SYSTEM_NAME)} is publicly disclosed under GAFAIG certification record ${row.REGISTRY_ID}.`}
                 </div>
-              </Link>
-            ))}
-          </div>
-        )}
+
+                <div className="mt-5">
+                  <Link
+                    href={`/registry/ai-systems/${encodeURIComponent(system.SYSTEM_ID)}`}
+                    className="text-sm font-semibold underline underline-offset-4"
+                  >
+                    View system detail →
+                  </Link>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
       </section>
     </main>
   );
 }
 
-/* ================= COMPONENTS ================= */
+function HeroMetric({
+  label,
+  value,
+}: {
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className="rounded-2xl border border-black/10 bg-white px-4 py-4">
+      <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-black/55">
+        {label}
+      </div>
+      <div className="mt-2 text-[18px] font-semibold leading-tight text-black">
+        {value}
+      </div>
+    </div>
+  );
+}
 
 function MetricCard({
   label,
@@ -637,13 +518,13 @@ function MetricCard({
 }) {
   return (
     <div className="rounded-2xl border border-black/10 bg-white p-5">
-      <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/60">
+      <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/55">
         {label}
       </div>
       <div
         className={[
-          "mt-2 text-[24px] font-semibold leading-tight text-black",
-          mono ? "break-all font-mono text-[16px]" : "",
+          "mt-3 text-[24px] font-semibold leading-tight tracking-tight text-black",
+          mono ? "break-all font-mono text-[18px]" : "",
         ].join(" ")}
       >
         {value}
@@ -662,14 +543,14 @@ function InfoCard({
   mono?: boolean;
 }) {
   return (
-    <div className="rounded-2xl border border-black/6 bg-black/[0.015] px-4 py-4">
+    <div className="rounded-xl border border-black/8 bg-black/[0.015] px-4 py-4">
       <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-black/55">
         {label}
       </div>
       <div
         className={[
-          "mt-3 text-[15px] leading-[1.6] text-black/88",
-          mono ? "break-all font-mono text-[13px] leading-tight" : "",
+          "mt-3 text-[14px] leading-[1.65] text-black/88",
+          mono ? "break-all font-mono text-[13px]" : "",
         ].join(" ")}
       >
         {value}
@@ -678,26 +559,71 @@ function InfoCard({
   );
 }
 
-function InfoSmall({
+function TrustSurfaceCard({
   label,
+  description,
   value,
   mono = false,
 }: {
   label: string;
+  description: string;
   value: string;
   mono?: boolean;
 }) {
   return (
-    <div className="rounded-xl border border-black/6 bg-black/[0.015] px-4 py-4">
+    <div className="rounded-2xl border border-black/10 p-5">
       <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-black/55">
         {label}
       </div>
+      <p className="mt-3 text-[14px] leading-[1.75] text-black/68">
+        {description}
+      </p>
       <div
         className={[
-          "mt-3 text-[15px] leading-[1.55] text-black/88",
-          mono ? "break-all font-mono text-[13px] leading-tight" : "",
+          "mt-4 rounded-xl border border-black/8 bg-black/[0.015] px-4 py-3 text-black/85",
+          mono ? "break-all font-mono text-[13px]" : "text-[14px]",
         ].join(" ")}
       >
+        {value}
+      </div>
+    </div>
+  );
+}
+
+function TrustActionCard({
+  label,
+  description,
+  href,
+  hrefLabel,
+  value,
+}: {
+  label: string;
+  description: string;
+  href: string;
+  hrefLabel: string;
+  value: string;
+}) {
+  return (
+    <div className="rounded-2xl border border-black/10 p-5">
+      <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+        <div className="min-w-0 flex-1">
+          <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-black/55">
+            {label}
+          </div>
+          <p className="mt-3 text-[14px] leading-[1.75] text-black/68">
+            {description}
+          </p>
+        </div>
+
+        <Link
+          href={href}
+          className="inline-flex min-w-[132px] items-center justify-center rounded-full border border-black bg-black px-5 py-3 text-center text-sm font-semibold text-white transition hover:bg-black/90"
+        >
+          {hrefLabel}
+        </Link>
+      </div>
+
+      <div className="mt-4 break-all rounded-xl border border-black/8 bg-black/[0.015] px-4 py-3 font-mono text-[13px] text-black/85">
         {value}
       </div>
     </div>
