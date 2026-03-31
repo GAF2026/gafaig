@@ -134,17 +134,25 @@ export default async function RegistryPage({
     <main className="mx-auto max-w-[1240px] px-6 pb-16 pt-14">
       <section className="rounded-3xl border border-black/10 bg-white px-8 py-10 md:px-10 md:py-12">
         <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
-          REGISTRY
+          REGISTRY OF RECORD
         </div>
 
-        <h1 className="mt-4 max-w-[780px] text-[36px] font-semibold leading-[1.08] tracking-tight text-black md:text-[52px]">
-          Global AI Governance Registry
+        <h1 className="mt-4 max-w-[840px] text-[36px] font-semibold leading-[1.08] tracking-tight text-black md:text-[52px]">
+          Public AI governance certification records
         </h1>
 
-        <p className="mt-5 max-w-[860px] text-[17px] leading-[1.7] text-black/72">
-          Canonical public certification records issued by GAFAIG. Browse
-          entities, verify public certification status, and inspect registry
-          trust records.
+        <p className="mt-5 max-w-[900px] text-[17px] leading-[1.7] text-black/72">
+          The GAFAIG Registry is the public record of certification outcomes
+          issued through the GAFAIG verification framework. Each record discloses
+          public certification status, validity information, and linked trust
+          surfaces without exposing private evidence, findings, or internal review
+          workflow.
+        </p>
+
+        <p className="mt-4 max-w-[900px] text-[15px] leading-[1.8] text-black/68">
+          Every registry record is designed to function as a public trust signal.
+          Records can be inspected directly, linked to disclosed AI systems, and
+          verified through badge and proof endpoints.
         </p>
 
         <form className="mt-8 grid gap-4 md:grid-cols-[1.3fr_0.7fr_auto]">
@@ -153,7 +161,7 @@ export default async function RegistryPage({
               htmlFor="q"
               className="mb-2 block text-[12px] font-semibold uppercase tracking-[0.16em] text-black/55"
             >
-              Search
+              Search records
             </label>
             <input
               id="q"
@@ -189,15 +197,7 @@ export default async function RegistryPage({
           <div className="flex items-end gap-3">
             <button
               type="submit"
-              className="
-                inline-flex items-center justify-center
-                h-[44px] px-5
-                rounded-full
-                border border-black
-                bg-black text-white
-                text-sm font-semibold
-                transition hover:bg-black/90
-              "
+              className="inline-flex h-[44px] items-center justify-center rounded-full border border-black bg-black px-5 text-sm font-semibold text-white transition hover:bg-black/90"
             >
               Apply
             </button>
@@ -217,12 +217,54 @@ export default async function RegistryPage({
 
       <section className="mt-10 rounded-3xl border border-black/10 bg-white p-8 md:p-10">
         <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
+          WHAT THIS REGISTRY PROVIDES
+        </div>
+
+        <h2 className="mt-4 max-w-[860px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
+          A public certification surface others can rely on
+        </h2>
+
+        <div className="mt-7 grid gap-4 md:grid-cols-2">
+          <StatementCard
+            title="Canonical public certification records"
+            body="Each entry represents a structured certification outcome issued through the GAFAIG verification framework and published as part of the public registry of record."
+          />
+          <StatementCard
+            title="Private review remains private"
+            body="Evidence, findings, and internal review workflow remain inside the controlled verification engine. Only public certification outcomes and trust signals are disclosed here."
+          />
+          <StatementCard
+            title="Linked systems and trust surfaces"
+            body="Registry records can connect to disclosed AI systems, badge endpoints, and signed proof payloads so external parties can inspect governance status in context."
+          />
+          <StatementCard
+            title="Deterministic, structured outcomes"
+            body="Records reflect certification decisions produced through a deterministic framework designed to support consistency, repeatability, and institutional reliance."
+          />
+        </div>
+      </section>
+
+      <section className="mt-10 rounded-3xl border border-black/10 bg-white p-8 md:p-10">
+        <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
           PUBLIC RECORDS
         </div>
 
-        <h2 className="mt-4 text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
-          Registry directory
-        </h2>
+        <div className="mt-4 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+          <div>
+            <h2 className="text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
+              Registry directory
+            </h2>
+            <p className="mt-3 max-w-[800px] text-[15px] leading-[1.8] text-black/68">
+              Browse certification records by organization, jurisdiction, and registry
+              identifier. Open any record to inspect public certification details,
+              linked AI systems, and verification surfaces.
+            </p>
+          </div>
+
+          <div className="rounded-2xl border border-black/10 px-4 py-3 text-sm text-black/70">
+            {rows.length} visible record{rows.length === 1 ? "" : "s"}
+          </div>
+        </div>
 
         {rows.length === 0 ? (
           <div className="mt-8 rounded-2xl border border-black/10 p-6 text-sm text-black/70">
@@ -274,6 +316,34 @@ export default async function RegistryPage({
           </div>
         )}
       </section>
+
+      <section className="mt-10 rounded-3xl border border-black/10 bg-white p-8 md:p-10">
+        <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
+          HOW TO USE THE REGISTRY
+        </div>
+
+        <h2 className="mt-4 max-w-[860px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
+          Start with the record, then verify the trust signal
+        </h2>
+
+        <div className="mt-7 grid gap-4 md:grid-cols-3">
+          <PathCard
+            number="1"
+            title="Open a registry record"
+            body="Select an entity to inspect certification status, validity window, and linked public metadata."
+          />
+          <PathCard
+            number="2"
+            title="Review linked systems"
+            body="See any disclosed AI systems associated with that certification record."
+          />
+          <PathCard
+            number="3"
+            title="Verify badge and proof"
+            body="Use the badge and proof surfaces on the record page to validate the public trust signal."
+          />
+        </div>
+      </section>
     </main>
   );
 }
@@ -321,5 +391,42 @@ function StatusPill({
     >
       {value}
     </span>
+  );
+}
+
+function StatementCard({
+  title,
+  body,
+}: {
+  title: string;
+  body: string;
+}) {
+  return (
+    <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
+      <div className="text-[18px] font-semibold tracking-tight text-black">
+        {title}
+      </div>
+      <p className="mt-3 text-[15px] leading-[1.8] text-black/72">{body}</p>
+    </div>
+  );
+}
+
+function PathCard({
+  number,
+  title,
+  body,
+}: {
+  number: string;
+  title: string;
+  body: string;
+}) {
+  return (
+    <div className="rounded-2xl border border-black/10 p-4">
+      <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/55">
+        {number}
+      </div>
+      <div className="mt-2 text-[16px] font-semibold text-black">{title}</div>
+      <p className="mt-2 text-[14px] leading-[1.7] text-black/72">{body}</p>
+    </div>
   );
 }
