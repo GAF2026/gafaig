@@ -87,9 +87,9 @@ export default async function HomePage() {
       <div className="space-y-8">
         <PublicPageHero
           eyebrow="GLOBAL AUTHORITY FOR AI GOVERNANCE"
-          title="A trusted system for verifying AI governance"
-          description="GAFAIG helps organizations demonstrate that their AI systems are governed responsibly. It provides a structured process to review evidence, assess oversight, and produce clear certification outcomes."
-          secondaryDescription="Reviews are conducted in a controlled environment, while certification results are published in a public registry. This allows organizations, partners, and regulators to verify governance without exposing sensitive internal information."
+          title="The global registry for AI governance certification"
+          description="GAFAIG is a verification system and public registry for AI governance. It evaluates whether human oversight is operating across an organization’s AI systems and produces certification outcomes that can be independently verified."
+          secondaryDescription="Reviews are conducted in a controlled verification environment, while certification results are published through a public registry. Each registry record can be verified through a signed proof and a public badge, allowing external parties to confirm governance status without exposing sensitive internal materials."
           actions={
             <>
               <Link
@@ -127,11 +127,11 @@ export default async function HomePage() {
           <PillarCard
             eyebrow="Pillar 1"
             title="Private Verification Engine"
-            body="A controlled review environment where organizations move through applications, evidence, findings, scoring, and certification workflow."
+            body="A controlled review environment where organizations move through application intake, evidence review, findings, deterministic scoring, and certification workflow."
             points={[
               "Reviewer-only operational layer",
               "Structured evidence and findings flow",
-              "Consistent certification process",
+              "Deterministic certification process",
             ]}
             href="/admin/login"
             cta="Open reviewer layer"
@@ -140,11 +140,11 @@ export default async function HomePage() {
           <PillarCard
             eyebrow="Pillar 2"
             title="Public Registry"
-            body="A public trust surface where certification outcomes are disclosed without exposing private reviewer materials, findings, or internal evidence."
+            body="A registry of record where certification outcomes are published without exposing private reviewer materials, internal evidence, or controlled assessment workflows."
             points={[
-              "Certified organizations",
-              "Structured public certification records",
-              "Portable trust signaling",
+              "Canonical certification records",
+              "Public trust and verification layer",
+              "Portable badge and proof signals",
             ]}
             href="/registry"
             cta="View public registry"
@@ -153,7 +153,7 @@ export default async function HomePage() {
           <PillarCard
             eyebrow="Pillar 3"
             title="Global Explorer"
-            body="A discovery layer for countries, organizations, AI systems, and governance presence across the GAFAIG network."
+            body="A discovery layer for organizations, AI systems, countries, and governance presence across the GAFAIG network."
             points={[
               "Organizations and systems",
               "Country-level visibility",
@@ -170,27 +170,37 @@ export default async function HomePage() {
           </div>
 
           <h2 className="mt-4 max-w-[860px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
-            Organizations need a reliable way to show that AI is being governed
-            responsibly
+            AI governance needs to be verifiable, not just declared
           </h2>
 
           <p className="mt-5 max-w-[980px] text-[16px] leading-[1.9] text-black/75">
-            As AI systems move into real-world use, governance cannot remain a
-            general statement or policy document. Organizations need a practical
-            way to review evidence, assess oversight, make certification
-            decisions, and communicate those outcomes in a form others can
-            trust. GAFAIG provides that structure.
+            As AI systems move into real-world deployment, governance cannot
+            remain a policy statement or internal claim. Organizations need a
+            structured way to evaluate oversight, produce certification
+            outcomes, and make those outcomes externally verifiable. GAFAIG
+            provides that infrastructure.
           </p>
 
           <div className="mt-7 grid gap-4 md:grid-cols-2">
             <StatementCard
-              title="Private review remains private"
-              body="Evidence, findings, and internal assessment materials stay within the controlled verification workflow and are not exposed through the public site."
+              title="Private verification, controlled environment"
+              body="Evidence, findings, and internal assessment materials are reviewed within a controlled verification engine and are not exposed publicly."
             />
             <StatementCard
-              title="Certification outcomes become public trust signals"
-              body="Once a certification decision is reached, structured outcomes can be surfaced through the registry and explorer for transparency, verification, and institutional reliance."
+              title="Public certification as a trust signal"
+              body="Certification outcomes are published to a registry of record and can be verified through a public badge and signed proof."
             />
+          </div>
+
+          <div className="mt-6 rounded-2xl border border-black/10 bg-black/[0.02] p-5">
+            <div className="text-[18px] font-semibold tracking-tight text-black">
+              What GAFAIG is
+            </div>
+            <ul className="mt-3 space-y-2 text-[15px] text-black/75">
+              <li>• Independent verification system</li>
+              <li>• Deterministic certification engine</li>
+              <li>• Public registry of record for AI governance</li>
+            </ul>
           </div>
         </section>
 
@@ -200,41 +210,41 @@ export default async function HomePage() {
           </div>
 
           <h2 className="mt-4 max-w-[860px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
-            From private review to public trust
+            From deterministic review to verifiable registry record
           </h2>
 
           <p className="mt-5 max-w-[960px] text-[16px] leading-[1.85] text-black/75">
-            GAFAIG is structured as a complete process. Organizations enter a
-            controlled review workflow, governance materials are assessed,
-            certification decisions are made, and public outcomes are then made
-            available through the registry and explorer.
+            GAFAIG operates as a two-layer system. A private verification engine
+            evaluates governance evidence and produces certification outcomes.
+            Those outcomes are then published to a public registry, where they
+            can be independently verified.
           </p>
 
           <div className="mt-8 grid gap-4 md:grid-cols-5">
             <PathCard
               number="1"
-              title="Applications"
+              title="Application"
               body="Organizations enter a controlled verification workflow."
             />
             <PathCard
               number="2"
               title="Evidence"
-              body="Governance artifacts and oversight records are reviewed."
+              body="Governance materials and oversight records are evaluated."
             />
             <PathCard
               number="3"
-              title="Scoring"
-              body="Structured scoring supports consistent outcomes."
+              title="Deterministic scoring"
+              body="The same inputs produce the same certification outcome."
             />
             <PathCard
               number="4"
               title="Certification"
-              body="Formal decisions determine public certification status."
+              body="Formal decisions determine certification status."
             />
             <PathCard
               number="5"
-              title="Registry & Explorer"
-              body="Public trust signals become visible to others."
+              title="Registry & verification"
+              body="Results are published and can be verified via badge and proof."
             />
           </div>
         </section>
@@ -284,13 +294,13 @@ export default async function HomePage() {
           />
           <FeatureCard
             title="Framework"
-            body="See the model behind evidence review, findings, scoring, and certification outcomes."
+            body="See the deterministic model behind evidence review, findings, certification outcomes, and public trust."
             href="/framework"
             cta="Read Framework"
           />
           <FeatureCard
             title="Registry"
-            body="Browse public certification records and see how governance outcomes are disclosed."
+            body="Browse public certification records and verify governance outcomes through structured trust signals."
             href="/registry"
             cta="Open Registry"
           />
