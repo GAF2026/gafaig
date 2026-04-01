@@ -1,7 +1,11 @@
+import Link from "next/link";
+import { notFound } from "next/navigation";
+
 import RegistryVerificationPanel from "@/components/registry/RegistryVerificationPanel";
 import RegistryTrustTools from "@/components/registry/RegistryTrustTools";
 
 export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 type RegistryApiResult = {
   registryId?: string;
@@ -22,11 +26,20 @@ type RegistryApiResponse = {
 };
 
 type VerifyApiResponse = {
-  ok?: boolean;
-  verified?: boolean;
-  registryId?: string;
+  ok: boolean;
+  verified: boolean;
+  registryId: string;
+  proof?: {
+    alg?: string;
+    kid?: string;
+    signature?: string;
+    signedAt?: string;
+    verificationKeyUrl?: string;
+    message?: Record<string, unknown>;
+    messageString?: string;
+  };
   record?: {
-    registryId?: string | null;
+    registryId?: string;
     entityName?: string | null;
     entityType?: string | null;
     country?: string | null;
@@ -39,27 +52,25 @@ type VerifyApiResponse = {
     certifiedAt?: string | null;
     validFrom?: string | null;
     validTo?: string | null;
-  } | null;
-  proof?: {
-    alg?: string | null;
-    kid?: string | null;
-    signature?: string | null;
-    signedAt?: string | null;
-    verificationKeyUrl?: string | null;
-    message?: Record<string, unknown> | null;
-    messageString?: string | null;
-  } | null;
-  error?: string;
+  };
 };
 
-async function getRegistry(
+function getBaseUrl() {
+  return (
+    process.env.NEXT_PUBLIC_BASE_URL ||
+    process.env.NEXT_PUBLIC_SITE_URL ||
+    "https://www.gafaig.com"
+  );
+}
+
+async function getRegistryData(
   registryId: string
 ): Promise<RegistryApiResponse | null> {
+  const baseUrl = getBaseUrl();
+
   try {
     const res = await fetch(
-      `${process.env.NEXT_PUBLIC_BASE_URL}/api/registry?registryId=${encodeURIComponent(
-        registryId
-      )}`,
+      `${baseUrl}/api/registry?registryId=${encodeURIComponent(registryId)}`,
       { cache: "no-store" }
     );
 
@@ -73,11 +84,11 @@ async function getRegistry(
 async function getVerifyData(
   registryId: string
 ): Promise<VerifyApiResponse | null> {
+  const baseUrl = getBaseUrl();
+
   try {
     const res = await fetch(
-      `${process.env.NEXT_PUBLIC_BASE_URL}/api/verify/${encodeURIComponent(
-        registryId
-      )}`,
+      `${baseUrl}/api/verify/${encodeURIComponent(registryId)}`,
       { cache: "no-store" }
     );
 
@@ -88,76 +99,186 @@ async function getVerifyData(
   }
 }
 
-export default async function RegistryPage({
+export default async function RegistryRecordPage({
   params,
 }: {
   params: { registryId: string };
 }) {
-  const registryId = params.registryId;
+  const registryId = String(params.registryId || "").trim();
 
-  const data = await getRegistry(registryId);
-  const verifyData = await getVerifyData(registryId);
-
-  if (!data?.results?.length && !verifyData?.record) {
-    return (
-      <div className="mx-auto max-w-4xl px-6 py-10">
-        <h1 className="text-xl font-semibold">Registry record not found</h1>
-      </div>
-    );
+  if (!registryId) {
+    notFound();
   }
 
-  const row = data?.results?.[0] || {};
+  const [registryData, verifyData] = await Promise.all([
+    getRegistryData(registryId),
+    getVerifyData(registryId),
+  ]);
 
+  const row = registryData?.results?.[0] ?? null;
   const entityName =
-    row.entityName ||
+    row?.entityName ||
     verifyData?.record?.entityName ||
     "Unknown Entity";
 
-  const normalizedVerifyData = verifyData
-    ? {
-        ok: Boolean(verifyData.ok),
-        verified: Boolean(verifyData.verified),
-        registryId: String(verifyData.registryId || registryId),
-        record: verifyData.record
-          ? {
-              entityName: verifyData.record.entityName ?? null,
-              entityType: verifyData.record.entityType ?? null,
-              country: verifyData.record.country ?? null,
-              decisionStatus: verifyData.record.decisionStatus ?? null,
-              certifiedTier: verifyData.record.certifiedTier ?? null,
-              certifiedBand: verifyData.record.certifiedBand ?? null,
-              validTo: verifyData.record.validTo ?? null,
-            }
-          : null,
-        proof: verifyData.proof
-          ? {
-              alg: verifyData.proof.alg ?? null,
-              kid: verifyData.proof.kid ?? null,
-              signature: verifyData.proof.signature ?? null,
-              signedAt: verifyData.proof.signedAt ?? null,
-              verificationKeyUrl: verifyData.proof.verificationKeyUrl ?? null,
-              message: verifyData.proof.message ?? null,
-              messageString: verifyData.proof.messageString ?? null,
-            }
-          : null,
-        error: verifyData.error,
-      }
-    : null;
+  const entityType =
+    row?.entityType ||
+    verifyData?.record?.entityType ||
+    null;
+
+  const country =
+    row?.country ||
+    verifyData?.record?.country ||
+    null;
+
+  const certifiedTier =
+    row?.certifiedTier ||
+    verifyData?.record?.certifiedTier ||
+    null;
+
+  const certifiedBand =
+    row?.certifiedBand ||
+    verifyData?.record?.certifiedBand ||
+    null;
+
+  const decisionStatus =
+    row?.decisionStatus ||
+    verifyData?.record?.decisionStatus ||
+    null;
+
+  const certifiedAt =
+    row?.certifiedAt ||
+    verifyData?.record?.certifiedAt ||
+    null;
+
+  const validTo =
+    row?.validTo ||
+    verifyData?.record?.validTo ||
+    null;
+
+  const baseUrl = getBaseUrl();
+  const absoluteRegistryUrl = `${baseUrl}/registry/${encodeURIComponent(
+    registryId
+  )}`;
+  const absoluteVerifyUrl = `${baseUrl}/api/verify/${encodeURIComponent(
+    registryId
+  )}`;
+  const absoluteBadgeUrl = `${baseUrl}/badge/${encodeURIComponent(registryId)}`;
+
+  if (!row && !verifyData?.record) {
+    return (
+      <main className="mx-auto max-w-6xl px-6 py-16">
+        <div className="rounded-[32px] border border-black/10 bg-white p-10 shadow-sm">
+          <div className="text-[11px] font-semibold uppercase tracking-[0.28em] text-black/45">
+            Registry
+          </div>
+          <h1 className="mt-4 text-3xl font-semibold tracking-tight text-black">
+            Registry record not found
+          </h1>
+          <p className="mt-4 max-w-2xl text-base leading-8 text-black/65">
+            We could not find a public GAFAIG registry record for this ID.
+          </p>
+          <div className="mt-8">
+            <Link
+              href="/registry"
+              className="inline-flex min-h-11 items-center justify-center rounded-full border border-black px-5 py-3 text-sm font-semibold transition hover:bg-black/[0.04]"
+            >
+              Back to registry
+            </Link>
+          </div>
+        </div>
+      </main>
+    );
+  }
 
   return (
-    <div className="mx-auto max-w-6xl px-6 py-10">
-      <h1 className="mb-6 text-2xl font-semibold">{entityName}</h1>
+    <main className="mx-auto max-w-7xl px-6 py-16">
+      <header className="mb-10">
+        <div className="text-[11px] font-semibold uppercase tracking-[0.28em] text-black/45">
+          Public registry record
+        </div>
+        <h1 className="mt-4 text-4xl font-semibold tracking-tight text-black md:text-6xl">
+          {entityName}
+        </h1>
 
-      <RegistryVerificationPanel
-        registryId={registryId}
-        entityName={entityName}
-        verifyData={normalizedVerifyData}
-      />
+        <div className="mt-6 flex flex-wrap gap-3">
+          {entityType ? (
+            <span className="inline-flex min-h-10 items-center justify-center rounded-full border border-black/10 px-4 py-2 text-sm font-medium text-black/70">
+              {entityType}
+            </span>
+          ) : null}
 
-      <RegistryTrustTools
-        registryId={registryId}
-        entityName={entityName}
-      />
-    </div>
+          {country ? (
+            <span className="inline-flex min-h-10 items-center justify-center rounded-full border border-black/10 px-4 py-2 text-sm font-medium text-black/70">
+              {country}
+            </span>
+          ) : null}
+
+          {certifiedTier || certifiedBand ? (
+            <span className="inline-flex min-h-10 items-center justify-center rounded-full border border-black/10 px-4 py-2 text-sm font-medium text-black/70">
+              {[certifiedTier, certifiedBand].filter(Boolean).join(" · ")}
+            </span>
+          ) : null}
+
+          {decisionStatus ? (
+            <span className="inline-flex min-h-10 items-center justify-center rounded-full border border-black/10 px-4 py-2 text-sm font-medium text-black/70">
+              {decisionStatus}
+            </span>
+          ) : null}
+
+          {validTo ? (
+            <span className="inline-flex min-h-10 items-center justify-center rounded-full border border-black/10 px-4 py-2 text-sm font-medium text-black/70">
+              Valid to {new Date(validTo).toLocaleDateString()}
+            </span>
+          ) : null}
+        </div>
+      </header>
+
+      <div className="space-y-8">
+        <RegistryVerificationPanel
+          registryId={registryId}
+          entityName={entityName}
+          verifyData={verifyData}
+        />
+
+        <RegistryTrustTools
+          registryId={registryId}
+          entityName={entityName}
+          absoluteRegistryUrl={absoluteRegistryUrl}
+          absoluteVerifyUrl={absoluteVerifyUrl}
+          absoluteBadgeUrl={absoluteBadgeUrl}
+        />
+      </div>
+
+      {(certifiedAt || validTo) && (
+        <section className="mt-8 rounded-[32px] border border-black/10 bg-white p-8 shadow-sm">
+          <div className="text-[11px] font-semibold uppercase tracking-[0.28em] text-black/45">
+            Record timing
+          </div>
+
+          <div className="mt-6 grid gap-4 md:grid-cols-2">
+            <div className="rounded-[24px] border border-black/10 bg-black/[0.02] p-6">
+              <div className="text-[11px] font-semibold uppercase tracking-[0.24em] text-black/45">
+                Certified at
+              </div>
+              <div className="mt-3 text-lg font-medium text-black">
+                {certifiedAt
+                  ? new Date(certifiedAt).toLocaleString()
+                  : "—"}
+              </div>
+            </div>
+
+            <div className="rounded-[24px] border border-black/10 bg-black/[0.02] p-6">
+              <div className="text-[11px] font-semibold uppercase tracking-[0.24em] text-black/45">
+                Valid to
+              </div>
+              <div className="mt-3 text-lg font-medium text-black">
+                {validTo ? new Date(validTo).toLocaleString() : "—"}
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
+    </main>
   );
 }
