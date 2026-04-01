@@ -127,7 +127,7 @@
       ].join(";") +
       '">' +
       "Open GAFAIG record" +
-      "</a>' +
+      "</a>" +
       "</div>";
   }
 
