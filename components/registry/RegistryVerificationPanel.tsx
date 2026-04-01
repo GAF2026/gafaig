@@ -18,6 +18,8 @@ type VerifyApiResponse = {
   lastActivityAt?: string | null;
   proof?: {
     alg?: string | null;
+    kid?: string | null;
+    verificationKeyUrl?: string | null;
     signature?: string | null;
     signedAt?: string | null;
     message?: string | null;
@@ -52,6 +54,9 @@ function chipClass(label?: string | null) {
   }
   if (v.includes("registry")) {
     return "border-slate-200 bg-slate-50 text-slate-700";
+  }
+  if (v.includes("ed25519")) {
+    return "border-violet-200 bg-violet-50 text-violet-700";
   }
   if (v.includes("b")) {
     return "border-blue-200 bg-blue-50 text-blue-700";
@@ -91,8 +96,19 @@ export default function RegistryVerificationPanel({
     verifyData.ok && verifyData.proof?.signedAt
       ? verifyData.proof.signedAt
       : null;
+  const algorithm =
+    verifyData.ok && verifyData.proof?.alg ? verifyData.proof.alg : null;
+  const keyId =
+    verifyData.ok && verifyData.proof?.kid ? verifyData.proof.kid : null;
+  const verificationKeyUrl =
+    verifyData.ok && verifyData.proof?.verificationKeyUrl
+      ? verifyData.proof.verificationKeyUrl
+      : "/api/.well-known/gafaig-public-key";
 
-  const badgeUrl = `/api/badge/${registryId}`;
+  const badgeUrl = `/badge/${registryId}`;
+  const absolutePublicKeyUrl = verificationKeyUrl.startsWith("http")
+    ? verificationKeyUrl
+    : `${absoluteRegistryUrl.split(`/registry/${registryId}`)[0]}${verificationKeyUrl}`;
 
   const verifyJsonExample = `fetch("${absoluteVerifyUrl}")
   .then((r) => r.json())
@@ -125,14 +141,14 @@ export default function RegistryVerificationPanel({
       <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
         <div>
           <h2 className="text-[18px] font-semibold text-black">
-            Certification signal
+            Verify this certification
           </h2>
           <p className="mt-3 max-w-[920px] text-[14px] leading-[1.8] text-black/75">
-            Certification outcomes are published through the GAFAIG Registry.
-            Evidence, findings, and internal assessment materials remain
-            private. This block provides a portable, registry-backed public
-            certification signal for external websites, procurement workflows,
-            and verification systems.
+            This certification can be independently checked through the GAFAIG
+            verification endpoint. The public record stays visible, while
+            findings, evidence, and internal assessment materials remain
+            private. This panel exposes the public proof surface, signature, key
+            reference, and portable badge for external validation.
           </p>
         </div>
 
@@ -158,6 +174,15 @@ export default function RegistryVerificationPanel({
           >
             registry-backed
           </span>
+          {algorithm ? (
+            <span
+              className={`inline-flex rounded-full border px-3 py-1 text-xs font-medium ${chipClass(
+                algorithm
+              )}`}
+            >
+              {algorithm}
+            </span>
+          ) : null}
         </div>
       </div>
 
@@ -234,13 +259,13 @@ export default function RegistryVerificationPanel({
                 band {band}
               </span>
             ) : null}
-            {verifyData.ok && verifyData.proof?.alg ? (
+            {algorithm ? (
               <span
                 className={`inline-flex rounded-full border px-3 py-1 text-xs font-medium ${chipClass(
-                  verifyData.proof.alg
+                  algorithm
                 )}`}
               >
-                {verifyData.proof.alg}
+                {algorithm}
               </span>
             ) : null}
           </div>
@@ -259,6 +284,12 @@ export default function RegistryVerificationPanel({
               {verifyData.error}
             </div>
           )}
+
+          {keyId ? (
+            <div className="mt-3 text-[13px] text-black/60">
+              Key ID: <span className="font-mono text-black/80">{keyId}</span>
+            </div>
+          ) : null}
 
           {signature ? (
             <div className="mt-4">
@@ -284,22 +315,43 @@ export default function RegistryVerificationPanel({
 
           <div className="mt-4 text-[13px] leading-[1.7] text-black/65">
             External systems can use this endpoint to confirm live certification
-            status and retrieve signed proof metadata.
+            status and retrieve the signed proof payload.
           </div>
         </div>
 
         <div className="rounded-2xl border border-black/10 p-5">
           <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/60">
-            Badge image URL
+            Public key URL
           </div>
           <div className="mt-3">
-            <CodeBlock>{badgeUrl}</CodeBlock>
+            <CodeBlock>{absolutePublicKeyUrl}</CodeBlock>
           </div>
 
           <div className="mt-4 text-[13px] leading-[1.7] text-black/65">
-            Use this image URL for public website embeds, partner pages, and
-            procurement documentation.
+            This public key endpoint publishes the verification key needed to
+            validate the GAFAIG signature independently.
           </div>
+        </div>
+      </div>
+
+      <div className="mt-4 rounded-2xl border border-black/10 p-5">
+        <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/60">
+          What verification means
+        </div>
+        <div className="mt-3 space-y-3 text-[14px] leading-[1.8] text-black/72">
+          <p>
+            The verification endpoint returns the public certification record
+            plus a signed proof object.
+          </p>
+          <p>
+            The public key endpoint publishes the key needed to check that
+            signature independently.
+          </p>
+          <p>
+            Ed25519 is a public-key signature system. In plain terms, it lets
+            anyone confirm that the certification payload was issued by GAFAIG
+            and has not been altered after signing.
+          </p>
         </div>
       </div>
 
@@ -329,6 +381,17 @@ export default function RegistryVerificationPanel({
           <CodeBlock>{verifyJsonExample}</CodeBlock>
         </div>
       </div>
+
+      {verifyData.ok && verifyData.proof?.message ? (
+        <div className="mt-4 rounded-2xl border border-black/10 p-5">
+          <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/60">
+            Signed message
+          </div>
+          <div className="mt-3">
+            <CodeBlock>{verifyData.proof.message}</CodeBlock>
+          </div>
+        </div>
+      ) : null}
     </section>
   );
 }

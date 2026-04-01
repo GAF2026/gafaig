@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { sfQuery } from "@/lib/snowflake";
+import RegistryVerificationPanel from "@/components/registry/RegistryVerificationPanel";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -42,6 +43,36 @@ type LinkedSystemRow = {
   CERTIFICATION_STATUS: string | null;
   CERTIFIED_TIER: string | null;
   CERTIFIED_BAND: string | null;
+};
+
+type VerifyApiResponse = {
+  ok: boolean;
+  verified?: boolean;
+  registryId?: string;
+  proof?: {
+    alg?: string | null;
+    kid?: string | null;
+    verificationKeyUrl?: string | null;
+    signature?: string | null;
+    signedAt?: string | null;
+    message?: Record<string, unknown> | string | null;
+  } | null;
+  record?: {
+    registryId?: string | null;
+    entityName?: string | null;
+    entityType?: string | null;
+    country?: string | null;
+    applicationId?: string | null;
+    caseId?: string | null;
+    certificationStatus?: string | null;
+    certifiedTier?: string | null;
+    certifiedBand?: string | null;
+    decisionStatus?: string | null;
+    certifiedAt?: string | null;
+    validFrom?: string | null;
+    validTo?: string | null;
+  } | null;
+  error?: string;
 };
 
 function fmtDate(value: string | null | undefined) {
@@ -95,6 +126,44 @@ function riskBadgeClass(value: string | null | undefined) {
   return "border-black/10 bg-white text-black/65";
 }
 
+async function getVerifyData(
+  registryId: string
+): Promise<VerifyApiResponse> {
+  const baseUrl =
+    process.env.NEXT_PUBLIC_SITE_URL ||
+    process.env.NEXT_PUBLIC_APP_URL ||
+    "http://localhost:3000";
+
+  try {
+    const response = await fetch(
+      `${baseUrl}/api/verify/${encodeURIComponent(registryId)}`,
+      {
+        method: "GET",
+        cache: "no-store",
+        headers: {
+          Accept: "application/json",
+        },
+      }
+    );
+
+    const json = (await response.json()) as VerifyApiResponse;
+
+    if (!response.ok) {
+      return {
+        ok: false,
+        error: json?.error || "Verification unavailable",
+      };
+    }
+
+    return json;
+  } catch {
+    return {
+      ok: false,
+      error: "Verification unavailable",
+    };
+  }
+}
+
 export default async function RegistryRecordPage({ params }: PageProps) {
   const registryId = decodeURIComponent(params.registryId || "").trim();
 
@@ -102,7 +171,7 @@ export default async function RegistryRecordPage({ params }: PageProps) {
     notFound();
   }
 
-  const [registryRows, linkedSystems] = await Promise.all([
+  const [registryRows, linkedSystems, verifyData] = await Promise.all([
     sfQuery<RegistryRow>(
       `
       SELECT
@@ -148,6 +217,7 @@ export default async function RegistryRecordPage({ params }: PageProps) {
       `,
       [registryId]
     ),
+    getVerifyData(registryId),
   ]);
 
   const row = registryRows[0];
@@ -158,7 +228,20 @@ export default async function RegistryRecordPage({ params }: PageProps) {
 
   const verificationUrl = `/api/verify/${encodeURIComponent(row.REGISTRY_ID)}`;
   const badgeUrl = `/badge/${encodeURIComponent(row.REGISTRY_ID)}`;
-  const entityName = row.ENTITY_NAME || row.REGISTRY_ID;
+  const entityName =
+    verifyData.ok && verifyData.record?.entityName
+      ? verifyData.record.entityName
+      : row.ENTITY_NAME || row.REGISTRY_ID;
+
+  const siteBase =
+    process.env.NEXT_PUBLIC_SITE_URL ||
+    process.env.NEXT_PUBLIC_APP_URL ||
+    "http://localhost:3000";
+
+  const absoluteRegistryUrl = `${siteBase}/registry/${encodeURIComponent(
+    row.REGISTRY_ID
+  )}`;
+  const absoluteVerifyUrl = `${siteBase}${verificationUrl}`;
 
   return (
     <main className="mx-auto max-w-[1240px] px-6 pb-16 pt-14">
@@ -364,6 +447,14 @@ export default async function RegistryRecordPage({ params }: PageProps) {
           </div>
         </section>
       </section>
+
+      <RegistryVerificationPanel
+        absoluteVerifyUrl={absoluteVerifyUrl}
+        absoluteRegistryUrl={absoluteRegistryUrl}
+        registryId={row.REGISTRY_ID}
+        entityName={entityName}
+        verifyData={verifyData}
+      />
 
       <section
         id="linked-systems"

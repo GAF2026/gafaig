@@ -123,8 +123,8 @@ export async function GET(
     signedAt,
   };
 
-  const message = JSON.stringify(messageObject);
-  const signature = signMessage(message);
+  const messageString = JSON.stringify(messageObject);
+  const signature = signMessage(messageString);
 
   return NextResponse.json({
     ok: true,
@@ -137,6 +137,7 @@ export async function GET(
       signedAt,
       verificationKeyUrl: `${baseUrl}/api/.well-known/gafaig-public-key`,
       message: messageObject,
+      messageString,
     },
     record,
   });

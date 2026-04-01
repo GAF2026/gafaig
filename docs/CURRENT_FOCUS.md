@@ -1,278 +1,241 @@
-# GAFAIG — CURRENT FOCUS
+# GAFAIG — CURRENT_FOCUS.md
 Execution Control Document
-Last Updated: 2026-03-29
+Last Updated: 2026-03-31
 
 ---
 
-# PRIMARY OBJECTIVE
+# 🎯 PRIMARY OBJECTIVE
 
-Complete the transition from:
+Transition GAFAIG from:
 
-"Engine exists"
+"Verification infrastructure exists"
 
 →
 
-"Global AI governance registry is fully populated, trusted, and externally consumable"
+"Global, externally verifiable trust system for AI governance"
 
 ---
 
-# CURRENT PHASE
+# 📍 CURRENT PHASE
 
-Registry Enrichment (Post-Engine Stabilization)
+Verification Infrastructure Complete → Trust UX + External Verification Layer
 
 ---
 
-# WHAT IS ALREADY COMPLETE (DO NOT TOUCH)
+# 🧠 STRATEGIC INTENT
+
+Make GAFAIG:
+
+• Cryptographically verifiable  
+• Externally consumable  
+• Developer-friendly  
+• Regulator-ready  
+• Instantly understandable as trust infrastructure  
+
+---
+
+# ✅ WHAT IS COMPLETE (DO NOT TOUCH)
 
 The following systems are WORKING and LOCKED:
 
-• verification workflow (cases / findings / evidence / events)
-• deterministic enterprise scoring engine (v1)
-• score snapshot system (append-only)
-• publish procedure (SP_PUBLISH_CASE_TO_REGISTRY_V3)
-• registry snapshot system (append-only)
-• V_REGISTRY_LATEST_APPROVED (source of truth)
-• V_REGISTRY_PUBLIC (public contract)
-• V_REGISTRY_AI_SYSTEMS_PUBLIC (AI systems projection)
-• /registry page (list)
-• /registry/[registryId] page (detail)
-• /registry/ai-systems pages
-• query registry layer (Snowflake → API → UI)
-• verification endpoint (/api/verify/[registryId])
-
-DO NOT:
-• modify working scoring logic
-• rewrite registry views
-• bypass publish procedure
-• introduce UI-level logic
+• Verification pipeline (application → case → findings → evidence → events)  
+• Deterministic scoring engine (Snowflake-native)  
+• Score snapshot system  
+• Registry snapshot system (append-only)  
+• Publish procedure (registry writes working)  
+• V_REGISTRY_LATEST_APPROVED (source of truth)  
+• V_REGISTRY_PUBLIC (public certification view)  
+• Registry UI (/registry + detail pages)  
+• Badge surface (/badge/[registryId]) — layout fixed  
+• Verification API (/api/verify/[registryId]) — working  
+• Public key endpoint (/api/.well-known/gafaig-public-key) — working  
+• Ed25519 asymmetric signing — implemented  
+• Explorer Phase 1 (landing + pages)  
 
 ---
 
-# CURRENT GAP
-
-The system is correct but not yet fully expressive.
-
-Gaps:
-
-• Only one canonical certified case (CASE-0001)
-• Multi-case demo expansion not yet successfully scoring/publishing
-• Explorer surfaces not yet rich (limited entities/countries)
-• Registry lacks realistic distribution of certification states
-• Demo dataset fragmentation (multiple legacy seed files)
-• No enforced single canonical seeding system
-
----
-
-# ACTIVE WORKSTREAMS
-
-## 1. CANONICAL MULTI-CASE EXPANSION
-
-Goal:
-→ Introduce multiple organizations into registry while preserving canonical architecture
-
-Target cases:
-
-• CASE-0001 → Certified (flagship)
-• CASE-0002 → Not Certified (Anthropic)
-• CASE-0003 → Not Certified (Google DeepMind)
-• CASE-0004 → Not Certified (Microsoft)
-• CASE-0005 → Not Certified (NVIDIA)
-
-Requirements:
-
-• MUST produce governance score row (V_GOVERNANCE_SCORE_CASE)
-• MUST pass through SP_SCORE_CASE_ENTERPRISE
-• MUST publish via SP_PUBLISH_CASE_TO_REGISTRY_V3
-• MUST NOT insert directly into registry tables
-
-Current blocker:
-
-• expansion cases failing to produce governance score rows
-• error: "No governance score row found for case"
-
-Resolution direction:
-
-→ align expansion seed with full control structure used by CASE-0001
-→ ensure findings + evidence satisfy scoring view requirements
-
----
-
-## 2. CANONICAL SEED CONSOLIDATION
-
-Goal:
-→ ONE source of truth seeding system
-
-Required state:
-
-• ONE canonical seed for CASE-0001 (certified)
-• ONE canonical expansion seed (multi-case)
-• ALL legacy seed files deprecated
-
-Actions:
-
-• remove or archive:
-  - DEMO seeds
-  - BACKFILL scripts
-  - legacy expansion attempts
-
-• enforce deterministic rebuild from:
-  CASE → FINDINGS → EVIDENCE → EVENTS → SCORE → PUBLISH
-
----
-
-## 3. REGISTRY DATA COMPLETION
-
-Goal:
-→ Ensure all public contract fields populate consistently
-
-Fields to validate:
-
-• certifiedScore
-• certifiedTier
-• certifiedBand
-• certifiedAt
-• decisionStatus
-• certificationStatus
-• validFrom / validTo
-• lifecycleStatus
-• renewalStatus
-• country normalization
-
-Source:
-
-→ CORE.V_REGISTRY_PUBLIC (ONLY)
-
----
-
-## 4. EXPLORER ENRICHMENT
-
-Goal:
-→ Transform explorer into meaningful global surface
-
-Current state:
-
-• limited to single entity
-• minimal distribution
-
-Target state:
-
-• multiple organizations
-• multiple countries (US + UK minimum)
-• multiple AI systems
-• meaningful distribution of:
-  - tier
-  - risk
-  - oversight
-
-Sources:
-
-• V_REGISTRY_PUBLIC
-• V_REGISTRY_AI_SYSTEMS_PUBLIC
-
----
-
-## 5. VERIFICATION UX (TRUST SURFACE)
-
-Goal:
-→ Make verification endpoint production-grade
-
-Endpoint:
-
-/api/verify/[registryId]
-
-Enhancements:
-
-• signed payload clarity
-• certification metadata visibility
-• lifecycle state visibility
-• trust messaging ("Certified by GAFAIG")
-
-Constraint:
-
-• NO logic outside Snowflake
-• API is presentation only
-
----
-
-## 6. DEMO NARRATIVE (EXTERNAL READINESS)
-
-Goal:
-→ Turn GAFAIG into a compelling, explainable system
-
-Narrative must communicate:
-
-• how certification works
-• why deterministic scoring matters
-• why registry is trustworthy
-• difference between certified vs non-certified entities
-
-Surfaces:
-
-• /demo
-• /demo-script
-
----
-
-# CRITICAL RULE
+# ⚠️ CRITICAL RULES
 
 DO NOT:
 
-• re-architect system
-• change scoring engine assumptions
-• introduce frontend-derived data
-• bypass canonical pipeline
-• create parallel data paths
+• Re-architect the system  
+• Move logic out of Snowflake  
+• Compute scores in API/UI  
+• Modify registry snapshot behavior  
+• Expose private verification evidence  
+
+ALL logic must remain:
+
+Snowflake → Views → Query Layer → API → UI  
 
 ---
 
-# SUCCESS CRITERIA
+# 🚨 CURRENT GAP
 
-The phase is complete when:
+The system is:
 
-• multiple cases successfully score and publish
-• registry shows mixed certification states
-• explorer shows multiple entities and countries
-• all registry fields populate consistently
-• only canonical seed files exist
-• verification endpoint reflects real certification state
+✔ Technically complete  
+❌ Not yet *understandable or usable* externally  
 
 ---
 
-# EXECUTION PRIORITY
+# 🔧 ACTIVE WORKSTREAMS
 
-1. Fix multi-case scoring (BLOCKER)
-2. Re-run publish for expansion cases
-3. Attach AI systems post-publish
-4. Validate registry + explorer surfaces
-5. Consolidate seed system
-6. Polish verification UX
-7. Finalize demo narrative
+## 1. VERIFICATION UX (TOP PRIORITY)
 
----
+Goal:
 
-# KEY INSIGHT
+Make every certification instantly verifiable by any user.
 
-The system is not broken.
+### Required:
 
-The issue is:
-
-→ expansion data does not satisfy scoring engine requirements
-
-Solution is NOT to bypass logic.
-
-Solution is to:
-
-→ align data with deterministic scoring expectations
+• Add “Verify this certification” section to registry detail page  
+• Add clear explanation of what verification means  
+• Add copyable verification endpoint  
+• Add public key reference  
+• Add signature explanation  
 
 ---
 
-# FINAL STATE TARGET
+## 2. EXTERNAL VERIFICATION FLOW
 
-GAFAIG operates as:
+Goal:
 
-→ a deterministic certification engine
-→ producing verifiable registry outputs
-→ across multiple real-world entities
-→ with a clean, single-source data pipeline
+Allow developers, regulators, and third parties to verify GAFAIG certifications independently.
+
+### Required:
+
+• Provide example verification script (Node.js)  
+• Provide example verification script (Python)  
+• Document verification steps clearly  
+• Ensure payload + signature format is stable  
 
 ---
+
+## 3. TRUST SURFACE STANDARDIZATION
+
+Goal:
+
+Make GAFAIG certification surfaces consistent and authoritative.
+
+### Required:
+
+• Align registry detail trust panel with badge surface  
+• Ensure consistent terminology:
+  - Certified
+  - Verified
+  - Published
+• Ensure all certification fields display correctly:
+  - Tier
+  - Band
+  - Validity
+  - Timestamp  
+
+---
+
+## 4. KEY MANAGEMENT (NEXT STEP)
+
+Goal:
+
+Production-grade cryptographic key lifecycle.
+
+### Required:
+
+• Introduce multiple keys (kid support)  
+• Enable key rotation  
+• Maintain backward verification compatibility  
+
+---
+
+## 5. PROOF STANDARDIZATION
+
+Goal:
+
+Define GAFAIG as a formal verification standard.
+
+### Required:
+
+• Formal proof schema definition  
+• Optional JWS-compatible format  
+• Canonical message contract enforcement  
+
+---
+
+## 6. EXPLORER PHASE 2
+
+Goal:
+
+Make registry data explorable and analytically useful.
+
+### Required:
+
+• Filters:
+  - Country
+  - Tier
+  - Band  
+• Aggregations:
+  - Counts
+  - Distributions  
+• Metrics:
+  - Certifications over time  
+• Map improvements  
+
+---
+
+# 🧪 VALIDATION CHECKLIST (MANDATORY)
+
+After each change, verify:
+
+## Registry
+
+• /registry loads  
+• /registry/[registryId] loads correctly  
+
+## Verification
+
+• /api/verify/[registryId] returns valid JSON  
+• Signature is present  
+• Message payload is correct  
+
+## Public Key
+
+• /api/.well-known/gafaig-public-key loads  
+• Returns kid + PEM  
+
+## Badge
+
+• /badge/[registryId] renders correctly  
+• Layout is contained and responsive  
+
+## Explorer
+
+• All explorer pages load  
+• Data is consistent with registry  
+
+---
+
+# 🧠 DESIGN PRINCIPLE
+
+Every GAFAIG page must answer:
+
+"Can I trust this certification?"
+
+If the answer is not obvious:
+
+→ The page is incomplete
+
+---
+
+# 🚀 NEXT EXECUTION STEP
+
+Start with:
+
+👉 Registry Detail Page — Verification Section
+
+Then:
+
+👉 External Verification Example (Node.js)
+
+---
+
+# END OF CURRENT FOCUS

@@ -1,333 +1,353 @@
-# GAFAIG — VS CODE FILE TREE
-Canonical Repository Structure
-Last Updated: 2026-03-29
+# GAFAIG — GAFAIG_VS_CODE_File_Tree.md
+VS Code File Tree + Structural Map
+Last Updated: 2026-03-31
 
 ---
 
-# PURPOSE
+# 🚨 SYSTEM RULE
 
-This file provides:
+This file represents the **authoritative project structure**.
 
-• full VS Code folder + file structure  
-• clear mapping of UI, API, and backend layers  
-• system-level visibility  
+DO NOT:
 
-Goal:
-→ eliminate confusion  
-→ enable fast navigation  
-→ maintain architectural clarity  
+• Reorganize folders arbitrarily  
+• Move core system files  
+• Break App Router structure  
+
+All development must respect this structure.
 
 ---
 
-# ROOT
+# 📁 ROOT PROJECT TREE
 
 gafaig/
-
-├─ .next/                        (build output — ignore)
-├─ .vercel/                      (deployment metadata)
-
-├─ app/                          (Next.js App Router)
-├─ lib/                          (query + auth layer)
-├─ docs/                         (canonical system memory)
-├─ public/                       (static assets)
-├─ styles/                       (global styles)
-
-├─ middleware.ts                 (auth protection)
-├─ next.config.js
-├─ package.json
-├─ tsconfig.json
+├── app/
+├── lib/
+├── public/
+├── styles/
+├── docs/
+├── package.json
+├── next.config.js
+├── tsconfig.json
+├── .env.local
 
 ---
 
-# APP DIRECTORY (ROUTES)
+# 📂 APP DIRECTORY (Next.js App Router)
 
 app/
 
-├─ layout.tsx
-├─ page.tsx                      (homepage)
+---
+
+## 🌍 PUBLIC PAGES
+
+├── page.tsx
+├── mission/
+│   └── page.tsx
+├── framework/
+│   └── page.tsx
+├── demo/
+│   └── page.tsx
 
 ---
 
-## PUBLIC PAGES
+## 📊 REGISTRY
 
-├─ mission/
-│  └─ page.tsx
-
-├─ framework/
-│  └─ page.tsx
-
-├─ demo/
-│  └─ page.tsx
-
-├─ demo-script/
-│  └─ page.tsx
+├── registry/
+│   ├── page.tsx
+│   ├── [registryId]/
+│   │   └── page.tsx
+│   ├── ai-systems/
+│   │   ├── page.tsx
+│   │   └── [systemId]/
+│   │       └── page.tsx
 
 ---
 
-## REGISTRY
+## 🔍 EXPLORER
 
-├─ registry/
-│  ├─ page.tsx                   (/registry)
-│  ├─ [registryId]/
-│  │  └─ page.tsx                (/registry/[registryId])
-│  ├─ ai-systems/
-│  │  ├─ page.tsx                (/registry/ai-systems)
-│  │  └─ [systemId]/
-│  │     └─ page.tsx             (/registry/ai-systems/[systemId])
-
----
-
-## EXPLORER
-
-├─ explorer/
-│  ├─ page.tsx                   (/explorer)
-│  ├─ organizations/
-│  │  └─ page.tsx
-│  ├─ systems/
-│  │  └─ page.tsx
-│  ├─ countries/
-│  │  └─ page.tsx
-│  └─ map/
-│     └─ page.tsx
+├── explorer/
+│   ├── page.tsx
+│   ├── countries/
+│   │   └── page.tsx
+│   ├── organizations/
+│   │   └── page.tsx
+│   ├── systems/
+│   │   └── page.tsx
+│   └── map/
+│       └── page.tsx
 
 ---
 
-## VERIFY
+## 🖼️ BADGE (SVG ROUTE)
 
-├─ verify/
-│  └─ [registryId]/
-│     └─ page.tsx                (/verify/[registryId])
-
----
-
-## BADGE
-
-├─ badge/
-│  └─ [registryId]/
-│     └─ route.ts                (badge endpoint)
+├── badge/
+│   └── [registryId]/
+│       └── route.ts
 
 ---
 
-## ADMIN
-
-├─ admin/
-│  ├─ login/
-│  │  └─ page.tsx
-│  ├─ applications/
-│  │  └─ page.tsx
-│  └─ verification/
-│     └─ [caseId]/
-│        ├─ evidence/
-│        │  └─ page.tsx
-│        ├─ findings/
-│        │  └─ page.tsx
-│        ├─ score/
-│        │  └─ page.tsx
-│        └─ publish/
-│           └─ page.tsx
-
----
-
-# API ROUTES
+## 🔐 API ROUTES
 
 app/api/
 
----
+### Verification
 
-## REGISTRY
-
-├─ registry/
-│  ├─ route.ts                   (GET list)
-│  ├─ search/
-│  │  └─ route.ts
-│  └─ [registryId]/
-│     └─ ai-systems/
-│        └─ route.ts
+├── verify/
+│   └── [registryId]/
+│       └── route.ts
 
 ---
 
-## VERIFY
+### Public Key (CRITICAL)
 
-├─ verify/
-│  └─ [registryId]/
-│     └─ route.ts
-
----
-
-## ADMIN API
-
-├─ admin/
-│  ├─ login/
-│  │  └─ route.ts
-│  ├─ logout/
-│  │  └─ route.ts
-│  ├─ status/
-│  │  └─ route.ts
-│  └─ verification/
-│     ├─ findings/
-│     │  └─ route.ts
-│     ├─ events/
-│     │  └─ route.ts
-│     ├─ decisions/
-│     │  └─ route.ts
-│     └─ evidence/
-│        └─ summary/
-│           └─ route.ts
+├── .well-known/
+│   └── gafaig-public-key/
+│       └── route.ts
 
 ---
 
-# COMPONENTS
+### Admin
 
-app/_components/
-
-├─ PublicPageHero.tsx
-├─ PublicButtonLink.tsx
-├─ RegistryCard.tsx
-├─ ExplorerCard.tsx
-├─ PublishCertificationButton.tsx
+├── admin/
+│   ├── applications/
+│   │   └── route.ts
+│   ├── verification/
+│   │   ├── findings/
+│   │   │   └── route.ts
+│   │   ├── evidence/
+│   │   │   └── route.ts
+│   │   ├── events/
+│   │   │   └── route.ts
+│   │   ├── decisions/
+│   │   │   └── route.ts
+│   │   └── publish/
+│   │       └── route.ts
 
 ---
 
-# LIB DIRECTORY
+## 🔐 ADMIN UI
+
+├── admin/
+│   ├── login/
+│   │   └── page.tsx
+│   ├── applications/
+│   │   └── page.tsx
+│   └── verification/
+│       └── [caseId]/
+│           ├── findings/
+│           │   └── page.tsx
+│           ├── evidence/
+│           │   └── page.tsx
+│           ├── score/
+│           │   └── page.tsx
+│           ├── decisions/
+│           │   └── page.tsx
+│           └── publish/
+│               └── page.tsx
+
+---
+
+## 🧩 SHARED COMPONENTS
+
+├── _components/
+│   ├── PublicPageHero.tsx
+│   ├── PublicButtonLink.tsx
+│   └── ...
+
+---
+
+## 📦 REGISTRY COMPONENTS
+
+components/registry/
+
+├── RegistryCertificationSummary.tsx
+├── RegistryHeaderPanel.tsx
+├── RegistryVerificationPanel.tsx
+
+---
+
+# 📂 LIB DIRECTORY
 
 lib/
 
 ---
 
-## SNOWFLAKE
+## ❄️ SNOWFLAKE
 
-├─ snowflake.ts                  (connection + query execution)
+├── snowflake.ts
+
+Purpose:
+
+• Snowflake connection  
+• Query execution (sfQuery)  
 
 ---
 
-## QUERY LAYER
+## 🧩 QUERY LAYER
 
 lib/queries/
 
-├─ registry.ts
-├─ registry-search.ts
-├─ registry-ai-systems.ts
-├─ explorer.ts
+├── registry.ts
+├── registry-ai-systems.ts
+├── explorer.ts
+
+Purpose:
+
+• All database access  
+• Enforced abstraction layer  
 
 ---
 
-## AUTH
+## 🔐 CRYPTO
 
-lib/auth/
+lib/crypto/
 
-├─ require.ts
-├─ admin.ts
-├─ session.ts
+├── verify-signing.ts
 
----
+Purpose:
 
-# DOCS DIRECTORY (CRITICAL)
-
-docs/
-
-├─ MASTER_STATE.md
-├─ CURRENT_FOCUS.md
-├─ CHANGELOG.md
-├─ PROJECT_INDEX.md
-├─ API_ROUTE_MAPPING.md
-├─ UI_COMPONENT_MAPPING.md
-├─ SNOWFLAKE_WORKSHEET_MAPPING.md
-├─ GAFAIG_SNOWFLAKE_SQL_FILE_SUMMARY.md
-├─ GAFAIG_VS_CODE_File_Tree.md
-├─ ENGINEERING_RULES.md
+• Ed25519 signing  
+• Public/private key handling  
+• Signature verification  
 
 ---
 
-# PUBLIC ASSETS
+## 🧰 UTILITIES
+
+├── ids.ts
+├── constants/
+├── helpers/
+
+---
+
+# 📂 PUBLIC DIRECTORY
 
 public/
 
-├─ images/
-│  ├─ gafaig-badge-tier-a.png
-│  ├─ gafaig-badge-tier-b.png
-│  ├─ gafaig-badge-tier-c.png
+Purpose:
+
+• Static assets  
+• Images  
+• Icons  
 
 ---
 
-# DATA FLOW (FILE LEVEL)
+# 📂 STYLES
 
-Snowflake SQL (external)
+styles/
 
-↓
+Purpose:
 
-lib/snowflake.ts
-
-↓
-
-lib/queries/*
-
-↓
-
-app/api/*
-
-↓
-
-app/* (UI pages)
+• Global styles  
+• Tailwind / CSS  
 
 ---
 
-# DEPLOYMENT FLOW
+# 📂 DOCS
 
-Local:
+docs/
 
-npm run dev
-
----
-
-Production:
-
-git add .
-git commit -m "update"
-git push origin main
-
-↓
-
-Vercel auto-deploy
+├── MASTER_STATE.md
+├── CURRENT_FOCUS.md
+├── CHANGELOG.md
+├── PROJECT_INDEX.md
+├── UI_COMPONENT_MAPPING.md
+├── API_ROUTE_MAPPING.md
+├── SNOWFLAKE_WORKSHEET_MAPPING.md
+├── GAFAIG_SNOWFLAKE_SQL_FILE_SUMMARY.md
+├── GAFAIG_VS_CODE_File_Tree.md
+├── ENGINEERING_RULES.md
 
 ---
 
-# CRITICAL RULES
+# 🔗 KEY FILE RELATIONSHIPS
 
-DO NOT:
+## Verification Flow
 
-• add logic to UI
-• compute certification in API
-• bypass query layer
-• create duplicate data flows
-
-ALWAYS:
-
-• use Snowflake views
-• use query layer
-• keep UI presentation-only
-• maintain clean file structure
+lib/crypto/verify-signing.ts  
+→ app/api/verify/[registryId]/route.ts  
+→ app/api/.well-known/gafaig-public-key/route.ts  
 
 ---
 
-# CURRENT STATE
+## Registry Flow
 
-✔ Full UI structure in place  
-✔ API routes mapped correctly  
-✔ Query layer functioning  
-✔ Registry + explorer pages live  
-
-⚠️ Multi-case expansion incomplete  
-⚠️ Seed system consolidation pending  
+Snowflake Views  
+→ lib/queries/registry.ts  
+→ /api/registry  
+→ /registry UI  
 
 ---
 
-# PURPOSE OF THIS FILE
+## Badge Flow
 
-Ensures:
-
-• complete file visibility  
-• fast navigation in VS Code  
-• correct mapping between layers  
-• continuity across development sessions  
+V_REGISTRY_PUBLIC  
+→ badge route.ts  
+→ SVG render  
 
 ---
+
+## Explorer Flow
+
+V_REGISTRY_PUBLIC_SEARCH  
+→ lib/queries/explorer.ts  
+→ /explorer pages  
+
+---
+
+# ⚠️ CRITICAL STRUCTURE RULES
+
+## DO NOT:
+
+• Move API routes out of app/api  
+• Rename .well-known folder  
+• Break dynamic route structure ([id])  
+• Duplicate query logic  
+
+---
+
+## ALWAYS:
+
+• Follow App Router conventions  
+• Keep crypto logic in lib/crypto  
+• Keep queries in lib/queries  
+• Keep UI logic in app/  
+
+---
+
+# 🧠 DESIGN PRINCIPLE
+
+The file tree reflects:
+
+A **layered trust architecture**
+
+NOT:
+
+A typical web app  
+
+---
+
+# 🚀 NEXT FILE WORK
+
+## Verification UX
+
+• Update registry detail page  
+• Add verification panel  
+
+---
+
+## Explorer Phase 2
+
+• Enhance explorer pages  
+• Add filters and metrics  
+
+---
+
+## Trust Layer
+
+• Align badge + registry + API  
+
+---
+
+# END OF VS CODE FILE TREE
