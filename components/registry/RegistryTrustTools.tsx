@@ -33,11 +33,38 @@ function CopyButton({ value, label }: { value: string; label: string }) {
 
   return (
     <button
+      type="button"
       onClick={handleCopy}
-      className="rounded-full border border-black px-4 py-2 text-sm font-semibold hover:bg-black hover:text-white transition"
+      className="inline-flex min-h-[48px] items-center justify-center rounded-full border border-black px-5 py-3 text-sm font-semibold leading-none transition hover:bg-black hover:text-white"
     >
       {copied ? "Copied" : label}
     </button>
+  );
+}
+
+function ActionLink({
+  href,
+  label,
+  filled = false,
+}: {
+  href: string;
+  label: string;
+  filled?: boolean;
+}) {
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noreferrer"
+      className={[
+        "inline-flex min-h-[48px] min-w-[148px] items-center justify-center rounded-full px-5 py-3 text-sm font-semibold leading-none transition",
+        filled
+          ? "border border-black bg-black text-white hover:bg-black/90"
+          : "border border-black text-black hover:bg-black/[0.04]",
+      ].join(" ")}
+    >
+      {label}
+    </a>
   );
 }
 
@@ -49,10 +76,18 @@ function CodeBlock({ value }: { value: string }) {
   );
 }
 
-function Snippet({ title, value, button }: any) {
+function Snippet({
+  title,
+  value,
+  button,
+}: {
+  title: string;
+  value: string;
+  button: string;
+}) {
   return (
     <div className="rounded-2xl border border-black/10 p-6">
-      <div className="text-[12px] uppercase tracking-wide text-black/60 font-semibold">
+      <div className="text-[12px] font-semibold uppercase tracking-wide text-black/60">
         {title}
       </div>
 
@@ -104,75 +139,81 @@ export default function RegistryTrustTools({
 
   return (
     <section className="mt-20 rounded-3xl border border-black bg-white p-10 shadow-sm">
-      
-      {/* HEADER */}
-      <div className="flex flex-col md:flex-row md:justify-between gap-6">
+      <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
         <div className="max-w-[720px]">
-          <div className="text-[12px] uppercase tracking-widest text-black/60 font-semibold">
+          <div className="text-[12px] font-semibold uppercase tracking-widest text-black/60">
             TRUST BADGE + EMBED TOOLS
           </div>
 
-          <h2 className="mt-4 text-[36px] leading-tight font-semibold">
+          <h2 className="mt-4 text-[36px] font-semibold leading-tight text-black">
             Verify, share, or embed this certification
           </h2>
 
-          <p className="mt-4 text-[15px] text-black/70 leading-relaxed">
+          <p className="mt-4 text-[15px] leading-relaxed text-black/70">
             Share this certification publicly with a badge, verification link,
             QR code, or embed snippet. Anyone can independently verify this
             certification via GAFAIG.
           </p>
+
+          <p className="mt-2 text-[12px] text-black/50">
+            Public verification powered by GAFAIG cryptographic registry
+            infrastructure.
+          </p>
         </div>
 
-        <div className="flex gap-3">
-          <a
+        <div className="flex flex-wrap items-center gap-3 md:justify-end">
+          <ActionLink
             href={`/badge/${registryId}`}
-            target="_blank"
-            className="rounded-full bg-black text-white px-5 py-3 text-sm font-semibold"
-          >
-            Open badge
-          </a>
-          <a
+            label="Open badge"
+            filled
+          />
+          <ActionLink
             href={`/api/verify/${registryId}`}
-            target="_blank"
-            className="rounded-full border border-black px-5 py-3 text-sm font-semibold"
-          >
-            Verify JSON
-          </a>
+            label="Open verify JSON"
+          />
         </div>
       </div>
 
-      {/* PREVIEW + QR */}
-      <div className="mt-10 grid md:grid-cols-2 gap-8">
-
-        {/* BADGE */}
+      <div className="mt-10 grid gap-8 md:grid-cols-2">
         <div className="rounded-2xl border border-black/10 p-6">
-          <div className="text-sm font-semibold mb-4">Live badge preview</div>
+          <div className="mb-4 text-sm font-semibold text-black">
+            Live badge preview
+          </div>
 
-          <div className="bg-black/[0.03] rounded-xl p-4 flex justify-center">
-            <img src={badgeUrl} className="max-w-full" />
+          <div className="flex justify-center rounded-xl bg-black/[0.03] p-4">
+            <img src={badgeUrl} alt={`${entityName} badge`} className="max-w-full" />
           </div>
 
           <div className="mt-6 space-y-4">
             <div>
               <div className="text-xs text-black/50">Registry URL</div>
-              <CodeBlock value={registryUrl} />
-              <CopyButton value={registryUrl} label="Copy registry URL" />
+              <div className="mt-2">
+                <CodeBlock value={registryUrl} />
+              </div>
+              <div className="mt-3">
+                <CopyButton value={registryUrl} label="Copy registry URL" />
+              </div>
             </div>
 
             <div>
               <div className="text-xs text-black/50">Verify URL</div>
-              <CodeBlock value={verifyUrl} />
-              <CopyButton value={verifyUrl} label="Copy verify URL" />
+              <div className="mt-2">
+                <CodeBlock value={verifyUrl} />
+              </div>
+              <div className="mt-3">
+                <CopyButton value={verifyUrl} label="Copy verify URL" />
+              </div>
             </div>
           </div>
         </div>
 
-        {/* QR */}
         <div className="rounded-2xl border border-black/10 p-6">
-          <div className="text-sm font-semibold mb-4">Verification QR code</div>
+          <div className="mb-4 text-sm font-semibold text-black">
+            Verification QR code
+          </div>
 
-          <div className="flex justify-center bg-black/[0.03] p-4 rounded-xl">
-            <img src={qrSrc} className="w-[220px]" />
+          <div className="flex justify-center rounded-xl bg-black/[0.03] p-4">
+            <img src={qrSrc} alt="Verification QR code" className="w-[220px]" />
           </div>
 
           <p className="mt-5 text-sm text-black/70">
@@ -185,9 +226,7 @@ export default function RegistryTrustTools({
         </div>
       </div>
 
-      {/* EMBEDS */}
-      <div className="mt-10 grid md:grid-cols-2 gap-8">
-
+      <div className="mt-10 grid gap-8 md:grid-cols-2">
         <Snippet
           title="HTML badge embed"
           value={htmlEmbed}
