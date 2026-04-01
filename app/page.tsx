@@ -47,9 +47,7 @@ async function getPublicMetrics(): Promise<PublicMetricsResponse | null> {
     });
 
     const regJson = (await reg.json()) as {
-      rows?: Array<{
-        country?: string | null;
-      }>;
+      rows?: Array<{ country?: string | null }>;
     };
 
     if (Array.isArray(regJson.rows)) {
@@ -85,56 +83,75 @@ export default async function HomePage() {
   return (
     <main className="mx-auto max-w-[1280px] px-6 pb-20 pt-14 md:px-8">
       <div className="space-y-8">
+
         <PublicPageHero
           eyebrow="GLOBAL AUTHORITY FOR AI GOVERNANCE"
           title="The global registry for AI governance certification"
-          description="GAFAIG is a verification system and public registry for AI governance. It evaluates whether human oversight is operating across an organization’s AI systems and produces certification outcomes that can be independently verified."
-          secondaryDescription="Reviews are conducted in a controlled verification environment, while certification results are published through a public registry. Each registry record can be verified through a signed proof and a public badge, allowing external parties to confirm governance status without exposing sensitive internal materials."
+          description="GAFAIG is a verification system and public registry for AI governance."
+          secondaryDescription="Each registry record can be verified through a signed proof, verification endpoint, and embeddable trust surfaces."
           actions={
             <>
-              <Link href="/mission" className="rounded-full border border-black bg-black px-5 py-3 text-sm font-semibold text-white transition hover:bg-black/90">
+              <Link href="/mission" className="rounded-full border border-black bg-black px-5 py-3 text-sm font-semibold text-white">
                 Start with the Mission
               </Link>
-              <Link href="/registry" className="rounded-full border border-black px-5 py-3 text-sm font-semibold transition hover:bg-black/[0.04]">
+              <Link href="/registry" className="rounded-full border border-black px-5 py-3 text-sm font-semibold">
                 View the Registry
               </Link>
-              <Link href="/framework" className="rounded-full border border-black px-5 py-3 text-sm font-semibold transition hover:bg-black/[0.04]">
+              <Link href="/framework" className="rounded-full border border-black px-5 py-3 text-sm font-semibold">
                 See How It Works
-              </Link>
-              <Link href="/explorer" className="rounded-full border border-black px-5 py-3 text-sm font-semibold transition hover:bg-black/[0.04]">
-                Explore the Data
               </Link>
             </>
           }
         />
 
-        <section className="grid gap-4 md:grid-cols-3">
-          <PillarCard eyebrow="Pillar 1" title="Private Verification Engine" body="A controlled review environment where organizations move through application intake, evidence review, findings, deterministic scoring, and certification workflow." points={["Reviewer-only operational layer","Structured evidence and findings flow","Deterministic certification process"]} href="/admin/login" cta="Open reviewer layer" />
-          <PillarCard eyebrow="Pillar 2" title="Public Registry" body="A registry of record where certification outcomes are published without exposing private reviewer materials, internal evidence, or controlled assessment workflows." points={["Canonical certification records","Public trust and verification layer","Portable badge and proof signals"]} href="/registry" cta="View public registry" />
-          <PillarCard eyebrow="Pillar 3" title="Global Explorer" body="A discovery layer for organizations, AI systems, countries, and governance presence across the GAFAIG network." points={["Organizations and systems","Country-level visibility","Global governance footprint"]} href="/explorer" cta="Open explorer" />
-        </section>
-
+        {/* TRUST INFRASTRUCTURE */}
         <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
-          <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">WHY GAFAIG EXISTS</div>
-          <h2 className="mt-4 text-[32px] font-semibold">AI governance needs to be verifiable, not just declared</h2>
-          <p className="mt-5 text-[16px] text-black/75">GAFAIG provides that infrastructure.</p>
-        </section>
+          <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
+            TRUST INFRASTRUCTURE
+          </div>
 
-        <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
-          <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">HOW THE SYSTEM WORKS</div>
-          <h2 className="mt-4 text-[32px] font-semibold">From deterministic review to verifiable registry record</h2>
-        </section>
+          <h2 className="mt-4 text-[32px] font-semibold">
+            Public certification that can be independently verified
+          </h2>
 
-        {/* 🔥 NEW TRUST INFRASTRUCTURE SECTION */}
-        <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
-          <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">TRUST INFRASTRUCTURE</div>
-          <h2 className="mt-4 text-[32px] font-semibold">Public certification that can be independently verified</h2>
           <p className="mt-5 text-[16px] text-black/75">
-            GAFAIG extends beyond registry publication into a full trust infrastructure layer. Every certification record includes a signed public proof, a verification endpoint, and embeddable trust surfaces that allow third parties to independently verify governance status.
+            GAFAIG extends beyond registry publication into a full trust infrastructure layer.
           </p>
+
+          <div className="mt-6 grid gap-4 md:grid-cols-2">
+            <StatementCard title="Signed proofs" body="Each certification is cryptographically signed." />
+            <StatementCard title="Verification API" body="Public verification endpoint available." />
+            <StatementCard title="Embeddable badge" body="Portable trust across the web." />
+            <StatementCard title="Live widget" body="Real-time verification UI." />
+          </div>
         </section>
 
       </div>
     </main>
+  );
+}
+
+/* COMPONENTS */
+
+function PillarCard({ eyebrow, title, body, points, href, cta }: any) {
+  return (
+    <div className="rounded-3xl border p-6">
+      <div>{eyebrow}</div>
+      <h2 className="mt-3 text-xl font-semibold">{title}</h2>
+      <p className="mt-4">{body}</p>
+      <ul className="mt-4">
+        {points?.map((p: string) => <li key={p}>• {p}</li>)}
+      </ul>
+      <Link href={href}>{cta}</Link>
+    </div>
+  );
+}
+
+function StatementCard({ title, body }: any) {
+  return (
+    <div className="rounded-2xl border p-5">
+      <div className="font-semibold">{title}</div>
+      <p className="mt-2">{body}</p>
+    </div>
   );
 }
