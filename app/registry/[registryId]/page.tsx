@@ -46,7 +46,10 @@ export default async function RegistryPage({
   }
 
   const row = data?.data?.[0] || {};
-  const entityName = row.ENTITY_NAME || "Unknown Entity";
+  const entityName =
+  row.ENTITY_NAME ||
+  verifyData?.record?.entityName ||
+  "Unknown Entity";
 
   return (
     <div className="mx-auto max-w-6xl px-6 py-10">
