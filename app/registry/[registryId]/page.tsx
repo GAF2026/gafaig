@@ -1,4 +1,5 @@
 import RegistryVerificationPanel from "@/components/registry/RegistryVerificationPanel";
+import RegistryTrustTools from "@/components/registry/RegistryTrustTools";
 
 export const dynamic = "force-dynamic";
 
@@ -112,6 +113,37 @@ export default async function RegistryPage({
     verifyData?.record?.entityName ||
     "Unknown Entity";
 
+  const normalizedVerifyData = verifyData
+    ? {
+        ok: Boolean(verifyData.ok),
+        verified: Boolean(verifyData.verified),
+        registryId: String(verifyData.registryId || registryId),
+        record: verifyData.record
+          ? {
+              entityName: verifyData.record.entityName ?? null,
+              entityType: verifyData.record.entityType ?? null,
+              country: verifyData.record.country ?? null,
+              decisionStatus: verifyData.record.decisionStatus ?? null,
+              certifiedTier: verifyData.record.certifiedTier ?? null,
+              certifiedBand: verifyData.record.certifiedBand ?? null,
+              validTo: verifyData.record.validTo ?? null,
+            }
+          : null,
+        proof: verifyData.proof
+          ? {
+              alg: verifyData.proof.alg ?? null,
+              kid: verifyData.proof.kid ?? null,
+              signature: verifyData.proof.signature ?? null,
+              signedAt: verifyData.proof.signedAt ?? null,
+              verificationKeyUrl: verifyData.proof.verificationKeyUrl ?? null,
+              message: verifyData.proof.message ?? null,
+              messageString: verifyData.proof.messageString ?? null,
+            }
+          : null,
+        error: verifyData.error,
+      }
+    : null;
+
   return (
     <div className="mx-auto max-w-6xl px-6 py-10">
       <h1 className="mb-6 text-2xl font-semibold">{entityName}</h1>
@@ -119,39 +151,12 @@ export default async function RegistryPage({
       <RegistryVerificationPanel
         registryId={registryId}
         entityName={entityName}
-        verifyData={
-          verifyData
-            ? {
-                ok: Boolean(verifyData.ok),
-                verified: Boolean(verifyData.verified),
-                registryId: String(verifyData.registryId || registryId),
-                record: verifyData.record
-                  ? {
-                      entityName: verifyData.record.entityName ?? null,
-                      entityType: verifyData.record.entityType ?? null,
-                      country: verifyData.record.country ?? null,
-                      decisionStatus: verifyData.record.decisionStatus ?? null,
-                      certifiedTier: verifyData.record.certifiedTier ?? null,
-                      certifiedBand: verifyData.record.certifiedBand ?? null,
-                      validTo: verifyData.record.validTo ?? null,
-                    }
-                  : null,
-                proof: verifyData.proof
-                  ? {
-                      alg: verifyData.proof.alg ?? null,
-                      kid: verifyData.proof.kid ?? null,
-                      signature: verifyData.proof.signature ?? null,
-                      signedAt: verifyData.proof.signedAt ?? null,
-                      verificationKeyUrl:
-                        verifyData.proof.verificationKeyUrl ?? null,
-                      message: verifyData.proof.message ?? null,
-                      messageString: verifyData.proof.messageString ?? null,
-                    }
-                  : null,
-                error: verifyData.error,
-              }
-            : null
-        }
+        verifyData={normalizedVerifyData}
+      />
+
+      <RegistryTrustTools
+        registryId={registryId}
+        entityName={entityName}
       />
     </div>
   );
