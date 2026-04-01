@@ -100,7 +100,7 @@ export default function RegistryTrustTools({
   )}`;
 
   return (
-    <section className="mt-10 rounded-3xl border border-black/10 bg-white p-8 md:p-10">
+    <section className="mt-16 rounded-3xl border border-black bg-white p-10 shadow-sm md:p-12">
       <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
         <div>
           <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
@@ -108,13 +108,13 @@ export default function RegistryTrustTools({
           </div>
 
           <h2 className="mt-4 text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
-            Copy embed, QR, and verification links
+            Verify, share, or embed this certification
           </h2>
 
           <p className="mt-4 max-w-[920px] text-[15px] leading-[1.8] text-black/72">
-            Share this certification publicly with a badge, a direct verification link,
-            a QR code, or a lightweight embed snippet. These tools let third parties
-            verify the public registry record and its signed proof.
+            Share this certification publicly with a badge, a direct verification
+            link, a QR code, or a lightweight embed snippet. These tools let third
+            parties verify the public registry record and its signed proof.
           </p>
         </div>
 
@@ -200,8 +200,8 @@ export default function RegistryTrustTools({
           </div>
 
           <p className="mt-4 text-[14px] leading-[1.75] text-black/68">
-            This QR code links directly to the public GAFAIG registry record for this
-            certification, so anyone can scan and verify it.
+            This QR code links directly to the public GAFAIG registry record for
+            this certification, so anyone can scan and verify it.
           </p>
 
           <div className="mt-4">
