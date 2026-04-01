@@ -4,252 +4,243 @@ import { useMemo, useState } from "react";
 
 type Props = {
   registryId: string;
-  entityName: string;
+  entityName?: string | null;
+  absoluteRegistryUrl: string;
+  absoluteVerifyUrl: string;
+  absoluteBadgeUrl: string;
 };
 
-function buildAbsoluteUrl(path: string) {
-  if (typeof window === "undefined") return path;
-  return new URL(path, window.location.origin).toString();
-}
-
-async function copyText(value: string) {
-  try {
-    await navigator.clipboard.writeText(value);
-    return true;
-  } catch {
-    return false;
-  }
-}
-
-function CopyButton({ value, label }: { value: string; label: string }) {
+function CopyButton({
+  value,
+  label,
+}: {
+  value: string;
+  label: string;
+}) {
   const [copied, setCopied] = useState(false);
 
   async function handleCopy() {
-    const ok = await copyText(value);
-    if (!ok) return;
-    setCopied(true);
-    setTimeout(() => setCopied(false), 1400);
+    try {
+      await navigator.clipboard.writeText(value);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 1600);
+    } catch {
+      setCopied(false);
+    }
   }
 
   return (
     <button
       type="button"
       onClick={handleCopy}
-      className="inline-flex min-h-[48px] items-center justify-center rounded-full border border-black px-5 py-3 text-sm font-semibold leading-none transition hover:bg-black hover:text-white"
+      className="inline-flex min-h-11 items-center justify-center rounded-full border border-black px-5 py-3 text-sm font-semibold transition hover:bg-black/[0.04]"
     >
       {copied ? "Copied" : label}
     </button>
   );
 }
 
-function ActionLink({
-  href,
-  label,
-  filled = false,
-}: {
-  href: string;
-  label: string;
-  filled?: boolean;
-}) {
-  return (
-    <a
-      href={href}
-      target="_blank"
-      rel="noreferrer"
-      className={[
-        "inline-flex min-h-[48px] min-w-[148px] items-center justify-center rounded-full px-5 py-3 text-sm font-semibold leading-none transition",
-        filled
-          ? "border border-black bg-black text-white hover:bg-black/90"
-          : "border border-black text-black hover:bg-black/[0.04]",
-      ].join(" ")}
-    >
-      {label}
-    </a>
-  );
-}
-
-function CodeBlock({ value }: { value: string }) {
-  return (
-    <pre className="overflow-x-auto whitespace-pre-wrap break-words rounded-2xl border border-black/10 bg-black/[0.03] p-5 text-[13px] leading-[1.8] text-black/85">
-      <code>{value}</code>
-    </pre>
-  );
-}
-
-function Snippet({
-  title,
-  value,
-  button,
-}: {
-  title: string;
-  value: string;
-  button: string;
-}) {
-  return (
-    <div className="rounded-2xl border border-black/10 p-6">
-      <div className="text-[12px] font-semibold uppercase tracking-wide text-black/60">
-        {title}
-      </div>
-
-      <div className="mt-4">
-        <CodeBlock value={value} />
-      </div>
-
-      <div className="mt-4">
-        <CopyButton value={value} label={button} />
-      </div>
-    </div>
-  );
-}
-
 export default function RegistryTrustTools({
   registryId,
   entityName,
+  absoluteRegistryUrl,
+  absoluteVerifyUrl,
+  absoluteBadgeUrl,
 }: Props) {
-  const registryUrl = useMemo(
-    () => buildAbsoluteUrl(`/registry/${registryId}`),
-    [registryId]
+  const safeEntityName = entityName?.trim() || "GAFAIG Certified Record";
+
+  const widgetScriptUrl = "https://www.gafaig.com/widget/gafaig-widget.js?v=1";
+  const verifyScriptUrl = "https://www.gafaig.com/widget/gafaig-verify.js?v=1";
+
+  const htmlEmbed = useMemo(
+    () => `<a href="${absoluteRegistryUrl}" target="_blank" rel="noopener noreferrer">
+  <img
+    src="${absoluteBadgeUrl}"
+    alt="${safeEntityName} GAFAIG certification badge"
+    style="height:64px;width:auto"
+  />
+</a>`,
+    [absoluteBadgeUrl, absoluteRegistryUrl, safeEntityName]
   );
 
-  const verifyUrl = useMemo(
-    () => buildAbsoluteUrl(`/api/verify/${registryId}`),
-    [registryId]
+  const markdownEmbed = useMemo(
+    () =>
+      `[![${safeEntityName} GAFAIG certification badge](${absoluteBadgeUrl})](${absoluteRegistryUrl})`,
+    [absoluteBadgeUrl, absoluteRegistryUrl, safeEntityName]
   );
 
-  const badgeUrl = useMemo(
-    () => buildAbsoluteUrl(`/badge/${registryId}`),
-    [registryId]
+  const verifyButtonSnippet = useMemo(
+    () => `<script src="${verifyScriptUrl}"></script>
+<button onclick="verifyGAFAIG('${registryId}')">Verify This AI System</button>`,
+    [registryId, verifyScriptUrl]
   );
 
-  const htmlEmbed = `<a href="${registryUrl}" target="_blank" rel="noopener noreferrer">
-  <img src="${badgeUrl}" alt="${entityName} GAFAIG certification badge" style="height:64px;width:auto" />
-</a>`;
+  const widgetSnippet = useMemo(
+    () => `<script src="${widgetScriptUrl}"></script>
+<div data-gafaig-id="${registryId}"></div>`,
+    [registryId, widgetScriptUrl]
+  );
 
-  const markdownEmbed = `[![${entityName} GAFAIG certification badge](${badgeUrl})](${registryUrl})`;
-
-  const verifySnippet = `<script src="https://www.gafaig.com/widget/gafaig-verify.js"></script>
-<button onclick="verifyGAFAIG('${registryId}')">Verify This AI System</button>`;
-
-  const widgetSnippet = `<script src="https://www.gafaig.com/widget/gafaig-widget.js"></script>
-<div data-gafaig-id="${registryId}"></div>`;
-
-  const qrSrc = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(
-    registryUrl
-  )}`;
+  const qrUrl = absoluteRegistryUrl;
 
   return (
-    <section className="mt-20 rounded-3xl border border-black bg-white p-10 shadow-sm">
+    <section className="rounded-[32px] border border-black/70 bg-white p-8 shadow-sm md:p-12">
       <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
-        <div className="max-w-[720px]">
-          <div className="text-[12px] font-semibold uppercase tracking-widest text-black/60">
-            TRUST BADGE + EMBED TOOLS
+        <div className="max-w-3xl">
+          <div className="text-[11px] font-semibold uppercase tracking-[0.28em] text-black/45">
+            Trust badge + embed tools
           </div>
-
-          <h2 className="mt-4 text-[36px] font-semibold leading-tight text-black">
+          <h2 className="mt-4 text-4xl font-semibold tracking-tight text-black md:text-6xl">
             Verify, share, or embed this certification
           </h2>
-
-          <p className="mt-4 text-[15px] leading-relaxed text-black/70">
-            Share this certification publicly with a badge, verification link,
-            QR code, or embed snippet. Anyone can independently verify this
-            certification via GAFAIG.
+          <p className="mt-5 max-w-3xl text-lg leading-8 text-black/65">
+            Share this certification publicly with a badge, a direct verification
+            link, a QR code, or a lightweight embed snippet. Anyone can
+            independently verify this certification via GAFAIG.
           </p>
-
-          <p className="mt-2 text-[12px] text-black/50">
+          <p className="mt-4 text-base leading-7 text-black/45">
             Public verification powered by GAFAIG cryptographic registry
             infrastructure.
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-3 md:justify-end">
-          <ActionLink
-            href={`/badge/${registryId}`}
-            label="Open badge"
-            filled
-          />
-          <ActionLink
-            href={`/api/verify/${registryId}`}
-            label="Open verify JSON"
-          />
+        <div className="flex shrink-0 flex-col gap-3">
+          <a
+            href={absoluteBadgeUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex min-h-11 items-center justify-center rounded-full border border-black bg-black px-5 py-3 text-sm font-semibold text-white transition hover:bg-black/90"
+          >
+            Open badge
+          </a>
+          <a
+            href={absoluteVerifyUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex min-h-11 items-center justify-center rounded-full border border-black px-5 py-3 text-sm font-semibold transition hover:bg-black/[0.04]"
+          >
+            Verify JSON
+          </a>
         </div>
       </div>
 
-      <div className="mt-10 grid gap-8 md:grid-cols-2">
-        <div className="rounded-2xl border border-black/10 p-6">
-          <div className="mb-4 text-sm font-semibold text-black">
+      <div className="mt-10 grid gap-6 lg:grid-cols-2">
+        <div className="rounded-[28px] border border-black/10 bg-white p-6">
+          <div className="text-[11px] font-semibold uppercase tracking-[0.24em] text-black/45">
             Live badge preview
           </div>
 
-          <div className="flex justify-center rounded-xl bg-black/[0.03] p-4">
-            <img src={badgeUrl} alt={`${entityName} badge`} className="max-w-full" />
+          <div className="mt-5 rounded-[24px] border border-black/8 bg-black/[0.02] p-6">
+            <img
+              src={absoluteBadgeUrl}
+              alt={`${safeEntityName} badge preview`}
+              className="h-auto w-full rounded-2xl border border-black/5 bg-white shadow-sm"
+            />
           </div>
 
-          <div className="mt-6 space-y-4">
+          <div className="mt-6 grid gap-4 md:grid-cols-2">
             <div>
-              <div className="text-xs text-black/50">Registry URL</div>
-              <div className="mt-2">
-                <CodeBlock value={registryUrl} />
+              <div className="text-[11px] font-semibold uppercase tracking-[0.24em] text-black/45">
+                Registry URL
               </div>
-              <div className="mt-3">
-                <CopyButton value={registryUrl} label="Copy registry URL" />
+              <div className="mt-2 break-all rounded-2xl border border-black/10 bg-black/[0.02] px-4 py-4 text-base leading-8 text-black/75">
+                {absoluteRegistryUrl}
+              </div>
+              <div className="mt-4">
+                <CopyButton
+                  value={absoluteRegistryUrl}
+                  label="Copy registry URL"
+                />
               </div>
             </div>
 
             <div>
-              <div className="text-xs text-black/50">Verify URL</div>
-              <div className="mt-2">
-                <CodeBlock value={verifyUrl} />
+              <div className="text-[11px] font-semibold uppercase tracking-[0.24em] text-black/45">
+                Verify URL
               </div>
-              <div className="mt-3">
-                <CopyButton value={verifyUrl} label="Copy verify URL" />
+              <div className="mt-2 break-all rounded-2xl border border-black/10 bg-black/[0.02] px-4 py-4 text-base leading-8 text-black/75">
+                {absoluteVerifyUrl}
+              </div>
+              <div className="mt-4">
+                <CopyButton value={absoluteVerifyUrl} label="Copy verify URL" />
               </div>
             </div>
           </div>
         </div>
 
-        <div className="rounded-2xl border border-black/10 p-6">
-          <div className="mb-4 text-sm font-semibold text-black">
+        <div className="rounded-[28px] border border-black/10 bg-white p-6">
+          <div className="text-[11px] font-semibold uppercase tracking-[0.24em] text-black/45">
             Verification QR code
           </div>
 
-          <div className="flex justify-center rounded-xl bg-black/[0.03] p-4">
-            <img src={qrSrc} alt="Verification QR code" className="w-[220px]" />
+          <div className="mt-5 rounded-[24px] border border-black/8 bg-black/[0.02] p-6">
+            <img
+              src={`https://api.qrserver.com/v1/create-qr-code/?size=320x320&data=${encodeURIComponent(
+                qrUrl
+              )}`}
+              alt="Verification QR code"
+              className="mx-auto h-auto w-full max-w-[320px] rounded-2xl border border-black/5 bg-white shadow-sm"
+            />
           </div>
 
-          <p className="mt-5 text-sm text-black/70">
+          <p className="mt-6 text-base leading-8 text-black/65">
             Scan to instantly verify this certification.
           </p>
 
           <div className="mt-4">
-            <CopyButton value={registryUrl} label="Copy QR target URL" />
+            <CopyButton value={qrUrl} label="Copy QR target URL" />
           </div>
         </div>
       </div>
 
-      <div className="mt-10 grid gap-8 md:grid-cols-2">
-        <Snippet
-          title="HTML badge embed"
-          value={htmlEmbed}
-          button="Copy HTML"
-        />
+      <div className="mt-6 grid gap-6 lg:grid-cols-2">
+        <div className="rounded-[28px] border border-black/10 bg-white p-6">
+          <div className="text-[11px] font-semibold uppercase tracking-[0.24em] text-black/45">
+            HTML badge embed
+          </div>
+          <pre className="mt-4 overflow-x-auto rounded-2xl border border-black/10 bg-black/[0.02] p-5 text-sm leading-8 text-black/75">
+            <code>{htmlEmbed}</code>
+          </pre>
+          <div className="mt-4">
+            <CopyButton value={htmlEmbed} label="Copy HTML" />
+          </div>
+        </div>
 
-        <Snippet
-          title="Markdown embed"
-          value={markdownEmbed}
-          button="Copy Markdown"
-        />
+        <div className="rounded-[28px] border border-black/10 bg-white p-6">
+          <div className="text-[11px] font-semibold uppercase tracking-[0.24em] text-black/45">
+            Markdown badge embed
+          </div>
+          <pre className="mt-4 overflow-x-auto rounded-2xl border border-black/10 bg-black/[0.02] p-5 text-sm leading-8 text-black/75">
+            <code>{markdownEmbed}</code>
+          </pre>
+          <div className="mt-4">
+            <CopyButton value={markdownEmbed} label="Copy Markdown" />
+          </div>
+        </div>
 
-        <Snippet
-          title="Verify button"
-          value={verifySnippet}
-          button="Copy verify button"
-        />
+        <div className="rounded-[28px] border border-black/10 bg-white p-6">
+          <div className="text-[11px] font-semibold uppercase tracking-[0.24em] text-black/45">
+            Verify button
+          </div>
+          <pre className="mt-4 overflow-x-auto rounded-2xl border border-black/10 bg-black/[0.02] p-5 text-sm leading-8 text-black/75">
+            <code>{verifyButtonSnippet}</code>
+          </pre>
+          <div className="mt-4">
+            <CopyButton value={verifyButtonSnippet} label="Copy verify button" />
+          </div>
+        </div>
 
-        <Snippet
-          title="Widget embed"
-          value={widgetSnippet}
-          button="Copy widget"
-        />
+        <div className="rounded-[28px] border border-black/10 bg-white p-6">
+          <div className="text-[11px] font-semibold uppercase tracking-[0.24em] text-black/45">
+            Widget embed
+          </div>
+          <pre className="mt-4 overflow-x-auto rounded-2xl border border-black/10 bg-black/[0.02] p-5 text-sm leading-8 text-black/75">
+            <code>{widgetSnippet}</code>
+          </pre>
+          <div className="mt-4">
+            <CopyButton value={widgetSnippet} label="Copy widget" />
+          </div>
+        </div>
       </div>
     </section>
   );
