@@ -58,8 +58,8 @@ function CodeBlock({
   return (
     <pre
       className={[
-        "overflow-x-auto whitespace-pre-wrap break-words rounded-2xl border border-black/10 bg-black/[0.02] p-4 text-black/85",
-        compact ? "text-[12px] leading-[1.75]" : "text-[13px] leading-[1.8]",
+        "overflow-x-auto whitespace-pre-wrap break-words rounded-2xl border border-black/10 bg-black/[0.02] p-5 text-black/85",
+        compact ? "text-[12px] leading-[1.8]" : "text-[13px] leading-[1.9]",
       ].join(" ")}
     >
       <code className="break-words">{value}</code>
@@ -101,8 +101,14 @@ export default function RegistryTrustTools({
   const verifyPath = `/api/verify/${encodeURIComponent(registryId)}`;
   const badgePath = `/badge/${encodeURIComponent(registryId)}`;
 
-  const registryUrl = useMemo(() => buildAbsoluteUrl(registryPath), [registryPath]);
-  const verifyUrl = useMemo(() => buildAbsoluteUrl(verifyPath), [verifyPath]);
+  const registryUrl = useMemo(
+    () => buildAbsoluteUrl(registryPath),
+    [registryPath]
+  );
+  const verifyUrl = useMemo(
+    () => buildAbsoluteUrl(verifyPath),
+    [verifyPath]
+  );
   const badgeUrl = useMemo(() => buildAbsoluteUrl(badgePath), [badgePath]);
 
   const htmlEmbed = `<a href="${registryUrl}" target="_blank" rel="noopener noreferrer">
@@ -127,20 +133,25 @@ export default function RegistryTrustTools({
 
   return (
     <section className="mt-16 rounded-3xl border border-black bg-white p-8 shadow-sm md:p-12">
-      <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-        <div>
+      <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+        <div className="max-w-[820px]">
           <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
             TRUST BADGE + EMBED TOOLS
           </div>
 
-          <h2 className="mt-4 max-w-[780px] text-[32px] font-semibold leading-[1.12] tracking-tight text-black md:text-[42px]">
+          <h2 className="mt-4 text-[32px] font-semibold leading-[1.12] tracking-tight text-black md:text-[42px]">
             Verify, share, or embed this certification
           </h2>
 
-          <p className="mt-4 max-w-[920px] text-[15px] leading-[1.8] text-black/72">
+          <p className="mt-4 text-[15px] leading-[1.8] text-black/72">
             Share this certification publicly with a badge, a direct verification
-            link, a QR code, or a lightweight embed snippet. These tools let third
-            parties verify the public registry record and its signed proof.
+            link, a QR code, or a lightweight embed snippet. These tools let
+            third parties verify the public registry record and its signed proof.
+          </p>
+
+          <p className="mt-2 text-[12px] text-black/50">
+            Public verification powered by GAFAIG cryptographic registry
+            infrastructure.
           </p>
         </div>
 
@@ -221,13 +232,13 @@ export default function RegistryTrustTools({
             <img
               src={qrSrc}
               alt={`QR code for ${entityName} registry record`}
-              className="mx-auto h-[220px] w-[220px] rounded-xl border border-black/10 bg-white p-3"
+              className="mx-auto h-[220px] w-[220px] rounded-xl border border-black/20 bg-white p-3 shadow-sm"
             />
           </div>
 
           <p className="mt-4 text-[14px] leading-[1.75] text-black/68">
             This QR code links directly to the public GAFAIG registry record for
-            this certification, so anyone can scan and verify it.
+            this certification, so anyone can scan and verify it instantly.
           </p>
 
           <div className="mt-4">
