@@ -58,12 +58,38 @@ function CodeBlock({
   return (
     <pre
       className={[
-        "overflow-x-auto rounded-2xl border border-black/10 bg-black/[0.02] p-4 text-black/85",
-        compact ? "text-[12px] leading-[1.7]" : "text-[13px] leading-[1.75]",
+        "overflow-x-auto whitespace-pre-wrap break-words rounded-2xl border border-black/10 bg-black/[0.02] p-4 text-black/85",
+        compact ? "text-[12px] leading-[1.75]" : "text-[13px] leading-[1.8]",
       ].join(" ")}
     >
-      <code>{value}</code>
+      <code className="break-words">{value}</code>
     </pre>
+  );
+}
+
+function SnippetCard({
+  title,
+  value,
+  buttonLabel,
+  compact = false,
+}: {
+  title: string;
+  value: string;
+  buttonLabel: string;
+  compact?: boolean;
+}) {
+  return (
+    <section className="rounded-3xl border border-black/10 p-6">
+      <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/60">
+        {title}
+      </div>
+      <div className="mt-4">
+        <CodeBlock value={value} compact={compact} />
+      </div>
+      <div className="mt-4">
+        <CopyButton value={value} label={buttonLabel} />
+      </div>
+    </section>
   );
 }
 
@@ -100,14 +126,14 @@ export default function RegistryTrustTools({
   )}`;
 
   return (
-    <section className="mt-16 rounded-3xl border border-black bg-white p-10 shadow-sm md:p-12">
+    <section className="mt-16 rounded-3xl border border-black bg-white p-8 shadow-sm md:p-12">
       <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
         <div>
           <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
             TRUST BADGE + EMBED TOOLS
           </div>
 
-          <h2 className="mt-4 text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
+          <h2 className="mt-4 max-w-[780px] text-[32px] font-semibold leading-[1.12] tracking-tight text-black md:text-[42px]">
             Verify, share, or embed this certification
           </h2>
 
@@ -118,7 +144,7 @@ export default function RegistryTrustTools({
           </p>
         </div>
 
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2 md:justify-end">
           <a
             href={badgePath}
             target="_blank"
@@ -210,54 +236,33 @@ export default function RegistryTrustTools({
         </section>
       </div>
 
-      <div className="mt-6 grid gap-6">
-        <section className="rounded-3xl border border-black/10 p-6">
-          <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/60">
-            HTML badge embed
-          </div>
-          <div className="mt-4">
-            <CodeBlock value={htmlEmbed} />
-          </div>
-          <div className="mt-4 flex flex-wrap gap-3">
-            <CopyButton value={htmlEmbed} label="Copy HTML embed" />
-          </div>
-        </section>
+      <div className="mt-6 grid gap-6 xl:grid-cols-2">
+        <SnippetCard
+          title="HTML badge embed"
+          value={htmlEmbed}
+          buttonLabel="Copy HTML embed"
+        />
 
-        <section className="rounded-3xl border border-black/10 p-6">
-          <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/60">
-            Markdown badge embed
-          </div>
-          <div className="mt-4">
-            <CodeBlock value={markdownEmbed} />
-          </div>
-          <div className="mt-4 flex flex-wrap gap-3">
-            <CopyButton value={markdownEmbed} label="Copy Markdown embed" />
-          </div>
-        </section>
+        <SnippetCard
+          title="Markdown badge embed"
+          value={markdownEmbed}
+          buttonLabel="Copy Markdown embed"
+          compact
+        />
 
-        <section className="rounded-3xl border border-black/10 p-6">
-          <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/60">
-            Verify button snippet
-          </div>
-          <div className="mt-4">
-            <CodeBlock value={verifyButtonSnippet} />
-          </div>
-          <div className="mt-4 flex flex-wrap gap-3">
-            <CopyButton value={verifyButtonSnippet} label="Copy verify button" />
-          </div>
-        </section>
+        <SnippetCard
+          title="Verify button snippet"
+          value={verifyButtonSnippet}
+          buttonLabel="Copy verify button"
+          compact
+        />
 
-        <section className="rounded-3xl border border-black/10 p-6">
-          <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/60">
-            Widget snippet
-          </div>
-          <div className="mt-4">
-            <CodeBlock value={widgetSnippet} />
-          </div>
-          <div className="mt-4 flex flex-wrap gap-3">
-            <CopyButton value={widgetSnippet} label="Copy widget snippet" />
-          </div>
-        </section>
+        <SnippetCard
+          title="Widget snippet"
+          value={widgetSnippet}
+          buttonLabel="Copy widget snippet"
+          compact
+        />
       </div>
     </section>
   );
