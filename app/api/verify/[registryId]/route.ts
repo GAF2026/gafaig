@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
-import { createHmac } from "crypto";
 import { sfQuery } from "@/lib/snowflake";
+import {
+  GAFAIG_VERIFY_ALG,
+  getSigningKeyId,
+  signMessage,
+} from "@/lib/crypto/verify-signing";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -27,18 +31,8 @@ function jsonUtc(value: string | null | undefined) {
   return date.toISOString();
 }
 
-function signPayload(message: string) {
-  const secret =
-    process.env.GAFAIG_VERIFY_SIGNING_SECRET ||
-    process.env.GAFAIG_REGISTRY_SIGNATURE_SECRET ||
-    process.env.GAFAIG_SESSION_SECRET ||
-    "gafaig-dev-signing-secret";
-
-  return createHmac("sha256", secret).update(message).digest("hex");
-}
-
 export async function GET(
-  _req: Request,
+  req: Request,
   { params }: { params: { registryId: string } }
 ) {
   const registryId = String(params.registryId || "").trim();
@@ -91,8 +85,9 @@ export async function GET(
   }
 
   const certificationStatus = row.CERTIFIED_AT ? "Certified" : "Not Certified";
-  const verified = certificationStatus === "Certified";
   const signedAt = new Date().toISOString();
+  const url = new URL(req.url);
+  const baseUrl = `${url.protocol}//${url.host}`;
 
   const record = {
     registryId: row.REGISTRY_ID,
@@ -111,6 +106,7 @@ export async function GET(
   };
 
   const messageObject = {
+    issuer: "GAFAIG",
     registryId: record.registryId,
     entityName: record.entityName,
     entityType: record.entityType,
@@ -128,17 +124,19 @@ export async function GET(
   };
 
   const message = JSON.stringify(messageObject);
-  const signature = signPayload(message);
+  const signature = signMessage(message);
 
   return NextResponse.json({
     ok: true,
-    verified,
+    verified: certificationStatus === "Certified",
     registryId: row.REGISTRY_ID,
     proof: {
-      alg: "HS256",
+      alg: GAFAIG_VERIFY_ALG,
+      kid: getSigningKeyId(),
       signature,
       signedAt,
-      message: JSON.parse(message),
+      verificationKeyUrl: `${baseUrl}/api/.well-known/gafaig-public-key`,
+      message: messageObject,
     },
     record,
   });
