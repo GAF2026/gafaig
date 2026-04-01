@@ -47,8 +47,8 @@ type LinkedSystemRow = {
 
 type VerifyApiResponse = {
   ok: boolean;
-  verified?: boolean;
-  registryId?: string;
+  verified: boolean;
+  registryId: string;
   proof?: {
     alg?: string | null;
     kid?: string | null;
@@ -145,19 +145,30 @@ async function getVerifyData(registryId: string): Promise<VerifyApiResponse> {
       }
     );
 
-    const json = (await response.json()) as VerifyApiResponse;
+    const json = (await response.json()) as Partial<VerifyApiResponse>;
 
     if (!response.ok) {
       return {
         ok: false,
+        verified: false,
+        registryId,
         error: json?.error || "Verification unavailable",
       };
     }
 
-    return json;
+    return {
+      ok: Boolean(json.ok),
+      verified: Boolean(json.verified),
+      registryId: String(json.registryId || registryId),
+      proof: json.proof || null,
+      record: json.record || null,
+      error: json.error,
+    };
   } catch {
     return {
       ok: false,
+      verified: false,
+      registryId,
       error: "Verification unavailable",
     };
   }
