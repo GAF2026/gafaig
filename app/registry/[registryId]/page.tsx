@@ -55,7 +55,8 @@ type VerifyApiResponse = {
     verificationKeyUrl?: string | null;
     signature?: string | null;
     signedAt?: string | null;
-    message?: Record<string, unknown> | string | null;
+    message?: Record<string, unknown> | null;
+    messageString?: string | null;
   } | null;
   record?: {
     registryId?: string | null;
@@ -126,9 +127,7 @@ function riskBadgeClass(value: string | null | undefined) {
   return "border-black/10 bg-white text-black/65";
 }
 
-async function getVerifyData(
-  registryId: string
-): Promise<VerifyApiResponse> {
+async function getVerifyData(registryId: string): Promise<VerifyApiResponse> {
   const baseUrl =
     process.env.NEXT_PUBLIC_SITE_URL ||
     process.env.NEXT_PUBLIC_APP_URL ||
@@ -358,14 +357,18 @@ export default async function RegistryRecordPage({ params }: PageProps) {
             </div>
 
             <div className="rounded-full border border-black/10 px-3 py-1.5 text-[12px] font-medium text-black/65">
-              {linkedSystems.length} linked system{linkedSystems.length === 1 ? "" : "s"}
+              {linkedSystems.length} linked system
+              {linkedSystems.length === 1 ? "" : "s"}
             </div>
           </div>
 
           <div className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             <InfoCard label="Registry ID" value={row.REGISTRY_ID} mono />
             <InfoCard label="Entity type" value={clean(row.ENTITY_TYPE)} />
-            <InfoCard label="Certification status" value={clean(row.CERTIFICATION_STATUS)} />
+            <InfoCard
+              label="Certification status"
+              value={clean(row.CERTIFICATION_STATUS)}
+            />
             <InfoCard label="Decision status" value={clean(row.DECISION_STATUS)} />
             <InfoCard label="Application ID" value={clean(row.APPLICATION_ID)} />
             <InfoCard label="Case ID" value={clean(row.CASE_ID)} />
@@ -477,7 +480,8 @@ export default async function RegistryRecordPage({ params }: PageProps) {
           </div>
 
           <div className="rounded-full border border-black/10 px-3 py-1.5 text-[12px] font-medium text-black/65">
-            {linkedSystems.length} disclosed system{linkedSystems.length === 1 ? "" : "s"}
+            {linkedSystems.length} disclosed system
+            {linkedSystems.length === 1 ? "" : "s"}
           </div>
         </div>
 
@@ -517,7 +521,10 @@ export default async function RegistryRecordPage({ params }: PageProps) {
 
                       {(system.CERTIFIED_TIER || system.CERTIFIED_BAND) && (
                         <span className="inline-flex rounded-full border border-black/10 bg-white px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-black/70">
-                          {tierBandLabel(system.CERTIFIED_TIER, system.CERTIFIED_BAND)}
+                          {tierBandLabel(
+                            system.CERTIFIED_TIER,
+                            system.CERTIFIED_BAND
+                          )}
                         </span>
                       )}
                     </div>
@@ -538,7 +545,10 @@ export default async function RegistryRecordPage({ params }: PageProps) {
                       Certification
                     </div>
                     <div className="mt-2 text-[16px] font-semibold text-black">
-                      {tierBandLabel(system.CERTIFIED_TIER, system.CERTIFIED_BAND)}
+                      {tierBandLabel(
+                        system.CERTIFIED_TIER,
+                        system.CERTIFIED_BAND
+                      )}
                     </div>
                   </div>
                 </div>
@@ -548,7 +558,10 @@ export default async function RegistryRecordPage({ params }: PageProps) {
                   <InfoCard label="Risk tier" value={clean(system.RISK_TIER)} />
                   <InfoCard
                     label="Tier / Band"
-                    value={tierBandLabel(system.CERTIFIED_TIER, system.CERTIFIED_BAND)}
+                    value={tierBandLabel(
+                      system.CERTIFIED_TIER,
+                      system.CERTIFIED_BAND
+                    )}
                   />
                   <InfoCard
                     label="Developer"
