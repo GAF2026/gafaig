@@ -115,23 +115,36 @@ export default async function ExplorerPage() {
           EXPLORER
         </div>
 
-        <h1 className="mt-4 max-w-[900px] text-[36px] font-semibold leading-[1.08] tracking-tight text-black md:text-[52px]">
+        <h1 className="mt-4 max-w-[940px] text-[36px] font-semibold leading-[1.08] tracking-tight text-black md:text-[52px]">
           Global AI governance explorer
         </h1>
 
-        <p className="mt-5 max-w-[940px] text-[17px] leading-[1.72] text-black/72">
-          The Explorer is the discovery layer for GAFAIG’s public registry of
-          record. It helps visitors understand where certification exists, which
+        <p className="mt-5 max-w-[960px] text-[17px] leading-[1.72] text-black/72">
+          The Explorer is GAFAIG’s public intelligence and discovery layer. It
+          helps visitors understand where certification exists, which
           organizations and systems are represented, and how governance trust
           signals appear across the public network.
         </p>
 
-        <p className="mt-4 max-w-[940px] text-[15px] leading-[1.8] text-black/68">
+        <p className="mt-4 max-w-[960px] text-[15px] leading-[1.8] text-black/68">
           This surface is derived directly from canonical public registry data.
           It does not expose private review materials. Instead, it provides a
           structured view into public certification records, countries,
-          organizations, disclosed AI systems, and registry activity.
+          organizations, disclosed AI systems, and registry activity so the
+          public trust footprint can be inspected as a coherent network rather
+          than a set of isolated records.
         </p>
+
+        <div className="mt-7 grid gap-4 md:grid-cols-2">
+          <IntroCard
+            title="Public governance intelligence"
+            body="The Explorer transforms certification records into a navigable public intelligence layer that shows where governance trust is visible across countries, organizations, and systems."
+          />
+          <IntroCard
+            title="Discovery built on canonical registry data"
+            body="Everything shown here is derived from GAFAIG’s public registry of record, allowing visitors to move from aggregate visibility to individual certification records and trust surfaces."
+          />
+        </div>
 
         <div className="mt-8 flex flex-wrap gap-3">
           <Link
@@ -190,6 +203,44 @@ export default async function ExplorerPage() {
         />
       </section>
 
+      <section className="mt-10 rounded-3xl border border-black/10 bg-white p-8 md:p-10">
+        <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
+          EXPLORER AS INFRASTRUCTURE
+        </div>
+
+        <h2 className="mt-4 max-w-[880px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
+          This is the network view of GAFAIG’s public trust layer
+        </h2>
+
+        <p className="mt-5 max-w-[980px] text-[16px] leading-[1.9] text-black/75">
+          The registry establishes the canonical certification record. The
+          Explorer shows how those records connect across geography,
+          organizations, systems, and activity. In that sense, the Explorer is
+          not only a browsing surface. It is the public visibility layer of
+          GAFAIG’s trust infrastructure, turning isolated certification records
+          into a readable map of governance presence.
+        </p>
+
+        <div className="mt-7 grid gap-4 md:grid-cols-2">
+          <StatementCard
+            title="Country-level public visibility"
+            body="Inspect where governance-certified records are represented geographically and how public trust signals are distributed across jurisdictions."
+          />
+          <StatementCard
+            title="Entity and system discovery"
+            body="Move from high-level public metrics to specific organizations and disclosed AI systems connected to certification records."
+          />
+          <StatementCard
+            title="Registry activity as signal"
+            body="See how the public record evolves over time through publication and certification activity without exposing private review evidence."
+          />
+          <StatementCard
+            title="Bridge from aggregate to canonical record"
+            body="Every surface in the Explorer ultimately resolves back to the underlying registry record, preserving a direct path to the canonical trust source."
+          />
+        </div>
+      </section>
+
       <section className="mt-10 grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
         <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
           <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
@@ -211,7 +262,7 @@ export default async function ExplorerPage() {
             />
             <StatementCard
               title="System disclosure"
-              body="Inspect publicly disclosed AI systems linked to registry records and certification context."
+              body="Inspect publicly disclosed AI systems linked to registry certification records and certification context."
             />
             <StatementCard
               title="Registry activity"
@@ -405,6 +456,23 @@ export default async function ExplorerPage() {
         />
       </section>
     </main>
+  );
+}
+
+function IntroCard({
+  title,
+  body,
+}: {
+  title: string;
+  body: string;
+}) {
+  return (
+    <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
+      <div className="text-[18px] font-semibold tracking-tight text-black">
+        {title}
+      </div>
+      <p className="mt-3 text-[15px] leading-[1.8] text-black/72">{body}</p>
+    </div>
   );
 }
 
