@@ -39,6 +39,22 @@ function jsonUtc(value: string | null | undefined) {
   return date.toISOString();
 }
 
+function buildMeta(baseUrl: string, registryId: string) {
+  return {
+    surface: "GAFAIG Public Verification API",
+    description:
+      "This endpoint returns the public verification record and signed proof for a GAFAIG registry certification.",
+    issuer: "GAFAIG",
+    version: "v1",
+    links: {
+      registryRecord: `${baseUrl}/registry/${encodeURIComponent(registryId)}`,
+      badge: `${baseUrl}/badge/${encodeURIComponent(registryId)}`,
+      widgetPreview: `${baseUrl}/widget-preview/${encodeURIComponent(registryId)}`,
+      verificationKey: `${baseUrl}/api/.well-known/gafaig-public-key`,
+    },
+  };
+}
+
 export async function OPTIONS() {
   return new NextResponse(null, {
     status: 200,
@@ -51,6 +67,9 @@ export async function GET(
   { params }: { params: { registryId: string } }
 ) {
   const registryId = String(params.registryId || "").trim();
+  const url = new URL(req.url);
+  const baseUrl = `${url.protocol}//${url.host}`;
+  const meta = buildMeta(baseUrl, registryId || "unknown");
 
   if (!registryId) {
     return NextResponse.json(
@@ -58,6 +77,7 @@ export async function GET(
         ok: false,
         verified: false,
         error: "Missing registryId",
+        meta,
       },
       {
         status: 400,
@@ -98,6 +118,7 @@ export async function GET(
           verified: false,
           registryId,
           error: "Registry record not found",
+          meta: buildMeta(baseUrl, registryId),
         },
         {
           status: 404,
@@ -108,8 +129,6 @@ export async function GET(
 
     const certificationStatus = row.CERTIFIED_AT ? "Certified" : "Not Certified";
     const signedAt = new Date().toISOString();
-    const url = new URL(req.url);
-    const baseUrl = `${url.protocol}//${url.host}`;
 
     const record = {
       registryId: row.REGISTRY_ID,
@@ -153,6 +172,7 @@ export async function GET(
         ok: true,
         verified: certificationStatus === "Certified",
         registryId: row.REGISTRY_ID,
+        meta: buildMeta(baseUrl, row.REGISTRY_ID),
         proof: {
           alg: GAFAIG_VERIFY_ALG,
           kid: getSigningKeyId(),
@@ -176,6 +196,7 @@ export async function GET(
         ok: false,
         verified: false,
         error: "Internal verification error",
+        meta,
       },
       {
         status: 500,
