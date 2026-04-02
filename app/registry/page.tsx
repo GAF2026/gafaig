@@ -168,6 +168,17 @@ export default async function RegistryPage({
           />
         </div>
 
+        <div className="mt-6 rounded-2xl border border-black/10 bg-black/[0.02] px-4 py-4 text-[15px] leading-[1.8] text-black/72">
+          Need to understand how public verification works?{" "}
+          <Link
+            href="/verify"
+            className="font-semibold text-black underline underline-offset-4 transition hover:text-black/70"
+          >
+            Open the verification guide
+          </Link>
+          .
+        </div>
+
         <form className="mt-8 grid gap-4 md:grid-cols-[1.3fr_0.7fr_auto]">
           <div>
             <label
