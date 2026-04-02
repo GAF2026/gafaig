@@ -59,25 +59,32 @@ export default function RegistryTrustTools({
     alt="${safeEntityName} GAFAIG certification badge"
     style="height:64px;width:auto"
   />
-</a>`,
+</a>
+<!-- Verified via GAFAIG public trust infrastructure -->`,
     [absoluteBadgeUrl, absoluteRegistryUrl, safeEntityName]
   );
 
   const markdownEmbed = useMemo(
     () =>
-      `[![${safeEntityName} GAFAIG certification badge](${absoluteBadgeUrl})](${absoluteRegistryUrl})`,
+      `[![${safeEntityName} GAFAIG certification badge](${absoluteBadgeUrl})](${absoluteRegistryUrl})
+
+<!-- Verified via GAFAIG public trust infrastructure -->`,
     [absoluteBadgeUrl, absoluteRegistryUrl, safeEntityName]
   );
 
   const verifyButtonSnippet = useMemo(
     () => `<script src="${verifyScriptUrl}"></script>
-<button onclick="verifyGAFAIG('${registryId}')">Verify This AI System</button>`,
+<button onclick="verifyGAFAIG('${registryId}')">Verify This AI System</button>
+
+<!-- Independently verifiable via GAFAIG -->`,
     [registryId, verifyScriptUrl]
   );
 
   const widgetSnippet = useMemo(
     () => `<script src="${widgetScriptUrl}"></script>
-<div data-gafaig-id="${registryId}"></div>`,
+<div data-gafaig-id="${registryId}"></div>
+
+<!-- Verified via GAFAIG public registry infrastructure -->`,
     [registryId, widgetScriptUrl]
   );
 
@@ -98,9 +105,16 @@ export default function RegistryTrustTools({
             link, a QR code, or a lightweight embed snippet. Anyone can
             independently verify this certification via GAFAIG.
           </p>
-          <p className="mt-4 text-base leading-7 text-black/45">
-            Public verification powered by GAFAIG cryptographic registry
-            infrastructure.
+
+          {/* 🔥 TRUST SIGNAL AMPLIFICATION */}
+          <p className="mt-4 text-base leading-7 text-black/55">
+            Verified via GAFAIG public trust infrastructure ·{" "}
+            <a
+              href="/verify"
+              className="font-semibold underline underline-offset-4 hover:opacity-70"
+            >
+              Learn how verification works
+            </a>
           </p>
         </div>
 
@@ -136,6 +150,11 @@ export default function RegistryTrustTools({
               alt={`${safeEntityName} badge preview`}
               className="h-auto w-full rounded-2xl border border-black/5 bg-white shadow-sm"
             />
+          </div>
+
+          {/* 🔥 MICRO TRUST LINE */}
+          <div className="mt-4 text-xs text-black/50 text-center">
+            Independently verifiable via GAFAIG
           </div>
 
           <div className="mt-6 grid gap-4 md:grid-cols-2">
