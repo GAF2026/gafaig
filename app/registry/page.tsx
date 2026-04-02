@@ -137,23 +137,36 @@ export default async function RegistryPage({
           REGISTRY OF RECORD
         </div>
 
-        <h1 className="mt-4 max-w-[840px] text-[36px] font-semibold leading-[1.08] tracking-tight text-black md:text-[52px]">
+        <h1 className="mt-4 max-w-[920px] text-[36px] font-semibold leading-[1.08] tracking-tight text-black md:text-[52px]">
           Public AI governance certification records
         </h1>
 
-        <p className="mt-5 max-w-[900px] text-[17px] leading-[1.7] text-black/72">
-          The GAFAIG Registry is the public record of certification outcomes
-          issued through the GAFAIG verification framework. Each record discloses
-          public certification status, validity information, and linked trust
-          surfaces without exposing private evidence, findings, or internal review
-          workflow.
+        <p className="mt-5 max-w-[940px] text-[17px] leading-[1.7] text-black/72">
+          The GAFAIG Registry is the canonical public record of certification
+          outcomes issued through the GAFAIG verification framework. Each record
+          discloses certification status, validity information, and linked trust
+          surfaces without exposing private evidence, findings, or internal
+          review workflow.
         </p>
 
-        <p className="mt-4 max-w-[900px] text-[15px] leading-[1.8] text-black/68">
-          Every registry record is designed to function as a public trust signal.
-          Records can be inspected directly, linked to disclosed AI systems, and
-          verified through badge and proof endpoints.
+        <p className="mt-4 max-w-[940px] text-[15px] leading-[1.8] text-black/68">
+          This is not a simple directory. It is a public trust layer for AI
+          governance certification. Every record is intended to function as a
+          portable trust signal that can be inspected directly, linked to
+          disclosed AI systems, and verified through badge, proof, and public
+          verification surfaces.
         </p>
+
+        <div className="mt-7 grid gap-4 md:grid-cols-2">
+          <IntroCard
+            title="Canonical public record"
+            body="GAFAIG publishes certification outcomes through a registry of record designed for external reliance, institutional review, and public trust."
+          />
+          <IntroCard
+            title="Verifiable trust surface"
+            body="Each record can resolve into badge, proof, and verification layers so certification status can be checked rather than merely claimed."
+          />
+        </div>
 
         <form className="mt-8 grid gap-4 md:grid-cols-[1.3fr_0.7fr_auto]">
           <div>
@@ -217,6 +230,44 @@ export default async function RegistryPage({
 
       <section className="mt-10 rounded-3xl border border-black/10 bg-white p-8 md:p-10">
         <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
+          TRUST INFRASTRUCTURE
+        </div>
+
+        <h2 className="mt-4 max-w-[880px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
+          Registry publication is only one layer. Each record is part of a broader trust infrastructure.
+        </h2>
+
+        <p className="mt-5 max-w-[980px] text-[16px] leading-[1.9] text-black/75">
+          GAFAIG extends beyond registry disclosure into public trust
+          infrastructure. Certification records can connect to signed proof
+          payloads, published verification keys, public verification endpoints,
+          embeddable trust badges, QR-linked verification paths, and portable
+          widget surfaces that allow third parties to validate governance status
+          independently.
+        </p>
+
+        <div className="mt-7 grid gap-4 md:grid-cols-2">
+          <StatementCard
+            title="Signed proof layer"
+            body="Registry records can resolve into signed public proof so external parties can validate that the disclosed record matches what GAFAIG issued."
+          />
+          <StatementCard
+            title="Verification endpoint"
+            body="Public verification surfaces allow programmatic validation of certification status, supporting external integrations and independent checks."
+          />
+          <StatementCard
+            title="Portable badge + widget layer"
+            body="Certification trust can travel beyond the registry page through embeddable badges, QR links, verify buttons, and widgets that resolve back to the canonical public record."
+          />
+          <StatementCard
+            title="Public trust without private exposure"
+            body="The registry exposes what must be relied on publicly while preserving the confidentiality of internal evidence, findings, and controlled review workflow."
+          />
+        </div>
+      </section>
+
+      <section className="mt-10 rounded-3xl border border-black/10 bg-white p-8 md:p-10">
+        <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
           WHAT THIS REGISTRY PROVIDES
         </div>
 
@@ -235,7 +286,7 @@ export default async function RegistryPage({
           />
           <StatementCard
             title="Linked systems and trust surfaces"
-            body="Registry records can connect to disclosed AI systems, badge endpoints, and signed proof payloads so external parties can inspect governance status in context."
+            body="Registry records can connect to disclosed AI systems, badge endpoints, signed proof payloads, and verification surfaces so external parties can inspect governance status in context."
           />
           <StatementCard
             title="Deterministic, structured outcomes"
@@ -254,10 +305,11 @@ export default async function RegistryPage({
             <h2 className="text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
               Registry directory
             </h2>
-            <p className="mt-3 max-w-[800px] text-[15px] leading-[1.8] text-black/68">
-              Browse certification records by organization, jurisdiction, and registry
-              identifier. Open any record to inspect public certification details,
-              linked AI systems, and verification surfaces.
+            <p className="mt-3 max-w-[820px] text-[15px] leading-[1.8] text-black/68">
+              Browse certification records by organization, jurisdiction, and
+              registry identifier. Open any record to inspect public
+              certification details, linked AI systems, and verification
+              surfaces.
             </p>
           </div>
 
@@ -340,11 +392,28 @@ export default async function RegistryPage({
           <PathCard
             number="3"
             title="Verify badge and proof"
-            body="Use the badge and proof surfaces on the record page to validate the public trust signal."
+            body="Use the badge, verify JSON, signed proof, and trust tools on the record page to validate the public trust signal."
           />
         </div>
       </section>
     </main>
+  );
+}
+
+function IntroCard({
+  title,
+  body,
+}: {
+  title: string;
+  body: string;
+}) {
+  return (
+    <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
+      <div className="text-[18px] font-semibold tracking-tight text-black">
+        {title}
+      </div>
+      <p className="mt-3 text-[15px] leading-[1.8] text-black/72">{body}</p>
+    </div>
   );
 }
 
