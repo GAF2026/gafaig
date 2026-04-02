@@ -111,6 +111,60 @@ export default function FrameworkPage() {
 
       <section className="mt-10 rounded-3xl border border-black/10 bg-white p-8 md:p-10">
         <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
+          TRUST INFRASTRUCTURE LAYER
+        </div>
+
+        <h2 className="mt-4 max-w-[860px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
+          The framework does not end at certification. It extends into public trust infrastructure.
+        </h2>
+
+        <p className="mt-5 max-w-[980px] text-[16px] leading-[1.9] text-black/75">
+          GAFAIG is designed not only to produce certification outcomes, but to
+          make those outcomes independently checkable across the public web.
+          This is the layer that turns registry publication into infrastructure:
+          signed certification payloads, published verification keys, public
+          verification endpoints, embeddable badges, QR-based verification, and
+          portable widgets that let third parties validate governance status
+          without accessing private evidence.
+        </p>
+
+        <div className="mt-8 grid gap-4 md:grid-cols-2">
+          <FrameworkCard
+            title="Signed certification proofs"
+            body="Each public certification can be represented as a signed payload, allowing external parties to validate that the public record matches what GAFAIG issued."
+          />
+
+          <FrameworkCard
+            title="Published verification key"
+            body="GAFAIG publishes the verification key needed to validate signed certification records, making external cryptographic checks possible without exposing private signing material."
+          />
+
+          <FrameworkCard
+            title="Verification API"
+            body="Public certification records can be checked programmatically through the GAFAIG verification endpoint, supporting external integrations, audits, and automated trust checks."
+          />
+
+          <FrameworkCard
+            title="Portable trust surfaces"
+            body="Badges, widgets, verify buttons, and QR-linked records allow certification status to travel beyond the registry page itself while still resolving back to a canonical public record."
+          />
+        </div>
+
+        <div className="mt-6 rounded-2xl border border-black/10 bg-black/[0.02] p-5">
+          <div className="text-[18px] font-semibold tracking-tight text-black">
+            Why this matters
+          </div>
+          <ul className="mt-3 space-y-2 text-[15px] text-black/75">
+            <li>• Public trust can be checked independently rather than assumed</li>
+            <li>• Certification can travel across the web without losing verifiability</li>
+            <li>• Third parties can rely on a canonical registry of record</li>
+            <li>• Sensitive private evidence stays inside the controlled review layer</li>
+          </ul>
+        </div>
+      </section>
+
+      <section className="mt-10 rounded-3xl border border-black/10 bg-white p-8 md:p-10">
+        <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
           VERIFICATION PROCESS
         </div>
 
@@ -187,7 +241,7 @@ export default function FrameworkPage() {
           />
           <TrustCard
             title="Portable trust signals"
-            body="Badge endpoints, proof payloads, and linked system records allow certification outcomes to be relied on beyond the registry page itself."
+            body="Badge endpoints, proof payloads, widgets, and linked system records allow certification outcomes to be relied on beyond the registry page itself."
           />
         </div>
       </section>
@@ -204,8 +258,9 @@ export default function FrameworkPage() {
         <p className="mt-5 max-w-[960px] text-[16px] leading-[1.9] text-black/75">
           The output of the framework is not simply an internal assessment. It
           is a public certification record that can be viewed through the
-          registry, explored across organizations and systems, and checked
-          through verification and badge endpoints.
+          registry, explored across organizations and systems, checked through
+          verification and badge endpoints, and embedded as a portable trust
+          surface across the web.
         </p>
 
         <div className="mt-8 flex flex-wrap gap-3">
