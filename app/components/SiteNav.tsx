@@ -13,6 +13,7 @@ const PUBLIC_NAV: NavItem[] = [
   { href: "/framework", label: "Framework" },
   { href: "/registry", label: "Registry" },
   { href: "/explorer", label: "Explorer" },
+  { href: "/verify", label: "Verify" },
   { href: "/demo", label: "Demo" },
 ];
 
