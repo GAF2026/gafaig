@@ -82,6 +82,12 @@ function DesktopHeader() {
             >
               Explorer
             </Link>
+            <Link
+              href="/verify"
+              className="rounded-full border border-transparent px-3 py-2 text-sm font-semibold text-black/80 transition hover:border-black/15 hover:bg-black/[0.035] hover:text-black"
+            >
+              Verify
+            </Link>
 
             <div className="mx-1 h-7 w-px bg-black/10" />
 
@@ -120,6 +126,7 @@ function MobileHeader() {
             <NavPill href="/framework">Framework</NavPill>
             <NavPill href="/registry">Registry</NavPill>
             <NavPill href="/explorer">Explorer</NavPill>
+            <NavPill href="/verify">Verify</NavPill>
             <NavPill href="/demo">Demo</NavPill>
             <NavPill href="/admin/login" filled>
               Admin
