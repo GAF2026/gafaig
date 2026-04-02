@@ -10,7 +10,7 @@ export default function MissionPage() {
         eyebrow="MISSION"
         title="Why GAFAIG exists"
         description="GAFAIG exists because AI governance must become independently verifiable. As AI systems move into products, infrastructure, operations, and decision-making, organizations need more than internal policy statements or self-declared controls. They need a structured way to demonstrate that human oversight is actually functioning."
-        secondaryDescription="GAFAIG provides that infrastructure. It operates a controlled verification framework and a public registry of record where certification outcomes can be published, inspected, and independently verified without exposing private evidence, findings, or internal review workflow."
+        secondaryDescription="GAFAIG provides that infrastructure. It operates a controlled verification framework and a public registry of record where certification outcomes can be published, inspected, and independently verified without exposing private evidence, findings, or internal review workflow. These public records are supported by a trust infrastructure layer that includes signed certification proofs, verification endpoints, and portable trust surfaces that allow third parties to independently validate governance status."
         actions={
           <>
             <Link
