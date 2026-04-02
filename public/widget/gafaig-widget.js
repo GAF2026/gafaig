@@ -54,6 +54,7 @@
         "border-radius:16px",
         "padding:12px 14px",
         "background:#ffffff",
+        "min-width:0",
       ].join(";") +
       '">' +
       '<div style="' +
@@ -74,6 +75,10 @@
         emphasis ? "font-weight:700" : "font-weight:600",
         "line-height:1.45",
         "color:#111827",
+        "word-break:break-word",
+        "overflow-wrap:anywhere",
+        "white-space:normal",
+        "min-width:0",
       ].join(";") +
       '">' +
       escapeHtml(value || "—") +
@@ -111,6 +116,8 @@
       [
         "margin-top:18px",
         "display:inline-flex",
+        "align-items:center",
+        "justify-content:center",
         "min-height:44px",
         "border-radius:9999px",
         "border:1px solid #111111",
@@ -167,20 +174,16 @@
         "box-shadow:0 1px 2px rgba(0,0,0,.04)",
       ].join(";") +
       '">' +
-
       '<div style="display:flex;gap:8px;flex-wrap:wrap;">' +
       pill("Verified", { filled: true, border: "#111111" }) +
       pill("GAFAIG", { filled: false, border: "#111111" }) +
       "</div>" +
-
-      '<div style="margin-top:14px;font-size:30px;font-weight:800;">' +
+      '<div style="margin-top:14px;font-size:30px;font-weight:800;line-height:1.15;word-break:break-word;overflow-wrap:anywhere;">' +
       escapeHtml(entityName) +
       "</div>" +
-
-      '<div style="margin-top:10px;font-size:14px;color:#52525b;">' +
+      '<div style="margin-top:10px;font-size:14px;color:#52525b;line-height:1.7;">' +
       "Public certification record independently verifiable through GAFAIG." +
       "</div>" +
-
       '<div style="' +
       [
         "margin-top:18px",
@@ -192,9 +195,10 @@
       '">' +
       '<img src="' +
       badgeUrl +
-      '" style="max-width:100%;border-radius:12px;" />' +
+      '" alt="' +
+      escapeHtml(entityName) +
+      ' badge" style="max-width:100%;border-radius:12px;" />' +
       "</div>" +
-
       '<div style="' +
       [
         "margin-top:16px",
@@ -208,23 +212,50 @@
       fieldCard("Valid To", formatDate(record.validTo), false) +
       fieldCard("Registry ID", record.registryId || registryId, false) +
       "</div>" +
-
       '<div style="margin-top:18px;display:flex;gap:10px;flex-wrap:wrap;">' +
       '<a href="' +
       registryUrl +
-      '" target="_blank" style="padding:10px 16px;border-radius:9999px;background:#111;color:#fff;text-decoration:none;font-weight:700;">Open record</a>' +
+      '" target="_blank" rel="noopener noreferrer" style="' +
+      [
+        "padding:10px 16px",
+        "border-radius:9999px",
+        "background:#111",
+        "color:#fff",
+        "text-decoration:none",
+        "font-weight:700",
+        "display:inline-flex",
+        "align-items:center",
+        "justify-content:center",
+        "min-height:44px",
+      ].join(";") +
+      '">' +
+      "Open record" +
+      "</a>" +
       '<a href="' +
       verifyUrl +
-      '" target="_blank" style="padding:10px 16px;border-radius:9999px;border:1px solid #111;text-decoration:none;font-weight:700;">Verify JSON</a>' +
+      '" target="_blank" rel="noopener noreferrer" style="' +
+      [
+        "padding:10px 16px",
+        "border-radius:9999px",
+        "border:1px solid #111",
+        "text-decoration:none",
+        "font-weight:700",
+        "display:inline-flex",
+        "align-items:center",
+        "justify-content:center",
+        "min-height:44px",
+        "color:#111",
+        "background:#fff",
+      ].join(";") +
+      '">' +
+      "Verify JSON" +
+      "</a>" +
       "</div>" +
-
-      /* 🔥 TRUST FOOTER */
-      '<div style="margin-top:16px;font-size:12px;color:#71717a;">' +
+      '<div style="margin-top:16px;font-size:12px;color:#71717a;line-height:1.7;">' +
       'Verified via GAFAIG public trust infrastructure · <a href="' +
       verifyGuideUrl +
-      '" target="_blank" style="text-decoration:underline;">How verification works</a>' +
+      '" target="_blank" rel="noopener noreferrer" style="text-decoration:underline;color:#71717a;">How verification works</a>' +
       "</div>" +
-
       "</div>";
   }
 
