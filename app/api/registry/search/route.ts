@@ -1,50 +1,43 @@
 import { NextResponse } from "next/server";
 import { searchRegistryRecords } from "@/lib/queries/registry";
+import type { RegistryApiResponse, RegistryRow } from "@/types/registry";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-
-type RegistrySearchRow = {
-  registryId: string;
-  caseId: string | null;
-  applicationId: string | null;
-
-  entityName: string | null;
-  entityType: string | null;
-  country: string | null;
-
-  certifiedTier: string | null;
-  certifiedBand: string | null;
-  decisionStatus: string | null;
-
-  validFrom: string | null;
-  validTo: string | null;
-
-  certifiedAt: string | null;
-  lastActivityAt: string | null;
-};
-
-type OkResponse = {
-  ok: true;
-  rows: RegistrySearchRow[];
-  total: number;
-  limit: number;
-  filters: {
-    q: string;
-    country: string;
-    registryId: string;
-    caseId: string;
-    applicationId: string;
-  };
-};
-
-type ErrorResponse = {
-  ok: false;
-  error: string;
-};
+export const revalidate = 0;
 
 function clean(value: string | null): string {
   return String(value ?? "").trim();
+}
+
+function toRegistryRow(row: {
+  registryId: string;
+  applicationId: string | null;
+  caseId: string | null;
+  entityName: string | null;
+  entityType: string | null;
+  country: string | null;
+  certifiedTier: string | null;
+  certifiedBand: string | null;
+  decisionStatus: string | null;
+  validFrom: string | null;
+  validTo: string | null;
+  certifiedAt: string | null;
+}): RegistryRow {
+  return {
+    registryId: row.registryId,
+    applicationId: row.applicationId,
+    caseId: row.caseId,
+    entityName: row.entityName,
+    entityType: row.entityType,
+    country: row.country,
+    certifiedTier: row.certifiedTier,
+    certifiedBand: row.certifiedBand,
+    decisionStatus: row.decisionStatus,
+    validFrom: row.validFrom,
+    validTo: row.validTo,
+    certifiedAt: row.certifiedAt,
+  };
 }
 
 export async function GET(req: Request) {
@@ -69,9 +62,9 @@ export async function GET(req: Request) {
       limit,
     });
 
-    const response: OkResponse = {
+    const response: RegistryApiResponse = {
       ok: true,
-      rows,
+      rows: rows.map(toRegistryRow),
       total: rows.length,
       limit,
       filters: {
@@ -87,9 +80,12 @@ export async function GET(req: Request) {
       headers: { "Cache-Control": "no-store" },
     });
   } catch (error) {
-    const response: ErrorResponse = {
+    const response: RegistryApiResponse = {
       ok: false,
-      error: error instanceof Error ? error.message : "Registry search failed.",
+      error:
+        error instanceof Error
+          ? error.message
+          : "Registry search endpoint failed.",
     };
 
     return NextResponse.json(response, {
