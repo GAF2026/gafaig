@@ -15,7 +15,7 @@ type GlobalStatsRow = {
   TOTAL_CERTIFIED: number;
   TOTAL_NOT_CERTIFIED: number;
   FIRST_PUBLISHED_AT: string | null;
-  LAST_ACTIVITY_AT: string | null;
+  LAST_PUBLISHED_AT: string | null;
 };
 
 type CountryStatsRow = {
@@ -25,14 +25,14 @@ type CountryStatsRow = {
   TOTAL_REGISTRY_IDS: number;
   TOTAL_CERTIFIED: number;
   TOTAL_NOT_CERTIFIED: number;
-  LAST_ACTIVITY_AT: string | null;
+  LAST_PUBLISHED_AT: string | null;
 };
 
 type RecentRegistryRow = {
   REGISTRY_ID: string;
   ENTITY_NAME: string | null;
   COUNTRY: string | null;
-  CERTIFICATION_STATUS: string | null;
+  DECISION_STATUS: string | null;
   CERTIFIED_TIER: string | null;
   CERTIFIED_BAND: string | null;
   CERTIFIED_AT: string | null;
@@ -60,34 +60,41 @@ function valueOrDash(value: string | null | undefined) {
   return value && value.trim() ? value : "—";
 }
 
+function certificationStatus(row: {
+  CERTIFIED_AT: string | null;
+}) {
+  return row.CERTIFIED_AT ? "Certified" : "Not Certified";
+}
+
 export default async function ExplorerPage() {
   const [globalRows, countryRows, recentRows] = await Promise.all([
     sfQuery<GlobalStatsRow>(`
       SELECT
-        TOTAL_REGISTRY_RECORDS,
-        TOTAL_REGISTRY_IDS,
-        TOTAL_CASES,
-        TOTAL_APPLICATIONS,
-        TOTAL_ENTITIES,
-        TOTAL_COUNTRIES,
-        TOTAL_PUBLISHED,
-        TOTAL_CERTIFIED,
-        TOTAL_NOT_CERTIFIED,
-        FIRST_PUBLISHED_AT,
-        LAST_ACTIVITY_AT
-      FROM GAFAIG_DB.CORE.V_REGISTRY_STATS_GLOBAL
-      LIMIT 1
+        COUNT(*) AS TOTAL_REGISTRY_RECORDS,
+        COUNT(DISTINCT REGISTRY_ID) AS TOTAL_REGISTRY_IDS,
+        COUNT(DISTINCT CASE_ID) AS TOTAL_CASES,
+        COUNT(DISTINCT APPLICATION_ID) AS TOTAL_APPLICATIONS,
+        COUNT(DISTINCT ENTITY_NAME) AS TOTAL_ENTITIES,
+        COUNT(DISTINCT COUNTRY) AS TOTAL_COUNTRIES,
+        COUNT_IF(LOWER(COALESCE(DECISION_STATUS, '')) = 'published') AS TOTAL_PUBLISHED,
+        COUNT_IF(CERTIFIED_AT IS NOT NULL) AS TOTAL_CERTIFIED,
+        COUNT_IF(CERTIFIED_AT IS NULL) AS TOTAL_NOT_CERTIFIED,
+        MIN(CERTIFIED_AT) AS FIRST_PUBLISHED_AT,
+        MAX(CERTIFIED_AT) AS LAST_PUBLISHED_AT
+      FROM GAFAIG_DB.CORE.V_REGISTRY_PUBLIC
     `),
     sfQuery<CountryStatsRow>(`
       SELECT
         COUNTRY,
-        TOTAL_RECORDS,
-        TOTAL_ENTITIES,
-        TOTAL_REGISTRY_IDS,
-        TOTAL_CERTIFIED,
-        TOTAL_NOT_CERTIFIED,
-        LAST_ACTIVITY_AT
-      FROM GAFAIG_DB.CORE.V_REGISTRY_STATS_BY_COUNTRY
+        COUNT(*) AS TOTAL_RECORDS,
+        COUNT(DISTINCT ENTITY_NAME) AS TOTAL_ENTITIES,
+        COUNT(DISTINCT REGISTRY_ID) AS TOTAL_REGISTRY_IDS,
+        COUNT_IF(CERTIFIED_AT IS NOT NULL) AS TOTAL_CERTIFIED,
+        COUNT_IF(CERTIFIED_AT IS NULL) AS TOTAL_NOT_CERTIFIED,
+        MAX(CERTIFIED_AT) AS LAST_PUBLISHED_AT
+      FROM GAFAIG_DB.CORE.V_REGISTRY_PUBLIC
+      WHERE COUNTRY IS NOT NULL
+      GROUP BY COUNTRY
       ORDER BY TOTAL_RECORDS DESC, COUNTRY ASC
       LIMIT 6
     `),
@@ -96,7 +103,7 @@ export default async function ExplorerPage() {
         REGISTRY_ID,
         ENTITY_NAME,
         COUNTRY,
-        CERTIFICATION_STATUS,
+        DECISION_STATUS,
         CERTIFIED_TIER,
         CERTIFIED_BAND,
         CERTIFIED_AT
@@ -277,7 +284,7 @@ export default async function ExplorerPage() {
             />
             <InfoPanel
               label="Last activity"
-              value={formatDate(stats?.LAST_ACTIVITY_AT)}
+              value={formatDate(stats?.LAST_PUBLISHED_AT)}
             />
             <InfoPanel
               label="Published records"
@@ -332,7 +339,7 @@ export default async function ExplorerPage() {
                   <div className="mt-4 grid gap-3 sm:grid-cols-3">
                     <InfoPanel
                       label="Status"
-                      value={valueOrDash(row.CERTIFICATION_STATUS)}
+                      value={certificationStatus(row)}
                       compact
                     />
                     <InfoPanel
@@ -396,7 +403,7 @@ export default async function ExplorerPage() {
                       {valueOrDash(row.COUNTRY)}
                     </div>
                     <div className="mt-2 text-sm text-black/65">
-                      Last activity {formatDate(row.LAST_ACTIVITY_AT)}
+                      Last activity {formatDate(row.LAST_PUBLISHED_AT)}
                     </div>
                   </div>
 

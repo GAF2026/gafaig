@@ -14,7 +14,6 @@ type RegistryRow = {
   CERTIFIED_TIER: string | null;
   CERTIFIED_BAND: string | null;
   DECISION_STATUS: string | null;
-  CERTIFICATION_STATUS: string | null;
   VALID_FROM: string | null;
   VALID_TO: string | null;
   CERTIFIED_AT: string | null;
@@ -48,7 +47,7 @@ function normalizeString(value: string | string[] | undefined) {
 }
 
 function certificationStatus(row: RegistryRow) {
-  return row.CERTIFICATION_STATUS || (row.CERTIFIED_AT ? "Certified" : "Not Certified");
+  return row.CERTIFIED_AT ? "Certified" : "Not Certified";
 }
 
 export default async function RegistryPage({
@@ -98,7 +97,6 @@ export default async function RegistryPage({
         CERTIFIED_TIER,
         CERTIFIED_BAND,
         DECISION_STATUS,
-        CERTIFICATION_STATUS,
         VALID_FROM,
         VALID_TO,
         CERTIFIED_AT
@@ -124,7 +122,7 @@ export default async function RegistryPage({
 
   const totalRecords = rows.length;
   const certifiedRecords = rows.filter(
-    (row) => String(certificationStatus(row)).trim().toLowerCase() === "certified"
+    (row) => certificationStatus(row).trim().toLowerCase() === "certified"
   ).length;
   const publishedRecords = rows.filter(
     (row) => String(row.DECISION_STATUS || "").trim().toLowerCase() === "published"
