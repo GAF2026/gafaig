@@ -1,542 +1,517 @@
-# GAFAIG — SNOWFLAKE_WORKSHEET_MAPPING.md
-Snowflake Worksheet Map + Data Layer Mapping
-Last Updated: 2026-03-31
+# GAFAIG — SNOWFLAKE WORKSHEET MAPPING
+Snowflake File & Execution Mapping
+Last Updated: 2026-04-03
 
 ---
 
-# 🚨 SYSTEM RULE
+# PURPOSE
 
-Snowflake is the **ONLY source of truth**.
+This document maps:
 
-ALL SYSTEM LOGIC MUST RESIDE IN:
+• Snowflake SQL files  
+• worksheet responsibilities  
+• object creation order  
+• execution relationships  
 
-Snowflake → Views → Query Layer → API → UI
+Use this to:
 
-DO NOT:
-
-• Move logic into API  
-• Move logic into UI  
-• Duplicate logic outside Snowflake  
-
----
-
-# 🧠 PURPOSE OF THIS DOCUMENT
-
-This file maps:
-
-• Snowflake worksheets  
-• SQL files  
-• Tables  
-• Views  
-• Stored procedures  
-
-To:
-
-• System functionality  
-• UI pages  
-• API endpoints  
+→ locate SQL definitions quickly  
+→ understand dependencies  
+→ debug Snowflake layer safely  
 
 ---
 
-# 🌍 ENVIRONMENT
-
-Snowflake Account:
-
-GAFAIG1
-
-Database:
-
-GAFAIG_DB
-
-Schema:
-
-CORE
-
-Warehouse:
-
-GAFAIG_WH
-
-Role:
-
-GAFAIG_APP_ROLE
-
----
-
-# 📊 CORE TABLES
-
-## 1. APPLICATIONS
-
-Purpose:
-
-• Intake of entities requesting certification  
-
-Used by:
-
-• Admin UI  
-• Verification workflow  
-
----
-
-## 2. VERIFICATION_CASES
-
-Purpose:
-
-• Represents certification case  
-
-Links:
-
-• APPLICATION → CASE  
-
----
-
-## 3. VERIFICATION_FINDINGS
-
-Purpose:
-
-• Individual findings within a case  
-
----
-
-## 4. VERIFICATION_EVIDENCE
-
-Purpose:
-
-• Evidence supporting findings  
-
----
-
-## 5. VERIFICATION_FINDING_EVIDENCE
-
-Purpose:
-
-• Join table between findings and evidence  
-
----
-
-## 6. VERIFICATION_EVENTS
-
-Purpose:
-
-• Audit log of verification actions  
-
----
-
-## 7. REGISTRY_SNAPSHOTS
-
-Purpose:
-
-• Immutable registry records  
-
-Properties:
-
-• Append-only  
-• Each publish = new snapshot  
-• No updates  
-
----
-
-# 📈 CORE VIEWS
-
-## 1. V_REGISTRY_LATEST_APPROVED
-
-Purpose:
-
-• Canonical source of truth for registry  
-
-Logic:
-
-• ROW_NUMBER() over APPROVED_AT  
-• Returns latest approved record per case  
-
-Used by:
-
-• V_REGISTRY_PUBLIC  
-• All public APIs  
-
----
-
-## 2. V_REGISTRY_PUBLIC
-
-Purpose:
-
-• Public certification dataset  
-
-Fields:
-
-• REGISTRY_ID  
-• APPLICATION_ID  
-• CASE_ID  
-• ENTITY_NAME  
-• ENTITY_TYPE  
-• COUNTRY  
-• CERTIFIED_SCORE  
-• CERTIFIED_TIER  
-• CERTIFIED_BAND  
-• DECISION_STATUS  
-• CERTIFIED_AT  
-• VALID_FROM  
-• VALID_TO  
-
-Used by:
-
-• /api/verify  
-• /registry pages  
-• /badge  
-
----
-
-## 3. V_REGISTRY_PUBLIC_SEARCH
-
-Purpose:
-
-• Search-optimized registry  
-
-Adds:
-
-• Normalized text  
-• Search column (q)  
-
-Used by:
-
-• /api/registry/search  
-• Explorer  
-
----
-
-## 4. V_REGISTRY_AI_SYSTEMS_PUBLIC
-
-Purpose:
-
-• Public AI systems dataset  
-
-Fields:
-
-• SYSTEM_ID  
-• REGISTRY_ID  
-• SYSTEM_NAME  
-• SYSTEM_TYPE  
-• RISK_TIER  
-• CERTIFIED_TIER  
-• CERTIFIED_BAND  
-• DEVELOPER_ORGANIZATION  
-
-Used by:
-
-• /registry/ai-systems  
-• Explorer  
-
----
-
-# 🧮 SCORING LAYER
-
-## 1. V_GOVERNANCE_SCORE_CASE
-
-Purpose:
-
-• Deterministic scoring output  
-
-Outputs:
-
-• FINAL_SCORE  
-• TIER  
-• BAND  
-
----
-
-## 2. ENTERPRISE SCORING VIEWS (if present)
-
-Examples:
-
-• V_CASE_SCORE_ENTERPRISE  
-• V_CASE_TIER_BAND  
-• V_CONTROL_SCORE_COMPONENTS  
-
-Purpose:
-
-• Advanced scoring model  
-
----
-
-# ⚙️ STORED PROCEDURES
-
-## 1. SP_PUBLISH_CASE_TO_REGISTRY_V3 (or latest)
-
-Purpose:
-
-• Publish certification to registry  
-
-Steps:
-
-1. Validate case  
-2. Generate or reuse REGISTRY_ID  
-3. Insert into REGISTRY_SNAPSHOTS  
-4. Mark as approved  
-
----
-
-## 2. SCORING PROCEDURE (if present)
-
-Example:
-
-SP_SCORE_CASE_ENTERPRISE  
-
-Purpose:
-
-• Compute deterministic score  
-
----
-
-# 🧾 CANONICAL WORKSHEETS (BY FUNCTION)
-
-Below are the key worksheet categories and what they contain.
-
----
-
-## 🔵 BOOTSTRAP / SETUP
-
-Examples:
-
-• Applications Setup & Grants  
-• Canonical Pipeline Bootstrap  
-
-Purpose:
-
-• Initial schema setup  
-• Permissions  
-• Table creation  
-
----
-
-## 🟢 APPLICATION + CASE CREATION
-
-Examples:
-
-• Application Write  
-• Case Pipeline Write  
-
-Purpose:
-
-• Insert APPLICATIONS  
-• Insert VERIFICATION_CASES  
-
----
-
-## 🟡 FINDINGS + EVIDENCE
-
-Examples:
-
-• Findings Write  
-• Evidence Write  
-• Finding-Evidence Mapping  
-
-Purpose:
-
-• Populate verification data  
-
----
-
-## 🟠 EVENTS
-
-Examples:
-
-• Events Insert  
-• Workflow Events  
-
-Purpose:
-
-• Track verification lifecycle  
-
----
-
-## 🔴 SCORING
-
-Examples:
-
-• Score Case  
-• Enterprise Scoring  
-
-Purpose:
-
-• Generate FINAL_SCORE  
-• Assign TIER and BAND  
-
----
-
-## 🟣 REGISTRY PUBLISH
-
-Examples:
-
-• Publish Case  
-• Auto Publish  
-
-Purpose:
-
-• Insert into REGISTRY_SNAPSHOTS  
-• Create public record  
-
----
-
-## ⚫ VALIDATION / DIAGNOSTICS
-
-Examples:
-
-• Smoke Tests  
-• Diagnostics  
-• Admin Views  
-
-Purpose:
-
-• Validate system integrity  
-• Debug pipeline  
-
----
-
-# 🔗 SYSTEM → WORKSHEET MAPPING
-
-## Application Flow
-
-APPLICATIONS  
-→ Worksheet: Application Write  
-
----
-
-## Case Creation
-
-VERIFICATION_CASES  
-→ Worksheet: Case Pipeline  
-
----
-
-## Findings + Evidence
-
-VERIFICATION_FINDINGS  
-VERIFICATION_EVIDENCE  
-→ Worksheets: Findings / Evidence  
-
----
-
-## Events
-
-VERIFICATION_EVENTS  
-→ Worksheet: Events  
-
----
-
-## Scoring
-
-V_GOVERNANCE_SCORE_CASE  
-→ Worksheet: Score Case  
-
----
-
-## Registry Publish
-
-REGISTRY_SNAPSHOTS  
-→ Worksheet: Publish Case  
-
----
-
-## Public Views
-
-V_REGISTRY_PUBLIC  
-→ Derived view (no direct write)  
-
----
-
-# 🌐 WORKSHEET → UI MAPPING
-
-## Registry Pages
-
-Source:
-
-V_REGISTRY_PUBLIC  
-
----
-
-## Badge
-
-Source:
-
-V_REGISTRY_PUBLIC  
-
----
-
-## Verification API
-
-Source:
-
-V_REGISTRY_PUBLIC  
-
----
-
-## Explorer
-
-Source:
-
-V_REGISTRY_PUBLIC_SEARCH  
-V_REGISTRY_AI_SYSTEMS_PUBLIC  
-
----
-
-# ⚠️ CRITICAL RULES
-
-## DO NOT:
-
-• Write directly to views  
-• Modify REGISTRY_SNAPSHOTS  
-• Compute scores outside scoring views  
-• Expose private evidence in public views  
-
----
-
-## ALWAYS:
-
-• Use views as API source  
-• Keep logic in Snowflake  
-• Maintain append-only registry  
-
----
-
-# 🧠 DESIGN PRINCIPLE
+# CORE PRINCIPLE
 
 Snowflake is:
 
-The **deterministic engine of truth**
+→ the single source of truth  
 
-Everything else is:
+Everything must originate from:
 
-A projection of that truth
+• tables  
+• views  
+• stored procedures  
 
----
-
-# 🚀 NEXT SNOWFLAKE WORK
-
-## 1. Certification Enrichment
-
-• Improve country normalization  
-• Improve organization mapping  
+No logic is allowed outside Snowflake.
 
 ---
 
-## 2. Scoring Expansion
+# ENVIRONMENT
 
-• Add more governance dimensions  
-• Expand enterprise scoring  
+Database:
+GAFAIG_DB  
 
----
+Schema:
+CORE  
 
-## 3. Registry Optimization
+Warehouse:
+GAFAIG_WH  
 
-• Performance tuning  
-• Indexing strategies  
+Role:
+GAFAIG_APP_ROLE  
 
----
-
-## 4. Explorer Data Layer
-
-• Aggregation views  
-• Metrics views  
+User:
+GAFAIG1  
 
 ---
 
-# END OF SNOWFLAKE WORKSHEET MAPPING
+# WORKSHEET STRUCTURE
+
+Snowflake worksheets are organized into:
+
+1. Core Schema Setup  
+2. Verification Pipeline  
+3. Scoring Engine  
+4. Registry Layer  
+5. Public Views  
+6. Diagnostics / Smoke Tests  
+
+---
+
+# 1. CORE SCHEMA SETUP
+
+## Files
+
+GAFAIG - Applications Setup & Grants (Archive - Early Bootstrap).sql  
+
+---
+
+## Purpose
+
+• create APPLICATIONS table  
+• initial permissions  
+
+---
+
+## Notes
+
+• early bootstrap file  
+• not actively modified  
+
+---
+
+# 2. VERIFICATION PIPELINE
+
+## Files
+
+GAFAIG - Canonical Case Pipeline Bootstrap (Archive).sql  
+GAFAIG - Canonical Case Pipeline Write Test (Archive).sql  
+
+---
+
+## Tables Created
+
+CORE.VERIFICATION_CASES  
+CORE.VERIFICATION_FINDINGS  
+CORE.VERIFICATION_EVIDENCE  
+CORE.VERIFICATION_EVENTS  
+
+---
+
+## Purpose
+
+• establish workflow pipeline  
+• connect findings ↔ evidence ↔ events  
+
+---
+
+## Flow
+
+APPLICATION  
+→ CASE  
+→ FINDINGS  
+→ EVIDENCE  
+→ EVENTS  
+
+---
+
+---
+
+# 3. SCORING ENGINE
+
+## Files
+
+GAFAIG - Canonical Enterprise Engine Bootstrap (Archive).sql  
+GAFAIG - Canonical Demo Dataset.sql  
+GAFAIG - Canonical Demo Seed.sql  
+
+---
+
+## Objects
+
+SP_SCORE_CASE_ENTERPRISE  
+V_CASE_SCORE_ENTERPRISE  
+V_CASE_TIER_BAND  
+V_CONTROL_SCORE_COMPONENTS  
+
+---
+
+## Purpose
+
+• deterministic scoring  
+• tier + band assignment  
+• enterprise scoring model  
+
+---
+
+## Rules
+
+• deterministic  
+• reproducible  
+• no randomness  
+• no external dependencies  
+
+---
+
+---
+
+# 4. DECISION LAYER
+
+## Tables
+
+CORE.DECISIONS  
+
+---
+
+## Purpose
+
+• store certification decisions  
+• connect scoring → registry  
+
+---
+
+## Key Fields
+
+DECISION_STATUS  
+CERTIFICATION_TIER  
+CERTIFICATION_BAND  
+VALID_FROM  
+VALID_TO  
+
+---
+
+---
+
+# 5. REGISTRY LAYER
+
+## Files
+
+GAFAIG - Auto Publish From Case (Archive - Old 2-Arg Procedure).sql  
+
+---
+
+## Current Procedure
+
+SP_PUBLISH_CASE_TO_REGISTRY_V3  
+
+---
+
+## Tables
+
+CORE.REGISTRY_SNAPSHOTS  
+
+---
+
+## Purpose
+
+• append-only registry records  
+• publish certification outcomes  
+
+---
+
+## Rules
+
+• NO updates  
+• NO deletes  
+• append-only  
+
+---
+
+## Behavior
+
+Each publish:
+
+→ creates new snapshot  
+→ preserves history  
+
+---
+
+---
+
+# 6. REGISTRY VIEWS
+
+## Core View
+
+CORE.V_REGISTRY_LATEST_APPROVED  
+
+---
+
+### Purpose
+
+• select latest approved snapshot  
+• deduplicate registry  
+
+---
+
+### Logic
+
+ROW_NUMBER() OVER (
+  PARTITION BY CASE_ID
+  ORDER BY APPROVED_AT DESC
+)
+
+---
+
+---
+
+## Public View
+
+CORE.V_REGISTRY_PUBLIC  
+
+---
+
+### Purpose
+
+• main public registry view  
+• used by API + UI  
+
+---
+
+### Fields
+
+REGISTRY_ID  
+APPLICATION_ID  
+CASE_ID  
+ENTITY_NAME  
+ENTITY_TYPE  
+COUNTRY  
+CERTIFIED_TIER  
+CERTIFIED_BAND  
+DECISION_STATUS  
+VALID_FROM  
+VALID_TO  
+CERTIFIED_AT  
+
+---
+
+---
+
+## Search View
+
+CORE.V_REGISTRY_PUBLIC_SEARCH  
+
+---
+
+### Purpose
+
+• optimized search  
+• normalized text fields  
+
+---
+
+---
+
+## AI Systems View
+
+CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC  
+
+---
+
+### Purpose
+
+• expose AI systems  
+• link systems → registry  
+
+---
+
+---
+
+# 7. DIAGNOSTICS / SMOKE TESTS
+
+## Files
+
+GAFAIG - APP_ROLE Smoke.sql  
+GAFAIG - Admin Unified View Diagnostics.sql  
+
+---
+
+## Purpose
+
+• validate permissions  
+• confirm view outputs  
+• debug issues  
+
+---
+
+---
+
+# 8. INSERT / WRITE PATTERNS
+
+## Important Fix
+
+Use:
+
+SELECT ?, ?, ?, PARSE_JSON(?)
+
+NOT:
+
+VALUES (?, ?, ?, PARSE_JSON(?))
+
+---
+
+## Reason
+
+Snowflake parameter binding compatibility  
+
+---
+
+---
+
+# 9. CASE NORMALIZATION
+
+## Rule
+
+caseId must be:
+
+→ uppercase  
+
+---
+
+## Reason
+
+• consistency across tables  
+• prevents join issues  
+
+---
+
+---
+
+# 10. REGISTRY ID GENERATION
+
+## Format
+
+GAFAIG-<hash>
+
+---
+
+## Behavior
+
+• generated at publish  
+• reused on republish  
+• immutable  
+
+---
+
+---
+
+# EXECUTION ORDER
+
+1. Applications setup  
+2. Verification pipeline tables  
+3. Scoring engine  
+4. Decision table  
+5. Registry snapshot table  
+6. Publish procedure  
+7. Registry views  
+8. Public views  
+9. Diagnostics  
+
+---
+
+---
+
+# DATA FLOW (SNOWFLAKE)
+
+APPLICATION  
+→ VERIFICATION_CASES  
+→ FINDINGS  
+→ EVIDENCE  
+→ EVENTS  
+→ SCORING  
+→ DECISIONS  
+→ REGISTRY_SNAPSHOTS  
+→ V_REGISTRY_LATEST_APPROVED  
+→ V_REGISTRY_PUBLIC  
+
+---
+
+---
+
+# CONNECTION TO APPLICATION
+
+Snowflake  
+→ sfQuery()  
+→ API  
+→ UI  
+
+---
+
+---
+
+# CRITICAL RULES
+
+DO NOT:
+
+• move logic outside Snowflake  
+• compute certification in API/UI  
+• mutate registry snapshots  
+• expose private evidence  
+
+---
+
+ALWAYS:
+
+• use views as source  
+• maintain deterministic outputs  
+• preserve append-only behavior  
+
+---
+
+---
+
+# TROUBLESHOOTING GUIDE
+
+## If registry page fails
+
+Check:
+
+• V_REGISTRY_PUBLIC exists  
+• Snowflake connection active  
+• permissions correct  
+
+---
+
+## If verify API fails
+
+Check:
+
+• registryId exists  
+• V_REGISTRY_PUBLIC query  
+• signing function  
+
+---
+
+## If data missing
+
+Check:
+
+• publish procedure executed  
+• DECISION_STATUS = approved/published  
+• snapshot exists  
+
+---
+
+---
+
+# SUMMARY
+
+Snowflake layer is:
+
+→ the engine  
+→ the registry  
+→ the source of truth  
+
+Everything else depends on it.
+
+No exceptions.

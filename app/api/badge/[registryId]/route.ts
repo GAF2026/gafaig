@@ -1,23 +1,23 @@
 import { NextResponse } from "next/server";
 import { getRegistryByRegistryId } from "@/lib/queries/registry";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 function normalize(value?: string | null) {
   return String(value || "").trim().toLowerCase();
 }
 
 function pickBadgePath(input: {
+  certifiedAt?: string | null;
   certifiedTier?: string | null;
   certifiedBand?: string | null;
-  certifiedScore?: number | null;
-  certificationStatus?: string | null;
 }) {
-  const certificationStatus = normalize(input.certificationStatus);
+  const isCertified = Boolean(String(input.certifiedAt || "").trim());
   const certifiedTier = normalize(input.certifiedTier);
   const certifiedBand = normalize(input.certifiedBand);
-  const score =
-    typeof input.certifiedScore === "number" ? input.certifiedScore : null;
 
-  if (!certificationStatus.includes("certified")) {
+  if (!isCertified) {
     return "/images/gafaig-badge-tier-3.png";
   }
 
@@ -51,12 +51,6 @@ function pickBadgePath(input: {
     return "/images/gafaig-badge-tier-3.png";
   }
 
-  if (score !== null) {
-    if (score >= 90) return "/images/gafaig-badge-tier-1.png";
-    if (score >= 80) return "/images/gafaig-badge-tier-2.png";
-    return "/images/gafaig-badge-tier-3.png";
-  }
-
   return "/images/gafaig-badge-tier-3.png";
 }
 
@@ -81,10 +75,9 @@ export async function GET(
     row.badgeImageUrl && row.badgeImageUrl.trim() !== ""
       ? row.badgeImageUrl.trim()
       : pickBadgePath({
-          certifiedTier: row.certifiedTier ?? row.tier,
-          certifiedBand: row.certifiedBand ?? row.band,
-          certifiedScore: row.certifiedScore ?? row.score,
-          certificationStatus: row.certificationStatus ?? row.decisionStatus,
+          certifiedAt: row.certifiedAt,
+          certifiedTier: row.certifiedTier,
+          certifiedBand: row.certifiedBand,
         });
 
   return NextResponse.redirect(new URL(badgePath, request.url), 307);

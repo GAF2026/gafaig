@@ -151,9 +151,27 @@
     });
   }
 
+  function getStatusText(data, record) {
+    if (record && record.certificationStatus) return record.certificationStatus;
+    return data && data.verified ? "Certified" : "Not Certified";
+  }
+
+  function getStatusPill(statusText) {
+    var normalized = String(statusText || "").trim().toLowerCase();
+    var isCertified = normalized === "certified";
+
+    return isCertified
+      ? pill("Verified", { filled: true, border: "#111111" })
+      : pill(statusText || "Not Certified", {
+          filled: false,
+          border: "#92400e",
+        });
+  }
+
   function renderWidget(el, registryId, data) {
     var record = data.record || {};
     var entityName = record.entityName || "Unknown Entity";
+    var statusText = getStatusText(data, record);
 
     var registryUrl =
       "https://www.gafaig.com/registry/" + encodeURIComponent(registryId);
@@ -175,7 +193,7 @@
       ].join(";") +
       '">' +
       '<div style="display:flex;gap:8px;flex-wrap:wrap;">' +
-      pill("Verified", { filled: true, border: "#111111" }) +
+      getStatusPill(statusText) +
       pill("GAFAIG", { filled: false, border: "#111111" }) +
       "</div>" +
       '<div style="margin-top:14px;font-size:30px;font-weight:800;line-height:1.15;word-break:break-word;overflow-wrap:anywhere;">' +
@@ -207,6 +225,7 @@
         "gap:12px",
       ].join(";") +
       '">' +
+      fieldCard("Status", statusText, true) +
       fieldCard("Tier / Band", formatTierBand(record), true) +
       fieldCard("Decision", record.decisionStatus || "—", true) +
       fieldCard("Valid To", formatDate(record.validTo), false) +
@@ -266,7 +285,7 @@
     var res = await fetch(endpoint);
     var data = await res.json();
 
-    if (!res.ok || !data.ok || !data.verified) {
+    if (!res.ok || !data.ok) {
       throw new Error("Verification failed");
     }
 

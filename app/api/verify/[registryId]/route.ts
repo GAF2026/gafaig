@@ -29,6 +29,7 @@ function corsHeaders() {
     "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Methods": "GET, OPTIONS",
     "Access-Control-Allow-Headers": "Content-Type, Accept",
+    "Cache-Control": "no-store",
   };
 }
 
@@ -52,6 +53,24 @@ function buildMeta(baseUrl: string, registryId: string) {
       widgetPreview: `${baseUrl}/widget-preview/${encodeURIComponent(registryId)}`,
       verificationKey: `${baseUrl}/api/.well-known/gafaig-public-key`,
     },
+  };
+}
+
+function buildCanonicalRecord(row: VerifyRow) {
+  return {
+    registryId: row.REGISTRY_ID,
+    entityName: row.ENTITY_NAME,
+    entityType: row.ENTITY_TYPE,
+    country: row.COUNTRY,
+    applicationId: row.APPLICATION_ID,
+    caseId: row.CASE_ID,
+    certificationStatus: row.CERTIFIED_AT ? "Certified" : "Not Certified",
+    certifiedTier: row.CERTIFIED_TIER,
+    certifiedBand: row.CERTIFIED_BAND,
+    decisionStatus: row.DECISION_STATUS,
+    certifiedAt: jsonUtc(row.CERTIFIED_AT),
+    validFrom: jsonUtc(row.VALID_FROM),
+    validTo: jsonUtc(row.VALID_TO),
   };
 }
 
@@ -127,24 +146,8 @@ export async function GET(
       );
     }
 
-    const certificationStatus = row.CERTIFIED_AT ? "Certified" : "Not Certified";
-    const signedAt = new Date().toISOString();
-
-    const record = {
-      registryId: row.REGISTRY_ID,
-      entityName: row.ENTITY_NAME,
-      entityType: row.ENTITY_TYPE,
-      country: row.COUNTRY,
-      applicationId: row.APPLICATION_ID,
-      caseId: row.CASE_ID,
-      certificationStatus,
-      certifiedTier: row.CERTIFIED_TIER,
-      certifiedBand: row.CERTIFIED_BAND,
-      decisionStatus: row.DECISION_STATUS,
-      certifiedAt: jsonUtc(row.CERTIFIED_AT),
-      validFrom: jsonUtc(row.VALID_FROM),
-      validTo: jsonUtc(row.VALID_TO),
-    };
+    const record = buildCanonicalRecord(row);
+    const verified = record.certifiedAt !== null;
 
     const messageObject = {
       issuer: "GAFAIG",
@@ -161,16 +164,16 @@ export async function GET(
       certifiedAt: record.certifiedAt,
       validFrom: record.validFrom,
       validTo: record.validTo,
-      signedAt,
     };
 
     const messageString = JSON.stringify(messageObject);
     const signature = signMessage(messageString);
+    const signedAt = new Date().toISOString();
 
     return NextResponse.json(
       {
         ok: true,
-        verified: certificationStatus === "Certified",
+        verified,
         registryId: row.REGISTRY_ID,
         meta: buildMeta(baseUrl, row.REGISTRY_ID),
         proof: {

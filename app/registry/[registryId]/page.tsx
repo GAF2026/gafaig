@@ -7,22 +7,26 @@ import RegistryTrustTools from "@/components/registry/RegistryTrustTools";
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-type RegistryApiResult = {
+type RegistryApiRow = {
   registryId?: string;
+  applicationId?: string | null;
+  caseId?: string | null;
   entityName?: string | null;
   entityType?: string | null;
   country?: string | null;
   certifiedTier?: string | null;
   certifiedBand?: string | null;
   decisionStatus?: string | null;
-  certifiedAt?: string | null;
+  validFrom?: string | null;
   validTo?: string | null;
+  certifiedAt?: string | null;
 };
 
 type RegistryApiResponse = {
   ok?: boolean;
-  count?: number;
-  results?: RegistryApiResult[];
+  total?: number;
+  rows?: RegistryApiRow[];
+  error?: string;
 };
 
 type VerifyApiResponse = {
@@ -115,50 +119,21 @@ export default async function RegistryRecordPage({
     getVerifyData(registryId),
   ]);
 
-  const row = registryData?.results?.[0] ?? null;
-  const entityName =
-    row?.entityName ||
-    verifyData?.record?.entityName ||
-    "Unknown Entity";
+  const row = registryData?.rows?.[0] ?? null;
+  const record = verifyData?.record ?? null;
 
-  const entityType =
-    row?.entityType ||
-    verifyData?.record?.entityType ||
-    null;
+  const entityName = record?.entityName || row?.entityName || "Unknown Entity";
 
-  const country =
-    row?.country ||
-    verifyData?.record?.country ||
-    null;
-
-  const certifiedTier =
-    row?.certifiedTier ||
-    verifyData?.record?.certifiedTier ||
-    null;
-
-  const certifiedBand =
-    row?.certifiedBand ||
-    verifyData?.record?.certifiedBand ||
-    null;
-
-  const decisionStatus =
-    row?.decisionStatus ||
-    verifyData?.record?.decisionStatus ||
-    null;
-
-  const certifiedAt =
-    row?.certifiedAt ||
-    verifyData?.record?.certifiedAt ||
-    null;
-
-  const validTo =
-    row?.validTo ||
-    verifyData?.record?.validTo ||
-    null;
+  const entityType = record?.entityType || row?.entityType || null;
+  const country = record?.country || row?.country || null;
+  const certifiedTier = record?.certifiedTier || row?.certifiedTier || null;
+  const certifiedBand = record?.certifiedBand || row?.certifiedBand || null;
+  const decisionStatus = record?.decisionStatus || row?.decisionStatus || null;
+  const certifiedAt = record?.certifiedAt || row?.certifiedAt || null;
+  const validTo = record?.validTo || row?.validTo || null;
 
   const certificationStatus =
-    verifyData?.record?.certificationStatus ||
-    (certifiedAt ? "Certified" : "Not Certified");
+    record?.certificationStatus || (certifiedAt ? "Certified" : "Not Certified");
 
   const baseUrl = getBaseUrl();
   const absoluteRegistryUrl = `${baseUrl}/registry/${encodeURIComponent(
@@ -169,7 +144,7 @@ export default async function RegistryRecordPage({
   )}`;
   const absoluteBadgeUrl = `${baseUrl}/badge/${encodeURIComponent(registryId)}`;
 
-  if (!row && !verifyData?.record) {
+  if (!row && !record) {
     return (
       <main className="mx-auto max-w-6xl px-6 py-16">
         <div className="rounded-[32px] border border-black/10 bg-white p-10 shadow-sm">
@@ -212,12 +187,20 @@ export default async function RegistryRecordPage({
         </p>
 
         <div className="mt-8 grid gap-4 md:grid-cols-3">
-          <IntroCard title="Public record of certification" body="Disclosed certification outcome." />
-          <IntroCard title="Programmatically verifiable" body="Verified via API + signed proof." />
-          <IntroCard title="Portable across the web" body="Badge, QR, widget." />
+          <IntroCard
+            title="Public record of certification"
+            body="Disclosed certification outcome."
+          />
+          <IntroCard
+            title="Programmatically verifiable"
+            body="Verified via API + signed proof."
+          />
+          <IntroCard
+            title="Portable across the web"
+            body="Badge, QR, widget."
+          />
         </div>
 
-        {/* 🔥 NEW VERIFICATION GUIDE LINK */}
         <div className="mt-6 text-sm text-black/70">
           Want to independently verify this certification?{" "}
           <Link
@@ -226,6 +209,16 @@ export default async function RegistryRecordPage({
           >
             Learn how verification works →
           </Link>
+        </div>
+
+        <div className="mt-8 grid gap-4 md:grid-cols-4">
+          <InfoCard label="Status" value={certificationStatus} />
+          <InfoCard
+            label="Tier / Band"
+            value={[certifiedTier, certifiedBand].filter(Boolean).join(" · ") || "—"}
+          />
+          <InfoCard label="Decision" value={decisionStatus || "—"} />
+          <InfoCard label="Valid To" value={validTo || "—"} />
         </div>
       </header>
 
@@ -253,6 +246,17 @@ function IntroCard({ title, body }: { title: string; body: string }) {
     <div className="rounded-[24px] border border-black/10 bg-black/[0.02] p-6">
       <div className="text-[18px] font-semibold">{title}</div>
       <p className="mt-2 text-sm text-black/70">{body}</p>
+    </div>
+  );
+}
+
+function InfoCard({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-[24px] border border-black/10 bg-white p-5">
+      <div className="text-[11px] font-semibold uppercase tracking-[0.24em] text-black/45">
+        {label}
+      </div>
+      <div className="mt-3 text-base font-semibold text-black">{value}</div>
     </div>
   );
 }

@@ -1,384 +1,236 @@
-# GAFAIG — CHANGELOG.md
+# GAFAIG — CHANGELOG
 System Evolution Log
-Last Updated: 2026-03-31
+Last Updated: 2026-04-03
 
 ---
 
-# 🚀 VERSION: VERIFICATION INFRASTRUCTURE COMPLETE
+# 2026-04-03 — TRUST INFRASTRUCTURE ACTIVATION (MAJOR MILESTONE)
 
-This release marks the transition of GAFAIG from a functioning registry system to a **cryptographically verifiable trust infrastructure**.
+## 🚀 PLATFORM TRANSITION
 
----
+GAFAIG has transitioned from:
 
-# 🧱 CORE SYSTEM (STABLE)
-
-## Verification Pipeline (LOCKED)
-
-Completed full deterministic pipeline:
-
-APPLICATION  
-→ CASE  
-→ FINDINGS  
-→ EVIDENCE  
-→ EVENTS  
-→ SCORING  
-→ SCORE SNAPSHOT  
-→ REGISTRY SNAPSHOT  
-→ PUBLIC VIEWS  
-
-Status:
-
-✔ Fully operational  
-✔ Snowflake-native  
-✔ Deterministic and reproducible  
-
----
-
-## Registry System
-
-### Implemented
-
-• CORE.REGISTRY_SNAPSHOTS (append-only)  
-• CORE.V_REGISTRY_LATEST_APPROVED (latest certified record)  
-• CORE.V_REGISTRY_PUBLIC (public certification surface)  
-• CORE.V_REGISTRY_PUBLIC_SEARCH (search-optimized view)  
-
-Status:
-
-✔ Immutable registry  
-✔ No mutation of records  
-✔ One canonical public state per case  
-
----
-
-## Publish Workflow
-
-• Stored procedure-based publish flow  
-• Registry ID generation working  
-• Re-publish creates new snapshot  
-
-Status:
-
-✔ Stable  
-✔ Production-ready  
-
----
-
-# 🌐 API LAYER
-
-## Verification Endpoint
-
-### /api/verify/[registryId]
-
-Implemented:
-
-• Fetches certification from V_REGISTRY_PUBLIC  
-• Returns structured record  
-• Returns cryptographic proof object  
-
-Proof includes:
-
-• Canonical message  
-• Signature  
-• Algorithm  
-• Timestamp  
-
-Status:
-
-✔ Working  
-✔ Production-ready  
-
----
-
-## Public Key Endpoint
-
-### /api/.well-known/gafaig-public-key
-
-Implemented:
-
-• Exposes public verification key  
-• Returns:
-  - kid
-  - publicKeyPem  
-
-Status:
-
-✔ Working  
-✔ Required for external verification  
-
----
-
-# 🔐 CRYPTOGRAPHY UPGRADE
-
-## Migration Completed
-
-From:
-
-HMAC (shared secret)
+“working registry + scoring system”
 
 →
 
-To:
+“full public trust infrastructure for AI governance”
 
-Ed25519 (asymmetric signing)
-
----
-
-## Key Infrastructure
-
-### Private Key
-
-• Stored in environment variable  
-• Server-side only  
-• Not exposed  
-
-### Public Key
-
-• Served via well-known endpoint  
-• Used for external verification  
+This marks the most important milestone in the system’s lifecycle.
 
 ---
 
-## Signing Model
+## ✅ TRUST INFRASTRUCTURE COMPLETED
 
-• Canonical JSON message  
-• UTF-8 encoding  
-• Detached signature  
-• Ed25519 signing  
-
-Status:
-
-✔ Implemented  
-✔ Verified working  
+### Verification API
+• Implemented `/api/verify/[registryId]`  
+• Returns canonical record + verification status  
+• Added full CORS support for external use  
+• Structured response with `ok`, `verified`, `record`, `proof`  
 
 ---
 
-# 🧾 BADGE SURFACE
+### Signed Proof Layer
+• Introduced deterministic signed payload  
+• Fields include:
+  - alg  
+  - kid  
+  - signature  
+  - signedAt  
+  - verificationKeyUrl  
+  - message  
+  - messageString  
 
-## /badge/[registryId]
-
-Rebuilt certification badge surface:
-
-### Improvements
-
-• Layout scaled to match registry pages  
-• Responsive container sizing  
-• Fixed overflow issues  
-• Fixed pill alignment  
-• Fixed spacing and padding  
-• Added verification endpoint display  
-• Added certification metadata footer  
-
-### Fixes
-
-• Tier/Band overflow resolved  
-• Valid To overflow resolved  
-• Country text containment fixed  
-• Grid alignment corrected  
-
-Status:
-
-✔ Production-ready  
-✔ Consistent with registry UI  
+• Implemented signing via `lib/crypto/verify-signing`  
 
 ---
 
-# 📄 REGISTRY DETAIL PAGE
-
-## /registry/[registryId]
-
-### Improvements
-
-• Certification summary clarity  
-• Trust panel enhancements  
-• Badge + verification integration  
-• Data consistency with Snowflake  
-
-Status:
-
-✔ Stable  
-✔ Ready for verification UX upgrade  
+### Public Key Endpoint
+• Created `/api/.well-known/gafaig-public-key`  
+• Enables external signature validation  
+• Establishes GAFAIG as verifiable authority  
 
 ---
 
-# 🔍 EXPLORER (PHASE 1 COMPLETE)
-
-## Pages Implemented
-
-• /explorer  
-• /explorer/countries  
-• /explorer/organizations  
-• /explorer/systems  
-• /explorer/map  
-
-### Improvements
-
-• Clean production UI  
-• Registry-driven data  
-• Navigation consistency  
-• Layout alignment with platform  
-
-Status:
-
-✔ Phase 1 complete  
-✔ Phase 2 pending (filters + analytics)  
+### Badge Endpoint
+• Implemented `/badge/[registryId]`  
+• Public certification badge render  
+• Designed for external embedding  
 
 ---
 
-# 🏠 PUBLIC PAGES (REWRITTEN)
-
-## Updated Pages
-
-• Home  
-• Framework  
-• Registry  
-• Demo  
-• Mission  
-
-### Improvements
-
-• Clear positioning of GAFAIG as trust infrastructure  
-• Consistent language across platform  
-• Removed ambiguity (not a dashboard)  
-• Strengthened narrative  
-
-Status:
-
-✔ Production-ready  
+### Widget (v1 — LOCKED)
+• Created `public/widget/gafaig-widget.js`  
+• Fetches verification API  
+• Displays:
+  - entity  
+  - tier/band  
+  - status  
+  - validity  
+• Added:
+  - trust footer  
+  - verification links  
+  - external-ready styling  
 
 ---
 
-# 🔐 ADMIN SYSTEM
-
-## Admin Pages
-
-• /admin/login  
-• /admin/applications  
-
-### Improvements
-
-• Cleaned UI  
-• Simplified messaging  
-• Improved alignment with verification workflow  
-
-Status:
-
-✔ Functional  
-✔ Internal-facing  
+### Widget Improvements
+• Fixed long registry ID overflow (word wrapping)  
+• Improved layout resilience  
+• Ensured responsive rendering  
 
 ---
 
-# 🧩 QUERY LAYER
-
-## Enforcement
-
-• All queries routed through lib/queries  
-• Removed inline SQL from API routes  
-• Standardized Snowflake access  
-
-Status:
-
-✔ Enforced  
-✔ Stable  
-
----
-
-# ⚙️ INFRASTRUCTURE
-
-## Deployment
-
-• Vercel (production)  
-• GitHub (source control)  
-
-## Runtime
-
-• Next.js App Router  
-• TypeScript  
-• Snowflake backend  
-
-Status:
-
-✔ Stable  
-✔ Production deployment working  
+### Verify Button UX Upgrade
+• Replaced alert-based UX  
+• Introduced modal-based verification UI  
+• Includes:
+  - loading state  
+  - verified state  
+  - error state  
+• Added:
+  - record details  
+  - verify JSON link  
+  - verification guide link  
 
 ---
 
-# 🧪 BUG FIXES (THIS RELEASE)
-
-• Fixed badge layout overflow issues  
-• Fixed pill alignment issues  
-• Fixed verification endpoint 500 error  
-• Fixed missing verification route handling  
-• Fixed JSON proof endpoint  
-• Fixed public key endpoint routing  
-• Fixed folder structure issue (.well-known path)  
-• Fixed registry layout inconsistencies  
+### QR Verification Flow
+• Enabled QR → `/verify` → API resolution  
+• Supports real-world verification pathway  
 
 ---
 
-# ⚠️ KNOWN GAPS
-
-## Verification UX
-
-• No clear “Verify this certification” UI yet  
-• No user-facing verification explanation  
-• No embedded verification workflow  
-
----
-
-## External Verification
-
-• No official SDK or scripts yet  
-• No public documentation  
+### Verification Guide Page
+• Created `/verify`  
+• Explains:
+  - how verification works  
+  - how to use trust surfaces  
+  - what is public vs private  
 
 ---
 
-## Key Management
+## 🎯 PUBLIC POSITIONING UPGRADE
 
-• No key rotation yet  
-• Single key only  
-• No versioning (kid lifecycle incomplete)  
+### Homepage
+• Added trust infrastructure positioning  
+• Clarified GAFAIG as verification authority  
 
----
+### Framework Page
+• Elevated to institutional-grade positioning  
+• Explained system as governance infrastructure  
 
-## Explorer Phase 2
+### Registry Page
+• Repositioned as:
+  → canonical public record  
+  → trust surface layer  
 
-• No filters  
-• No aggregations  
-• No metrics  
-• No trends  
+### Explorer Page
+• Repositioned as:
+  → public intelligence layer  
+  → network view of trust  
 
----
-
-# 🚀 NEXT RELEASE TARGET
-
-## VERIFICATION UX + EXTERNAL TRUST LAYER
-
-### Goals
-
-• Add verification UI to registry page  
-• Add developer verification examples  
-• Add trust explanation layer  
-• Enable third-party verification  
+### Mission Page
+• Added trust infrastructure narrative  
+• Reinforced global governance positioning  
 
 ---
 
-# 🧠 STRATEGIC TRANSITION
+## 🧠 ARCHITECTURE HARDENING
 
-GAFAIG has moved from:
+### Removed Fragile Dependencies
+• Eliminated reliance on:
+  - V_REGISTRY_STATS_GLOBAL  
+  - V_REGISTRY_STATS_BY_COUNTRY  
 
-"A working registry"
-
-→
-
-To:
-
-"A verifiable trust infrastructure"
-
-Next step:
-
-→ Make that trust **visible, usable, and adoptable globally**
+• Standardized on:
+  → `GAFAIG_DB.CORE.V_REGISTRY_PUBLIC`
 
 ---
 
-# END OF CHANGELOG
+### Certification Logic Standardization
+• Removed dependency on `CERTIFICATION_STATUS`  
+• Derived certification from:
+  → `CERTIFIED_AT IS NOT NULL`
+
+---
+
+### Explorer Query Refactor
+• Rebuilt metrics using direct SQL aggregation  
+• Eliminated dependency on optional columns  
+• Ensured compatibility across environments  
+
+---
+
+### Registry Query Stabilization
+• Simplified filtering logic  
+• Normalized search inputs  
+• Improved ordering consistency  
+
+---
+
+## 🛡️ RUNTIME STABILITY IMPROVEMENTS
+
+### Graceful Fallback Handling
+• Added `try/catch` to:
+  - `/registry`
+  - `/explorer`
+
+• Prevents:
+  → full page crashes on Snowflake failure  
+
+---
+
+### Fallback UI
+• Introduced:
+  → “Data temporarily unavailable” state  
+
+• Maintains:
+  → page structure  
+  → navigation  
+  → trust messaging  
+
+---
+
+### Snowflake Failure Diagnosis
+• Identified runtime failure caused by:
+  → suspended Snowflake account  
+
+• Confirmed:
+  → system stability restored after payment  
+
+---
+
+## 🔧 API IMPROVEMENTS
+
+### Verify API
+• Added CORS headers  
+• Standardized response structure  
+• Added signed proof integration  
+
+---
+
+### Widget Compatibility
+• Ensured API works:
+  - locally  
+  - externally  
+  - across domains  
+
+---
+
+## 🧪 TESTING IMPROVEMENTS
+
+### Local Testing
+• Created `test-gafaig.html`  
+• Enabled widget testing via local server  
+
+### Widget Preview Page
+• Added `/widget-preview/[registryId]`  
+• Allows live testing of widget output  
+
+---
+
+## 📦 DEPLOYMENT FLOW
+
+### Git + Vercel
+• Standardized push flow:

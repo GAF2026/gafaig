@@ -4,6 +4,7 @@ import { getRegistryRecords, searchRegistryRecords } from "@/lib/queries/registr
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 function clean(value: string | null): string {
   return String(value ?? "").trim();
@@ -12,36 +13,30 @@ function clean(value: string | null): string {
 function toRegistryRow(row: {
   registryId: string;
   applicationId: string | null;
-  caseId?: string | null;
+  caseId: string | null;
   entityName: string | null;
   entityType: string | null;
   country: string | null;
-  certifiedScore?: number | null;
   certifiedTier: string | null;
   certifiedBand: string | null;
   decisionStatus: string | null;
   validFrom: string | null;
   validTo: string | null;
   certifiedAt: string | null;
-  lastActivityAt: string | null;
-  snapshotId?: string | null;
 }): RegistryRow {
   return {
     registryId: row.registryId,
     applicationId: row.applicationId,
-    caseId: row.caseId ?? null,
+    caseId: row.caseId,
     entityName: row.entityName,
     entityType: row.entityType,
     country: row.country,
-    certifiedScore: row.certifiedScore ?? null,
     certifiedTier: row.certifiedTier,
     certifiedBand: row.certifiedBand,
     decisionStatus: row.decisionStatus,
     validFrom: row.validFrom,
     validTo: row.validTo,
     certifiedAt: row.certifiedAt,
-    lastActivityAt: row.lastActivityAt,
-    snapshotId: row.snapshotId ?? null,
   };
 }
 

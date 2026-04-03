@@ -1,241 +1,296 @@
-# GAFAIG — CURRENT_FOCUS.md
+# GAFAIG — CURRENT FOCUS
 Execution Control Document
-Last Updated: 2026-03-31
+Last Updated: 2026-04-03
 
 ---
 
-# 🎯 PRIMARY OBJECTIVE
+# PRIMARY OBJECTIVE
 
 Transition GAFAIG from:
 
-"Verification infrastructure exists"
+“Trust infrastructure exists”
 
 →
 
-"Global, externally verifiable trust system for AI governance"
+“Trust infrastructure is adoptable, integratable, and externally used”
 
 ---
 
-# 📍 CURRENT PHASE
+# CURRENT PHASE
 
-Verification Infrastructure Complete → Trust UX + External Verification Layer
+Adoption Layer Activation
 
----
+This phase begins immediately after completion of:
 
-# 🧠 STRATEGIC INTENT
-
-Make GAFAIG:
-
-• Cryptographically verifiable  
-• Externally consumable  
-• Developer-friendly  
-• Regulator-ready  
-• Instantly understandable as trust infrastructure  
-
----
-
-# ✅ WHAT IS COMPLETE (DO NOT TOUCH)
-
-The following systems are WORKING and LOCKED:
-
-• Verification pipeline (application → case → findings → evidence → events)  
-• Deterministic scoring engine (Snowflake-native)  
-• Score snapshot system  
-• Registry snapshot system (append-only)  
-• Publish procedure (registry writes working)  
-• V_REGISTRY_LATEST_APPROVED (source of truth)  
-• V_REGISTRY_PUBLIC (public certification view)  
-• Registry UI (/registry + detail pages)  
-• Badge surface (/badge/[registryId]) — layout fixed  
-• Verification API (/api/verify/[registryId]) — working  
-• Public key endpoint (/api/.well-known/gafaig-public-key) — working  
-• Ed25519 asymmetric signing — implemented  
-• Explorer Phase 1 (landing + pages)  
+✔ registry of record  
+✔ verification API  
+✔ signed proof  
+✔ public key endpoint  
+✔ badge endpoint  
+✔ widget (v1 locked)  
+✔ verify modal UX  
+✔ QR verification flow  
+✔ verification guide (/verify)  
+✔ trust-positioned public pages  
 
 ---
 
-# ⚠️ CRITICAL RULES
+# WHAT IS COMPLETE (DO NOT TOUCH)
+
+The following systems are fully operational and MUST NOT be re-architected:
+
+## Engine + Registry Core
+• verification workflow (cases → findings → evidence → events)  
+• deterministic scoring engine (enterprise)  
+• score snapshot system  
+• decision system  
+• registry publish procedure (SP_PUBLISH_CASE_TO_REGISTRY_V3)  
+• registry snapshot system (append-only)  
+
+## Registry Layer
+• V_REGISTRY_LATEST_APPROVED (canonical truth)  
+• V_REGISTRY_PUBLIC  
+• V_REGISTRY_PUBLIC_SEARCH  
+• V_REGISTRY_AI_SYSTEMS_PUBLIC  
+
+## Application Layer
+• Snowflake connection (sfQuery)  
+• query layer abstraction  
+• API pass-through model  
+
+## Public UI
+• /registry  
+• /registry/[registryId]  
+• /explorer  
+• /verify  
+• framework / mission / homepage positioning  
+
+## Trust Infrastructure
+• /api/verify/[registryId] (CORS enabled)  
+• signed proof payload  
+• public key endpoint  
+• badge endpoint  
+• embeddable widget (v1 locked)  
+• verify modal UX  
+• QR verification flow  
+
+## Stability Improvements
+• removed dependency on fragile stats views  
+• standardized on V_REGISTRY_PUBLIC  
+• certification derived from CERTIFIED_AT  
+• graceful fallback handling added  
+• no runtime crashes on Snowflake failure  
+
+---
+
+# CRITICAL RULE
 
 DO NOT:
 
-• Re-architect the system  
-• Move logic out of Snowflake  
-• Compute scores in API/UI  
-• Modify registry snapshot behavior  
-• Expose private verification evidence  
-
-ALL logic must remain:
-
-Snowflake → Views → Query Layer → API → UI  
+• re-architect system  
+• move logic out of Snowflake  
+• compute certification in API/UI  
+• expose private evidence  
+• mutate registry snapshots  
 
 ---
 
-# 🚨 CURRENT GAP
+# CURRENT PRIORITY
 
-The system is:
+Build the **Adoption Layer**
 
-✔ Technically complete  
-❌ Not yet *understandable or usable* externally  
+The system is now technically complete.
+
+The next requirement is:
+
+→ make GAFAIG usable by external parties
 
 ---
 
-# 🔧 ACTIVE WORKSTREAMS
+# ACTIVE WORKSTREAMS
 
-## 1. VERIFICATION UX (TOP PRIORITY)
+## 1. Developers / Integrations Surface (HIGHEST PRIORITY)
+
+Create:
+
+→ `/developers` or `/integrations`
+
+Must include:
+
+• widget usage  
+• verify button usage  
+• badge usage  
+• verify API usage  
+• public key usage  
+• copy-paste embed examples  
 
 Goal:
-
-Make every certification instantly verifiable by any user.
-
-### Required:
-
-• Add “Verify this certification” section to registry detail page  
-• Add clear explanation of what verification means  
-• Add copyable verification endpoint  
-• Add public key reference  
-• Add signature explanation  
+Turn GAFAIG into **usable infrastructure**
 
 ---
 
-## 2. EXTERNAL VERIFICATION FLOW
+## 2. Public Embed Documentation
+
+Define clearly:
+
+• how to embed widget  
+• how to verify records programmatically  
+• how badge + QR work  
+• what is verifiable vs private  
 
 Goal:
-
-Allow developers, regulators, and third parties to verify GAFAIG certifications independently.
-
-### Required:
-
-• Provide example verification script (Node.js)  
-• Provide example verification script (Python)  
-• Document verification steps clearly  
-• Ensure payload + signature format is stable  
+Make trust surfaces understandable and adoptable
 
 ---
 
-## 3. TRUST SURFACE STANDARDIZATION
+## 3. Badge Refinement
+
+Upgrade badge to:
+
+• stronger visual authority  
+• consistent formatting  
+• versioning clarity  
+• better external presentation  
 
 Goal:
-
-Make GAFAIG certification surfaces consistent and authoritative.
-
-### Required:
-
-• Align registry detail trust panel with badge surface  
-• Ensure consistent terminology:
-  - Certified
-  - Verified
-  - Published
-• Ensure all certification fields display correctly:
-  - Tier
-  - Band
-  - Validity
-  - Timestamp  
+Make badge a **credible external trust artifact**
 
 ---
 
-## 4. KEY MANAGEMENT (NEXT STEP)
+## 4. Explorer Depth Expansion
+
+Enhance:
+
+• country pages  
+• organization pages  
+• system pages  
+• filtering + navigation  
+• relationships (entity ↔ systems ↔ certification)  
 
 Goal:
-
-Production-grade cryptographic key lifecycle.
-
-### Required:
-
-• Introduce multiple keys (kid support)  
-• Enable key rotation  
-• Maintain backward verification compatibility  
+Turn Explorer into **intelligence layer**, not just navigation
 
 ---
 
-## 5. PROOF STANDARDIZATION
+## 5. AI Systems Trust Surface
+
+Strengthen:
+
+• /registry/ai-systems  
+• system-level verification  
+• linking system ↔ registry record  
+• system-level trust messaging  
 
 Goal:
-
-Define GAFAIG as a formal verification standard.
-
-### Required:
-
-• Formal proof schema definition  
-• Optional JWS-compatible format  
-• Canonical message contract enforcement  
+Shift trust from organization → system level
 
 ---
 
-## 6. EXPLORER PHASE 2
+## 6. Public Trust Flow
+
+Ensure clear user journey:
+
+• discover GAFAIG  
+• understand framework  
+• explore registry  
+• verify record  
+• embed trust surface  
+• understand certification  
 
 Goal:
-
-Make registry data explorable and analytically useful.
-
-### Required:
-
-• Filters:
-  - Country
-  - Tier
-  - Band  
-• Aggregations:
-  - Counts
-  - Distributions  
-• Metrics:
-  - Certifications over time  
-• Map improvements  
+Make GAFAIG understandable to first-time users
 
 ---
 
-# 🧪 VALIDATION CHECKLIST (MANDATORY)
+# SECONDARY PRIORITY (NEXT PHASE)
 
-After each change, verify:
+## Enterprise / Issuer Readiness
 
-## Registry
+Future build:
 
-• /registry loads  
-• /registry/[registryId] loads correctly  
+• certification explanation  
+• lifecycle (validity, renewal)  
+• issuer expectations  
+• applicant flow  
+• governance requirements  
 
-## Verification
-
-• /api/verify/[registryId] returns valid JSON  
-• Signature is present  
-• Message payload is correct  
-
-## Public Key
-
-• /api/.well-known/gafaig-public-key loads  
-• Returns kid + PEM  
-
-## Badge
-
-• /badge/[registryId] renders correctly  
-• Layout is contained and responsive  
-
-## Explorer
-
-• All explorer pages load  
-• Data is consistent with registry  
+Goal:
+Prepare GAFAIG for institutional adoption
 
 ---
 
-# 🧠 DESIGN PRINCIPLE
+# SUCCESS CRITERIA (THIS PHASE)
 
-Every GAFAIG page must answer:
+GAFAIG is successful when:
 
-"Can I trust this certification?"
-
-If the answer is not obvious:
-
-→ The page is incomplete
-
----
-
-# 🚀 NEXT EXECUTION STEP
-
-Start with:
-
-👉 Registry Detail Page — Verification Section
-
-Then:
-
-👉 External Verification Example (Node.js)
+• external sites embed widget or badge  
+• verification API is used outside GAFAIG  
+• users understand how verification works  
+• trust surfaces are used without explanation  
+• registry is treated as authoritative source  
 
 ---
 
-# END OF CURRENT FOCUS
+# CURRENT RISK AREAS
+
+• lack of developer surface (no integration entry point)  
+• badge not yet optimized for external visibility  
+• explorer depth still shallow  
+• no explicit adoption flow  
+• no clear external onboarding narrative  
+
+---
+
+# EXECUTION ORDER
+
+1. Developers / Integrations page  
+2. Embed documentation  
+3. Badge refinement  
+4. Explorer expansion  
+5. AI systems trust surface  
+6. Adoption flow clarity  
+
+---
+
+# STRATEGIC POSITION
+
+GAFAIG has transitioned from:
+
+“internal system”
+
+→
+
+“public trust infrastructure”
+
+Now transitioning to:
+
+→ “externally adopted trust layer”
+
+---
+
+# OPERATING PRINCIPLE
+
+Every change must reinforce:
+
+• verifiability  
+• determinism  
+• external trust  
+• institutional credibility  
+
+NOT:
+
+• UI complexity  
+• internal-only improvements  
+• non-verifiable features  
+
+---
+
+# SUMMARY
+
+The system is complete.
+
+The focus is no longer building the engine.
+
+The focus is:
+
+→ making the system usable, visible, and trusted externally

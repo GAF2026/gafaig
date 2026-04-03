@@ -1,46 +1,84 @@
-# GAFAIG — MASTER_STATE.md
-Last Updated: 2026-03-31
+# GAFAIG — MASTER STATE
+Canonical System Definition
+Last Updated: 2026-04-03
 
 ---
 
-# 🚨 SYSTEM CONTINUATION INSTRUCTION
+# SYSTEM IDENTITY
 
-THIS IS A CONTINUATION SYSTEM.
-DO NOT RESET CONTEXT.
-DO NOT RE-ARCHITECT.
+GAFAIG = Global Authority for AI Governance
 
-All future work must strictly follow this document.
+GAFAIG is the world’s first:
+→ searchable AI governance registry  
+→ deterministic verification engine  
+→ public trust infrastructure layer for AI governance certification  
 
----
+This system is NOT:
+• a dashboard  
+• a reporting tool  
+• a scoring UI  
 
-# 🌍 PLATFORM DEFINITION
-
-GAFAIG (Global Authority for AI Governance) is:
-
-The world’s first deterministic AI governance verification engine + public registry of record.
-
-It functions as:
-
-• Trust infrastructure (not a dashboard)
-• A certification authority for AI governance
-• A globally verifiable registry of certified AI systems
-
-Comparable to:
-
-• Financial audit systems
-• Certificate authorities (SSL/TLS)
-• Regulatory registries
-• International standards bodies
+This system IS:
+→ trust infrastructure  
+→ registry of record  
+→ verification authority layer  
 
 ---
 
-# 🧠 CORE ARCHITECTURE (LOCKED)
+# CORE ARCHITECTURE
 
-Two-layer system:
+GAFAIG operates as a strict two-layer system:
 
 ## 1. PRIVATE VERIFICATION ENGINE (Snowflake-native)
 
-Handles:
+Purpose:
+• deterministic scoring
+• controlled evaluation workflow
+• private evidence + findings storage
+
+Pipeline:
+APPLICATION
+→ VERIFICATION_CASE
+→ FINDINGS
+→ EVIDENCE
+→ EVENTS
+→ SCORING
+→ SCORE SNAPSHOT
+→ DECISION
+
+Rules:
+• deterministic
+• auditable
+• reproducible
+• NOT exposed publicly
+
+---
+
+## 2. PUBLIC REGISTRY (Next.js + Vercel)
+
+Purpose:
+• publish certification outcomes
+• provide public trust visibility
+• enable independent verification
+
+Pipeline:
+DECISION
+→ REGISTRY SNAPSHOT (append-only)
+→ V_REGISTRY_LATEST_APPROVED
+→ V_REGISTRY_PUBLIC
+→ API
+→ UI
+→ TRUST SURFACES
+
+Rules:
+• append-only
+• no mutation
+• derived from Snowflake only
+• no business logic in API/UI
+
+---
+
+# DATA FLOW (CANONICAL)
 
 APPLICATION
 → CASE
@@ -49,418 +87,232 @@ APPLICATION
 → EVENTS
 → SCORING
 → SCORE SNAPSHOT
-
-Characteristics:
-
-• Deterministic
-• Reproducible
-• Auditable
-• Evidence remains private
-
----
-
-## 2. PUBLIC REGISTRY (Next.js + Vercel)
-
-Handles:
-
-REGISTRY SNAPSHOT
-→ PUBLIC VIEWS
+→ DECISION
+→ REGISTRY SNAPSHOT
+→ REGISTRY VIEWS
 → API
 → UI
-
-Characteristics:
-
-• Append-only
-• Controlled disclosure
-• Public trust surface
+→ TRUST SURFACES
 
 ---
 
-# 🔒 CANONICAL DATA FLOW (NON-NEGOTIABLE)
+# TRUST INFRASTRUCTURE LAYER (NEWLY COMPLETED)
 
-ALL DATA MUST FOLLOW:
+GAFAIG now operates as a full trust infrastructure system.
 
-CASE
-→ FINDINGS
-→ EVIDENCE
-→ EVENTS
-→ SCORING
-→ SNAPSHOT
-→ REGISTRY
-→ PUBLIC VIEW
-→ API
-→ UI
+## Public Trust Surfaces
 
-NO BYPASSES
-NO DUPLICATION
-NO LOGIC IN UI/API
+1. Registry of Record
+   → /registry
+   → /registry/[registryId]
 
----
+2. Verification API
+   → /api/verify/[registryId]
 
-# 🧱 SOURCE OF TRUTH
+3. Signed Proof Payload
+   → proof.alg
+   → proof.kid
+   → proof.signature
+   → proof.message
+   → proof.messageString
+   → proof.verificationKeyUrl
 
-Snowflake is the ONLY source of truth.
+4. Public Key Endpoint
+   → /api/.well-known/gafaig-public-key
 
-Environment:
+5. Badge Endpoint
+   → /badge/[registryId]
 
-• Database: GAFAIG_DB
-• Schema: CORE
-• Warehouse: GAFAIG_WH
-• Role: GAFAIG_APP_ROLE
-• User: GAFAIG1
+6. Embeddable Widget
+   → public/widget/gafaig-widget.js
 
----
+7. Verify Button UX
+   → public/widget/gafaig-verify.js
 
-# 🧮 ENGINE OUTPUTS (LOCKED)
+8. QR Verification Path
+   → QR → /verify → API → registry
 
-ONLY produced in Snowflake:
-
-• FINAL_SCORE
-• TIER
-• BAND
-
-NEVER computed in:
-
-• API
-• UI
+9. Verification Guide
+   → /verify
 
 ---
 
-# 📦 REGISTRY SYSTEM (APPEND-ONLY)
+# CRITICAL SYSTEM RULES
 
-## CORE TABLE
+## Snowflake is the source of truth
+• ALL data originates from Snowflake  
+• API does NOT compute  
+• UI does NOT compute  
 
-CORE.REGISTRY_SNAPSHOTS
+## No logic outside Snowflake
+• no scoring in API  
+• no certification logic in UI  
+• no duplication of engine logic  
 
-Properties:
+## Append-only registry
+• REGISTRY_SNAPSHOTS immutable  
+• latest state derived via views  
+• no updates to published records  
 
-• Immutable
-• Append-only
-• Each publish = new row
-• No updates
-
----
-
-## CANONICAL VIEW
-
-CORE.V_REGISTRY_LATEST_APPROVED
-
-Logic:
-
-• ROW_NUMBER()
-• Latest APPROVED_AT
-• One row per CASE
-
----
-
-## PUBLIC VIEW
-
-CORE.V_REGISTRY_PUBLIC
-
-Contains:
-
-• REGISTRY_ID
-• APPLICATION_ID
-• CASE_ID
-• ENTITY_NAME
-• ENTITY_TYPE
-• COUNTRY
-• CERTIFIED_SCORE
-• CERTIFIED_TIER
-• CERTIFIED_BAND
-• DECISION_STATUS
-• CERTIFIED_AT
-• VALID_FROM
-• VALID_TO
+## Certification source of truth
+• CERTIFIED_SCORE → Snowflake  
+• CERTIFIED_TIER → Snowflake  
+• CERTIFIED_BAND → Snowflake  
+• CERTIFIED_AT → Snowflake  
+• DECISION_STATUS → Snowflake  
 
 ---
 
-## SEARCH VIEW
+# KEY SNOWFLAKE OBJECTS
 
-CORE.V_REGISTRY_PUBLIC_SEARCH
+## Tables
+CORE.VERIFICATION_CASES  
+CORE.VERIFICATION_FINDINGS  
+CORE.VERIFICATION_EVIDENCE  
+CORE.VERIFICATION_EVENTS  
+CORE.DECISIONS  
+CORE.REGISTRY_SNAPSHOTS  
 
-Provides:
+## Views
+CORE.V_REGISTRY_LATEST_APPROVED  
+CORE.V_REGISTRY_PUBLIC  
+CORE.V_REGISTRY_PUBLIC_SEARCH  
+CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC  
 
-• Normalized fields
-• Searchable concatenation column
+## Engine
+SP_SCORE_CASE_ENTERPRISE  
+V_CASE_SCORE_ENTERPRISE  
+V_CASE_TIER_BAND  
 
----
-
-# 🧾 CERTIFICATION MODEL
-
-Certification is defined by:
-
-• CERTIFIED_SCORE
-• CERTIFIED_TIER
-• CERTIFIED_BAND
-• CERTIFIED_AT
-• VALID_FROM
-• VALID_TO
-• DECISION_STATUS
-
----
-
-# 🔐 VERIFICATION LAYER (CURRENT STATE)
-
-## ✅ IMPLEMENTED
-
-### Endpoint:
-
-/api/verify/[registryId]
-
-Returns:
-
-• ok
-• verified
-• registryId
-• record (public certification data)
-• proof object
+## Publish
+SP_PUBLISH_CASE_TO_REGISTRY_V3  
 
 ---
 
-## 🔐 CRYPTOGRAPHY (CURRENT STATE)
+# APPLICATION LAYER
 
-Ed25519 (asymmetric signing)
+## Stack
+Next.js (App Router)  
+TypeScript  
+Vercel hosting  
 
----
+## Query Layer
+lib/snowflake.ts  
+lib/queries/*  
 
-## 🔑 KEY INFRASTRUCTURE
-
-### PRIVATE KEY (server only)
-
-Environment variable:
-
-GAFAIG_PRIVATE_KEY
-
-Format:
-
-PKCS8 PEM
+Rules:
+• API = pass-through only  
+• UI consumes API only  
+• no direct Snowflake logic in UI  
 
 ---
 
-### PUBLIC KEY ENDPOINT (LIVE)
+# PUBLIC ROUTES
 
-Endpoint:
-
-/api/.well-known/gafaig-public-key
-
-Returns:
-
-{
-  "kid": string,
-  "publicKeyPem": string
-}
-
-This is the global verification anchor.
-
----
-
-## 🔏 SIGNING MODEL
-
-Canonical message:
-
-{
-  registryId,
-  entityName,
-  entityType,
-  country,
-  applicationId,
-  caseId,
-  certificationStatus,
-  certifiedScore,
-  certifiedTier,
-  certifiedBand,
-  decisionStatus,
-  certifiedAt,
-  validFrom,
-  validTo,
-  signedAt
-}
-
-Signature:
-
-Ed25519(message)
-
-Encoding:
-
-• UTF-8 JSON string
-• Detached signature (hex or base64 depending on implementation)
-
----
-
-# 🌐 PUBLIC SURFACES
-
-## Registry
-
-/registry
-/registry/[registryId]
-
----
-
-## Badge
-
-/badge/[registryId]
-
-Purpose:
-
-• Visual certification surface
-• Public trust artifact
-• Embeddable
-
----
-
-## Verification API
-
-/api/verify/[registryId]
-
----
-
-## Public Key
-
-/api/.well-known/gafaig-public-key
-
----
+## Core
+/  
+/mission  
+/framework  
+/registry  
+/registry/[registryId]  
+/explorer  
+/verify  
 
 ## Explorer
+/explorer/countries  
+/explorer/organizations  
+/explorer/systems  
+/explorer/map  
 
-/explorer
-/explorer/countries
-/explorer/organizations
-/explorer/systems
-/explorer/map
-
----
-
-# 🧩 QUERY LAYER (ENFORCED)
-
-All data access must go through:
-
-lib/queries/*
-
-NEVER:
-
-• Direct SQL in routes
-• Logic duplication
+## APIs
+/api/registry  
+/api/verify/[registryId]  
+/api/badge/[registryId]  
 
 ---
 
-# ⚙️ API RULES (STRICT)
+# CURRENT SYSTEM STATE
 
-APIs are:
+## Fully Working
 
-• Thin
-• Stateless
-• Pass-through
-
-APIs must NOT:
-
-• Compute scores
-• Modify certification
-• Contain business logic
-
----
-
-# 🎯 CURRENT PHASE
-
-Verification Infrastructure Complete → Moving to Trust UX + External Verification
-
----
-
-# ✅ WHAT IS COMPLETE
-
-• Full verification pipeline (case → registry)
-• Deterministic scoring engine (Snowflake)
-• Registry snapshot system (append-only)
-• Public registry views (latest approved)
-• Registry UI (production-ready)
-• Badge surface (layout + scaling fixed)
-• Verification API (working)
-• Public key endpoint (working)
-• Ed25519 signing (implemented)
-• Explorer (Phase 1 complete)
+✔ verification workflow  
+✔ deterministic scoring engine  
+✔ score snapshots  
+✔ decision system  
+✔ registry publish pipeline  
+✔ registry snapshots (append-only)  
+✔ V_REGISTRY_LATEST_APPROVED  
+✔ V_REGISTRY_PUBLIC  
+✔ registry UI  
+✔ explorer UI  
+✔ verification API (CORS enabled)  
+✔ signed proof  
+✔ public key endpoint  
+✔ badge endpoint  
+✔ widget (v1 locked)  
+✔ verify modal UX  
+✔ QR verification flow  
 
 ---
 
-# ⚠️ KNOWN GAPS (NEXT WORK)
+# HARDENING (RECENT)
 
-## 1. Verification UX
-
-• Add “Verify this certification” button on registry page
-• Add verification explanation UI
-• Add copyable verification endpoint
-• Add developer instructions
-
----
-
-## 2. External Verification Flow
-
-• Example verification script (Node / Python)
-• Public docs-style explanation
-• Trust explanation layer on site
+✔ Removed dependency on fragile stats views  
+✔ Standardized on V_REGISTRY_PUBLIC  
+✔ Derived certification status from CERTIFIED_AT  
+✔ Added try/catch to registry + explorer pages  
+✔ Implemented graceful fallback UI  
+✔ Prevented runtime crashes on Snowflake failure  
 
 ---
 
-## 3. Key Management
+# CURRENT PHASE
 
-• Multiple keys (kid rotation)
-• Key versioning
-• Graceful rotation support
+Registry Completion → Trust Infrastructure Activation → Adoption Layer
 
 ---
 
-## 4. Proof Standardization
+# NEXT PHASE
 
-• Formal GAFAIG proof schema
-• Optional JWS compatibility layer
+Adoption + Integration Layer
 
----
-
-## 5. Explorer Phase 2
-
-• Filters (country, tier, band)
-• Aggregations
-• Metrics
-• Time-based trends
+Focus:
+• Developers / Integrations page  
+• Public embed documentation  
+• Badge refinement  
+• Explorer depth  
+• AI systems trust surfaces  
 
 ---
 
-## 6. Registry Enrichment
+# ENGINEERING DIRECTIVE
 
-• Country normalization
-• Organization normalization
-• AI system linking expansion
+DO NOT:
+• re-architect system  
+• move logic outside Snowflake  
+• expose private evidence  
+• mutate registry snapshots  
 
----
-
-# 🚫 DO NOT DO
-
-• Do NOT re-architect system
-• Do NOT move logic out of Snowflake
-• Do NOT compute scores in API/UI
-• Do NOT mutate registry snapshots
-• Do NOT expose private evidence
+ALWAYS:
+• treat Snowflake as source of truth  
+• maintain deterministic outputs  
+• preserve append-only registry  
+• ensure public trust surfaces remain verifiable  
 
 ---
 
-# 🧠 DESIGN PRINCIPLE
+# SYSTEM STATUS SUMMARY
 
-GAFAIG is:
+GAFAIG is now:
 
-NOT a product
-NOT a dashboard
+→ a functioning AI governance registry  
+→ a deterministic certification engine  
+→ a public verification system  
+→ a portable trust infrastructure layer  
 
-It is:
+This marks transition from:
+“system exists”
 
-A global verification system for AI governance
+→
 
----
-
-# 🚀 NEXT CHAT INSTRUCTION
-
-Resume with:
-
-“Continue GAFAIG — Verification UX + External Verification Flow”
-
----
-
-# END OF MASTER STATE
+“system can be relied upon externally”
