@@ -7,7 +7,6 @@ export type RegistryRow = {
   entityType: string | null;
   country: string | null;
 
-  certifiedScore: number | null;
   certifiedTier: string | null;
   certifiedBand: string | null;
   decisionStatus: string | null;
@@ -16,13 +15,6 @@ export type RegistryRow = {
   validTo: string | null;
 
   certifiedAt: string | null;
-  lastActivityAt: string | null;
-  snapshotId: string | null;
-
-  modelVersion?: string | null;
-  renewalStatus?: string | null;
-  scoredAt?: string | null;
-  isCurrentlyValid?: boolean;
 };
 
 export type RegistryApiResponse =
@@ -97,28 +89,23 @@ export type VerifyApiResponse =
         entityName: string | null;
         entityType: string | null;
         country: string | null;
-        certifiedScore: number | null;
+        certificationStatus: string | null;
         certifiedTier: string | null;
         certifiedBand: string | null;
         decisionStatus: string | null;
         validFrom: string | null;
         validTo: string | null;
         certifiedAt: string | null;
-        lastActivityAt: string | null;
-        snapshotId: string | null;
-        modelVersion?: string | null;
-        renewalStatus?: string | null;
-        scoredAt?: string | null;
-        isCurrentlyValid?: boolean;
       };
       proof?: {
         alg: string;
+        kid?: string;
         signature: string;
-        message: string;
         signedAt: string;
+        verificationKeyUrl?: string;
+        message?: Record<string, unknown>;
+        messageString?: string;
       };
-      reason?: string;
-      now?: string;
     }
   | {
       ok: false;
