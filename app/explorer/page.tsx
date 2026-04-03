@@ -60,58 +60,66 @@ function valueOrDash(value: string | null | undefined) {
   return value && value.trim() ? value : "—";
 }
 
-function certificationStatus(row: {
-  CERTIFIED_AT: string | null;
-}) {
+function certificationStatus(row: { CERTIFIED_AT: string | null }) {
   return row.CERTIFIED_AT ? "Certified" : "Not Certified";
 }
 
 export default async function ExplorerPage() {
-  const [globalRows, countryRows, recentRows] = await Promise.all([
-    sfQuery<GlobalStatsRow>(`
-      SELECT
-        COUNT(*) AS TOTAL_REGISTRY_RECORDS,
-        COUNT(DISTINCT REGISTRY_ID) AS TOTAL_REGISTRY_IDS,
-        COUNT(DISTINCT CASE_ID) AS TOTAL_CASES,
-        COUNT(DISTINCT APPLICATION_ID) AS TOTAL_APPLICATIONS,
-        COUNT(DISTINCT ENTITY_NAME) AS TOTAL_ENTITIES,
-        COUNT(DISTINCT COUNTRY) AS TOTAL_COUNTRIES,
-        COUNT_IF(LOWER(COALESCE(DECISION_STATUS, '')) = 'published') AS TOTAL_PUBLISHED,
-        COUNT_IF(CERTIFIED_AT IS NOT NULL) AS TOTAL_CERTIFIED,
-        COUNT_IF(CERTIFIED_AT IS NULL) AS TOTAL_NOT_CERTIFIED,
-        MIN(CERTIFIED_AT) AS FIRST_PUBLISHED_AT,
-        MAX(CERTIFIED_AT) AS LAST_PUBLISHED_AT
-      FROM GAFAIG_DB.CORE.V_REGISTRY_PUBLIC
-    `),
-    sfQuery<CountryStatsRow>(`
-      SELECT
-        COUNTRY,
-        COUNT(*) AS TOTAL_RECORDS,
-        COUNT(DISTINCT ENTITY_NAME) AS TOTAL_ENTITIES,
-        COUNT(DISTINCT REGISTRY_ID) AS TOTAL_REGISTRY_IDS,
-        COUNT_IF(CERTIFIED_AT IS NOT NULL) AS TOTAL_CERTIFIED,
-        COUNT_IF(CERTIFIED_AT IS NULL) AS TOTAL_NOT_CERTIFIED,
-        MAX(CERTIFIED_AT) AS LAST_PUBLISHED_AT
-      FROM GAFAIG_DB.CORE.V_REGISTRY_PUBLIC
-      WHERE COUNTRY IS NOT NULL
-      GROUP BY COUNTRY
-      ORDER BY TOTAL_RECORDS DESC, COUNTRY ASC
-      LIMIT 6
-    `),
-    sfQuery<RecentRegistryRow>(`
-      SELECT
-        REGISTRY_ID,
-        ENTITY_NAME,
-        COUNTRY,
-        DECISION_STATUS,
-        CERTIFIED_TIER,
-        CERTIFIED_BAND,
-        CERTIFIED_AT
-      FROM GAFAIG_DB.CORE.V_REGISTRY_PUBLIC
-      ORDER BY CERTIFIED_AT DESC NULLS LAST, ENTITY_NAME ASC
-      LIMIT 5
-    `),
-  ]);
+  let globalRows: GlobalStatsRow[] = [];
+  let countryRows: CountryStatsRow[] = [];
+  let recentRows: RecentRegistryRow[] = [];
+  let dataUnavailable = false;
+
+  try {
+    [globalRows, countryRows, recentRows] = await Promise.all([
+      sfQuery<GlobalStatsRow>(`
+        SELECT
+          COUNT(*) AS TOTAL_REGISTRY_RECORDS,
+          COUNT(DISTINCT REGISTRY_ID) AS TOTAL_REGISTRY_IDS,
+          COUNT(DISTINCT CASE_ID) AS TOTAL_CASES,
+          COUNT(DISTINCT APPLICATION_ID) AS TOTAL_APPLICATIONS,
+          COUNT(DISTINCT ENTITY_NAME) AS TOTAL_ENTITIES,
+          COUNT(DISTINCT COUNTRY) AS TOTAL_COUNTRIES,
+          COUNT_IF(LOWER(COALESCE(DECISION_STATUS, '')) = 'published') AS TOTAL_PUBLISHED,
+          COUNT_IF(CERTIFIED_AT IS NOT NULL) AS TOTAL_CERTIFIED,
+          COUNT_IF(CERTIFIED_AT IS NULL) AS TOTAL_NOT_CERTIFIED,
+          MIN(CERTIFIED_AT) AS FIRST_PUBLISHED_AT,
+          MAX(CERTIFIED_AT) AS LAST_PUBLISHED_AT
+        FROM GAFAIG_DB.CORE.V_REGISTRY_PUBLIC
+      `),
+      sfQuery<CountryStatsRow>(`
+        SELECT
+          COUNTRY,
+          COUNT(*) AS TOTAL_RECORDS,
+          COUNT(DISTINCT ENTITY_NAME) AS TOTAL_ENTITIES,
+          COUNT(DISTINCT REGISTRY_ID) AS TOTAL_REGISTRY_IDS,
+          COUNT_IF(CERTIFIED_AT IS NOT NULL) AS TOTAL_CERTIFIED,
+          COUNT_IF(CERTIFIED_AT IS NULL) AS TOTAL_NOT_CERTIFIED,
+          MAX(CERTIFIED_AT) AS LAST_PUBLISHED_AT
+        FROM GAFAIG_DB.CORE.V_REGISTRY_PUBLIC
+        WHERE COUNTRY IS NOT NULL
+        GROUP BY COUNTRY
+        ORDER BY TOTAL_RECORDS DESC, COUNTRY ASC
+        LIMIT 6
+      `),
+      sfQuery<RecentRegistryRow>(`
+        SELECT
+          REGISTRY_ID,
+          ENTITY_NAME,
+          COUNTRY,
+          DECISION_STATUS,
+          CERTIFIED_TIER,
+          CERTIFIED_BAND,
+          CERTIFIED_AT
+        FROM GAFAIG_DB.CORE.V_REGISTRY_PUBLIC
+        ORDER BY CERTIFIED_AT DESC NULLS LAST, ENTITY_NAME ASC
+        LIMIT 5
+      `),
+    ]);
+  } catch (error) {
+    dataUnavailable = true;
+    console.error("EXPLORER PAGE ERROR:", error);
+  }
 
   const stats = globalRows[0] || null;
 
@@ -190,6 +198,19 @@ export default async function ExplorerPage() {
           </Link>
         </div>
       </section>
+
+      {dataUnavailable && (
+        <section className="mt-8 rounded-3xl border border-amber-200 bg-amber-50 p-6">
+          <div className="text-[13px] font-semibold uppercase tracking-[0.18em] text-amber-800">
+            Data temporarily unavailable
+          </div>
+          <p className="mt-3 max-w-[900px] text-[15px] leading-[1.8] text-amber-900/85">
+            Explorer data could not be loaded from the registry backend at this
+            moment. The page remains available, but live metrics and listings
+            are temporarily unavailable. Please refresh shortly.
+          </p>
+        </section>
+      )}
 
       <section className="mt-10 grid gap-4 md:grid-cols-4">
         <MetricCard

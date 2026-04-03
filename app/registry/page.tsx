@@ -84,41 +84,50 @@ export default async function RegistryPage({
 
   const whereClause = whereParts.length ? `WHERE ${whereParts.join(" AND ")}` : "";
 
-  const [rows, countries] = await Promise.all([
-    sfQuery<RegistryRow>(
-      `
-      SELECT
-        REGISTRY_ID,
-        APPLICATION_ID,
-        CASE_ID,
-        ENTITY_NAME,
-        ENTITY_TYPE,
-        COUNTRY,
-        CERTIFIED_TIER,
-        CERTIFIED_BAND,
-        DECISION_STATUS,
-        VALID_FROM,
-        VALID_TO,
-        CERTIFIED_AT
-      FROM GAFAIG_DB.CORE.V_REGISTRY_PUBLIC
-      ${whereClause}
-      ORDER BY
-        CASE WHEN CERTIFIED_AT IS NOT NULL THEN 0 ELSE 1 END ASC,
-        CERTIFIED_AT DESC NULLS LAST,
-        ENTITY_NAME ASC
-      LIMIT 100
-      `,
-      binds
-    ),
-    sfQuery<CountryOptionRow>(
-      `
-      SELECT DISTINCT COUNTRY
-      FROM GAFAIG_DB.CORE.V_REGISTRY_PUBLIC
-      WHERE COUNTRY IS NOT NULL
-      ORDER BY COUNTRY ASC
-      `
-    ),
-  ]);
+  let rows: RegistryRow[] = [];
+  let countries: CountryOptionRow[] = [];
+  let dataUnavailable = false;
+
+  try {
+    [rows, countries] = await Promise.all([
+      sfQuery<RegistryRow>(
+        `
+        SELECT
+          REGISTRY_ID,
+          APPLICATION_ID,
+          CASE_ID,
+          ENTITY_NAME,
+          ENTITY_TYPE,
+          COUNTRY,
+          CERTIFIED_TIER,
+          CERTIFIED_BAND,
+          DECISION_STATUS,
+          VALID_FROM,
+          VALID_TO,
+          CERTIFIED_AT
+        FROM GAFAIG_DB.CORE.V_REGISTRY_PUBLIC
+        ${whereClause}
+        ORDER BY
+          CASE WHEN CERTIFIED_AT IS NOT NULL THEN 0 ELSE 1 END ASC,
+          CERTIFIED_AT DESC NULLS LAST,
+          ENTITY_NAME ASC
+        LIMIT 100
+        `,
+        binds
+      ),
+      sfQuery<CountryOptionRow>(
+        `
+        SELECT DISTINCT COUNTRY
+        FROM GAFAIG_DB.CORE.V_REGISTRY_PUBLIC
+        WHERE COUNTRY IS NOT NULL
+        ORDER BY COUNTRY ASC
+        `
+      ),
+    ]);
+  } catch (error) {
+    dataUnavailable = true;
+    console.error("REGISTRY PAGE ERROR:", error);
+  }
 
   const totalRecords = rows.length;
   const certifiedRecords = rows.filter(
@@ -231,6 +240,19 @@ export default async function RegistryPage({
         </form>
       </section>
 
+      {dataUnavailable && (
+        <section className="mt-8 rounded-3xl border border-amber-200 bg-amber-50 p-6">
+          <div className="text-[13px] font-semibold uppercase tracking-[0.18em] text-amber-800">
+            Data temporarily unavailable
+          </div>
+          <p className="mt-3 max-w-[900px] text-[15px] leading-[1.8] text-amber-900/85">
+            Registry data could not be loaded from the registry backend at this
+            moment. The page remains available, but live listings and filters
+            are temporarily unavailable. Please refresh shortly.
+          </p>
+        </section>
+      )}
+
       <section className="mt-10 grid gap-4 md:grid-cols-3">
         <MetricCard label="Visible records" value={String(totalRecords)} />
         <MetricCard label="Certified" value={String(certifiedRecords)} />
@@ -329,7 +351,9 @@ export default async function RegistryPage({
 
         {rows.length === 0 ? (
           <div className="mt-8 rounded-2xl border border-black/10 p-6 text-sm text-black/70">
-            No registry records matched your current filters.
+            {dataUnavailable
+              ? "Registry records are temporarily unavailable."
+              : "No registry records matched your current filters."}
           </div>
         ) : (
           <div className="mt-8 grid gap-4">
