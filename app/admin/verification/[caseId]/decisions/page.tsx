@@ -1,11 +1,12 @@
 "use client";
 
 import * as React from "react";
-import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import AdminNav from "../../../_components/AdminNav";
 import AdminPageHeader from "../../../_components/AdminPageHeader";
 import CaseTabs from "../_components/CaseTabs";
+import PublicButton from "../../../../_components/PublicButton";
+import PublicButtonLink from "../../../../_components/PublicButtonLink";
 
 type DecisionRow = {
   decisionId?: string | null;
@@ -220,7 +221,7 @@ export default function CaseDecisionsPage() {
       }
 
       const verify = await fetchJson(
-        `/api/admin/verification/decisions?caseId=${encodeURIComponent(caseId)}`,
+        `/api/admin/verification/decisions?caseId=${encodeURIComponent(caseId)}`
       );
 
       const verifyData = verify.data as DecisionGetResponse;
@@ -231,7 +232,7 @@ export default function CaseDecisionsPage() {
 
       if (!verifyData.row) {
         throw new Error(
-          "Decision API reported success, but no decision row was found after save.",
+          "Decision API reported success, but no decision row was found after save."
         );
       }
 
@@ -266,24 +267,27 @@ export default function CaseDecisionsPage() {
             loading
               ? "Loading…"
               : decisionRow?.decision
-                ? `Current decision: ${prettify(decisionRow.decision)}`
-                : "No decision recorded"
+              ? `Current decision: ${prettify(decisionRow.decision)}`
+              : "No decision recorded"
           }
           actions={
             <div className="flex flex-wrap gap-3">
-              <button
+              <PublicButton
+                type="button"
                 onClick={load}
-                className="inline-flex items-center justify-center rounded-xl border border-black/15 px-4 py-2 text-[14px] font-semibold hover:bg-black/[0.04]"
+                variant="secondary"
+                size="sm"
               >
                 {loading ? "Loading…" : "Refresh"}
-              </button>
+              </PublicButton>
 
-              <Link
+              <PublicButtonLink
                 href={`/admin/verification/${encodeURIComponent(caseId)}`}
-                className="inline-flex items-center justify-center rounded-xl border border-black/15 px-4 py-2 text-[14px] font-semibold hover:bg-black/[0.04]"
+                variant="secondary"
+                size="sm"
               >
                 Back to case
-              </Link>
+              </PublicButtonLink>
             </div>
           }
         />
@@ -406,19 +410,15 @@ export default function CaseDecisionsPage() {
                   const active = decision === option.value;
 
                   return (
-                    <button
+                    <PublicButton
                       key={option.value}
                       type="button"
                       onClick={() => setDecision(option.value)}
-                      className={[
-                        "inline-flex items-center justify-center rounded-xl border px-4 py-2 text-[14px] font-semibold",
-                        active
-                          ? "border-black bg-black text-white"
-                          : "border-black/15 bg-white hover:bg-black/[0.04]",
-                      ].join(" ")}
+                      variant={active ? "primary" : "secondary"}
+                      size="sm"
                     >
                       {option.label}
-                    </button>
+                    </PublicButton>
                   );
                 })}
               </div>
@@ -451,22 +451,26 @@ export default function CaseDecisionsPage() {
             </div>
 
             <div className="flex flex-wrap gap-3">
-              <button
+              <PublicButton
                 type="button"
                 onClick={saveDecision}
                 disabled={saving}
-                className="inline-flex items-center justify-center rounded-xl bg-black px-5 py-3 text-[14px] font-semibold text-white hover:bg-black/90 disabled:opacity-60"
+                variant="primary"
               >
                 {saving ? "Saving…" : "Save Decision"}
-              </button>
+              </PublicButton>
 
-              <button
+              <PublicButton
                 type="button"
-                onClick={() => router.push(`/admin/verification/${encodeURIComponent(caseId)}/publish`)}
-                className="inline-flex items-center justify-center rounded-xl border border-black/15 px-4 py-3 text-[14px] font-semibold hover:bg-black/[0.04]"
+                onClick={() =>
+                  router.push(
+                    `/admin/verification/${encodeURIComponent(caseId)}/publish`
+                  )
+                }
+                variant="secondary"
               >
                 Go to Publish
-              </button>
+              </PublicButton>
             </div>
           </div>
         </section>
