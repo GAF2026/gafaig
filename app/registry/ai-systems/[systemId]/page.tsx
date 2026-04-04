@@ -1,6 +1,6 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { sfQuery } from "@/lib/snowflake";
+import PublicButtonLink from "@/app/_components/PublicButtonLink";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -208,27 +208,21 @@ export default async function RegistryAiSystemDetailPage({ params }: PageProps) 
         </p>
 
         <div className="mt-8 flex flex-wrap gap-3">
-          <Link
-            href="/explorer/systems"
-            className="rounded-full border border-black bg-black px-5 py-3 text-sm font-semibold text-white transition hover:bg-black/90"
-          >
+          <PublicButtonLink href="/explorer/systems" variant="primary">
             Back to systems explorer
-          </Link>
+          </PublicButtonLink>
 
-          <Link
-            href="/registry/ai-systems"
-            className="rounded-full border border-black px-5 py-3 text-sm font-semibold transition hover:bg-black/[0.04]"
-          >
+          <PublicButtonLink href="/registry/ai-systems" variant="secondary">
             AI systems registry
-          </Link>
+          </PublicButtonLink>
 
           {row.REGISTRY_ID ? (
-            <Link
+            <PublicButtonLink
               href={`/registry/${encodeURIComponent(row.REGISTRY_ID)}`}
-              className="rounded-full border border-black px-5 py-3 text-sm font-semibold transition hover:bg-black/[0.04]"
+              variant="secondary"
             >
               View linked registry record
-            </Link>
+            </PublicButtonLink>
           ) : null}
         </div>
       </section>
