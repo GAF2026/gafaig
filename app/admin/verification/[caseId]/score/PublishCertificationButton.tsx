@@ -1,6 +1,8 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import PublicButton from "../../../../_components/PublicButton";
+import PublicButtonLink from "../../../../_components/PublicButtonLink";
 
 type PublishCertificationButtonProps = {
   caseId: string;
@@ -74,6 +76,10 @@ export default function PublishCertificationButton({
     ? `/api/verify/${encodeURIComponent(registryId)}`
     : null;
 
+  const registryRecordUrl = registryId
+    ? `/registry/${encodeURIComponent(registryId)}`
+    : null;
+
   async function handlePublish() {
     if (!canPublish) return;
 
@@ -112,7 +118,7 @@ export default function PublishCertificationButton({
       setTier(data.tier ?? null);
       setBand(data.band ?? null);
       setFinalScore(
-        typeof data.finalScore === "number" ? data.finalScore : null,
+        typeof data.finalScore === "number" ? data.finalScore : null
       );
       setStatus(data.status ?? "published");
       setMessage(data.message ?? "Registry publish completed.");
@@ -162,14 +168,19 @@ export default function PublishCertificationButton({
         </div>
 
         <div className="flex shrink-0 items-center">
-          <button
+          <PublicButton
             type="button"
             onClick={handlePublish}
             disabled={!canPublish}
-            className="inline-flex min-w-[180px] items-center justify-center rounded-xl border border-white/15 bg-white/10 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-white/15 disabled:cursor-not-allowed disabled:opacity-50"
+            variant="secondary"
+            className="min-w-[180px] border-white/15 bg-white/10 text-white hover:bg-white/15 disabled:opacity-50"
           >
-            {isPublishing ? "Publishing..." : registryId || snapshotId ? "Republish / Refresh" : "Publish to Registry"}
-          </button>
+            {isPublishing
+              ? "Publishing..."
+              : registryId || snapshotId
+              ? "Republish / Refresh"
+              : "Publish to Registry"}
+          </PublicButton>
         </div>
       </div>
 
@@ -250,24 +261,37 @@ export default function PublishCertificationButton({
           ) : null}
 
           <div className="mt-4 flex flex-wrap gap-2">
-            <button
+            <PublicButton
               type="button"
               onClick={handleCopyRegistryId}
               disabled={!registryId}
-              className="inline-flex items-center justify-center rounded-xl border border-emerald-100/20 bg-emerald-100/10 px-3 py-2 text-sm font-medium text-emerald-50 transition hover:bg-emerald-100/15 disabled:cursor-not-allowed disabled:opacity-50"
+              variant="secondary"
+              size="sm"
+              className="border-emerald-100/20 bg-emerald-100/10 text-emerald-50 hover:bg-emerald-100/15 disabled:opacity-50"
             >
               {copied ? "Copied" : "Copy Registry ID"}
-            </button>
+            </PublicButton>
 
             {verificationUrl ? (
-              <a
+              <PublicButtonLink
                 href={verificationUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center justify-center rounded-xl border border-emerald-100/20 bg-transparent px-3 py-2 text-sm font-medium text-emerald-50 transition hover:bg-emerald-100/10"
+                variant="secondary"
+                size="sm"
+                className="border-emerald-100/20 bg-transparent text-emerald-50 hover:bg-emerald-100/10"
               >
                 Open Verify Endpoint
-              </a>
+              </PublicButtonLink>
+            ) : null}
+
+            {registryRecordUrl ? (
+              <PublicButtonLink
+                href={registryRecordUrl}
+                variant="secondary"
+                size="sm"
+                className="border-emerald-100/20 bg-transparent text-emerald-50 hover:bg-emerald-100/10"
+              >
+                Open Registry Record
+              </PublicButtonLink>
             ) : null}
           </div>
         </div>
