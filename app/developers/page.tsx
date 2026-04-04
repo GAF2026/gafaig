@@ -27,7 +27,7 @@ export default function DevelopersPage() {
               <PublicButtonLink href={verifyUrl} variant="primary">
                 View live verify JSON
               </PublicButtonLink>
-              <PublicButtonLink href={registryUrl}>
+              <PublicButtonLink href={registryUrl} variant="secondary">
                 View example record
               </PublicButtonLink>
               <PublicButtonLink href={widgetPreviewUrl} variant="secondary">
@@ -154,10 +154,7 @@ export default function DevelopersPage() {
             </div>
 
             <div className="space-y-4">
-              <CodeBlock
-                title="Request"
-                code={`GET ${verifyUrl}`}
-              />
+              <CodeBlock title="Request" code={`GET ${verifyUrl}`} />
               <CodeBlock
                 title="Response shape"
                 code={`{
@@ -219,7 +216,7 @@ export default function DevelopersPage() {
               <PublicButtonLink href={badgeUrl} variant="primary">
                 Open badge
               </PublicButtonLink>
-              <PublicButtonLink href={registryUrl}>
+              <PublicButtonLink href={registryUrl} variant="secondary">
                 Open registry record
               </PublicButtonLink>
             </div>
@@ -248,7 +245,7 @@ export default function DevelopersPage() {
               <PublicButtonLink href={widgetPreviewUrl} variant="primary">
                 Preview widget
               </PublicButtonLink>
-              <PublicButtonLink href={verifyUrl}>
+              <PublicButtonLink href={verifyUrl} variant="secondary">
                 Verify live example
               </PublicButtonLink>
             </div>
@@ -287,10 +284,7 @@ export default function DevelopersPage() {
             </div>
 
             <div className="space-y-4">
-              <CodeBlock
-                title="Fetch public key"
-                code={`GET ${publicKeyUrl}`}
-              />
+              <CodeBlock title="Fetch public key" code={`GET ${publicKeyUrl}`} />
               <CodeBlock
                 title="Verification flow"
                 code={`1. Call ${verifyUrl}
@@ -326,10 +320,7 @@ if (data.ok && data.verified) {
 }`}
             />
 
-            <CodeBlock
-              title="cURL"
-              code={`curl "${verifyUrl}"`}
-            />
+            <CodeBlock title="cURL" code={`curl "${verifyUrl}"`} />
 
             <CodeBlock
               title="Badge"

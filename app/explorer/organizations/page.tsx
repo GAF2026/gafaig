@@ -1,4 +1,4 @@
-import Link from "next/link";
+import PublicButtonLink from "@/app/_components/PublicButtonLink";
 import { sfQuery } from "@/lib/snowflake";
 
 export const dynamic = "force-dynamic";
@@ -124,40 +124,25 @@ export default async function ExplorerOrganizationsPage() {
         </p>
 
         <div className="mt-8 flex flex-wrap gap-3">
-          <Link
-            href="/explorer"
-            className="rounded-full border border-black bg-black px-5 py-3 text-sm font-semibold text-white transition hover:bg-black/90"
-          >
+          <PublicButtonLink href="/explorer" variant="primary">
             Back to explorer
-          </Link>
+          </PublicButtonLink>
 
-          <Link
-            href="/registry"
-            className="rounded-full border border-black px-5 py-3 text-sm font-semibold transition hover:bg-black/[0.04]"
-          >
+          <PublicButtonLink href="/registry" variant="secondary">
             View registry
-          </Link>
+          </PublicButtonLink>
 
-          <Link
-            href="/explorer/countries"
-            className="rounded-full border border-black px-5 py-3 text-sm font-semibold transition hover:bg-black/[0.04]"
-          >
+          <PublicButtonLink href="/explorer/countries" variant="secondary">
             Countries
-          </Link>
+          </PublicButtonLink>
 
-          <Link
-            href="/explorer/systems"
-            className="rounded-full border border-black px-5 py-3 text-sm font-semibold transition hover:bg-black/[0.04]"
-          >
+          <PublicButtonLink href="/explorer/systems" variant="secondary">
             Systems
-          </Link>
+          </PublicButtonLink>
 
-          <Link
-            href="/explorer/map"
-            className="rounded-full border border-black px-5 py-3 text-sm font-semibold transition hover:bg-black/[0.04]"
-          >
+          <PublicButtonLink href="/explorer/map" variant="secondary">
             Map
-          </Link>
+          </PublicButtonLink>
         </div>
       </section>
 
@@ -209,12 +194,9 @@ export default async function ExplorerOrganizationsPage() {
               </h2>
             </div>
 
-            <Link
-              href="/explorer/countries"
-              className="text-sm font-semibold underline underline-offset-4"
-            >
+            <PublicButtonLink href="/explorer/countries" variant="link" size="sm">
               Open countries →
-            </Link>
+            </PublicButtonLink>
           </div>
 
           <div className="mt-8 grid gap-4">
@@ -224,7 +206,7 @@ export default async function ExplorerOrganizationsPage() {
               </div>
             ) : (
               countrySummary.map((row) => (
-                <Link
+                <a
                   key={row.COUNTRY || "Unknown"}
                   href={`/explorer/countries/${encodeURIComponent(row.COUNTRY || "Unknown")}`}
                   className="rounded-2xl border border-black/10 p-5 transition hover:bg-black/[0.03]"
@@ -245,7 +227,7 @@ export default async function ExplorerOrganizationsPage() {
                       compact
                     />
                   </div>
-                </Link>
+                </a>
               ))
             )}
           </div>
@@ -280,7 +262,7 @@ export default async function ExplorerOrganizationsPage() {
             </div>
           ) : (
             rows.map((row) => (
-              <Link
+              <a
                 key={row.REGISTRY_ID}
                 href={`/registry/${encodeURIComponent(row.REGISTRY_ID)}`}
                 className="rounded-2xl border border-black/10 p-5 transition hover:bg-black/[0.03]"
@@ -344,7 +326,7 @@ export default async function ExplorerOrganizationsPage() {
                   <span>Application: {valueOrDash(row.APPLICATION_ID)}</span>
                   <span>Registry ID: {row.REGISTRY_ID}</span>
                 </div>
-              </Link>
+              </a>
             ))
           )}
         </div>
@@ -458,12 +440,9 @@ function FeatureCard({
       <div className="text-[20px] font-semibold text-black">{title}</div>
       <p className="mt-3 text-[14px] leading-[1.8] text-black/72">{body}</p>
       <div className="mt-5">
-        <Link
-          href={href}
-          className="font-semibold underline underline-offset-4 transition hover:text-black/65"
-        >
+        <PublicButtonLink href={href} variant="link" size="sm">
           {cta} →
-        </Link>
+        </PublicButtonLink>
       </div>
     </div>
   );
