@@ -93,7 +93,7 @@ export default async function CasePublishPage({
       <main className="mx-auto max-w-[1100px] space-y-8 px-6 pb-16 pt-14">
         <AdminPageHeader
           title={`Publish — ${caseId}`}
-          description="Approve this verification case and write the public registry snapshot."
+          description="Approve this verification case and write the canonical public registry snapshot."
           meta={ok ? `${data!.tier} • Band ${data!.band}` : undefined}
           actions={
             <div className="flex flex-wrap gap-3">
@@ -181,9 +181,9 @@ export default async function CasePublishPage({
               </h2>
               <p className="mt-2 max-w-[900px] text-[14px] leading-[1.7] text-black/70">
                 Publishing writes the canonical public registry snapshot for this
-                approved case and exposes the result through the public registry
-                views. After publish, verify the result on the public registry
-                surfaces.
+                approved case and exposes the result through the live public
+                registry trust surfaces. After publish, verify the result on the
+                public registry, verification endpoint, and badge layer.
               </p>
 
               {!isApproved ? (
@@ -251,32 +251,88 @@ export default async function CasePublishPage({
 
             <section className="rounded-2xl border border-black/10 p-5">
               <h2 className="text-[16px] font-semibold text-black">
+                Next trust surfaces
+              </h2>
+              <p className="mt-2 text-[14px] leading-[1.7] text-black/70">
+                Once publish succeeds, validate the certification across the
+                canonical public trust surfaces.
+              </p>
+
+              <div className="mt-4 grid gap-4 md:grid-cols-4">
+                <div className="rounded-xl border border-black/10 p-4">
+                  <div className="text-[12px] uppercase tracking-[0.12em] text-black/60">
+                    Public registry list
+                  </div>
+                  <div className="mt-2 text-[14px] font-semibold text-black">
+                    /registry
+                  </div>
+                </div>
+
+                <div className="rounded-xl border border-black/10 p-4">
+                  <div className="text-[12px] uppercase tracking-[0.12em] text-black/60">
+                    Verification endpoint
+                  </div>
+                  <div className="mt-2 text-[14px] font-semibold text-black">
+                    /api/verify/[registryId]
+                  </div>
+                </div>
+
+                <div className="rounded-xl border border-black/10 p-4">
+                  <div className="text-[12px] uppercase tracking-[0.12em] text-black/60">
+                    Public record page
+                  </div>
+                  <div className="mt-2 text-[14px] font-semibold text-black">
+                    /registry/[registryId]
+                  </div>
+                </div>
+
+                <div className="rounded-xl border border-black/10 p-4">
+                  <div className="text-[12px] uppercase tracking-[0.12em] text-black/60">
+                    Badge endpoint
+                  </div>
+                  <div className="mt-2 text-[14px] font-semibold text-black">
+                    /badge/[registryId]
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <section className="rounded-2xl border border-black/10 p-5">
+              <h2 className="text-[16px] font-semibold text-black">
                 After publish
               </h2>
-              <div className="mt-3 grid gap-4 md:grid-cols-2">
+              <div className="mt-3 grid gap-4 md:grid-cols-3">
                 <Link
-                  href="/registry/ai-systems"
+                  href="/registry"
                   className="rounded-2xl border border-black/10 p-4 hover:bg-black/[0.03]"
                 >
                   <div className="text-[14px] font-semibold text-black">
                     Open public registry
                   </div>
                   <div className="mt-1 text-[13px] text-black/60">
-                    Confirm the published record appears in the registry list.
+                    Confirm the published record appears in the main registry list.
                   </div>
                 </Link>
 
-                <Link
-                  href="/registry/ai-systems"
-                  className="rounded-2xl border border-black/10 p-4 hover:bg-black/[0.03]"
-                >
+                <div className="rounded-2xl border border-black/10 p-4">
                   <div className="text-[14px] font-semibold text-black">
-                    Search for this entity
+                    Verify the record
                   </div>
                   <div className="mt-1 text-[13px] text-black/60">
-                    Use the public registry to verify the final public disclosure.
+                    Open /api/verify/[registryId] after publish to confirm the
+                    signed public verification payload resolves correctly.
                   </div>
-                </Link>
+                </div>
+
+                <div className="rounded-2xl border border-black/10 p-4">
+                  <div className="text-[14px] font-semibold text-black">
+                    Check badge + public record
+                  </div>
+                  <div className="mt-1 text-[13px] text-black/60">
+                    Test /badge/[registryId] and /registry/[registryId] to confirm
+                    the trust surfaces match the canonical published record.
+                  </div>
+                </div>
               </div>
             </section>
           </>
