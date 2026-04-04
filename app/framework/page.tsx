@@ -1,5 +1,5 @@
-import Link from "next/link";
 import PublicPageHero from "../_components/PublicPageHero";
+import PublicButtonLink from "../_components/PublicButtonLink";
 
 export const dynamic = "force-static";
 
@@ -13,19 +13,13 @@ export default function FrameworkPage() {
         secondaryDescription="The framework is designed to separate private review from public trust. Evidence, findings, and assessment workflow remain inside a controlled verification environment, while certification results are disclosed through a verifiable public registry."
         actions={
           <>
-            <Link
-              href="/registry"
-              className="rounded-full border border-black bg-black px-5 py-3 text-sm font-semibold text-white transition hover:bg-black/90"
-            >
+            <PublicButtonLink href="/registry" variant="primary">
               View the Registry
-            </Link>
+            </PublicButtonLink>
 
-            <Link
-              href="/mission"
-              className="rounded-full border border-black px-5 py-3 text-sm font-semibold transition hover:bg-black/[0.04]"
-            >
+            <PublicButtonLink href="/mission" variant="secondary">
               Mission &amp; Scope
-            </Link>
+            </PublicButtonLink>
           </>
         }
       />
@@ -264,18 +258,12 @@ export default function FrameworkPage() {
         </p>
 
         <div className="mt-8 flex flex-wrap gap-3">
-          <Link
-            href="/registry"
-            className="rounded-full border border-black bg-black px-5 py-3 text-sm font-semibold text-white transition hover:bg-black/90"
-          >
+          <PublicButtonLink href="/registry" variant="primary">
             View public registry
-          </Link>
-          <Link
-            href="/explorer"
-            className="rounded-full border border-black px-5 py-3 text-sm font-semibold transition hover:bg-black/[0.04]"
-          >
+          </PublicButtonLink>
+          <PublicButtonLink href="/explorer" variant="secondary">
             Open explorer
-          </Link>
+          </PublicButtonLink>
         </div>
       </section>
     </main>

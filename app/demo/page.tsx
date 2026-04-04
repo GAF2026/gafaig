@@ -251,9 +251,9 @@ function GuidedStep({
         <div className="font-semibold text-black">{title}</div>
         <div className="text-sm text-black/70">{body}</div>
       </div>
-      <Link href={href} className="text-sm font-semibold underline">
+      <PublicButtonLink href={href} variant="link" size="sm">
         Open
-      </Link>
+      </PublicButtonLink>
     </div>
   );
 }

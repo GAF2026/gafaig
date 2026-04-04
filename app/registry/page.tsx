@@ -1,5 +1,6 @@
 import Link from "next/link";
 import PublicButtonLink from "@/app/_components/PublicButtonLink";
+import PublicButton from "@/app/_components/PublicButton";
 import { sfQuery } from "@/lib/snowflake";
 
 export const dynamic = "force-dynamic";
@@ -177,12 +178,14 @@ export default async function RegistryPage({
 
         <div className="mt-6 rounded-2xl border border-black/10 bg-black/[0.02] px-4 py-4 text-[15px] leading-[1.8] text-black/72">
           Need to understand how public verification works?{" "}
-          <Link
+          <PublicButtonLink
             href="/verify"
-            className="font-semibold text-black underline underline-offset-4 transition hover:text-black/70"
+            variant="link"
+            size="sm"
+            className="h-auto px-0 py-0"
           >
             Open the verification guide
-          </Link>
+          </PublicButtonLink>
           .
         </div>
 
@@ -226,12 +229,9 @@ export default async function RegistryPage({
           </div>
 
           <div className="flex items-end gap-3">
-            <button
-              type="submit"
-              className="inline-flex h-[44px] items-center justify-center rounded-full border border-black bg-black px-5 text-sm font-semibold text-white transition hover:bg-black/90"
-            >
+            <PublicButton type="submit" variant="primary">
               Apply
-            </button>
+            </PublicButton>
 
             <PublicButtonLink href="/registry" variant="secondary">
               Reset

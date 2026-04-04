@@ -1,5 +1,5 @@
-import Link from "next/link";
 import PublicPageHero from "../_components/PublicPageHero";
+import PublicButtonLink from "../_components/PublicButtonLink";
 
 export const dynamic = "force-static";
 
@@ -13,19 +13,13 @@ export default function MissionPage() {
         secondaryDescription="GAFAIG provides that infrastructure. It operates a controlled verification framework and a public registry of record where certification outcomes can be published, inspected, and independently verified without exposing private evidence, findings, or internal review workflow. These public records are supported by a trust infrastructure layer that includes signed certification proofs, verification endpoints, and portable trust surfaces that allow third parties to independently validate governance status."
         actions={
           <>
-            <Link
-              href="/framework"
-              className="rounded-full border border-black bg-black px-5 py-3 text-sm font-semibold text-white transition hover:bg-black/90"
-            >
+            <PublicButtonLink href="/framework" variant="primary">
               See how it works
-            </Link>
+            </PublicButtonLink>
 
-            <Link
-              href="/registry"
-              className="rounded-full border border-black px-5 py-3 text-sm font-semibold transition hover:bg-black/[0.04]"
-            >
+            <PublicButtonLink href="/registry" variant="secondary">
               View the registry
-            </Link>
+            </PublicButtonLink>
           </>
         }
       />
@@ -162,26 +156,17 @@ export default function MissionPage() {
         </p>
 
         <div className="mt-8 flex flex-wrap gap-3">
-          <Link
-            href="/framework"
-            className="rounded-full border border-black bg-black px-5 py-3 text-sm font-semibold text-white transition hover:bg-black/90"
-          >
+          <PublicButtonLink href="/framework" variant="primary">
             Read the framework
-          </Link>
+          </PublicButtonLink>
 
-          <Link
-            href="/registry"
-            className="rounded-full border border-black px-5 py-3 text-sm font-semibold transition hover:bg-black/[0.04]"
-          >
+          <PublicButtonLink href="/registry" variant="secondary">
             Open the registry
-          </Link>
+          </PublicButtonLink>
 
-          <Link
-            href="/explorer"
-            className="rounded-full border border-black px-5 py-3 text-sm font-semibold transition hover:bg-black/[0.04]"
-          >
+          <PublicButtonLink href="/explorer" variant="secondary">
             Explore the data
-          </Link>
+          </PublicButtonLink>
         </div>
       </section>
     </main>

@@ -1,5 +1,5 @@
-import Link from "next/link";
 import PublicPageHero from "../_components/PublicPageHero";
+import PublicButtonLink from "../_components/PublicButtonLink";
 
 export const dynamic = "force-static";
 
@@ -13,19 +13,16 @@ export default function VerifyExplainerPage() {
         secondaryDescription="The verification layer is designed to let third parties confirm public certification status without exposing private evidence, findings, or internal reviewer workflow."
         actions={
           <>
-            <Link
-              href="/registry"
-              className="rounded-full border border-black bg-black px-5 py-3 text-sm font-semibold text-white transition hover:bg-black/90"
-            >
+            <PublicButtonLink href="/registry" variant="primary">
               View the Registry
-            </Link>
+            </PublicButtonLink>
 
-            <Link
+            <PublicButtonLink
               href="/api/.well-known/gafaig-public-key"
-              className="rounded-full border border-black px-5 py-3 text-sm font-semibold transition hover:bg-black/[0.04]"
+              variant="secondary"
             >
               Public Key
-            </Link>
+            </PublicButtonLink>
           </>
         }
       />
@@ -168,19 +165,16 @@ export default function VerifyExplainerPage() {
         </p>
 
         <div className="mt-8 flex flex-wrap gap-3">
-          <Link
-            href="/registry"
-            className="rounded-full border border-black bg-black px-5 py-3 text-sm font-semibold text-white transition hover:bg-black/90"
-          >
+          <PublicButtonLink href="/registry" variant="primary">
             Browse Registry Records
-          </Link>
+          </PublicButtonLink>
 
-          <Link
+          <PublicButtonLink
             href="/widget-preview/GAFAIG-28dedd000ca5410c86e3a6633cd6639a"
-            className="rounded-full border border-black px-5 py-3 text-sm font-semibold transition hover:bg-black/[0.04]"
+            variant="secondary"
           >
             View Widget Preview
-          </Link>
+          </PublicButtonLink>
         </div>
       </section>
     </main>
