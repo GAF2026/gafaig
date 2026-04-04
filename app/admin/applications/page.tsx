@@ -3,8 +3,8 @@
 import { useEffect, useMemo, useState } from "react";
 import AdminNav from "../_components/AdminNav";
 import AdminPageHeader from "../_components/AdminPageHeader";
-import PublicButton from "../_components/PublicButton";
-import PublicButtonLink from "../_components/PublicButtonLink";
+import PublicButton from "../../_components/PublicButton";
+import PublicButtonLink from "../../_components/PublicButtonLink";
 
 type Row = {
   requestId: string;

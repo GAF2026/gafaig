@@ -5,8 +5,8 @@ import Link from "next/link";
 import AdminNav from "../../../_components/AdminNav";
 import AdminPageHeader from "../../../_components/AdminPageHeader";
 import CaseTabs from "../_components/CaseTabs";
-import PublicButton from "../../../_components/PublicButton";
-import PublicButtonLink from "../../../_components/PublicButtonLink";
+import PublicButton from "../../../../_components/PublicButton";
+import PublicButtonLink from "../../../../_components/PublicButtonLink";
 
 type FindingRow = {
   findingId: string;
