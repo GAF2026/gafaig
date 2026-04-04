@@ -388,13 +388,25 @@ if (data.ok && data.verified) {
           </p>
 
           <div className="mt-8 flex flex-wrap gap-3">
-            <PublicButtonLink href={verifyUrl} variant="primary" className="border-white bg-white text-black hover:bg-white/90">
+            <PublicButtonLink
+              href={verifyUrl}
+              variant="secondary"
+              className="border-white text-white hover:bg-white/10"
+            >
               Test verify API
             </PublicButtonLink>
-            <PublicButtonLink href={registryUrl} variant="secondary" className="border-white text-white hover:bg-white/10">
+            <PublicButtonLink
+              href={registryUrl}
+              variant="secondary"
+              className="border-white text-white hover:bg-white/10"
+            >
               Open trust record
             </PublicButtonLink>
-            <PublicButtonLink href={publicKeyUrl} variant="ghost" className="text-white hover:bg-white/10">
+            <PublicButtonLink
+              href={publicKeyUrl}
+              variant="ghost"
+              className="text-white hover:bg-white/10"
+            >
               Fetch public key
             </PublicButtonLink>
           </div>
