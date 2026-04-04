@@ -1,6 +1,6 @@
-import Link from "next/link";
 import { headers } from "next/headers";
 import PublicPageHero from "./_components/PublicPageHero";
+import PublicButtonLink from "./_components/PublicButtonLink";
 
 export const dynamic = "force-dynamic";
 
@@ -92,33 +92,21 @@ export default async function HomePage() {
           secondaryDescription="Reviews are conducted in a controlled verification environment, while certification results are published through a public registry. Each registry record can be verified through a signed proof and a public badge, allowing external parties to confirm governance status without exposing sensitive internal materials."
           actions={
             <>
-              <Link
-                href="/mission"
-                className="rounded-full border border-black bg-black px-5 py-3 text-sm font-semibold text-white transition hover:bg-black/90"
-              >
+              <PublicButtonLink href="/mission" variant="primary">
                 Start with the Mission
-              </Link>
+              </PublicButtonLink>
 
-              <Link
-                href="/registry"
-                className="rounded-full border border-black px-5 py-3 text-sm font-semibold transition hover:bg-black/[0.04]"
-              >
+              <PublicButtonLink href="/registry" variant="secondary">
                 View the Registry
-              </Link>
+              </PublicButtonLink>
 
-              <Link
-                href="/framework"
-                className="rounded-full border border-black px-5 py-3 text-sm font-semibold transition hover:bg-black/[0.04]"
-              >
+              <PublicButtonLink href="/framework" variant="secondary">
                 See How It Works
-              </Link>
+              </PublicButtonLink>
 
-              <Link
-                href="/explorer"
-                className="rounded-full border border-black px-5 py-3 text-sm font-semibold transition hover:bg-black/[0.04]"
-              >
+              <PublicButtonLink href="/explorer" variant="secondary">
                 Explore the Data
-              </Link>
+              </PublicButtonLink>
             </>
           }
         />
@@ -371,36 +359,21 @@ export default async function HomePage() {
           </h2>
 
           <div className="mt-6 flex flex-wrap gap-3">
-            <Link
-              href="/mission"
-              className="rounded-full border border-black bg-black px-5 py-3 text-sm font-semibold text-white transition hover:bg-black/90"
-            >
+            <PublicButtonLink href="/mission" variant="primary">
               Mission
-            </Link>
-            <Link
-              href="/framework"
-              className="rounded-full border border-black px-5 py-3 text-sm font-semibold transition hover:bg-black/[0.04]"
-            >
+            </PublicButtonLink>
+            <PublicButtonLink href="/framework" variant="secondary">
               Framework
-            </Link>
-            <Link
-              href="/registry"
-              className="rounded-full border border-black px-5 py-3 text-sm font-semibold transition hover:bg-black/[0.04]"
-            >
+            </PublicButtonLink>
+            <PublicButtonLink href="/registry" variant="secondary">
               Registry
-            </Link>
-            <Link
-              href="/explorer"
-              className="rounded-full border border-black px-5 py-3 text-sm font-semibold transition hover:bg-black/[0.04]"
-            >
+            </PublicButtonLink>
+            <PublicButtonLink href="/explorer" variant="secondary">
               Explorer
-            </Link>
-            <Link
-              href="/demo"
-              className="rounded-full border border-black px-5 py-3 text-sm font-semibold transition hover:bg-black/[0.04]"
-            >
+            </PublicButtonLink>
+            <PublicButtonLink href="/demo" variant="secondary">
               Demo
-            </Link>
+            </PublicButtonLink>
           </div>
         </section>
       </div>
@@ -464,12 +437,9 @@ function PillarCard({
       </ul>
 
       <div className="mt-6">
-        <Link
-          href={href}
-          className="font-semibold underline underline-offset-4 transition hover:text-black/65"
-        >
+        <PublicButtonLink href={href} variant="link" size="sm">
           {cta} →
-        </Link>
+        </PublicButtonLink>
       </div>
     </div>
   );
@@ -528,12 +498,9 @@ function FeatureCard({
       <div className="text-[20px] font-semibold text-black">{title}</div>
       <p className="mt-3 text-[14px] leading-[1.8] text-black/72">{body}</p>
       <div className="mt-5">
-        <Link
-          href={href}
-          className="font-semibold underline underline-offset-4 transition hover:text-black/65"
-        >
+        <PublicButtonLink href={href} variant="link" size="sm">
           {cta} →
-        </Link>
+        </PublicButtonLink>
       </div>
     </div>
   );

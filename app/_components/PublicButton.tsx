@@ -1,28 +1,28 @@
-import Link from "next/link";
-import type { ReactNode } from "react";
+"use client";
+
+import type { ButtonHTMLAttributes, ReactNode } from "react";
 
 type Variant = "primary" | "secondary" | "ghost" | "link";
 type Size = "sm" | "md";
 
-type PublicButtonLinkProps = {
-  href: string;
+type Props = {
   children: ReactNode;
   variant?: Variant;
   size?: Size;
   className?: string;
-};
+} & ButtonHTMLAttributes<HTMLButtonElement>;
 
 function cx(...values: Array<string | undefined | false>) {
   return values.filter(Boolean).join(" ");
 }
 
-export default function PublicButtonLink({
-  href,
+export default function PublicButton({
   children,
-  variant = "secondary",
+  variant = "primary",
   size = "md",
   className,
-}: PublicButtonLinkProps) {
+  ...props
+}: Props) {
   const base =
     "inline-flex items-center justify-center rounded-full font-semibold whitespace-nowrap transition focus:outline-none";
 
@@ -41,11 +41,11 @@ export default function PublicButtonLink({
       : "border border-black text-black hover:bg-black/[0.04]";
 
   return (
-    <Link
-      href={href}
+    <button
+      {...props}
       className={cx(base, sizeClass, variantClass, className)}
     >
       {children}
-    </Link>
+    </button>
   );
 }
