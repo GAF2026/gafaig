@@ -5,6 +5,8 @@ import Link from "next/link";
 import AdminNav from "../../../_components/AdminNav";
 import AdminPageHeader from "../../../_components/AdminPageHeader";
 import CaseTabs from "../_components/CaseTabs";
+import PublicButton from "../../../_components/PublicButton";
+import PublicButtonLink from "../../../_components/PublicButtonLink";
 
 type FindingRow = {
   findingId: string;
@@ -326,41 +328,39 @@ export default function FindingsPage({ params }: { params: { caseId: string } })
   const gridCols = "grid-cols-[150px_1fr_120px_120px_160px_260px_220px] min-w-[1180px]";
   const cellPad = "px-5 py-4";
 
-  const btnBase =
-    "inline-flex h-9 items-center justify-center rounded-xl border border-black/10 bg-white px-4 text-sm font-semibold hover:bg-black/[0.04] whitespace-nowrap shrink-0";
+  React.useEffect(() => {
+    load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [caseId]);
 
   return (
     <div>
       <AdminNav />
 
-      <main className="mx-auto max-w-[1100px] px-6 pt-14 pb-16">
+      <main className="mx-auto max-w-[1100px] px-6 pb-16 pt-14">
         <AdminPageHeader
           title={`Findings — ${caseId}`}
           description="Record control evaluations, inspect linked evidence, and move the case toward decision."
           meta={loading ? "Loading…" : `${rows.length} finding${rows.length === 1 ? "" : "s"}`}
           actions={
             <div className="flex flex-wrap gap-3">
-              <Link
-                href={backHref}
-                className="inline-flex items-center justify-center rounded-xl border border-black/15 px-4 py-2 text-[14px] font-semibold hover:bg-black/[0.04]"
-              >
+              <PublicButtonLink href={backHref} variant="secondary" size="sm">
                 ← Back
-              </Link>
+              </PublicButtonLink>
 
-              <Link
-                href={evidencePageHref}
-                className="inline-flex items-center justify-center rounded-xl border border-black/15 px-4 py-2 text-[14px] font-semibold hover:bg-black/[0.04]"
-              >
+              <PublicButtonLink href={evidencePageHref} variant="secondary" size="sm">
                 Evidence →
-              </Link>
+              </PublicButtonLink>
 
-              <button
-                className="inline-flex items-center justify-center rounded-xl border border-black/15 px-4 py-2 text-[14px] font-semibold hover:bg-black/[0.04] disabled:opacity-60"
+              <PublicButton
+                type="button"
+                variant="secondary"
+                size="sm"
                 onClick={load}
                 disabled={loading}
               >
                 {loading ? "Loading…" : "Refresh"}
-              </button>
+              </PublicButton>
             </div>
           }
         />
@@ -465,13 +465,14 @@ export default function FindingsPage({ params }: { params: { caseId: string } })
             </div>
 
             <div className="lg:col-span-12 flex justify-end">
-              <button
-                className="inline-flex h-12 items-center justify-center rounded-xl bg-black px-6 text-[14px] font-semibold text-white hover:bg-black/90 disabled:opacity-60"
+              <PublicButton
+                type="button"
+                variant="primary"
                 onClick={addFinding}
                 disabled={loading}
               >
                 {loading ? "Saving…" : "Add finding"}
-              </button>
+              </PublicButton>
             </div>
           </div>
         </section>
@@ -541,37 +542,41 @@ export default function FindingsPage({ params }: { params: { caseId: string } })
                       </div>
 
                       <div className={`${cellPad} flex items-center`}>
-                        <span className="font-mono text-[13px] text-black whitespace-nowrap overflow-hidden text-ellipsis">
+                        <span className="overflow-hidden text-ellipsis whitespace-nowrap font-mono text-[13px] text-black">
                           {truncateMiddle(r.findingId, 22, 10)}
                         </span>
                       </div>
 
                       <div className={`${cellPad} flex items-center gap-2 flex-nowrap`}>
-                        <button
-                          type="button"
-                          className={btnBase}
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            copyFindingId(r.findingId);
-                          }}
-                          title="Copy Finding ID"
-                        >
-                          Copy
-                        </button>
+                        <span className="inline-flex">
+                          <PublicButton
+                            type="button"
+                            variant="secondary"
+                            size="sm"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              copyFindingId(r.findingId);
+                            }}
+                          >
+                            Copy
+                          </PublicButton>
+                        </span>
 
-                        <button
-                          type="button"
-                          className={btnBase}
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            copyAllIds(r.findingId);
-                          }}
-                          title="Copy Finding ID + linked Evidence IDs"
-                        >
-                          Copy all IDs
-                        </button>
+                        <span className="inline-flex">
+                          <PublicButton
+                            type="button"
+                            variant="secondary"
+                            size="sm"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              copyAllIds(r.findingId);
+                            }}
+                          >
+                            Copy all IDs
+                          </PublicButton>
+                        </span>
                       </div>
                     </button>
 
@@ -606,20 +611,20 @@ export default function FindingsPage({ params }: { params: { caseId: string } })
                                     <span className="font-mono text-[13px] text-black">
                                       {truncateMiddle(e.evidenceId, 22, 10)}
                                     </span>
-                                    <button
+                                    <PublicButton
                                       type="button"
-                                      className="inline-flex h-8 items-center justify-center rounded-xl border border-black/10 bg-white px-3 text-[12px] font-semibold hover:bg-black/[0.04] whitespace-nowrap"
+                                      variant="secondary"
+                                      size="sm"
                                       onClick={() => copyEvidenceId(e.evidenceId)}
-                                      title="Copy Evidence ID"
                                     >
                                       Copy
-                                    </button>
+                                    </PublicButton>
                                     <span className="inline-flex items-center rounded-full border border-black/10 bg-black/[0.02] px-3 py-1 text-[12px] font-semibold text-black/80">
                                       {prettify(e.evidenceType)}
                                     </span>
                                   </div>
 
-                                  <div className="mt-2 text-[14px] font-semibold text-black break-words">
+                                  <div className="mt-2 break-words text-[14px] font-semibold text-black">
                                     {e.title}
                                   </div>
 
@@ -637,7 +642,7 @@ export default function FindingsPage({ params }: { params: { caseId: string } })
                                   </div>
                                 </div>
 
-                                <div className="text-[12px] font-mono text-black/45 whitespace-nowrap">
+                                <div className="whitespace-nowrap font-mono text-[12px] text-black/45">
                                   {e.linkedAt ? `Linked: ${e.linkedAt}` : ""}
                                 </div>
                               </div>

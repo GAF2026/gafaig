@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import Link from "next/link";
 import AdminNav from "../_components/AdminNav";
 import AdminPageHeader from "../_components/AdminPageHeader";
+import PublicButton from "../_components/PublicButton";
+import PublicButtonLink from "../_components/PublicButtonLink";
 
 type Row = {
   requestId: string;
@@ -211,18 +212,12 @@ export default function AdminApplicationsPage() {
           }
           actions={
             <div className="flex flex-wrap gap-3">
-              <Link
-                href="/admin/participants"
-                className="inline-flex items-center rounded-full border border-black px-4 py-2 text-sm font-medium transition hover:bg-black hover:text-white"
-              >
+              <PublicButtonLink href="/admin/participants" variant="secondary" size="sm">
                 View participants
-              </Link>
-              <Link
-                href="/demo"
-                className="inline-flex items-center rounded-full border border-black px-4 py-2 text-sm font-medium transition hover:bg-black hover:text-white"
-              >
+              </PublicButtonLink>
+              <PublicButtonLink href="/demo" variant="secondary" size="sm">
                 Back to demo
-              </Link>
+              </PublicButtonLink>
             </div>
           }
         />
@@ -310,26 +305,32 @@ export default function AdminApplicationsPage() {
             </div>
 
             <div className="flex flex-wrap gap-3 lg:justify-end">
-              <button
+              <PublicButton
+                type="button"
                 onClick={() => load()}
-                className="inline-flex items-center justify-center rounded-xl border border-black/15 px-4 py-3 text-[14px] font-semibold hover:bg-black/[0.04]"
+                variant="secondary"
+                size="sm"
               >
                 Refresh
-              </button>
+              </PublicButton>
 
-              <button
+              <PublicButton
+                type="button"
                 onClick={clearAll}
-                className="inline-flex items-center justify-center rounded-xl border border-black/15 px-4 py-3 text-[14px] font-semibold hover:bg-black/[0.04]"
+                variant="secondary"
+                size="sm"
               >
                 Clear
-              </button>
+              </PublicButton>
 
-              <button
+              <PublicButton
+                type="button"
                 onClick={applySearch}
-                className="inline-flex items-center justify-center rounded-xl bg-black px-5 py-3 text-[14px] font-semibold text-white hover:bg-black/90"
+                variant="primary"
+                size="sm"
               >
                 Apply
-              </button>
+              </PublicButton>
             </div>
           </div>
         </section>
@@ -411,14 +412,15 @@ export default function AdminApplicationsPage() {
                         </td>
 
                         <td className="px-4 py-4 text-right">
-                          <Link
+                          <PublicButtonLink
                             href={`/admin/applications/${encodeURIComponent(
                               r.requestId
                             )}`}
-                            className="inline-flex items-center rounded-full border border-black px-4 py-2 text-sm font-medium transition hover:bg-black hover:text-white"
+                            variant="secondary"
+                            size="sm"
                           >
                             Open
-                          </Link>
+                          </PublicButtonLink>
                         </td>
                       </tr>
                     ))
@@ -428,33 +430,37 @@ export default function AdminApplicationsPage() {
             </div>
 
             <div className="flex items-center justify-end gap-3 border-t border-black/10 px-4 py-4">
-              <button
+              <PublicButton
+                type="button"
                 disabled={page <= 1 || loading}
                 onClick={() => {
                   const next = Math.max(1, page - 1);
                   setPage(next);
                   load({ page: next });
                 }}
-                className="inline-flex items-center justify-center rounded-xl border border-black/15 px-4 py-2 text-[14px] font-semibold disabled:opacity-40"
+                variant="secondary"
+                size="sm"
               >
                 Prev
-              </button>
+              </PublicButton>
 
               <div className="text-[14px] font-medium text-black/75">
                 Page {page} / {pageCount}
               </div>
 
-              <button
+              <PublicButton
+                type="button"
                 disabled={page >= pageCount || loading}
                 onClick={() => {
                   const next = Math.min(pageCount, page + 1);
                   setPage(next);
                   load({ page: next });
                 }}
-                className="inline-flex items-center justify-center rounded-xl border border-black/15 px-4 py-2 text-[14px] font-semibold disabled:opacity-40"
+                variant="secondary"
+                size="sm"
               >
                 Next
-              </button>
+              </PublicButton>
             </div>
           </div>
         </section>

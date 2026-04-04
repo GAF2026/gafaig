@@ -2,8 +2,9 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import PublicPageHero from "../../_components/PublicPageHero";
+import PublicButtonLink from "../../_components/PublicButtonLink";
+import PublicButton from "../../_components/PublicButton";
 
 export const dynamic = "force-dynamic";
 
@@ -71,18 +72,12 @@ export default function AdminLoginPage() {
         secondaryDescription="Use the demo evaluator credential to enter the private review layer, then continue into the Snowflake-backed applications workflow. This access exists only for the demonstration environment and is not part of the public registry experience."
         actions={
           <>
-            <Link
-              href="/demo"
-              className="rounded-full border border-black px-5 py-3 text-sm font-semibold transition hover:bg-black/[0.04]"
-            >
+            <PublicButtonLink href="/demo" variant="secondary">
               Back to demo
-            </Link>
-            <Link
-              href="/registry"
-              className="rounded-full border border-black px-5 py-3 text-sm font-semibold transition hover:bg-black/[0.04]"
-            >
+            </PublicButtonLink>
+            <PublicButtonLink href="/registry" variant="secondary">
               View public registry
-            </Link>
+            </PublicButtonLink>
           </>
         }
       />
@@ -113,21 +108,23 @@ export default function AdminLoginPage() {
             </div>
 
             <div className="mt-4 flex flex-wrap gap-3">
-              <button
+              <PublicButton
                 type="button"
                 onClick={usePassword}
-                className="inline-flex items-center rounded-full border border-black px-4 py-2 text-sm font-medium transition hover:bg-black hover:text-white"
+                variant="secondary"
+                size="sm"
               >
                 Use this credential
-              </button>
+              </PublicButton>
 
-              <button
+              <PublicButton
                 type="button"
                 onClick={copyPassword}
-                className="inline-flex items-center rounded-full border border-black/15 px-4 py-2 text-sm font-medium transition hover:bg-black/[0.04]"
+                variant="secondary"
+                size="sm"
               >
                 Copy credential
-              </button>
+              </PublicButton>
             </div>
           </div>
 
@@ -178,14 +175,14 @@ export default function AdminLoginPage() {
           ) : null}
 
           <div className="mt-5">
-            <button
+            <PublicButton
               type="button"
               onClick={enableAccess}
               disabled={busy || !password.trim()}
-              className="inline-flex items-center rounded-full bg-black px-5 py-3 text-sm font-medium text-white transition hover:bg-black/90 disabled:cursor-not-allowed disabled:opacity-50"
+              variant="primary"
             >
               {busy ? "Enabling reviewer access..." : "Continue to applications"}
-            </button>
+            </PublicButton>
           </div>
 
           <p className="mt-6 text-[14px] leading-[1.8] text-black/60">
