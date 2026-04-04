@@ -33,7 +33,6 @@ export default async function VerificationScorePage({
   return (
     <main className="min-h-screen bg-[#0b1020] text-white">
       <div className="mx-auto max-w-7xl px-6 py-10">
-        {/* Breadcrumb */}
         <div className="mb-8 flex flex-wrap items-center gap-3 text-sm text-white/60">
           <Link href="/admin/applications" className="transition hover:text-white">
             Applications
@@ -49,7 +48,6 @@ export default async function VerificationScorePage({
           <span className="text-white/85">Score</span>
         </div>
 
-        {/* Header */}
         <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div>
             <div className="text-xs font-semibold uppercase tracking-[0.18em] text-cyan-300/70">
@@ -73,9 +71,7 @@ export default async function VerificationScorePage({
           </div>
         </div>
 
-        {/* Main Sections */}
         <div className="grid gap-6">
-          {/* Score + Publish */}
           <section className="rounded-2xl border border-white/10 bg-white/[0.03] p-5 shadow-sm">
             <div className="mb-4">
               <h2 className="text-lg font-semibold text-white">
@@ -95,23 +91,23 @@ export default async function VerificationScorePage({
             />
           </section>
 
-          {/* Next Integration */}
           <section className="rounded-2xl border border-white/10 bg-white/[0.03] p-5 shadow-sm">
             <h2 className="text-lg font-semibold text-white">
-              Next integration point
+              Next trust surfaces
             </h2>
             <p className="mt-2 text-sm leading-6 text-white/70">
-              Once this publish action is working, the next step is to connect
-              the public registry views:
+              Once publish succeeds, validate the certification across the live
+              public trust surfaces that now represent the canonical GAFAIG
+              record.
             </p>
 
-            <div className="mt-4 grid gap-3 md:grid-cols-3">
+            <div className="mt-4 grid gap-3 md:grid-cols-4">
               <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4">
                 <div className="text-[11px] uppercase tracking-[0.14em] text-white/45">
                   Public registry list
                 </div>
                 <div className="mt-2 text-sm font-medium text-white">
-                  /registry/ai-systems
+                  /registry
                 </div>
               </div>
 
@@ -129,13 +125,61 @@ export default async function VerificationScorePage({
                   Public record page
                 </div>
                 <div className="mt-2 text-sm font-medium text-white">
-                  /registry/ai-systems/[registryId]
+                  /registry/[registryId]
+                </div>
+              </div>
+
+              <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4">
+                <div className="text-[11px] uppercase tracking-[0.14em] text-white/45">
+                  Badge endpoint
+                </div>
+                <div className="mt-2 text-sm font-medium text-white">
+                  /badge/[registryId]
                 </div>
               </div>
             </div>
           </section>
 
-          {/* Navigation Actions (STANDARDIZED) */}
+          <section className="rounded-2xl border border-white/10 bg-white/[0.03] p-5 shadow-sm">
+            <h2 className="text-lg font-semibold text-white">
+              After publish
+            </h2>
+            <p className="mt-2 text-sm leading-6 text-white/70">
+              After publishing, confirm that the registry record resolves
+              correctly through the public registry, verification endpoint, and
+              badge layer.
+            </p>
+
+            <div className="mt-4 grid gap-3 md:grid-cols-3">
+              <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4">
+                <div className="text-[11px] uppercase tracking-[0.14em] text-white/45">
+                  Step 1
+                </div>
+                <div className="mt-2 text-sm font-medium text-white">
+                  Confirm the record appears in /registry
+                </div>
+              </div>
+
+              <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4">
+                <div className="text-[11px] uppercase tracking-[0.14em] text-white/45">
+                  Step 2
+                </div>
+                <div className="mt-2 text-sm font-medium text-white">
+                  Open /api/verify/[registryId]
+                </div>
+              </div>
+
+              <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4">
+                <div className="text-[11px] uppercase tracking-[0.14em] text-white/45">
+                  Step 3
+                </div>
+                <div className="mt-2 text-sm font-medium text-white">
+                  Test /badge/[registryId] and /registry/[registryId]
+                </div>
+              </div>
+            </div>
+          </section>
+
           <div className="flex flex-wrap gap-3">
             <PublicButtonLink
               href={`/admin/verification/${encodeURIComponent(caseId)}`}
