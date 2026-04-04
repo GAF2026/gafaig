@@ -2,6 +2,7 @@ import Link from "next/link";
 import AdminNav from "../../../_components/AdminNav";
 import AdminPageHeader from "../../../_components/AdminPageHeader";
 import CaseTabs from "../_components/CaseTabs";
+import PublicButtonLink from "../../../../_components/PublicButtonLink";
 import PublishPanel from "../score/_components/PublishPanel";
 
 export const dynamic = "force-dynamic";
@@ -94,6 +95,33 @@ export default async function CasePublishPage({
           title={`Publish — ${caseId}`}
           description="Approve this verification case and write the public registry snapshot."
           meta={ok ? `${data!.tier} • Band ${data!.band}` : undefined}
+          actions={
+            <div className="flex flex-wrap gap-3">
+              <PublicButtonLink
+                href={`/admin/verification/${encodeURIComponent(caseId)}`}
+                variant="secondary"
+                size="sm"
+              >
+                ← Back
+              </PublicButtonLink>
+
+              <PublicButtonLink
+                href={`/admin/verification/${encodeURIComponent(caseId)}/score`}
+                variant="secondary"
+                size="sm"
+              >
+                Score
+              </PublicButtonLink>
+
+              <PublicButtonLink
+                href="/admin/applications"
+                variant="secondary"
+                size="sm"
+              >
+                Applications
+              </PublicButtonLink>
+            </div>
+          }
         />
 
         <CaseTabs caseId={caseId} />
