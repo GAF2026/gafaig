@@ -30,7 +30,7 @@ export default function DevelopersPage() {
               <PublicButtonLink href={registryUrl}>
                 View example record
               </PublicButtonLink>
-              <PublicButtonLink href={widgetPreviewUrl} variant="ghost">
+              <PublicButtonLink href={widgetPreviewUrl} variant="secondary">
                 Preview widget
               </PublicButtonLink>
             </>
@@ -116,7 +116,7 @@ export default function DevelopersPage() {
               <PublicButtonLink href="/verify" variant="secondary">
                 Learn how verification works
               </PublicButtonLink>
-              <PublicButtonLink href="/registry" variant="ghost">
+              <PublicButtonLink href="/registry" variant="secondary">
                 Explore public registry
               </PublicButtonLink>
             </div>
@@ -404,8 +404,8 @@ if (data.ok && data.verified) {
             </PublicButtonLink>
             <PublicButtonLink
               href={publicKeyUrl}
-              variant="ghost"
-              className="text-white hover:bg-white/10"
+              variant="secondary"
+              className="border-white text-white hover:bg-white/10"
             >
               Fetch public key
             </PublicButtonLink>
