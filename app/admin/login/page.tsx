@@ -2,9 +2,9 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import PublicPageHero from "../../_components/PublicPageHero";
-import PublicButtonLink from "../../_components/PublicButtonLink";
-import PublicButton from "../../_components/PublicButton";
+import PublicPageHero from "@/app/_components/PublicPageHero";
+import PublicButtonLink from "@/app/_components/PublicButtonLink";
+import PublicButton from "@/app/_components/PublicButton";
 
 export const dynamic = "force-dynamic";
 
