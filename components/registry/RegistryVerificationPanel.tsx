@@ -1,3 +1,9 @@
+"use client";
+
+import { useState } from "react";
+import PublicButton from "@/app/_components/PublicButton";
+import PublicButtonLink from "@/app/_components/PublicButtonLink";
+
 type VerifyApiResponse = {
   ok: boolean;
   verified: boolean;
@@ -23,6 +29,37 @@ type VerifyApiResponse = {
   error?: string;
 };
 
+function CopyButton({
+  value,
+  label,
+}: {
+  value: string;
+  label: string;
+}) {
+  const [copied, setCopied] = useState(false);
+
+  async function handleCopy() {
+    try {
+      await navigator.clipboard.writeText(value);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 1600);
+    } catch {
+      setCopied(false);
+    }
+  }
+
+  return (
+    <PublicButton
+      type="button"
+      variant="secondary"
+      size="sm"
+      onClick={handleCopy}
+    >
+      {copied ? "Copied" : label}
+    </PublicButton>
+  );
+}
+
 export default function RegistryVerificationPanel({
   registryId,
   entityName,
@@ -41,6 +78,8 @@ export default function RegistryVerificationPanel({
   }
 
   const { proof, record } = verifyData;
+  const verificationKeyUrl = proof.verificationKeyUrl || "/api/.well-known/gafaig-public-key";
+  const verifyEndpointUrl = `/api/verify/${encodeURIComponent(registryId)}`;
 
   return (
     <section className="mt-10 rounded-3xl border border-black/10 bg-white p-8 md:p-10">
@@ -81,6 +120,24 @@ export default function RegistryVerificationPanel({
         </div>
       </div>
 
+      <div className="mt-6 flex flex-wrap gap-3">
+        <PublicButtonLink href={verifyEndpointUrl} variant="secondary" size="sm">
+          Open verify endpoint
+        </PublicButtonLink>
+
+        <PublicButtonLink href={verificationKeyUrl} variant="secondary" size="sm">
+          Open public key
+        </PublicButtonLink>
+
+        {proof.messageString ? (
+          <CopyButton value={proof.messageString} label="Copy message string" />
+        ) : null}
+
+        {proof.signature ? (
+          <CopyButton value={proof.signature} label="Copy signature" />
+        ) : null}
+      </div>
+
       <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <Metric label="Registry ID" value={registryId} mono />
         <Metric label="Entity" value={entityName || record?.entityName || "—"} />
@@ -98,7 +155,7 @@ export default function RegistryVerificationPanel({
       <div className="mt-8 grid gap-4 lg:grid-cols-2">
         <InfoBlock
           label="Verification key URL"
-          value={proof.verificationKeyUrl || "—"}
+          value={verificationKeyUrl}
           mono
         />
         <InfoBlock label="Signed at" value={proof.signedAt || "—"} />
@@ -135,7 +192,7 @@ export default function RegistryVerificationPanel({
         <ol className="mt-4 space-y-2 text-[14px] leading-[1.8] text-black/72">
           <li>1. Fetch the proof from the verification endpoint for this registry ID.</li>
           <li>2. Fetch the Ed25519 public key from the published key URL.</li>
-          <li>3. Verify the signature against the exact `messageString` shown here.</li>
+          <li>3. Verify the signature against the exact message string shown here.</li>
           <li>4. Confirm the public record matches the signed proof payload.</li>
         </ol>
       </div>
