@@ -1,6 +1,6 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import PublicButtonLink from "@/app/_components/PublicButtonLink";
 import RegistryVerificationPanel from "@/components/registry/RegistryVerificationPanel";
 import RegistryTrustTools from "@/components/registry/RegistryTrustTools";
 
@@ -124,8 +124,6 @@ export default async function RegistryRecordPage({
 
   const entityName = record?.entityName || row?.entityName || "Unknown Entity";
 
-  const entityType = record?.entityType || row?.entityType || null;
-  const country = record?.country || row?.country || null;
   const certifiedTier = record?.certifiedTier || row?.certifiedTier || null;
   const certifiedBand = record?.certifiedBand || row?.certifiedBand || null;
   const decisionStatus = record?.decisionStatus || row?.decisionStatus || null;
@@ -158,12 +156,9 @@ export default async function RegistryRecordPage({
             We could not find a public GAFAIG registry record for this ID.
           </p>
           <div className="mt-8">
-            <Link
-              href="/registry"
-              className="inline-flex min-h-11 items-center justify-center rounded-full border border-black px-5 py-3 text-sm font-semibold transition hover:bg-black/[0.04]"
-            >
+            <PublicButtonLink href="/registry" variant="secondary">
               Back to registry
-            </Link>
+            </PublicButtonLink>
           </div>
         </div>
       </main>
@@ -203,12 +198,9 @@ export default async function RegistryRecordPage({
 
         <div className="mt-6 text-sm text-black/70">
           Want to independently verify this certification?{" "}
-          <Link
-            href="/verify"
-            className="font-semibold underline underline-offset-4 hover:opacity-70"
-          >
+          <PublicButtonLink href="/verify" variant="ghost" size="sm">
             Learn how verification works →
-          </Link>
+          </PublicButtonLink>
         </div>
 
         <div className="mt-8 grid gap-4 md:grid-cols-4">
