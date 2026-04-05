@@ -1,4 +1,5 @@
-import Link from "next/link";
+import Script from "next/script";
+import PublicButtonLink from "@/app/_components/PublicButtonLink";
 
 export const dynamic = "force-dynamic";
 
@@ -50,6 +51,10 @@ async function getVerifyData(
   }
 }
 
+function valueOrDash(value?: string | null) {
+  return value && value.trim() ? value : "—";
+}
+
 export default async function WidgetPreviewPage({
   params,
 }: {
@@ -73,12 +78,9 @@ export default async function WidgetPreviewPage({
             available for widget preview.
           </p>
           <div className="mt-8">
-            <Link
-              href="/registry"
-              className="inline-flex min-h-[48px] items-center justify-center rounded-full border border-black px-5 py-3 text-sm font-semibold transition hover:bg-black hover:text-white"
-            >
+            <PublicButtonLink href="/registry" variant="secondary">
               Back to registry
-            </Link>
+            </PublicButtonLink>
           </div>
         </div>
       </div>
@@ -115,20 +117,19 @@ export default async function WidgetPreviewPage({
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
-            <Link
+            <PublicButtonLink
               href={`/registry/${encodeURIComponent(registryId)}`}
-              className="inline-flex min-h-[48px] items-center justify-center rounded-full border border-black px-5 py-3 text-sm font-semibold transition hover:bg-black hover:text-white"
+              variant="secondary"
             >
               Open registry record
-            </Link>
-            <a
+            </PublicButtonLink>
+
+            <PublicButtonLink
               href={`/api/verify/${encodeURIComponent(registryId)}`}
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex min-h-[48px] items-center justify-center rounded-full border border-black bg-black px-5 py-3 text-sm font-semibold text-white transition hover:bg-black/90"
+              variant="primary"
             >
               Open verify JSON
-            </a>
+            </PublicButtonLink>
           </div>
         </div>
 
@@ -147,7 +148,7 @@ export default async function WidgetPreviewPage({
               Tier / Band
             </div>
             <div className="mt-3 text-[16px] font-semibold text-black">
-              {(record.certifiedTier || "—") + " · " + (record.certifiedBand || "—")}
+              {valueOrDash(record.certifiedTier)} · {valueOrDash(record.certifiedBand)}
             </div>
           </div>
 
@@ -156,7 +157,7 @@ export default async function WidgetPreviewPage({
               Decision
             </div>
             <div className="mt-3 text-[16px] font-semibold text-black">
-              {record.decisionStatus || "—"}
+              {valueOrDash(record.decisionStatus)}
             </div>
           </div>
 
@@ -165,7 +166,7 @@ export default async function WidgetPreviewPage({
               Valid To
             </div>
             <div className="mt-3 text-[16px] font-semibold text-black">
-              {record.validTo || "—"}
+              {valueOrDash(record.validTo)}
             </div>
           </div>
         </div>
@@ -177,10 +178,10 @@ export default async function WidgetPreviewPage({
             </div>
 
             <div className="mt-4 rounded-2xl border border-black/10 bg-black/[0.02] p-6">
-              <script
+              <Script
                 src="https://www.gafaig.com/widget/gafaig-widget.js"
-                async
-              ></script>
+                strategy="afterInteractive"
+              />
               <div data-gafaig-id={registryId}></div>
             </div>
           </section>
