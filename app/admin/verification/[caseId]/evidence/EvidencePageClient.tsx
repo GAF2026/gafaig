@@ -2,6 +2,7 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import CaseTabs from "../_components/CaseTabs";
+import PublicButton from "../../../../_components/PublicButton";
 
 type EvidenceRow = {
   evidenceId: string;
@@ -89,26 +90,36 @@ export default function EvidencePageClient(props: { caseId: string }) {
   const [selectedEvidenceId, setSelectedEvidenceId] = useState<string>("");
   const [selectedFindingId, setSelectedFindingId] = useState<string>("");
 
-  const [defaultSummaryStyle, setDefaultSummaryStyle] = useState<string>("bullets");
-  const [defaultSummaryModel, setDefaultSummaryModel] = useState<string>("snowflake-arctic");
-  const [summaryStyleByEvidenceId, setSummaryStyleByEvidenceId] = useState<Record<string, string>>(
-    {}
-  );
-  const [summaryModelByEvidenceId, setSummaryModelByEvidenceId] = useState<Record<string, string>>(
-    {}
-  );
+  const [defaultSummaryStyle, setDefaultSummaryStyle] =
+    useState<string>("bullets");
+  const [defaultSummaryModel, setDefaultSummaryModel] =
+    useState<string>("snowflake-arctic");
+  const [summaryStyleByEvidenceId, setSummaryStyleByEvidenceId] = useState<
+    Record<string, string>
+  >({});
+  const [summaryModelByEvidenceId, setSummaryModelByEvidenceId] = useState<
+    Record<string, string>
+  >({});
 
   const [summaryLoadingId, setSummaryLoadingId] = useState<string | null>(null);
   const [summaryByKey, setSummaryByKey] = useState<Record<string, string>>({});
-  const [summaryErrByEvidenceId, setSummaryErrByEvidenceId] = useState<Record<string, string>>({});
+  const [summaryErrByEvidenceId, setSummaryErrByEvidenceId] = useState<
+    Record<string, string>
+  >({});
 
-  const [storedByKey, setStoredByKey] = useState<Record<string, SummaryRow>>({});
+  const [storedByKey, setStoredByKey] = useState<Record<string, SummaryRow>>(
+    {}
+  );
   const [storedSummaryLoadErr, setStoredSummaryLoadErr] = useState<string>("");
 
-  const [bulkRunning, setBulkRunning] = useState<null | "missing" | "regen">(null);
-  const [bulkProgress, setBulkProgress] = useState<{ done: number; total: number; current?: string }>(
-    { done: 0, total: 0 }
+  const [bulkRunning, setBulkRunning] = useState<null | "missing" | "regen">(
+    null
   );
+  const [bulkProgress, setBulkProgress] = useState<{
+    done: number;
+    total: number;
+    current?: string;
+  }>({ done: 0, total: 0 });
   const [bulkErr, setBulkErr] = useState<string>("");
 
   const counts = useMemo(
@@ -145,7 +156,11 @@ export default function EvidencePageClient(props: { caseId: string }) {
     return summaryModelByEvidenceId[evidenceId] || defaultSummaryModel;
   }
 
-  function getStored(evidenceId: string, style: string, model: string): SummaryRow | null {
+  function getStored(
+    evidenceId: string,
+    style: string,
+    model: string
+  ): SummaryRow | null {
     const k = keyFor(evidenceId, style, model);
     return storedByKey[k] || null;
   }
@@ -172,11 +187,14 @@ export default function EvidencePageClient(props: { caseId: string }) {
     const allow = new Set(evidenceIds);
 
     try {
-      const res = await fetch(`/api/admin/verification/${encodeURIComponent(caseId)}/summaries`, {
-        method: "GET",
-        credentials: "include",
-        cache: "no-store",
-      });
+      const res = await fetch(
+        `/api/admin/verification/${encodeURIComponent(caseId)}/summaries`,
+        {
+          method: "GET",
+          credentials: "include",
+          cache: "no-store",
+        }
+      );
 
       const json = await safeJson(res);
       if (res.ok && json?.ok && json?.summaries && typeof json.summaries === "object") {
@@ -269,19 +287,26 @@ export default function EvidencePageClient(props: { caseId: string }) {
       const evRows: EvidenceRow[] = Array.isArray(evJson.rows) ? evJson.rows : [];
       setEvidence(evRows);
 
-      const fRes = await fetch(`/api/admin/verification/${encodeURIComponent(caseId)}/findings`, {
-        credentials: "include",
-        cache: "no-store",
-      });
+      const fRes = await fetch(
+        `/api/admin/verification/${encodeURIComponent(caseId)}/findings`,
+        {
+          credentials: "include",
+          cache: "no-store",
+        }
+      );
       const fJson = await safeJson(fRes);
-      setFindings(!fRes.ok || !fJson?.ok ? [] : Array.isArray(fJson.rows) ? fJson.rows : []);
+      setFindings(
+        !fRes.ok || !fJson?.ok ? [] : Array.isArray(fJson.rows) ? fJson.rows : []
+      );
 
       const lRes = await fetch(
         `/api/admin/verification/finding-evidence?caseId=${encodeURIComponent(caseId)}`,
         { credentials: "include", cache: "no-store" }
       );
       const lJson = await safeJson(lRes);
-      setLinks(!lRes.ok || !lJson?.ok ? [] : Array.isArray(lJson.rows) ? lJson.rows : []);
+      setLinks(
+        !lRes.ok || !lJson?.ok ? [] : Array.isArray(lJson.rows) ? lJson.rows : []
+      );
 
       await loadStoredSummaries(evRows.map((r) => r.evidenceId));
     } catch (e: any) {
@@ -373,7 +398,9 @@ export default function EvidencePageClient(props: { caseId: string }) {
 
     const url = `/api/admin/verification/finding-evidence?caseId=${encodeURIComponent(
       caseId
-    )}&findingId=${encodeURIComponent(findingId)}&evidenceId=${encodeURIComponent(evidenceId)}`;
+    )}&findingId=${encodeURIComponent(findingId)}&evidenceId=${encodeURIComponent(
+      evidenceId
+    )}`;
 
     const res = await fetch(url, {
       method: "DELETE",
@@ -488,7 +515,11 @@ export default function EvidencePageClient(props: { caseId: string }) {
 
       for (let i = 0; i < targets.length; i++) {
         const t = targets[i];
-        setBulkProgress({ done: i, total: targets.length, current: t.evidenceId });
+        setBulkProgress({
+          done: i,
+          total: targets.length,
+          current: t.evidenceId,
+        });
 
         const k = keyFor(t.evidenceId, t.style, t.model);
         setSummaryErrByEvidenceId((prev) => ({ ...prev, [t.evidenceId]: "" }));
@@ -544,7 +575,11 @@ export default function EvidencePageClient(props: { caseId: string }) {
 
       for (let i = 0; i < targets.length; i++) {
         const t = targets[i];
-        setBulkProgress({ done: i, total: targets.length, current: t.evidenceId });
+        setBulkProgress({
+          done: i,
+          total: targets.length,
+          current: t.evidenceId,
+        });
 
         const k = keyFor(t.evidenceId, t.style, t.model);
         setSummaryErrByEvidenceId((prev) => ({ ...prev, [t.evidenceId]: "" }));
@@ -585,12 +620,12 @@ export default function EvidencePageClient(props: { caseId: string }) {
   }
 
   return (
-    <div className="space-y-6 w-full">
+    <div className="w-full space-y-6">
       <div className="-mt-2">
         <CaseTabs caseId={caseId} />
       </div>
 
-      {(loadError || storedSummaryLoadErr || bulkErr) ? (
+      {loadError || storedSummaryLoadErr || bulkErr ? (
         <div className="space-y-3">
           {loadError ? (
             <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-[14px] text-red-700">
@@ -613,38 +648,50 @@ export default function EvidencePageClient(props: { caseId: string }) {
       ) : null}
 
       <section className="rounded-2xl border border-black/10 p-5">
-        <div className="mb-4 flex items-center justify-between gap-3 flex-wrap">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h2 className="text-[16px] font-semibold text-black">Governance metrics</h2>
+            <h2 className="text-[16px] font-semibold text-black">
+              Governance metrics
+            </h2>
             <div className="mt-1 text-[14px] text-black/60">
               Live evidence workflow counts for this case.
             </div>
           </div>
 
-          <div className="flex items-center gap-2 flex-wrap">
-            <button
-              className="inline-flex h-10 items-center justify-center rounded-xl border border-black/15 px-4 text-[14px] font-semibold hover:bg-black/[0.04]"
+          <div className="flex flex-wrap items-center gap-2">
+            <PublicButton
+              type="button"
+              variant="secondary"
+              size="sm"
               onClick={refreshAll}
               disabled={loading || !!bulkRunning}
             >
               {loading ? "Refreshing…" : "Refresh"}
-            </button>
+            </PublicButton>
 
-            <button
+            <PublicButton
+              type="button"
+              variant="secondary"
+              size="sm"
               onClick={summarizeAllMissing}
-              className="inline-flex h-10 items-center justify-center rounded-xl border border-black/15 px-4 text-[14px] font-semibold hover:bg-black/[0.04] disabled:opacity-50"
-              disabled={loading || !!bulkRunning || evidence.length === 0 || missingCount === 0}
+              disabled={
+                loading || !!bulkRunning || evidence.length === 0 || missingCount === 0
+              }
             >
-              {bulkRunning === "missing" ? "Summarizing…" : `Summarize missing (${missingCount})`}
-            </button>
+              {bulkRunning === "missing"
+                ? "Summarizing…"
+                : `Summarize missing (${missingCount})`}
+            </PublicButton>
 
-            <button
+            <PublicButton
+              type="button"
+              variant="secondary"
+              size="sm"
               onClick={regenerateAll}
-              className="inline-flex h-10 items-center justify-center rounded-xl border border-black/15 px-4 text-[14px] font-semibold hover:bg-black/[0.04] disabled:opacity-50"
               disabled={loading || !!bulkRunning || evidence.length === 0}
             >
               {bulkRunning === "regen" ? "Regenerating…" : "Regenerate all"}
-            </button>
+            </PublicButton>
           </div>
         </div>
 
@@ -664,15 +711,21 @@ export default function EvidencePageClient(props: { caseId: string }) {
             value={storedEvidenceCount || "—"}
             sub="Any stored summary for an evidenceId"
           />
-          <MetricCard label="Last summary update" value="—" sub="Computed client-side" />
+          <MetricCard
+            label="Last summary update"
+            value="—"
+            sub="Computed client-side"
+          />
         </div>
       </section>
 
       <section className="rounded-2xl border border-black/10 p-5">
-        <h2 className="text-[16px] font-semibold text-black">AI summary defaults</h2>
+        <h2 className="text-[16px] font-semibold text-black">
+          AI summary defaults
+        </h2>
         <p className="mt-2 text-[14px] leading-[1.7] text-black/60">
-          Used when you click AI Summary unless you override style or model per evidence item.
-          Summaries are persisted when generated.
+          Used when you click AI Summary unless you override style or model per
+          evidence item. Summaries are persisted when generated.
         </p>
 
         <div className="mt-5 grid gap-4 md:grid-cols-2">
@@ -706,7 +759,7 @@ export default function EvidencePageClient(props: { caseId: string }) {
       </section>
 
       <section className="rounded-2xl border border-black/10 p-5">
-        <div className="flex items-start justify-between gap-4 flex-wrap">
+        <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <h2 className="text-[16px] font-semibold text-black">Add evidence</h2>
             <p className="mt-2 text-[14px] leading-[1.7] text-black/60">
@@ -714,13 +767,14 @@ export default function EvidencePageClient(props: { caseId: string }) {
             </p>
           </div>
 
-          <button
-            className="inline-flex h-11 items-center justify-center rounded-xl bg-black px-5 text-[14px] font-semibold text-white hover:bg-black/90"
+          <PublicButton
+            type="button"
+            variant="primary"
             onClick={addEvidence}
             disabled={loading || !!bulkRunning}
           >
             Add evidence
-          </button>
+          </PublicButton>
         </div>
 
         <div className="mt-5 grid gap-4 md:grid-cols-2">
@@ -798,21 +852,25 @@ export default function EvidencePageClient(props: { caseId: string }) {
       </section>
 
       <section className="rounded-2xl border border-black/10 p-5">
-        <div className="flex items-start justify-between gap-4 flex-wrap">
+        <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <h2 className="text-[16px] font-semibold text-black">Link evidence to a finding</h2>
+            <h2 className="text-[16px] font-semibold text-black">
+              Link evidence to a finding
+            </h2>
             <p className="mt-2 text-[14px] leading-[1.7] text-black/60">
               Select an evidence item and a finding, then create the link.
             </p>
           </div>
 
-          <button
-            className="inline-flex h-10 items-center justify-center rounded-xl border border-black/15 px-4 text-[14px] font-semibold hover:bg-black/[0.04] disabled:opacity-50"
+          <PublicButton
+            type="button"
+            variant="secondary"
+            size="sm"
             onClick={createLink}
             disabled={!selectedEvidenceId || !selectedFindingId}
           >
             Create link
-          </button>
+          </PublicButton>
         </div>
 
         <div className="mt-5 grid gap-4 md:grid-cols-2">
@@ -861,7 +919,9 @@ export default function EvidencePageClient(props: { caseId: string }) {
         </p>
 
         {evidence.length === 0 ? (
-          <div className="mt-5 text-[14px] text-black/60">No evidence found for this case.</div>
+          <div className="mt-5 text-[14px] text-black/60">
+            No evidence found for this case.
+          </div>
         ) : (
           <div className="mt-5 space-y-3">
             {evidence.map((e) => {
@@ -877,13 +937,18 @@ export default function EvidencePageClient(props: { caseId: string }) {
               const linked = linkedFindingIdsForEvidence(e.evidenceId);
 
               return (
-                <div key={e.evidenceId} className="rounded-2xl border border-black/10 p-4">
-                  <div className="flex items-start justify-between gap-4 flex-wrap">
+                <div
+                  key={e.evidenceId}
+                  className="rounded-2xl border border-black/10 p-4"
+                >
+                  <div className="flex flex-wrap items-start justify-between gap-4">
                     <div className="max-w-[760px]">
-                      <div className="text-[12px] uppercase tracking-[0.12em] text-black/50 font-semibold">
+                      <div className="text-[12px] font-semibold uppercase tracking-[0.12em] text-black/50">
                         {prettify(e.evidenceType)}
                       </div>
-                      <div className="mt-1 text-[18px] font-semibold text-black">{e.title}</div>
+                      <div className="mt-1 text-[18px] font-semibold text-black">
+                        {e.title}
+                      </div>
 
                       {e.description ? (
                         <div className="mt-2 text-[14px] leading-[1.6] text-black/70">
@@ -897,21 +962,27 @@ export default function EvidencePageClient(props: { caseId: string }) {
                     </div>
 
                     <div className="flex flex-col items-end gap-2">
-                      <button
-                        className="inline-flex h-10 items-center justify-center rounded-xl bg-black px-4 text-[13px] font-semibold text-white hover:bg-black/90 disabled:opacity-50"
+                      <PublicButton
+                        type="button"
+                        variant="primary"
+                        size="sm"
                         onClick={() => runAiSummary(e.evidenceId, { force: false })}
                         disabled={summaryLoadingId === e.evidenceId}
                       >
-                        {summaryLoadingId === e.evidenceId ? "Summarizing…" : "AI Summary"}
-                      </button>
+                        {summaryLoadingId === e.evidenceId
+                          ? "Summarizing…"
+                          : "AI Summary"}
+                      </PublicButton>
 
-                      <button
-                        className="inline-flex h-9 items-center justify-center rounded-xl border border-black/15 px-4 text-[12px] font-semibold hover:bg-black/[0.04] disabled:opacity-50"
+                      <PublicButton
+                        type="button"
+                        variant="secondary"
+                        size="sm"
                         onClick={() => runAiSummary(e.evidenceId, { force: true })}
                         disabled={summaryLoadingId === e.evidenceId}
                       >
                         Force regenerate
-                      </button>
+                      </PublicButton>
                     </div>
                   </div>
 
@@ -961,23 +1032,34 @@ export default function EvidencePageClient(props: { caseId: string }) {
                     </div>
 
                     {linked.length === 0 ? (
-                      <div className="text-[13px] text-black/50">No links for this evidence yet.</div>
+                      <div className="text-[13px] text-black/50">
+                        No links for this evidence yet.
+                      </div>
                     ) : (
                       <div className="space-y-2">
                         {linked.map((fid) => {
                           const f = findingById(fid);
                           return (
-                            <div key={fid} className="flex items-center justify-between gap-3 flex-wrap">
+                            <div
+                              key={fid}
+                              className="flex flex-wrap items-center justify-between gap-3"
+                            >
                               <div className="text-[14px] text-black/75">
-                                <span className="font-mono text-[12px] text-black/45">{fid}</span>
-                                <span className="ml-2">{f?.title || "(missing finding title)"}</span>
+                                <span className="font-mono text-[12px] text-black/45">
+                                  {fid}
+                                </span>
+                                <span className="ml-2">
+                                  {f?.title || "(missing finding title)"}
+                                </span>
                               </div>
-                              <button
-                                className="inline-flex h-8 items-center justify-center rounded-xl border border-black/15 px-3 text-[12px] font-semibold hover:bg-black/[0.04]"
+                              <PublicButton
+                                type="button"
+                                variant="secondary"
+                                size="sm"
                                 onClick={() => removeLink(fid, e.evidenceId)}
                               >
                                 Remove
-                              </button>
+                              </PublicButton>
                             </div>
                           );
                         })}
@@ -999,10 +1081,11 @@ export default function EvidencePageClient(props: { caseId: string }) {
                     {storedExact?.summary ? (
                       <>
                         <div className="mb-2 text-[12px] text-black/55">
-                          Using selected style/model: <span className="font-mono">{style}</span> ·{" "}
+                          Using selected style/model:{" "}
+                          <span className="font-mono">{style}</span> ·{" "}
                           <span className="font-mono">{model}</span>
                         </div>
-                        <div className="rounded-xl border border-black/10 bg-black/[0.02] p-4 text-[14px] whitespace-pre-wrap text-black/80">
+                        <div className="whitespace-pre-wrap rounded-xl border border-black/10 bg-black/[0.02] p-4 text-[14px] text-black/80">
                           {storedExact.summary}
                         </div>
                       </>
@@ -1013,16 +1096,18 @@ export default function EvidencePageClient(props: { caseId: string }) {
                           <span className="font-mono">{storedAny.style}</span> ·{" "}
                           <span className="font-mono">{storedAny.model}</span>
                         </div>
-                        <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-[14px] whitespace-pre-wrap text-amber-900">
+                        <div className="whitespace-pre-wrap rounded-xl border border-amber-200 bg-amber-50 p-4 text-[14px] text-amber-900">
                           {storedAny.summary}
                         </div>
                       </>
                     ) : sessionSummary ? (
-                      <div className="rounded-xl border border-black/10 bg-black/[0.02] p-4 text-[14px] whitespace-pre-wrap text-black/80">
+                      <div className="whitespace-pre-wrap rounded-xl border border-black/10 bg-black/[0.02] p-4 text-[14px] text-black/80">
                         {sessionSummary}
                       </div>
                     ) : (
-                      <div className="text-[13px] text-black/50">No stored summary yet for this evidence.</div>
+                      <div className="text-[13px] text-black/50">
+                        No stored summary yet for this evidence.
+                      </div>
                     )}
                   </div>
                 </div>
@@ -1043,11 +1128,15 @@ export default function EvidencePageClient(props: { caseId: string }) {
 function MetricCard(props: { label: string; value: any; sub?: string }) {
   return (
     <div className="rounded-2xl border border-black/10 px-4 py-4">
-      <div className="text-[12px] uppercase tracking-[0.12em] text-black/50 font-semibold">
+      <div className="text-[12px] font-semibold uppercase tracking-[0.12em] text-black/50">
         {props.label}
       </div>
-      <div className="mt-3 text-[32px] leading-none font-semibold text-black">{props.value}</div>
-      {props.sub ? <div className="mt-2 text-[12px] text-black/50">{props.sub}</div> : null}
+      <div className="mt-3 text-[32px] font-semibold leading-none text-black">
+        {props.value}
+      </div>
+      {props.sub ? (
+        <div className="mt-2 text-[12px] text-black/50">{props.sub}</div>
+      ) : null}
     </div>
   );
 }
