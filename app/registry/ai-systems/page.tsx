@@ -1,4 +1,4 @@
-import Link from "next/link";
+import PublicButtonLink from "@/app/_components/PublicButtonLink";
 import { getRegistryAiSystemsPaginated } from "@/lib/queries/registry-ai-systems";
 
 type SearchParams = {
@@ -16,7 +16,11 @@ function fmtDate(value: string | null | undefined) {
   if (!value) return "Not issued";
   const d = new Date(value);
   if (Number.isNaN(d.getTime())) return "Not issued";
-  return d.toLocaleDateString();
+  return d.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
 }
 
 function badgeTone(value: string | null | undefined) {
@@ -67,18 +71,46 @@ export default async function RegistryAiSystemsPage({
   return (
     <main className="min-h-screen bg-white text-slate-900">
       <div className="mx-auto max-w-6xl px-6 py-10">
-        <div className="mb-8">
-          <h1 className="text-4xl font-semibold tracking-tight">
+        <section className="rounded-3xl border border-black/10 bg-white px-8 py-10 md:px-10 md:py-12">
+          <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
+            AI SYSTEMS REGISTRY
+          </div>
+
+          <h1 className="mt-4 max-w-[920px] text-[36px] font-semibold leading-[1.08] tracking-tight text-black md:text-[52px]">
             Global AI Systems Registry
           </h1>
-          <p className="mt-4 max-w-3xl text-sm leading-6 text-slate-600">
-            Public-facing AI systems connected to published GAFAIG registry
-            records. This view reflects certified AI systems derived from the
-            canonical registry.
-          </p>
-        </div>
 
-        <div className="grid gap-4 md:grid-cols-3">
+          <p className="mt-5 max-w-[920px] text-[17px] leading-[1.7] text-black/72">
+            Public-facing AI systems connected to published GAFAIG registry
+            records. This surface helps visitors inspect disclosed systems while
+            preserving the canonical certification trust record in the linked
+            registry entry.
+          </p>
+
+          <p className="mt-4 max-w-[920px] text-[15px] leading-[1.8] text-black/68">
+            Each system record provides public context for an AI system that
+            sits within GAFAIG’s broader trust infrastructure. System-level
+            disclosure remains distinct from the canonical certification record,
+            which is available through the linked registry record and public
+            verification surfaces.
+          </p>
+
+          <div className="mt-8 flex flex-wrap gap-3">
+            <PublicButtonLink href="/registry" variant="primary">
+              View registry
+            </PublicButtonLink>
+
+            <PublicButtonLink href="/explorer/systems" variant="secondary">
+              Systems explorer
+            </PublicButtonLink>
+
+            <PublicButtonLink href="/explorer" variant="secondary">
+              Back to explorer
+            </PublicButtonLink>
+          </div>
+        </section>
+
+        <section className="mt-10 grid gap-4 md:grid-cols-3">
           <div className="rounded-2xl border border-slate-200 bg-white p-5">
             <div className="text-xs font-medium uppercase tracking-wide text-slate-500">
               Matching Systems
@@ -88,96 +120,131 @@ export default async function RegistryAiSystemsPage({
 
           <div className="rounded-2xl border border-slate-200 bg-white p-5">
             <div className="text-xs font-medium uppercase tracking-wide text-slate-500">
-              Global Linked Entities
+              Linked Entities
             </div>
             <div className="mt-2 text-4xl font-semibold">{linkedEntities}</div>
           </div>
 
           <div className="rounded-2xl border border-slate-200 bg-white p-5">
             <div className="text-xs font-medium uppercase tracking-wide text-slate-500">
-              Global Countries
+              Countries
             </div>
             <div className="mt-2 text-4xl font-semibold">{countries}</div>
           </div>
-        </div>
+        </section>
 
-        <div className="mt-5 space-y-4">
-          {systems.map((system) => {
-            const isCertified =
-              system.decisionStatus?.toLowerCase() === "approved";
+        <section className="mt-10 rounded-3xl border border-black/10 bg-white p-8 md:p-10">
+          <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
+            SYSTEM DIRECTORY
+          </div>
 
-            return (
-              <section
-                key={system.systemId}
-                className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"
-              >
-                <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-                  <div className="min-w-0 flex-1">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <h2 className="text-2xl font-semibold tracking-tight text-slate-900">
-                        {system.systemName || "Unnamed System"}
-                      </h2>
+          <h2 className="mt-4 text-[32px] font-semibold tracking-tight text-black">
+            Public AI systems
+          </h2>
 
-                      <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600 ring-1 ring-slate-200">
+          <p className="mt-4 max-w-[860px] text-[15px] leading-[1.8] text-black/68">
+            Open a system record to inspect public system context, certification
+            status, and linkage to the canonical registry record.
+          </p>
+
+          <div className="mt-8 space-y-6">
+            {systems.map((system) => {
+              const isCertified =
+                system.decisionStatus?.toLowerCase() === "approved";
+
+              return (
+                <section
+                  key={system.systemId}
+                  className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"
+                >
+                  <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <h3 className="text-2xl font-semibold tracking-tight text-slate-900">
+                          {system.systemName || "Unnamed System"}
+                        </h3>
+
+                        <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600 ring-1 ring-slate-200">
+                          {isCertified
+                            ? system.certifiedTier || "Certified"
+                            : "Not Certified"}
+                        </span>
+
+                        <span
+                          className={`rounded-full px-2.5 py-1 text-xs font-medium ring-1 ${badgeTone(
+                            system.certifiedBand
+                          )}`}
+                        >
+                          {isCertified && system.certifiedBand
+                            ? `Band ${system.certifiedBand}`
+                            : "No Band"}
+                        </span>
+                      </div>
+
+                      <div className="mt-2 text-xs font-medium text-slate-500">
                         {isCertified
-                          ? system.certifiedTier || "Certified"
-                          : "Not Certified"}
-                      </span>
+                          ? "Certified under GAFAIG registry"
+                          : "Not yet certified"}
+                      </div>
 
-                      <span
-                        className={`rounded-full px-2.5 py-1 text-xs font-medium ring-1 ${badgeTone(
-                          system.certifiedBand
+                      <div
+                        className={`mt-2 text-xs font-medium ${statusTone(
+                          system.decisionStatus
                         )}`}
                       >
-                        {isCertified && system.certifiedBand
-                          ? `Band ${system.certifiedBand}`
-                          : "No Band"}
-                      </span>
+                        Decision: {system.decisionStatus || "Unknown"}
+                      </div>
+
+                      <div className="mt-4 flex flex-wrap gap-x-5 gap-y-2 text-sm text-slate-700">
+                        <div>
+                          <span className="font-medium text-slate-500">
+                            Entity:
+                          </span>{" "}
+                          {system.entityName || "Unknown"}
+                        </div>
+                        <div>
+                          <span className="font-medium text-slate-500">
+                            Country:
+                          </span>{" "}
+                          {system.country || "Not disclosed"}
+                        </div>
+                        <div>
+                          <span className="font-medium text-slate-500">
+                            Type:
+                          </span>{" "}
+                          {system.systemType || "—"}
+                        </div>
+                        <div>
+                          <span className="font-medium text-slate-500">
+                            Risk:
+                          </span>{" "}
+                          {system.riskTier || "—"}
+                        </div>
+                      </div>
                     </div>
 
-                    <div className="mt-2 text-xs font-medium text-slate-500">
-                      {isCertified
-                        ? "Certified under GAFAIG registry"
-                        : "Not yet certified"}
-                    </div>
+                    <div className="flex flex-wrap gap-3 lg:justify-end">
+                      <PublicButtonLink
+                        href={`/registry/ai-systems/${system.systemId}`}
+                        variant="primary"
+                        size="sm"
+                      >
+                        View system
+                      </PublicButtonLink>
 
-                    <div
-                      className={`mt-2 text-xs font-medium ${statusTone(
-                        system.decisionStatus
-                      )}`}
-                    >
-                      Decision: {system.decisionStatus || "Unknown"}
-                    </div>
-
-                    <div className="mt-4 flex flex-wrap gap-x-5 gap-y-2 text-sm text-slate-700">
-                      <div>
-                        <span className="font-medium text-slate-500">
-                          Entity:
-                        </span>{" "}
-                        {system.entityName || "Unknown"}
-                      </div>
-                      <div>
-                        <span className="font-medium text-slate-500">
-                          Country:
-                        </span>{" "}
-                        {system.country || "Not disclosed"}
-                      </div>
-                      <div>
-                        <span className="font-medium text-slate-500">
-                          Type:
-                        </span>{" "}
-                        {system.systemType || "—"}
-                      </div>
-                      <div>
-                        <span className="font-medium text-slate-500">
-                          Risk:
-                        </span>{" "}
-                        {system.riskTier || "—"}
-                      </div>
+                      {system.registryId ? (
+                        <PublicButtonLink
+                          href={`/registry/${system.registryId}`}
+                          variant="secondary"
+                          size="sm"
+                        >
+                          View registry
+                        </PublicButtonLink>
+                      ) : null}
                     </div>
                   </div>
 
-                  <div className="grid min-w-[320px] gap-3 md:grid-cols-2">
+                  <div className="mt-5 grid gap-3 md:grid-cols-2 lg:grid-cols-4">
                     <div className="rounded-xl bg-slate-50 p-3">
                       <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
                         Registry ID
@@ -218,26 +285,26 @@ export default async function RegistryAiSystemsPage({
                       </div>
                     </div>
                   </div>
-                </div>
 
-                <div className="mt-5 rounded-xl bg-slate-50 p-4">
-                  <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
-                    Public Summary
+                  <div className="mt-5 rounded-xl bg-slate-50 p-4">
+                    <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+                      Public Summary
+                    </div>
+                    <div className="mt-2 text-sm leading-6 text-slate-700">
+                      {system.publicSummary || "No public summary available."}
+                    </div>
                   </div>
-                  <div className="mt-2 text-sm leading-6 text-slate-700">
-                    {system.publicSummary || "No public summary available."}
-                  </div>
-                </div>
-              </section>
-            );
-          })}
+                </section>
+              );
+            })}
 
-          {systems.length === 0 && (
-            <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center text-sm text-slate-600">
-              No AI systems matched the current filters.
-            </div>
-          )}
-        </div>
+            {systems.length === 0 && (
+              <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center text-sm text-slate-600">
+                No AI systems matched the current filters.
+              </div>
+            )}
+          </div>
+        </section>
       </div>
     </main>
   );
