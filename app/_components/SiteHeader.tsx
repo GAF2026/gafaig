@@ -72,10 +72,10 @@ function PillLink({
         href={href}
         aria-current={active ? "page" : undefined}
         className={[
-          "inline-flex items-center justify-center rounded-full border px-4 py-2 text-sm font-semibold transition whitespace-nowrap",
+          "inline-flex items-center justify-center rounded-full border px-4 py-2 text-sm font-semibold whitespace-nowrap transition",
           active
             ? "border-black bg-black text-white"
-            : "border-black bg-black text-white hover:bg-black/90",
+            : "border border-black/15 text-black hover:border-black hover:bg-black hover:text-white",
         ].join(" ")}
       >
         {children}
@@ -88,7 +88,7 @@ function PillLink({
       href={href}
       aria-current={active ? "page" : undefined}
       className={[
-        "inline-flex items-center justify-center rounded-full border px-4 py-2 text-sm font-semibold transition whitespace-nowrap",
+        "inline-flex items-center justify-center rounded-full border px-4 py-2 text-sm font-semibold whitespace-nowrap transition",
         active
           ? "border-black bg-black text-white"
           : "border border-black/15 text-black hover:border-black/25 hover:bg-black/[0.035]",
