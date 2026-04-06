@@ -16,10 +16,12 @@ const PRIMARY_NAV: NavItem[] = [
   { href: "/registry", label: "Registry" },
   { href: "/explorer", label: "Explorer" },
   { href: "/verify", label: "Verify" },
+  { href: "/developers", label: "Developers" },
 ];
 
 const ACTION_NAV: NavItem[] = [
   { href: "/demo", label: "Demo" },
+  { href: "/apply", label: "Apply", filled: true },
   { href: "/admin/login", label: "Admin", filled: true },
 ];
 
