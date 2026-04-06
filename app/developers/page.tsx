@@ -24,7 +24,10 @@ export default function DevelopersPage() {
           secondaryDescription="Every GAFAIG certification is backed by deterministic evaluation and cryptographic proof. External systems can verify certification independently without trusting GAFAIG as an intermediary."
           actions={
             <>
-              <PublicButtonLink href={verifyUrl} variant="primary">
+              <PublicButtonLink href="/apply" variant="primary">
+                Apply for Certification
+              </PublicButtonLink>
+              <PublicButtonLink href={verifyUrl} variant="secondary">
                 Test verify API
               </PublicButtonLink>
               <PublicButtonLink href={registryUrl} variant="secondary">
@@ -397,6 +400,32 @@ if (data.ok && data.verified) {
               className="border-white text-white hover:bg-white/10"
             >
               Preview widget
+            </PublicButtonLink>
+          </div>
+        </section>
+
+        <section className="rounded-[32px] border border-black/10 bg-white p-10">
+          <SectionEyebrow>Certification</SectionEyebrow>
+          <h2 className="mt-4 text-3xl font-semibold tracking-tight text-black">
+            Ready to certify your AI systems?
+          </h2>
+
+          <p className="mt-4 max-w-[760px] text-[16px] leading-[1.9] text-black/70">
+            GAFAIG is not only a public verification API. It is a full
+            certification system for proving meaningful human oversight in AI
+            systems. Apply to enter the verification workflow and publish a
+            publicly verifiable trust record.
+          </p>
+
+          <div className="mt-6 flex flex-wrap gap-3">
+            <PublicButtonLink href="/apply" variant="primary">
+              Apply for Certification
+            </PublicButtonLink>
+            <PublicButtonLink href={verifyUrl} variant="secondary">
+              Test verify API
+            </PublicButtonLink>
+            <PublicButtonLink href={registryUrl} variant="secondary">
+              View trust record
             </PublicButtonLink>
           </div>
         </section>
