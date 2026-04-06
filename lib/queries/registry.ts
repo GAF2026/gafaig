@@ -53,7 +53,7 @@ function normalizeRegistryRow(row: Record<string, unknown>): RegistryQueryRow {
   };
 }
 
-const REGISTRY_SOURCE = "GAFAIG_DB.CORE.V_REGISTRY_PUBLIC";
+const REGISTRY_SOURCE = "V_REGISTRY_PUBLIC";
 
 const REGISTRY_SELECT = `
   SELECT
