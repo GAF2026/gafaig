@@ -13,12 +13,16 @@ export default function MissionPage() {
         secondaryDescription="GAFAIG provides that infrastructure. It operates a controlled verification framework and a public registry of record where certification outcomes can be published, inspected, and independently verified without exposing private evidence, findings, or internal review workflow. These public records are supported by a trust infrastructure layer that includes signed certification proofs, verification endpoints, and portable trust surfaces that allow third parties to independently validate governance status."
         actions={
           <>
-            <PublicButtonLink href="/framework" variant="primary">
+            <PublicButtonLink href="/apply" variant="primary">
+              Apply for Certification
+            </PublicButtonLink>
+
+            <PublicButtonLink href="/framework" variant="secondary">
               See how it works
             </PublicButtonLink>
 
-            <PublicButtonLink href="/registry" variant="secondary">
-              View the registry
+            <PublicButtonLink href="/developers" variant="secondary">
+              Explore integrations
             </PublicButtonLink>
           </>
         }
@@ -156,8 +160,16 @@ export default function MissionPage() {
         </p>
 
         <div className="mt-8 flex flex-wrap gap-3">
-          <PublicButtonLink href="/framework" variant="primary">
+          <PublicButtonLink href="/apply" variant="primary">
+            Apply for Certification
+          </PublicButtonLink>
+
+          <PublicButtonLink href="/framework" variant="secondary">
             Read the framework
+          </PublicButtonLink>
+
+          <PublicButtonLink href="/developers" variant="secondary">
+            Explore integrations
           </PublicButtonLink>
 
           <PublicButtonLink href="/registry" variant="secondary">
