@@ -3,19 +3,11 @@ import { getRegistryByRegistryId } from "@/lib/queries/registry";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-export const revalidate = 0;
 
-function pickBadgePath(params: {
-  certifiedTier: string | null;
-  certifiedBand: string | null;
-}) {
-  const tier = (params.certifiedTier || "").toLowerCase();
-
-  if (tier.includes("certified")) {
-    return "/images/gafaig-badge-tier-1.png";
-  }
-
-  return "/images/gafaig-badge-default.png";
+function getBadgeTier(tier: string | null) {
+  if (!tier) return "default";
+  if (tier.toLowerCase().includes("certified")) return "certified";
+  return "default";
 }
 
 export async function GET(
@@ -32,18 +24,35 @@ export async function GET(
       );
     }
 
-    const badgePath = pickBadgePath({
-      certifiedTier: record.certifiedTier,
-      certifiedBand: record.certifiedBand,
-    });
+    const tier = getBadgeTier(record.certifiedTier);
 
     return NextResponse.json({
       ok: true,
+
+      // identity
       registryId: record.registryId,
-      badgeImageUrl: badgePath,
+      entityName: record.entityName,
+
+      // certification
       certifiedTier: record.certifiedTier,
       certifiedBand: record.certifiedBand,
       certifiedAt: record.certifiedAt,
+
+      // trust signal
+      badge: {
+        tier,
+        label: `${record.certifiedTier ?? "Unverified"} ${
+          record.certifiedBand ? `· Band ${record.certifiedBand}` : ""
+        }`,
+        imageUrl:
+          tier === "certified"
+            ? "/images/gafaig-badge-tier-1.png"
+            : "/images/gafaig-badge-default.png",
+      },
+
+      // verification link
+      verifyUrl: `/verify/${record.registryId}`,
+      registryUrl: `/registry/${record.registryId}`,
     });
   } catch (error) {
     return NextResponse.json(

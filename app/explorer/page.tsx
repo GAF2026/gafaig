@@ -1,21 +1,24 @@
 import PublicButtonLink from "@/app/_components/PublicButtonLink";
-import { sfQuery } from "@/lib/snowflake";
+import {
+  getExplorerCountries,
+  getExplorerGlobalStats,
+  getExplorerRecent,
+} from "@/lib/queries/explorer";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 type GlobalStatsRow = {
-  TOTAL_REGISTRY_RECORDS: number;
+  TOTAL_RECORDS: number;
   TOTAL_REGISTRY_IDS: number;
   TOTAL_CASES: number;
   TOTAL_APPLICATIONS: number;
   TOTAL_ENTITIES: number;
   TOTAL_COUNTRIES: number;
-  TOTAL_PUBLISHED: number;
   TOTAL_CERTIFIED: number;
   TOTAL_NOT_CERTIFIED: number;
   FIRST_PUBLISHED_AT: string | null;
-  LAST_PUBLISHED_AT: string | null;
+  LAST_ACTIVITY_AT: string | null;
 };
 
 type CountryStatsRow = {
@@ -24,15 +27,13 @@ type CountryStatsRow = {
   TOTAL_ENTITIES: number;
   TOTAL_REGISTRY_IDS: number;
   TOTAL_CERTIFIED: number;
-  TOTAL_NOT_CERTIFIED: number;
-  LAST_PUBLISHED_AT: string | null;
+  LAST_ACTIVITY_AT: string | null;
 };
 
 type RecentRegistryRow = {
   REGISTRY_ID: string;
   ENTITY_NAME: string | null;
   COUNTRY: string | null;
-  DECISION_STATUS: string | null;
   CERTIFIED_TIER: string | null;
   CERTIFIED_BAND: string | null;
   CERTIFIED_AT: string | null;
@@ -65,63 +66,25 @@ function certificationStatus(row: { CERTIFIED_AT: string | null }) {
 }
 
 export default async function ExplorerPage() {
-  let globalRows: GlobalStatsRow[] = [];
+  let stats: GlobalStatsRow | null = null;
   let countryRows: CountryStatsRow[] = [];
   let recentRows: RecentRegistryRow[] = [];
   let dataUnavailable = false;
 
   try {
-    [globalRows, countryRows, recentRows] = await Promise.all([
-      sfQuery<GlobalStatsRow>(`
-        SELECT
-          COUNT(*) AS TOTAL_REGISTRY_RECORDS,
-          COUNT(DISTINCT REGISTRY_ID) AS TOTAL_REGISTRY_IDS,
-          COUNT(DISTINCT CASE_ID) AS TOTAL_CASES,
-          COUNT(DISTINCT APPLICATION_ID) AS TOTAL_APPLICATIONS,
-          COUNT(DISTINCT ENTITY_NAME) AS TOTAL_ENTITIES,
-          COUNT(DISTINCT COUNTRY) AS TOTAL_COUNTRIES,
-          COUNT_IF(LOWER(COALESCE(DECISION_STATUS, '')) = 'published') AS TOTAL_PUBLISHED,
-          COUNT_IF(CERTIFIED_AT IS NOT NULL) AS TOTAL_CERTIFIED,
-          COUNT_IF(CERTIFIED_AT IS NULL) AS TOTAL_NOT_CERTIFIED,
-          MIN(CERTIFIED_AT) AS FIRST_PUBLISHED_AT,
-          MAX(CERTIFIED_AT) AS LAST_PUBLISHED_AT
-        FROM GAFAIG_DB.CORE.V_REGISTRY_PUBLIC
-      `),
-      sfQuery<CountryStatsRow>(`
-        SELECT
-          COUNTRY,
-          COUNT(*) AS TOTAL_RECORDS,
-          COUNT(DISTINCT ENTITY_NAME) AS TOTAL_ENTITIES,
-          COUNT(DISTINCT REGISTRY_ID) AS TOTAL_REGISTRY_IDS,
-          COUNT_IF(CERTIFIED_AT IS NOT NULL) AS TOTAL_CERTIFIED,
-          COUNT_IF(CERTIFIED_AT IS NULL) AS TOTAL_NOT_CERTIFIED,
-          MAX(CERTIFIED_AT) AS LAST_PUBLISHED_AT
-        FROM GAFAIG_DB.CORE.V_REGISTRY_PUBLIC
-        WHERE COUNTRY IS NOT NULL
-        GROUP BY COUNTRY
-        ORDER BY TOTAL_RECORDS DESC, COUNTRY ASC
-        LIMIT 6
-      `),
-      sfQuery<RecentRegistryRow>(`
-        SELECT
-          REGISTRY_ID,
-          ENTITY_NAME,
-          COUNTRY,
-          DECISION_STATUS,
-          CERTIFIED_TIER,
-          CERTIFIED_BAND,
-          CERTIFIED_AT
-        FROM GAFAIG_DB.CORE.V_REGISTRY_PUBLIC
-        ORDER BY CERTIFIED_AT DESC NULLS LAST, ENTITY_NAME ASC
-        LIMIT 5
-      `),
+    const [globalStats, countries, recent] = await Promise.all([
+      getExplorerGlobalStats(),
+      getExplorerCountries(),
+      getExplorerRecent(),
     ]);
+
+    stats = globalStats as GlobalStatsRow | null;
+    countryRows = (countries ?? []) as CountryStatsRow[];
+    recentRows = (recent ?? []) as RecentRegistryRow[];
   } catch (error) {
     dataUnavailable = true;
     console.error("EXPLORER PAGE ERROR:", error);
   }
-
-  const stats = globalRows[0] || null;
 
   return (
     <main className="mx-auto max-w-[1240px] px-6 pb-16 pt-14">
@@ -200,7 +163,7 @@ export default async function ExplorerPage() {
       <section className="mt-10 grid gap-4 md:grid-cols-4">
         <MetricCard
           label="Registry records"
-          value={String(stats?.TOTAL_REGISTRY_RECORDS ?? "—")}
+          value={String(stats?.TOTAL_RECORDS ?? "—")}
         />
         <MetricCard
           label="Certified records"
@@ -290,11 +253,11 @@ export default async function ExplorerPage() {
             />
             <InfoPanel
               label="Last activity"
-              value={formatDate(stats?.LAST_PUBLISHED_AT)}
+              value={formatDate(stats?.LAST_ACTIVITY_AT)}
             />
             <InfoPanel
-              label="Published records"
-              value={String(stats?.TOTAL_PUBLISHED ?? "—")}
+              label="Applications"
+              value={String(stats?.TOTAL_APPLICATIONS ?? "—")}
             />
             <InfoPanel
               label="Registry IDs"
@@ -403,7 +366,7 @@ export default async function ExplorerPage() {
                       {valueOrDash(row.COUNTRY)}
                     </div>
                     <div className="mt-2 text-sm text-black/65">
-                      Last activity {formatDate(row.LAST_PUBLISHED_AT)}
+                      Last activity {formatDate(row.LAST_ACTIVITY_AT)}
                     </div>
                   </div>
 

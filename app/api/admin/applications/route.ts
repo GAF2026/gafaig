@@ -148,3 +148,81 @@ export async function GET(req: NextRequest) {
     );
   }
 }
+
+export async function POST(req: NextRequest) {
+  try {
+    const auth = await requireAdmin(req);
+    if (!auth.ok) {
+      return json(
+        { ok: false, error: auth.error ?? "Unauthorized" },
+        auth.status ?? 401
+      );
+    }
+
+    const body = (await req.json()) as {
+      orgName?: string;
+      email?: string;
+      orgType?: string;
+      country?: string;
+    };
+
+    const orgName = clean(body.orgName ?? null);
+    const email = clean(body.email ?? null);
+    const orgType = clean(body.orgType ?? null) || "Organization";
+    const country = clean(body.country ?? null) || "Unknown";
+
+    if (!orgName || !email) {
+      return json(
+        { ok: false, error: "Missing required fields: orgName and email" },
+        400
+      );
+    }
+
+    const now = Date.now();
+    const requestId = `REQ-${now}`;
+    const applicationId = `APP-${now}`;
+
+    await snowflakeQuery(
+      `
+      INSERT INTO CORE.APPLICATIONS (
+        REQUEST_ID,
+        TYPE,
+        STATUS,
+        ORG_NAME,
+        EMAIL,
+        APPLICATION_ID,
+        ORG_TYPE,
+        COUNTRY
+      )
+      SELECT ?, 'AI_SYSTEM', 'RECEIVED', ?, ?, ?, ?, ?
+      `,
+      [requestId, orgName, email, applicationId, orgType, country]
+    );
+
+    await snowflakeQuery(
+      `
+      CALL CORE.SP_CREATE_CASE_FROM_APPLICATION(?)
+      `,
+      [applicationId]
+    );
+
+    return json({
+      ok: true,
+      requestId,
+      applicationId,
+      orgName,
+      email,
+      orgType,
+      country,
+    });
+  } catch (error) {
+    return json(
+      {
+        ok: false,
+        error:
+          error instanceof Error ? error.message : "Application creation failed.",
+      },
+      500
+    );
+  }
+}
