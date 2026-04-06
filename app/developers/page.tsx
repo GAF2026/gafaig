@@ -16,24 +16,22 @@ export default function DevelopersPage() {
 
   return (
     <main className="mx-auto max-w-7xl px-6 py-16">
-      <div className="space-y-12">
+      <div className="space-y-16">
 
         <PublicPageHero
           eyebrow="Developers"
           title="Integrate verifiable proof of human oversight"
-          description="GAFAIG provides a public verification layer for AI governance. Use the verification API, signed proof, badge, and widget to display independently verifiable certification across the web."
-          secondaryDescription="GAFAIG is not a data API — it is a trust infrastructure. Every certification can be verified independently using signed proof and a public key."
+          description="GAFAIG provides a public verification layer for AI governance. Use the verification API, signed proof, badge, and widget to display independently verifiable certification across products, websites, and compliance workflows."
+          secondaryDescription="Every GAFAIG certification is backed by deterministic evaluation and cryptographic proof. External systems can verify certification independently without trusting GAFAIG as an intermediary."
           actions={
             <>
               <PublicButtonLink href={verifyUrl} variant="primary">
                 Test verify API
               </PublicButtonLink>
-
-              <PublicButtonLink href={registryUrl} variant="secondary">
+              <PublicButtonLink href={registryUrl}>
                 View trust record
               </PublicButtonLink>
-
-              <PublicButtonLink href={widgetPreviewUrl} variant="secondary">
+              <PublicButtonLink href={widgetPreviewUrl}>
                 Preview widget
               </PublicButtonLink>
             </>
@@ -42,39 +40,43 @@ export default function DevelopersPage() {
 
         {/* TRUST PRIMITIVES */}
 
-        <section className="rounded-[32px] border border-black/10 bg-white p-8 shadow-sm">
+        <section className="rounded-[32px] border border-black/10 bg-white p-10">
           <SectionEyebrow>Trust primitives</SectionEyebrow>
-          <h2 className="mt-3 text-3xl font-semibold tracking-tight text-black">
-            Core building blocks
+          <h2 className="mt-4 text-3xl font-semibold tracking-tight">
+            The core verification layer
           </h2>
 
+          <p className="mt-4 max-w-[900px] text-[16px] text-black/70">
+            GAFAIG exposes a small set of stable primitives that together form a complete verification system. These primitives can be used independently or combined to build trust into any interface.
+          </p>
+
           <div className="mt-8 grid gap-4 md:grid-cols-4">
-            <MetricCard label="Verification API" value="/api/verify" body="Fetch certification + proof" />
-            <MetricCard label="Signed proof" value="Ed25519" body="Cryptographic verification" />
-            <MetricCard label="Public key" value="/.well-known" body="Independent validation" />
+            <MetricCard label="Verification API" value="/api/verify" body="Returns certification record and signed proof" />
+            <MetricCard label="Signed proof" value="Ed25519" body="Cryptographic verification of certification state" />
+            <MetricCard label="Public key" value="/.well-known" body="Used for independent validation" />
             <MetricCard label="Trust surfaces" value="Badge · Widget" body="Display certification externally" />
           </div>
         </section>
 
         {/* INTEGRATION PATHS */}
 
-        <section className="grid gap-8 lg:grid-cols-[1.15fr_0.85fr]">
-          <div className="rounded-[32px] border border-black/10 bg-white p-8 shadow-sm">
+        <section className="grid gap-10 lg:grid-cols-[1.2fr_0.8fr]">
+          <div className="rounded-[32px] border border-black/10 bg-white p-10">
             <SectionEyebrow>Integration paths</SectionEyebrow>
-            <h2 className="mt-3 text-3xl font-semibold tracking-tight text-black">
-              Three ways to integrate
+            <h2 className="mt-4 text-3xl font-semibold">
+              Three ways to integrate GAFAIG
             </h2>
 
-            <div className="mt-8 grid gap-4">
-              <PathCard step="01" title="Display certification" body="Use badge or widget to surface trust signals." />
-              <PathCard step="02" title="Verify programmatically" body="Call the API to validate certification." />
-              <PathCard step="03" title="Build on GAFAIG" body="Use SDK to integrate verification into workflows." />
+            <div className="mt-8 space-y-4">
+              <PathCard step="01" title="Display certification" body="Embed the badge or widget to surface certification status directly in your product or website." />
+              <PathCard step="02" title="Verify programmatically" body="Use the verification API to validate certification status in real time." />
+              <PathCard step="03" title="Build on GAFAIG" body="Use the SDK and verification primitives to integrate governance checks into workflows." />
             </div>
           </div>
 
-          <div className="rounded-[32px] border border-black/10 bg-white p-8 shadow-sm">
+          <div className="rounded-[32px] border border-black/10 bg-white p-10">
             <SectionEyebrow>SDK</SectionEyebrow>
-            <h2 className="mt-3 text-3xl font-semibold tracking-tight text-black">
+            <h2 className="mt-4 text-3xl font-semibold">
               JavaScript SDK
             </h2>
 
@@ -87,23 +89,23 @@ export default function DevelopersPage() {
             />
 
             <CodeBlock
-              title="Verify programmatically"
+              title="Verify"
               code={`const result = await GAFAIG.verify("${EXAMPLE_ID}");
 console.log(result);`}
             />
 
             <CodeBlock
-              title="Render widget manually"
+              title="Render widget"
               code={`GAFAIG.render("#target", "${EXAMPLE_ID}");`}
             />
           </div>
         </section>
 
-        {/* VERIFY API */}
+        {/* VERIFY */}
 
-        <section className="rounded-[32px] border border-black/10 bg-white p-8 shadow-sm">
+        <section className="rounded-[32px] border border-black/10 bg-white p-10">
           <SectionEyebrow>Verification API</SectionEyebrow>
-          <h2 className="mt-3 text-3xl font-semibold tracking-tight text-black">
+          <h2 className="mt-4 text-3xl font-semibold">
             Canonical trust endpoint
           </h2>
 
@@ -123,34 +125,27 @@ if (data.verified) {
         {/* DISPLAY */}
 
         <section className="grid gap-8 lg:grid-cols-2">
-
           <Card title="Badge embed">
-            <CodeBlock
-              title="HTML"
-              code={`<img src="${badgeUrl}" />`}
-            />
+            <CodeBlock code={`<img src="${badgeUrl}" />`} />
           </Card>
 
           <Card title="Widget embed">
             <CodeBlock
-              title="HTML"
               code={`<script src="${BASE_URL}/widget/gafaig-widget.js"></script>
 <div data-gafaig-id="${EXAMPLE_ID}"></div>`}
             />
           </Card>
-
         </section>
 
         {/* PROOF */}
 
-        <section className="rounded-[32px] border border-black/10 bg-white p-8 shadow-sm">
+        <section className="rounded-[32px] border border-black/10 bg-white p-10">
           <SectionEyebrow>Proof verification</SectionEyebrow>
-          <h2 className="mt-3 text-3xl font-semibold tracking-tight text-black">
-            Validate independently
+          <h2 className="mt-4 text-3xl font-semibold">
+            Validate certification independently
           </h2>
 
           <CodeBlock
-            title="Steps"
             code={`1. Call ${verifyUrl}
 2. Read proof.messageString + signature
 3. Fetch ${publicKeyUrl}
@@ -158,20 +153,28 @@ if (data.verified) {
           />
         </section>
 
-        {/* CTA */}
+        {/* FINAL CTA */}
 
-        <section className="rounded-[32px] border border-black/10 bg-black p-8 text-white shadow-sm">
+        <section className="rounded-[32px] bg-black p-10 text-white">
           <h2 className="text-3xl font-semibold">
-            Start with a live trust record
+            Start integrating GAFAIG
           </h2>
 
-          <div className="mt-6 flex gap-3 flex-wrap">
+          <p className="mt-4 max-w-[700px] text-white/80">
+            Use a live trust record to validate your integration end-to-end before deploying across production systems.
+          </p>
+
+          <div className="mt-6 flex flex-wrap gap-3">
             <PublicButtonLink href={verifyUrl} variant="secondary" className="border-white text-white">
-              Test verify
+              Test verify API
             </PublicButtonLink>
 
             <PublicButtonLink href={registryUrl} variant="secondary" className="border-white text-white">
-              Open record
+              Open trust record
+            </PublicButtonLink>
+
+            <PublicButtonLink href={widgetPreviewUrl} variant="secondary" className="border-white text-white">
+              Preview widget
             </PublicButtonLink>
           </div>
         </section>
@@ -181,7 +184,7 @@ if (data.verified) {
   );
 }
 
-/* COMPONENTS (unchanged / reused) */
+/* COMPONENTS */
 
 function SectionEyebrow({ children }: { children: React.ReactNode }) {
   return <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">{children}</div>;
@@ -189,7 +192,7 @@ function SectionEyebrow({ children }: { children: React.ReactNode }) {
 
 function MetricCard({ label, value, body }: any) {
   return (
-    <div className="rounded-[24px] border border-black/10 bg-white p-6">
+    <div className="rounded-[24px] border border-black/10 p-6">
       <div className="text-[11px] uppercase text-black/45">{label}</div>
       <div className="mt-2 text-lg font-semibold">{value}</div>
       <p className="mt-2 text-sm text-black/70">{body}</p>
@@ -218,8 +221,8 @@ function Card({ title, children }: any) {
 
 function CodeBlock({ title, code }: any) {
   return (
-    <div className="mt-6 rounded-[24px] border border-black/10 bg-black text-white">
-      <div className="px-4 py-2 text-xs uppercase text-white/60">{title}</div>
+    <div className="mt-6 rounded-[20px] border border-black/10 bg-black text-white">
+      {title && <div className="px-4 py-2 text-xs uppercase text-white/60">{title}</div>}
       <pre className="p-4 text-sm overflow-x-auto">{code}</pre>
     </div>
   );
