@@ -124,7 +124,7 @@ export async function GET(
         VALID_FROM,
         VALID_TO,
         CERTIFIED_AT
-      FROM CORE.V_REGISTRY_PUBLIC
+      FROM V_REGISTRY_PUBLIC
       WHERE REGISTRY_ID = ?
       LIMIT 1
       `,
