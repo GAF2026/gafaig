@@ -20,7 +20,7 @@ type VerifyResponse = {
       applicationId?: string;
       caseId?: string;
       certificationStatus?: string;
-      certifiedScore?: number;
+      certifiedScore?: number | null;
       certifiedTier?: string;
       certifiedBand?: string;
       decisionStatus?: string;
@@ -38,7 +38,7 @@ type VerifyResponse = {
     applicationId?: string;
     caseId?: string;
     certificationStatus?: string;
-    certifiedScore?: number;
+    certifiedScore?: number | null;
     certifiedTier?: string;
     certifiedBand?: string;
     decisionStatus?: string;

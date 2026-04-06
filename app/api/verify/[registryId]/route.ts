@@ -16,6 +16,7 @@ type VerifyRow = {
   ENTITY_NAME: string | null;
   ENTITY_TYPE: string | null;
   COUNTRY: string | null;
+  CERTIFIED_SCORE: number | null;
   CERTIFIED_TIER: string | null;
   CERTIFIED_BAND: string | null;
   DECISION_STATUS: string | null;
@@ -65,6 +66,7 @@ function buildCanonicalRecord(row: VerifyRow) {
     applicationId: row.APPLICATION_ID,
     caseId: row.CASE_ID,
     certificationStatus: row.CERTIFIED_AT ? "Certified" : "Not Certified",
+    certifiedScore: row.CERTIFIED_SCORE,
     certifiedTier: row.CERTIFIED_TIER,
     certifiedBand: row.CERTIFIED_BAND,
     decisionStatus: row.DECISION_STATUS,
@@ -115,6 +117,7 @@ export async function GET(
         ENTITY_NAME,
         ENTITY_TYPE,
         COUNTRY,
+        CERTIFIED_SCORE,
         CERTIFIED_TIER,
         CERTIFIED_BAND,
         DECISION_STATUS,
@@ -158,6 +161,7 @@ export async function GET(
       applicationId: record.applicationId,
       caseId: record.caseId,
       certificationStatus: record.certificationStatus,
+      certifiedScore: record.certifiedScore,
       certifiedTier: record.certifiedTier,
       certifiedBand: record.certifiedBand,
       decisionStatus: record.decisionStatus,
