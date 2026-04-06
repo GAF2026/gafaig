@@ -10,16 +10,17 @@ import {
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 export async function GET() {
   try {
     const [
       global,
-      byCountry,
-      byStatus,
-      byTier,
-      byBand,
-      byEntityType,
+      countries,
+      status,
+      tier,
+      band,
+      entityType,
     ] = await Promise.all([
       getExplorerGlobalStats(),
       getExplorerByCountry(),
@@ -31,21 +32,25 @@ export async function GET() {
 
     return NextResponse.json({
       ok: true,
-      global,
-      byCountry,
-      byStatus,
-      byTier,
-      byBand,
-      byEntityType,
+      data: {
+        global,
+        countries,
+        status,
+        tier,
+        band,
+        entityType,
+      },
     });
   } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "Explorer query failed";
+    console.error("EXPLORER API ERROR:", error);
 
     return NextResponse.json(
       {
         ok: false,
-        error: message,
+        error:
+          error instanceof Error
+            ? error.message
+            : "Explorer API failed",
       },
       { status: 500 }
     );
