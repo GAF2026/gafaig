@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import {
   getExplorerGlobalStats,
-  getExplorerByCountry,
+  getExplorerCountries,
+  getExplorerRecent,
 } from "@/lib/queries/explorer";
 
 export const runtime = "nodejs";
@@ -10,9 +11,10 @@ export const revalidate = 0;
 
 export async function GET() {
   try {
-    const [global, countries] = await Promise.all([
+    const [global, countries, recent] = await Promise.all([
       getExplorerGlobalStats(),
-      getExplorerByCountry(),
+      getExplorerCountries(),
+      getExplorerRecent(),
     ]);
 
     return NextResponse.json({
@@ -20,6 +22,7 @@ export async function GET() {
       data: {
         global,
         countries,
+        recent,
       },
     });
   } catch (error) {
@@ -28,10 +31,7 @@ export async function GET() {
     return NextResponse.json(
       {
         ok: false,
-        error:
-          error instanceof Error
-            ? error.message
-            : "Explorer API failed",
+        error: error instanceof Error ? error.message : "Explorer API failed",
       },
       { status: 500 }
     );
