@@ -8,6 +8,7 @@ export type RegistryQueryRow = {
   entityType: string | null;
   country: string | null;
 
+  certifiedScore: string | null;
   certifiedTier: string | null;
   certifiedBand: string | null;
   decisionStatus: string | null;
@@ -15,8 +16,6 @@ export type RegistryQueryRow = {
   validFrom: string | null;
   validTo: string | null;
   certifiedAt: string | null;
-
-  badgeImageUrl?: string | null;
 };
 
 function asString(value: unknown): string | null {
@@ -41,6 +40,7 @@ function normalizeRegistryRow(row: Record<string, unknown>): RegistryQueryRow {
     entityType: asString(row.ENTITY_TYPE),
     country: asString(row.COUNTRY),
 
+    certifiedScore: asString(row.CERTIFIED_SCORE),
     certifiedTier: asString(row.CERTIFIED_TIER),
     certifiedBand: asString(row.CERTIFIED_BAND),
     decisionStatus: asString(row.DECISION_STATUS),
@@ -48,8 +48,6 @@ function normalizeRegistryRow(row: Record<string, unknown>): RegistryQueryRow {
     validFrom: asString(row.VALID_FROM),
     validTo: asString(row.VALID_TO),
     certifiedAt: asString(row.CERTIFIED_AT),
-
-    badgeImageUrl: asString(row.BADGE_IMAGE_URL),
   };
 }
 
@@ -63,13 +61,13 @@ const REGISTRY_SELECT = `
     ENTITY_NAME,
     ENTITY_TYPE,
     COUNTRY,
+    CERTIFIED_SCORE,
     CERTIFIED_TIER,
     CERTIFIED_BAND,
     DECISION_STATUS,
     VALID_FROM,
     VALID_TO,
-    CERTIFIED_AT,
-    BADGE_IMAGE_URL
+    CERTIFIED_AT
   FROM ${REGISTRY_SOURCE}
 `;
 
