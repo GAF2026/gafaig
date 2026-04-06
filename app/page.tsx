@@ -92,20 +92,20 @@ export default async function HomePage() {
           secondaryDescription="The private verification engine reviews evidence, findings, and governance controls in a controlled environment. The public layer then publishes certification outcomes through signed proof, badges, APIs, and portable trust surfaces so third parties can confirm oversight without exposing sensitive internal materials."
           actions={
             <>
-              <PublicButtonLink href="/mission" variant="primary">
-                Start with the Mission
-              </PublicButtonLink>
-
-              <PublicButtonLink href="/framework" variant="secondary">
-                See How It Works
-              </PublicButtonLink>
-
-              <PublicButtonLink href="/registry" variant="secondary">
-                View Public Records
+              <PublicButtonLink href="/apply" variant="primary">
+                Get Certified
               </PublicButtonLink>
 
               <PublicButtonLink href="/developers" variant="secondary">
                 Explore Integrations
+              </PublicButtonLink>
+
+              <PublicButtonLink href="/mission" variant="ghost">
+                Start with the Mission
+              </PublicButtonLink>
+
+              <PublicButtonLink href="/framework" variant="ghost">
+                See How It Works
               </PublicButtonLink>
             </>
           }
@@ -359,7 +359,13 @@ export default async function HomePage() {
           </h2>
 
           <div className="mt-6 flex flex-wrap gap-3">
-            <PublicButtonLink href="/mission" variant="primary">
+            <PublicButtonLink href="/apply" variant="primary">
+              Apply
+            </PublicButtonLink>
+            <PublicButtonLink href="/developers" variant="secondary">
+              Developers
+            </PublicButtonLink>
+            <PublicButtonLink href="/mission" variant="secondary">
               Mission
             </PublicButtonLink>
             <PublicButtonLink href="/framework" variant="secondary">
