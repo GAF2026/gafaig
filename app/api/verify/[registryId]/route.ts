@@ -8,17 +8,17 @@ export async function GET(
   req: Request,
   { params }: { params: { registryId: string } }
 ) {
-  const registryId = String(params.registryId || "").trim().toUpperCase();
+  const registryIdRaw = String(params.registryId || "").trim();
 
   try {
     const rows = await sfQuery(
       `
       SELECT *
       FROM GAFAIG_DB.CORE.V_REGISTRY_PUBLIC
-      WHERE REGISTRY_ID = ?
+      WHERE UPPER(REGISTRY_ID) = UPPER(?)
       LIMIT 1
       `,
-      [registryId]
+      [registryIdRaw]
     );
 
     if (!rows || rows.length === 0) {
@@ -31,33 +31,20 @@ export async function GET(
 
     const r = rows[0];
 
-    // ✅ NULL SAFE MAPPING
-    const certifiedScore =
-      r.CERTIFIED_SCORE !== null && r.CERTIFIED_SCORE !== undefined
-        ? Number(r.CERTIFIED_SCORE)
-        : null;
-
-    const certifiedTier = r.CERTIFIED_TIER || null;
-    const certifiedBand = r.CERTIFIED_BAND || null;
-    const decisionStatus = r.DECISION_STATUS || null;
-
     return NextResponse.json({
       ok: true,
-      verified: decisionStatus === "APPROVED",
+      verified: r.DECISION_STATUS === "APPROVED",
 
       registryId: r.REGISTRY_ID,
       entityName: r.ENTITY_NAME,
 
       certification: {
-        score: certifiedScore,
-        tier: certifiedTier,
-        band: certifiedBand,
-        status: decisionStatus,
+        score:
+          r.CERTIFIED_SCORE !== null ? Number(r.CERTIFIED_SCORE) : null,
+        tier: r.CERTIFIED_TIER || null,
+        band: r.CERTIFIED_BAND || null,
+        status: r.DECISION_STATUS || null,
         certifiedAt: r.CERTIFIED_AT || null,
-      },
-
-      meta: {
-        source: "V_REGISTRY_PUBLIC",
       },
     });
   } catch (err: any) {
