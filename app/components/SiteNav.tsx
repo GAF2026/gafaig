@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import PublicButtonLink from "./PublicButtonLink";
+import PublicButtonLink from "../_components/PublicButtonLink";
 
 type NavItem = {
   href: string;
