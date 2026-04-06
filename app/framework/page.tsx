@@ -13,11 +13,19 @@ export default function FrameworkPage() {
         secondaryDescription="The framework is designed to separate private review from public trust. Evidence, findings, and assessment workflow remain inside a controlled verification environment, while certification results are disclosed through a verifiable public registry."
         actions={
           <>
-            <PublicButtonLink href="/registry" variant="primary">
+            <PublicButtonLink href="/apply" variant="primary">
+              Apply for Certification
+            </PublicButtonLink>
+
+            <PublicButtonLink href="/developers" variant="secondary">
+              Explore Integrations
+            </PublicButtonLink>
+
+            <PublicButtonLink href="/registry" variant="secondary">
               View the Registry
             </PublicButtonLink>
 
-            <PublicButtonLink href="/mission" variant="secondary">
+            <PublicButtonLink href="/mission" variant="ghost">
               Mission &amp; Scope
             </PublicButtonLink>
           </>
@@ -258,7 +266,13 @@ export default function FrameworkPage() {
         </p>
 
         <div className="mt-8 flex flex-wrap gap-3">
-          <PublicButtonLink href="/registry" variant="primary">
+          <PublicButtonLink href="/apply" variant="primary">
+            Apply for Certification
+          </PublicButtonLink>
+          <PublicButtonLink href="/developers" variant="secondary">
+            Explore Integrations
+          </PublicButtonLink>
+          <PublicButtonLink href="/registry" variant="secondary">
             View public registry
           </PublicButtonLink>
           <PublicButtonLink href="/explorer" variant="secondary">
