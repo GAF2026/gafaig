@@ -146,24 +146,26 @@ export default function DevelopersPage() {
               need it.
             </p>
 
-            <CodeBlock
-              title="Initialize"
-              code={`<script src="${BASE_URL}/widget/gafaig-widget.js"></script>
+            <div className="mt-6 space-y-4">
+              <CodeBlock
+                title="Initialize"
+                code={`<script src="${BASE_URL}/widget/gafaig-widget.js"></script>
 <script>
   GAFAIG.init();
 </script>`}
-            />
+              />
 
-            <CodeBlock
-              title="Verify"
-              code={`const result = await GAFAIG.verify("${EXAMPLE_ID}");
+              <CodeBlock
+                title="Verify"
+                code={`const result = await GAFAIG.verify("${EXAMPLE_ID}");
 console.log(result);`}
-            />
+              />
 
-            <CodeBlock
-              title="Render widget"
-              code={`GAFAIG.render("#target", "${EXAMPLE_ID}");`}
-            />
+              <CodeBlock
+                title="Render widget"
+                code={`GAFAIG.render("#target", "${EXAMPLE_ID}");`}
+              />
+            </div>
           </div>
         </section>
 
@@ -179,17 +181,19 @@ console.log(result);`}
             signed proof needed for independent verification.
           </p>
 
-          <CodeBlock title="Request" code={`GET ${verifyUrl}`} />
+          <div className="mt-6 space-y-4">
+            <CodeBlock title="Request" code={`GET ${verifyUrl}`} />
 
-          <CodeBlock
-            title="Minimal usage"
-            code={`const res = await fetch("${verifyUrl}");
+            <CodeBlock
+              title="Minimal usage"
+              code={`const res = await fetch("${verifyUrl}");
 const data = await res.json();
 
 if (data.verified) {
   console.log("Certified");
 }`}
-          />
+            />
+          </div>
         </section>
 
         <section className="grid gap-8 lg:grid-cols-2">
@@ -469,21 +473,6 @@ function Card({
       </h3>
       <p className="mt-4 text-[16px] leading-[1.9] text-black/72">{body}</p>
       <div className="mt-6">{children}</div>
-    </div>
-  );
-}
-
-function StatementCard({
-  title,
-  body,
-}: {
-  title: string;
-  body: string;
-}) {
-  return (
-    <div className="rounded-[24px] border border-black/10 bg-black/[0.02] p-5">
-      <div className="text-base font-semibold text-black">{title}</div>
-      <p className="mt-2 text-sm leading-7 text-black/68">{body}</p>
     </div>
   );
 }
