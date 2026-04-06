@@ -7,6 +7,7 @@ export type RegistryRow = {
   entityType: string | null;
   country: string | null;
 
+  certifiedScore?: string | null;
   certifiedTier: string | null;
   certifiedBand: string | null;
   decisionStatus: string | null;
@@ -77,6 +78,33 @@ export type RegistryAiSystemsApiResponse =
     }
   | { ok: false; error: string };
 
+export type BadgeApiResponse =
+  | {
+      ok: true;
+      registryId: string;
+      entityName: string | null;
+      certifiedTier: string | null;
+      certifiedBand: string | null;
+      certifiedAt: string | null;
+      badge: {
+        tier: string;
+        label: string;
+        imageUrl: string;
+      };
+      verifyUrl: string;
+      registryUrl: string;
+      widgetUrl: string;
+      embed: {
+        imageHtml: string;
+        linkedImageHtml: string;
+        iframeHtml: string;
+      };
+    }
+  | {
+      ok: false;
+      error: string;
+    };
+
 export type VerifyApiResponse =
   | {
       ok: true;
@@ -90,6 +118,7 @@ export type VerifyApiResponse =
         entityType: string | null;
         country: string | null;
         certificationStatus: string | null;
+        certifiedScore?: number | null;
         certifiedTier: string | null;
         certifiedBand: string | null;
         decisionStatus: string | null;

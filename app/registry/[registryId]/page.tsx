@@ -228,6 +228,72 @@ export default async function RegistryRecordPage({
           absoluteVerifyUrl={absoluteVerifyUrl}
           absoluteBadgeUrl={absoluteBadgeUrl}
         />
+
+        <section className="rounded-[32px] border border-black/10 bg-white p-8 md:p-10">
+          <div className="text-[11px] font-semibold uppercase tracking-[0.28em] text-black/45">
+            Trust distribution
+          </div>
+
+          <h2 className="mt-4 text-2xl font-semibold tracking-tight text-black">
+            Embed this certification anywhere
+          </h2>
+
+          <p className="mt-4 max-w-[900px] text-[15px] leading-8 text-black/70">
+            Use the snippets below to display GAFAIG certification on your
+            website, product, or documentation. These embed directly from the
+            canonical verification system.
+          </p>
+
+          <div className="mt-8 grid gap-6 md:grid-cols-2">
+            <div className="rounded-2xl border border-black/10 p-6">
+              <div className="text-sm font-semibold text-black">
+                Badge (linked)
+              </div>
+
+              <pre className="mt-4 overflow-x-auto rounded-xl border border-black/10 bg-black/[0.03] p-4 text-[13px] leading-7 text-black/85">
+                <code>{`<a href="${absoluteVerifyUrl}" target="_blank" rel="noopener noreferrer">
+  <img src="${absoluteBadgeUrl}" alt="GAFAIG certification badge" style="height:64px;width:auto" />
+</a>`}</code>
+              </pre>
+            </div>
+
+            <div className="rounded-2xl border border-black/10 p-6">
+              <div className="text-sm font-semibold text-black">
+                Live widget
+              </div>
+
+              <pre className="mt-4 overflow-x-auto rounded-xl border border-black/10 bg-black/[0.03] p-4 text-[13px] leading-7 text-black/85">
+                <code>{`<script src="https://www.gafaig.com/widget/gafaig-widget.js"></script>
+<div data-gafaig-id="${registryId}"></div>`}</code>
+              </pre>
+            </div>
+
+            <div className="rounded-2xl border border-black/10 p-6">
+              <div className="text-sm font-semibold text-black">
+                Verification link
+              </div>
+
+              <pre className="mt-4 overflow-x-auto rounded-xl border border-black/10 bg-black/[0.03] p-4 text-[13px] leading-7 text-black/85">
+                <code>{absoluteVerifyUrl}</code>
+              </pre>
+            </div>
+
+            <div className="rounded-2xl border border-black/10 p-6">
+              <div className="text-sm font-semibold text-black">
+                Widget preview
+              </div>
+
+              <div className="mt-4">
+                <PublicButtonLink
+                  href={`/widget-preview/${encodeURIComponent(registryId)}`}
+                  variant="primary"
+                >
+                  Open widget preview →
+                </PublicButtonLink>
+              </div>
+            </div>
+          </div>
+        </section>
       </div>
     </main>
   );
