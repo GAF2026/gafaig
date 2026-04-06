@@ -25,7 +25,7 @@ export default function FrameworkPage() {
               View the Registry
             </PublicButtonLink>
 
-            <PublicButtonLink href="/mission" variant="ghost">
+            <PublicButtonLink href="/mission" variant="secondary">
               Mission &amp; Scope
             </PublicButtonLink>
           </>
