@@ -6,70 +6,70 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-function nowIso() {
-  return new Date().toISOString();
-}
-
-function makeId(prefix = "APP") {
-  const yyyyMMdd =
-    new Date().getFullYear().toString() +
-    String(new Date().getMonth() + 1).padStart(2, "0") +
-    String(new Date().getDate()).padStart(2, "0");
-  const rand = crypto.randomBytes(4).toString("hex");
-  return `${prefix}-${yyyyMMdd}-${rand}`;
-}
+type ApplyPayload = {
+  orgName?: string;
+  email?: string;
+  country?: string;
+  systemName?: string;
+  systemType?: string;
+};
 
 function clean(value: unknown): string {
   return String(value ?? "").trim();
 }
 
-function json(data: unknown, status = 200) {
-  return NextResponse.json(data, {
-    status,
-    headers: { "Cache-Control": "no-store" },
-  });
+function makeId(prefix: string) {
+  const yyyyMMdd =
+    new Date().getFullYear().toString() +
+    String(new Date().getMonth() + 1).padStart(2, "0") +
+    String(new Date().getDate()).padStart(2, "0");
+
+  const rand = crypto.randomBytes(4).toString("hex");
+  return `${prefix}-${yyyyMMdd}-${rand}`;
 }
 
 export async function POST(req: Request) {
-  let payload: Record<string, unknown> = {};
+  let body: ApplyPayload = {};
 
   try {
-    payload = (await req.json()) as Record<string, unknown>;
+    body = (await req.json()) as ApplyPayload;
   } catch {
-    payload = {};
+    body = {};
   }
 
-  const orgName = clean(payload.orgName);
-  const email = clean(payload.email);
-  const country = clean(payload.country);
-  const systemName = clean(payload.systemName);
-  const systemType = clean(payload.systemType);
+  const orgName = clean(body.orgName);
+  const email = clean(body.email);
+  const country = clean(body.country);
+  const systemName = clean(body.systemName);
+  const systemType = clean(body.systemType);
 
-  if (!orgName || !email) {
-    return json(
-      {
-        ok: false,
-        error: "Organization name and email are required.",
-      },
-      400
+  if (!orgName) {
+    return NextResponse.json(
+      { ok: false, error: "Organization name is required." },
+      { status: 400, headers: { "Cache-Control": "no-store" } }
     );
   }
 
-  const requestId = makeId("APP");
-  const applicationId = makeId("APP-DEMO");
-  const createdAt = nowIso();
+  if (!email) {
+    return NextResponse.json(
+      { ok: false, error: "Contact email is required." },
+      { status: 400, headers: { "Cache-Control": "no-store" } }
+    );
+  }
+
+  const requestId = makeId("REQ");
+  const applicationId = makeId("APP");
 
   try {
     await sfQuery(
       `
-      INSERT INTO GAFAIG_DB.CORE.APPLICATIONS (
+      INSERT INTO GAFAIG_DB.CORE.APPLICATIONS
+      (
         REQUEST_ID,
         TYPE,
         STATUS,
         ORG_NAME,
         EMAIL,
-        CREATED_AT,
-        UPDATED_AT,
         APPLICATION_ID,
         ORG_TYPE,
         COUNTRY
@@ -80,46 +80,41 @@ export async function POST(req: Request) {
         ?,
         ?,
         ?,
-        CURRENT_TIMESTAMP(),
-        CURRENT_TIMESTAMP(),
         ?,
         ?,
         ?
       `,
       [
         requestId,
-        systemType || "AI_SYSTEM",
-        "PENDING",
+        systemName || "AI system application",
+        "received",
         orgName,
         email,
         applicationId,
-        systemName || "Organization",
+        systemType || "Organization",
         country || null,
       ]
     );
 
-    return json({
-      ok: true,
-      requestId,
-      applicationId,
-      createdAt,
-      message: "Application received.",
-      intake: {
-        orgName,
-        email,
-        country: country || null,
-        systemName: systemName || null,
-        systemType: systemType || null,
+    return NextResponse.json(
+      {
+        ok: true,
+        requestId,
+        applicationId,
+        message: "Application received.",
       },
-    });
+      { headers: { "Cache-Control": "no-store" } }
+    );
   } catch (error) {
-    return json(
+    return NextResponse.json(
       {
         ok: false,
         error:
-          error instanceof Error ? error.message : "Application submission failed.",
+          error instanceof Error
+            ? error.message
+            : "Application submission failed.",
       },
-      500
+      { status: 500, headers: { "Cache-Control": "no-store" } }
     );
   }
 }
