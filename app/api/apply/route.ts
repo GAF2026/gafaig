@@ -1,23 +1,16 @@
 import { NextResponse } from "next/server";
-import path from "path";
-import { promises as fs } from "fs";
 import crypto from "crypto";
+import { sfQuery } from "@/lib/snowflake";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-
-type StoreShape = {
-  version: number;
-  lastUpdated: string;
-  items: any[];
-};
+export const revalidate = 0;
 
 function nowIso() {
   return new Date().toISOString();
 }
 
 function makeId(prefix = "APP") {
-  // Example: APP-20260130-<8hex>
   const yyyyMMdd =
     new Date().getFullYear().toString() +
     String(new Date().getMonth() + 1).padStart(2, "0") +
@@ -26,90 +19,107 @@ function makeId(prefix = "APP") {
   return `${prefix}-${yyyyMMdd}-${rand}`;
 }
 
-async function safeReadStore(filePath: string): Promise<StoreShape> {
-  try {
-    const raw = await fs.readFile(filePath, "utf8");
-    if (!raw.trim()) {
-      return { version: 1, lastUpdated: nowIso(), items: [] };
-    }
-    const parsed = JSON.parse(raw);
-
-    // Normalize to { version, lastUpdated, items }
-    if (Array.isArray(parsed)) {
-      return { version: 1, lastUpdated: nowIso(), items: parsed };
-    }
-
-    if (parsed && typeof parsed === "object") {
-      const anyParsed: any = parsed;
-
-      // If it already matches your schema:
-      if (Array.isArray(anyParsed.items)) {
-        return {
-          version: typeof anyParsed.version === "number" ? anyParsed.version : 1,
-          lastUpdated: typeof anyParsed.lastUpdated === "string" ? anyParsed.lastUpdated : nowIso(),
-          items: anyParsed.items,
-        };
-      }
-
-      // Back-compat shapes:
-      if (Array.isArray(anyParsed.rows)) return { version: 1, lastUpdated: nowIso(), items: anyParsed.rows };
-      if (Array.isArray(anyParsed.applications)) return { version: 1, lastUpdated: nowIso(), items: anyParsed.applications };
-
-      // Unknown object shape -> preserve nothing, start clean
-      return { version: 1, lastUpdated: nowIso(), items: [] };
-    }
-
-    return { version: 1, lastUpdated: nowIso(), items: [] };
-  } catch {
-    // If file doesn't exist or parse fails, create fresh store
-    return { version: 1, lastUpdated: nowIso(), items: [] };
-  }
+function clean(value: unknown): string {
+  return String(value ?? "").trim();
 }
 
-async function atomicWriteJson(filePath: string, data: any) {
-  const dir = path.dirname(filePath);
-  await fs.mkdir(dir, { recursive: true });
-
-  const tmpPath = `${filePath}.tmp`;
-  const json = JSON.stringify(data, null, 2);
-
-  await fs.writeFile(tmpPath, json, "utf8");
-  await fs.rename(tmpPath, filePath);
+function json(data: unknown, status = 200) {
+  return NextResponse.json(data, {
+    status,
+    headers: { "Cache-Control": "no-store" },
+  });
 }
 
 export async function POST(req: Request) {
-  const filePath = path.join(process.cwd(), "app", "data", "applications.json");
+  let payload: Record<string, unknown> = {};
 
-  let payload: any = {};
   try {
-    payload = await req.json();
+    payload = (await req.json()) as Record<string, unknown>;
   } catch {
     payload = {};
   }
 
-  const store = await safeReadStore(filePath);
+  const orgName = clean(payload.orgName);
+  const email = clean(payload.email);
+  const country = clean(payload.country);
+  const systemName = clean(payload.systemName);
+  const systemType = clean(payload.systemType);
+
+  if (!orgName || !email) {
+    return json(
+      {
+        ok: false,
+        error: "Organization name and email are required.",
+      },
+      400
+    );
+  }
 
   const requestId = makeId("APP");
+  const applicationId = makeId("APP-DEMO");
   const createdAt = nowIso();
 
-  const record = {
-    requestId,
-    createdAt,
-    status: "received",
-    ...payload,
-  };
+  try {
+    await sfQuery(
+      `
+      INSERT INTO GAFAIG_DB.CORE.APPLICATIONS (
+        REQUEST_ID,
+        TYPE,
+        STATUS,
+        ORG_NAME,
+        EMAIL,
+        CREATED_AT,
+        UPDATED_AT,
+        APPLICATION_ID,
+        ORG_TYPE,
+        COUNTRY
+      )
+      SELECT
+        ?,
+        ?,
+        ?,
+        ?,
+        ?,
+        CURRENT_TIMESTAMP(),
+        CURRENT_TIMESTAMP(),
+        ?,
+        ?,
+        ?
+      `,
+      [
+        requestId,
+        systemType || "AI_SYSTEM",
+        "PENDING",
+        orgName,
+        email,
+        applicationId,
+        systemName || "Organization",
+        country || null,
+      ]
+    );
 
-  store.items.push(record);
-  store.lastUpdated = nowIso();
-
-  await atomicWriteJson(filePath, store);
-
-  return NextResponse.json(
-    {
+    return json({
       ok: true,
       requestId,
+      applicationId,
+      createdAt,
       message: "Application received.",
-    },
-    { headers: { "Cache-Control": "no-store" } }
-  );
+      intake: {
+        orgName,
+        email,
+        country: country || null,
+        systemName: systemName || null,
+        systemType: systemType || null,
+      },
+    });
+  } catch (error) {
+    return json(
+      {
+        ok: false,
+        error:
+          error instanceof Error ? error.message : "Application submission failed.",
+      },
+      500
+    );
+  }
 }
