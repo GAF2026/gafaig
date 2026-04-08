@@ -18,6 +18,10 @@ function clean(value: unknown): string {
   return String(value ?? "").trim();
 }
 
+function normalizeUpper(value: unknown): string {
+  return clean(value).toUpperCase();
+}
+
 function makeId(prefix: string) {
   const yyyyMMdd =
     new Date().getFullYear().toString() +
@@ -25,7 +29,7 @@ function makeId(prefix: string) {
     String(new Date().getDate()).padStart(2, "0");
 
   const rand = crypto.randomBytes(4).toString("hex");
-  return `${prefix}-${yyyyMMdd}-${rand}`;
+  return `${prefix}-${yyyyMMdd}-${rand}`.trim().toUpperCase();
 }
 
 export async function POST(req: Request) {
@@ -85,22 +89,22 @@ export async function POST(req: Request) {
         ?
       `,
       [
-        requestId,
-        systemName || "AI system application",
+        normalizeUpper(requestId),
+        systemName ? clean(systemName) : "AI system application",
         "received",
-        orgName,
-        email,
-        applicationId,
-        systemType || "Organization",
-        country || null,
+        clean(orgName),
+        clean(email),
+        normalizeUpper(applicationId),
+        systemType ? clean(systemType) : "Organization",
+        country ? clean(country) : null,
       ]
     );
 
     return NextResponse.json(
       {
         ok: true,
-        requestId,
-        applicationId,
+        requestId: normalizeUpper(requestId),
+        applicationId: normalizeUpper(applicationId),
         message: "Application received.",
       },
       { headers: { "Cache-Control": "no-store" } }
