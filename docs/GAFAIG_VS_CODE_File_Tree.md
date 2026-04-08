@@ -1,317 +1,195 @@
-# GAFAIG — VS CODE FILE TREE
-Canonical Project Structure
-Last Updated: 2026-04-03
+# GAFAIG — VS CODE FILE TREE (CANONICAL) — 2026-04-07
 
----
+## OVERVIEW
+This document represents the canonical GAFAIG VS Code project structure. It reflects the full Next.js (App Router) application, Snowflake query layer, API routes, admin workflows, and supporting infrastructure. The structure enforces the rule: Snowflake is the source of truth, and the application layer is a thin orchestration layer.
 
-# PURPOSE
-
-This document provides a clean, human-readable representation of:
-
-• the GAFAIG repository structure  
-• folder hierarchy  
-• key files and their locations  
-
-Use this to:
-
-→ navigate the project quickly  
-→ understand where logic lives  
-→ avoid duplication or confusion  
-
----
-
-# ROOT
-
-gafaig/
-
----
-
-# TOP-LEVEL STRUCTURE
-
+## ROOT
 gafaig/
 ├─ app/
+├─ components/
 ├─ lib/
+├─ types/
 ├─ public/
 ├─ docs/
-├─ .next/                (build output — ignore)
-├─ .vercel/              (deployment metadata — ignore)
-├─ node_modules/         (dependencies — ignore)
+├─ middleware.ts
+├─ next.config.js
 ├─ package.json
 ├─ tsconfig.json
-├─ next.config.js
-├─ .env.local
 
----
+## APP (NEXT.JS APP ROUTER)
 
-# APP (NEXT.JS APPLICATION)
-
+### PUBLIC PAGES
 app/
-├─ page.tsx                     → homepage
-├─ layout.tsx                   → root layout
+├─ page.tsx (homepage)
+├─ mission/page.tsx
+├─ framework/page.tsx
+├─ demo/page.tsx
+├─ demo-script/page.tsx
 
----
+### REGISTRY
+app/registry/
+├─ page.tsx (registry list)
+├─ [registryId]/page.tsx (registry detail)
+├─ ai-systems/page.tsx
 
-## GLOBAL COMPONENTS
+### EXPLORER
+app/explorer/
+├─ page.tsx
+├─ organizations/page.tsx
+├─ systems/page.tsx
+├─ countries/page.tsx
+├─ map/page.tsx
 
-app/_components/
-├─ SiteNav.tsx
-├─ SiteFooter.tsx
-├─ PublicPageHero.tsx
-├─ PublicButtonLink.tsx
+### APPLY FLOW
+app/apply/
+├─ page.tsx
+├─ ApplyForm.tsx
 
----
+### ADMIN
+app/admin/
+├─ login/page.tsx
+├─ applications/page.tsx
+├─ verification/
+│  ├─ [caseId]/page.tsx
+│  ├─ [caseId]/findings/page.tsx
+│  ├─ [caseId]/evidence/page.tsx
+│  ├─ [caseId]/decision/page.tsx
 
 ## API ROUTES
 
 app/api/
-├─ registry/
-│  ├─ route.ts
-│
-├─ verify/
-│  ├─ [registryId]/
-│  │  ├─ route.ts
-│
-├─ badge/
-│  ├─ [registryId]/
-│  │  ├─ route.ts
-│
-├─ .well-known/
-│  ├─ gafaig-public-key/
-│  │  ├─ route.ts
-│
+
+### PUBLIC API
+├─ registry/route.ts (V_REGISTRY_PUBLIC)
+├─ registry/search/route.ts (V_REGISTRY_PUBLIC_SEARCH)
+├─ verify/[registryId]/route.ts
+├─ badge/[registryId]/route.ts
+├─ .well-known/gafaig-public-key/route.ts
+
+### APPLY
+├─ apply/route.ts (writes application to local JSON store)
+
+### ADMIN API
 ├─ admin/
-│  ├─ applications/
+│  ├─ applications/route.ts
 │  ├─ verification/
-│  │  ├─ [caseId]/
-│  │  │  ├─ evidence/
-│  │  │  ├─ findings/
-│  │  │  ├─ score/
-│  │  │  ├─ publish/
-│  │  │  ├─ decisions/
+│  │  ├─ cases/route.ts
+│  │  ├─ findings/route.ts
+│  │  ├─ evidence/route.ts
+│  │  ├─ decisions/route.ts
 
----
+## COMPONENTS
 
-## REGISTRY
+components/
+├─ registry/
+│  ├─ RegistryHeaderPanel.tsx
+│  ├─ RegistryCertificationSummary.tsx
+│  ├─ RegistryVerificationPanel.tsx
+├─ ui/
+│  ├─ StatusChip.tsx
+│  ├─ PublicButton.tsx
+│  ├─ PublicButtonLink.tsx
 
-app/registry/
-├─ page.tsx                    → registry listing
-├─ [registryId]/
-│  ├─ page.tsx                → registry detail
-
----
-
-## EXPLORER
-
-app/explorer/
-├─ page.tsx                   → explorer landing
-├─ countries/
-│  ├─ page.tsx
-├─ organizations/
-│  ├─ page.tsx
-├─ systems/
-│  ├─ page.tsx
-├─ map/
-│  ├─ page.tsx
-
----
-
-## VERIFY
-
-app/verify/
-├─ page.tsx                   → verification guide
-
----
-
-## CORE PAGES
-
-app/framework/
-├─ page.tsx
-
-app/mission/
-├─ page.tsx
-
-app/demo/
-├─ page.tsx
-
----
-
-## OPTIONAL / DEV
-
-app/widget-preview/
-├─ [registryId]/
-│  ├─ page.tsx               → widget testing page
-
----
-
-# LIB (CORE LOGIC)
+## LIB (QUERY + INFRASTRUCTURE)
 
 lib/
-├─ snowflake.ts              → connection + sfQuery
-├─ crypto/
-│  ├─ verify-signing.ts      → signing logic
-│
+├─ snowflake.ts (canonical Snowflake connection / sfQuery)
 ├─ queries/
 │  ├─ registry.ts
-│  ├─ explorer.ts
 │  ├─ registry-ai-systems.ts
+│  ├─ explorer.ts
+├─ auth/
+│  ├─ requireAdmin.ts
 
----
+## TYPES
 
-# PUBLIC (STATIC ASSETS)
+types/
+├─ registry.ts (RegistryRow, RegistryApiResponse, VerifyApiResponse, etc.)
+
+## PUBLIC ASSETS
 
 public/
-├─ widget/
-│  ├─ gafaig-widget.js       → embeddable widget (v1 locked)
-│  ├─ gafaig-verify.js       → verify modal script
-│
 ├─ images/
-│  ├─ (optional assets)
+│  ├─ gafaig-badge-tier-1.png
+│  ├─ gafaig-badge-default.png
 
----
+## DATA (LOCAL DEV ONLY)
 
-# DOCS (CANONICAL SYSTEM FILES)
+app/data/
+├─ applications.json (temporary ingestion store for apply flow)
+
+## DOCS (CANONICAL SYSTEM FILES)
 
 docs/
 ├─ MASTER_STATE.md
 ├─ CURRENT_FOCUS.md
-├─ CHANGELOG.md
+├─ ENGINEERING_RULES.md
 ├─ PROJECT_INDEX.md
+├─ CHANGELOG.md
 ├─ API_ROUTE_MAPPING.md
 ├─ UI_COMPONENT_MAPPING.md
 ├─ SNOWFLAKE_WORKSHEET_MAPPING.md
 ├─ GAFAIG_SNOWFLAKE_SQL_FILE_SUMMARY.md
 ├─ GAFAIG_VS_CODE_File_Tree.md
-├─ ENGINEERING_RULES.md
 
----
+## MIDDLEWARE
 
-# KEY FILE RELATIONSHIPS
+middleware.ts
+- Handles admin authentication
+- Uses GAFAIG_SESSION_SECRET
+- Protects /admin routes
 
----
+## KEY ARCHITECTURAL RULE
 
-## Registry
+ALL DATA FLOW:
 
-app/registry/page.tsx
-→ queries V_REGISTRY_PUBLIC
-→ displays registry records
+Snowflake → lib/queries → API → UI
 
-app/registry/[registryId]/page.tsx
-→ displays single record
-→ connects to trust surfaces
+NEVER:
+- UI directly querying database
+- API computing scores
+- Business logic outside Snowflake
 
----
+## CURRENT SYSTEM STATE (RELEVANT TO FILE TREE)
 
-## Explorer
+WORKING:
+- Next.js routing structure complete
+- API routes implemented for registry, verify, badge
+- Query layer connected to Snowflake
+- Admin pages scaffolded
+- Apply flow writing to local JSON
 
-app/explorer/page.tsx
-→ aggregates from V_REGISTRY_PUBLIC
+BLOCKER:
+- Apply flow is NOT connected to Snowflake CORE.APPLICATIONS
+- Admin applications page is not sourcing from Snowflake
+- No automatic pipeline trigger from application → case
+- Snowflake procedure SP_CREATE_CASE_FROM_APPLICATION not yet wired to API
 
-subpages:
-→ group data (countries, orgs, systems)
+## CURRENT PIPELINE GAP
 
----
+Apply (UI)
+→ app/api/apply/route.ts (writes JSON only)
+→ ❌ NOT writing to CORE.APPLICATIONS
+→ ❌ NOT triggering SP_CREATE_CASE_FROM_APPLICATION
+→ ❌ No case created in Snowflake
+→ ❌ No downstream pipeline
 
-## Verify API
+## REQUIRED NEXT CONNECTION
 
-app/api/verify/[registryId]/route.ts
-→ Snowflake query
-→ signed proof generation
+Replace local ingestion with Snowflake write:
 
----
+app/api/apply/route.ts
+→ INSERT INTO CORE.APPLICATIONS
 
-## Widget
+Then:
 
-public/widget/gafaig-widget.js
-→ calls verify API
-→ renders trust surface externally
+Admin action OR API route
+→ CALL CORE.SP_CREATE_CASE_FROM_APPLICATION
 
----
+## FINAL NOTE
 
-## Signing
+The VS Code structure is complete and correctly aligned with GAFAIG architecture.
+The current failure is not structural but integration-level:
+the frontend apply flow is not yet connected to the Snowflake engine.
 
-lib/crypto/verify-signing.ts
-→ generates signature
-→ defines alg + kid
-
----
-
-# DATA FLOW
-
-Snowflake
-→ sfQuery (lib/snowflake.ts)
-→ API route
-→ UI page
-→ user
-
----
-
-# TRUST FLOW
-
-Registry
-→ Verify API
-→ Signed Proof
-→ Public Key
-→ Widget / Badge / QR
-→ External validation
-
----
-
-# BUILD + DEPLOYMENT
-
-## Local
-
-npm run dev
-
----
-
-## Production
-
-git add .
-git commit -m "message"
-git push origin main
-
-→ Vercel auto deploy
-
----
-
-# CRITICAL RULES
-
-DO NOT:
-
-• move logic out of Snowflake  
-• compute certification in UI/API  
-• bypass query layer  
-
----
-
-ALWAYS:
-
-• use sfQuery  
-• rely on V_REGISTRY_PUBLIC  
-• maintain deterministic outputs  
-
----
-
-# STATUS
-
-Project is:
-
-✔ structured  
-✔ stable  
-✔ production-ready  
-✔ externally verifiable  
-
----
-
-# SUMMARY
-
-This file tree represents:
-
-→ a complete trust infrastructure system  
-
-All components connect back to:
-
-→ Snowflake  
-→ canonical registry record  
-
-No exceptions.
+Once connected, the entire GAFAIG pipeline will activate end-to-end.

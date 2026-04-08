@@ -1,402 +1,341 @@
 # GAFAIG — PROJECT INDEX
-System Map & Navigation Reference
-Last Updated: 2026-04-03
+Repository Structure & System Map
+Last Updated: 2026-04-06
 
 ---
 
-# PURPOSE
-
-This document provides a complete index of:
-
-• system architecture layers  
-• Snowflake components  
-• API routes  
-• UI routes  
-• VS Code file structure  
-• trust infrastructure surfaces  
-
-Use this file to quickly locate:
-
-→ where logic lives  
-→ where data originates  
-→ how components connect  
-
----
-
-# SYSTEM OVERVIEW
-
-GAFAIG is structured as:
-
-1. Snowflake (source of truth)  
-2. Query Layer (controlled access)  
-3. API Layer (pass-through)  
-4. UI Layer (presentation only)  
-5. Trust Infrastructure Layer (external verification)  
-
----
-
-# LAYER 1 — SNOWFLAKE (SOURCE OF TRUTH)
-
-## Database
-GAFAIG_DB
-
-## Schema
-CORE
-
----
-
-## Core Tables
-
-CORE.APPLICATIONS  
-CORE.VERIFICATION_CASES  
-CORE.VERIFICATION_FINDINGS  
-CORE.VERIFICATION_EVIDENCE  
-CORE.VERIFICATION_EVENTS  
-CORE.DECISIONS  
-CORE.REGISTRY_SNAPSHOTS  
-
----
-
-## Core Views
-
-CORE.V_REGISTRY_LATEST_APPROVED  
-→ latest approved snapshot per case  
-
-CORE.V_REGISTRY_PUBLIC  
-→ primary public registry projection  
-
-CORE.V_REGISTRY_PUBLIC_SEARCH  
-→ search-optimized registry view  
-
-CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC  
-→ public AI systems registry  
-
----
-
-## Engine Views
-
-V_CASE_SCORE_ENTERPRISE  
-V_CASE_TIER_BAND  
-V_CONTROL_SCORE_COMPONENTS  
-
----
-
-## Stored Procedures
-
-SP_SCORE_CASE_ENTERPRISE  
-→ deterministic scoring  
-
-SP_PUBLISH_CASE_TO_REGISTRY_V3  
-→ publish registry snapshot  
-
----
-
-# LAYER 2 — QUERY LAYER
-
-## Location
-lib/queries/
-
-## Purpose
-• centralize all Snowflake queries  
-• prevent duplication  
-• enforce consistency  
-
----
-
-## Key Files
-
-lib/snowflake.ts  
-→ connection + sfQuery()  
-
-lib/queries/registry.ts  
-→ registry queries  
-
-lib/queries/explorer.ts  
-→ explorer queries  
-
-lib/queries/registry-ai-systems.ts  
-→ AI systems queries  
-
----
-
-# LAYER 3 — API LAYER
-
-## Rules
-
-• no business logic  
-• no scoring  
-• no transformation beyond mapping  
-• pass-through only  
-
----
-
-## Routes
-
-### Registry API
-/api/registry  
-→ list/search registry  
-
-/api/registry/search  
-→ search endpoint  
-
----
-
-### Verification API
-/api/verify/[registryId]  
-→ verification response  
-→ returns record + proof  
-
----
-
-### Badge API
-/api/badge/[registryId]  
-→ badge rendering  
-
----
-
-### Public Key
-/api/.well-known/gafaig-public-key  
-→ verification key endpoint  
-
----
-
-# LAYER 4 — UI LAYER (NEXT.JS)
-
-## Core Pages
-
-/  
-→ homepage  
-
-/mission  
-→ system purpose  
-
-/framework  
-→ governance model  
-
-/registry  
-→ registry listing  
-
-/registry/[registryId]  
-→ registry detail  
-
-/explorer  
-→ explorer landing  
-
-/verify  
-→ verification guide  
-
-/demo  
-→ demo surface  
-
----
-
-## Explorer Subpages
-
-/explorer/countries  
-/explorer/organizations  
-/explorer/systems  
-/explorer/map  
-
----
-
-## Admin (Internal)
-
-/admin/login  
-/admin/applications  
-/admin/verification/[caseId]/evidence  
-/admin/verification/[caseId]/findings  
-/admin/verification/[caseId]/score  
-/admin/verification/[caseId]/publish  
-/admin/verification/[caseId]/decisions  
-
----
-
-# LAYER 5 — TRUST INFRASTRUCTURE
-
-## Public Trust Surfaces
-
-### Registry of Record
-/registry  
-/registry/[registryId]  
-
----
-
-### Verification
-/api/verify/[registryId]  
-/verify  
-
----
-
-### Proof
-Signed payload (API response)
-
----
-
-### Public Key
-/api/.well-known/gafaig-public-key  
-
----
-
-### Badge
-/badge/[registryId]  
-
----
-
-### Widget
-public/widget/gafaig-widget.js  
-
----
-
-### Verify Button
-public/widget/gafaig-verify.js  
-
----
-
-### QR Path
-QR → /verify → API  
-
----
-
-# VS CODE FILE STRUCTURE (HIGH LEVEL)
+# ROOT
 
 gafaig/
 
 ├─ app/  
-│  ├─ _components/  
-│  │  ├─ SiteNav.tsx  
-│  │  ├─ SiteFooter.tsx  
-│  │  ├─ PublicPageHero.tsx  
-│  │  ├─ PublicButtonLink.tsx  
-│  │  
-│  ├─ api/  
-│  │  ├─ registry/  
-│  │  ├─ verify/[registryId]/route.ts  
-│  │  ├─ badge/[registryId]/route.ts  
-│  │  ├─ .well-known/gafaig-public-key/route.ts  
-│  │  
-│  ├─ registry/  
-│  │  ├─ page.tsx  
-│  │  ├─ [registryId]/page.tsx  
-│  │  
-│  ├─ explorer/  
-│  │  ├─ page.tsx  
-│  │  ├─ countries/  
-│  │  ├─ organizations/  
-│  │  ├─ systems/  
-│  │  ├─ map/  
-│  │  
-│  ├─ verify/  
-│  │  ├─ page.tsx  
-│  │  
-│  ├─ framework/  
-│  ├─ mission/  
-│  ├─ demo/  
-│  ├─ page.tsx  
-│  
+├─ components/  
 ├─ lib/  
-│  ├─ snowflake.ts  
-│  ├─ crypto/verify-signing.ts  
-│  ├─ queries/  
-│  
 ├─ public/  
-│  ├─ widget/  
-│  │  ├─ gafaig-widget.js  
-│  │  ├─ gafaig-verify.js  
-│  
 ├─ docs/  
-│  ├─ MASTER_STATE.md  
-│  ├─ CURRENT_FOCUS.md  
-│  ├─ CHANGELOG.md  
-│  ├─ PROJECT_INDEX.md  
-│  ├─ API_ROUTE_MAPPING.md  
-│  ├─ UI_COMPONENT_MAPPING.md  
-│  ├─ SNOWFLAKE_WORKSHEET_MAPPING.md  
-│  ├─ GAFAIG_SNOWFLAKE_SQL_FILE_SUMMARY.md  
-│  ├─ GAFAIG_VS_CODE_File_Tree.md  
-│  ├─ ENGINEERING_RULES.md  
+├─ styles/  
+├─ .env.local  
+├─ next.config.js  
+├─ package.json  
+├─ tsconfig.json  
 
 ---
 
-# KEY CONNECTIONS
+# APP DIRECTORY (NEXT.JS — APP ROUTER)
 
-## Registry Page
+## CORE PUBLIC PAGES
+
+app/page.tsx  
+→ Homepage (positioning: proof of human oversight)
+
+app/mission/page.tsx  
+→ Mission narrative
+
+app/framework/page.tsx  
+→ System explanation (deterministic model)
+
 app/registry/page.tsx  
-→ queries V_REGISTRY_PUBLIC  
-→ links to registry detail  
+→ Public registry list
 
----
-
-## Registry Detail
 app/registry/[registryId]/page.tsx  
-→ single record view  
-→ trust surfaces  
+→ Registry detail page
 
----
-
-## Explorer
 app/explorer/page.tsx  
-→ aggregates from V_REGISTRY_PUBLIC  
+→ Explorer landing
+
+app/explorer/organizations/page.tsx  
+→ Organizations view
+
+app/explorer/systems/page.tsx  
+→ AI systems view
+
+app/explorer/countries/page.tsx  
+→ Countries view
+
+app/explorer/map/page.tsx  
+→ Map view
+
+app/developers/page.tsx  
+→ Integration hub (API, SDK, widget, badge)
+
+app/apply/page.tsx  
+→ Certification onboarding entry
+
+app/demo/page.tsx  
+→ Guided demo
+
+app/verify/page.tsx  
+→ Manual verification page
 
 ---
 
-## Verify API
+## REGISTRY — AI SYSTEMS
+
+app/registry/ai-systems/page.tsx  
+→ AI systems list
+
+app/registry/ai-systems/[systemId]/page.tsx  
+→ AI system detail page
+
+---
+
+## ADMIN (PRIVATE)
+
+app/admin/login/page.tsx  
+→ Admin login
+
+app/admin/applications/page.tsx  
+→ Application intake list
+
+app/admin/verification/[caseId]/page.tsx  
+→ Case overview
+
+app/admin/verification/[caseId]/findings/page.tsx  
+→ Findings workflow
+
+app/admin/verification/[caseId]/evidence/page.tsx  
+→ Evidence workflow
+
+app/admin/verification/[caseId]/events/page.tsx  
+→ Event logging
+
+app/admin/verification/[caseId]/score/page.tsx  
+→ Scoring view
+
+app/admin/verification/[caseId]/publish/page.tsx  
+→ Publish certification
+
+---
+
+## API ROUTES
+
+app/api/registry/route.ts  
+→ Public registry query
+
+app/api/registry/search/route.ts  
+→ Registry search
+
 app/api/verify/[registryId]/route.ts  
-→ Snowflake query  
-→ proof generation  
+→ Verification endpoint (proof)
+
+app/api/badge/[registryId]/route.ts  
+→ Badge resolver
+
+app/api/.well-known/gafaig-public-key/route.ts  
+→ Public key endpoint
+
+app/api/admin/verification/*  
+→ Admin workflow endpoints
 
 ---
 
-## Widget
+# COMPONENTS
+
+## GLOBAL UI
+
+app/_components/PublicPageHero.tsx  
+→ Standard hero block
+
+app/_components/PublicButtonLink.tsx  
+→ Standard button system
+
+app/_components/SiteNav.tsx  
+→ Top navigation
+
+---
+
+## REGISTRY COMPONENTS
+
+components/registry/RegistryHeaderPanel.tsx  
+components/registry/RegistryCertificationSummary.tsx  
+components/registry/RegistryVerificationPanel.tsx  
+components/registry/RegistryTrustTools.tsx  
+
+---
+
+## ADMIN COMPONENTS
+
+components/admin/AdminNav.tsx  
+components/admin/AdminPageHeader.tsx  
+
+---
+
+# LIB (QUERY + CORE LOGIC)
+
+lib/snowflake.ts  
+→ Snowflake connection + query execution
+
+lib/queries/registry.ts  
+→ Registry queries
+
+lib/queries/registry-ai-systems.ts  
+→ AI systems queries
+
+lib/queries/explorer.ts  
+→ Explorer queries
+
+lib/auth/requireAdmin.ts  
+→ Admin auth guard
+
+---
+
+# PUBLIC (STATIC + SDK)
+
 public/widget/gafaig-widget.js  
-→ calls verify API  
-→ renders trust surface  
+→ Widget + SDK entry
+
+public/verify.js  
+→ Verification helper (if present)
 
 ---
 
-# DATA FLOW SUMMARY
+# DOCS (CANONICAL MEMORY)
 
-Snowflake (truth)
-→ Views  
-→ Query Layer  
+docs/MASTER_STATE.md  
+→ System architecture + identity (authoritative)
+
+docs/CURRENT_FOCUS.md  
+→ Active execution plan
+
+docs/CHANGELOG.md  
+→ Chronological updates
+
+docs/PROJECT_INDEX.md  
+→ This file
+
+docs/API_ROUTE_MAPPING.md  
+→ API surface map
+
+docs/UI_COMPONENT_MAPPING.md  
+→ UI structure map
+
+docs/SNOWFLAKE_WORKSHEET_MAPPING.md  
+→ SQL file mapping
+
+docs/GAFAIG_SNOWFLAKE_SQL_FILE_SUMMARY.md  
+→ SQL definitions summary
+
+docs/GAFAIG_VS_CODE_File_Tree.md  
+→ Full file tree
+
+docs/ENGINEERING_RULES.md  
+→ System rules (strict)
+
+---
+
+# SNOWFLAKE (CORE SYSTEM)
+
+## DATABASE
+
+GAFAIG_DB  
+→ Schema: CORE  
+
+---
+
+## TABLES
+
+CORE.VERIFICATION_CASES  
+CORE.FINDINGS  
+CORE.EVIDENCE  
+CORE.VERIFICATION_EVENTS  
+CORE.CASE_SCORE_SNAPSHOTS  
+CORE.DECISIONS  
+CORE.REGISTRY_SNAPSHOTS  
+CORE.REGISTRY_AI_SYSTEMS  
+
+---
+
+## VIEWS
+
+V_REGISTRY_LATEST_APPROVED  
+→ Latest approved snapshot per case
+
+V_REGISTRY_PUBLIC  
+→ Public registry projection
+
+V_REGISTRY_PUBLIC_SEARCH  
+→ Search-optimized view
+
+V_REGISTRY_AI_SYSTEMS_PUBLIC  
+→ AI systems public projection
+
+---
+
+## STORED PROCEDURES
+
+SP_SCORE_CASE_ENTERPRISE  
+→ Deterministic scoring engine
+
+SP_PUBLISH_CASE_TO_REGISTRY_V3  
+→ Publish to registry (append-only)
+
+---
+
+# DATA FLOW (REFERENCE)
+
+CASE  
+→ FINDINGS  
+→ EVIDENCE  
+→ EVENTS  
+→ SCORING  
+→ SCORE SNAPSHOT  
+→ DECISION  
+→ REGISTRY SNAPSHOT  
+→ PUBLIC VIEWS  
 → API  
 → UI  
-→ Trust Surfaces  
-→ External Usage  
 
 ---
 
-# SYSTEM PRINCIPLE
+# TRUST SURFACES
 
-Everything resolves back to:
+/api/verify/[registryId]  
+→ canonical verification endpoint
 
-→ Snowflake  
-→ canonical registry record  
+/badge/[registryId]  
+→ badge image
 
-No exceptions.
+/widget/gafaig-widget.js  
+→ embeddable widget + SDK
+
+/.well-known/gafaig-public-key  
+→ public key for proof validation
 
 ---
 
-# USAGE
+# DEPLOYMENT
 
-Use this document to:
+Frontend:
+→ Next.js (App Router)
 
+Hosting:
+→ Vercel (production)
+
+Backend:
+→ Snowflake (source of truth)
+
+Repo:
+→ GitHub: GAF2026/gafaig
+
+---
+
+# SYSTEM SUMMARY
+
+GAFAIG is composed of:
+
+1. Private verification engine (Snowflake)  
+2. Public trust layer (Next.js + Vercel)  
+3. Developer integration layer (API + SDK + widget)  
+
+All layers are strictly separated.
+
+---
+
+# FINAL NOTE
+
+This index is the canonical map of the GAFAIG system.
+
+Use it to:
 • locate files quickly  
-• understand data origin  
-• trace execution paths  
-• debug architecture issues  
-• onboard new workstreams  
-
----
-
-# STATUS
-
-The system is:
-
-✔ complete  
-✔ structured  
-✔ stable  
-✔ externally verifiable  
-
-Next focus:
-
-→ adoption and integration
+• understand system boundaries  
+• avoid architectural drift  

@@ -17,13 +17,22 @@ export default function RegistryCertificationSummary({
           Certification outcome
         </h2>
 
-        <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-4">
           <div>
             <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/60">
               Status
             </div>
             <div className="mt-2">
               <StatusChip>{row.decisionStatus}</StatusChip>
+            </div>
+          </div>
+
+          <div>
+            <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/60">
+              Score
+            </div>
+            <div className="mt-2 text-[16px] font-semibold text-black">
+              {row.certifiedScore ?? "—"}
             </div>
           </div>
 

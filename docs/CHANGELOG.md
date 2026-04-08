@@ -1,236 +1,306 @@
 # GAFAIG — CHANGELOG
-System Evolution Log
-Last Updated: 2026-04-03
+Chronological System Changes
+Last Updated: 2026-04-06
 
 ---
 
-# 2026-04-03 — TRUST INFRASTRUCTURE ACTIVATION (MAJOR MILESTONE)
+# 2026-04-06 — ADOPTION LAYER BREAKTHROUGH
 
-## 🚀 PLATFORM TRANSITION
+## PLATFORM POSITIONING (CRITICAL SHIFT)
 
-GAFAIG has transitioned from:
+• Repositioned GAFAIG from:
+  “AI governance registry”
 
-“working registry + scoring system”
+  →
+
+  “Proof of human oversight in AI systems”
+
+• Established GAFAIG as:
+  - verification authority
+  - trust infrastructure layer
+  - public proof system
+
+• Updated homepage hero to reflect new positioning
+
+---
+
+## DEVELOPERS PAGE — FULL REBUILD
+
+• Upgraded /developers to Stripe-level integration hub
+
+Added:
+• Trust primitives section
+• Integration paths (Display / Verify / Build)
+• SDK section (JavaScript usage)
+• Verification API documentation
+• Badge embed instructions
+• Widget embed instructions
+• Proof verification workflow
+• Implementation examples (JS + cURL)
+• Operational boundaries section
+• Start-here onboarding strip
+• Final CTA section (fixed structure + hierarchy)
+
+Fixes:
+• Corrected spacing between code blocks
+• Standardized visual hierarchy
+• Eliminated “floating CTA pills” issue
+• Improved developer onboarding clarity
+
+---
+
+## SDK LAYER (NEW CAPABILITY)
+
+• Introduced global browser SDK:
+  window.GAFAIG
+
+Capabilities:
+• GAFAIG.init()
+• GAFAIG.render()
+• GAFAIG.verify()
+• GAFAIG.scan()
+
+Helper:
+• window.verifyGAFAIG()
+
+Impact:
+• Enables external developer integration
+• Establishes GAFAIG as programmable trust layer
+
+---
+
+## TRUST PRIMITIVES (FORMALIZED)
+
+Defined core system primitives:
+
+• Verification API
+• Signed Proof (Ed25519)
+• Public Key
+• Badge
+• Widget
+• SDK
+
+Impact:
+• Establishes platform language
+• Enables consistent integration model
+
+---
+
+## APPLY PAGE (NEW)
+
+• Created /apply page
+
+Content includes:
+• certification overview
+• what organizations receive
+• who should apply
+• what is evaluated
+• process flow (intake → publication)
+• public vs private separation
+• post-certification outcomes
+• onboarding CTAs
+
+Position:
+• currently informational onboarding page
+• future candidate for full intake entry
+
+---
+
+## BUTTON SYSTEM (GLOBAL STANDARDIZATION)
+
+• Fully standardized PublicButtonLink usage
+
+Applied across:
+• homepage
+• registry
+• explorer
+• developers
+• apply
+• admin pages (batch updates)
+
+Removed:
+• inline duplicated button styles
+• inconsistent hover / spacing patterns
+
+Result:
+• single source of truth for buttons
+• consistent UX across platform
+
+---
+
+## REGISTRY + VERIFY FLOW (CONFIRMED)
+
+Validated end-to-end:
+
+• /api/registry?registryId=<id>
+• /api/verify/<id>
+• /badge/<id>
+• /registry/<id>
+• /widget-preview/<id>
+
+Confirmed:
+• all surfaces resolve consistently
+• trust record is canonical
+
+---
+
+## NAVIGATION STRATEGY (DEFINED)
+
+Decisions:
+
+• Developers page → add to primary nav
+• Apply page → CTA-driven entry (not nav yet)
+
+Flow established:
+homepage → developers → apply
+
+---
+
+## HOMEPAGE REWRITE
+
+• Rewrote hero section
+
+From:
+• registry-focused messaging
+
+To:
+• proof + authority messaging
+
+Added:
+• stronger positioning
+• clearer trust narrative
+• better CTA structure
+
+---
+
+## UI SYSTEM MATURITY
+
+• Standardized layout spacing
+• Standardized section hierarchy
+• Standardized card components
+• Standardized code block presentation
+
+Result:
+• platform now visually consistent
+• closer to Stripe / modern infra UX
+
+---
+
+## ADMIN UI STANDARDIZATION
+
+• Updated admin pages to use shared button system
+
+Affected:
+• admin/login
+• admin/applications
+• admin/verification/*
+• evidence / findings / decisions flows
+
+---
+
+## AI SYSTEMS ROUTES CLEANUP
+
+• Removed incorrect references to:
+  /registry/ai-systems/[registryId]
+
+• Preserved correct usage:
+  /registry/ai-systems/[systemId]
+
+• Ensured consistency across:
+  - registry pages
+  - explorer pages
+  - admin references
+
+---
+
+## PROOF SYSTEM VALIDATION
+
+• Confirmed verification payload structure:
+
+proof:
+• alg
+• signature
+• messageString
+• signedAt
+
+• Confirmed public key endpoint usage
+
+---
+
+# PREVIOUS FOUNDATIONAL WORK (SUMMARY)
+
+## CORE ENGINE (SNOWFLAKE)
+
+• verification workflow implemented
+• deterministic scoring engine implemented
+• case → findings → evidence → events flow
+• score snapshots
+• decisions table
+• registry snapshots (append-only)
+
+---
+
+## REGISTRY SYSTEM
+
+• V_REGISTRY_LATEST_APPROVED
+• V_REGISTRY_PUBLIC
+• V_REGISTRY_PUBLIC_SEARCH
+
+• SP_PUBLISH_CASE_TO_REGISTRY
+
+---
+
+## API LAYER
+
+• /api/registry
+• /api/registry/search
+• /api/verify/[registryId]
+• /api/badge/[registryId]
+• /.well-known public key
+
+---
+
+## UI LAYER
+
+• registry pages
+• explorer pages
+• admin workflows
+• verification UI
+• trust surfaces
+
+---
+
+# CURRENT SYSTEM STATE
+
+GAFAIG is now:
+
+• a functioning verification authority  
+• a deterministic certification system  
+• a public trust infrastructure  
+• a developer-integratable platform  
+
+---
+
+# NEXT CHANGELOG TARGETS
+
+Upcoming entries will include:
+
+• navigation updates (Developers + Apply CTAs)
+• apply page evolution into real intake flow (if executed)
+• trust distribution expansion
+• proof standard documentation
+• authority pages (/standard, /trust-model)
+
+---
+
+# FINAL NOTE
+
+This marks the transition from:
+
+“building the system”
 
 →
 
-“full public trust infrastructure for AI governance”
+“enabling adoption and external use”
 
-This marks the most important milestone in the system’s lifecycle.
-
----
-
-## ✅ TRUST INFRASTRUCTURE COMPLETED
-
-### Verification API
-• Implemented `/api/verify/[registryId]`  
-• Returns canonical record + verification status  
-• Added full CORS support for external use  
-• Structured response with `ok`, `verified`, `record`, `proof`  
-
----
-
-### Signed Proof Layer
-• Introduced deterministic signed payload  
-• Fields include:
-  - alg  
-  - kid  
-  - signature  
-  - signedAt  
-  - verificationKeyUrl  
-  - message  
-  - messageString  
-
-• Implemented signing via `lib/crypto/verify-signing`  
-
----
-
-### Public Key Endpoint
-• Created `/api/.well-known/gafaig-public-key`  
-• Enables external signature validation  
-• Establishes GAFAIG as verifiable authority  
-
----
-
-### Badge Endpoint
-• Implemented `/badge/[registryId]`  
-• Public certification badge render  
-• Designed for external embedding  
-
----
-
-### Widget (v1 — LOCKED)
-• Created `public/widget/gafaig-widget.js`  
-• Fetches verification API  
-• Displays:
-  - entity  
-  - tier/band  
-  - status  
-  - validity  
-• Added:
-  - trust footer  
-  - verification links  
-  - external-ready styling  
-
----
-
-### Widget Improvements
-• Fixed long registry ID overflow (word wrapping)  
-• Improved layout resilience  
-• Ensured responsive rendering  
-
----
-
-### Verify Button UX Upgrade
-• Replaced alert-based UX  
-• Introduced modal-based verification UI  
-• Includes:
-  - loading state  
-  - verified state  
-  - error state  
-• Added:
-  - record details  
-  - verify JSON link  
-  - verification guide link  
-
----
-
-### QR Verification Flow
-• Enabled QR → `/verify` → API resolution  
-• Supports real-world verification pathway  
-
----
-
-### Verification Guide Page
-• Created `/verify`  
-• Explains:
-  - how verification works  
-  - how to use trust surfaces  
-  - what is public vs private  
-
----
-
-## 🎯 PUBLIC POSITIONING UPGRADE
-
-### Homepage
-• Added trust infrastructure positioning  
-• Clarified GAFAIG as verification authority  
-
-### Framework Page
-• Elevated to institutional-grade positioning  
-• Explained system as governance infrastructure  
-
-### Registry Page
-• Repositioned as:
-  → canonical public record  
-  → trust surface layer  
-
-### Explorer Page
-• Repositioned as:
-  → public intelligence layer  
-  → network view of trust  
-
-### Mission Page
-• Added trust infrastructure narrative  
-• Reinforced global governance positioning  
-
----
-
-## 🧠 ARCHITECTURE HARDENING
-
-### Removed Fragile Dependencies
-• Eliminated reliance on:
-  - V_REGISTRY_STATS_GLOBAL  
-  - V_REGISTRY_STATS_BY_COUNTRY  
-
-• Standardized on:
-  → `GAFAIG_DB.CORE.V_REGISTRY_PUBLIC`
-
----
-
-### Certification Logic Standardization
-• Removed dependency on `CERTIFICATION_STATUS`  
-• Derived certification from:
-  → `CERTIFIED_AT IS NOT NULL`
-
----
-
-### Explorer Query Refactor
-• Rebuilt metrics using direct SQL aggregation  
-• Eliminated dependency on optional columns  
-• Ensured compatibility across environments  
-
----
-
-### Registry Query Stabilization
-• Simplified filtering logic  
-• Normalized search inputs  
-• Improved ordering consistency  
-
----
-
-## 🛡️ RUNTIME STABILITY IMPROVEMENTS
-
-### Graceful Fallback Handling
-• Added `try/catch` to:
-  - `/registry`
-  - `/explorer`
-
-• Prevents:
-  → full page crashes on Snowflake failure  
-
----
-
-### Fallback UI
-• Introduced:
-  → “Data temporarily unavailable” state  
-
-• Maintains:
-  → page structure  
-  → navigation  
-  → trust messaging  
-
----
-
-### Snowflake Failure Diagnosis
-• Identified runtime failure caused by:
-  → suspended Snowflake account  
-
-• Confirmed:
-  → system stability restored after payment  
-
----
-
-## 🔧 API IMPROVEMENTS
-
-### Verify API
-• Added CORS headers  
-• Standardized response structure  
-• Added signed proof integration  
-
----
-
-### Widget Compatibility
-• Ensured API works:
-  - locally  
-  - externally  
-  - across domains  
-
----
-
-## 🧪 TESTING IMPROVEMENTS
-
-### Local Testing
-• Created `test-gafaig.html`  
-• Enabled widget testing via local server  
-
-### Widget Preview Page
-• Added `/widget-preview/[registryId]`  
-• Allows live testing of widget output  
-
----
-
-## 📦 DEPLOYMENT FLOW
-
-### Git + Vercel
-• Standardized push flow:
+GAFAIG is now entering its platform phase.

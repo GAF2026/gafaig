@@ -1,449 +1,352 @@
 # GAFAIG — API ROUTE MAPPING
-API Contract & Data Flow Reference
-Last Updated: 2026-04-03
+Canonical API Surface Definition
+Last Updated: 2026-04-06
 
 ---
 
-# PURPOSE
+# OVERVIEW
 
-This document defines:
+The GAFAIG API layer is a **thin transport layer** between:
 
-• all API routes  
-• their data sources  
-• their responsibilities  
-• their constraints  
+Snowflake (source of truth)
+→ Query layer (lib/queries)
+→ API routes (Next.js)
+→ UI / external systems
 
-Use this as the **canonical API contract reference**.
-
----
-
-# CORE PRINCIPLE
-
-API layer is:
-
-→ PASS-THROUGH ONLY
-
-It MUST NOT:
-
-• compute scores  
-• determine certification  
-• mutate registry data  
-• duplicate Snowflake logic  
-
-All outputs must originate from:
-
-→ Snowflake views  
-→ deterministic engine outputs  
+STRICT RULE:
+→ API routes DO NOT compute certification, scoring, or trust
+→ API routes ONLY return canonical data from Snowflake views
 
 ---
 
-# API ARCHITECTURE
+# CORE PUBLIC API
 
-Snowflake (truth)
-→ Views
-→ Query Layer (sfQuery)
-→ API Route
-→ JSON Response
-→ UI / External Systems
+## 1. REGISTRY LIST
 
----
+ROUTE:
+GET /api/registry
 
-# API ROUTES
+SOURCE:
+V_REGISTRY_PUBLIC
 
----
+PURPOSE:
+Return list of public certification records
 
-## 1. REGISTRY LIST API
+QUERY PARAMS (optional):
+q
+country
+registryId
+caseId
+applicationId
+limit
 
-### Route
-/api/registry
-
-### Purpose
-• list registry records  
-• support filtering  
-• support search  
-
----
-
-### Data Source
-CORE.V_REGISTRY_PUBLIC
-
----
-
-### Query Behavior
-• optional filters:
-  - q (search)
-  - country  
-
-• uses LIKE matching  
-• case-insensitive  
-
----
-
-### Output
+RESPONSE:
 {
-  records: [...]
+  ok: true,
+  rows: RegistryRow[],
+  total: number,
+  limit: number
 }
 
 ---
 
-### Notes
-• no transformation of certification logic  
-• direct projection of Snowflake data  
+## 2. REGISTRY SEARCH
+
+ROUTE:
+GET /api/registry/search
+
+SOURCE:
+V_REGISTRY_PUBLIC_SEARCH
+
+PURPOSE:
+Searchable registry endpoint
+
+NOTES:
+• uses normalized fields (*_norm)
+• supports full-text style search via q column
 
 ---
 
----
+## 3. REGISTRY DETAIL (BY FILTER)
 
-## 2. REGISTRY SEARCH API
+ROUTE:
+GET /api/registry?registryId=<id>
 
-### Route
-/api/registry/search
+SOURCE:
+V_REGISTRY_PUBLIC
 
-### Purpose
-• optimized search endpoint  
+PURPOSE:
+Fetch specific registry record
 
----
-
-### Data Source
-CORE.V_REGISTRY_PUBLIC_SEARCH
-
----
-
-### Behavior
-• full-text style search  
-• normalized query field (q)  
+NOTES:
+• used by registry detail page
+• must return canonical snapshot fields
 
 ---
 
-### Output
+## 4. VERIFICATION ENDPOINT (CRITICAL)
+
+ROUTE:
+GET /api/verify/[registryId]
+
+SOURCE:
+V_REGISTRY_PUBLIC (or equivalent canonical view)
+
+PURPOSE:
+Return certification + signed proof
+
+RESPONSE:
 {
-  results: [...]
-}
-
----
-
----
-
-## 3. VERIFY API (CRITICAL)
-
-### Route
-/api/verify/[registryId]
-
----
-
-### Purpose
-• public verification of certification  
-• returns record + proof  
-• enables external validation  
-
----
-
-### Data Source
-CORE.V_REGISTRY_PUBLIC
-
----
-
-### Input
-registryId (path param)
-
----
-
-### Output
-
-{
-  ok: boolean,
-  verified: boolean,
+  ok: true,
   registryId: string,
-  record: {
-    registryId,
-    entityName,
-    entityType,
-    country,
-    applicationId,
-    caseId,
-    certificationStatus,
-    certifiedTier,
-    certifiedBand,
-    decisionStatus,
-    certifiedAt,
-    validFrom,
-    validTo
-  },
+  verified: boolean,
+  record: { ... },
   proof: {
-    alg,
-    kid,
-    signature,
-    signedAt,
-    verificationKeyUrl,
-    message,
-    messageString
+    alg: string,
+    signature: string,
+    messageString: string,
+    signedAt: string
   }
 }
 
----
-
-### Certification Logic
-
-verified = (CERTIFIED_AT != null)
-
-DO NOT:
-• rely on CERTIFICATION_STATUS field  
-• compute logic outside Snowflake  
+RULES:
+• proof MUST be deterministic
+• messageString MUST match signed payload exactly
+• no UI-derived fields allowed
 
 ---
 
-### Proof Generation
+## 5. BADGE ENDPOINT
 
-messageObject = deterministic payload
+ROUTE:
+GET /api/badge/[registryId]
 
-signature = sign(messageString)
+PURPOSE:
+Resolve certification badge image
 
----
+INPUT:
+registryId
 
-### CORS
+OUTPUT:
+• image (SVG or PNG)
+• reflects certification status
 
-Enabled:
-Access-Control-Allow-Origin: *
-
-Allows:
-• external widget usage  
-• third-party verification  
-
----
-
-### Errors
-
-400 → missing registryId  
-404 → not found  
-500 → internal error  
+NOTES:
+• lightweight trust surface
+• should map to certified tier/band
 
 ---
 
----
+## 6. PUBLIC KEY ENDPOINT
 
-## 4. BADGE API
+ROUTE:
+GET /api/.well-known/gafaig-public-key
 
-### Route
-/api/badge/[registryId]
+PURPOSE:
+Expose verification public key
 
----
-
-### Purpose
-• render certification badge  
-• embeddable visual trust signal  
-
----
-
-### Data Source
-CORE.V_REGISTRY_PUBLIC
-
----
-
-### Behavior
-• fetch record  
-• format badge  
-• return image or structured response  
-
----
-
-### Notes
-• depends on certification fields  
-• no logic duplication  
-
----
-
----
-
-## 5. PUBLIC KEY ENDPOINT
-
-### Route
-/api/.well-known/gafaig-public-key
-
----
-
-### Purpose
-• expose verification key  
-• allow external signature validation  
-
----
-
-### Output
+OUTPUT:
 {
-  alg,
-  kid,
-  publicKey
+  alg: "Ed25519",
+  publicKey: string
 }
 
----
-
-### Usage
-
-External systems:
-
-1. call verify API  
-2. get proof  
-3. fetch public key  
-4. validate signature  
+USAGE:
+• used to validate proof.signature
+• enables independent verification
 
 ---
 
----
+# ADMIN API (PRIVATE)
 
-# INTERNAL ADMIN APIs
+## 7. APPLICATION INTAKE
 
-(Not publicly exposed)
+ROUTE:
+POST /api/admin/applications
 
----
+PURPOSE:
+Create application / case
 
-## Applications
-/api/admin/applications
-
----
-
-## Verification Workflow
-
-/api/admin/verification/[caseId]/evidence  
-/api/admin/verification/[caseId]/findings  
-/api/admin/verification/[caseId]/score  
-/api/admin/verification/[caseId]/publish  
-/api/admin/verification/[caseId]/decisions  
+TARGET TABLE:
+CORE.VERIFICATION_CASES
 
 ---
 
-### Purpose
+## 8. FINDINGS
 
-• drive internal workflow  
-• feed Snowflake engine  
+ROUTE:
+POST /api/admin/verification/findings
 
----
+PURPOSE:
+Insert findings
 
-### Rules
-
-• never exposed publicly  
-• never used by UI public layer  
-
----
+TARGET TABLE:
+CORE.FINDINGS
 
 ---
 
-# QUERY LAYER CONNECTION
+## 9. EVIDENCE
 
-All API routes must use:
+ROUTE:
+POST /api/admin/verification/evidence
 
-lib/snowflake.ts → sfQuery()
+PURPOSE:
+Insert evidence
 
----
-
-### Pattern
-
-const rows = await sfQuery(`
-  SELECT ...
-  FROM CORE.V_REGISTRY_PUBLIC
-  WHERE REGISTRY_ID = ?
-`, [registryId]);
+TARGET TABLE:
+CORE.EVIDENCE
 
 ---
 
-### DO NOT
+## 10. EVENTS
 
-• inline Snowflake connections  
-• duplicate query logic  
-• bypass query layer  
+ROUTE:
+POST /api/admin/verification/events
 
----
+PURPOSE:
+Insert verification events
 
----
+TARGET TABLE:
+CORE.VERIFICATION_EVENTS
 
-# TRUST INFRASTRUCTURE FLOW
-
-External System:
-
-Widget / Badge / QR / API Client
-
-↓
-
-/api/verify/[registryId]
-
-↓
-
-Snowflake (V_REGISTRY_PUBLIC)
-
-↓
-
-Signed Proof
-
-↓
-
-Public Key Validation
+NOTES:
+• use PARSE_JSON(?) pattern
+• avoid VALUES for VARIANT
 
 ---
 
----
+## 11. SCORING
 
-# API GUARANTEES
+ROUTE:
+POST /api/admin/verification/score
 
-GAFAIG APIs guarantee:
+PURPOSE:
+Trigger deterministic scoring
 
-• deterministic outputs  
-• verifiable signatures  
-• consistent structure  
-• public trust compatibility  
+CALLS:
+SP_SCORE_CASE_ENTERPRISE
 
----
-
----
-
-# NON-NEGOTIABLE RULES
-
-1. Snowflake is the source of truth  
-2. API is pass-through only  
-3. No business logic in API  
-4. No mutation of registry data  
-5. Certification derived from CERTIFIED_AT  
-6. Proof must be deterministic  
+OUTPUT:
+• score snapshot written to table
 
 ---
 
----
+## 12. DECISION
 
-# FAILURE HANDLING
+ROUTE:
+POST /api/admin/verification/decisions
 
-API must:
+PURPOSE:
+Insert certification decision
 
-• return structured errors  
-• never crash runtime  
-• support UI fallback  
-
----
-
----
-
-# FUTURE API EXPANSION
-
-Planned:
-
-• system-level verification  
-• batch verification  
-• certification lifecycle endpoints  
-• issuer endpoints  
+TARGET TABLE:
+CORE.DECISIONS
 
 ---
 
+## 13. PUBLISH
+
+ROUTE:
+POST /api/admin/verification/publish
+
+PURPOSE:
+Publish case to registry
+
+CALLS:
+SP_PUBLISH_CASE_TO_REGISTRY_V3
+
+OUTPUT:
+• new row in CORE.REGISTRY_SNAPSHOTS
+• registryId assigned or reused
+
 ---
 
-# SUMMARY
+# QUERY LAYER (CRITICAL)
 
-The API layer is:
+FILES:
 
-→ the bridge between Snowflake and the world  
+lib/queries/registry.ts  
+lib/queries/registry-ai-systems.ts  
+lib/queries/explorer.ts  
 
-It must remain:
+RULES:
 
-• simple  
-• deterministic  
-• verifiable  
-• stable  
+• API routes MUST use query layer
+• Query layer MUST use Snowflake views
+• No direct table joins in API layer
 
-Everything resolves back to:
+---
 
-→ the canonical registry record
+# RESPONSE CONTRACTS
+
+## RegistryRow
+
+Fields:
+• registryId
+• applicationId
+• caseId
+• entityName
+• entityType
+• country
+• certifiedScore
+• certifiedTier
+• certifiedBand
+• decisionStatus
+• validFrom
+• validTo
+• certifiedAt
+• lastActivityAt
+• snapshotId
+• modelVersion
+• renewalStatus
+• scoredAt
+• isCurrentlyValid
+
+---
+
+## VerifyApiResponse
+
+Fields:
+• ok
+• registryId
+• verified
+• record
+• proof
+
+---
+
+# TRUST PRINCIPLES
+
+• Snowflake is authoritative
+• API is transport only
+• Proof is cryptographic, not UI-based
+• Registry is append-only
+• Verification must be reproducible
+
+---
+
+# DO NOT
+
+• compute score in API
+• modify registry snapshots
+• derive certification in UI
+• bypass publish procedure
+• introduce non-deterministic logic
+
+---
+
+# FINAL SUMMARY
+
+The GAFAIG API layer:
+
+• exposes canonical trust data  
+• enables verification  
+• supports integration  
+
+It does NOT:
+
+• perform evaluation  
+• compute certification  
+• store authoritative state  
+
+All authority lives in Snowflake.

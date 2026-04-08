@@ -100,11 +100,11 @@ export default async function HomePage() {
                 Explore Integrations
               </PublicButtonLink>
 
-              <PublicButtonLink href="/mission" variant="ghost">
+              <PublicButtonLink href="/mission" variant="secondary">
                 Start with the Mission
               </PublicButtonLink>
 
-              <PublicButtonLink href="/framework" variant="ghost">
+              <PublicButtonLink href="/framework" variant="secondary">
                 See How It Works
               </PublicButtonLink>
             </>

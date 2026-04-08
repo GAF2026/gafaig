@@ -17,6 +17,7 @@ function toRegistryRow(row: {
   entityName: string | null;
   entityType: string | null;
   country: string | null;
+  certifiedScore: string | null;
   certifiedTier: string | null;
   certifiedBand: string | null;
   decisionStatus: string | null;
@@ -31,6 +32,7 @@ function toRegistryRow(row: {
     entityName: row.entityName,
     entityType: row.entityType,
     country: row.country,
+    certifiedScore: row.certifiedScore,
     certifiedTier: row.certifiedTier,
     certifiedBand: row.certifiedBand,
     decisionStatus: row.decisionStatus,

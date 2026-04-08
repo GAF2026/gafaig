@@ -14,6 +14,7 @@ type RegistryApiRow = {
   entityName?: string | null;
   entityType?: string | null;
   country?: string | null;
+  certifiedScore?: string | null;
   certifiedTier?: string | null;
   certifiedBand?: string | null;
   decisionStatus?: string | null;
@@ -50,6 +51,7 @@ type VerifyApiResponse = {
     applicationId?: string | null;
     caseId?: string | null;
     certificationStatus?: string | null;
+    certifiedScore?: number | null;
     certifiedTier?: string | null;
     certifiedBand?: string | null;
     decisionStatus?: string | null;
@@ -124,6 +126,11 @@ export default async function RegistryRecordPage({
 
   const entityName = record?.entityName || row?.entityName || "Unknown Entity";
 
+  const certifiedScore =
+    record?.certifiedScore !== null && record?.certifiedScore !== undefined
+      ? String(record.certifiedScore)
+      : row?.certifiedScore || null;
+
   const certifiedTier = record?.certifiedTier || row?.certifiedTier || null;
   const certifiedBand = record?.certifiedBand || row?.certifiedBand || null;
   const decisionStatus = record?.decisionStatus || row?.decisionStatus || null;
@@ -181,7 +188,7 @@ export default async function RegistryRecordPage({
           the GAFAIG registry of record.
         </p>
 
-        <div className="mt-8 grid gap-4 md:grid-cols-3">
+        <div className="mt-8 grid gap-4 md:grid-cols-4">
           <IntroCard
             title="Public record of certification"
             body="Disclosed certification outcome."
@@ -194,6 +201,10 @@ export default async function RegistryRecordPage({
             title="Portable across the web"
             body="Badge, QR, widget."
           />
+          <IntroCard
+            title="Certified score"
+            body={certifiedScore ? `Score ${certifiedScore}` : "No score disclosed"}
+          />
         </div>
 
         <div className="mt-6 text-sm text-black/70">
@@ -203,8 +214,9 @@ export default async function RegistryRecordPage({
           </PublicButtonLink>
         </div>
 
-        <div className="mt-8 grid gap-4 md:grid-cols-4">
+        <div className="mt-8 grid gap-4 md:grid-cols-5">
           <InfoCard label="Status" value={certificationStatus} />
+          <InfoCard label="Score" value={certifiedScore || "—"} />
           <InfoCard
             label="Tier / Band"
             value={[certifiedTier, certifiedBand].filter(Boolean).join(" · ") || "—"}

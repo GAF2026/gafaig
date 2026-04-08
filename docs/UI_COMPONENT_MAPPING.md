@@ -1,558 +1,469 @@
 # GAFAIG — UI COMPONENT MAPPING
-UI Architecture & Component Reference
-Last Updated: 2026-04-03
+Canonical UI Structure & Component Responsibilities
+Last Updated: 2026-04-06
 
 ---
 
-# PURPOSE
+# OVERVIEW
 
-This document maps:
+The GAFAIG UI layer is a **presentation layer only**.
 
-• all major UI pages  
-• reusable components  
-• data sources  
-• relationships to API + Snowflake  
-
-Use this to:
-
-→ understand UI structure  
-→ trace data flow  
-→ maintain consistency across pages  
+STRICT RULE:
+→ UI does NOT compute certification, scoring, or trust  
+→ UI ONLY renders data from API responses (Snowflake-derived)
 
 ---
 
-# CORE PRINCIPLE
+# CORE UI PRINCIPLES
 
-UI layer is:
+• Snowflake = source of truth  
+• API = transport layer  
+• UI = rendering layer  
 
-→ PRESENTATION ONLY
-
-It MUST NOT:
-
-• compute scores  
-• determine certification  
-• modify data  
-• bypass API/query layer  
-
-All data must come from:
-
-→ API  
-→ query layer (server-side)  
-
----
-
-# UI ARCHITECTURE
-
-Next.js App Router
-
-Structure:
-
-app/
-├─ page.tsx
-├─ registry/
-├─ explorer/
-├─ verify/
-├─ framework/
-├─ mission/
-├─ demo/
-├─ api/
-├─ _components/
+• No business logic in UI  
+• No certification logic in UI  
+• No scoring in UI  
 
 ---
 
 # GLOBAL COMPONENTS
 
-## SiteNav.tsx
+## 1. PublicPageHero
 
-Location:
+FILE:
+app/_components/PublicPageHero.tsx
+
+PURPOSE:
+Standard hero block across public pages
+
+PROPS:
+• eyebrow
+• title
+• description
+• secondaryDescription
+• actions
+
+USED IN:
+• homepage
+• mission
+• framework
+• developers
+• apply
+• demo
+
+---
+
+## 2. PublicButtonLink
+
+FILE:
+app/_components/PublicButtonLink.tsx
+
+PURPOSE:
+Global button system
+
+VARIANTS:
+• primary (black filled)
+• secondary (outlined)
+• ghost (minimal)
+
+SIZES:
+• sm
+• md
+
+RULE:
+→ All public CTAs must use this component  
+→ No inline button styles allowed  
+
+---
+
+## 3. SiteNav
+
+FILE:
 app/_components/SiteNav.tsx
 
-Purpose:
-• top navigation  
-• route switching  
+PURPOSE:
+Top navigation
 
-Routes:
-• /mission  
-• /framework  
-• /registry  
-• /explorer  
-• /verify  
-• /demo  
+CURRENT NAV ITEMS:
+• Mission
+• Framework
+• Registry
+• Explorer
+• Verify
+• Demo
+• Developers (to be included)
 
----
-
-## SiteFooter.tsx
-
-Location:
-app/_components/SiteFooter.tsx
-
-Purpose:
-• system footer  
-• environment indicator  
-• trust messaging  
+NOTES:
+• Active state = black background  
+• Inactive = outlined  
+• Hover = subtle background  
 
 ---
 
-## PublicPageHero.tsx
+# HOMEPAGE
 
-Purpose:
-• consistent page header  
-• title + subtitle  
+FILE:
+app/page.tsx
 
-Used by:
-• homepage  
-• framework  
-• registry  
-• explorer  
+COMPONENTS:
 
----
-
-## PublicButtonLink.tsx
-
-Purpose:
-• standardized button UI  
-• primary / secondary variants  
-
-Used across:
-• registry  
-• explorer  
-• CTA sections  
-
----
-
-# CORE PAGES
-
----
-
-## Homepage
-
-Route:
-/app/page.tsx
-
-Purpose:
-• introduce GAFAIG  
-• position as trust infrastructure  
-
-Components:
 • PublicPageHero  
-• CTA sections  
+→ positioning: proof of human oversight  
 
----
-
-## Mission Page
-
-Route:
-/app/mission/page.tsx
-
-Purpose:
-• explain purpose  
-• reinforce global governance positioning  
-
----
-
-## Framework Page
-
-Route:
-/app/framework/page.tsx
-
-Purpose:
-• explain deterministic model  
-• define system as infrastructure  
-
----
-
-## Registry Page
-
-Route:
-/app/registry/page.tsx
-
----
-
-### Purpose
-
-• registry listing  
-• search + filtering  
-• trust positioning  
-
----
-
-### Data Source
-
-CORE.V_REGISTRY_PUBLIC
-
----
-
-### Key UI Elements
-
-• search input  
-• country filter  
-• metric cards  
-• registry record cards  
-
----
-
-### Record Card Includes
-
-• entity name  
-• registry ID  
-• certification status  
-• tier / band  
-• validity window  
-• application ID  
-• case ID  
-
----
-
-### Components Used
-
-• StatusPill  
 • MetricCard  
-• Info  
-• IntroCard  
+→ public metrics (organizations, systems, countries)
+
+• PillarCard  
+→ system architecture (private engine, public layer, explorer)
+
 • StatementCard  
+→ conceptual explanations
+
 • PathCard  
+→ system workflow (intake → publication)
+
+• FeatureCard  
+→ navigation to core pages
+
+PURPOSE:
+→ explain GAFAIG clearly  
+→ establish authority  
+→ direct users into system  
 
 ---
 
+# DEVELOPERS PAGE
+
+FILE:
+app/developers/page.tsx
+
+PURPOSE:
+Integration hub (Stripe-level)
+
+COMPONENTS:
+
+• PublicPageHero  
+→ developer positioning  
+
+• StartHereStrip (inline section)  
+→ immediate onboarding  
+
+• MetricCard  
+→ trust primitives  
+
+• PathCard  
+→ integration paths  
+
+• CodeBlock  
+→ code examples (SDK, API, embed)
+
+• Card  
+→ grouped sections (badge, widget)
+
+• InfoCard  
+→ proof metadata  
+
+• BoundaryCard  
+→ public vs private separation  
+
+RULES:
+• code blocks must have spacing (space-y-*)  
+• no stacked black blocks without spacing  
+• CTA must not float (always anchored)  
+
 ---
 
-## Registry Detail Page
+# APPLY PAGE
 
-Route:
-/app/registry/[registryId]/page.tsx
+FILE:
+app/apply/page.tsx
+
+PURPOSE:
+Certification onboarding entry
+
+COMPONENTS:
+
+• PublicPageHero  
+→ application framing  
+
+• DarkMetricCard  
+→ what you receive  
+
+• AudienceCard  
+→ who should apply  
+
+• ChecklistCard  
+→ evaluation criteria  
+
+• PathCard  
+→ process flow  
+
+• BoundaryCard  
+→ private vs public  
+
+• InfoCard  
+→ outcomes  
+
+• FeatureCard  
+→ entry points (demo, framework, developers)
+
+ROLE:
+→ bridge from interest → certification  
 
 ---
 
-### Purpose
+# REGISTRY
 
-• display single certification record  
-• expose trust surfaces  
+## LIST PAGE
+
+FILE:
+app/registry/page.tsx
+
+COMPONENTS:
+
+• filters (search, country, etc.)
+• registry list cards
+• pagination / limit
+
+DATA SOURCE:
+→ /api/registry  
 
 ---
 
-### Data Source
+## DETAIL PAGE
 
-CORE.V_REGISTRY_PUBLIC
+FILE:
+app/registry/[registryId]/page.tsx
+
+COMPONENTS:
+
+• RegistryHeaderPanel  
+• RegistryCertificationSummary  
+• RegistryVerificationPanel  
+• RegistryTrustTools  
+
+PURPOSE:
+→ canonical trust record display  
+
+RULE:
+→ all fields must map to V_REGISTRY_PUBLIC  
 
 ---
 
-### Key UI Sections
+# REGISTRY COMPONENTS
 
-• entity header  
-• certification summary  
+## RegistryHeaderPanel
+
+PURPOSE:
+• entity name
+• registry ID
+• top-level metadata  
+
+---
+
+## RegistryCertificationSummary
+
+PURPOSE:
+• score
+• tier
+• band
+• decision status  
+
+---
+
+## RegistryVerificationPanel
+
+PURPOSE:
+• verification status
+• timestamps
 • validity  
-• identifiers  
-• trust surfaces  
 
 ---
 
-### Trust Surfaces
+## RegistryTrustTools
 
-• verify API link  
+PURPOSE:
+• verify endpoint link  
 • badge  
 • widget  
-• proof  
-• QR  
+• copy/share tools  
 
 ---
 
-### Components
+# EXPLORER
 
-• RegistryCertificationSummary  
-• RegistryHeaderPanel  
-• RegistryVerificationPanel  
+FILES:
+app/explorer/*
 
----
+PAGES:
 
----
+• /explorer  
+• /explorer/organizations  
+• /explorer/systems  
+• /explorer/countries  
+• /explorer/map  
 
-## Explorer Page
+COMPONENTS:
+• list views
+• filtering
+• navigation links
 
-Route:
-/app/explorer/page.tsx
-
----
-
-### Purpose
-
-• public intelligence layer  
-• aggregate registry data  
-
----
-
-### Data Source
-
-CORE.V_REGISTRY_PUBLIC
+DATA SOURCE:
+→ V_REGISTRY_PUBLIC  
+→ V_REGISTRY_AI_SYSTEMS_PUBLIC  
 
 ---
 
-### Key UI Sections
+# VERIFY PAGE
 
+FILE:
+app/verify/page.tsx
+
+PURPOSE:
+Manual verification interface
+
+FUNCTION:
+• input registryId  
+• call /api/verify  
+• display result  
+
+---
+
+# DEMO PAGE
+
+FILE:
+app/demo/page.tsx
+
+PURPOSE:
+Guided GAFAIG experience
+
+ROLE:
+• onboarding tool  
+• demonstration of trust flow  
+
+---
+
+# ADMIN UI
+
+## AdminNav
+
+FILE:
+components/admin/AdminNav.tsx
+
+PURPOSE:
+Admin navigation  
+
+---
+
+## AdminPageHeader
+
+FILE:
+components/admin/AdminPageHeader.tsx
+
+PURPOSE:
+Consistent admin page titles  
+
+---
+
+## ADMIN PAGES
+
+FILES:
+app/admin/*
+
+FLOW:
+
+applications  
+→ verification  
+→ findings  
+→ evidence  
+→ events  
+→ score  
+→ publish  
+
+RULE:
+→ UI triggers API  
+→ API triggers Snowflake  
+
+---
+
+# SHARED UI PATTERNS
+
+## Cards
+
+Used for:
 • metrics  
-• recent certifications  
-• top countries  
-• feature navigation  
+• features  
+• info blocks  
+
+STYLE:
+• rounded  
+• bordered  
+• subtle background  
 
 ---
 
-### Components
+## CodeBlock
 
-• MetricCard  
-• IntroCard  
-• StatementCard  
-• InfoPanel  
-• FeatureCard  
+PURPOSE:
+Display developer code
 
----
-
----
-
-## Explorer Subpages
+RULES:
+• always wrapped in container  
+• never stacked without spacing  
+• use space-y-* when multiple  
 
 ---
 
-### Countries
+## Buttons
 
-/app/explorer/countries/page.tsx
+SYSTEM:
+PublicButtonLink ONLY
 
-Purpose:
-• group by country  
-
----
-
-### Organizations
-
-/app/explorer/organizations/page.tsx
-
-Purpose:
-• group by entity  
+NO:
+• raw <button> with custom classes  
+• duplicated styles  
 
 ---
 
-### Systems
+# STATE MANAGEMENT
 
-/app/explorer/systems/page.tsx
-
-Purpose:
-• show AI systems  
-
----
-
-### Map
-
-/app/explorer/map/page.tsx
-
-Purpose:
-• geographic visualization  
+• minimal client state  
+• server-first rendering  
+• API-driven data  
 
 ---
 
----
+# CRITICAL UI RULES
 
-## Verify Page
+DO NOT:
 
-Route:
-/app/verify/page.tsx
+• compute certification in UI  
+• derive score in UI  
+• modify API data  
+• bypass API layer  
+• duplicate button styles  
 
----
+ALWAYS:
 
-### Purpose
-
-• explain verification system  
-• guide users  
-
----
-
-### Content
-
-• how verification works  
-• how to use trust surfaces  
-• what is public vs private  
+• use canonical components  
+• use API responses directly  
+• maintain visual consistency  
 
 ---
 
----
+# FINAL SUMMARY
 
-# TRUST UI COMPONENTS
+The GAFAIG UI layer:
 
----
+• renders trust  
+• explains system  
+• enables integration  
+• guides users into workflow  
 
-## Widget (External)
+It does NOT:
 
-Location:
-public/widget/gafaig-widget.js
+• compute trust  
+• determine certification  
+• act as source of truth  
 
----
-
-### Purpose
-
-• embeddable trust surface  
-• fetch verification API  
-
----
-
-### Displays
-
-• entity  
-• tier / band  
-• status  
-• validity  
-
----
-
----
-
-## Verify Button Script
-
-Location:
-public/widget/gafaig-verify.js
-
----
-
-### Purpose
-
-• modal verification UI  
-• replaces alert UX  
-
----
-
-### States
-
-• loading  
-• verified  
-• error  
-
----
-
----
-
-## Badge
-
-Route:
-/badge/[registryId]
-
----
-
-### Purpose
-
-• visual certification signal  
-• embeddable  
-
----
-
----
-
-# DATA FLOW (UI)
-
-Snowflake  
-→ Query Layer (sfQuery)  
-→ Page (server component)  
-→ JSX render  
-→ User  
-
----
-
-# ERROR HANDLING
-
-## Implemented
-
-• try/catch in pages  
-• fallback UI banner  
-
----
-
-## Behavior
-
-If Snowflake fails:
-
-• page still renders  
-• shows “Data temporarily unavailable”  
-• prevents crash  
-
----
-
-# DESIGN SYSTEM
-
-## Visual Style
-
-• clean  
-• minimal  
-• institutional  
-
----
-
-## Patterns
-
-• rounded containers  
-• subtle borders  
-• uppercase labels  
-• consistent spacing  
-
----
-
-## Colors
-
-• black / white base  
-• muted grayscale  
-• semantic accents:
-  - green (certified)  
-  - amber (warning)  
-
----
-
-# COMPONENT RELATIONSHIPS
-
-Registry Page
-→ Registry Detail
-→ Verify API
-→ Widget / Badge
-
-Explorer
-→ Registry
-→ Countries / Organizations / Systems
-
-Verify Page
-→ Verify API
-→ Public Key
-
----
-
-# UI GUARANTEES
-
-UI must always:
-
-• reflect Snowflake truth  
-• remain stable during failures  
-• expose trust surfaces clearly  
-• avoid internal logic  
-
----
-
-# FUTURE UI EXPANSION
-
-Planned:
-
-• developer/integration page  
-• improved badge UI  
-• explorer depth  
-• system-level trust UI  
-• onboarding flows  
-
----
-
-# SUMMARY
-
-The UI layer is:
-
-→ the public face of trust infrastructure  
-
-It must:
-
-• remain simple  
-• remain accurate  
-• remain verifiable  
-• never introduce logic  
-
-Everything resolves to:
-
-→ the canonical registry record
+All authority lives in Snowflake.

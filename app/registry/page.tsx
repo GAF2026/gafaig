@@ -12,6 +12,7 @@ type RegistryRow = {
   ENTITY_NAME: string | null;
   ENTITY_TYPE: string | null;
   COUNTRY: string | null;
+  CERTIFIED_SCORE: string | null;
   CERTIFIED_TIER: string | null;
   CERTIFIED_BAND: string | null;
   DECISION_STATUS: string | null;
@@ -35,11 +36,14 @@ function formatDate(value: string | null | undefined) {
   });
 }
 
-function tierBandLabel(tier: string | null, band: string | null) {
-  if (tier && band) return `${tier} · Band ${band}`;
-  if (tier) return tier;
-  if (band) return `Band ${band}`;
-  return "—";
+function tierBandLabel(
+  score: string | null,
+  tier: string | null,
+  band: string | null
+) {
+  const scoreLabel = score ? `Score ${score}` : null;
+  const tierBand = tier && band ? `${tier} · Band ${band}` : tier || band || null;
+  return [scoreLabel, tierBand].filter(Boolean).join(" · ") || "—";
 }
 
 function normalizeString(value: string | string[] | undefined) {
@@ -100,6 +104,7 @@ export default async function RegistryPage({
           ENTITY_NAME,
           ENTITY_TYPE,
           COUNTRY,
+          CERTIFIED_SCORE,
           CERTIFIED_TIER,
           CERTIFIED_BAND,
           DECISION_STATUS,
@@ -384,8 +389,12 @@ export default async function RegistryPage({
 
                 <div className="mt-5 grid gap-3 md:grid-cols-4">
                   <Info
-                    label="Tier / Band"
-                    value={tierBandLabel(row.CERTIFIED_TIER, row.CERTIFIED_BAND)}
+                    label="Score / Tier / Band"
+                    value={tierBandLabel(
+                      row.CERTIFIED_SCORE,
+                      row.CERTIFIED_TIER,
+                      row.CERTIFIED_BAND
+                    )}
                   />
                   <Info label="Certified at" value={formatDate(row.CERTIFIED_AT)} />
                   <Info label="Valid from" value={formatDate(row.VALID_FROM)} />
