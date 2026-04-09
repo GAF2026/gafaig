@@ -1,6 +1,9 @@
 import Link from "next/link";
+import PublicPageHero from "@/app/_components/PublicPageHero";
 import PublicButtonLink from "@/app/_components/PublicButtonLink";
 import { getExplorerOrganizations } from "@/lib/queries/explorer";
+
+export const dynamic = "force-dynamic";
 
 function formatDate(value: string | null) {
   if (!value) return "—";
@@ -17,34 +20,62 @@ export default async function ExplorerOrganizationsPage() {
   const rows = await getExplorerOrganizations(200);
 
   return (
-    <main className="mx-auto max-w-[1280px] px-6 pb-20 pt-14 md:px-8">
+    <main className="mx-auto max-w-[1180px] px-6 pb-16 pt-14">
       <div className="space-y-8">
+        <PublicPageHero
+          eyebrow="EXPLORER"
+          title="Organizations"
+          description="Publicly visible organizations represented in the GAFAIG registry of record."
+          secondaryDescription="This explorer surface shows organizations that appear in GAFAIG’s public certification layer, along with their public record counts, certification status, and latest visible certification timing."
+          actions={
+            <>
+              <PublicButtonLink href="/registry" variant="primary">
+                View Registry
+              </PublicButtonLink>
+
+              <PublicButtonLink href="/explorer" variant="secondary">
+                Back to Explorer
+              </PublicButtonLink>
+
+              <PublicButtonLink
+                href="/explorer/countries"
+                variant="secondary"
+              >
+                Countries
+              </PublicButtonLink>
+
+              <PublicButtonLink href="/explorer/systems" variant="secondary">
+                Systems
+              </PublicButtonLink>
+            </>
+          }
+        />
+
         <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
-          <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
-            EXPLORER
+          <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+            <div>
+              <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
+                ORGANIZATION DIRECTORY
+              </div>
+
+              <h2 className="mt-4 text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
+                Public organizations in the registry
+              </h2>
+
+              <p className="mt-3 max-w-[820px] text-[15px] leading-[1.8] text-black/68">
+                Browse organizations currently represented in the GAFAIG public
+                trust surface.
+              </p>
+            </div>
+
+            <div>
+              <PublicButtonLink href="/registry" variant="secondary">
+                Open Full Registry
+              </PublicButtonLink>
+            </div>
           </div>
 
-          <h1 className="mt-4 max-w-[980px] text-[32px] font-semibold leading-[1.08] tracking-tight text-black md:text-[64px]">
-            Organizations
-          </h1>
-
-          <p className="mt-5 max-w-[980px] text-[16px] leading-[1.85] text-black/75 md:text-[18px]">
-            Publicly visible organizations represented in the GAFAIG registry of
-            record.
-          </p>
-
-          <div className="mt-8 flex flex-wrap gap-3">
-            <PublicButtonLink href="/explorer" variant="secondary">
-              Back to explorer
-            </PublicButtonLink>
-            <PublicButtonLink href="/registry" variant="primary">
-              View registry
-            </PublicButtonLink>
-          </div>
-        </section>
-
-        <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
-          <div className="overflow-x-auto">
+          <div className="mt-8 overflow-x-auto">
             <table className="min-w-full border-collapse">
               <thead>
                 <tr className="border-b border-black/10 text-left text-[12px] uppercase tracking-[0.16em] text-black/55">
@@ -65,18 +96,23 @@ export default async function ExplorerOrganizationsPage() {
                     <td className="px-0 py-4 font-semibold text-black">
                       {row.entityName}
                     </td>
+
                     <td className="px-4 py-4 text-sm text-black/75">
                       {row.entityType ?? "—"}
                     </td>
+
                     <td className="px-4 py-4 text-sm text-black/75">
                       {row.country ?? "—"}
                     </td>
+
                     <td className="px-4 py-4 text-sm text-black/75">
                       {row.registryCount}
                     </td>
+
                     <td className="px-4 py-4 text-sm text-black/75">
                       {row.decisionStatus ?? "—"}
                     </td>
+
                     <td className="px-4 py-4 text-sm text-black/75">
                       {formatDate(row.lastCertifiedAt)}
                     </td>
@@ -95,17 +131,23 @@ export default async function ExplorerOrganizationsPage() {
           </div>
 
           <div className="mt-8 flex flex-wrap gap-3 border-t border-black/10 pt-6">
+            <PublicButtonLink href="/explorer" variant="secondary">
+              Explorer
+            </PublicButtonLink>
+
             <PublicButtonLink href="/explorer/countries" variant="secondary">
               Countries
             </PublicButtonLink>
+
             <PublicButtonLink href="/explorer/systems" variant="secondary">
               Systems
             </PublicButtonLink>
+
             <Link
               href="/registry"
               className="inline-flex items-center justify-center rounded-full border border-black/15 px-5 py-3 text-sm font-semibold transition hover:bg-black/[0.04]"
             >
-              Open registry records
+              Open Registry Records
             </Link>
           </div>
         </section>
