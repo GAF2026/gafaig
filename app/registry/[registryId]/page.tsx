@@ -154,13 +154,13 @@ export default async function RegistryRecordPage({
       <main className="mx-auto max-w-[1180px] px-6 pb-16 pt-14">
         <div className="space-y-8">
           <div className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
-            <div className="text-[11px] font-semibold uppercase tracking-[0.28em] text-black/45">
-              Registry
+            <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
+              REGISTRY
             </div>
             <h1 className="mt-4 text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
               Registry record not found
             </h1>
-            <p className="mt-4 max-w-2xl text-base leading-8 text-black/65">
+            <p className="mt-4 max-w-2xl text-[16px] leading-[1.85] text-black/75">
               We could not find a public GAFAIG registry record for this ID.
             </p>
             <div className="mt-8">
@@ -178,15 +178,15 @@ export default async function RegistryRecordPage({
     <main className="mx-auto max-w-[1180px] px-6 pb-16 pt-14">
       <div className="space-y-8">
         <header className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
-          <div className="text-[11px] font-semibold uppercase tracking-[0.28em] text-black/45">
-            Canonical public trust record
+          <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
+            CANONICAL PUBLIC TRUST RECORD
           </div>
 
-          <h1 className="mt-4 text-[32px] font-semibold leading-[1.08] tracking-tight text-black md:text-[64px]">
+          <h1 className="mt-4 max-w-[860px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
             {entityName}
           </h1>
 
-          <p className="mt-5 max-w-[980px] text-[16px] leading-[1.9] text-black/72">
+          <p className="mt-5 max-w-[980px] text-[16px] leading-[1.85] text-black/75">
             This page is the public certification record for this entity within
             the GAFAIG registry of record.
           </p>
@@ -244,15 +244,15 @@ export default async function RegistryRecordPage({
         />
 
         <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
-          <div className="text-[11px] font-semibold uppercase tracking-[0.28em] text-black/45">
-            Trust distribution
+          <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
+            TRUST DISTRIBUTION
           </div>
 
           <h2 className="mt-4 text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
             Embed this certification anywhere
           </h2>
 
-          <p className="mt-4 max-w-[900px] text-[15px] leading-8 text-black/70">
+          <p className="mt-4 max-w-[900px] text-[15px] leading-[1.8] text-black/68">
             Use the snippets below to display GAFAIG certification on your
             website, product, or documentation. These embed directly from the
             canonical verification system.
@@ -316,8 +316,10 @@ export default async function RegistryRecordPage({
 function IntroCard({ title, body }: { title: string; body: string }) {
   return (
     <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-6">
-      <div className="text-[18px] font-semibold">{title}</div>
-      <p className="mt-2 text-sm text-black/70">{body}</p>
+      <div className="text-[18px] font-semibold tracking-tight text-black">
+        {title}
+      </div>
+      <p className="mt-3 text-[15px] leading-[1.8] text-black/72">{body}</p>
     </div>
   );
 }
@@ -325,10 +327,12 @@ function IntroCard({ title, body }: { title: string; body: string }) {
 function InfoCard({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-2xl border border-black/10 bg-white p-5">
-      <div className="text-[11px] font-semibold uppercase tracking-[0.24em] text-black/45">
+      <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/55">
         {label}
       </div>
-      <div className="mt-3 text-base font-semibold text-black">{value}</div>
+      <div className="mt-3 text-[36px] font-semibold leading-none tracking-tight text-black">
+        {value}
+      </div>
     </div>
   );
 }
