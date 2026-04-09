@@ -1,9 +1,12 @@
 import Link from "next/link";
-import PublicButtonLink from "@/app/_components/PublicButtonLink";
+import PublicPageHero from "../_components/PublicPageHero";
+import PublicButtonLink from "../_components/PublicButtonLink";
 import {
   getExplorerSummary,
   getRecentRegistryRecords,
 } from "@/lib/queries/explorer";
+
+export const dynamic = "force-dynamic";
 
 function formatDate(value: string | null) {
   if (!value) return "—";
@@ -23,38 +26,36 @@ export default async function ExplorerPage() {
   ]);
 
   return (
-    <main className="mx-auto max-w-[1280px] px-6 pb-20 pt-14 md:px-8">
+    <main className="mx-auto max-w-[1180px] px-6 pb-16 pt-14">
       <div className="space-y-8">
-        <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
-          <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
-            GLOBAL EXPLORER
-          </div>
+        <PublicPageHero
+          eyebrow="GLOBAL EXPLORER"
+          title="Explore the public GAFAIG trust surface."
+          description="Discover public certification records across organizations, countries, and AI systems using the canonical registry views published from Snowflake."
+          secondaryDescription="The explorer provides a public discovery layer across the GAFAIG network so third parties can inspect governance presence, review recent certifications, and navigate linked records without accessing private evidence or internal reviewer workflow."
+          actions={
+            <>
+              <PublicButtonLink href="/registry" variant="primary">
+                View Registry
+              </PublicButtonLink>
 
-          <h1 className="mt-4 max-w-[980px] text-[32px] font-semibold leading-[1.08] tracking-tight text-black md:text-[64px]">
-            Explore the public GAFAIG trust surface.
-          </h1>
+              <PublicButtonLink
+                href="/explorer/organizations"
+                variant="secondary"
+              >
+                Organizations
+              </PublicButtonLink>
 
-          <p className="mt-5 max-w-[980px] text-[16px] leading-[1.85] text-black/75 md:text-[18px]">
-            Discover public certification records across organizations,
-            countries, and AI systems using the canonical registry views
-            published from Snowflake.
-          </p>
+              <PublicButtonLink href="/explorer/systems" variant="secondary">
+                Systems
+              </PublicButtonLink>
 
-          <div className="mt-8 flex flex-wrap gap-3">
-            <PublicButtonLink href="/registry" variant="primary">
-              View registry
-            </PublicButtonLink>
-            <PublicButtonLink href="/explorer/organizations" variant="secondary">
-              Organizations
-            </PublicButtonLink>
-            <PublicButtonLink href="/explorer/systems" variant="secondary">
-              Systems
-            </PublicButtonLink>
-            <PublicButtonLink href="/explorer/countries" variant="secondary">
-              Countries
-            </PublicButtonLink>
-          </div>
-        </section>
+              <PublicButtonLink href="/explorer/countries" variant="secondary">
+                Countries
+              </PublicButtonLink>
+            </>
+          }
+        />
 
         <section className="grid gap-4 md:grid-cols-4">
           <MetricCard label="Registry records" value={String(summary.totalRecords)} />
@@ -72,9 +73,11 @@ export default async function ExplorerPage() {
               <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
                 RECENT REGISTRY ACTIVITY
               </div>
+
               <h2 className="mt-4 text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
                 Latest public records
               </h2>
+
               <p className="mt-3 max-w-[820px] text-[15px] leading-[1.8] text-black/68">
                 Recently surfaced certification records from the GAFAIG public
                 registry.
@@ -83,7 +86,7 @@ export default async function ExplorerPage() {
 
             <div>
               <PublicButtonLink href="/registry" variant="secondary">
-                Open full registry
+                Open Full Registry
               </PublicButtonLink>
             </div>
           </div>
@@ -111,20 +114,25 @@ export default async function ExplorerPage() {
                         {row.registryId}
                       </div>
                     </td>
+
                     <td className="px-4 py-4 text-sm text-black/75">
                       {row.country ?? "—"}
                     </td>
+
                     <td className="px-4 py-4 text-sm text-black/75">
                       {[row.certifiedTier, row.certifiedBand]
                         .filter(Boolean)
                         .join(" · ") || "—"}
                     </td>
+
                     <td className="px-4 py-4 text-sm text-black/75">
                       {row.decisionStatus ?? "—"}
                     </td>
+
                     <td className="px-4 py-4 text-sm text-black/75">
                       {formatDate(row.certifiedAt)}
                     </td>
+
                     <td className="px-4 py-4">
                       <Link
                         href={`/registry/${row.registryId}`}
