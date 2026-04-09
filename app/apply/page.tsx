@@ -7,8 +7,8 @@ export const revalidate = 0;
 
 export default function ApplyPage() {
   return (
-    <main className="mx-auto max-w-7xl px-6 py-16">
-      <div className="space-y-12">
+    <main className="mx-auto max-w-[1180px] px-6 pb-16 pt-14">
+      <div className="space-y-8">
         <PublicPageHero
           eyebrow="Apply"
           title="Apply for independent verification of human oversight in AI"
@@ -29,9 +29,9 @@ export default function ApplyPage() {
           }
         />
 
-        <section className="rounded-[32px] border border-black/10 bg-white p-10">
+        <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
           <SectionEyebrow>Submit application</SectionEyebrow>
-          <h2 className="mt-4 text-3xl font-semibold tracking-tight text-black">
+          <h2 className="mt-4 text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
             Start your certification intake
           </h2>
 
@@ -44,12 +44,12 @@ export default function ApplyPage() {
           <ApplyForm />
         </section>
 
-        <section className="rounded-[32px] border border-black/10 bg-black p-8 text-white">
+        <section className="rounded-3xl border border-black/10 bg-black p-8 md:p-10 text-white">
           <div className="text-[12px] font-semibold uppercase tracking-[0.22em] text-white/55">
             What you receive
           </div>
 
-          <h2 className="mt-3 text-3xl font-semibold tracking-tight text-white">
+          <h2 className="mt-3 text-[32px] font-semibold leading-[1.18] tracking-tight text-white md:text-[38px]">
             Certification becomes a public proof layer
           </h2>
 
@@ -84,10 +84,10 @@ export default function ApplyPage() {
           </div>
         </section>
 
-        <section className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr]">
-          <div className="rounded-[32px] border border-black/10 bg-white p-10">
+        <section className="grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
+          <div className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
             <SectionEyebrow>Who should apply</SectionEyebrow>
-            <h2 className="mt-4 text-3xl font-semibold tracking-tight text-black">
+            <h2 className="mt-4 text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
               Organizations seeking provable governance
             </h2>
 
@@ -107,9 +107,9 @@ export default function ApplyPage() {
             </div>
           </div>
 
-          <div className="rounded-[32px] border border-black/10 bg-white p-10">
+          <div className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
             <SectionEyebrow>Application readiness</SectionEyebrow>
-            <h2 className="mt-4 text-3xl font-semibold tracking-tight text-black">
+            <h2 className="mt-4 text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
               What GAFAIG evaluates
             </h2>
 
@@ -134,9 +134,9 @@ export default function ApplyPage() {
           </div>
         </section>
 
-        <section className="rounded-[32px] border border-black/10 bg-white p-10">
+        <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
           <SectionEyebrow>How the application process works</SectionEyebrow>
-          <h2 className="mt-4 text-3xl font-semibold tracking-tight text-black">
+          <h2 className="mt-4 text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
             From intake to verifiable publication
           </h2>
 
@@ -175,10 +175,10 @@ export default function ApplyPage() {
           </div>
         </section>
 
-        <section className="grid gap-8 lg:grid-cols-2">
-          <div className="rounded-[32px] border border-black/10 bg-white p-10">
+        <section className="grid gap-4 lg:grid-cols-2">
+          <div className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
             <SectionEyebrow>Public vs private</SectionEyebrow>
-            <h2 className="mt-4 text-3xl font-semibold tracking-tight text-black">
+            <h2 className="mt-4 text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
               What remains private
             </h2>
 
@@ -195,9 +195,9 @@ export default function ApplyPage() {
             </div>
           </div>
 
-          <div className="rounded-[32px] border border-black/10 bg-white p-10">
+          <div className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
             <SectionEyebrow>Public trust layer</SectionEyebrow>
-            <h2 className="mt-4 text-3xl font-semibold tracking-tight text-black">
+            <h2 className="mt-4 text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
               What becomes public
             </h2>
 
@@ -215,9 +215,9 @@ export default function ApplyPage() {
           </div>
         </section>
 
-        <section className="rounded-[32px] border border-black/10 bg-white p-10">
+        <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
           <SectionEyebrow>What happens after certification</SectionEyebrow>
-          <h2 className="mt-4 text-3xl font-semibold tracking-tight text-black">
+          <h2 className="mt-4 text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
             Your outcome is externally verifiable
           </h2>
 
@@ -245,9 +245,9 @@ export default function ApplyPage() {
           </div>
         </section>
 
-        <section className="rounded-[32px] border border-black/10 bg-white p-10">
+        <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
           <SectionEyebrow>How to begin</SectionEyebrow>
-          <h2 className="mt-4 text-3xl font-semibold tracking-tight text-black">
+          <h2 className="mt-4 text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
             Start with the current GAFAIG experience
           </h2>
 
@@ -280,12 +280,12 @@ export default function ApplyPage() {
           </div>
         </section>
 
-        <section className="rounded-[32px] bg-black p-10 text-white">
+        <section className="rounded-3xl bg-black p-8 md:p-10 text-white">
           <div className="text-[12px] font-semibold uppercase tracking-[0.22em] text-white/55">
             Next step
           </div>
 
-          <h2 className="mt-3 text-3xl font-semibold tracking-tight text-white">
+          <h2 className="mt-3 text-[32px] font-semibold leading-[1.18] tracking-tight text-white md:text-[38px]">
             Begin the GAFAIG certification journey
           </h2>
 
@@ -344,7 +344,7 @@ function DarkMetricCard({
   body: string;
 }) {
   return (
-    <div className="rounded-[24px] border border-white/10 bg-white/5 p-6">
+    <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
       <div className="text-[11px] font-semibold uppercase tracking-[0.24em] text-white/50">
         {label}
       </div>
@@ -364,7 +364,7 @@ function AudienceCard({
   body: string;
 }) {
   return (
-    <div className="rounded-[24px] border border-black/10 bg-black/[0.02] p-6">
+    <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-6">
       <div className="text-[20px] font-semibold tracking-tight text-black">
         {title}
       </div>
@@ -381,7 +381,7 @@ function ChecklistCard({
   body: string;
 }) {
   return (
-    <div className="rounded-[24px] border border-black/10 bg-black/[0.02] p-5">
+    <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
       <div className="text-[18px] font-semibold tracking-tight text-black">
         {title}
       </div>
@@ -400,7 +400,7 @@ function PathCard({
   body: string;
 }) {
   return (
-    <div className="rounded-[24px] border border-black/10 bg-black/[0.02] p-5">
+    <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
       <div className="text-[11px] font-semibold uppercase tracking-[0.24em] text-black/45">
         {number}
       </div>
@@ -420,7 +420,7 @@ function BoundaryCard({
   points: string[];
 }) {
   return (
-    <div className="rounded-[24px] border border-black/10 bg-black/[0.02] p-6">
+    <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-6">
       <div className="text-[20px] font-semibold tracking-tight text-black">
         {title}
       </div>
@@ -446,7 +446,7 @@ function InfoCard({
   body: string;
 }) {
   return (
-    <div className="rounded-[24px] border border-black/10 bg-black/[0.02] p-5">
+    <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
       <div className="text-[11px] font-semibold uppercase tracking-[0.24em] text-black/45">
         {label}
       </div>
@@ -470,7 +470,7 @@ function FeatureCard({
   cta: string;
 }) {
   return (
-    <div className="rounded-[24px] border border-black/10 bg-white p-6">
+    <div className="rounded-2xl border border-black/10 bg-white p-6">
       <div className="text-[22px] font-semibold tracking-tight text-black">
         {title}
       </div>
