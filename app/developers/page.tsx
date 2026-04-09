@@ -15,8 +15,8 @@ export default function DevelopersPage() {
   const publicKeyUrl = `${BASE_URL}/api/.well-known/gafaig-public-key`;
 
   return (
-    <main className="mx-auto max-w-7xl px-6 py-16">
-      <div className="space-y-12">
+    <main className="mx-auto max-w-[1180px] px-6 pb-16 pt-14">
+      <div className="space-y-8">
         <PublicPageHero
           eyebrow="Developers"
           title="Integrate verifiable proof of human oversight"
@@ -40,7 +40,7 @@ export default function DevelopersPage() {
           }
         />
 
-        <section className="rounded-[24px] border border-black/10 bg-black p-6 text-white">
+        <section className="rounded-3xl border border-black/10 bg-black p-8 md:p-10 text-white">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div>
               <div className="text-[12px] font-semibold uppercase tracking-[0.22em] text-white/55">
@@ -75,9 +75,9 @@ export default function DevelopersPage() {
           </div>
         </section>
 
-        <section className="rounded-[32px] border border-black/10 bg-white p-10">
+        <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
           <SectionEyebrow>Trust primitives</SectionEyebrow>
-          <h2 className="mt-4 text-3xl font-semibold tracking-tight text-black">
+          <h2 className="mt-4 text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
             The core verification layer
           </h2>
 
@@ -111,10 +111,10 @@ export default function DevelopersPage() {
           </div>
         </section>
 
-        <section className="grid gap-10 lg:grid-cols-[1.2fr_0.8fr]">
-          <div className="rounded-[32px] border border-black/10 bg-white p-10">
+        <section className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
+          <div className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
             <SectionEyebrow>Integration paths</SectionEyebrow>
-            <h2 className="mt-4 text-3xl font-semibold tracking-tight text-black">
+            <h2 className="mt-4 text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
               Three ways to integrate GAFAIG
             </h2>
 
@@ -137,9 +137,9 @@ export default function DevelopersPage() {
             </div>
           </div>
 
-          <div className="rounded-[32px] border border-black/10 bg-white p-10">
+          <div className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
             <SectionEyebrow>SDK</SectionEyebrow>
-            <h2 className="mt-4 text-3xl font-semibold tracking-tight text-black">
+            <h2 className="mt-4 text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
               JavaScript SDK
             </h2>
 
@@ -172,9 +172,9 @@ console.log(result);`}
           </div>
         </section>
 
-        <section className="rounded-[32px] border border-black/10 bg-white p-10">
+        <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
           <SectionEyebrow>Verification API</SectionEyebrow>
-          <h2 className="mt-4 text-3xl font-semibold tracking-tight text-black">
+          <h2 className="mt-4 text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
             Canonical trust endpoint
           </h2>
 
@@ -199,7 +199,7 @@ if (data.verified) {
           </div>
         </section>
 
-        <section className="grid gap-8 lg:grid-cols-2">
+        <section className="grid gap-4 lg:grid-cols-2">
           <Card
             title="Badge embed"
             body="Use the badge endpoint when you need a lightweight visual trust signal that resolves to the current GAFAIG certification state."
@@ -243,9 +243,9 @@ if (data.verified) {
           </Card>
         </section>
 
-        <section className="rounded-[32px] border border-black/10 bg-white p-10">
+        <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
           <SectionEyebrow>Proof verification</SectionEyebrow>
-          <h2 className="mt-4 text-3xl font-semibold tracking-tight text-black">
+          <h2 className="mt-4 text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
             Validate certification independently
           </h2>
 
@@ -289,9 +289,9 @@ if (data.verified) {
           </div>
         </section>
 
-        <section className="rounded-[32px] border border-black/10 bg-white p-10">
+        <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
           <SectionEyebrow>Implementation examples</SectionEyebrow>
-          <h2 className="mt-4 text-3xl font-semibold tracking-tight text-black">
+          <h2 className="mt-4 text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
             Copy-paste snippets
           </h2>
 
@@ -335,9 +335,9 @@ if (data.ok && data.verified) {
           </div>
         </section>
 
-        <section className="rounded-[32px] border border-black/10 bg-white p-10">
+        <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
           <SectionEyebrow>Operational boundaries</SectionEyebrow>
-          <h2 className="mt-4 text-3xl font-semibold tracking-tight text-black">
+          <h2 className="mt-4 text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
             What the public layer does and does not do
           </h2>
 
@@ -363,12 +363,12 @@ if (data.ok && data.verified) {
           </div>
         </section>
 
-        <section className="rounded-[32px] bg-black p-10 text-white">
+        <section className="rounded-3xl bg-black p-8 md:p-10 text-white">
           <div className="text-[12px] font-semibold uppercase tracking-[0.22em] text-white/50">
             Start integrating
           </div>
 
-          <h2 className="mt-3 text-3xl font-semibold tracking-tight text-white">
+          <h2 className="mt-3 text-[32px] font-semibold leading-[1.18] tracking-tight text-white md:text-[38px]">
             Start integrating GAFAIG
           </h2>
 
@@ -404,9 +404,9 @@ if (data.ok && data.verified) {
           </div>
         </section>
 
-        <section className="rounded-[32px] border border-black/10 bg-white p-10">
+        <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
           <SectionEyebrow>Certification</SectionEyebrow>
-          <h2 className="mt-4 text-3xl font-semibold tracking-tight text-black">
+          <h2 className="mt-4 text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
             Ready to certify your AI systems?
           </h2>
 
@@ -452,7 +452,7 @@ function MetricCard({
   body: string;
 }) {
   return (
-    <div className="rounded-[24px] border border-black/10 bg-white p-6">
+    <div className="rounded-2xl border border-black/10 bg-white p-6">
       <div className="text-[11px] font-semibold uppercase tracking-[0.24em] text-black/45">
         {label}
       </div>
@@ -474,7 +474,7 @@ function PathCard({
   body: string;
 }) {
   return (
-    <div className="rounded-[24px] border border-black/10 bg-black/[0.02] p-6">
+    <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-6">
       <div className="text-[11px] font-semibold uppercase tracking-[0.24em] text-black/45">
         Step {step}
       </div>
@@ -496,7 +496,7 @@ function Card({
   children: React.ReactNode;
 }) {
   return (
-    <div className="rounded-[32px] border border-black/10 bg-white p-8 shadow-sm">
+    <div className="rounded-3xl border border-black/10 bg-white p-8">
       <h3 className="text-[28px] font-semibold tracking-tight text-black">
         {title}
       </h3>
@@ -516,7 +516,7 @@ function InfoCard({
   body: string;
 }) {
   return (
-    <div className="rounded-[24px] border border-black/10 bg-black/[0.02] p-5">
+    <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
       <div className="text-[11px] font-semibold uppercase tracking-[0.24em] text-black/45">
         {label}
       </div>
@@ -536,7 +536,7 @@ function BoundaryCard({
   points: string[];
 }) {
   return (
-    <div className="rounded-[24px] border border-black/10 bg-black/[0.02] p-6">
+    <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-6">
       <div className="text-[20px] font-semibold tracking-tight text-black">
         {title}
       </div>
@@ -560,7 +560,7 @@ function CodeBlock({
   code: string;
 }) {
   return (
-    <div className="overflow-hidden rounded-[24px] border border-black/10 bg-black shadow-sm">
+    <div className="overflow-hidden rounded-2xl border border-black/10 bg-black">
       {title ? (
         <div className="border-b border-white/10 px-5 py-3 text-[11px] font-semibold uppercase tracking-[0.24em] text-white/55">
           {title}
