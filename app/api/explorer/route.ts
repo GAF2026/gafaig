@@ -1,8 +1,10 @@
 import { NextResponse } from "next/server";
 import {
-  getExplorerGlobalStats,
+  getExplorerSummary,
+  getRecentRegistryRecords,
+  getExplorerOrganizations,
   getExplorerCountries,
-  getExplorerRecent,
+  getExplorerSystems,
 } from "@/lib/queries/explorer";
 
 export const runtime = "nodejs";
@@ -11,29 +13,41 @@ export const revalidate = 0;
 
 export async function GET() {
   try {
-    const [global, countries, recent] = await Promise.all([
-      getExplorerGlobalStats(),
-      getExplorerCountries(),
-      getExplorerRecent(),
-    ]);
-
-    return NextResponse.json({
-      ok: true,
-      data: {
-        global,
-        countries,
-        recent,
-      },
-    });
-  } catch (error) {
-    console.error("EXPLORER API ERROR:", error);
+    const [summary, recent, organizations, countries, systems] =
+      await Promise.all([
+        getExplorerSummary(),
+        getRecentRegistryRecords(10),
+        getExplorerOrganizations(50),
+        getExplorerCountries(50),
+        getExplorerSystems(50),
+      ]);
 
     return NextResponse.json(
       {
-        ok: false,
-        error: error instanceof Error ? error.message : "Explorer API failed",
+        ok: true,
+        summary,
+        recent,
+        organizations,
+        countries,
+        systems,
       },
-      { status: 500 }
+      {
+        headers: { "Cache-Control": "no-store" },
+      }
+    );
+  } catch (error) {
+    return NextResponse.json(
+      {
+        ok: false,
+        error:
+          error instanceof Error
+            ? error.message
+            : "Explorer API failed",
+      },
+      {
+        status: 500,
+        headers: { "Cache-Control": "no-store" },
+      }
     );
   }
 }
