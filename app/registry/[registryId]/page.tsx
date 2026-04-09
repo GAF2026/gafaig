@@ -330,7 +330,7 @@ function InfoCard({ label, value }: { label: string; value: string }) {
       <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/55">
         {label}
       </div>
-      <div className="mt-3 text-[36px] font-semibold leading-none tracking-tight text-black">
+      <div className="mt-3 break-words whitespace-normal text-[20px] font-semibold leading-[1.15] tracking-tight text-black md:text-[22px]">
         {value}
       </div>
     </div>
