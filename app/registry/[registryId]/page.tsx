@@ -151,21 +151,23 @@ export default async function RegistryRecordPage({
 
   if (!row && !record) {
     return (
-      <main className="mx-auto max-w-6xl px-6 py-16">
-        <div className="rounded-[32px] border border-black/10 bg-white p-10 shadow-sm">
-          <div className="text-[11px] font-semibold uppercase tracking-[0.28em] text-black/45">
-            Registry
-          </div>
-          <h1 className="mt-4 text-3xl font-semibold tracking-tight text-black">
-            Registry record not found
-          </h1>
-          <p className="mt-4 max-w-2xl text-base leading-8 text-black/65">
-            We could not find a public GAFAIG registry record for this ID.
-          </p>
-          <div className="mt-8">
-            <PublicButtonLink href="/registry" variant="secondary">
-              Back to registry
-            </PublicButtonLink>
+      <main className="mx-auto max-w-[1180px] px-6 pb-16 pt-14">
+        <div className="space-y-8">
+          <div className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
+            <div className="text-[11px] font-semibold uppercase tracking-[0.28em] text-black/45">
+              Registry
+            </div>
+            <h1 className="mt-4 text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
+              Registry record not found
+            </h1>
+            <p className="mt-4 max-w-2xl text-base leading-8 text-black/65">
+              We could not find a public GAFAIG registry record for this ID.
+            </p>
+            <div className="mt-8">
+              <PublicButtonLink href="/registry" variant="secondary">
+                Back to registry
+              </PublicButtonLink>
+            </div>
           </div>
         </div>
       </main>
@@ -173,60 +175,60 @@ export default async function RegistryRecordPage({
   }
 
   return (
-    <main className="mx-auto max-w-7xl px-6 py-16">
-      <header className="rounded-[32px] border border-black/10 bg-white p-8 shadow-sm md:p-10">
-        <div className="text-[11px] font-semibold uppercase tracking-[0.28em] text-black/45">
-          Canonical public trust record
-        </div>
+    <main className="mx-auto max-w-[1180px] px-6 pb-16 pt-14">
+      <div className="space-y-8">
+        <header className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
+          <div className="text-[11px] font-semibold uppercase tracking-[0.28em] text-black/45">
+            Canonical public trust record
+          </div>
 
-        <h1 className="mt-4 text-4xl font-semibold tracking-tight text-black md:text-6xl">
-          {entityName}
-        </h1>
+          <h1 className="mt-4 text-[32px] font-semibold leading-[1.08] tracking-tight text-black md:text-[64px]">
+            {entityName}
+          </h1>
 
-        <p className="mt-5 max-w-[980px] text-[16px] leading-[1.9] text-black/72">
-          This page is the public certification record for this entity within
-          the GAFAIG registry of record.
-        </p>
+          <p className="mt-5 max-w-[980px] text-[16px] leading-[1.9] text-black/72">
+            This page is the public certification record for this entity within
+            the GAFAIG registry of record.
+          </p>
 
-        <div className="mt-8 grid gap-4 md:grid-cols-4">
-          <IntroCard
-            title="Public record of certification"
-            body="Disclosed certification outcome."
-          />
-          <IntroCard
-            title="Programmatically verifiable"
-            body="Verified via API + signed proof."
-          />
-          <IntroCard
-            title="Portable across the web"
-            body="Badge, QR, widget."
-          />
-          <IntroCard
-            title="Certified score"
-            body={certifiedScore ? `Score ${certifiedScore}` : "No score disclosed"}
-          />
-        </div>
+          <div className="mt-8 grid gap-4 md:grid-cols-4">
+            <IntroCard
+              title="Public record of certification"
+              body="Disclosed certification outcome."
+            />
+            <IntroCard
+              title="Programmatically verifiable"
+              body="Verified via API + signed proof."
+            />
+            <IntroCard
+              title="Portable across the web"
+              body="Badge, QR, widget."
+            />
+            <IntroCard
+              title="Certified score"
+              body={certifiedScore ? `Score ${certifiedScore}` : "No score disclosed"}
+            />
+          </div>
 
-        <div className="mt-6 text-sm text-black/70">
-          Want to independently verify this certification?{" "}
-          <PublicButtonLink href="/verify" variant="ghost" size="sm">
-            Learn how verification works →
-          </PublicButtonLink>
-        </div>
+          <div className="mt-6 text-sm text-black/70">
+            Want to independently verify this certification?{" "}
+            <PublicButtonLink href="/verify" variant="ghost" size="sm">
+              Learn how verification works →
+            </PublicButtonLink>
+          </div>
 
-        <div className="mt-8 grid gap-4 md:grid-cols-5">
-          <InfoCard label="Status" value={certificationStatus} />
-          <InfoCard label="Score" value={certifiedScore || "—"} />
-          <InfoCard
-            label="Tier / Band"
-            value={[certifiedTier, certifiedBand].filter(Boolean).join(" · ") || "—"}
-          />
-          <InfoCard label="Decision" value={decisionStatus || "—"} />
-          <InfoCard label="Valid To" value={validTo || "—"} />
-        </div>
-      </header>
+          <div className="mt-8 grid gap-4 md:grid-cols-5">
+            <InfoCard label="Status" value={certificationStatus} />
+            <InfoCard label="Score" value={certifiedScore || "—"} />
+            <InfoCard
+              label="Tier / Band"
+              value={[certifiedTier, certifiedBand].filter(Boolean).join(" · ") || "—"}
+            />
+            <InfoCard label="Decision" value={decisionStatus || "—"} />
+            <InfoCard label="Valid To" value={validTo || "—"} />
+          </div>
+        </header>
 
-      <div className="mt-8 space-y-8">
         <RegistryVerificationPanel
           registryId={registryId}
           entityName={entityName}
@@ -241,12 +243,12 @@ export default async function RegistryRecordPage({
           absoluteBadgeUrl={absoluteBadgeUrl}
         />
 
-        <section className="rounded-[32px] border border-black/10 bg-white p-8 md:p-10">
+        <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
           <div className="text-[11px] font-semibold uppercase tracking-[0.28em] text-black/45">
             Trust distribution
           </div>
 
-          <h2 className="mt-4 text-2xl font-semibold tracking-tight text-black">
+          <h2 className="mt-4 text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
             Embed this certification anywhere
           </h2>
 
@@ -313,7 +315,7 @@ export default async function RegistryRecordPage({
 
 function IntroCard({ title, body }: { title: string; body: string }) {
   return (
-    <div className="rounded-[24px] border border-black/10 bg-black/[0.02] p-6">
+    <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-6">
       <div className="text-[18px] font-semibold">{title}</div>
       <p className="mt-2 text-sm text-black/70">{body}</p>
     </div>
@@ -322,7 +324,7 @@ function IntroCard({ title, body }: { title: string; body: string }) {
 
 function InfoCard({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-[24px] border border-black/10 bg-white p-5">
+    <div className="rounded-2xl border border-black/10 bg-white p-5">
       <div className="text-[11px] font-semibold uppercase tracking-[0.24em] text-black/45">
         {label}
       </div>
