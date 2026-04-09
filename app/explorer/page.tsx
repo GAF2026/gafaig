@@ -1,8 +1,5 @@
 import Link from "next/link";
-import {
-  getExplorerSummary,
-  getRecentRegistryRecords,
-} from "@/lib/queries/explorer";
+import { getExplorerSummary, getRecentRegistryRecords } from "@/lib/queries/explorer";
 
 function formatDate(value: string | null) {
   if (!value) return "—";
@@ -22,17 +19,17 @@ export default async function ExplorerPage() {
   ]);
 
   return (
-    <main className="mx-auto max-w-7xl px-6 py-12">
-      <section className="rounded-[32px] border border-black/10 bg-white p-8">
+    <main className="mx-auto max-w-7xl px-6 py-10 md:px-8 md:py-12">
+      <section className="rounded-[32px] border border-black/10 bg-white p-8 md:p-10">
         <div className="text-[12px] font-semibold uppercase tracking-[0.22em] text-black/55">
           Global explorer
         </div>
 
-        <h1 className="mt-4 text-4xl font-semibold tracking-tight text-black sm:text-5xl">
+        <h1 className="mt-4 max-w-5xl text-[44px] font-semibold leading-[1.05] tracking-[-0.02em] text-black md:text-[56px]">
           Explore the public GAFAIG trust surface.
         </h1>
 
-        <p className="mt-5 max-w-3xl text-[16px] leading-8 text-black/70">
+        <p className="mt-6 max-w-4xl text-[16px] leading-8 text-black/72 md:text-[18px]">
           Discover public certification records across organizations, countries,
           and AI systems using the canonical registry views published from
           Snowflake.
@@ -41,25 +38,25 @@ export default async function ExplorerPage() {
         <div className="mt-8 flex flex-wrap gap-3">
           <Link
             href="/registry"
-            className="rounded-full border border-black bg-black px-5 py-3 text-sm font-semibold text-white transition hover:bg-black/90"
+            className="inline-flex items-center justify-center rounded-full border border-black bg-black px-5 py-3 text-sm font-semibold text-white transition hover:bg-black/90"
           >
             View registry
           </Link>
           <Link
             href="/explorer/organizations"
-            className="rounded-full border border-black/15 px-5 py-3 text-sm font-semibold transition hover:bg-black/[0.04]"
+            className="inline-flex items-center justify-center rounded-full border border-black/15 px-5 py-3 text-sm font-semibold transition hover:bg-black/[0.04]"
           >
             Organizations
           </Link>
           <Link
             href="/explorer/systems"
-            className="rounded-full border border-black/15 px-5 py-3 text-sm font-semibold transition hover:bg-black/[0.04]"
+            className="inline-flex items-center justify-center rounded-full border border-black/15 px-5 py-3 text-sm font-semibold transition hover:bg-black/[0.04]"
           >
             Systems
           </Link>
           <Link
             href="/explorer/countries"
-            className="rounded-full border border-black/15 px-5 py-3 text-sm font-semibold transition hover:bg-black/[0.04]"
+            className="inline-flex items-center justify-center rounded-full border border-black/15 px-5 py-3 text-sm font-semibold transition hover:bg-black/[0.04]"
           >
             Countries
           </Link>
@@ -67,63 +64,63 @@ export default async function ExplorerPage() {
       </section>
 
       <section className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <div className="rounded-3xl border border-black/10 bg-white p-6">
+        <div className="rounded-[28px] border border-black/10 bg-white p-6">
           <div className="text-[12px] font-semibold uppercase tracking-[0.18em] text-black/55">
             Registry records
           </div>
-          <div className="mt-3 text-4xl font-semibold text-black">
+          <div className="mt-4 text-5xl font-semibold leading-none text-black">
             {summary.totalRecords}
           </div>
         </div>
 
-        <div className="rounded-3xl border border-black/10 bg-white p-6">
+        <div className="rounded-[28px] border border-black/10 bg-white p-6">
           <div className="text-[12px] font-semibold uppercase tracking-[0.18em] text-black/55">
             Organizations
           </div>
-          <div className="mt-3 text-4xl font-semibold text-black">
+          <div className="mt-4 text-5xl font-semibold leading-none text-black">
             {summary.totalOrganizations}
           </div>
         </div>
 
-        <div className="rounded-3xl border border-black/10 bg-white p-6">
+        <div className="rounded-[28px] border border-black/10 bg-white p-6">
           <div className="text-[12px] font-semibold uppercase tracking-[0.18em] text-black/55">
             Countries
           </div>
-          <div className="mt-3 text-4xl font-semibold text-black">
+          <div className="mt-4 text-5xl font-semibold leading-none text-black">
             {summary.totalCountries}
           </div>
         </div>
 
-        <div className="rounded-3xl border border-black/10 bg-white p-6">
+        <div className="rounded-[28px] border border-black/10 bg-white p-6">
           <div className="text-[12px] font-semibold uppercase tracking-[0.18em] text-black/55">
             AI systems
           </div>
-          <div className="mt-3 text-4xl font-semibold text-black">
+          <div className="mt-4 text-5xl font-semibold leading-none text-black">
             {summary.totalSystems}
           </div>
         </div>
       </section>
 
-      <section className="mt-8 rounded-[32px] border border-black/10 bg-white p-8">
+      <section className="mt-8 rounded-[32px] border border-black/10 bg-white p-8 md:p-10">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
             <div className="text-[12px] font-semibold uppercase tracking-[0.22em] text-black/55">
               Recent registry activity
             </div>
-            <h2 className="mt-2 text-2xl font-semibold text-black">
+            <h2 className="mt-2 text-[32px] font-semibold tracking-[-0.02em] text-black">
               Latest public records
             </h2>
           </div>
 
           <Link
             href="/registry"
-            className="rounded-full border border-black/15 px-4 py-2 text-sm font-semibold transition hover:bg-black/[0.04]"
+            className="inline-flex items-center justify-center rounded-full border border-black/15 px-4 py-2 text-sm font-semibold transition hover:bg-black/[0.04]"
           >
             Open full registry
           </Link>
         </div>
 
-        <div className="mt-6 overflow-x-auto">
+        <div className="mt-8 overflow-x-auto">
           <table className="min-w-full border-collapse">
             <thead>
               <tr className="border-b border-black/10 text-left text-[12px] uppercase tracking-[0.16em] text-black/55">
@@ -137,22 +134,18 @@ export default async function ExplorerPage() {
             </thead>
             <tbody>
               {recentRecords.map((row) => (
-                <tr key={row.registryId} className="border-b border-black/5">
+                <tr key={row.registryId} className="border-b border-black/5 align-top">
                   <td className="px-0 py-4">
                     <div className="font-semibold text-black">
                       {row.entityName ?? "—"}
                     </div>
-                    <div className="mt-1 text-sm text-black/60">
-                      {row.registryId}
-                    </div>
+                    <div className="mt-1 text-sm text-black/60">{row.registryId}</div>
                   </td>
                   <td className="px-4 py-4 text-sm text-black/75">
                     {row.country ?? "—"}
                   </td>
                   <td className="px-4 py-4 text-sm text-black/75">
-                    {[row.certifiedTier, row.certifiedBand]
-                      .filter(Boolean)
-                      .join(" · ") || "—"}
+                    {[row.certifiedTier, row.certifiedBand].filter(Boolean).join(" · ") || "—"}
                   </td>
                   <td className="px-4 py-4 text-sm text-black/75">
                     {row.decisionStatus ?? "—"}
@@ -173,10 +166,7 @@ export default async function ExplorerPage() {
 
               {recentRecords.length === 0 ? (
                 <tr>
-                  <td
-                    colSpan={6}
-                    className="px-0 py-8 text-sm text-black/60"
-                  >
+                  <td colSpan={6} className="px-0 py-8 text-sm text-black/60">
                     No explorer records found.
                   </td>
                 </tr>
