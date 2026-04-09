@@ -83,7 +83,7 @@ export default async function HomePage() {
   const metrics = metricsResp && metricsResp.ok ? metricsResp.metrics : null;
 
   return (
-    <main className="mx-auto max-w-[1180px] px-6 pb-20 pt-14 md:px-8">
+    <main className="mx-auto max-w-[1180px] px-6 pb-16 pt-14">
       <div className="space-y-8">
         <PublicPageHero
           eyebrow="GLOBAL AUTHORITY FOR AI GOVERNANCE"
