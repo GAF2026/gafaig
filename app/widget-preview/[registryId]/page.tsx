@@ -1,4 +1,5 @@
 import Script from "next/script";
+import PublicPageHero from "@/app/_components/PublicPageHero";
 import PublicButtonLink from "@/app/_components/PublicButtonLink";
 
 export const dynamic = "force-dynamic";
@@ -65,25 +66,27 @@ export default async function WidgetPreviewPage({
 
   if (!verifyData?.ok || !verifyData?.verified || !verifyData?.record) {
     return (
-      <div className="mx-auto max-w-5xl px-6 py-12">
-        <div className="rounded-3xl border border-black/10 bg-white p-8">
-          <div className="text-[12px] font-semibold uppercase tracking-[0.18em] text-black/55">
-            Widget Preview
-          </div>
-          <h1 className="mt-4 text-3xl font-semibold tracking-tight text-black">
-            Widget unavailable
-          </h1>
-          <p className="mt-4 max-w-2xl text-[15px] leading-8 text-black/70">
-            This registry record could not be verified or is not currently
-            available for widget preview.
-          </p>
-          <div className="mt-8">
-            <PublicButtonLink href="/registry" variant="secondary">
-              Back to registry
-            </PublicButtonLink>
-          </div>
+      <main className="mx-auto max-w-[1180px] px-6 pb-16 pt-14">
+        <div className="space-y-8">
+          <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
+            <div className="text-[12px] font-semibold uppercase tracking-[0.18em] text-black/55">
+              Widget Preview
+            </div>
+            <h1 className="mt-4 text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
+              Widget unavailable
+            </h1>
+            <p className="mt-4 max-w-2xl text-[15px] leading-8 text-black/70">
+              This registry record could not be verified or is not currently
+              available for widget preview.
+            </p>
+            <div className="mt-8">
+              <PublicButtonLink href="/registry" variant="secondary">
+                Back to registry
+              </PublicButtonLink>
+            </div>
+          </section>
         </div>
-      </div>
+      </main>
     );
   }
 
@@ -97,82 +100,49 @@ export default async function WidgetPreviewPage({
 <button onclick="verifyGAFAIG('${registryId}')">Verify This AI System</button>`;
 
   return (
-    <div className="mx-auto max-w-6xl px-6 py-12">
-      <div className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
-        <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
-          <div className="max-w-[760px]">
-            <div className="text-[12px] font-semibold uppercase tracking-[0.18em] text-black/55">
-              GAFAIG Widget Preview
-            </div>
+    <main className="mx-auto max-w-[1180px] px-6 pb-16 pt-14">
+      <div className="space-y-8">
+        <PublicPageHero
+          eyebrow="GAFAIG WIDGET PREVIEW"
+          title="Preview the live verification widget"
+          description="This page shows the public GAFAIG widget exactly as external sites can embed it. The widget pulls from the live verification endpoint and renders the current public certification record."
+          secondaryDescription="Use this page to inspect the live widget, copy installation snippets, and confirm how the registry page, badge, widget, and verify JSON work together as one public trust surface."
+          actions={
+            <>
+              <PublicButtonLink
+                href={`/api/verify/${encodeURIComponent(registryId)}`}
+                variant="primary"
+              >
+                Open Verify JSON
+              </PublicButtonLink>
 
-            <h1 className="mt-4 text-[38px] font-semibold leading-[1.08] tracking-tight text-black">
-              Preview the live verification widget
-            </h1>
+              <PublicButtonLink
+                href={`/registry/${encodeURIComponent(registryId)}`}
+                variant="secondary"
+              >
+                Open Registry Record
+              </PublicButtonLink>
+            </>
+          }
+        />
 
-            <p className="mt-4 text-[15px] leading-8 text-black/72">
-              This page shows the public GAFAIG widget exactly as external sites
-              can embed it. The widget pulls from the live verification endpoint
-              and renders the current public certification record.
-            </p>
-          </div>
+        <section className="grid gap-4 md:grid-cols-4">
+          <MetricCard label="Entity" value={entityName} />
+          <MetricCard
+            label="Tier / Band"
+            value={`${valueOrDash(record.certifiedTier)} · ${valueOrDash(
+              record.certifiedBand
+            )}`}
+          />
+          <MetricCard
+            label="Decision"
+            value={valueOrDash(record.decisionStatus)}
+          />
+          <MetricCard label="Valid To" value={valueOrDash(record.validTo)} />
+        </section>
 
-          <div className="flex flex-wrap items-center gap-3">
-            <PublicButtonLink
-              href={`/registry/${encodeURIComponent(registryId)}`}
-              variant="secondary"
-            >
-              Open registry record
-            </PublicButtonLink>
-
-            <PublicButtonLink
-              href={`/api/verify/${encodeURIComponent(registryId)}`}
-              variant="primary"
-            >
-              Open verify JSON
-            </PublicButtonLink>
-          </div>
-        </div>
-
-        <div className="mt-8 grid gap-6 md:grid-cols-4">
-          <div className="rounded-2xl border border-black/10 p-5">
-            <div className="text-[11px] font-semibold uppercase tracking-[0.14em] text-black/55">
-              Entity
-            </div>
-            <div className="mt-3 text-[16px] font-semibold text-black">
-              {entityName}
-            </div>
-          </div>
-
-          <div className="rounded-2xl border border-black/10 p-5">
-            <div className="text-[11px] font-semibold uppercase tracking-[0.14em] text-black/55">
-              Tier / Band
-            </div>
-            <div className="mt-3 text-[16px] font-semibold text-black">
-              {valueOrDash(record.certifiedTier)} · {valueOrDash(record.certifiedBand)}
-            </div>
-          </div>
-
-          <div className="rounded-2xl border border-black/10 p-5">
-            <div className="text-[11px] font-semibold uppercase tracking-[0.14em] text-black/55">
-              Decision
-            </div>
-            <div className="mt-3 text-[16px] font-semibold text-black">
-              {valueOrDash(record.decisionStatus)}
-            </div>
-          </div>
-
-          <div className="rounded-2xl border border-black/10 p-5">
-            <div className="text-[11px] font-semibold uppercase tracking-[0.14em] text-black/55">
-              Valid To
-            </div>
-            <div className="mt-3 text-[16px] font-semibold text-black">
-              {valueOrDash(record.validTo)}
-            </div>
-          </div>
-        </div>
-
-        <div className="mt-10 grid gap-8 xl:grid-cols-[1.05fr_0.95fr]">
-          <section className="rounded-3xl border border-black/10 p-6">
+        <section className="grid gap-8 xl:grid-cols-[1.05fr_0.95fr]">
+          <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
             <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/60">
               Live widget
             </div>
@@ -186,7 +156,7 @@ export default async function WidgetPreviewPage({
             </div>
           </section>
 
-          <section className="rounded-3xl border border-black/10 p-6">
+          <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
             <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/60">
               Quick install
             </div>
@@ -211,9 +181,9 @@ export default async function WidgetPreviewPage({
               </div>
             </div>
           </section>
-        </div>
+        </section>
 
-        <div className="mt-10 rounded-3xl border border-black/10 p-6">
+        <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
           <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/60">
             What this proves
           </div>
@@ -232,7 +202,20 @@ export default async function WidgetPreviewPage({
               unified public trust surface.
             </div>
           </div>
-        </div>
+        </section>
+      </div>
+    </main>
+  );
+}
+
+function MetricCard({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-2xl border border-black/10 bg-white p-5">
+      <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/55">
+        {label}
+      </div>
+      <div className="mt-3 break-words text-[20px] font-semibold tracking-tight text-black">
+        {value}
       </div>
     </div>
   );
