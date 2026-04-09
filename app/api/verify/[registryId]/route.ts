@@ -1,3 +1,4 @@
+import { createPrivateKey, sign as cryptoSign } from "crypto";
 import { NextResponse } from "next/server";
 import { sfQuery } from "@/lib/snowflake";
 
@@ -21,11 +22,77 @@ type VerifyRow = {
   CERTIFIED_AT: string | null;
 };
 
+type ProofMessage = {
+  registryId: string;
+  entityName: string | null;
+  entityType: string | null;
+  country: string | null;
+  applicationId: string | null;
+  caseId: string | null;
+  certificationStatus: string;
+  certifiedScore: number | null;
+  certifiedTier: string | null;
+  certifiedBand: string | null;
+  decisionStatus: string | null;
+  certifiedAt: string | null;
+  validFrom: string | null;
+  validTo: string | null;
+};
+
 function asIso(value: string | null | undefined): string | null {
   if (!value) return null;
   const d = new Date(value);
   if (Number.isNaN(d.getTime())) return value;
   return d.toISOString();
+}
+
+function base64Url(buffer: Buffer): string {
+  return buffer
+    .toString("base64")
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/g, "");
+}
+
+function stableStringify(value: unknown): string {
+  if (value === null || typeof value !== "object") {
+    return JSON.stringify(value);
+  }
+
+  if (Array.isArray(value)) {
+    return `[${value.map((item) => stableStringify(item)).join(",")}]`;
+  }
+
+  const entries = Object.entries(value as Record<string, unknown>)
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([key, val]) => `${JSON.stringify(key)}:${stableStringify(val)}`);
+
+  return `{${entries.join(",")}}`;
+}
+
+function getPrivateKeyPem(): string {
+  const raw = process.env.GAFAIG_VERIFY_PRIVATE_KEY?.trim();
+
+  if (!raw) {
+    throw new Error("GAFAIG_VERIFY_PRIVATE_KEY is not configured.");
+  }
+
+  return raw.replace(/\\n/g, "\n");
+}
+
+function signProofMessage(messageString: string): string {
+  const privateKey = createPrivateKey({
+    key: getPrivateKeyPem(),
+    format: "pem",
+  });
+
+  const signature = cryptoSign(
+    null,
+    Buffer.from(messageString, "utf8"),
+    privateKey
+  );
+
+  return base64Url(signature);
 }
 
 export async function GET(
@@ -109,7 +176,7 @@ export async function GET(
       validTo,
     };
 
-    const proofMessage = {
+    const proofMessage: ProofMessage = {
       registryId: record.registryId,
       entityName: record.entityName,
       entityType: record.entityType,
@@ -126,6 +193,14 @@ export async function GET(
       validTo: record.validTo,
     };
 
+    const messageString = stableStringify(proofMessage);
+    const signature = signProofMessage(messageString);
+    const signedAt = new Date().toISOString();
+    const kid = process.env.GAFAIG_VERIFY_KEY_ID?.trim() || "gafaig-public-key";
+    const siteUrl =
+      String(process.env.NEXT_PUBLIC_SITE_URL || "").replace(/\/+$/, "") ||
+      "http://localhost:3000";
+
     return NextResponse.json(
       {
         ok: true,
@@ -133,12 +208,12 @@ export async function GET(
         registryId: row.REGISTRY_ID,
         proof: {
           alg: "Ed25519",
-          kid: "gafaig-public-key",
-          signature: "",
-          signedAt: certifiedAt,
-          verificationKeyUrl: "/api/.well-known/gafaig-public-key",
+          kid,
+          signature,
+          signedAt,
+          verificationKeyUrl: `${siteUrl}/api/.well-known/gafaig-public-key`,
           message: proofMessage,
-          messageString: JSON.stringify(proofMessage),
+          messageString,
         },
         record,
       },
