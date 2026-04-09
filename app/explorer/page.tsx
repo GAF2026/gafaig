@@ -19,17 +19,17 @@ export default async function ExplorerPage() {
   ]);
 
   return (
-    <main className="mx-auto max-w-7xl px-6 py-10 md:px-8 md:py-12">
-      <section className="rounded-[32px] border border-black/10 bg-white p-8 md:p-10">
+    <main className="px-8 py-12 md:px-10 md:py-14">
+      <section className="rounded-[32px] border border-black/10 bg-white p-8 md:p-12">
         <div className="text-[12px] font-semibold uppercase tracking-[0.22em] text-black/55">
           Global explorer
         </div>
 
-        <h1 className="mt-4 max-w-5xl text-[44px] font-semibold leading-[1.05] tracking-[-0.02em] text-black md:text-[56px]">
+        <h1 className="mt-4 max-w-5xl text-[44px] font-semibold leading-[1.05] tracking-[-0.03em] text-black md:text-[64px]">
           Explore the public GAFAIG trust surface.
         </h1>
 
-        <p className="mt-6 max-w-4xl text-[16px] leading-8 text-black/72 md:text-[18px]">
+        <p className="mt-6 max-w-4xl text-[18px] leading-8 text-black/72">
           Discover public certification records across organizations, countries,
           and AI systems using the canonical registry views published from
           Snowflake.
@@ -64,7 +64,7 @@ export default async function ExplorerPage() {
       </section>
 
       <section className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <div className="rounded-[28px] border border-black/10 bg-white p-6">
+        <div className="rounded-[32px] border border-black/10 bg-white p-6">
           <div className="text-[12px] font-semibold uppercase tracking-[0.18em] text-black/55">
             Registry records
           </div>
@@ -73,7 +73,7 @@ export default async function ExplorerPage() {
           </div>
         </div>
 
-        <div className="rounded-[28px] border border-black/10 bg-white p-6">
+        <div className="rounded-[32px] border border-black/10 bg-white p-6">
           <div className="text-[12px] font-semibold uppercase tracking-[0.18em] text-black/55">
             Organizations
           </div>
@@ -82,7 +82,7 @@ export default async function ExplorerPage() {
           </div>
         </div>
 
-        <div className="rounded-[28px] border border-black/10 bg-white p-6">
+        <div className="rounded-[32px] border border-black/10 bg-white p-6">
           <div className="text-[12px] font-semibold uppercase tracking-[0.18em] text-black/55">
             Countries
           </div>
@@ -91,7 +91,7 @@ export default async function ExplorerPage() {
           </div>
         </div>
 
-        <div className="rounded-[28px] border border-black/10 bg-white p-6">
+        <div className="rounded-[32px] border border-black/10 bg-white p-6">
           <div className="text-[12px] font-semibold uppercase tracking-[0.18em] text-black/55">
             AI systems
           </div>
@@ -120,7 +120,7 @@ export default async function ExplorerPage() {
           </Link>
         </div>
 
-        <div className="mt-8 overflow-x-auto">
+        <div className="mt-6 overflow-x-auto">
           <table className="min-w-full border-collapse">
             <thead>
               <tr className="border-b border-black/10 text-left text-[12px] uppercase tracking-[0.16em] text-black/55">
