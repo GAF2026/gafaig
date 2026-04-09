@@ -1,5 +1,9 @@
 import Link from "next/link";
-import { getExplorerSummary, getRecentRegistryRecords } from "@/lib/queries/explorer";
+import PublicButtonLink from "@/app/_components/PublicButtonLink";
+import {
+  getExplorerSummary,
+  getRecentRegistryRecords,
+} from "@/lib/queries/explorer";
 
 function formatDate(value: string | null) {
   if (!value) return "—";
@@ -19,162 +23,150 @@ export default async function ExplorerPage() {
   ]);
 
   return (
-    <main className="px-8 py-12 md:px-10 md:py-14">
-      <section className="rounded-[32px] border border-black/10 bg-white p-8 md:p-12">
-        <div className="text-[12px] font-semibold uppercase tracking-[0.22em] text-black/55">
-          Global explorer
-        </div>
-
-        <h1 className="mt-4 max-w-5xl text-[44px] font-semibold leading-[1.05] tracking-[-0.03em] text-black md:text-[64px]">
-          Explore the public GAFAIG trust surface.
-        </h1>
-
-        <p className="mt-6 max-w-4xl text-[18px] leading-8 text-black/72">
-          Discover public certification records across organizations, countries,
-          and AI systems using the canonical registry views published from
-          Snowflake.
-        </p>
-
-        <div className="mt-8 flex flex-wrap gap-3">
-          <Link
-            href="/registry"
-            className="inline-flex items-center justify-center rounded-full border border-black bg-black px-5 py-3 text-sm font-semibold text-white transition hover:bg-black/90"
-          >
-            View registry
-          </Link>
-          <Link
-            href="/explorer/organizations"
-            className="inline-flex items-center justify-center rounded-full border border-black/15 px-5 py-3 text-sm font-semibold transition hover:bg-black/[0.04]"
-          >
-            Organizations
-          </Link>
-          <Link
-            href="/explorer/systems"
-            className="inline-flex items-center justify-center rounded-full border border-black/15 px-5 py-3 text-sm font-semibold transition hover:bg-black/[0.04]"
-          >
-            Systems
-          </Link>
-          <Link
-            href="/explorer/countries"
-            className="inline-flex items-center justify-center rounded-full border border-black/15 px-5 py-3 text-sm font-semibold transition hover:bg-black/[0.04]"
-          >
-            Countries
-          </Link>
-        </div>
-      </section>
-
-      <section className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <div className="rounded-[32px] border border-black/10 bg-white p-6">
-          <div className="text-[12px] font-semibold uppercase tracking-[0.18em] text-black/55">
-            Registry records
+    <main className="mx-auto max-w-[1280px] px-6 pb-20 pt-14 md:px-8">
+      <div className="space-y-8">
+        <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
+          <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
+            GLOBAL EXPLORER
           </div>
-          <div className="mt-4 text-5xl font-semibold leading-none text-black">
-            {summary.totalRecords}
-          </div>
-        </div>
 
-        <div className="rounded-[32px] border border-black/10 bg-white p-6">
-          <div className="text-[12px] font-semibold uppercase tracking-[0.18em] text-black/55">
-            Organizations
-          </div>
-          <div className="mt-4 text-5xl font-semibold leading-none text-black">
-            {summary.totalOrganizations}
-          </div>
-        </div>
+          <h1 className="mt-4 max-w-[980px] text-[32px] font-semibold leading-[1.08] tracking-tight text-black md:text-[64px]">
+            Explore the public GAFAIG trust surface.
+          </h1>
 
-        <div className="rounded-[32px] border border-black/10 bg-white p-6">
-          <div className="text-[12px] font-semibold uppercase tracking-[0.18em] text-black/55">
-            Countries
-          </div>
-          <div className="mt-4 text-5xl font-semibold leading-none text-black">
-            {summary.totalCountries}
-          </div>
-        </div>
+          <p className="mt-5 max-w-[980px] text-[16px] leading-[1.85] text-black/75 md:text-[18px]">
+            Discover public certification records across organizations,
+            countries, and AI systems using the canonical registry views
+            published from Snowflake.
+          </p>
 
-        <div className="rounded-[32px] border border-black/10 bg-white p-6">
-          <div className="text-[12px] font-semibold uppercase tracking-[0.18em] text-black/55">
-            AI systems
+          <div className="mt-8 flex flex-wrap gap-3">
+            <PublicButtonLink href="/registry" variant="primary">
+              View registry
+            </PublicButtonLink>
+            <PublicButtonLink href="/explorer/organizations" variant="secondary">
+              Organizations
+            </PublicButtonLink>
+            <PublicButtonLink href="/explorer/systems" variant="secondary">
+              Systems
+            </PublicButtonLink>
+            <PublicButtonLink href="/explorer/countries" variant="secondary">
+              Countries
+            </PublicButtonLink>
           </div>
-          <div className="mt-4 text-5xl font-semibold leading-none text-black">
-            {summary.totalSystems}
-          </div>
-        </div>
-      </section>
+        </section>
 
-      <section className="mt-8 rounded-[32px] border border-black/10 bg-white p-8 md:p-10">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <div className="text-[12px] font-semibold uppercase tracking-[0.22em] text-black/55">
-              Recent registry activity
+        <section className="grid gap-4 md:grid-cols-4">
+          <MetricCard label="Registry records" value={String(summary.totalRecords)} />
+          <MetricCard
+            label="Organizations"
+            value={String(summary.totalOrganizations)}
+          />
+          <MetricCard label="Countries" value={String(summary.totalCountries)} />
+          <MetricCard label="AI systems" value={String(summary.totalSystems)} />
+        </section>
+
+        <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
+          <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+            <div>
+              <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
+                RECENT REGISTRY ACTIVITY
+              </div>
+              <h2 className="mt-4 text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
+                Latest public records
+              </h2>
+              <p className="mt-3 max-w-[820px] text-[15px] leading-[1.8] text-black/68">
+                Recently surfaced certification records from the GAFAIG public
+                registry.
+              </p>
             </div>
-            <h2 className="mt-2 text-[32px] font-semibold tracking-[-0.02em] text-black">
-              Latest public records
-            </h2>
+
+            <div>
+              <PublicButtonLink href="/registry" variant="secondary">
+                Open full registry
+              </PublicButtonLink>
+            </div>
           </div>
 
-          <Link
-            href="/registry"
-            className="inline-flex items-center justify-center rounded-full border border-black/15 px-4 py-2 text-sm font-semibold transition hover:bg-black/[0.04]"
-          >
-            Open full registry
-          </Link>
-        </div>
-
-        <div className="mt-6 overflow-x-auto">
-          <table className="min-w-full border-collapse">
-            <thead>
-              <tr className="border-b border-black/10 text-left text-[12px] uppercase tracking-[0.16em] text-black/55">
-                <th className="px-0 py-3">Entity</th>
-                <th className="px-4 py-3">Country</th>
-                <th className="px-4 py-3">Tier / Band</th>
-                <th className="px-4 py-3">Status</th>
-                <th className="px-4 py-3">Certified</th>
-                <th className="px-4 py-3">Record</th>
-              </tr>
-            </thead>
-            <tbody>
-              {recentRecords.map((row) => (
-                <tr key={row.registryId} className="border-b border-black/5 align-top">
-                  <td className="px-0 py-4">
-                    <div className="font-semibold text-black">
-                      {row.entityName ?? "—"}
-                    </div>
-                    <div className="mt-1 text-sm text-black/60">{row.registryId}</div>
-                  </td>
-                  <td className="px-4 py-4 text-sm text-black/75">
-                    {row.country ?? "—"}
-                  </td>
-                  <td className="px-4 py-4 text-sm text-black/75">
-                    {[row.certifiedTier, row.certifiedBand].filter(Boolean).join(" · ") || "—"}
-                  </td>
-                  <td className="px-4 py-4 text-sm text-black/75">
-                    {row.decisionStatus ?? "—"}
-                  </td>
-                  <td className="px-4 py-4 text-sm text-black/75">
-                    {formatDate(row.certifiedAt)}
-                  </td>
-                  <td className="px-4 py-4">
-                    <Link
-                      href={`/registry/${row.registryId}`}
-                      className="text-sm font-semibold text-black underline underline-offset-4"
-                    >
-                      Open
-                    </Link>
-                  </td>
+          <div className="mt-8 overflow-x-auto">
+            <table className="min-w-full border-collapse">
+              <thead>
+                <tr className="border-b border-black/10 text-left text-[12px] uppercase tracking-[0.16em] text-black/55">
+                  <th className="px-0 py-3">Entity</th>
+                  <th className="px-4 py-3">Country</th>
+                  <th className="px-4 py-3">Tier / Band</th>
+                  <th className="px-4 py-3">Status</th>
+                  <th className="px-4 py-3">Certified</th>
+                  <th className="px-4 py-3">Record</th>
                 </tr>
-              ))}
+              </thead>
+              <tbody>
+                {recentRecords.map((row) => (
+                  <tr key={row.registryId} className="border-b border-black/5">
+                    <td className="px-0 py-4">
+                      <div className="font-semibold text-black">
+                        {row.entityName ?? "—"}
+                      </div>
+                      <div className="mt-1 text-sm text-black/60">
+                        {row.registryId}
+                      </div>
+                    </td>
+                    <td className="px-4 py-4 text-sm text-black/75">
+                      {row.country ?? "—"}
+                    </td>
+                    <td className="px-4 py-4 text-sm text-black/75">
+                      {[row.certifiedTier, row.certifiedBand]
+                        .filter(Boolean)
+                        .join(" · ") || "—"}
+                    </td>
+                    <td className="px-4 py-4 text-sm text-black/75">
+                      {row.decisionStatus ?? "—"}
+                    </td>
+                    <td className="px-4 py-4 text-sm text-black/75">
+                      {formatDate(row.certifiedAt)}
+                    </td>
+                    <td className="px-4 py-4">
+                      <Link
+                        href={`/registry/${row.registryId}`}
+                        className="text-sm font-semibold text-black underline underline-offset-4"
+                      >
+                        Open
+                      </Link>
+                    </td>
+                  </tr>
+                ))}
 
-              {recentRecords.length === 0 ? (
-                <tr>
-                  <td colSpan={6} className="px-0 py-8 text-sm text-black/60">
-                    No explorer records found.
-                  </td>
-                </tr>
-              ) : null}
-            </tbody>
-          </table>
-        </div>
-      </section>
+                {recentRecords.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} className="px-0 py-8 text-sm text-black/60">
+                      No recent public records found.
+                    </td>
+                  </tr>
+                ) : null}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </div>
     </main>
+  );
+}
+
+function MetricCard({
+  label,
+  value,
+}: {
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className="rounded-2xl border border-black/10 bg-white p-5">
+      <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/55">
+        {label}
+      </div>
+      <div className="mt-3 text-[36px] font-semibold leading-none tracking-tight text-black">
+        {value}
+      </div>
+    </div>
   );
 }
