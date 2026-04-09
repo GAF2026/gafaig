@@ -94,16 +94,16 @@ export default function RegistryTrustTools({
   const qrUrl = absoluteRegistryUrl;
 
   return (
-    <section className="rounded-[32px] border border-black/10 bg-white p-8 shadow-sm md:p-12">
+    <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
       <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
         <div className="max-w-3xl">
-          <div className="text-[11px] font-semibold uppercase tracking-[0.28em] text-black/45">
+          <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
             Trust badge + embed tools
           </div>
-          <h2 className="mt-4 text-4xl font-semibold tracking-tight text-black md:text-6xl">
+          <h2 className="mt-4 text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
             Verify, share, or embed this certification
           </h2>
-          <p className="mt-5 max-w-3xl text-lg leading-8 text-black/65">
+          <p className="mt-5 max-w-3xl text-[16px] leading-[1.9] text-black/75">
             Share this certification publicly with a badge, a direct verification
             link, a QR code, or a lightweight embed snippet. Anyone can
             independently verify this certification via GAFAIG.
@@ -127,16 +127,16 @@ export default function RegistryTrustTools({
       </div>
 
       <div className="mt-10 grid gap-6 lg:grid-cols-2">
-        <div className="rounded-[28px] border border-black/10 bg-white p-6">
-          <div className="text-[11px] font-semibold uppercase tracking-[0.24em] text-black/45">
+        <div className="rounded-2xl border border-black/10 bg-white p-6">
+          <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/55">
             Live badge preview
           </div>
 
-          <div className="mt-5 rounded-[24px] border border-black/8 bg-black/[0.02] p-6">
+          <div className="mt-5 rounded-2xl border border-black/10 bg-black/[0.02] p-6">
             <img
               src={absoluteBadgeUrl}
               alt={`${safeEntityName} badge preview`}
-              className="h-auto w-full rounded-2xl border border-black/5 bg-white shadow-sm"
+              className="h-auto w-full rounded-2xl border border-black/5 bg-white"
             />
           </div>
 
@@ -146,10 +146,10 @@ export default function RegistryTrustTools({
 
           <div className="mt-6 grid gap-4 md:grid-cols-2">
             <div>
-              <div className="text-[11px] font-semibold uppercase tracking-[0.24em] text-black/45">
+              <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/55">
                 Registry URL
               </div>
-              <div className="mt-2 break-all rounded-2xl border border-black/10 bg-black/[0.02] px-4 py-4 text-base leading-8 text-black/75">
+              <div className="mt-2 break-all rounded-2xl border border-black/10 bg-black/[0.02] px-4 py-4 text-[15px] leading-[1.8] text-black/75">
                 {absoluteRegistryUrl}
               </div>
               <div className="mt-4">
@@ -158,10 +158,10 @@ export default function RegistryTrustTools({
             </div>
 
             <div>
-              <div className="text-[11px] font-semibold uppercase tracking-[0.24em] text-black/45">
+              <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/55">
                 Verify URL
               </div>
-              <div className="mt-2 break-all rounded-2xl border border-black/10 bg-black/[0.02] px-4 py-4 text-base leading-8 text-black/75">
+              <div className="mt-2 break-all rounded-2xl border border-black/10 bg-black/[0.02] px-4 py-4 text-[15px] leading-[1.8] text-black/75">
                 {absoluteVerifyUrl}
               </div>
               <div className="mt-4">
@@ -171,22 +171,22 @@ export default function RegistryTrustTools({
           </div>
         </div>
 
-        <div className="rounded-[28px] border border-black/10 bg-white p-6">
-          <div className="text-[11px] font-semibold uppercase tracking-[0.24em] text-black/45">
+        <div className="rounded-2xl border border-black/10 bg-white p-6">
+          <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/55">
             Verification QR code
           </div>
 
-          <div className="mt-5 rounded-[24px] border border-black/8 bg-black/[0.02] p-6">
+          <div className="mt-5 rounded-2xl border border-black/10 bg-black/[0.02] p-6">
             <img
               src={`https://api.qrserver.com/v1/create-qr-code/?size=320x320&data=${encodeURIComponent(
                 qrUrl
               )}`}
               alt="Verification QR code"
-              className="mx-auto h-auto w-full max-w-[320px] rounded-2xl border border-black/5 bg-white shadow-sm"
+              className="mx-auto h-auto w-full max-w-[320px] rounded-2xl border border-black/5 bg-white"
             />
           </div>
 
-          <p className="mt-6 text-base leading-8 text-black/65">
+          <p className="mt-6 text-[16px] leading-[1.9] text-black/75">
             Scan to instantly verify this certification.
           </p>
 
@@ -208,11 +208,11 @@ export default function RegistryTrustTools({
 
 function Snippet({ title, code }: { title: string; code: string }) {
   return (
-    <div className="rounded-[28px] border border-black/10 bg-white p-6">
-      <div className="text-[11px] font-semibold uppercase tracking-[0.24em] text-black/45">
+    <div className="rounded-2xl border border-black/10 bg-white p-6">
+      <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/55">
         {title}
       </div>
-      <pre className="mt-4 overflow-x-auto rounded-2xl border border-black/10 bg-black/[0.02] p-5 text-sm leading-8 text-black/75">
+      <pre className="mt-4 overflow-x-auto rounded-2xl border border-black/10 bg-black/[0.02] p-5 text-sm leading-[1.8] text-black/75">
         <code>{code}</code>
       </pre>
       <div className="mt-4">
