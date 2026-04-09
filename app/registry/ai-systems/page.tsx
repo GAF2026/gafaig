@@ -1,3 +1,4 @@
+import PublicPageHero from "@/app/_components/PublicPageHero";
 import PublicButtonLink from "@/app/_components/PublicButtonLink";
 import { getRegistryAiSystemsPaginated } from "@/lib/queries/registry-ai-systems";
 
@@ -69,76 +70,42 @@ export default async function RegistryAiSystemsPage({
   ).size;
 
   return (
-    <main className="min-h-screen bg-white text-slate-900">
-      <div className="mx-auto max-w-6xl px-6 py-10">
-        <section className="rounded-3xl border border-black/10 bg-white px-8 py-10 md:px-10 md:py-12">
-          <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
-            AI SYSTEMS REGISTRY
-          </div>
+    <main className="mx-auto max-w-[1180px] px-6 pb-16 pt-14">
+      <div className="space-y-8">
+        <PublicPageHero
+          eyebrow="AI SYSTEMS REGISTRY"
+          title="Global AI Systems Registry"
+          description="Public-facing AI systems connected to published GAFAIG registry records. This surface helps visitors inspect disclosed systems while preserving the canonical certification trust record in the linked registry entry."
+          secondaryDescription="Each system record provides public context for an AI system that sits within GAFAIG’s broader trust infrastructure. System-level disclosure remains distinct from the canonical certification record, which is available through the linked registry record and public verification surfaces."
+          actions={
+            <>
+              <PublicButtonLink href="/registry" variant="primary">
+                View Registry
+              </PublicButtonLink>
 
-          <h1 className="mt-4 max-w-[920px] text-[36px] font-semibold leading-[1.08] tracking-tight text-black md:text-[52px]">
-            Global AI Systems Registry
-          </h1>
+              <PublicButtonLink href="/explorer/systems" variant="secondary">
+                Systems Explorer
+              </PublicButtonLink>
 
-          <p className="mt-5 max-w-[920px] text-[17px] leading-[1.7] text-black/72">
-            Public-facing AI systems connected to published GAFAIG registry
-            records. This surface helps visitors inspect disclosed systems while
-            preserving the canonical certification trust record in the linked
-            registry entry.
-          </p>
+              <PublicButtonLink href="/explorer" variant="secondary">
+                Back to Explorer
+              </PublicButtonLink>
+            </>
+          }
+        />
 
-          <p className="mt-4 max-w-[920px] text-[15px] leading-[1.8] text-black/68">
-            Each system record provides public context for an AI system that
-            sits within GAFAIG’s broader trust infrastructure. System-level
-            disclosure remains distinct from the canonical certification record,
-            which is available through the linked registry record and public
-            verification surfaces.
-          </p>
-
-          <div className="mt-8 flex flex-wrap gap-3">
-            <PublicButtonLink href="/registry" variant="primary">
-              View registry
-            </PublicButtonLink>
-
-            <PublicButtonLink href="/explorer/systems" variant="secondary">
-              Systems explorer
-            </PublicButtonLink>
-
-            <PublicButtonLink href="/explorer" variant="secondary">
-              Back to explorer
-            </PublicButtonLink>
-          </div>
+        <section className="grid gap-4 md:grid-cols-3">
+          <MetricCard label="Matching Systems" value={String(total)} />
+          <MetricCard label="Linked Entities" value={String(linkedEntities)} />
+          <MetricCard label="Countries" value={String(countries)} />
         </section>
 
-        <section className="mt-10 grid gap-4 md:grid-cols-3">
-          <div className="rounded-2xl border border-slate-200 bg-white p-5">
-            <div className="text-xs font-medium uppercase tracking-wide text-slate-500">
-              Matching Systems
-            </div>
-            <div className="mt-2 text-4xl font-semibold">{total}</div>
-          </div>
-
-          <div className="rounded-2xl border border-slate-200 bg-white p-5">
-            <div className="text-xs font-medium uppercase tracking-wide text-slate-500">
-              Linked Entities
-            </div>
-            <div className="mt-2 text-4xl font-semibold">{linkedEntities}</div>
-          </div>
-
-          <div className="rounded-2xl border border-slate-200 bg-white p-5">
-            <div className="text-xs font-medium uppercase tracking-wide text-slate-500">
-              Countries
-            </div>
-            <div className="mt-2 text-4xl font-semibold">{countries}</div>
-          </div>
-        </section>
-
-        <section className="mt-10 rounded-3xl border border-black/10 bg-white p-8 md:p-10">
+        <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
           <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
             SYSTEM DIRECTORY
           </div>
 
-          <h2 className="mt-4 text-[32px] font-semibold tracking-tight text-black">
+          <h2 className="mt-4 text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
             Public AI systems
           </h2>
 
@@ -155,12 +122,12 @@ export default async function RegistryAiSystemsPage({
               return (
                 <section
                   key={system.systemId}
-                  className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"
+                  className="rounded-2xl border border-black/10 bg-white p-4"
                 >
                   <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                     <div className="min-w-0 flex-1">
                       <div className="flex flex-wrap items-center gap-2">
-                        <h3 className="text-2xl font-semibold tracking-tight text-slate-900">
+                        <h3 className="text-2xl font-semibold tracking-tight text-black">
                           {system.systemName || "Unnamed System"}
                         </h3>
 
@@ -299,7 +266,7 @@ export default async function RegistryAiSystemsPage({
             })}
 
             {systems.length === 0 && (
-              <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center text-sm text-slate-600">
+              <div className="rounded-2xl border border-black/10 bg-white p-8 text-center text-sm text-slate-600">
                 No AI systems matched the current filters.
               </div>
             )}
@@ -307,5 +274,18 @@ export default async function RegistryAiSystemsPage({
         </section>
       </div>
     </main>
+  );
+}
+
+function MetricCard({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-2xl border border-black/10 bg-white p-5">
+      <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/55">
+        {label}
+      </div>
+      <div className="mt-3 text-[36px] font-semibold leading-none tracking-tight text-black">
+        {value}
+      </div>
+    </div>
   );
 }
