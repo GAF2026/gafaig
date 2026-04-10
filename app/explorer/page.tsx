@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { useState } from "react";
 import PublicPageHero from "../_components/PublicPageHero";
 import PublicButtonLink from "../_components/PublicButtonLink";
 import {
@@ -19,7 +22,17 @@ function formatDate(value: string | null) {
   });
 }
 
-export default async function ExplorerPage() {
+function formatPercent(value?: number | null) {
+  if (value === null || value === undefined) return "—";
+  if (value <= 1) return `${Math.round(value * 100)}%`;
+  return `${Math.round(value)}%`;
+}
+
+export default function ExplorerPageWrapper(props: any) {
+  return <ExplorerPage {...props} />;
+}
+
+async function ExplorerPage() {
   const [summary, recentRecords] = await Promise.all([
     getExplorerSummary(),
     getRecentRegistryRecords(10),
@@ -32,24 +45,16 @@ export default async function ExplorerPage() {
           eyebrow="GLOBAL EXPLORER"
           title="Explore the public GAFAIG trust surface."
           description="Discover public certification records across organizations, countries, and AI systems using the canonical registry views published from Snowflake."
-          secondaryDescription="The explorer provides a public discovery layer across the GAFAIG network so third parties can inspect governance presence, review recent certifications, and navigate linked records without accessing private evidence or internal reviewer workflow."
+          secondaryDescription="The explorer provides a public discovery layer across the GAFAIG network."
           actions={
             <>
-              <PublicButtonLink href="/registry" variant="primary">
-                View Registry
-              </PublicButtonLink>
-
-              <PublicButtonLink
-                href="/explorer/organizations"
-                variant="secondary"
-              >
+              <PublicButtonLink href="/registry">View Registry</PublicButtonLink>
+              <PublicButtonLink href="/explorer/organizations" variant="secondary">
                 Organizations
               </PublicButtonLink>
-
               <PublicButtonLink href="/explorer/systems" variant="secondary">
                 Systems
               </PublicButtonLink>
-
               <PublicButtonLink href="/explorer/countries" variant="secondary">
                 Countries
               </PublicButtonLink>
@@ -59,122 +64,129 @@ export default async function ExplorerPage() {
 
         <section className="grid gap-4 md:grid-cols-4">
           <MetricCard label="Registry records" value={String(summary.totalRecords)} />
-          <MetricCard
-            label="Organizations"
-            value={String(summary.totalOrganizations)}
-          />
+          <MetricCard label="Organizations" value={String(summary.totalOrganizations)} />
           <MetricCard label="Countries" value={String(summary.totalCountries)} />
           <MetricCard label="AI systems" value={String(summary.totalSystems)} />
         </section>
 
-        <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
-          <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-            <div>
-              <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
-                RECENT REGISTRY ACTIVITY
-              </div>
-
-              <h2 className="mt-4 text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
-                Latest public records
-              </h2>
-
-              <p className="mt-3 max-w-[820px] text-[15px] leading-[1.8] text-black/68">
-                Recently surfaced certification records from the GAFAIG public
-                registry.
-              </p>
-            </div>
-
-            <div>
-              <PublicButtonLink href="/registry" variant="secondary">
-                Open Full Registry
-              </PublicButtonLink>
-            </div>
-          </div>
-
-          <div className="mt-8 overflow-x-auto">
-            <table className="min-w-full border-collapse">
-              <thead>
-                <tr className="border-b border-black/10 text-left text-[12px] uppercase tracking-[0.16em] text-black/55">
-                  <th className="px-0 py-3">Entity</th>
-                  <th className="px-4 py-3">Country</th>
-                  <th className="px-4 py-3">Tier / Band</th>
-                  <th className="px-4 py-3">Status</th>
-                  <th className="px-4 py-3">Certified</th>
-                  <th className="px-4 py-3">Record</th>
-                </tr>
-              </thead>
-              <tbody>
-                {recentRecords.map((row) => (
-                  <tr key={row.registryId} className="border-b border-black/5">
-                    <td className="px-0 py-4">
-                      <div className="font-semibold text-black">
-                        {row.entityName ?? "—"}
-                      </div>
-                      <div className="mt-1 text-sm text-black/60">
-                        {row.registryId}
-                      </div>
-                    </td>
-
-                    <td className="px-4 py-4 text-sm text-black/75">
-                      {row.country ?? "—"}
-                    </td>
-
-                    <td className="px-4 py-4 text-sm text-black/75">
-                      {[row.certifiedTier, row.certifiedBand]
-                        .filter(Boolean)
-                        .join(" · ") || "—"}
-                    </td>
-
-                    <td className="px-4 py-4 text-sm text-black/75">
-                      {row.decisionStatus ?? "—"}
-                    </td>
-
-                    <td className="px-4 py-4 text-sm text-black/75">
-                      {formatDate(row.certifiedAt)}
-                    </td>
-
-                    <td className="px-4 py-4">
-                      <Link
-                        href={`/registry/${row.registryId}`}
-                        className="text-sm font-semibold text-black underline underline-offset-4"
-                      >
-                        Open
-                      </Link>
-                    </td>
-                  </tr>
-                ))}
-
-                {recentRecords.length === 0 ? (
-                  <tr>
-                    <td colSpan={6} className="px-0 py-8 text-sm text-black/60">
-                      No recent public records found.
-                    </td>
-                  </tr>
-                ) : null}
-              </tbody>
-            </table>
-          </div>
-        </section>
+        <ExplorerTable recentRecords={recentRecords} />
       </div>
     </main>
   );
 }
 
-function MetricCard({
-  label,
-  value,
-}: {
-  label: string;
-  value: string;
-}) {
+function ExplorerTable({ recentRecords }: any) {
+  const [expanded, setExpanded] = useState<string | null>(null);
+  const [data, setData] = useState<Record<string, any>>({});
+
+  async function loadBreakdown(registryId: string) {
+    if (data[registryId]) {
+      setExpanded(expanded === registryId ? null : registryId);
+      return;
+    }
+
+    const res = await fetch(`/api/registry/${registryId}/score-breakdown`);
+    const json = await res.json();
+
+    setData((prev) => ({ ...prev, [registryId]: json }));
+    setExpanded(registryId);
+  }
+
   return (
-    <div className="rounded-2xl border border-black/10 bg-white p-5">
-      <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/55">
-        {label}
+    <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
+      <h2 className="text-[32px] font-semibold">Latest public records</h2>
+
+      <div className="mt-8 overflow-x-auto">
+        <table className="min-w-full">
+          <thead>
+            <tr className="border-b text-left text-xs uppercase text-black/60">
+              <th className="py-3">Entity</th>
+              <th>Country</th>
+              <th>Tier</th>
+              <th>Status</th>
+              <th>Certified</th>
+              <th />
+            </tr>
+          </thead>
+
+          <tbody>
+            {recentRecords.map((row: any) => (
+              <>
+                <tr key={row.registryId} className="border-b">
+                  <td className="py-4">
+                    <div className="font-semibold">{row.entityName}</div>
+                    <div className="text-xs text-black/60">{row.registryId}</div>
+                  </td>
+
+                  <td>{row.country}</td>
+
+                  <td>
+                    {[row.certifiedTier, row.certifiedBand].filter(Boolean).join(" · ")}
+                  </td>
+
+                  <td>{row.decisionStatus}</td>
+
+                  <td>{formatDate(row.certifiedAt)}</td>
+
+                  <td className="space-x-3">
+                    <Link href={`/registry/${row.registryId}`}>Open</Link>
+
+                    <button
+                      onClick={() => loadBreakdown(row.registryId)}
+                      className="underline"
+                    >
+                      Explain
+                    </button>
+                  </td>
+                </tr>
+
+                {expanded === row.registryId && data[row.registryId] && (
+                  <tr>
+                    <td colSpan={6} className="bg-black/[0.02] p-6">
+                      <ScoreBreakdown data={data[row.registryId]} />
+                    </td>
+                  </tr>
+                )}
+              </>
+            ))}
+          </tbody>
+        </table>
       </div>
-      <div className="mt-3 text-[36px] font-semibold leading-none tracking-tight text-black">
-        {value}
-      </div>
+    </section>
+  );
+}
+
+function ScoreBreakdown({ data }: any) {
+  const dimensions = data?.dimensions || [];
+
+  return (
+    <div className="space-y-4">
+      {dimensions.map((d: any, i: number) => (
+        <div key={i} className="border rounded-xl p-4 bg-white">
+          <div className="flex justify-between">
+            <div className="font-semibold">{d.scoreDimension}</div>
+            <div>{formatPercent(d.dimensionScorePct)}</div>
+          </div>
+
+          <div className="mt-3 space-y-2">
+            {(d.components || []).map((c: any, j: number) => (
+              <div key={j} className="flex justify-between text-sm">
+                <span>{c.scoreComponent}</span>
+                <span>{formatPercent(c.componentScorePct)}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function MetricCard({ label, value }: any) {
+  return (
+    <div className="rounded-2xl border p-5">
+      <div className="text-xs text-black/60">{label}</div>
+      <div className="text-3xl font-semibold">{value}</div>
     </div>
   );
 }
