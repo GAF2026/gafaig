@@ -1,195 +1,337 @@
-# GAFAIG — VS CODE FILE TREE (CANONICAL) — 2026-04-07
+# GAFAIG — VS CODE FILE TREE (CANONICAL) — 2026-04-10
 
 ## OVERVIEW
-This document represents the canonical GAFAIG VS Code project structure. It reflects the full Next.js (App Router) application, Snowflake query layer, API routes, admin workflows, and supporting infrastructure. The structure enforces the rule: Snowflake is the source of truth, and the application layer is a thin orchestration layer.
+This document defines the complete active VS Code file structure for the GAFAIG platform.
 
-## ROOT
+GAFAIG is built using:
+- Next.js (App Router)
+- TypeScript
+- Snowflake (external computation layer)
+- Vercel (deployment)
+
+RULE:
+This codebase does NOT contain business logic.  
+It is a presentation + transport layer only.
+
+All computation lives in Snowflake.
+
+---
+
+## ROOT DIRECTORY
+
 gafaig/
-├─ app/
-├─ components/
-├─ lib/
-├─ types/
-├─ public/
-├─ docs/
-├─ middleware.ts
-├─ next.config.js
-├─ package.json
-├─ tsconfig.json
+├─ app/                         # Next.js App Router (ALL UI + API routes)
+├─ components/                  # Shared UI components
+├─ lib/                         # Query layer + utilities
+├─ public/                      # Static assets
+├─ styles/                      # Global styles
+├─ docs/                        # Canonical documentation
+├─ .env.local                   # Local environment variables (NOT committed)
+├─ next.config.js               # Next.js configuration
+├─ package.json                 # Dependencies + scripts
+├─ tsconfig.json                # TypeScript configuration
+├─ README.md                    # Project overview
 
-## APP (NEXT.JS APP ROUTER)
+---
 
-### PUBLIC PAGES
+## APP DIRECTORY (CORE)
+
 app/
-├─ page.tsx (homepage)
+├─ layout.tsx                   # Root layout wrapper
+├─ page.tsx                     # Homepage
+
+---
+
+## PUBLIC PAGES
+
+app/
 ├─ mission/page.tsx
 ├─ framework/page.tsx
-├─ demo/page.tsx
-├─ demo-script/page.tsx
+├─ verify/page.tsx              # Cryptographic verification page
+├─ developers/page.tsx
+├─ apply/page.tsx
 
-### REGISTRY
+---
+
+## REGISTRY (PUBLIC TRUST RECORD)
+
 app/registry/
-├─ page.tsx (registry list)
-├─ [registryId]/page.tsx (registry detail)
-├─ ai-systems/page.tsx
+├─ page.tsx                     # Registry list
+├─ [registryId]/
+│  ├─ page.tsx                  # Registry detail page (CORE TRUST PAGE)
+├─ ai-systems/
+│  ├─ page.tsx                  # AI systems registry view
 
-### EXPLORER
+---
+
+## EXPLORER (DISCOVERY LAYER)
+
 app/explorer/
-├─ page.tsx
+├─ page.tsx                     # Explorer overview
 ├─ organizations/page.tsx
-├─ systems/page.tsx
 ├─ countries/page.tsx
-├─ map/page.tsx
+├─ systems/page.tsx
 
-### APPLY FLOW
-app/apply/
-├─ page.tsx
-├─ ApplyForm.tsx
+---
 
-### ADMIN
+## WIDGET PREVIEW
+
+app/widget-preview/
+├─ [registryId]/page.tsx        # Badge + embed preview
+
+---
+
+## API ROUTES (THIN LAYER — NO LOGIC)
+
+app/api/
+
+### PUBLIC REGISTRY
+
+├─ registry/
+│  ├─ route.ts                 # GET → V_REGISTRY_PUBLIC
+│  ├─ search/
+│  │  ├─ route.ts             # GET → V_REGISTRY_PUBLIC_SEARCH
+│  ├─ [registryId]/
+│  │  ├─ score-breakdown/
+│  │  │  ├─ route.ts          # GET → V_SCORE_DIMENSIONS_PUBLIC
+
+---
+
+### VERIFICATION
+
+├─ verify/
+│  ├─ [registryId]/route.ts   # Signed verification payload
+
+├─ .well-known/
+│  ├─ gafaig-public-key/
+│  │  ├─ route.ts            # Public Ed25519 key
+
+---
+
+### BADGE
+
+├─ badge/
+│  ├─ [registryId]/route.ts  # Badge rendering endpoint
+
+---
+
+## ADMIN (PRIVATE CONTROL LAYER)
+
 app/admin/
 ├─ login/page.tsx
 ├─ applications/page.tsx
 ├─ verification/
-│  ├─ [caseId]/page.tsx
-│  ├─ [caseId]/findings/page.tsx
-│  ├─ [caseId]/evidence/page.tsx
-│  ├─ [caseId]/decision/page.tsx
+│  ├─ [caseId]/
+│  │  ├─ findings/page.tsx
 
-## API ROUTES
-
-app/api/
-
-### PUBLIC API
-├─ registry/route.ts (V_REGISTRY_PUBLIC)
-├─ registry/search/route.ts (V_REGISTRY_PUBLIC_SEARCH)
-├─ verify/[registryId]/route.ts
-├─ badge/[registryId]/route.ts
-├─ .well-known/gafaig-public-key/route.ts
-
-### APPLY
-├─ apply/route.ts (writes application to local JSON store)
+---
 
 ### ADMIN API
-├─ admin/
-│  ├─ applications/route.ts
-│  ├─ verification/
-│  │  ├─ cases/route.ts
-│  │  ├─ findings/route.ts
-│  │  ├─ evidence/route.ts
-│  │  ├─ decisions/route.ts
+
+app/api/admin/
+├─ verification/
+│  ├─ decisions/
+│  │  ├─ route.ts            # Inserts certification decisions
+
+---
 
 ## COMPONENTS
 
 components/
+
+### REGISTRY COMPONENTS
+
 ├─ registry/
 │  ├─ RegistryHeaderPanel.tsx
 │  ├─ RegistryCertificationSummary.tsx
 │  ├─ RegistryVerificationPanel.tsx
+
+---
+
+### UI COMPONENTS
+
 ├─ ui/
 │  ├─ StatusChip.tsx
-│  ├─ PublicButton.tsx
-│  ├─ PublicButtonLink.tsx
 
-## LIB (QUERY + INFRASTRUCTURE)
+---
+
+### SHARED COMPONENTS
+
+app/_components/
+├─ PublicButton.tsx
+├─ PublicButtonLink.tsx
+├─ PublicPageHero.tsx
+
+---
+
+## LIB DIRECTORY (CRITICAL — QUERY LAYER)
 
 lib/
-├─ snowflake.ts (canonical Snowflake connection / sfQuery)
-├─ queries/
-│  ├─ registry.ts
-│  ├─ registry-ai-systems.ts
-│  ├─ explorer.ts
-├─ auth/
-│  ├─ requireAdmin.ts
 
-## TYPES
+### SNOWFLAKE CONNECTION
 
-types/
-├─ registry.ts (RegistryRow, RegistryApiResponse, VerifyApiResponse, etc.)
+├─ snowflake.ts
+Purpose:
+- Handles Snowflake connection
+- Exposes sfQuery()
+
+RULE:
+Only entry point to Snowflake
+
+---
+
+### QUERY LAYER
+
+lib/queries/
+
+├─ registry.ts
+Purpose:
+- Fetch registry list + detail
+- Uses V_REGISTRY_PUBLIC
+
+---
+
+├─ explorer.ts
+Purpose:
+- Explorer aggregations
+- Organizations, countries, systems
+
+---
+
+├─ registry-ai-systems.ts
+Purpose:
+- Fetch AI systems data
+- Uses V_REGISTRY_AI_SYSTEMS_PUBLIC
+
+---
+
+├─ score-breakdown.ts
+Purpose:
+- Fetch governance dimension data
+- Uses V_SCORE_DIMENSIONS_PUBLIC
+
+---
+
+## AUTH LAYER
+
+lib/auth/
+
+├─ require.ts
+Purpose:
+- Protect admin routes
+- Validate session cookies
+
+---
+
+## CRYPTO (VERIFICATION)
+
+lib/crypto/
+
+├─ verifySignature.ts
+Purpose:
+- Verifies Ed25519 signatures using tweetnacl
+
+---
+
+## STYLES
+
+styles/
+├─ globals.css
+
+---
 
 ## PUBLIC ASSETS
 
 public/
 ├─ images/
-│  ├─ gafaig-badge-tier-1.png
-│  ├─ gafaig-badge-default.png
+├─ icons/
 
-## DATA (LOCAL DEV ONLY)
-
-app/data/
-├─ applications.json (temporary ingestion store for apply flow)
+---
 
 ## DOCS (CANONICAL SYSTEM FILES)
 
 docs/
+
 ├─ MASTER_STATE.md
 ├─ CURRENT_FOCUS.md
 ├─ ENGINEERING_RULES.md
 ├─ PROJECT_INDEX.md
 ├─ CHANGELOG.md
-├─ API_ROUTE_MAPPING.md
-├─ UI_COMPONENT_MAPPING.md
-├─ SNOWFLAKE_WORKSHEET_MAPPING.md
 ├─ GAFAIG_SNOWFLAKE_SQL_FILE_SUMMARY.md
 ├─ GAFAIG_VS_CODE_File_Tree.md
+├─ API_ROUTE_MAPPING.md
+├─ UI_COMPONENT_MAPPING.md
 
-## MIDDLEWARE
+---
 
-middleware.ts
-- Handles admin authentication
-- Uses GAFAIG_SESSION_SECRET
-- Protects /admin routes
+## ENVIRONMENT VARIABLES
 
-## KEY ARCHITECTURAL RULE
+.env.local (LOCAL ONLY)
 
-ALL DATA FLOW:
+Examples:
+- GAFAIG_SESSION_SECRET
+- GAFAIG_ADMIN_PASSWORD
+- SNOWFLAKE_ACCOUNT
+- SNOWFLAKE_USER
+- SNOWFLAKE_PASSWORD
+- SNOWFLAKE_DATABASE
+- SNOWFLAKE_SCHEMA
+- SNOWFLAKE_WAREHOUSE
 
-Snowflake → lib/queries → API → UI
+RULE:
+Never commit this file.
 
-NEVER:
-- UI directly querying database
-- API computing scores
-- Business logic outside Snowflake
+---
 
-## CURRENT SYSTEM STATE (RELEVANT TO FILE TREE)
+## DATA FLOW (END-TO-END)
 
-WORKING:
-- Next.js routing structure complete
-- API routes implemented for registry, verify, badge
-- Query layer connected to Snowflake
-- Admin pages scaffolded
-- Apply flow writing to local JSON
+Snowflake (CORE)
+→ lib/queries/*
+→ API routes (app/api/*)
+→ UI pages (app/*)
+→ User
 
-BLOCKER:
-- Apply flow is NOT connected to Snowflake CORE.APPLICATIONS
-- Admin applications page is not sourcing from Snowflake
-- No automatic pipeline trigger from application → case
-- Snowflake procedure SP_CREATE_CASE_FROM_APPLICATION not yet wired to API
+---
 
-## CURRENT PIPELINE GAP
+## KEY RULES
 
-Apply (UI)
-→ app/api/apply/route.ts (writes JSON only)
-→ ❌ NOT writing to CORE.APPLICATIONS
-→ ❌ NOT triggering SP_CREATE_CASE_FROM_APPLICATION
-→ ❌ No case created in Snowflake
-→ ❌ No downstream pipeline
+- No scoring logic in API
+- No certification logic in UI
+- No direct table access
+- Only query Snowflake via lib/queries
+- API routes = thin transport only
+- UI = display only
 
-## REQUIRED NEXT CONNECTION
+---
 
-Replace local ingestion with Snowflake write:
+## CURRENT SYSTEM STATE (2026-04-10)
 
-app/api/apply/route.ts
-→ INSERT INTO CORE.APPLICATIONS
+STABLE:
+✔ Registry pages  
+✔ Explorer pages  
+✔ API routes  
+✔ Query layer  
+✔ Snowflake connection  
+✔ Verification endpoint  
+✔ Badge endpoint  
 
-Then:
+NEW:
+✔ Score breakdown API  
+✔ Governance dimension layer  
+✔ TweetNaCl signature verification  
 
-Admin action OR API route
-→ CALL CORE.SP_CREATE_CASE_FROM_APPLICATION
+IN PROGRESS:
+- Registry UI trust alignment  
+- Explorer UI normalization (5 dimensions)  
+
+---
 
 ## FINAL NOTE
 
-The VS Code structure is complete and correctly aligned with GAFAIG architecture.
-The current failure is not structural but integration-level:
-the frontend apply flow is not yet connected to the Snowflake engine.
+This file tree is the **execution layer of GAFAIG**.
 
-Once connected, the entire GAFAIG pipeline will activate end-to-end.
+It does NOT define truth.
+
+Truth lives in Snowflake.
+
+This layer simply renders it.

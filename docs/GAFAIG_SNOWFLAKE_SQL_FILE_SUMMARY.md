@@ -1,193 +1,412 @@
-# GAFAIG — SNOWFLAKE SQL FILE SUMMARY — 2026-04-07
+# GAFAIG — SNOWFLAKE SQL FILE SUMMARY (CANONICAL) — 2026-04-10
 
 ## OVERVIEW
-This document provides the canonical mapping of all Snowflake SQL files used in the GAFAIG system. These files define the full deterministic verification engine, including tables, procedures, views, and pipeline logic. Snowflake is the single source of truth, and all system behavior must originate from these files.
+This document defines all active Snowflake SQL files used to operate the GAFAIG platform.
 
-## CORE DATABASE CONTEXT
-- ACCOUNT: duglhtd-cm14952
-- DATABASE: GAFAIG_DB
-- SCHEMA: CORE
-- WAREHOUSE: GAFAIG_WH
+GAFAIG is a deterministic, append-only, Snowflake-native verification and registry system.
 
-All SQL files operate within this context.
+All computation, scoring, certification, and registry publishing occur in Snowflake.
 
-## INPUT LAYER
+The SQL layer is the core of the system. The API and UI are read-only projections.
 
-### 11_TABLES_APPLICATIONS.sql
+---
+
+## CORE PRINCIPLES
+
+- Snowflake is the source of truth
+- Append-only architecture (no updates, only inserts)
+- Deterministic computation
+- Procedures control all state transitions
+- Views power all public surfaces
+- No business logic outside Snowflake
+
+---
+
+## FILE GROUPING
+
+The SQL files are grouped into:
+
+1) TABLES (Data storage)
+2) VIEWS (Computation + projection)
+3) PROCEDURES (Workflow + state transitions)
+4) PUBLIC TRUST LAYER (Safe exposure)
+
+---
+
+## TABLE FILES
+
+### 01_TABLES_APPLICATIONS.sql
+Creates:
+CORE.APPLICATIONS
+
 Purpose:
-- Creates CORE.APPLICATIONS table
-- Stores incoming application records
-- Defines APPLICATION_ID and REQUEST_ID as ingestion identifiers
-Notes:
-- Entry point into GAFAIG pipeline
-- Must support deterministic mapping to CASE
+Stores inbound applications submitted to GAFAIG.
 
-## CASE LAYER
+Key Fields:
+- APPLICATION_ID
+- REQUEST_ID
+- CREATED_AT
 
-### 20_TABLES_VERIFICATION_CASES.sql
+---
+
+### 02_TABLES_VERIFICATION_CASES.sql
+Creates:
+CORE.VERIFICATION_CASES
+
 Purpose:
-- Creates CORE.VERIFICATION_CASES
-- Stores canonical case records
-- Defines CASE_ID as deterministic identifier
-Notes:
-- Central entity of system
-- All downstream pipeline stages depend on CASE_ID
+Creates deterministic CASE_ID tied to applications.
 
-## WORKFLOW LAYER
+Key Fields:
+- CASE_ID
+- APPLICATION_ID
+- STATUS
+- CREATED_AT
 
-### 15_TABLES_EVENTS.sql
+---
+
+### 03_TABLES_VERIFICATION_EVENTS.sql
+Creates:
+CORE.VERIFICATION_EVENTS
+
 Purpose:
-- Creates CORE.VERIFICATION_EVENTS
-- Append-only event log
-- Tracks full lifecycle of a case
-Examples:
-- case_created
-- findings_added
-- evidence_linked
-- scoring_completed
-- decision_made
-Notes:
-- No updates allowed
-- Events represent system history
+Append-only lifecycle log of case progression.
 
-## ASSESSMENT LAYER
+Key Fields:
+- EVENT_ID
+- CASE_ID
+- EVENT_TYPE
+- EVENT_DATA (VARIANT)
+- CREATED_AT
 
-### 12_TABLES_FINDINGS.sql
+---
+
+### 04_TABLES_FINDINGS.sql
+Creates:
+CORE.VERIFICATION_FINDINGS
+
 Purpose:
-- Creates CORE.FINDINGS
-- Stores assessment findings for each case
+Stores structured reviewer findings.
 
-### 13_TABLES_EVIDENCE.sql
+---
+
+### 05_TABLES_EVIDENCE.sql
+Creates:
+CORE.VERIFICATION_EVIDENCE
+
 Purpose:
-- Creates CORE.EVIDENCE
-- Stores evidence records
+Stores supporting evidence for findings.
 
-### 14_TABLES_FINDING_EVIDENCE_LINKS.sql
+---
+
+### 06_TABLES_FINDING_EVIDENCE_LINKS.sql
+Creates:
+CORE.FINDING_EVIDENCE_LINKS
+
 Purpose:
-- Links findings to evidence
-- Enables traceability
+Maps findings to evidence.
 
-## SCORING LAYER
+---
 
 ### 16_TABLES_CASE_SCORE_SNAPSHOTS.sql
-Purpose:
-- Stores scoring outputs per case
-- Append-only snapshots
+Creates:
+CORE.CASE_SCORE_SNAPSHOTS
 
-### 24_SP_SCORE_CASE_ENTERPRISE.sql
 Purpose:
-- Computes FINAL_SCORE
-- Produces TIER and BAND
-- Writes to CASE_SCORE_SNAPSHOTS
+Stores deterministic scoring outputs.
 
-### V_GOVERNANCE_SCORE_CASE
-Purpose:
-- Canonical scoring view
-- Provides deterministic scoring output
-Notes:
-- API/UI must read from this view only
+Key Fields:
+- CASE_ID
+- FINAL_SCORE
+- TIER
+- BAND
+- CREATED_AT
 
-## DECISION LAYER
+---
 
 ### 17_TABLES_DECISIONS.sql
+Creates:
+CORE.VERIFICATION_DECISIONS
+
 Purpose:
-- Creates CORE.VERIFICATION_DECISIONS
-- Stores certification outcomes
+Stores certification decisions.
 
-### 25_PROCEDURES_APPROVAL.sql
+Key Fields:
+- CASE_ID
+- DECISION_STATUS
+- DECIDED_AT
+
+---
+
+### GAFAIG – CORE.REGISTRY_SNAPSHOTS.sql
+Creates:
+CORE.REGISTRY_SNAPSHOTS
+
 Purpose:
-- Inserts approval decisions
-- Sets DECISION_STATUS
-- Locks certification state
+Append-only public certification records.
 
-## REGISTRY LAYER
+Key Fields:
+- REGISTRY_ID
+- CASE_ID
+- ENTITY_NAME
+- CERTIFIED_SCORE
+- CERTIFIED_TIER
+- CERTIFIED_BAND
+- CERTIFIED_AT
 
-### GAFAIG - CORE.REGISTRY_SNAPSHOTS.sql
-Purpose:
-- Creates CORE.REGISTRY_SNAPSHOTS
-- Append-only public certification records
-
-### CORE.REGISTRY_PUBLISH.sql
-Purpose:
-- Publishes approved cases to registry
-- Generates or reuses REGISTRY_ID
-- Inserts new snapshot
-
-## PUBLIC VIEWS
-
-### 21_VIEWS_PUBLIC_REGISTRY.sql
-Purpose:
-- Defines public registry views
-Includes:
-- V_REGISTRY_LATEST_APPROVED
-- V_REGISTRY_PUBLIC
-- V_REGISTRY_PUBLIC_SEARCH
-
-## AI SYSTEMS
+---
 
 ### 14_TABLES_REGISTRY_AI_SYSTEMS.sql
+Creates:
+CORE.REGISTRY_AI_SYSTEMS
+
 Purpose:
-- Creates CORE.REGISTRY_AI_SYSTEMS
+Stores AI systems associated with registry entries.
+
+---
+
+## VIEW FILES
+
+### 21_VIEWS_PUBLIC_REGISTRY.sql
+
+Creates:
+
+#### CORE.V_REGISTRY_LATEST_APPROVED
+- Latest approved snapshot per case
+
+#### CORE.V_REGISTRY_PUBLIC
+- Canonical public registry view
+
+#### CORE.V_REGISTRY_PUBLIC_SEARCH
+- Search-optimized registry view
+
+Purpose:
+These views power all registry APIs and UI.
+
+---
+
+### V_GOVERNANCE_SCORE_CASE (Defined in scoring files)
+
+Purpose:
+Canonical scoring output.
+
+Outputs:
+- FINAL_SCORE
+- TIER
+- BAND
+
+RULE:
+This is the ONLY valid scoring source.
+
+---
+
+### V_CONTROL_SCORE_COMPONENTS
+
+Purpose:
+Control-level scoring components used internally.
+
+Feeds:
+- Score breakdown layer
+
+---
+
+### V_CASE_TIER_BAND
+
+Purpose:
+Maps scores into tiers and bands.
+
+---
+
+### V_CASE_RENEWAL_STATUS
+
+Purpose:
+Determines certification validity / renewal timing.
+
+---
 
 ### V_REGISTRY_AI_SYSTEMS_PUBLIC
-Purpose:
-- Public view of AI systems linked to registry
 
-## CORE PIPELINE PROCEDURES
+Purpose:
+Public projection of AI systems linked to registry entries.
+
+---
+
+## PROCEDURE FILES
 
 ### 23_SP_CREATE_CASE_FROM_APPLICATION.sql
+
+Procedure:
+CORE.SP_CREATE_CASE_FROM_APPLICATION
+
 Purpose:
-- Converts APPLICATION → CASE
-- Resolves APPLICATION_ID or REQUEST_ID
-- Generates deterministic CASE_ID
-- Inserts into VERIFICATION_CASES
-- Inserts initial workflow event into VERIFICATION_EVENTS
-- Returns structured VARIANT response
-Status:
-- Compiles and executes
-- Current blocker at APPLICATION lookup stage
+Creates CASE_ID from application.
 
-## PIPELINE FLOW (CANONICAL)
+Responsibilities:
+- Normalize input IDs
+- Resolve latest application
+- Insert case if not exists
+- Insert lifecycle event
 
-APPLICATION (CORE.APPLICATIONS)
-→ CASE (CORE.VERIFICATION_CASES)
-→ FINDINGS (CORE.FINDINGS)
-→ EVIDENCE (CORE.EVIDENCE)
-→ EVENTS (CORE.VERIFICATION_EVENTS)
-→ SCORING (CASE_SCORE_SNAPSHOTS / V_GOVERNANCE_SCORE_CASE)
-→ DECISION (CORE.VERIFICATION_DECISIONS)
-→ REGISTRY (CORE.REGISTRY_SNAPSHOTS)
-→ PUBLIC VIEWS (V_REGISTRY_PUBLIC)
+---
 
-## CURRENT STATE
+### 24_SP_SCORE_CASE_ENTERPRISE.sql
 
-WORKING:
-- All core tables exist
-- All major procedures compile
-- Deterministic ID logic implemented
-- Event model implemented
-- Registry architecture defined
+Procedure:
+CORE.SP_SCORE_CASE_ENTERPRISE
 
-BLOCKER:
-- APPLICATION → CASE conversion failing at lookup stage
-- SP_CREATE_CASE_FROM_APPLICATION cannot resolve APPLICATION_ID / REQUEST_ID reliably
-- No rows inserted into VERIFICATION_CASES
-- No rows inserted into VERIFICATION_EVENTS
+Purpose:
+Computes deterministic governance score.
 
-ROOT CAUSE:
-- Input mismatch or normalization issue in CORE.APPLICATIONS lookup
-- Possible case sensitivity, trimming, or environment mismatch
+Outputs:
+- FINAL_SCORE
+- TIER
+- BAND
 
-## NEXT ACTION
+Writes to:
+CORE.CASE_SCORE_SNAPSHOTS
 
-- Fix lookup condition in SP_CREATE_CASE_FROM_APPLICATION using:
-  UPPER(TRIM(APPLICATION_ID)) and UPPER(TRIM(REQUEST_ID))
-- Validate APPLICATIONS table contents
-- Confirm correct DB/SCHEMA context
-- Re-run procedure and verify inserts
+---
+
+### 25_PROCEDURES_APPROVAL.sql
+
+Procedure:
+Approval procedure
+
+Purpose:
+Insert certification decision.
+
+---
+
+### CORE.REGISTRY_PUBLISH.sql
+
+Procedure:
+CORE.SP_PUBLISH_CASE_TO_REGISTRY_V3 / V4
+
+Purpose:
+Publishes approved cases to registry.
+
+Responsibilities:
+- Validate approval
+- Generate or reuse REGISTRY_ID
+- Insert append-only snapshot
+
+---
+
+## PUBLIC TRUST LAYER (CRITICAL)
+
+### GAFAIG - SCORE_BREAKDOWN_PUBLIC.sql
+
+Creates:
+
+#### CORE.V_SCORE_BREAKDOWN_PUBLIC
+- Control-level normalized output
+
+#### CORE.V_SCORE_DIMENSIONS_PUBLIC
+- Dimension-level aggregation (PUBLIC SAFE)
+
+Purpose:
+Transforms internal scoring into public-safe trust explanation.
+
+---
+
+## SCORE BREAKDOWN CONTRACT
+
+REQUIRED OUTPUT:
+
+CORE.V_SCORE_BREAKDOWN_PUBLIC
+- CASE_ID
+- DIMENSION
+- COMPONENT_NAME
+- COMPONENT_SCORE
+
+CORE.V_SCORE_DIMENSIONS_PUBLIC
+- CASE_ID
+- DIMENSION
+- DIMENSION_SCORE
+- CONTROLS_COUNT
+
+---
+
+## GOVERNANCE DIMENSIONS (CANONICAL — LOCKED)
+
+ALL scoring must map to exactly FIVE dimensions:
+
+1) Transparency
+2) Accountability
+3) Safety & Risk Management
+4) Human Oversight
+5) Data Governance
+
+RULE:
+- No variation (NOT 3, NOT 12)
+- Must remain consistent across all views and UI
+
+---
+
+## DATA FLOW CONNECTION
+
+TABLES → VIEWS → PROCEDURES → SNAPSHOTS → PUBLIC VIEWS → API → UI
+
+Specifically:
+
+FINDINGS + EVIDENCE  
+→ V_CONTROL_SCORE_COMPONENTS  
+→ V_GOVERNANCE_SCORE_CASE  
+→ CASE_SCORE_SNAPSHOTS  
+→ VERIFICATION_DECISIONS  
+→ REGISTRY_SNAPSHOTS  
+→ V_REGISTRY_PUBLIC  
+→ API  
+→ UI  
+
+Score Breakdown:
+
+V_CONTROL_SCORE_COMPONENTS  
+→ V_SCORE_BREAKDOWN_PUBLIC  
+→ V_SCORE_DIMENSIONS_PUBLIC  
+→ API  
+→ UI  
+
+---
+
+## SNOWFLAKE RULES (CRITICAL)
+
+- Use INSERT ... SELECT for VARIANT fields
+- Use :variable binding in procedures
+- Avoid TRY_CAST misuse (strict numeric casting)
+- Avoid REGEXP_LIKE (use LIKE for compatibility)
+- All identifiers must be uppercase and trimmed
+- Never mutate existing records
+- Always append new snapshots
+
+---
+
+## CURRENT SYSTEM STATUS (2026-04-10)
+
+STABLE:
+✔ Core tables  
+✔ Scoring pipeline  
+✔ Decision pipeline  
+✔ Registry publish  
+✔ Public registry views  
+✔ AI systems registry  
+
+NEW:
+✔ Public trust explanation layer  
+✔ Score breakdown views  
+✔ Dimension normalization to 5  
+
+FIXED:
+✔ TRY_CAST errors  
+✔ REGEXP_LIKE incompatibility  
+✔ Column mismatches  
+✔ Dimension inconsistency  
+
+---
 
 ## FINAL NOTE
 
-The GAFAIG Snowflake system is structurally complete.
-The only active issue is application resolution at the ingestion boundary.
-Once resolved, the full governance pipeline will execute deterministically end-to-end.
+This SQL layer IS GAFAIG.
+
+Everything else (API, UI, badge, verification) is a projection.
+
+If it is not in Snowflake, it does not exist.

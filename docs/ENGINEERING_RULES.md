@@ -1,342 +1,376 @@
-# GAFAIG — ENGINEERING RULES
-Canonical System Constraints & Non-Negotiable Principles
-Last Updated: 2026-04-06
+# GAFAIG — ENGINEERING RULES (CANONICAL) — 2026-04-10
+
+## PURPOSE
+This document defines the non-negotiable engineering rules governing the GAFAIG platform.
+
+These rules ensure:
+- Determinism
+- Integrity
+- Trust
+- System stability
+
+Violation of these rules breaks the system.
 
 ---
 
-# OVERVIEW
+## CORE PRINCIPLE
 
-These rules define how GAFAIG must be built, extended, and maintained.
+SNOWFLAKE IS THE SOURCE OF TRUTH
 
-They are **non-negotiable**.
+- All computation happens in Snowflake
+- All certification logic lives in Snowflake
+- All scoring originates in Snowflake
 
-Violating these rules will break:
-• determinism  
-• trust integrity  
-• system architecture  
-
----
-
-# CORE PRINCIPLE
-
-Snowflake is the **only source of truth**.
+IF IT IS NOT IN SNOWFLAKE → IT DOES NOT EXIST
 
 ---
 
-# SYSTEM ARCHITECTURE (LOCKED)
+## ARCHITECTURE RULES
 
-GAFAIG is a two-layer system:
+### RULE 1 — TWO-LAYER SYSTEM (LOCKED)
 
-1. PRIVATE VERIFICATION ENGINE (Snowflake)
-2. PUBLIC TRUST LAYER (Next.js + API + UI)
+PRIVATE LAYER (Snowflake)
+- Full verification engine
+- Findings, evidence, scoring, decisions
 
-STRICT SEPARATION MUST BE MAINTAINED.
+PUBLIC LAYER (API + UI)
+- Read-only projection
+- Certification outcomes only
 
----
-
-# RULE 1 — NO TRUST LOGIC OUTSIDE SNOWFLAKE
-
-DO NOT:
-
-• compute score in API  
-• compute score in UI  
-• derive certification in frontend  
-• replicate scoring logic anywhere else  
-
-ALL OF THE FOLLOWING MUST COME FROM SNOWFLAKE:
-
-• FINAL_SCORE  
-• TIER  
-• BAND  
-• DECISION_STATUS  
-• VALIDITY  
+NEVER mix these layers.
 
 ---
 
-# RULE 2 — APPEND-ONLY REGISTRY
+### RULE 2 — NO COMPUTATION OUTSIDE SNOWFLAKE
 
-CORE.REGISTRY_SNAPSHOTS:
+PROHIBITED:
+- Scoring in API
+- Scoring in UI
+- Recomputing metrics in JavaScript
+- Transforming certification logic in queries
 
-• NEVER UPDATE  
-• NEVER DELETE  
-• ONLY INSERT  
-
-Each publish creates a new immutable snapshot.
-
----
-
-# RULE 3 — PUBLISH IS THE ONLY WRITE PATH
-
-Certification must ONLY enter the public system through:
-
-SP_PUBLISH_CASE_TO_REGISTRY
-
-DO NOT:
-
-• insert directly into REGISTRY_SNAPSHOTS  
-• bypass stored procedures  
+ALLOWED:
+- Mapping
+- Formatting
+- Rendering
 
 ---
 
-# RULE 4 — DETERMINISTIC SCORING
+### RULE 3 — APPEND-ONLY DATA MODEL
 
-Scoring must be:
+- No UPDATE statements for certification data
+- No DELETE statements
+- Only INSERT new records
 
-• deterministic  
-• reproducible  
-• input-driven  
-
-Same inputs MUST produce same outputs.
-
-NO:
-
-• randomness  
-• heuristics  
-• UI influence  
+All history must be preserved.
 
 ---
 
-# RULE 5 — API IS TRANSPORT ONLY
+### RULE 4 — PROCEDURES CONTROL STATE
 
-API routes:
+ALL state transitions MUST occur through stored procedures.
 
-• must NOT compute certification  
-• must NOT modify trust state  
-• must ONLY return data from Snowflake views  
+Examples:
+- Create case → SP_CREATE_CASE_FROM_APPLICATION
+- Score case → SP_SCORE_CASE_ENTERPRISE
+- Approve case → approval procedure
+- Publish → SP_PUBLISH_CASE_TO_REGISTRY
 
-VALID FLOW:
-
-Snowflake → Query Layer → API → UI  
-
----
-
-# RULE 6 — UI IS PRESENTATION ONLY
-
-UI must:
-
-• render API data  
-• not derive certification  
-• not manipulate trust fields  
-
-DO NOT:
-
-• calculate score in UI  
-• infer certification  
-• modify API outputs  
+NEVER:
+- Insert directly into decision tables from API
+- Bypass procedures
 
 ---
 
-# RULE 7 — USE CANONICAL VIEWS ONLY
+### RULE 5 — VIEWS DEFINE PUBLIC TRUTH
 
-All public data must come from:
+Public data MUST come from views, NOT tables.
 
-• V_REGISTRY_PUBLIC  
-• V_REGISTRY_PUBLIC_SEARCH  
-• V_REGISTRY_AI_SYSTEMS_PUBLIC  
+Examples:
+- V_REGISTRY_PUBLIC
+- V_REGISTRY_PUBLIC_SEARCH
+- V_SCORE_DIMENSIONS_PUBLIC
 
-DO NOT:
-
-• query raw tables in API  
-• reconstruct joins manually in UI  
+NEVER:
+- Query tables directly from API/UI
 
 ---
 
-# RULE 8 — QUERY LAYER IS REQUIRED
+### RULE 6 — DETERMINISTIC IDENTIFIERS
 
-API routes must use:
+All IDs MUST be:
+- Uppercase
+- Trimmed
+- Deterministic
+
+Formats:
+- APPLICATION_ID → APP-XXXXXXXX
+- CASE_ID → CASE-XXXXXXXX
+- REGISTRY_ID → GAFAIG-XXXXXXXX
+
+Always normalize:
+UPPER(TRIM(value))
+
+---
+
+### RULE 7 — API LAYER IS THIN
+
+API routes MUST:
+- Fetch data from query layer
+- Return structured JSON
+
+API MUST NOT:
+- Compute scores
+- Apply business logic
+- Modify data (except controlled admin routes)
+
+---
+
+### RULE 8 — QUERY LAYER IS THE ONLY DATA ACCESS POINT
+
+All Snowflake access must go through:
 
 lib/queries/*
 
-DO NOT:
-
-• embed raw SQL in API routes  
-• bypass query abstraction  
-
----
-
-# RULE 9 — PROOF MUST BE CRYPTOGRAPHIC
-
-Verification must rely on:
-
-• proof.messageString  
-• proof.signature  
-• public key  
-
-DO NOT:
-
-• rely on UI indicators  
-• trust frontend state  
-• fake verification  
+NEVER:
+- Query Snowflake directly inside API routes
+- Query Snowflake inside UI components
 
 ---
 
-# RULE 10 — PUBLIC KEY IS CANONICAL
-
-Endpoint:
-
-/api/.well-known/gafaig-public-key  
-
-Must:
-
-• be stable  
-• match signing process  
-• be externally usable  
-
----
-
-# RULE 11 — NO SIDE EFFECTS IN READ PATHS
-
-GET endpoints must:
-
-• not write data  
-• not trigger scoring  
-• not mutate state  
-
----
-
-# RULE 12 — VARIABLE BINDING (SNOWFLAKE)
-
-Use:
-
-:variable  
-
-NOT:
-
-${variable}  
-
----
-
-# RULE 13 — JSON INSERT PATTERN
-
-For VARIANT fields:
-
-USE:
-
-INSERT INTO table  
-SELECT PARSE_JSON(?)  
-
-DO NOT USE:
-
-VALUES (PARSE_JSON(?))  
-
----
-
-# RULE 14 — REGISTRY ID MANAGEMENT
-
-REGISTRY_ID:
-
-• must be stable across re-publish  
-• must be reused if exists  
-• must follow GAFAIG-<id> format  
-
----
-
-# RULE 15 — NO DUPLICATE TRUST SOURCES
-
-There must be ONLY ONE:
-
-• scoring source  
-• certification source  
-• registry source  
-
-DO NOT:
-
-• create parallel systems  
-• duplicate logic  
-
----
-
-# RULE 16 — COMPONENT CONSISTENCY
+### RULE 9 — UI IS PRESENTATION ONLY
 
 UI must:
+- Render data
+- Display trust signals
 
-• use PublicButtonLink for all CTAs  
-• avoid inline button styles  
-• maintain consistent layout patterns  
+UI must NOT:
+- Compute scores
+- Derive certification logic
+- Transform governance models
 
 ---
 
-# RULE 17 — NO ARCHITECTURAL DRIFT
+### RULE 10 — PUBLIC VS PRIVATE DATA SEPARATION
+
+NEVER expose:
+- Findings
+- Evidence
+- Internal scoring components
+- Control-level logic
+
+ONLY expose:
+- Certification status
+- Tier / Band
+- Certification timestamp
+- Public-safe governance explanation
+
+---
+
+## SCORING RULES
+
+### RULE 11 — SINGLE SOURCE OF SCORING
+
+ONLY valid scoring source:
+
+CORE.V_GOVERNANCE_SCORE_CASE
+
+Outputs:
+- FINAL_SCORE
+- TIER
+- BAND
+
+NEVER:
+- Recompute score elsewhere
+- Override score in UI/API
+
+---
+
+### RULE 12 — SCORE SNAPSHOT REQUIRED
+
+Scores must be persisted in:
+
+CORE.CASE_SCORE_SNAPSHOTS
+
+NEVER rely on transient computation.
+
+---
+
+### RULE 13 — DIMENSION NORMALIZATION (LOCKED)
+
+All governance scoring MUST map to EXACTLY 5 dimensions:
+
+1) Transparency  
+2) Accountability  
+3) Safety & Risk Management  
+4) Human Oversight  
+5) Data Governance  
+
+NEVER:
+- Show 3 dimensions
+- Show 12 dimensions
+- Change dimension definitions
+
+---
+
+### RULE 14 — PUBLIC TRUST MODEL
+
+PUBLIC SURFACES MUST SHOW:
+
+✔ Certification status  
+✔ Tier / Band  
+✔ Governance coverage (dimensions)  
+✔ Signed proof  
+
+PUBLIC SURFACES MUST NOT SHOW:
+
+✘ Raw scoring internals  
+✘ Control-level breakdown  
+✘ Evidence  
+
+---
+
+## SNOWFLAKE ENGINEERING RULES
+
+### RULE 15 — USE INSERT ... SELECT
+
+For VARIANT / JSON:
+
+ALWAYS:
+INSERT INTO table
+SELECT PARSE_JSON(...)
+
+NEVER:
+INSERT ... VALUES (PARSE_JSON(...))
+
+---
+
+### RULE 16 — USE :VARIABLE BINDING
+
+Inside procedures:
+
+CORRECT:
+SELECT * FROM table WHERE id = :var
+
+INCORRECT:
+SELECT * FROM table WHERE id = var
+
+---
+
+### RULE 17 — CASTING RULES
+
+- Avoid TRY_CAST misuse
+- Use explicit numeric casting where required
+- Ensure type compatibility
+
+---
+
+### RULE 18 — STRING MATCHING
+
+DO NOT USE:
+REGEXP_LIKE
+
+USE:
+LIKE
+
+Reason:
+- Simpler
+- More stable in Snowflake procedures
+
+---
+
+### RULE 19 — VIEW STABILITY
+
+Once a view is working:
 
 DO NOT:
+- Rewrite it unnecessarily
+- Change column names without reason
 
-• re-architect working systems  
-• change data flow  
-• move logic between layers  
-
----
-
-# RULE 18 — SEPARATION OF CONCERNS
-
-Layer responsibilities:
-
-Snowflake:
-• computation  
-• scoring  
-• certification  
-
-API:
-• transport  
-• orchestration  
-
-UI:
-• rendering  
-• interaction  
+Fix upstream logic instead.
 
 ---
 
-# RULE 19 — TESTING FLOW
+## DEPLOYMENT RULES
 
-All changes must be validated through:
+### RULE 20 — NO PARTIAL DEPLOYS
 
-• /api/registry  
-• /api/verify/[registryId]  
-• /badge/[registryId]  
-• /registry/[registryId]  
-• widget preview  
+Always deploy:
+- Complete file updates
+- Matching API + query + UI changes
 
 ---
 
-# RULE 20 — TRUST OVER FEATURES
+### RULE 21 — VERIFY AFTER DEPLOY
 
-When in doubt:
+Test:
 
-Choose:
-→ correctness  
-→ determinism  
-→ clarity  
-
-Over:
-→ speed  
-→ shortcuts  
-→ UI convenience  
+- /registry  
+- /registry/[id]  
+- /explorer  
+- /verify  
+- API endpoints  
 
 ---
 
-# FINAL PRINCIPLE
+## SECURITY RULES
 
-If it affects:
+### RULE 22 — ADMIN ACCESS CONTROL
 
-• scoring  
-• certification  
-• registry  
-
-It MUST be implemented in Snowflake.
+- Protect admin routes via middleware
+- Require authenticated session
+- Never expose admin endpoints publicly
 
 ---
 
-# FINAL SUMMARY
+### RULE 23 — ENVIRONMENT VARIABLES
 
-GAFAIG is a:
+- Store secrets in .env.local
+- NEVER commit .env.local
+- Use Vercel environment variables in production
 
-• deterministic system  
-• append-only registry  
-• cryptographically verifiable trust layer  
+---
 
-These rules preserve:
+## CRYPTOGRAPHIC TRUST RULES
 
-• system integrity  
-• external credibility  
-• long-term scalability  
+### RULE 24 — SIGNED VERIFICATION
 
-They must not be broken.
+- All verification payloads must be signed
+- Use Ed25519
+- Public key exposed via:
+  /api/.well-known/gafaig-public-key
+
+---
+
+### RULE 25 — CLIENT VERIFICATION
+
+- Verification must be possible externally
+- Use tweetnacl for signature validation
+
+---
+
+## FINAL SYSTEM RULE
+
+DO NOT RE-ARCHITECT
+
+- The system design is correct
+- Fix implementation issues only
+- Do not introduce new patterns
+- Do not move logic out of Snowflake
+
+---
+
+## FINAL NOTE
+
+GAFAIG is not a typical application.
+
+It is a **trust infrastructure system**.
+
+Every engineering decision must reinforce:
+
+- Determinism  
+- Verifiability  
+- Transparency (public-safe)  
+- Separation of concerns  
+
+If a change weakens trust → it is incorrect.

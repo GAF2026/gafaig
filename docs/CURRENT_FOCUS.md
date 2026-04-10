@@ -1,118 +1,248 @@
-# GAFAIG — CURRENT FOCUS — 2026-04-07
+# GAFAIG — CURRENT FOCUS — 2026-04-10
 
-## CURRENT PHASE
-Application → Case Pipeline Stabilization (Core Engine Activation)
+## ACTIVE PHASE
+Public Trust Surface Completion (CRITICAL)
 
-## OBJECTIVE
-Stabilize and fully validate the canonical entry point into the GAFAIG verification pipeline:
-APPLICATION → CASE via SP_CREATE_CASE_FROM_APPLICATION
+This phase finalizes GAFAIG as a true trust infrastructure by aligning all public-facing surfaces with the canonical model:
 
-This is the gateway into the entire governance system and must be deterministic, reliable, and fully aligned with Snowflake as the source of truth.
+PRIVATE = full verification engine (hidden)  
+PUBLIC = certification outcome + trust explanation (visible)  
 
-## PRIMARY COMPONENT UNDER DEVELOPMENT
-23_SP_CREATE_CASE_FROM_APPLICATION.sql
+The platform must no longer present raw scores as the primary signal.  
+All public surfaces must communicate **verified governance, not computed scoring**.
 
-This procedure is responsible for:
-- Resolving input (APPLICATION_ID or REQUEST_ID)
-- Matching against CORE.APPLICATIONS
-- Generating deterministic CASE_ID
-- Inserting into CORE.VERIFICATION_CASES
-- Writing initial workflow event into CORE.VERIFICATION_EVENTS
-- Returning structured VARIANT response
+---
 
-## CURRENT STATUS
-- Procedure compiles successfully
-- Procedure executes successfully
-- Deterministic CASE_ID generation confirmed
-- Insert logic structurally correct
-- Event insertion logic implemented
-- Idempotency logic working
+## PRIMARY OBJECTIVE
 
-## ACTIVE BLOCKER
-Application lookup failure within CORE.APPLICATIONS
+Transform GAFAIG from a “score display system” into a **trust signaling system**.
 
-Symptoms:
-- Procedure returns "Application not found"
-- No rows inserted into CORE.VERIFICATION_CASES
-- No rows inserted into CORE.VERIFICATION_EVENTS
+This means:
 
-Root Cause (confirmed):
-- Input mismatch between procedure input and stored APPLICATION_ID / REQUEST_ID
-- Case sensitivity, whitespace, or normalization inconsistencies
-- Potential environment mismatch (schema / database context)
+- Scores remain internal (Snowflake only)
+- Public surfaces show:
+  - Certification status
+  - Tier / Band
+  - Governance coverage (dimensions)
+  - Signed verification proof
 
-## REQUIRED FIX
-Inside SP_CREATE_CASE_FROM_APPLICATION:
+---
 
-Replace lookup condition with normalized comparison:
+## CURRENT PRIORITY (LOCKED ORDER)
 
-WHERE UPPER(TRIM(REQUEST_ID)) = UPPER(:V_INPUT_ID)
-   OR UPPER(TRIM(APPLICATION_ID)) = UPPER(:V_INPUT_ID)
+### 1) FIX SCORE BREAKDOWN FOUNDATION (SNOWFLAKE)
 
-Ensure:
-- All input IDs are trimmed
-- All comparisons are case-insensitive
-- IDs are consistent across Snowflake, API, and UI
+Status: IN PROGRESS
 
-## VALIDATION STEPS
-1) Confirm application exists:
-SELECT APPLICATION_ID, REQUEST_ID FROM CORE.APPLICATIONS ORDER BY CREATED_AT DESC;
+File:
+GAFAIG - SCORE_BREAKDOWN_PUBLIC.sql
 
-2) Execute procedure with exact APPLICATION_ID:
-CALL CORE.SP_CREATE_CASE_FROM_APPLICATION('APP-XXXXXXXX', 'PART-XXXXXXXX', 'admin');
+Objectives:
+- Normalize control-level scoring into governance dimensions
+- Enforce canonical dimension count (5 ONLY)
+- Remove REGEXP_LIKE (use LIKE)
+- Fix TRY_CAST issues (strict numeric casting)
+- Ensure required output columns:
 
-3) Verify case creation:
-SELECT * FROM CORE.VERIFICATION_CASES ORDER BY CREATED_AT DESC;
+  REQUIRED OUTPUT:
+  - CASE_ID
+  - DIMENSION
+  - COMPONENT_NAME
+  - COMPONENT_SCORE
 
-4) Verify event creation:
-SELECT * FROM CORE.VERIFICATION_EVENTS ORDER BY CREATED_AT DESC;
+  DIMENSION OUTPUT:
+  - CASE_ID
+  - DIMENSION
+  - DIMENSION_SCORE
+  - CONTROLS_COUNT
 
-## SUCCESS CRITERIA
-- Procedure returns ok: true
-- CASE row exists in CORE.VERIFICATION_CASES
-- EVENT row exists in CORE.VERIFICATION_EVENTS
-- CASE_ID is deterministic and consistent
-- No duplicate inserts on re-run
+Rules:
+- No exposure of raw scoring logic
+- No exposure of evidence
+- Must be derived from V_CONTROL_SCORE_COMPONENTS
+- Must remain deterministic
 
-## WHAT WAS COMPLETED
-- Fixed procedure compilation issues
-- Fixed insert column mismatches
-- Implemented deterministic CASE_ID logic
-- Implemented event insertion logic
-- Confirmed idempotent behavior
-- Isolated failure to APPLICATION lookup only
+BLOCKERS ADDRESSED:
+✔ REGEXP_LIKE incompatibility  
+✔ TRY_CAST numeric errors  
+✔ Column naming mismatches  
+✔ Dimension inconsistency (3 vs 5 vs 12)  
 
-## WHAT IS NOT BROKEN
-- Snowflake architecture
-- Table schemas
-- Procedure execution
-- Insert logic
-- Event model
-- Overall pipeline design
+TARGET:
+Stable, queryable public-safe explanation layer
 
-## NEXT STEP (IMMEDIATE)
-Fix APPLICATION lookup normalization and confirm successful case creation.
+---
 
-## NEXT PHASE (AFTER FIX)
-Move to:
-CASE → FINDINGS → EVIDENCE
+### 2) BUILD API + QUERY LAYER (SCORE EXPLANATION)
 
-This includes:
-- Creating FINDINGS table population logic
-- Linking EVIDENCE to FINDINGS
-- Establishing canonical assessment structure
+Status: IN PROGRESS
 
-## UPCOMING PIPELINE
-CASE → FINDINGS → EVIDENCE → SCORING → DECISION → REGISTRY
+Files:
+- lib/queries/score-breakdown.ts
+- /api/registry/[registryId]/score-breakdown/route.ts
 
-## CRITICAL RULES
-- Snowflake is the source of truth
-- No logic in API/UI
-- No re-architecture
-- Maintain deterministic pipeline
-- Maintain append-only model
+Objectives:
+- Pull from CORE.V_SCORE_DIMENSIONS_PUBLIC
+- Resolve REGISTRY_ID → CASE_ID
+- Return normalized JSON structure:
+
+{
+  registryId,
+  dimensions: [
+    { name, score, controls }
+  ]
+}
+
+Rules:
+- No computation
+- No transformation beyond mapping
+- Snowflake remains source of truth
+
+---
+
+### 3) UPDATE REGISTRY PAGE (TRUST ALIGNMENT)
+
+Status: NEXT
+
+File:
+app/registry/[registryId]/page.tsx
+
+Objectives:
+- REMOVE emphasis on raw score
+- ADD governance explanation section
+- DISPLAY:
+
+  “Certified and reviewed across 5 governance dimensions”
+
+- Render dimension breakdown UI
+
+DO NOT:
+- Show control-level scoring
+- Show internal metrics
+- Show raw scoring formulas
+
+---
+
+### 4) UPDATE EXPLORER (CRITICAL FIX)
+
+Status: IN PROGRESS
+
+File:
+app/explorer/page.tsx
+
+Current Issue:
+- Inconsistent dimension counts (3, 5, 12)
+
+Fix:
+- Enforce canonical 5 governance dimensions globally
+
+Objectives:
+- Replace:
+  “Score: 90”
+
+  WITH:
+
+  “Reviewed across 5 governance dimensions”
+
+- Show dimension coverage instead of score emphasis
+
+---
+
+### 5) VERIFY PAGE (CRYPTOGRAPHIC TRUST)
+
+Status: READY
+
+File:
+app/verify/page.tsx
+
+Objectives:
+- Input: REGISTRY_ID
+- Fetch:
+  /api/verify/[registryId]
+
+- Perform client-side verification using:
+  tweetnacl (Ed25519)
+
+- Validate:
+  message + signature + public key
+
+Outcome:
+TRUE / FALSE verification status
+
+---
+
+### 6) BADGE + WIDGET (PORTABLE TRUST)
+
+Status: READY
+
+Endpoints:
+- /api/badge/[registryId]
+- /widget-preview/[registryId]
+
+Objectives:
+- Embed trust externally
+- Provide verifiable certification signal
+- Connect to verification endpoint
+
+---
+
+## CURRENT SYSTEM RISKS
+
+1) DIMENSION DRIFT
+- Different parts of system showing different counts
+- MUST remain fixed at 5
+
+2) PUBLIC/PRIVATE LEAKAGE
+- Risk of exposing internal scoring logic
+- MUST enforce strict separation
+
+3) UI MISALIGNMENT
+- Score-first messaging contradicts system design
+- Must shift to certification-first messaging
+
+---
+
+## DEFINITION OF DONE (THIS PHASE)
+
+✔ Score breakdown views compile and return correct schema  
+✔ API returns dimension-level data  
+✔ Registry page shows governance explanation  
+✔ Explorer shows consistent 5-dimension coverage  
+✔ No raw score emphasis on public pages  
+✔ Verify page supports cryptographic validation  
+✔ Badge + widget functional  
+✔ All trust surfaces aligned with system identity  
+
+---
+
+## NEXT PHASE (AFTER COMPLETION)
+
+Phase: External Trust Expansion
+
+- 1-click verification snippet (Node + browser)
+- Public developer documentation
+- Registry adoption onboarding
+- Ecosystem integrations
+
+---
+
+## ENGINEERING RULE REMINDER
+
+- DO NOT re-architect  
+- DO NOT move logic out of Snowflake  
+- DO NOT expose private data  
+- DO NOT compute scores in API/UI  
+- ALWAYS enforce deterministic outputs  
+
+---
 
 ## FINAL NOTE
-The system is fully built at the structural level.
-Only input resolution remains to unlock the entire GAFAIG pipeline.
-Once resolved, development immediately progresses into the governance engine (Findings + Evidence).
+
+We are no longer building features.
+
+We are finalizing **trust infrastructure**.
+
+Every change must reinforce:
+
+GAFAIG = Verified AI Governance  
+Not estimated. Not claimed. Verified.
