@@ -77,14 +77,11 @@ function formatDate(value: string | null | undefined) {
   });
 }
 
-function tierBandLabel(
-  score: string | null,
+function certificationTierBandLabel(
   tier: string | null,
   band: string | null
 ) {
-  const scoreLabel = score ? `Score ${score}` : null;
-  const tierBand = tier && band ? `${tier} · Band ${band}` : tier || band || null;
-  return [scoreLabel, tierBand].filter(Boolean).join(" · ") || "—";
+  return tier && band ? `${tier} · Band ${band}` : tier || band || "—";
 }
 
 function normalizeString(value: string | string[] | undefined) {
@@ -183,8 +180,8 @@ export default async function RegistryPage({
   const certifiedRecords = rows.filter(
     (row) => certificationStatus(row).trim().toLowerCase() === "certified"
   ).length;
-  const publishedRecords = rows.filter(
-    (row) => String(row.decisionStatus || "").trim().toLowerCase() === "published"
+  const approvedRecords = rows.filter(
+    (row) => String(row.decisionStatus || "").trim().toLowerCase() === "approved"
   ).length;
 
   return (
@@ -303,7 +300,7 @@ export default async function RegistryPage({
         <section className="grid gap-4 md:grid-cols-3">
           <MetricCard label="Visible records" value={String(totalRecords)} />
           <MetricCard label="Certified" value={String(certifiedRecords)} />
-          <MetricCard label="Published" value={String(publishedRecords)} />
+          <MetricCard label="Approved decisions" value={String(approvedRecords)} />
         </section>
 
         <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
@@ -433,9 +430,8 @@ export default async function RegistryPage({
 
                     <div className="mt-5 grid gap-3 md:grid-cols-4">
                       <Info
-                        label="Score / Tier / Band"
-                        value={tierBandLabel(
-                          row.certifiedScore,
+                        label="Certification / Tier / Band"
+                        value={certificationTierBandLabel(
                           row.certifiedTier,
                           row.certifiedBand
                         )}
