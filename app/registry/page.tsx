@@ -7,7 +7,7 @@ import { sfQuery } from "@/lib/snowflake";
 export const dynamic = "force-dynamic";
 
 type RegistryRow = {
-  REGISTRY_ID: string;
+  REGISTRY_ID: string | null;
   APPLICATION_ID: string | null;
   CASE_ID: string | null;
   ENTITY_NAME: string | null;
@@ -22,9 +22,49 @@ type RegistryRow = {
   CERTIFIED_AT: string | null;
 };
 
+type RegistryRecord = {
+  registryId: string;
+  applicationId: string | null;
+  caseId: string | null;
+  entityName: string | null;
+  entityType: string | null;
+  country: string | null;
+  certifiedScore: string | null;
+  certifiedTier: string | null;
+  certifiedBand: string | null;
+  decisionStatus: string | null;
+  validFrom: string | null;
+  validTo: string | null;
+  certifiedAt: string | null;
+};
+
 type CountryOptionRow = {
   COUNTRY: string | null;
 };
+
+function asString(value: unknown): string | null {
+  if (value === null || value === undefined) return null;
+  const s = String(value).trim();
+  return s === "" ? null : s;
+}
+
+function normalizeRegistryRow(row: RegistryRow): RegistryRecord {
+  return {
+    registryId: asString(row.REGISTRY_ID) ?? "",
+    applicationId: asString(row.APPLICATION_ID),
+    caseId: asString(row.CASE_ID),
+    entityName: asString(row.ENTITY_NAME),
+    entityType: asString(row.ENTITY_TYPE),
+    country: asString(row.COUNTRY),
+    certifiedScore: asString(row.CERTIFIED_SCORE),
+    certifiedTier: asString(row.CERTIFIED_TIER),
+    certifiedBand: asString(row.CERTIFIED_BAND),
+    decisionStatus: asString(row.DECISION_STATUS),
+    validFrom: asString(row.VALID_FROM),
+    validTo: asString(row.VALID_TO),
+    certifiedAt: asString(row.CERTIFIED_AT),
+  };
+}
 
 function formatDate(value: string | null | undefined) {
   if (!value) return "—";
@@ -52,8 +92,8 @@ function normalizeString(value: string | string[] | undefined) {
   return String(value || "").trim();
 }
 
-function certificationStatus(row: RegistryRow) {
-  return row.CERTIFIED_AT ? "Certified" : "Not Certified";
+function certificationStatus(row: RegistryRecord) {
+  return row.certifiedAt ? "Certified" : "Not Certified";
 }
 
 export default async function RegistryPage({
@@ -90,12 +130,12 @@ export default async function RegistryPage({
 
   const whereClause = whereParts.length ? `WHERE ${whereParts.join(" AND ")}` : "";
 
-  let rows: RegistryRow[] = [];
+  let rows: RegistryRecord[] = [];
   let countries: CountryOptionRow[] = [];
   let dataUnavailable = false;
 
   try {
-    [rows, countries] = await Promise.all([
+    const [rawRows, rawCountries] = await Promise.all([
       sfQuery<RegistryRow>(
         `
         SELECT
@@ -131,6 +171,9 @@ export default async function RegistryPage({
         `
       ),
     ]);
+
+    rows = rawRows.map(normalizeRegistryRow).filter((row) => row.registryId);
+    countries = rawCountries;
   } catch (error) {
     dataUnavailable = true;
     console.error("REGISTRY PAGE ERROR:", error);
@@ -141,7 +184,7 @@ export default async function RegistryPage({
     (row) => certificationStatus(row).trim().toLowerCase() === "certified"
   ).length;
   const publishedRecords = rows.filter(
-    (row) => String(row.DECISION_STATUS || "").trim().toLowerCase() === "published"
+    (row) => String(row.decisionStatus || "").trim().toLowerCase() === "published"
   ).length;
 
   return (
@@ -221,11 +264,14 @@ export default async function RegistryPage({
                 className="w-full rounded-2xl border border-black/10 bg-white px-4 py-3 text-[15px] outline-none transition focus:border-black/30"
               >
                 <option value="">All countries</option>
-                {countries.map((row) => (
-                  <option key={row.COUNTRY || "Unknown"} value={row.COUNTRY || ""}>
-                    {row.COUNTRY}
-                  </option>
-                ))}
+                {countries.map((row) => {
+                  const countryValue = asString(row.COUNTRY) ?? "";
+                  return (
+                    <option key={countryValue || "Unknown"} value={countryValue}>
+                      {countryValue || "Unknown"}
+                    </option>
+                  );
+                })}
               </select>
             </div>
 
@@ -358,51 +404,54 @@ export default async function RegistryPage({
             </div>
           ) : (
             <div className="mt-8 grid gap-4">
-              {rows.map((row) => (
-                <Link
-                  key={row.REGISTRY_ID}
-                  href={`/registry/${encodeURIComponent(row.REGISTRY_ID)}`}
-                  className="rounded-2xl border border-black/10 p-5 transition hover:bg-black/[0.03]"
-                >
-                  <div className="flex flex-wrap items-start justify-between gap-5">
-                    <div className="min-w-0 flex-1">
-                      <div className="flex flex-wrap gap-2">
-                        <StatusPill value={certificationStatus(row)} />
-                        <StatusPill value={row.DECISION_STATUS || "—"} subtle />
-                      </div>
+              {rows.map((row) => {
+                const cleanRegistryId = String(row.registryId || "").trim();
+                return (
+                  <Link
+                    key={cleanRegistryId}
+                    href={`/registry/${encodeURIComponent(cleanRegistryId)}`}
+                    className="rounded-2xl border border-black/10 p-5 transition hover:bg-black/[0.03]"
+                  >
+                    <div className="flex flex-wrap items-start justify-between gap-5">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex flex-wrap gap-2">
+                          <StatusPill value={certificationStatus(row)} />
+                          <StatusPill value={row.decisionStatus || "—"} subtle />
+                        </div>
 
-                      <div className="mt-4 text-[24px] font-semibold tracking-tight text-black">
-                        {row.ENTITY_NAME || row.REGISTRY_ID}
-                      </div>
+                        <div className="mt-4 text-[24px] font-semibold tracking-tight text-black">
+                          {row.entityName || cleanRegistryId}
+                        </div>
 
-                      <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm text-black/65">
-                        <span>{row.ENTITY_TYPE || "Organization"}</span>
-                        <span>{row.COUNTRY || "Unknown country"}</span>
-                        <span>{row.REGISTRY_ID}</span>
+                        <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm text-black/65">
+                          <span>{row.entityType || "Organization"}</span>
+                          <span>{row.country || "Unknown country"}</span>
+                          <span>{cleanRegistryId}</span>
+                        </div>
                       </div>
                     </div>
-                  </div>
 
-                  <div className="mt-5 grid gap-3 md:grid-cols-4">
-                    <Info
-                      label="Score / Tier / Band"
-                      value={tierBandLabel(
-                        row.CERTIFIED_SCORE,
-                        row.CERTIFIED_TIER,
-                        row.CERTIFIED_BAND
-                      )}
-                    />
-                    <Info label="Certified at" value={formatDate(row.CERTIFIED_AT)} />
-                    <Info label="Valid from" value={formatDate(row.VALID_FROM)} />
-                    <Info label="Valid to" value={formatDate(row.VALID_TO)} />
-                  </div>
+                    <div className="mt-5 grid gap-3 md:grid-cols-4">
+                      <Info
+                        label="Score / Tier / Band"
+                        value={tierBandLabel(
+                          row.certifiedScore,
+                          row.certifiedTier,
+                          row.certifiedBand
+                        )}
+                      />
+                      <Info label="Certified at" value={formatDate(row.certifiedAt)} />
+                      <Info label="Valid from" value={formatDate(row.validFrom)} />
+                      <Info label="Valid to" value={formatDate(row.validTo)} />
+                    </div>
 
-                  <div className="mt-5 flex flex-wrap gap-x-5 gap-y-1 text-sm text-black/55">
-                    <span>Application: {row.APPLICATION_ID || "—"}</span>
-                    <span>Case: {row.CASE_ID || "—"}</span>
-                  </div>
-                </Link>
-              ))}
+                    <div className="mt-5 flex flex-wrap gap-x-5 gap-y-1 text-sm text-black/55">
+                      <span>Application: {row.applicationId || "—"}</span>
+                      <span>Case: {row.caseId || "—"}</span>
+                    </div>
+                  </Link>
+                );
+              })}
             </div>
           )}
         </section>
@@ -490,8 +539,8 @@ function StatusPill({
   const classes = subtle
     ? "border-blue-200 bg-blue-50 text-blue-700"
     : normalized === "certified"
-    ? "border-emerald-200 bg-emerald-50 text-emerald-700"
-    : "border-black/10 bg-black/[0.03] text-black/65";
+      ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+      : "border-black/10 bg-black/[0.03] text-black/65";
 
   return (
     <span

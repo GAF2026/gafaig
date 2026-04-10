@@ -138,7 +138,9 @@ export async function getRecentRegistryRecords(
     [safeLimit]
   );
 
-  return rows.map(normalizeRegistryRecord);
+  return rows
+    .map(normalizeRegistryRecord)
+    .filter((row) => row.registryId);
 }
 
 export async function getExplorerOrganizations(
