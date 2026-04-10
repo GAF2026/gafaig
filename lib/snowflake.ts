@@ -1,203 +1,132 @@
-import snowflake, {
-  Connection,
-  ConnectionOptions,
-  RowStatement,
-} from "snowflake-sdk";
+import snowflake from "snowflake-sdk";
 
-type SnowflakePrimitive = string | number | boolean | null;
-type SnowflakeBind = SnowflakePrimitive;
+type BindScalar = string | number | boolean | Date | Uint8Array | null;
+type QueryRow = Record<string, unknown>;
 
-export type SnowflakeCtx = {
-  account: string;
-  username: string;
-  warehouse: string;
-  database: string;
-  schema: string;
-  role?: string;
-};
+const {
+  SNOWFLAKE_ACCOUNT,
+  SNOWFLAKE_USERNAME,
+  SNOWFLAKE_PASSWORD,
+  SNOWFLAKE_WAREHOUSE,
+  SNOWFLAKE_DATABASE,
+  SNOWFLAKE_SCHEMA,
+  SNOWFLAKE_ROLE,
+} = process.env;
 
-export type SfQueryResult<T = Record<string, unknown>> = T[];
-
-let connection: Connection | null = null;
-let connectionPromise: Promise<Connection> | null = null;
-
-function getRequiredEnv(name: string): string {
-  const value = process.env[name];
+function requireEnv(name: string, value: string | undefined): string {
   if (!value || !value.trim()) {
-    throw new Error(`Missing required environment variable: ${name}`);
+    throw new Error(`Missing required Snowflake env var: ${name}`);
   }
   return value.trim();
 }
 
-function getPrivateKey(): string {
-  const inlineKey = process.env.SNOWFLAKE_PRIVATE_KEY?.trim();
-  if (inlineKey) {
-    return normalizePrivateKey(inlineKey);
-  }
-
-  throw new Error("Missing required environment variable: SNOWFLAKE_PRIVATE_KEY");
-}
-
-function normalizePrivateKey(value: string): string {
-  let normalized = value.trim();
-
-  if (
-    (normalized.startsWith('"') && normalized.endsWith('"')) ||
-    (normalized.startsWith("'") && normalized.endsWith("'"))
-  ) {
-    normalized = normalized.slice(1, -1);
-  }
-
-  normalized = normalized.replace(/\\n/g, "\n");
-
-  return normalized;
-}
-
-function getConnectionOptions(): ConnectionOptions {
-  const account = getRequiredEnv("SNOWFLAKE_ACCOUNT");
-  const username =
-    process.env.SNOWFLAKE_USER?.trim() ||
-    process.env.SNOWFLAKE_USERNAME?.trim() ||
-    getRequiredEnv("SNOWFLAKE_USER");
-
-  const warehouse = getRequiredEnv("SNOWFLAKE_WAREHOUSE");
-  const database = getRequiredEnv("SNOWFLAKE_DATABASE");
-  const schema = getRequiredEnv("SNOWFLAKE_SCHEMA");
-  const role = process.env.SNOWFLAKE_ROLE?.trim();
-
+function getConfig() {
   return {
-    account,
-    username,
-    warehouse,
-    database,
-    schema,
-    role,
-    authenticator: "SNOWFLAKE_JWT",
-    privateKey: getPrivateKey(),
+    account: requireEnv("SNOWFLAKE_ACCOUNT", SNOWFLAKE_ACCOUNT),
+    username: requireEnv("SNOWFLAKE_USERNAME", SNOWFLAKE_USERNAME),
+    password: requireEnv("SNOWFLAKE_PASSWORD", SNOWFLAKE_PASSWORD),
+    warehouse: requireEnv("SNOWFLAKE_WAREHOUSE", SNOWFLAKE_WAREHOUSE),
+    database: requireEnv("SNOWFLAKE_DATABASE", SNOWFLAKE_DATABASE),
+    schema: requireEnv("SNOWFLAKE_SCHEMA", SNOWFLAKE_SCHEMA),
+    role: requireEnv("SNOWFLAKE_ROLE", SNOWFLAKE_ROLE),
   };
 }
 
-function createSnowflakeConnection(): Connection {
-  return snowflake.createConnection(getConnectionOptions());
-}
+async function connectSnowflake(): Promise<snowflake.Connection> {
+  const config = getConfig();
 
-async function connectIfNeeded(): Promise<Connection> {
-  if (connection && connection.isUp()) {
-    return connection;
-  }
+  const connection = snowflake.createConnection({
+    account: config.account,
+    username: config.username,
+    password: config.password,
+  });
 
-  if (connectionPromise) {
-    return connectionPromise;
-  }
-
-  connectionPromise = new Promise<Connection>((resolve, reject) => {
-    const conn = createSnowflakeConnection();
-
-    conn.connect((err, connectedConn) => {
+  await new Promise<void>((resolve, reject) => {
+    connection.connect((err) => {
       if (err) {
-        connection = null;
-        connectionPromise = null;
-        reject(err);
+        reject(
+          new Error(`Snowflake connection failed: ${err.message || String(err)}`)
+        );
         return;
       }
-
-      connection = connectedConn;
-      connectionPromise = null;
-      resolve(connectedConn);
+      resolve();
     });
   });
 
-  return connectionPromise;
-}
-
-function normalizeBind(value: unknown): SnowflakeBind {
-  if (value === null || value === undefined) {
-    return null;
+  try {
+    await executeRaw(connection, `USE ROLE ${config.role}`);
+    await executeRaw(connection, `USE WAREHOUSE ${config.warehouse}`);
+    await executeRaw(connection, `USE DATABASE ${config.database}`);
+    await executeRaw(connection, `USE SCHEMA ${config.schema}`);
+  } catch (error) {
+    await new Promise<void>((resolve) => {
+      connection.destroy(() => resolve());
+    });
+    throw error;
   }
 
-  if (value instanceof Date) {
-    return value.toISOString();
-  }
-
-  if (
-    typeof value === "string" ||
-    typeof value === "number" ||
-    typeof value === "boolean"
-  ) {
-    return value;
-  }
-
-  return String(value);
+  return connection;
 }
 
-function normalizeBinds(binds: unknown[] = []): SnowflakeBind[] {
-  return binds.map(normalizeBind);
-}
-
-function executeStatement<T>(
-  conn: Connection,
+function executeRaw(
+  connection: snowflake.Connection,
   sqlText: string,
-  binds: unknown[] = []
-): Promise<T[]> {
-  return new Promise<T[]>((resolve, reject) => {
-    conn.execute({
+  binds: BindScalar[] = []
+): Promise<QueryRow[]> {
+  return new Promise((resolve, reject) => {
+    connection.execute({
       sqlText,
-      binds: normalizeBinds(binds),
-      complete: (err, _stmt: RowStatement, rows: T[] | undefined) => {
+      binds: binds as unknown as snowflake.Binds,
+      complete: (err, _stmt, rows) => {
         if (err) {
-          reject(err);
+          reject(
+            new Error(
+              `Snowflake query failed: ${err.message || String(err)} | SQL: ${sqlText}`
+            )
+          );
           return;
         }
-        resolve(rows ?? []);
+
+        resolve((rows as QueryRow[]) || []);
       },
     });
   });
 }
 
-export async function sfQuery<T = Record<string, unknown>>(
+export async function sfQuery<T extends QueryRow = QueryRow>(
   sqlText: string,
-  binds: unknown[] = []
+  binds: BindScalar[] = []
 ): Promise<T[]> {
-  const conn = await connectIfNeeded();
-  return executeStatement<T>(conn, sqlText, binds);
+  const connection = await connectSnowflake();
+
+  try {
+    const rows = await executeRaw(connection, sqlText, binds);
+    return rows as T[];
+  } finally {
+    await new Promise<void>((resolve) => {
+      connection.destroy((err) => {
+        if (err) {
+          console.error("Snowflake connection destroy failed:", err);
+        }
+        resolve();
+      });
+    });
+  }
 }
 
-/**
- * Temporary compatibility export.
- * Keep during stabilization only.
- */
-export async function executeQuery<T = Record<string, unknown>>(
+export async function executeQuery<T extends QueryRow = QueryRow>(
   sqlText: string,
-  binds: unknown[] = []
-): Promise<T[]> {
-  return sfQuery<T>(sqlText, binds);
-}
-
-/**
- * Temporary compatibility export.
- * Keep during stabilization only.
- */
-export async function snowflakeQuery<T = Record<string, unknown>>(
-  sqlText: string,
-  binds: unknown[] = []
+  binds: BindScalar[] = []
 ): Promise<T[]> {
   return sfQuery<T>(sqlText, binds);
 }
 
-/**
- * Historical code expects a symbol named sfQueryResult.
- * In the current system, queries return rows directly.
- */
-export type sfQueryResult<T = Record<string, unknown>> = T[];
+export async function snowflakeQuery<T extends QueryRow = QueryRow>(
+  sqlText: string,
+  binds: BindScalar[] = []
+): Promise<T[]> {
+  return sfQuery<T>(sqlText, binds);
+}
 
-export const snowflakeCtx: SnowflakeCtx = {
-  account: process.env.SNOWFLAKE_ACCOUNT?.trim() || "",
-  username:
-    process.env.SNOWFLAKE_USER?.trim() ||
-    process.env.SNOWFLAKE_USERNAME?.trim() ||
-    "",
-  warehouse: process.env.SNOWFLAKE_WAREHOUSE?.trim() || "",
-  database: process.env.SNOWFLAKE_DATABASE?.trim() || "",
-  schema: process.env.SNOWFLAKE_SCHEMA?.trim() || "",
-  role: process.env.SNOWFLAKE_ROLE?.trim(),
-};
+export const sfQueryResult = sfQuery;
+export const snowflakeCtx = {};
