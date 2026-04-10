@@ -7,12 +7,10 @@ export type RegistryQueryRow = {
   entityName: string | null;
   entityType: string | null;
   country: string | null;
-
   certifiedScore: string | null;
   certifiedTier: string | null;
   certifiedBand: string | null;
   decisionStatus: string | null;
-
   validFrom: string | null;
   validTo: string | null;
   certifiedAt: string | null;
@@ -39,19 +37,17 @@ function normalizeRegistryRow(row: Record<string, unknown>): RegistryQueryRow {
     entityName: asString(row.ENTITY_NAME),
     entityType: asString(row.ENTITY_TYPE),
     country: asString(row.COUNTRY),
-
     certifiedScore: asString(row.CERTIFIED_SCORE),
     certifiedTier: asString(row.CERTIFIED_TIER),
     certifiedBand: asString(row.CERTIFIED_BAND),
     decisionStatus: asString(row.DECISION_STATUS),
-
     validFrom: asString(row.VALID_FROM),
     validTo: asString(row.VALID_TO),
     certifiedAt: asString(row.CERTIFIED_AT),
   };
 }
 
-const REGISTRY_SOURCE = "V_REGISTRY_PUBLIC";
+const REGISTRY_SOURCE = "CORE.V_REGISTRY_PUBLIC";
 
 const REGISTRY_SELECT = `
   SELECT

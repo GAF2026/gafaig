@@ -5,27 +5,21 @@ export type RegistryAiSystem = {
   registryId: string | null;
   applicationId: string | null;
   caseId: string | null;
-
   systemName: string | null;
   systemType: string | null;
   intendedUse: string | null;
-
   deploymentStatus: string | null;
   oversightLevel: string | null;
   riskTier: string | null;
-
   developerOrganization: string | null;
   trainingDataCategory: string | null;
   oversightModel: string | null;
   humanReviewRequired: boolean | null;
   evaluationProtocol: string | null;
   auditFrequency: string | null;
-
   publicSummary: string | null;
-
   entityName: string | null;
   country: string | null;
-
   certifiedTier: string | null;
   certifiedBand: string | null;
   certifiedScore: number | null;
@@ -78,39 +72,33 @@ function toNullableIsoString(value: unknown): string | null {
 }
 
 function mapRegistryAiSystemRow(
-  r: Record<string, unknown>
+  row: Record<string, unknown>
 ): RegistryAiSystem {
   return {
-    systemId: String(r.SYSTEM_ID ?? ""),
-    registryId: toNullableString(r.REGISTRY_ID),
-    applicationId: toNullableString(r.APPLICATION_ID),
-    caseId: toNullableString(r.CASE_ID),
-
-    systemName: toNullableString(r.SYSTEM_NAME),
-    systemType: toNullableString(r.SYSTEM_TYPE),
-    intendedUse: toNullableString(r.INTENDED_USE),
-
-    deploymentStatus: toNullableString(r.DEPLOYMENT_STATUS),
-    oversightLevel: toNullableString(r.OVERSIGHT_LEVEL),
-    riskTier: toNullableString(r.RISK_TIER),
-
-    developerOrganization: toNullableString(r.DEVELOPER_ORGANIZATION),
-    trainingDataCategory: toNullableString(r.TRAINING_DATA_CATEGORY),
-    oversightModel: toNullableString(r.OVERSIGHT_MODEL),
-    humanReviewRequired: toNullableBoolean(r.HUMAN_REVIEW_REQUIRED),
-    evaluationProtocol: toNullableString(r.EVALUATION_PROTOCOL),
-    auditFrequency: toNullableString(r.AUDIT_FREQUENCY),
-
-    publicSummary: toNullableString(r.PUBLIC_SUMMARY),
-
-    entityName: toNullableString(r.ENTITY_NAME),
+    systemId: String(row.SYSTEM_ID ?? ""),
+    registryId: toNullableString(row.REGISTRY_ID),
+    applicationId: toNullableString(row.APPLICATION_ID),
+    caseId: toNullableString(row.CASE_ID),
+    systemName: toNullableString(row.SYSTEM_NAME),
+    systemType: toNullableString(row.SYSTEM_TYPE),
+    intendedUse: toNullableString(row.INTENDED_USE),
+    deploymentStatus: toNullableString(row.DEPLOYMENT_STATUS),
+    oversightLevel: toNullableString(row.OVERSIGHT_LEVEL),
+    riskTier: toNullableString(row.RISK_TIER),
+    developerOrganization: toNullableString(row.DEVELOPER_ORGANIZATION),
+    trainingDataCategory: toNullableString(row.TRAINING_DATA_CATEGORY),
+    oversightModel: toNullableString(row.OVERSIGHT_MODEL),
+    humanReviewRequired: toNullableBoolean(row.HUMAN_REVIEW_REQUIRED),
+    evaluationProtocol: toNullableString(row.EVALUATION_PROTOCOL),
+    auditFrequency: toNullableString(row.AUDIT_FREQUENCY),
+    publicSummary: toNullableString(row.PUBLIC_SUMMARY),
+    entityName: toNullableString(row.ENTITY_NAME),
     country: null,
-
-    certifiedTier: toNullableString(r.CERTIFIED_TIER),
-    certifiedBand: toNullableString(r.CERTIFIED_BAND),
-    certifiedScore: toNullableNumber(r.SCORE),
-    certifiedAt: toNullableIsoString(r.PUBLISHED_AT),
-    decisionStatus: toNullableString(r.REGISTRY_STATUS),
+    certifiedTier: toNullableString(row.CERTIFIED_TIER),
+    certifiedBand: toNullableString(row.CERTIFIED_BAND),
+    certifiedScore: toNullableNumber(row.SCORE),
+    certifiedAt: toNullableIsoString(row.PUBLISHED_AT),
+    decisionStatus: toNullableString(row.REGISTRY_STATUS),
   };
 }
 
