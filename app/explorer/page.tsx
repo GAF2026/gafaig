@@ -5,15 +5,8 @@ import {
   getExplorerSummary,
   getRecentRegistryRecords,
 } from "@/lib/queries/explorer";
-import { getRegistryScoreBreakdownByRegistryId } from "@/lib/queries/score-breakdown";
 
 export const dynamic = "force-dynamic";
-
-type ExplorerDimensionPreview = {
-  registryId: string;
-  dimensions: string[];
-  dimensionCount: number;
-};
 
 function formatDate(value: string | null) {
   if (!value) return "—";
@@ -26,64 +19,11 @@ function formatDate(value: string | null) {
   });
 }
 
-async function getDimensionPreviews(
-  registryIds: string[]
-): Promise<Record<string, ExplorerDimensionPreview>> {
-  const uniqueIds = Array.from(new Set(registryIds.filter(Boolean)));
-
-  const results = await Promise.all(
-    uniqueIds.map(async (registryId) => {
-      try {
-        const breakdown = await getRegistryScoreBreakdownByRegistryId(registryId);
-
-        if (!breakdown) {
-          return [
-            registryId,
-            {
-              registryId,
-              dimensions: [],
-              dimensionCount: 0,
-            },
-          ] as const;
-        }
-
-        const dimensions = breakdown.dimensions
-          .map((d) => String(d.scoreDimension || "").trim())
-          .filter(Boolean);
-
-        return [
-          registryId,
-          {
-            registryId,
-            dimensions,
-            dimensionCount: dimensions.length,
-          },
-        ] as const;
-      } catch {
-        return [
-          registryId,
-          {
-            registryId,
-            dimensions: [],
-            dimensionCount: 0,
-          },
-        ] as const;
-      }
-    })
-  );
-
-  return Object.fromEntries(results);
-}
-
 export default async function ExplorerPage() {
   const [summary, recentRecords] = await Promise.all([
     getExplorerSummary(),
     getRecentRegistryRecords(10),
   ]);
-
-  const dimensionPreviews = await getDimensionPreviews(
-    recentRecords.map((row) => row.registryId)
-  );
 
   return (
     <main className="mx-auto max-w-[1180px] px-6 pb-16 pt-14">
@@ -150,7 +90,7 @@ export default async function ExplorerPage() {
             />
             <ExplanationCard
               title="Governance review scope"
-              body="Explorer may disclose the number and names of governance dimensions assessed without exposing internal scoring mechanics."
+              body="Explorer may disclose public-safe review scope without exposing internal scoring mechanics."
             />
             <ExplanationCard
               title="Protected private engine"
@@ -197,66 +137,49 @@ export default async function ExplorerPage() {
                 </tr>
               </thead>
               <tbody>
-                {recentRecords.map((row) => {
-                  const preview = dimensionPreviews[row.registryId];
+                {recentRecords.map((row) => (
+                  <tr key={row.registryId} className="border-b border-black/5">
+                    <td className="px-0 py-4">
+                      <div className="font-semibold text-black">
+                        {row.entityName ?? "—"}
+                      </div>
+                      <div className="mt-1 text-sm text-black/60">
+                        {row.registryId}
+                      </div>
+                    </td>
 
-                  return (
-                    <tr key={row.registryId} className="border-b border-black/5">
-                      <td className="px-0 py-4">
-                        <div className="font-semibold text-black">
-                          {row.entityName ?? "—"}
-                        </div>
-                        <div className="mt-1 text-sm text-black/60">
-                          {row.registryId}
-                        </div>
-                      </td>
+                    <td className="px-4 py-4 text-sm text-black/75">
+                      {row.country ?? "—"}
+                    </td>
 
-                      <td className="px-4 py-4 text-sm text-black/75">
-                        {row.country ?? "—"}
-                      </td>
+                    <td className="px-4 py-4 text-sm text-black/75">
+                      {[row.certifiedTier, row.certifiedBand]
+                        .filter(Boolean)
+                        .join(" · ") || "—"}
+                    </td>
 
-                      <td className="px-4 py-4 text-sm text-black/75">
-                        {[row.certifiedTier, row.certifiedBand]
-                          .filter(Boolean)
-                          .join(" · ") || "—"}
-                      </td>
+                    <td className="px-4 py-4 text-sm text-black/75">
+                      {row.decisionStatus ?? "—"}
+                    </td>
 
-                      <td className="px-4 py-4 text-sm text-black/75">
-                        {row.decisionStatus ?? "—"}
-                      </td>
+                    <td className="px-4 py-4 text-sm text-black/75">
+                      {formatDate(row.certifiedAt)}
+                    </td>
 
-                      <td className="px-4 py-4 text-sm text-black/75">
-                        {formatDate(row.certifiedAt)}
-                      </td>
+                    <td className="px-4 py-4 text-sm text-black/75">
+                      Governance review completed
+                    </td>
 
-                      <td className="px-4 py-4 text-sm text-black/75">
-                        {preview && preview.dimensionCount > 0 ? (
-                          <div>
-                            <div className="font-semibold text-black">
-                              Reviewed across {preview.dimensionCount} governance
-                              dimensions
-                            </div>
-                            <div className="mt-1 text-black/60">
-                              {preview.dimensions.slice(0, 3).join(" · ")}
-                              {preview.dimensions.length > 3 ? " ..." : ""}
-                            </div>
-                          </div>
-                        ) : (
-                          "Governance review completed"
-                        )}
-                      </td>
-
-                      <td className="px-4 py-4">
-                        <Link
-                          href={`/registry/${row.registryId}`}
-                          className="text-sm font-semibold text-black underline underline-offset-4"
-                        >
-                          Open
-                        </Link>
-                      </td>
-                    </tr>
-                  );
-                })}
+                    <td className="px-4 py-4">
+                      <Link
+                        href={`/registry/${row.registryId}`}
+                        className="text-sm font-semibold text-black underline underline-offset-4"
+                      >
+                        Open
+                      </Link>
+                    </td>
+                  </tr>
+                ))}
 
                 {recentRecords.length === 0 ? (
                   <tr>

@@ -1,4 +1,4 @@
-import { executeQuery } from "@/lib/snowflake";
+import { sfQuery } from "@/lib/snowflake";
 
 export type RegistryAiSystem = {
   systemId: string;
@@ -77,13 +77,11 @@ function toNullableIsoString(value: unknown): string | null {
   return String(value);
 }
 
-function escapeSqlString(value: string): string {
-  return value.replace(/'/g, "''");
-}
-
-function mapRegistryAiSystemRow(r: any): RegistryAiSystem {
+function mapRegistryAiSystemRow(
+  r: Record<string, unknown>
+): RegistryAiSystem {
   return {
-    systemId: String(r.SYSTEM_ID),
+    systemId: String(r.SYSTEM_ID ?? ""),
     registryId: toNullableString(r.REGISTRY_ID),
     applicationId: toNullableString(r.APPLICATION_ID),
     caseId: toNullableString(r.CASE_ID),
@@ -106,25 +104,56 @@ function mapRegistryAiSystemRow(r: any): RegistryAiSystem {
     publicSummary: toNullableString(r.PUBLIC_SUMMARY),
 
     entityName: toNullableString(r.ENTITY_NAME),
-    country: toNullableString(r.COUNTRY),
+    country: null,
 
     certifiedTier: toNullableString(r.CERTIFIED_TIER),
     certifiedBand: toNullableString(r.CERTIFIED_BAND),
-    certifiedScore: toNullableNumber(r.CERTIFIED_SCORE),
-    certifiedAt: toNullableIsoString(r.CERTIFIED_AT),
-    decisionStatus: toNullableString(r.DECISION_STATUS),
+    certifiedScore: toNullableNumber(r.SCORE),
+    certifiedAt: toNullableIsoString(r.PUBLISHED_AT),
+    decisionStatus: toNullableString(r.REGISTRY_STATUS),
   };
 }
 
-export async function getRegistryAiSystemBySystemId(systemId: string) {
-  const safeSystemId = escapeSqlString(systemId);
+const AI_SYSTEMS_SELECT = `
+  SELECT
+    SYSTEM_ID,
+    REGISTRY_ID,
+    APPLICATION_ID,
+    CASE_ID,
+    SYSTEM_NAME,
+    SYSTEM_TYPE,
+    INTENDED_USE,
+    DEPLOYMENT_STATUS,
+    OVERSIGHT_LEVEL,
+    RISK_TIER,
+    DEVELOPER_ORGANIZATION,
+    TRAINING_DATA_CATEGORY,
+    OVERSIGHT_MODEL,
+    HUMAN_REVIEW_REQUIRED,
+    EVALUATION_PROTOCOL,
+    AUDIT_FREQUENCY,
+    PUBLIC_SUMMARY,
+    ENTITY_NAME,
+    CERTIFIED_TIER,
+    CERTIFIED_BAND,
+    SCORE,
+    PUBLISHED_AT,
+    REGISTRY_STATUS
+  FROM CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC
+`;
 
-  const rows = await executeQuery(`
-    SELECT *
-    FROM CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC
-    WHERE SYSTEM_ID = '${safeSystemId}'
+export async function getRegistryAiSystemBySystemId(systemId: string) {
+  const id = String(systemId || "").trim();
+  if (!id) return null;
+
+  const rows = await sfQuery<Record<string, unknown>>(
+    `
+    ${AI_SYSTEMS_SELECT}
+    WHERE SYSTEM_ID = ?
     LIMIT 1
-  `);
+    `,
+    [id]
+  );
 
   const row = rows?.[0];
   if (!row) return null;
@@ -133,38 +162,41 @@ export async function getRegistryAiSystemBySystemId(systemId: string) {
 }
 
 export async function getRegistryAiSystemsByRegistryId(registryId: string) {
-  const safeRegistryId = escapeSqlString(registryId);
+  const id = String(registryId || "").trim();
+  if (!id) return [];
 
-  const rows = await executeQuery(`
-    SELECT *
-    FROM CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC
-    WHERE REGISTRY_ID = '${safeRegistryId}'
+  const rows = await sfQuery<Record<string, unknown>>(
+    `
+    ${AI_SYSTEMS_SELECT}
+    WHERE REGISTRY_ID = ?
     ORDER BY
       COALESCE(ENTITY_NAME, ''),
       COALESCE(SYSTEM_NAME, ''),
       COALESCE(SYSTEM_ID, '')
-  `);
+    `,
+    [id]
+  );
 
   return rows.map(mapRegistryAiSystemRow);
 }
 
 export async function getRegistryAiSystemsPaginated(
-  params: RegistryAiSystemsPaginatedParams = {},
+  params: RegistryAiSystemsPaginatedParams = {}
 ) {
   const page = Math.max(1, Number(params.page ?? 1));
   const pageSize = Math.max(1, Number(params.pageSize ?? 50));
 
-  const rows = await executeQuery(`
-    SELECT *
-    FROM CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC
+  const rows = await sfQuery<Record<string, unknown>>(
+    `
+    ${AI_SYSTEMS_SELECT}
     ORDER BY
       COALESCE(ENTITY_NAME, ''),
       COALESCE(SYSTEM_NAME, ''),
       COALESCE(REGISTRY_ID, '')
-  `);
+    `
+  );
 
-  const mapped: RegistryAiSystem[] = rows.map(mapRegistryAiSystemRow);
-
+  const mapped = rows.map(mapRegistryAiSystemRow);
   const total = mapped.length;
   const start = (page - 1) * pageSize;
   const end = start + pageSize;
@@ -178,57 +210,52 @@ export async function getRegistryAiSystemsPaginated(
 }
 
 export async function getRegistryAiSystemsFilterOptions() {
-  const rows = await executeQuery(`
+  const rows = await sfQuery<Record<string, unknown>>(
+    `
     SELECT DISTINCT
-      COUNTRY,
       CERTIFIED_TIER,
       CERTIFIED_BAND
     FROM CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC
     ORDER BY
-      COUNTRY,
       CERTIFIED_TIER,
       CERTIFIED_BAND
-  `);
+    `
+  );
 
   return {
-    countries: Array.from(
-      new Set(
-        rows
-          .map((r: any) => toNullableString(r.COUNTRY))
-          .filter((value): value is string => Boolean(value)),
-      ),
-    ),
+    countries: [] as string[],
     tiers: Array.from(
       new Set(
         rows
-          .map((r: any) => toNullableString(r.CERTIFIED_TIER))
-          .filter((value): value is string => Boolean(value)),
-      ),
+          .map((r) => toNullableString(r.CERTIFIED_TIER))
+          .filter((value): value is string => Boolean(value))
+      )
     ),
     bands: Array.from(
       new Set(
         rows
-          .map((r: any) => toNullableString(r.CERTIFIED_BAND))
-          .filter((value): value is string => Boolean(value)),
-      ),
+          .map((r) => toNullableString(r.CERTIFIED_BAND))
+          .filter((value): value is string => Boolean(value))
+      )
     ),
   };
 }
 
 export async function getRegistryAiSystemsSummaryStats() {
-  const rows = await executeQuery(`
+  const rows = await sfQuery<Record<string, unknown>>(
+    `
     SELECT
       COUNT(*) AS TOTAL_SYSTEMS,
-      COUNT(DISTINCT ENTITY_NAME) AS LINKED_ENTITIES,
-      COUNT(DISTINCT COUNTRY) AS COUNTRIES
+      COUNT(DISTINCT ENTITY_NAME) AS LINKED_ENTITIES
     FROM CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC
-  `);
+    `
+  );
 
   const r = rows?.[0] ?? {};
 
   return {
     totalSystems: Number(r.TOTAL_SYSTEMS ?? 0),
     linkedEntities: Number(r.LINKED_ENTITIES ?? 0),
-    countries: Number(r.COUNTRIES ?? 0),
+    countries: 0,
   };
 }
