@@ -1,15 +1,19 @@
-"use client";
-
 import Link from "next/link";
-import { useState } from "react";
 import PublicPageHero from "../_components/PublicPageHero";
 import PublicButtonLink from "../_components/PublicButtonLink";
 import {
   getExplorerSummary,
   getRecentRegistryRecords,
 } from "@/lib/queries/explorer";
+import { getRegistryScoreBreakdownByRegistryId } from "@/lib/queries/score-breakdown";
 
 export const dynamic = "force-dynamic";
+
+type ExplorerDimensionPreview = {
+  registryId: string;
+  dimensions: string[];
+  dimensionCount: number;
+};
 
 function formatDate(value: string | null) {
   if (!value) return "—";
@@ -22,21 +26,64 @@ function formatDate(value: string | null) {
   });
 }
 
-function formatPercent(value?: number | null) {
-  if (value === null || value === undefined) return "—";
-  if (value <= 1) return `${Math.round(value * 100)}%`;
-  return `${Math.round(value)}%`;
+async function getDimensionPreviews(
+  registryIds: string[]
+): Promise<Record<string, ExplorerDimensionPreview>> {
+  const uniqueIds = Array.from(new Set(registryIds.filter(Boolean)));
+
+  const results = await Promise.all(
+    uniqueIds.map(async (registryId) => {
+      try {
+        const breakdown = await getRegistryScoreBreakdownByRegistryId(registryId);
+
+        if (!breakdown) {
+          return [
+            registryId,
+            {
+              registryId,
+              dimensions: [],
+              dimensionCount: 0,
+            },
+          ] as const;
+        }
+
+        const dimensions = breakdown.dimensions
+          .map((d) => String(d.scoreDimension || "").trim())
+          .filter(Boolean);
+
+        return [
+          registryId,
+          {
+            registryId,
+            dimensions,
+            dimensionCount: dimensions.length,
+          },
+        ] as const;
+      } catch {
+        return [
+          registryId,
+          {
+            registryId,
+            dimensions: [],
+            dimensionCount: 0,
+          },
+        ] as const;
+      }
+    })
+  );
+
+  return Object.fromEntries(results);
 }
 
-export default function ExplorerPageWrapper(props: any) {
-  return <ExplorerPage {...props} />;
-}
-
-async function ExplorerPage() {
+export default async function ExplorerPage() {
   const [summary, recentRecords] = await Promise.all([
     getExplorerSummary(),
     getRecentRegistryRecords(10),
   ]);
+
+  const dimensionPreviews = await getDimensionPreviews(
+    recentRecords.map((row) => row.registryId)
+  );
 
   return (
     <main className="mx-auto max-w-[1180px] px-6 pb-16 pt-14">
@@ -45,16 +92,24 @@ async function ExplorerPage() {
           eyebrow="GLOBAL EXPLORER"
           title="Explore the public GAFAIG trust surface."
           description="Discover public certification records across organizations, countries, and AI systems using the canonical registry views published from Snowflake."
-          secondaryDescription="The explorer provides a public discovery layer across the GAFAIG network."
+          secondaryDescription="The explorer provides a public discovery layer across the GAFAIG network so third parties can inspect governance presence, review recent certifications, and navigate linked records without accessing private evidence or internal reviewer workflow."
           actions={
             <>
-              <PublicButtonLink href="/registry">View Registry</PublicButtonLink>
-              <PublicButtonLink href="/explorer/organizations" variant="secondary">
+              <PublicButtonLink href="/registry" variant="primary">
+                View Registry
+              </PublicButtonLink>
+
+              <PublicButtonLink
+                href="/explorer/organizations"
+                variant="secondary"
+              >
                 Organizations
               </PublicButtonLink>
+
               <PublicButtonLink href="/explorer/systems" variant="secondary">
                 Systems
               </PublicButtonLink>
+
               <PublicButtonLink href="/explorer/countries" variant="secondary">
                 Countries
               </PublicButtonLink>
@@ -64,129 +119,193 @@ async function ExplorerPage() {
 
         <section className="grid gap-4 md:grid-cols-4">
           <MetricCard label="Registry records" value={String(summary.totalRecords)} />
-          <MetricCard label="Organizations" value={String(summary.totalOrganizations)} />
+          <MetricCard
+            label="Organizations"
+            value={String(summary.totalOrganizations)}
+          />
           <MetricCard label="Countries" value={String(summary.totalCountries)} />
           <MetricCard label="AI systems" value={String(summary.totalSystems)} />
         </section>
 
-        <ExplorerTable recentRecords={recentRecords} />
+        <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
+          <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
+            PUBLIC-SAFE TRUST EXPLANATION
+          </div>
+
+          <h2 className="mt-4 text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
+            What Explorer publishes
+          </h2>
+
+          <p className="mt-4 max-w-[920px] text-[15px] leading-[1.8] text-black/68">
+            Explorer publishes certification outcomes and public-safe governance
+            review scope. It does not expose private evidence, internal reviewer
+            materials, control-by-control scoring logic, or controlled workflow
+            details from the private verification engine.
+          </p>
+
+          <div className="mt-8 grid gap-4 md:grid-cols-3">
+            <ExplanationCard
+              title="Certification outcome"
+              body="Public explorer surfaces status, tier, band, and validity information for public trust review."
+            />
+            <ExplanationCard
+              title="Governance review scope"
+              body="Explorer may disclose the number and names of governance dimensions assessed without exposing internal scoring mechanics."
+            />
+            <ExplanationCard
+              title="Protected private engine"
+              body="Private evidence, reviewer notes, and detailed scoring operations remain inside the controlled verification environment."
+            />
+          </div>
+        </section>
+
+        <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
+          <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+            <div>
+              <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
+                RECENT REGISTRY ACTIVITY
+              </div>
+
+              <h2 className="mt-4 text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
+                Latest public records
+              </h2>
+
+              <p className="mt-3 max-w-[820px] text-[15px] leading-[1.8] text-black/68">
+                Recently surfaced certification records from the GAFAIG public
+                registry.
+              </p>
+            </div>
+
+            <div>
+              <PublicButtonLink href="/registry" variant="secondary">
+                Open Full Registry
+              </PublicButtonLink>
+            </div>
+          </div>
+
+          <div className="mt-8 overflow-x-auto">
+            <table className="min-w-full border-collapse">
+              <thead>
+                <tr className="border-b border-black/10 text-left text-[12px] uppercase tracking-[0.16em] text-black/55">
+                  <th className="px-0 py-3">Entity</th>
+                  <th className="px-4 py-3">Country</th>
+                  <th className="px-4 py-3">Tier / Band</th>
+                  <th className="px-4 py-3">Status</th>
+                  <th className="px-4 py-3">Certified</th>
+                  <th className="px-4 py-3">Review Scope</th>
+                  <th className="px-4 py-3">Record</th>
+                </tr>
+              </thead>
+              <tbody>
+                {recentRecords.map((row) => {
+                  const preview = dimensionPreviews[row.registryId];
+
+                  return (
+                    <tr key={row.registryId} className="border-b border-black/5">
+                      <td className="px-0 py-4">
+                        <div className="font-semibold text-black">
+                          {row.entityName ?? "—"}
+                        </div>
+                        <div className="mt-1 text-sm text-black/60">
+                          {row.registryId}
+                        </div>
+                      </td>
+
+                      <td className="px-4 py-4 text-sm text-black/75">
+                        {row.country ?? "—"}
+                      </td>
+
+                      <td className="px-4 py-4 text-sm text-black/75">
+                        {[row.certifiedTier, row.certifiedBand]
+                          .filter(Boolean)
+                          .join(" · ") || "—"}
+                      </td>
+
+                      <td className="px-4 py-4 text-sm text-black/75">
+                        {row.decisionStatus ?? "—"}
+                      </td>
+
+                      <td className="px-4 py-4 text-sm text-black/75">
+                        {formatDate(row.certifiedAt)}
+                      </td>
+
+                      <td className="px-4 py-4 text-sm text-black/75">
+                        {preview && preview.dimensionCount > 0 ? (
+                          <div>
+                            <div className="font-semibold text-black">
+                              Reviewed across {preview.dimensionCount} governance
+                              dimensions
+                            </div>
+                            <div className="mt-1 text-black/60">
+                              {preview.dimensions.slice(0, 3).join(" · ")}
+                              {preview.dimensions.length > 3 ? " ..." : ""}
+                            </div>
+                          </div>
+                        ) : (
+                          "Governance review completed"
+                        )}
+                      </td>
+
+                      <td className="px-4 py-4">
+                        <Link
+                          href={`/registry/${row.registryId}`}
+                          className="text-sm font-semibold text-black underline underline-offset-4"
+                        >
+                          Open
+                        </Link>
+                      </td>
+                    </tr>
+                  );
+                })}
+
+                {recentRecords.length === 0 ? (
+                  <tr>
+                    <td colSpan={7} className="px-0 py-8 text-sm text-black/60">
+                      No recent public records found.
+                    </td>
+                  </tr>
+                ) : null}
+              </tbody>
+            </table>
+          </div>
+        </section>
       </div>
     </main>
   );
 }
 
-function ExplorerTable({ recentRecords }: any) {
-  const [expanded, setExpanded] = useState<string | null>(null);
-  const [data, setData] = useState<Record<string, any>>({});
-
-  async function loadBreakdown(registryId: string) {
-    if (data[registryId]) {
-      setExpanded(expanded === registryId ? null : registryId);
-      return;
-    }
-
-    const res = await fetch(`/api/registry/${registryId}/score-breakdown`);
-    const json = await res.json();
-
-    setData((prev) => ({ ...prev, [registryId]: json }));
-    setExpanded(registryId);
-  }
-
+function MetricCard({
+  label,
+  value,
+}: {
+  label: string;
+  value: string;
+}) {
   return (
-    <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
-      <h2 className="text-[32px] font-semibold">Latest public records</h2>
-
-      <div className="mt-8 overflow-x-auto">
-        <table className="min-w-full">
-          <thead>
-            <tr className="border-b text-left text-xs uppercase text-black/60">
-              <th className="py-3">Entity</th>
-              <th>Country</th>
-              <th>Tier</th>
-              <th>Status</th>
-              <th>Certified</th>
-              <th />
-            </tr>
-          </thead>
-
-          <tbody>
-            {recentRecords.map((row: any) => (
-              <>
-                <tr key={row.registryId} className="border-b">
-                  <td className="py-4">
-                    <div className="font-semibold">{row.entityName}</div>
-                    <div className="text-xs text-black/60">{row.registryId}</div>
-                  </td>
-
-                  <td>{row.country}</td>
-
-                  <td>
-                    {[row.certifiedTier, row.certifiedBand].filter(Boolean).join(" · ")}
-                  </td>
-
-                  <td>{row.decisionStatus}</td>
-
-                  <td>{formatDate(row.certifiedAt)}</td>
-
-                  <td className="space-x-3">
-                    <Link href={`/registry/${row.registryId}`}>Open</Link>
-
-                    <button
-                      onClick={() => loadBreakdown(row.registryId)}
-                      className="underline"
-                    >
-                      Explain
-                    </button>
-                  </td>
-                </tr>
-
-                {expanded === row.registryId && data[row.registryId] && (
-                  <tr>
-                    <td colSpan={6} className="bg-black/[0.02] p-6">
-                      <ScoreBreakdown data={data[row.registryId]} />
-                    </td>
-                  </tr>
-                )}
-              </>
-            ))}
-          </tbody>
-        </table>
+    <div className="rounded-2xl border border-black/10 bg-white p-5">
+      <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/55">
+        {label}
       </div>
-    </section>
-  );
-}
-
-function ScoreBreakdown({ data }: any) {
-  const dimensions = data?.dimensions || [];
-
-  return (
-    <div className="space-y-4">
-      {dimensions.map((d: any, i: number) => (
-        <div key={i} className="border rounded-xl p-4 bg-white">
-          <div className="flex justify-between">
-            <div className="font-semibold">{d.scoreDimension}</div>
-            <div>{formatPercent(d.dimensionScorePct)}</div>
-          </div>
-
-          <div className="mt-3 space-y-2">
-            {(d.components || []).map((c: any, j: number) => (
-              <div key={j} className="flex justify-between text-sm">
-                <span>{c.scoreComponent}</span>
-                <span>{formatPercent(c.componentScorePct)}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      ))}
+      <div className="mt-3 text-[36px] font-semibold leading-none tracking-tight text-black">
+        {value}
+      </div>
     </div>
   );
 }
 
-function MetricCard({ label, value }: any) {
+function ExplanationCard({
+  title,
+  body,
+}: {
+  title: string;
+  body: string;
+}) {
   return (
-    <div className="rounded-2xl border p-5">
-      <div className="text-xs text-black/60">{label}</div>
-      <div className="text-3xl font-semibold">{value}</div>
+    <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-6">
+      <div className="text-[18px] font-semibold tracking-tight text-black">
+        {title}
+      </div>
+      <p className="mt-3 text-[15px] leading-[1.8] text-black/72">{body}</p>
     </div>
   );
 }
