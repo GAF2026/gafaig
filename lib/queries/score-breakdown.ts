@@ -1,22 +1,7 @@
 import { sfQuery } from "@/lib/snowflake";
 
-export type ScoreDimensionRow = {
-  registryId: string;
-  applicationId: string | null;
-  caseId: string | null;
-  entityName: string | null;
-  entityType: string | null;
-  country: string | null;
-  verificationType: string | null;
-  modelVersion: string | null;
-  certifiedScore: number | null;
-  certifiedTier: string | null;
-  certifiedBand: string | null;
-  decisionStatus: string | null;
-  certifiedAt: string | null;
-  validFrom: string | null;
-  validTo: string | null;
-  scoreDimension: string | null;
+export type ScoreDimension = {
+  scoreDimension: string;
   scoreDimensionOrder: number | null;
   dimensionScore: number | null;
   dimensionMaxScore: number | null;
@@ -24,27 +9,11 @@ export type ScoreDimensionRow = {
   avgComponentWeight: number | null;
   componentCount: number | null;
   dimensionScorePct: number | null;
+  components: ScoreComponent[];
 };
 
-export type ScoreComponentRow = {
-  registryId: string;
-  applicationId: string | null;
-  caseId: string | null;
-  entityName: string | null;
-  entityType: string | null;
-  country: string | null;
-  verificationType: string | null;
-  modelVersion: string | null;
-  certifiedScore: number | null;
-  certifiedTier: string | null;
-  certifiedBand: string | null;
-  decisionStatus: string | null;
-  certifiedAt: string | null;
-  validFrom: string | null;
-  validTo: string | null;
-  scoreDimension: string | null;
+export type ScoreComponent = {
   scoreComponent: string | null;
-  scoreDimensionOrder: number | null;
   scoreComponentOrder: number | null;
   componentScore: number | null;
   componentMaxScore: number | null;
@@ -69,12 +38,46 @@ export type RegistryScoreBreakdown = {
   certifiedAt: string | null;
   validFrom: string | null;
   validTo: string | null;
-  dimensions: Array<
-    ScoreDimensionRow & {
-      components: ScoreComponentRow[];
-    }
-  >;
-  components: ScoreComponentRow[];
+  dimensions: ScoreDimension[];
+};
+
+type DimensionQueryRow = {
+  REGISTRY_ID: unknown;
+  APPLICATION_ID: unknown;
+  CASE_ID: unknown;
+  ENTITY_NAME: unknown;
+  ENTITY_TYPE: unknown;
+  COUNTRY: unknown;
+  VERIFICATION_TYPE: unknown;
+  MODEL_VERSION: unknown;
+  CERTIFIED_SCORE: unknown;
+  CERTIFIED_TIER: unknown;
+  CERTIFIED_BAND: unknown;
+  DECISION_STATUS: unknown;
+  CERTIFIED_AT: unknown;
+  VALID_FROM: unknown;
+  VALID_TO: unknown;
+  SCORE_DIMENSION: unknown;
+  SCORE_DIMENSION_ORDER: unknown;
+  DIMENSION_SCORE: unknown;
+  DIMENSION_MAX_SCORE: unknown;
+  DIMENSION_CONTRIBUTION: unknown;
+  AVG_COMPONENT_WEIGHT: unknown;
+  COMPONENT_COUNT: unknown;
+  DIMENSION_SCORE_PCT: unknown;
+};
+
+type ComponentQueryRow = {
+  REGISTRY_ID: unknown;
+  SCORE_DIMENSION: unknown;
+  SCORE_COMPONENT: unknown;
+  SCORE_DIMENSION_ORDER: unknown;
+  SCORE_COMPONENT_ORDER: unknown;
+  COMPONENT_SCORE: unknown;
+  COMPONENT_MAX_SCORE: unknown;
+  COMPONENT_WEIGHT: unknown;
+  COMPONENT_CONTRIBUTION: unknown;
+  COMPONENT_SCORE_PCT: unknown;
 };
 
 function asString(value: unknown): string | null {
@@ -96,58 +99,16 @@ function normalizeRegistryId(value: string): string {
     .replace(/[^A-Z0-9]/g, "");
 }
 
-function normalizeDimensionRow(
-  row: Record<string, unknown>
-): ScoreDimensionRow {
-  return {
-    registryId: asString(row.REGISTRY_ID) ?? "",
-    applicationId: asString(row.APPLICATION_ID),
-    caseId: asString(row.CASE_ID),
-    entityName: asString(row.ENTITY_NAME),
-    entityType: asString(row.ENTITY_TYPE),
-    country: asString(row.COUNTRY),
-    verificationType: asString(row.VERIFICATION_TYPE),
-    modelVersion: asString(row.MODEL_VERSION),
-    certifiedScore: asNumber(row.CERTIFIED_SCORE),
-    certifiedTier: asString(row.CERTIFIED_TIER),
-    certifiedBand: asString(row.CERTIFIED_BAND),
-    decisionStatus: asString(row.DECISION_STATUS),
-    certifiedAt: asString(row.CERTIFIED_AT),
-    validFrom: asString(row.VALID_FROM),
-    validTo: asString(row.VALID_TO),
-    scoreDimension: asString(row.SCORE_DIMENSION),
-    scoreDimensionOrder: asNumber(row.SCORE_DIMENSION_ORDER),
-    dimensionScore: asNumber(row.DIMENSION_SCORE),
-    dimensionMaxScore: asNumber(row.DIMENSION_MAX_SCORE),
-    dimensionContribution: asNumber(row.DIMENSION_CONTRIBUTION),
-    avgComponentWeight: asNumber(row.AVG_COMPONENT_WEIGHT),
-    componentCount: asNumber(row.COMPONENT_COUNT),
-    dimensionScorePct: asNumber(row.DIMENSION_SCORE_PCT),
-  };
+function normalizeDimensionKey(value: string | null): string {
+  return String(value || "")
+    .normalize("NFKD")
+    .toUpperCase()
+    .replace(/[^A-Z0-9]/g, "");
 }
 
-function normalizeComponentRow(
-  row: Record<string, unknown>
-): ScoreComponentRow {
+function mapComponentRow(row: ComponentQueryRow): ScoreComponent {
   return {
-    registryId: asString(row.REGISTRY_ID) ?? "",
-    applicationId: asString(row.APPLICATION_ID),
-    caseId: asString(row.CASE_ID),
-    entityName: asString(row.ENTITY_NAME),
-    entityType: asString(row.ENTITY_TYPE),
-    country: asString(row.COUNTRY),
-    verificationType: asString(row.VERIFICATION_TYPE),
-    modelVersion: asString(row.MODEL_VERSION),
-    certifiedScore: asNumber(row.CERTIFIED_SCORE),
-    certifiedTier: asString(row.CERTIFIED_TIER),
-    certifiedBand: asString(row.CERTIFIED_BAND),
-    decisionStatus: asString(row.DECISION_STATUS),
-    certifiedAt: asString(row.CERTIFIED_AT),
-    validFrom: asString(row.VALID_FROM),
-    validTo: asString(row.VALID_TO),
-    scoreDimension: asString(row.SCORE_DIMENSION),
     scoreComponent: asString(row.SCORE_COMPONENT),
-    scoreDimensionOrder: asNumber(row.SCORE_DIMENSION_ORDER),
     scoreComponentOrder: asNumber(row.SCORE_COMPONENT_ORDER),
     componentScore: asNumber(row.COMPONENT_SCORE),
     componentMaxScore: asNumber(row.COMPONENT_MAX_SCORE),
@@ -163,7 +124,7 @@ export async function getRegistryScoreBreakdownByRegistryId(
   const id = String(registryId || "").trim();
   if (!id) return null;
 
-  const dimensionRowsRaw = await sfQuery<Record<string, unknown>>(
+  const dimensionRows = await sfQuery<DimensionQueryRow>(
     `
     SELECT
       REGISTRY_ID,
@@ -199,24 +160,14 @@ export async function getRegistryScoreBreakdownByRegistryId(
     [id]
   );
 
-  const componentRowsRaw = await sfQuery<Record<string, unknown>>(
+  if (dimensionRows.length === 0) {
+    return null;
+  }
+
+  const componentRows = await sfQuery<ComponentQueryRow>(
     `
     SELECT
       REGISTRY_ID,
-      APPLICATION_ID,
-      CASE_ID,
-      ENTITY_NAME,
-      ENTITY_TYPE,
-      COUNTRY,
-      VERIFICATION_TYPE,
-      MODEL_VERSION,
-      CERTIFIED_SCORE,
-      CERTIFIED_TIER,
-      CERTIFIED_BAND,
-      DECISION_STATUS,
-      CERTIFIED_AT,
-      VALID_FROM,
-      VALID_TO,
       SCORE_DIMENSION,
       SCORE_COMPONENT,
       SCORE_DIMENSION_ORDER,
@@ -238,51 +189,58 @@ export async function getRegistryScoreBreakdownByRegistryId(
     [id]
   );
 
-  const dimensions = dimensionRowsRaw.map(normalizeDimensionRow);
-  const components = componentRowsRaw.map(normalizeComponentRow);
+  const seed = dimensionRows[0];
+  const normalizedId = normalizeRegistryId(asString(seed.REGISTRY_ID) ?? "");
 
-  if (dimensions.length === 0 && components.length === 0) {
-    return null;
-  }
+  const dimensions: ScoreDimension[] = dimensionRows.map((dimensionRow) => {
+    const scoreDimension = asString(dimensionRow.SCORE_DIMENSION) ?? "";
+    const dimensionKey = normalizeDimensionKey(scoreDimension);
 
-  const seed = dimensions[0] ?? components[0];
-  if (!seed) return null;
+    const components = componentRows
+      .filter((componentRow) => {
+        const componentRegistryId = normalizeRegistryId(
+          asString(componentRow.REGISTRY_ID) ?? ""
+        );
+        const componentDimensionKey = normalizeDimensionKey(
+          asString(componentRow.SCORE_DIMENSION)
+        );
 
-  const normalizedId = normalizeRegistryId(seed.registryId);
-
-  const dimensionsWithComponents = dimensions.map((dimension) => {
-    const dimensionKey = normalizeRegistryId(dimension.scoreDimension ?? "");
-
-    const groupedComponents = components.filter((component) => {
-      return (
-        normalizeRegistryId(component.registryId) === normalizedId &&
-        normalizeRegistryId(component.scoreDimension ?? "") === dimensionKey
-      );
-    });
+        return (
+          componentRegistryId === normalizedId &&
+          componentDimensionKey === dimensionKey
+        );
+      })
+      .map(mapComponentRow);
 
     return {
-      ...dimension,
-      components: groupedComponents,
+      scoreDimension,
+      scoreDimensionOrder: asNumber(dimensionRow.SCORE_DIMENSION_ORDER),
+      dimensionScore: asNumber(dimensionRow.DIMENSION_SCORE),
+      dimensionMaxScore: asNumber(dimensionRow.DIMENSION_MAX_SCORE),
+      dimensionContribution: asNumber(dimensionRow.DIMENSION_CONTRIBUTION),
+      avgComponentWeight: asNumber(dimensionRow.AVG_COMPONENT_WEIGHT),
+      componentCount: asNumber(dimensionRow.COMPONENT_COUNT),
+      dimensionScorePct: asNumber(dimensionRow.DIMENSION_SCORE_PCT),
+      components,
     };
   });
 
   return {
-    registryId: seed.registryId,
-    applicationId: seed.applicationId,
-    caseId: seed.caseId,
-    entityName: seed.entityName,
-    entityType: seed.entityType,
-    country: seed.country,
-    verificationType: seed.verificationType,
-    modelVersion: seed.modelVersion,
-    certifiedScore: seed.certifiedScore,
-    certifiedTier: seed.certifiedTier,
-    certifiedBand: seed.certifiedBand,
-    decisionStatus: seed.decisionStatus,
-    certifiedAt: seed.certifiedAt,
-    validFrom: seed.validFrom,
-    validTo: seed.validTo,
-    dimensions: dimensionsWithComponents,
-    components,
+    registryId: asString(seed.REGISTRY_ID) ?? "",
+    applicationId: asString(seed.APPLICATION_ID),
+    caseId: asString(seed.CASE_ID),
+    entityName: asString(seed.ENTITY_NAME),
+    entityType: asString(seed.ENTITY_TYPE),
+    country: asString(seed.COUNTRY),
+    verificationType: asString(seed.VERIFICATION_TYPE),
+    modelVersion: asString(seed.MODEL_VERSION),
+    certifiedScore: asNumber(seed.CERTIFIED_SCORE),
+    certifiedTier: asString(seed.CERTIFIED_TIER),
+    certifiedBand: asString(seed.CERTIFIED_BAND),
+    decisionStatus: asString(seed.DECISION_STATUS),
+    certifiedAt: asString(seed.CERTIFIED_AT),
+    validFrom: asString(seed.VALID_FROM),
+    validTo: asString(seed.VALID_TO),
+    dimensions,
   };
 }
