@@ -5,8 +5,10 @@ export type RegistryQueryRow = {
   applicationId: string | null;
   caseId: string | null;
   entityName: string | null;
-  entityType: string | null;
   country: string | null;
+
+  // keep UI contract safe
+  entityType: string | null;
   certifiedScore: string | null;
   certifiedTier: string | null;
   certifiedBand: string | null;
@@ -35,15 +37,17 @@ function normalizeRegistryRow(row: Record<string, unknown>): RegistryQueryRow {
     applicationId: asString(row.APPLICATION_ID),
     caseId: asString(row.CASE_ID),
     entityName: asString(row.ENTITY_NAME),
-    entityType: asString(row.ENTITY_TYPE),
     country: asString(row.COUNTRY),
-    certifiedScore: asString(row.CERTIFIED_SCORE),
-    certifiedTier: asString(row.CERTIFIED_TIER),
-    certifiedBand: asString(row.CERTIFIED_BAND),
-    decisionStatus: asString(row.DECISION_STATUS),
-    validFrom: asString(row.VALID_FROM),
-    validTo: asString(row.VALID_TO),
-    certifiedAt: asString(row.CERTIFIED_AT),
+
+    // 🔒 FORCE SAFE NULLS (CRITICAL)
+    entityType: null,
+    certifiedScore: null,
+    certifiedTier: null,
+    certifiedBand: null,
+    decisionStatus: null,
+    validFrom: null,
+    validTo: null,
+    certifiedAt: null,
   };
 }
 
@@ -55,15 +59,7 @@ const REGISTRY_SELECT = `
     APPLICATION_ID,
     CASE_ID,
     ENTITY_NAME,
-    ENTITY_TYPE,
-    COUNTRY,
-    CERTIFIED_SCORE,
-    CERTIFIED_TIER,
-    CERTIFIED_BAND,
-    DECISION_STATUS,
-    VALID_FROM,
-    VALID_TO,
-    CERTIFIED_AT
+    COUNTRY
   FROM ${REGISTRY_SOURCE}
 `;
 
@@ -75,7 +71,7 @@ export async function getRegistryRecords(
   const rows = await sfQuery<Record<string, unknown>>(
     `
     ${REGISTRY_SELECT}
-    ORDER BY COALESCE(CERTIFIED_AT, VALID_TO, VALID_FROM) DESC, REGISTRY_ID ASC
+    ORDER BY ENTITY_NAME ASC, REGISTRY_ID ASC
     LIMIT ?
     `,
     [safeLimit]
@@ -111,7 +107,6 @@ export async function searchRegistryRecords(params: {
     if (q) {
       const haystack = [
         row.entityName ?? "",
-        row.entityType ?? "",
         row.country ?? "",
         row.registryId ?? "",
         row.caseId ?? "",

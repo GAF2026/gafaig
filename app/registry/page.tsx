@@ -11,15 +11,7 @@ type RegistryRow = {
   APPLICATION_ID: string | null;
   CASE_ID: string | null;
   ENTITY_NAME: string | null;
-  ENTITY_TYPE: string | null;
   COUNTRY: string | null;
-  CERTIFIED_SCORE: string | null;
-  CERTIFIED_TIER: string | null;
-  CERTIFIED_BAND: string | null;
-  DECISION_STATUS: string | null;
-  VALID_FROM: string | null;
-  VALID_TO: string | null;
-  CERTIFIED_AT: string | null;
 };
 
 type RegistryRecord = {
@@ -54,15 +46,15 @@ function normalizeRegistryRow(row: RegistryRow): RegistryRecord {
     applicationId: asString(row.APPLICATION_ID),
     caseId: asString(row.CASE_ID),
     entityName: asString(row.ENTITY_NAME),
-    entityType: asString(row.ENTITY_TYPE),
     country: asString(row.COUNTRY),
-    certifiedScore: asString(row.CERTIFIED_SCORE),
-    certifiedTier: asString(row.CERTIFIED_TIER),
-    certifiedBand: asString(row.CERTIFIED_BAND),
-    decisionStatus: asString(row.DECISION_STATUS),
-    validFrom: asString(row.VALID_FROM),
-    validTo: asString(row.VALID_TO),
-    certifiedAt: asString(row.CERTIFIED_AT),
+    entityType: null,
+    certifiedScore: null,
+    certifiedTier: null,
+    certifiedBand: null,
+    decisionStatus: null,
+    validFrom: null,
+    validTo: null,
+    certifiedAt: null,
   };
 }
 
@@ -140,21 +132,10 @@ export default async function RegistryPage({
           APPLICATION_ID,
           CASE_ID,
           ENTITY_NAME,
-          ENTITY_TYPE,
-          COUNTRY,
-          CERTIFIED_SCORE,
-          CERTIFIED_TIER,
-          CERTIFIED_BAND,
-          DECISION_STATUS,
-          VALID_FROM,
-          VALID_TO,
-          CERTIFIED_AT
+          COUNTRY
         FROM GAFAIG_DB.CORE.V_REGISTRY_PUBLIC
         ${whereClause}
-        ORDER BY
-          CASE WHEN CERTIFIED_AT IS NOT NULL THEN 0 ELSE 1 END ASC,
-          CERTIFIED_AT DESC NULLS LAST,
-          ENTITY_NAME ASC
+        ORDER BY ENTITY_NAME ASC, REGISTRY_ID ASC
         LIMIT 100
         `,
         binds

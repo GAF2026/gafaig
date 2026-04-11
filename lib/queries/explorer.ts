@@ -109,13 +109,9 @@ export async function getLatestRegistryRecords(
       APPLICATION_ID,
       CASE_ID,
       ENTITY_NAME,
-      COUNTRY,
-      CERTIFIED_TIER,
-      CERTIFIED_BAND,
-      DECISION_STATUS,
-      CERTIFIED_AT
+      COUNTRY
     FROM CORE.V_REGISTRY_PUBLIC
-    ORDER BY PUBLISHED_AT DESC
+    ORDER BY ENTITY_NAME ASC, REGISTRY_ID ASC
     LIMIT ?
     `,
     [safeLimit]
@@ -127,10 +123,10 @@ export async function getLatestRegistryRecords(
     caseId: s(r.CASE_ID),
     entityName: s(r.ENTITY_NAME),
     country: s(r.COUNTRY),
-    certifiedTier: s(r.CERTIFIED_TIER),
-    certifiedBand: s(r.CERTIFIED_BAND),
-    decisionStatus: s(r.DECISION_STATUS),
-    certifiedAt: s(r.CERTIFIED_AT),
+    certifiedTier: null,
+    certifiedBand: null,
+    decisionStatus: null,
+    certifiedAt: null,
   }));
 }
 
@@ -149,7 +145,7 @@ export async function getExplorerOrganizations(
       rp.COUNTRY,
       COUNT(*) AS REGISTRY_COUNT,
       0 AS SYSTEM_COUNT,
-      MAX(rp.DECISION_STATUS) AS DECISION_STATUS,
+      NULL AS DECISION_STATUS,
       NULL AS LAST_CERTIFIED_AT
     FROM CORE.V_REGISTRY_PUBLIC rp
     GROUP BY rp.ENTITY_NAME, rp.COUNTRY
