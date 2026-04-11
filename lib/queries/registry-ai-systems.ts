@@ -264,6 +264,39 @@ export async function getRegistryAiSystemBySystemId(
   return normalizeSystemRow(rows[0]);
 }
 
+export async function getRelatedRegistryAiSystems(params: {
+  registryId?: string | null;
+  excludeSystemId?: string | null;
+  limit?: number;
+}): Promise<RegistryAiSystemRow[]> {
+  const registryId = String(params.registryId || "").trim();
+  const excludeSystemId = String(params.excludeSystemId || "").trim();
+  const limit = Math.max(1, Math.min(Number(params.limit ?? 6), 24));
+
+  if (!registryId) return [];
+
+  const rows = await sfQuery<RawRow>(
+    `
+    ${SYSTEMS_SELECT}
+    WHERE UPPER(REGEXP_REPLACE(COALESCE(s.REGISTRY_ID, ''), '[^A-Za-z0-9]', '')) =
+          UPPER(REGEXP_REPLACE(?, '[^A-Za-z0-9]', ''))
+      AND (
+        ? = ''
+        OR UPPER(REGEXP_REPLACE(COALESCE(s.SYSTEM_ID, ''), '[^A-Za-z0-9]', '')) <>
+           UPPER(REGEXP_REPLACE(?, '[^A-Za-z0-9]', ''))
+      )
+    ORDER BY
+      COALESCE(s.DISPLAY_ORDER, 999999) ASC,
+      s.SYSTEM_NAME ASC,
+      s.SYSTEM_ID ASC
+    LIMIT ?
+    `,
+    [registryId, excludeSystemId, excludeSystemId, limit]
+  );
+
+  return rows.map(normalizeSystemRow);
+}
+
 export async function getRegistryAiSystemCount(): Promise<number> {
   const rows = await sfQuery<RawRow>(
     `
