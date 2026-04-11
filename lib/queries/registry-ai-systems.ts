@@ -240,6 +240,30 @@ export async function getRegistryAiSystemsByCaseId(
   return rows.map(normalizeSystemRow);
 }
 
+export async function getRegistryAiSystemBySystemId(
+  systemId: string
+): Promise<RegistryAiSystemRow | null> {
+  const id = String(systemId || "").trim();
+  if (!id) return null;
+
+  const rows = await sfQuery<RawRow>(
+    `
+    ${SYSTEMS_SELECT}
+    WHERE UPPER(REGEXP_REPLACE(COALESCE(s.SYSTEM_ID, ''), '[^A-Za-z0-9]', '')) =
+          UPPER(REGEXP_REPLACE(?, '[^A-Za-z0-9]', ''))
+    ORDER BY
+      COALESCE(s.DISPLAY_ORDER, 999999) ASC,
+      s.SYSTEM_NAME ASC,
+      s.SYSTEM_ID ASC
+    LIMIT 1
+    `,
+    [systemId]
+  );
+
+  if (!rows.length) return null;
+  return normalizeSystemRow(rows[0]);
+}
+
 export async function getRegistryAiSystemCount(): Promise<number> {
   const rows = await sfQuery<RawRow>(
     `
@@ -256,4 +280,5 @@ export const getRegistryAISystemsPaginated = getRegistryAiSystemsPaginated;
 export const getRegistryAISystemsByRegistryId =
   getRegistryAiSystemsByRegistryId;
 export const getRegistryAISystemsByCaseId = getRegistryAiSystemsByCaseId;
+export const getRegistryAISystemBySystemId = getRegistryAiSystemBySystemId;
 export const getRegistryAISystemCount = getRegistryAiSystemCount;

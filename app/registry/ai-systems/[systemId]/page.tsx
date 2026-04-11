@@ -1,56 +1,17 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
-import { sfQuery } from "@/lib/snowflake";
+import PublicPageHero from "@/app/_components/PublicPageHero";
 import PublicButtonLink from "@/app/_components/PublicButtonLink";
+import { getRegistryAiSystemBySystemId } from "@/lib/queries/registry-ai-systems";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-type PageProps = {
-  params: {
-    systemId: string;
-  };
-};
-
-type SystemDetailRow = {
-  SYSTEM_ID: string;
-  REGISTRY_ID: string | null;
-  APPLICATION_ID: string | null;
-  CASE_ID: string | null;
-  SYSTEM_NAME: string | null;
-  SYSTEM_TYPE: string | null;
-  INTENDED_USE: string | null;
-  DEPLOYMENT_STATUS: string | null;
-  OVERSIGHT_LEVEL: string | null;
-  RISK_TIER: string | null;
-  DEVELOPER_ORGANIZATION: string | null;
-  TRAINING_DATA_CATEGORY: string | null;
-  OVERSIGHT_MODEL: string | null;
-  HUMAN_REVIEW_REQUIRED: boolean | null;
-  EVALUATION_PROTOCOL: string | null;
-  AUDIT_FREQUENCY: string | null;
-  PUBLIC_SUMMARY: string | null;
-  IS_PUBLIC: boolean | null;
-  DISPLAY_ORDER: number | null;
-  CREATED_AT: string | null;
-  UPDATED_AT: string | null;
-  ENTITY_NAME: string | null;
-  ORG_ID: string | null;
-  VERIFICATION_TYPE: string | null;
-  CERTIFICATION_STATUS: string | null;
-  CERTIFIED_TIER: string | null;
-  CERTIFIED_BAND: string | null;
-  CERTIFIED_AT: string | null;
-  DECISION_STATUS: string | null;
-  RENEWAL_STATUS: string | null;
-  VALID_FROM: string | null;
-  VALID_TO: string | null;
-  LIFECYCLE_STATUS: string | null;
-};
-
-function fmtDate(value: string | null | undefined) {
+function formatDate(value: string | null | undefined) {
   if (!value) return "—";
   const d = new Date(value);
   if (Number.isNaN(d.getTime())) return "—";
+
   return d.toLocaleDateString("en-US", {
     month: "short",
     day: "numeric",
@@ -58,341 +19,302 @@ function fmtDate(value: string | null | undefined) {
   });
 }
 
-function clean(value: string | null | undefined) {
-  return value && value.trim().length > 0 ? value : "—";
+function toneForRisk(value: string | null | undefined) {
+  const v = String(value || "").trim().toLowerCase();
+
+  if (v === "high") return "bg-red-50 text-red-700 ring-red-200";
+  if (v === "medium") return "bg-amber-50 text-amber-700 ring-amber-200";
+  if (v === "low") return "bg-emerald-50 text-emerald-700 ring-emerald-200";
+
+  return "bg-slate-100 text-slate-600 ring-slate-200";
 }
 
-function boolLabel(value: boolean | null | undefined) {
+function toneForCertification(value: string | null | undefined) {
+  const v = String(value || "").trim().toLowerCase();
+
+  if (v === "certified") return "bg-emerald-50 text-emerald-700 ring-emerald-200";
+  return "bg-slate-100 text-slate-600 ring-slate-200";
+}
+
+function formatBoolean(value: boolean | null | undefined) {
   if (value === true) return "Required";
   if (value === false) return "Not required";
   return "—";
 }
 
-function tierBandLabel(tier: string | null, band: string | null) {
-  if (tier && band) return `${tier} · Band ${band}`;
-  if (tier) return tier;
-  if (band) return `Band ${band}`;
-  return "—";
-}
+export default async function RegistryAiSystemDetailPage({
+  params,
+}: {
+  params: { systemId: string };
+}) {
+  const system = await getRegistryAiSystemBySystemId(params.systemId);
 
-function riskBadgeClass(riskTier: string | null) {
-  const value = String(riskTier ?? "").trim().toUpperCase();
-
-  if (value === "HIGH") {
-    return "border-black/15 bg-black text-white";
-  }
-  if (value === "MEDIUM") {
-    return "border-black/15 bg-black/10 text-black";
-  }
-  if (value === "LOW") {
-    return "border-black/10 bg-white text-black/80";
-  }
-  return "border-black/10 bg-white text-black/65";
-}
-
-function statusBadgeClass(status: string | null) {
-  const value = String(status ?? "").trim().toUpperCase();
-
-  if (value === "CERTIFIED") {
-    return "border-emerald-200 bg-emerald-50 text-emerald-800";
-  }
-  if (value === "PUBLISHED") {
-    return "border-sky-200 bg-sky-50 text-sky-800";
-  }
-  return "border-black/10 bg-white text-black/70";
-}
-
-export default async function RegistryAiSystemDetailPage({ params }: PageProps) {
-  const systemId = decodeURIComponent(params.systemId || "").trim();
-
-  if (!systemId) {
+  if (!system) {
     notFound();
   }
-
-  const rows = await sfQuery<SystemDetailRow>(
-    `
-    SELECT
-      SYSTEM_ID,
-      REGISTRY_ID,
-      APPLICATION_ID,
-      CASE_ID,
-      SYSTEM_NAME,
-      SYSTEM_TYPE,
-      INTENDED_USE,
-      DEPLOYMENT_STATUS,
-      OVERSIGHT_LEVEL,
-      RISK_TIER,
-      DEVELOPER_ORGANIZATION,
-      TRAINING_DATA_CATEGORY,
-      OVERSIGHT_MODEL,
-      HUMAN_REVIEW_REQUIRED,
-      EVALUATION_PROTOCOL,
-      AUDIT_FREQUENCY,
-      PUBLIC_SUMMARY,
-      IS_PUBLIC,
-      DISPLAY_ORDER,
-      CREATED_AT,
-      UPDATED_AT,
-      ENTITY_NAME,
-      ORG_ID,
-      VERIFICATION_TYPE,
-      CERTIFICATION_STATUS,
-      CERTIFIED_TIER,
-      CERTIFIED_BAND,
-      CERTIFIED_AT,
-      DECISION_STATUS,
-      RENEWAL_STATUS,
-      VALID_FROM,
-      VALID_TO,
-      LIFECYCLE_STATUS
-    FROM GAFAIG_DB.CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC
-    WHERE UPPER(TRIM(SYSTEM_ID)) = UPPER(TRIM(?))
-    LIMIT 1
-    `,
-    [systemId]
-  );
-
-  const row = rows[0];
-
-  if (!row) {
-    notFound();
-  }
-
-  const pageTitle = row.SYSTEM_NAME || row.SYSTEM_ID;
-  const organizationName =
-    row.ENTITY_NAME || row.DEVELOPER_ORGANIZATION || "Unknown organization";
 
   return (
-    <main className="mx-auto max-w-[1240px] px-6 pb-16 pt-14">
-      <section className="rounded-3xl border border-black/10 bg-white px-8 py-10 md:px-10 md:py-12">
-        <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
-          AI SYSTEM RECORD
-        </div>
+    <main className="mx-auto max-w-[1180px] px-6 pb-16 pt-14">
+      <div className="space-y-8">
+        <PublicPageHero
+          eyebrow="AI SYSTEM RECORD"
+          title={system.systemName || "Unnamed system"}
+          description="This page is the public system-level disclosure surface for an AI system linked to a canonical GAFAIG registry record."
+          secondaryDescription="System-level disclosure remains distinct from the canonical certification record. The linked registry record is the source of truth for public certification status, while this page provides richer public context about the disclosed system."
+          actions={
+            <>
+              {system.registryId ? (
+                <PublicButtonLink
+                  href={`/registry/${system.registryId}`}
+                  variant="primary"
+                >
+                  View Registry Record
+                </PublicButtonLink>
+              ) : null}
 
-        <div className="mt-6 flex flex-wrap items-center gap-2">
-          <span
-            className={`inline-flex rounded-full border px-3 py-1 text-[12px] font-semibold uppercase tracking-[0.14em] ${riskBadgeClass(
-              row.RISK_TIER
-            )}`}
-          >
-            {row.RISK_TIER || "Unknown risk"}
-          </span>
+              <PublicButtonLink
+                href="/registry/ai-systems"
+                variant="secondary"
+              >
+                Back to AI Systems Registry
+              </PublicButtonLink>
 
-          <span
-            className={`inline-flex rounded-full border px-3 py-1 text-[12px] font-semibold uppercase tracking-[0.14em] ${statusBadgeClass(
-              row.CERTIFICATION_STATUS
-            )}`}
-          >
-            {row.CERTIFICATION_STATUS || "—"}
-          </span>
-
-          {row.DECISION_STATUS ? (
-            <span className="inline-flex rounded-full border border-black/10 bg-white px-3 py-1 text-[12px] font-semibold uppercase tracking-[0.14em] text-black/70">
-              {row.DECISION_STATUS}
-            </span>
-          ) : null}
-
-          {row.CERTIFIED_TIER || row.CERTIFIED_BAND ? (
-            <span className="inline-flex rounded-full border border-black/10 bg-white px-3 py-1 text-[12px] font-semibold uppercase tracking-[0.14em] text-black/70">
-              {tierBandLabel(row.CERTIFIED_TIER, row.CERTIFIED_BAND)}
-            </span>
-          ) : null}
-        </div>
-
-        <h1 className="mt-5 max-w-[920px] text-[36px] font-semibold leading-[1.08] tracking-tight text-black md:text-[52px]">
-          {pageTitle}
-        </h1>
-
-        <p className="mt-4 max-w-[860px] text-[17px] leading-[1.7] text-black/72">
-          Public disclosure record for an AI system associated with a GAFAIG certification record. This page shows the public system profile, certification context, and the registry linkage that supports external trust.
-        </p>
-
-        <div className="mt-8 flex flex-wrap gap-3">
-          <PublicButtonLink href="/explorer/systems" variant="primary">
-            Back to systems explorer
-          </PublicButtonLink>
-
-          <PublicButtonLink href="/registry/ai-systems" variant="secondary">
-            AI systems registry
-          </PublicButtonLink>
-
-          {row.REGISTRY_ID ? (
-            <PublicButtonLink
-              href={`/registry/${encodeURIComponent(row.REGISTRY_ID)}`}
-              variant="secondary"
-            >
-              View linked registry record
-            </PublicButtonLink>
-          ) : null}
-        </div>
-      </section>
-
-      <section className="mt-10 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <MetricCard label="Certification" value={clean(row.CERTIFICATION_STATUS)} />
-        <MetricCard
-          label="Tier / Band"
-          value={tierBandLabel(row.CERTIFIED_TIER, row.CERTIFIED_BAND)}
+              <PublicButtonLink href="/explorer/systems" variant="secondary">
+                Systems Explorer
+              </PublicButtonLink>
+            </>
+          }
         />
-        <MetricCard label="Lifecycle" value={clean(row.LIFECYCLE_STATUS)} />
-        <MetricCard label="Valid to" value={fmtDate(row.VALID_TO)} />
-      </section>
 
-      <section className="mt-10 grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
-        <div className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
+        <section className="grid gap-4 md:grid-cols-4">
+          <MetricCard label="System ID" value={system.systemId || "—"} breakAll />
+          <MetricCard label="Developer" value={system.developerOrganization || system.entityName || "—"} />
+          <MetricCard label="Deployment" value={system.deploymentStatus || "—"} />
+          <MetricCard label="Country" value={system.country || "Not disclosed"} />
+        </section>
+
+        <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+            <div className="min-w-0 flex-1">
+              <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
+                SYSTEM OVERVIEW
+              </div>
+
+              <div className="mt-4 flex flex-wrap items-center gap-2">
+                <h2 className="text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
+                  {system.systemName || "Unnamed system"}
+                </h2>
+
+                <span
+                  className={`rounded-full px-2.5 py-1 text-xs font-medium ring-1 ${toneForRisk(
+                    system.riskTier
+                  )}`}
+                >
+                  {system.riskTier ? `${system.riskTier} Risk` : "Risk Undisclosed"}
+                </span>
+
+                <span
+                  className={`rounded-full px-2.5 py-1 text-xs font-medium ring-1 ${toneForCertification(
+                    system.certificationStatus
+                  )}`}
+                >
+                  {system.certificationStatus || "Certification Pending"}
+                </span>
+              </div>
+
+              <div className="mt-3 flex flex-wrap gap-x-5 gap-y-2 text-sm text-black/68">
+                <div>
+                  <span className="font-medium text-black/50">Type:</span>{" "}
+                  {system.systemType || "—"}
+                </div>
+                <div>
+                  <span className="font-medium text-black/50">Entity:</span>{" "}
+                  {system.entityName || "—"}
+                </div>
+                <div>
+                  <span className="font-medium text-black/50">Registry ID:</span>{" "}
+                  {system.registryId ? (
+                    <Link
+                      href={`/registry/${system.registryId}`}
+                      className="underline underline-offset-4"
+                    >
+                      {system.registryId}
+                    </Link>
+                  ) : (
+                    "—"
+                  )}
+                </div>
+                <div>
+                  <span className="font-medium text-black/50">Case ID:</span>{" "}
+                  {system.caseId || "—"}
+                </div>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap gap-3 lg:justify-end">
+              {system.registryId ? (
+                <PublicButtonLink
+                  href={`/registry/${system.registryId}`}
+                  variant="primary"
+                  size="sm"
+                >
+                  View Registry
+                </PublicButtonLink>
+              ) : null}
+
+              <PublicButtonLink
+                href="/registry/ai-systems"
+                variant="secondary"
+                size="sm"
+              >
+                Open Systems Registry
+              </PublicButtonLink>
+            </div>
+          </div>
+
+          <div className="mt-8 grid gap-3 md:grid-cols-2 lg:grid-cols-4">
+            <Info label="Deployment Status" value={system.deploymentStatus || "—"} />
+            <Info label="Oversight Level" value={system.oversightLevel || "—"} />
+            <Info label="Human Review" value={formatBoolean(system.humanReviewRequired)} />
+            <Info label="Audit Frequency" value={system.auditFrequency || "—"} />
+            <Info label="Training Data" value={system.trainingDataCategory || "—"} />
+            <Info label="Oversight Model" value={system.oversightModel || "—"} />
+            <Info label="Evaluation Protocol" value={system.evaluationProtocol || "—"} />
+            <Info
+              label="Certified Tier / Band"
+              value={
+                system.certifiedTier || system.certifiedBand
+                  ? `${system.certifiedTier || "—"} / ${system.certifiedBand || "—"}`
+                  : "—"
+              }
+            />
+            <Info label="Decision Status" value={system.decisionStatus || "—"} />
+            <Info label="Certification Status" value={system.certificationStatus || "—"} />
+            <Info label="Valid From" value={formatDate(system.validFrom)} />
+            <Info label="Valid To" value={formatDate(system.validTo)} />
+            <Info label="Approved At" value={formatDate(system.approvedAt)} />
+            <Info label="Published At" value={formatDate(system.publishedAt)} />
+            <Info label="Registry Status" value={system.registryStatus || "—"} />
+            <Info label="Renewal Status" value={system.renewalStatus || "—"} />
+          </div>
+
+          <div className="mt-6 rounded-2xl bg-black/[0.03] p-5">
+            <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-black/55">
+              Intended Use
+            </div>
+            <div className="mt-2 text-[15px] leading-7 text-black/78">
+              {system.intendedUse || "No intended use available."}
+            </div>
+          </div>
+
+          <div className="mt-4 rounded-2xl bg-black/[0.03] p-5">
+            <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-black/55">
+              Public Summary
+            </div>
+            <div className="mt-2 text-[15px] leading-7 text-black/78">
+              {system.publicSummary || "No public summary available."}
+            </div>
+          </div>
+        </section>
+
+        <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
           <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
-            SYSTEM PROFILE
+            RELATED TRUST SURFACES
           </div>
 
           <h2 className="mt-4 text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
-            Public disclosure summary
+            Registry linkage and public trust context
           </h2>
 
-          <div className="mt-6 rounded-2xl border border-black/8 bg-black/[0.015] p-5">
-            <div className="text-sm font-semibold uppercase tracking-[0.16em] text-black/55">
-              Summary
-            </div>
-            <p className="mt-3 text-[16px] leading-[1.75] text-black/80">
-              {row.PUBLIC_SUMMARY ||
-                row.INTENDED_USE ||
-                "No public summary has been provided for this system record."}
-            </p>
+          <p className="mt-3 max-w-[860px] text-[15px] leading-[1.8] text-black/68">
+            This system record is linked to a canonical GAFAIG registry record.
+            Public certification claims should always be validated against the
+            registry record itself.
+          </p>
+
+          <div className="mt-6 grid gap-4 md:grid-cols-2">
+            <TrustCard
+              title="Canonical Registry Record"
+              body="The linked registry record is the public certification source of truth for this disclosed AI system."
+              actionLabel={system.registryId ? "Open Registry Record" : undefined}
+              actionHref={system.registryId ? `/registry/${system.registryId}` : undefined}
+            />
+
+            <TrustCard
+              title="Systems Registry Surface"
+              body="The AI Systems Registry provides system-level public disclosure across all published GAFAIG-linked systems."
+              actionLabel="Open AI Systems Registry"
+              actionHref="/registry/ai-systems"
+            />
           </div>
-
-          <div className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            <InfoCard label="System name" value={pageTitle} />
-            <InfoCard label="Organization" value={organizationName} />
-            <InfoCard label="System type" value={clean(row.SYSTEM_TYPE)} />
-            <InfoCard label="Deployment" value={clean(row.DEPLOYMENT_STATUS)} />
-            <InfoCard label="Risk tier" value={clean(row.RISK_TIER)} />
-            <InfoCard label="Oversight level" value={clean(row.OVERSIGHT_LEVEL)} />
-            <InfoCard label="Oversight model" value={clean(row.OVERSIGHT_MODEL)} />
-            <InfoCard label="Human review" value={boolLabel(row.HUMAN_REVIEW_REQUIRED)} />
-            <InfoCard label="Audit frequency" value={clean(row.AUDIT_FREQUENCY)} />
-            <InfoCard label="Evaluation protocol" value={clean(row.EVALUATION_PROTOCOL)} />
-            <InfoCard label="Training data" value={clean(row.TRAINING_DATA_CATEGORY)} />
-            <InfoCard label="Developer organization" value={clean(row.DEVELOPER_ORGANIZATION)} />
-          </div>
-        </div>
-
-        <div className="grid gap-6">
-          <section className="rounded-3xl border border-black/10 bg-white p-8">
-            <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
-              CERTIFICATION CONTEXT
-            </div>
-
-            <div className="mt-6 grid gap-3">
-              <InfoCard label="Certification status" value={clean(row.CERTIFICATION_STATUS)} />
-              <InfoCard label="Decision status" value={clean(row.DECISION_STATUS)} />
-              <InfoCard
-                label="Tier / Band"
-                value={tierBandLabel(row.CERTIFIED_TIER, row.CERTIFIED_BAND)}
-              />
-              <InfoCard label="Issued" value={fmtDate(row.CERTIFIED_AT)} />
-              <InfoCard label="Valid from" value={fmtDate(row.VALID_FROM)} />
-              <InfoCard label="Valid to" value={fmtDate(row.VALID_TO)} />
-              <InfoCard label="Renewal status" value={clean(row.RENEWAL_STATUS)} />
-              <InfoCard label="Verification type" value={clean(row.VERIFICATION_TYPE)} />
-            </div>
-          </section>
-
-          <section className="rounded-3xl border border-black/10 bg-white p-8">
-            <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
-              REGISTRY LINKAGE
-            </div>
-
-            <p className="mt-4 text-[15px] leading-[1.8] text-black/70">
-              This system record is linked to a public GAFAIG certification record. That registry record is the canonical public trust surface for certification status, validity window, and verification endpoints.
-            </p>
-
-            <div className="mt-6 grid gap-3">
-              <MonoCard label="System ID" value={row.SYSTEM_ID} />
-              <MonoCard label="Registry ID" value={row.REGISTRY_ID || "—"} />
-              <MonoCard label="Application ID" value={row.APPLICATION_ID || "—"} />
-              <MonoCard label="Case ID" value={row.CASE_ID || "—"} />
-              <MonoCard label="Organization ID" value={row.ORG_ID || "—"} />
-            </div>
-          </section>
-        </div>
-      </section>
-
-      <section className="mt-10 rounded-3xl border border-black/10 bg-white p-8 md:p-10">
-        <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
-          WHY THIS PAGE EXISTS
-        </div>
-
-        <h2 className="mt-4 text-[28px] font-semibold leading-[1.18] tracking-tight text-black md:text-[34px]">
-          Public system context without exposing private review
-        </h2>
-
-        <div className="mt-6 grid gap-4 lg:grid-cols-3">
-          <NarrativeCard
-            title="Public transparency"
-            body="This page discloses public-facing system metadata associated with a GAFAIG certification. It helps external parties understand what system is covered and how it sits within the public trust surface."
-          />
-          <NarrativeCard
-            title="Private verification remains private"
-            body="GAFAIG’s verification engine operates privately through intake, evidence review, findings, scoring, and certification workflow. Those internal materials are not exposed here."
-          />
-          <NarrativeCard
-            title="Registry-linked trust"
-            body="Each public system record is connected to a registry certification record so visitors can evaluate the system in the context of an issued certification and its validity window."
-          />
-        </div>
-      </section>
+        </section>
+      </div>
     </main>
   );
 }
 
-function MetricCard({ label, value }: { label: string; value: string }) {
+function MetricCard({
+  label,
+  value,
+  breakAll = false,
+}: {
+  label: string;
+  value: string;
+  breakAll?: boolean;
+}) {
   return (
     <div className="rounded-2xl border border-black/10 bg-white p-5">
-      <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/60">
+      <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/55">
         {label}
       </div>
-      <div className="mt-2 text-[24px] font-semibold leading-tight text-black">
+      <div
+        className={`mt-3 text-[20px] font-semibold leading-tight tracking-tight text-black ${
+          breakAll ? "break-all" : ""
+        }`}
+      >
         {value}
       </div>
     </div>
   );
 }
 
-function InfoCard({ label, value }: { label: string; value: string }) {
+function Info({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-2xl border border-black/6 bg-black/[0.015] px-4 py-4">
+    <div className="rounded-xl border border-black/5 px-3 py-3">
       <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-black/55">
         {label}
       </div>
-      <div className="mt-3 text-[15px] leading-[1.6] text-black/88">
-        {value}
-      </div>
+      <div className="mt-2 text-[14px] text-black/85 break-words">{value}</div>
     </div>
   );
 }
 
-function MonoCard({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-2xl border border-black/6 bg-black/[0.015] px-4 py-4">
-      <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-black/55">
-        {label}
-      </div>
-      <div className="mt-3 break-all font-mono text-[13px] leading-tight text-black/85">
-        {value}
-      </div>
-    </div>
-  );
-}
-
-function NarrativeCard({
+function TrustCard({
   title,
   body,
+  actionLabel,
+  actionHref,
 }: {
   title: string;
   body: string;
+  actionLabel?: string;
+  actionHref?: string;
 }) {
   return (
-    <div className="rounded-2xl border border-black/8 bg-white p-5">
-      <div className="text-[18px] font-semibold text-black">{title}</div>
-      <p className="mt-3 text-[15px] leading-[1.75] text-black/72">{body}</p>
+    <div className="rounded-2xl border border-black/10 p-5">
+      <h3 className="text-[22px] font-semibold tracking-tight text-black">
+        {title}
+      </h3>
+
+      <p className="mt-3 text-[15px] leading-7 text-black/72">{body}</p>
+
+      {actionLabel && actionHref ? (
+        <div className="mt-5">
+          <PublicButtonLink href={actionHref} variant="secondary" size="sm">
+            {actionLabel}
+          </PublicButtonLink>
+        </div>
+      ) : null}
     </div>
   );
 }
