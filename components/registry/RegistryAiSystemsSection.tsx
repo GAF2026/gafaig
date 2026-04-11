@@ -1,43 +1,45 @@
 import AISystemCard from "@/components/registry/AISystemCard";
-import type { RegistryAiSystemsApiResponse } from "@/types/registry";
+import type { RegistryAiSystemRow } from "@/types/registry";
 
 type Props = {
-  aiSystemsData: RegistryAiSystemsApiResponse;
+  aiSystems: RegistryAiSystemRow[];
 };
 
-function dataOrEmpty<T>(rows: T[] | undefined | null): T[] {
-  return Array.isArray(rows) ? rows : [];
-}
-
-export default function RegistryAiSystemsSection({ aiSystemsData }: Props) {
-  const aiSystems = aiSystemsData.ok ? dataOrEmpty(aiSystemsData.rows) : [];
-
+export default function RegistryAiSystemsSection({ aiSystems }: Props) {
   return (
-    <section className="mt-10 border-t border-black/10 pt-8">
-      <h2 className="text-[16px] font-semibold text-black">
-        AI systems covered by this certification
-      </h2>
+    <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
+      <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+        <div>
+          <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
+            AI SYSTEMS
+          </div>
 
-      <p className="mt-3 max-w-[920px] text-[14px] leading-[1.8] text-black/75">
-        These are the public AI system disclosures included within the scope
-        of this certification.
-      </p>
+          <h2 className="mt-4 text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
+            Linked public AI systems
+          </h2>
 
-      {!aiSystemsData.ok ? (
-        <div className="mt-6 rounded-2xl border border-black/10 p-5">
-          <div className="font-semibold text-black">Unable to load AI systems</div>
-          <p className="mt-2 text-[14px] leading-[1.7] text-black/70">
-            {aiSystemsData.error}
+          <p className="mt-3 max-w-[840px] text-[15px] leading-[1.8] text-black/68">
+            Public AI systems associated with this registry record through the
+            canonical GAFAIG systems view.
           </p>
         </div>
-      ) : aiSystems.length === 0 ? (
-        <div className="mt-6 rounded-2xl border border-black/10 p-5 text-[14px] text-black/70">
-          No AI systems have been published for this certification record.
+
+        <div className="text-sm text-black/55">
+          {aiSystems.length} {aiSystems.length === 1 ? "system" : "systems"}
+        </div>
+      </div>
+
+      {aiSystems.length === 0 ? (
+        <div className="mt-6 rounded-2xl border border-dashed border-black/10 p-6 text-sm text-black/60">
+          No public AI systems are currently linked to this registry record.
         </div>
       ) : (
         <div className="mt-6 grid grid-cols-1 gap-4">
           {aiSystems.map((s) => (
-            <AISystemCard key={s.SYSTEM_ID} system={s} />
+            <AISystemCard
+              key={s.systemId || `${s.registryId}-${s.caseId}-${s.systemName}`}
+              system={s}
+            />
           ))}
         </div>
       )}

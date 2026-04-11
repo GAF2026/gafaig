@@ -1,47 +1,7 @@
 import { sfQuery } from "@/lib/snowflake";
+import type { RegistryAiSystemRow } from "@/types/registry";
 
 type RawRow = Record<string, unknown>;
-
-export type RegistryAiSystemRow = {
-  registryId: string | null;
-  systemId: string | null;
-  applicationId: string | null;
-  caseId: string | null;
-  systemName: string | null;
-  systemType: string | null;
-  intendedUse: string | null;
-  displayOrder: number | null;
-
-  entityName: string | null;
-  verificationType: string | null;
-  modelVersion: string | null;
-
-  certifiedScore: string | null;
-  certifiedTier: string | null;
-  certifiedBand: string | null;
-  certifiedAt: string | null;
-  renewalStatus: string | null;
-
-  approvedAt: string | null;
-  publishedAt: string | null;
-  registryStatus: string | null;
-  createdAt: string | null;
-  updatedAt: string | null;
-
-  country: string | null;
-  decisionStatus: string | null;
-  developerOrganization: string | null;
-
-  deploymentStatus: string | null;
-  oversightLevel: string | null;
-  riskTier: string | null;
-  trainingDataCategory: string | null;
-  oversightModel: string | null;
-  humanReviewRequired: boolean | null;
-  evaluationProtocol: string | null;
-  auditFrequency: string | null;
-  publicSummary: string | null;
-};
 
 function asString(value: unknown): string | null {
   if (value === null || value === undefined) return null;
@@ -72,91 +32,108 @@ function normalizeSystemRow(row: RawRow): RegistryAiSystemRow {
     systemId: asString(row.SYSTEM_ID),
     applicationId: asString(row.APPLICATION_ID),
     caseId: asString(row.CASE_ID),
+    entityName: asString(row.ENTITY_NAME),
+    country: asString(row.COUNTRY),
+
     systemName: asString(row.SYSTEM_NAME),
     systemType: asString(row.SYSTEM_TYPE),
     intendedUse: asString(row.INTENDED_USE),
-    displayOrder: asNumber(row.DISPLAY_ORDER),
-
-    entityName: asString(row.ENTITY_NAME),
-    verificationType: asString(row.VERIFICATION_TYPE),
-    modelVersion: asString(row.MODEL_VERSION),
-
-    certifiedScore: asString(row.CERTIFIED_SCORE),
-    certifiedTier: asString(row.CERTIFIED_TIER),
-    certifiedBand: asString(row.CERTIFIED_BAND),
-    certifiedAt: asString(row.CERTIFIED_AT),
-    renewalStatus: asString(row.RENEWAL_STATUS),
-
-    approvedAt: asString(row.APPROVED_AT),
-    publishedAt: asString(row.PUBLISHED_AT),
-    registryStatus: asString(row.REGISTRY_STATUS),
-    createdAt: asString(row.CREATED_AT),
-    updatedAt: asString(row.UPDATED_AT),
-
-    country: asString(row.COUNTRY),
-    decisionStatus: asString(row.DECISION_STATUS),
-    developerOrganization: asString(row.DEVELOPER_ORGANIZATION),
 
     deploymentStatus: asString(row.DEPLOYMENT_STATUS),
     oversightLevel: asString(row.OVERSIGHT_LEVEL),
     riskTier: asString(row.RISK_TIER),
+
+    developerOrganization: asString(row.DEVELOPER_ORGANIZATION),
     trainingDataCategory: asString(row.TRAINING_DATA_CATEGORY),
     oversightModel: asString(row.OVERSIGHT_MODEL),
     humanReviewRequired: asBoolean(row.HUMAN_REVIEW_REQUIRED),
     evaluationProtocol: asString(row.EVALUATION_PROTOCOL),
     auditFrequency: asString(row.AUDIT_FREQUENCY),
+
+    decisionStatus: asString(row.DECISION_STATUS),
+    certificationStatus: asString(row.CERTIFICATION_STATUS),
+    certifiedScore: asString(row.CERTIFIED_SCORE),
+    certifiedTier: asString(row.CERTIFIED_TIER),
+    certifiedBand: asString(row.CERTIFIED_BAND),
+    certifiedAt: asString(row.CERTIFIED_AT),
+    validFrom: asString(row.VALID_FROM),
+    validTo: asString(row.VALID_TO),
+    renewalStatus: asString(row.RENEWAL_STATUS),
+
+    verificationType: asString(row.VERIFICATION_TYPE),
+    modelVersion: asString(row.MODEL_VERSION),
+    score: asString(row.SCORE),
+    approvedAt: asString(row.APPROVED_AT),
+    publishedAt: asString(row.PUBLISHED_AT),
+    registryStatus: asString(row.REGISTRY_STATUS),
     publicSummary: asString(row.PUBLIC_SUMMARY),
+    displayOrder: asNumber(row.DISPLAY_ORDER),
+    createdAt: asString(row.CREATED_AT),
+    updatedAt: asString(row.UPDATED_AT),
   };
 }
 
 const SYSTEMS_SELECT = `
   SELECT
-    REGISTRY_ID,
-    SYSTEM_ID,
-    APPLICATION_ID,
-    CASE_ID,
-    SYSTEM_NAME,
-    SYSTEM_TYPE,
-    INTENDED_USE,
-    DISPLAY_ORDER,
-    ENTITY_NAME,
-    VERIFICATION_TYPE,
-    MODEL_VERSION,
+    s.REGISTRY_ID,
+    s.SYSTEM_ID,
+    s.APPLICATION_ID,
+    s.CASE_ID,
+    s.ENTITY_NAME,
+    rp.COUNTRY,
+
+    s.SYSTEM_NAME,
+    s.SYSTEM_TYPE,
+    s.INTENDED_USE,
+
+    s.DEPLOYMENT_STATUS,
+    s.OVERSIGHT_LEVEL,
+    s.RISK_TIER,
+
+    s.DEVELOPER_ORGANIZATION,
+    s.TRAINING_DATA_CATEGORY,
+    s.OVERSIGHT_MODEL,
+    s.HUMAN_REVIEW_REQUIRED,
+    s.EVALUATION_PROTOCOL,
+    s.AUDIT_FREQUENCY,
+
+    s.DECISION_STATUS,
+    s.CERTIFICATION_STATUS,
     CAST(NULL AS STRING) AS CERTIFIED_SCORE,
-    CERTIFIED_TIER,
-    CERTIFIED_BAND,
-    TO_VARCHAR(PUBLISHED_AT) AS CERTIFIED_AT,
-    RENEWAL_STATUS,
-    TO_VARCHAR(APPROVED_AT) AS APPROVED_AT,
-    TO_VARCHAR(PUBLISHED_AT) AS PUBLISHED_AT,
-    REGISTRY_STATUS,
-    TO_VARCHAR(CREATED_AT) AS CREATED_AT,
-    TO_VARCHAR(UPDATED_AT) AS UPDATED_AT,
-    CAST(NULL AS STRING) AS COUNTRY,
-    CAST(NULL AS STRING) AS DECISION_STATUS,
-    CAST(NULL AS STRING) AS DEVELOPER_ORGANIZATION,
-    CAST(NULL AS STRING) AS DEPLOYMENT_STATUS,
-    CAST(NULL AS STRING) AS OVERSIGHT_LEVEL,
-    CAST(NULL AS STRING) AS RISK_TIER,
-    CAST(NULL AS STRING) AS TRAINING_DATA_CATEGORY,
-    CAST(NULL AS STRING) AS OVERSIGHT_MODEL,
-    CAST(NULL AS BOOLEAN) AS HUMAN_REVIEW_REQUIRED,
-    CAST(NULL AS STRING) AS EVALUATION_PROTOCOL,
-    CAST(NULL AS STRING) AS AUDIT_FREQUENCY,
-    CAST(NULL AS STRING) AS PUBLIC_SUMMARY
-  FROM CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC
+    s.CERTIFIED_TIER,
+    s.CERTIFIED_BAND,
+    TO_VARCHAR(COALESCE(s.PUBLISHED_AT, s.APPROVED_AT)) AS CERTIFIED_AT,
+    TO_VARCHAR(s.VALID_FROM) AS VALID_FROM,
+    TO_VARCHAR(s.VALID_TO) AS VALID_TO,
+    s.RENEWAL_STATUS,
+
+    s.VERIFICATION_TYPE,
+    s.MODEL_VERSION,
+    CAST(s.SCORE AS STRING) AS SCORE,
+    TO_VARCHAR(s.APPROVED_AT) AS APPROVED_AT,
+    TO_VARCHAR(s.PUBLISHED_AT) AS PUBLISHED_AT,
+    s.REGISTRY_STATUS,
+    s.PUBLIC_SUMMARY,
+    s.DISPLAY_ORDER,
+    TO_VARCHAR(s.CREATED_AT) AS CREATED_AT,
+    TO_VARCHAR(s.UPDATED_AT) AS UPDATED_AT
+  FROM CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC s
+  LEFT JOIN CORE.V_REGISTRY_PUBLIC rp
+    ON UPPER(TRIM(rp.CASE_ID)) = UPPER(TRIM(s.CASE_ID))
 `;
 
-export async function getRegistryAiSystems(limit = 250): Promise<RegistryAiSystemRow[]> {
+export async function getRegistryAiSystems(
+  limit = 250
+): Promise<RegistryAiSystemRow[]> {
   const safeLimit = Math.max(1, Math.min(limit, 1000));
 
   const rows = await sfQuery<RawRow>(
     `
     ${SYSTEMS_SELECT}
     ORDER BY
-      COALESCE(DISPLAY_ORDER, 999999) ASC,
-      SYSTEM_NAME ASC,
-      SYSTEM_ID ASC
+      COALESCE(s.DISPLAY_ORDER, 999999) ASC,
+      s.SYSTEM_NAME ASC,
+      s.SYSTEM_ID ASC
     LIMIT ?
     `,
     [safeLimit]
@@ -184,9 +161,9 @@ export async function getRegistryAiSystemsPaginated(params?: {
       `
       ${SYSTEMS_SELECT}
       ORDER BY
-        COALESCE(DISPLAY_ORDER, 999999) ASC,
-        SYSTEM_NAME ASC,
-        SYSTEM_ID ASC
+        COALESCE(s.DISPLAY_ORDER, 999999) ASC,
+        s.SYSTEM_NAME ASC,
+        s.SYSTEM_ID ASC
       LIMIT ? OFFSET ?
       `,
       [pageSize, offset]
@@ -223,12 +200,12 @@ export async function getRegistryAiSystemsByRegistryId(
   const rows = await sfQuery<RawRow>(
     `
     ${SYSTEMS_SELECT}
-    WHERE UPPER(REGEXP_REPLACE(COALESCE(REGISTRY_ID, ''), '[^A-Za-z0-9]', '')) =
+    WHERE UPPER(REGEXP_REPLACE(COALESCE(s.REGISTRY_ID, ''), '[^A-Za-z0-9]', '')) =
           UPPER(REGEXP_REPLACE(?, '[^A-Za-z0-9]', ''))
     ORDER BY
-      COALESCE(DISPLAY_ORDER, 999999) ASC,
-      SYSTEM_NAME ASC,
-      SYSTEM_ID ASC
+      COALESCE(s.DISPLAY_ORDER, 999999) ASC,
+      s.SYSTEM_NAME ASC,
+      s.SYSTEM_ID ASC
     LIMIT ?
     `,
     [registryId, safeLimit]
@@ -249,12 +226,12 @@ export async function getRegistryAiSystemsByCaseId(
   const rows = await sfQuery<RawRow>(
     `
     ${SYSTEMS_SELECT}
-    WHERE UPPER(REGEXP_REPLACE(COALESCE(CASE_ID, ''), '[^A-Za-z0-9]', '')) =
+    WHERE UPPER(REGEXP_REPLACE(COALESCE(s.CASE_ID, ''), '[^A-Za-z0-9]', '')) =
           UPPER(REGEXP_REPLACE(?, '[^A-Za-z0-9]', ''))
     ORDER BY
-      COALESCE(DISPLAY_ORDER, 999999) ASC,
-      SYSTEM_NAME ASC,
-      SYSTEM_ID ASC
+      COALESCE(s.DISPLAY_ORDER, 999999) ASC,
+      s.SYSTEM_NAME ASC,
+      s.SYSTEM_ID ASC
     LIMIT ?
     `,
     [caseId, safeLimit]
@@ -276,6 +253,7 @@ export async function getRegistryAiSystemCount(): Promise<number> {
 
 export const getRegistryAISystems = getRegistryAiSystems;
 export const getRegistryAISystemsPaginated = getRegistryAiSystemsPaginated;
-export const getRegistryAISystemsByRegistryId = getRegistryAiSystemsByRegistryId;
+export const getRegistryAISystemsByRegistryId =
+  getRegistryAiSystemsByRegistryId;
 export const getRegistryAISystemsByCaseId = getRegistryAiSystemsByCaseId;
 export const getRegistryAISystemCount = getRegistryAiSystemCount;

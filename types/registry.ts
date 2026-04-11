@@ -35,39 +35,48 @@ export type RegistryApiResponse =
   | { ok: false; error: string };
 
 export type RegistryAiSystemRow = {
-  SYSTEM_ID: string;
-  REGISTRY_ID: string | null;
-  APPLICATION_ID: string | null;
-  CASE_ID: string | null;
-  ENTITY_NAME: string | null;
+  registryId: string | null;
+  systemId: string | null;
+  applicationId: string | null;
+  caseId: string | null;
+  entityName: string | null;
+  country: string | null;
 
-  SYSTEM_NAME: string | null;
-  SYSTEM_TYPE: string | null;
-  INTENDED_USE: string | null;
+  systemName: string | null;
+  systemType: string | null;
+  intendedUse: string | null;
 
-  DEPLOYMENT_STATUS: string | null;
-  OVERSIGHT_LEVEL: string | null;
-  RISK_TIER: string | null;
+  deploymentStatus: string | null;
+  oversightLevel: string | null;
+  riskTier: string | null;
 
-  DEVELOPER_ORGANIZATION: string | null;
-  TRAINING_DATA_CATEGORY: string | null;
-  OVERSIGHT_MODEL: string | null;
-  HUMAN_REVIEW_REQUIRED: boolean | null;
-  EVALUATION_PROTOCOL: string | null;
-  AUDIT_FREQUENCY: string | null;
+  developerOrganization: string | null;
+  trainingDataCategory: string | null;
+  oversightModel: string | null;
+  humanReviewRequired: boolean | null;
+  evaluationProtocol: string | null;
+  auditFrequency: string | null;
 
-  DECISION_STATUS: string | null;
-  CERTIFIED_TIER: string | null;
-  CERTIFIED_BAND: string | null;
-  GOVERNANCE_MATURITY_SCORE: number | null;
-  CONTROLS_PCT: number | null;
-  COVERAGE_PCT: number | null;
-  FRESHNESS_PCT: number | null;
-  SUMMARY_PCT: number | null;
-  LAST_ACTIVITY_AT: string | null;
+  decisionStatus: string | null;
+  certificationStatus: string | null;
+  certifiedScore: string | null;
+  certifiedTier: string | null;
+  certifiedBand: string | null;
+  certifiedAt: string | null;
+  validFrom: string | null;
+  validTo: string | null;
+  renewalStatus: string | null;
 
-  PUBLIC_SUMMARY: string | null;
-  DISPLAY_ORDER: number | null;
+  verificationType: string | null;
+  modelVersion: string | null;
+  score: string | null;
+  approvedAt: string | null;
+  publishedAt: string | null;
+  registryStatus: string | null;
+  publicSummary: string | null;
+  displayOrder: number | null;
+  createdAt: string | null;
+  updatedAt: string | null;
 };
 
 export type RegistryAiSystemsApiResponse =

@@ -12,6 +12,17 @@ function n(v: unknown): number {
   return Number(v ?? 0);
 }
 
+function b(v: unknown): boolean | null {
+  if (v === null || v === undefined || v === "") return null;
+  if (typeof v === "boolean") return v;
+  if (typeof v === "number") return v !== 0;
+
+  const x = String(v).trim().toLowerCase();
+  if (["true", "t", "yes", "y", "1"].includes(x)) return true;
+  if (["false", "f", "no", "n", "0"].includes(x)) return false;
+  return null;
+}
+
 export type ExplorerSummary = {
   totalRecords: number;
   totalOrganizations: number;
@@ -57,9 +68,11 @@ export type ExplorerSystemRow = {
   systemType: string | null;
   intendedUse: string | null;
   deploymentStatus: string | null;
+  oversightLevel: string | null;
   riskTier: string | null;
   displayOrder: number;
   entityName: string | null;
+  country: string | null;
   developerOrganization: string | null;
   verificationType: string | null;
   modelVersion: string | null;
@@ -71,6 +84,14 @@ export type ExplorerSystemRow = {
   approvedAt: string | null;
   publishedAt: string | null;
   registryStatus: string | null;
+  decisionStatus: string | null;
+  certificationStatus: string | null;
+  publicSummary: string | null;
+  trainingDataCategory: string | null;
+  oversightModel: string | null;
+  humanReviewRequired: boolean | null;
+  evaluationProtocol: string | null;
+  auditFrequency: string | null;
   createdAt: string | null;
   updatedAt: string | null;
 };
@@ -143,11 +164,13 @@ export async function getExplorerOrganizations(
       rp.ENTITY_NAME,
       NULL AS ENTITY_TYPE,
       rp.COUNTRY,
-      COUNT(*) AS REGISTRY_COUNT,
-      0 AS SYSTEM_COUNT,
-      NULL AS DECISION_STATUS,
-      NULL AS LAST_CERTIFIED_AT
+      COUNT(DISTINCT rp.REGISTRY_ID) AS REGISTRY_COUNT,
+      COUNT(DISTINCT s.SYSTEM_ID) AS SYSTEM_COUNT,
+      MAX(s.DECISION_STATUS) AS DECISION_STATUS,
+      MAX(TO_VARCHAR(COALESCE(s.PUBLISHED_AT, s.APPROVED_AT))) AS LAST_CERTIFIED_AT
     FROM CORE.V_REGISTRY_PUBLIC rp
+    LEFT JOIN CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC s
+      ON UPPER(TRIM(s.CASE_ID)) = UPPER(TRIM(rp.CASE_ID))
     GROUP BY rp.ENTITY_NAME, rp.COUNTRY
     ORDER BY rp.ENTITY_NAME ASC, rp.COUNTRY ASC
     LIMIT ?
@@ -174,13 +197,15 @@ export async function getExplorerCountries(
   const rows = await sfQuery<Row>(
     `
     SELECT
-      COUNTRY,
-      COUNT(DISTINCT ENTITY_NAME) AS ORGANIZATION_COUNT,
-      COUNT(*) AS REGISTRY_COUNT,
-      NULL AS LAST_CERTIFIED_AT
-    FROM CORE.V_REGISTRY_PUBLIC
-    GROUP BY COUNTRY
-    ORDER BY COUNTRY ASC
+      rp.COUNTRY,
+      COUNT(DISTINCT rp.ENTITY_NAME) AS ORGANIZATION_COUNT,
+      COUNT(DISTINCT rp.REGISTRY_ID) AS REGISTRY_COUNT,
+      MAX(TO_VARCHAR(COALESCE(s.PUBLISHED_AT, s.APPROVED_AT))) AS LAST_CERTIFIED_AT
+    FROM CORE.V_REGISTRY_PUBLIC rp
+    LEFT JOIN CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC s
+      ON UPPER(TRIM(s.CASE_ID)) = UPPER(TRIM(rp.CASE_ID))
+    GROUP BY rp.COUNTRY
+    ORDER BY rp.COUNTRY ASC
     LIMIT ?
     `,
     [safeLimit]
@@ -202,32 +227,47 @@ export async function getExplorerSystems(
   const rows = await sfQuery<Row>(
     `
     SELECT
-      SYSTEM_ID,
-      REGISTRY_ID,
-      APPLICATION_ID,
-      CASE_ID,
-      SYSTEM_NAME,
-      SYSTEM_TYPE,
-      INTENDED_USE,
-      NULL AS DEPLOYMENT_STATUS,
-      NULL AS RISK_TIER,
-      DISPLAY_ORDER,
-      ENTITY_NAME,
-      ENTITY_NAME AS DEVELOPER_ORGANIZATION,
-      VERIFICATION_TYPE,
-      MODEL_VERSION,
-      SCORE,
-      CERTIFIED_TIER,
-      CERTIFIED_BAND,
-      NULL AS CERTIFIED_AT,
-      RENEWAL_STATUS,
-      APPROVED_AT,
-      PUBLISHED_AT,
-      REGISTRY_STATUS,
-      CREATED_AT,
-      UPDATED_AT
-    FROM CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC
-    ORDER BY REGISTRY_ID ASC, DISPLAY_ORDER ASC, SYSTEM_ID ASC
+      s.SYSTEM_ID,
+      s.REGISTRY_ID,
+      s.APPLICATION_ID,
+      s.CASE_ID,
+      s.SYSTEM_NAME,
+      s.SYSTEM_TYPE,
+      s.INTENDED_USE,
+      s.DEPLOYMENT_STATUS,
+      s.OVERSIGHT_LEVEL,
+      s.RISK_TIER,
+      s.DISPLAY_ORDER,
+      s.ENTITY_NAME,
+      rp.COUNTRY,
+      s.DEVELOPER_ORGANIZATION,
+      s.VERIFICATION_TYPE,
+      s.MODEL_VERSION,
+      CAST(s.SCORE AS STRING) AS SCORE,
+      s.CERTIFIED_TIER,
+      s.CERTIFIED_BAND,
+      TO_VARCHAR(COALESCE(s.PUBLISHED_AT, s.APPROVED_AT)) AS CERTIFIED_AT,
+      s.RENEWAL_STATUS,
+      TO_VARCHAR(s.APPROVED_AT) AS APPROVED_AT,
+      TO_VARCHAR(s.PUBLISHED_AT) AS PUBLISHED_AT,
+      s.REGISTRY_STATUS,
+      s.DECISION_STATUS,
+      s.CERTIFICATION_STATUS,
+      s.PUBLIC_SUMMARY,
+      s.TRAINING_DATA_CATEGORY,
+      s.OVERSIGHT_MODEL,
+      s.HUMAN_REVIEW_REQUIRED,
+      s.EVALUATION_PROTOCOL,
+      s.AUDIT_FREQUENCY,
+      TO_VARCHAR(s.CREATED_AT) AS CREATED_AT,
+      TO_VARCHAR(s.UPDATED_AT) AS UPDATED_AT
+    FROM CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC s
+    LEFT JOIN CORE.V_REGISTRY_PUBLIC rp
+      ON UPPER(TRIM(rp.CASE_ID)) = UPPER(TRIM(s.CASE_ID))
+    ORDER BY
+      COALESCE(s.DISPLAY_ORDER, 999999) ASC,
+      s.SYSTEM_NAME ASC,
+      s.SYSTEM_ID ASC
     LIMIT ?
     `,
     [safeLimit]
@@ -242,9 +282,11 @@ export async function getExplorerSystems(
     systemType: s(r.SYSTEM_TYPE),
     intendedUse: s(r.INTENDED_USE),
     deploymentStatus: s(r.DEPLOYMENT_STATUS),
+    oversightLevel: s(r.OVERSIGHT_LEVEL),
     riskTier: s(r.RISK_TIER),
     displayOrder: n(r.DISPLAY_ORDER),
     entityName: s(r.ENTITY_NAME),
+    country: s(r.COUNTRY),
     developerOrganization: s(r.DEVELOPER_ORGANIZATION),
     verificationType: s(r.VERIFICATION_TYPE),
     modelVersion: s(r.MODEL_VERSION),
@@ -256,6 +298,14 @@ export async function getExplorerSystems(
     approvedAt: s(r.APPROVED_AT),
     publishedAt: s(r.PUBLISHED_AT),
     registryStatus: s(r.REGISTRY_STATUS),
+    decisionStatus: s(r.DECISION_STATUS),
+    certificationStatus: s(r.CERTIFICATION_STATUS),
+    publicSummary: s(r.PUBLIC_SUMMARY),
+    trainingDataCategory: s(r.TRAINING_DATA_CATEGORY),
+    oversightModel: s(r.OVERSIGHT_MODEL),
+    humanReviewRequired: b(r.HUMAN_REVIEW_REQUIRED),
+    evaluationProtocol: s(r.EVALUATION_PROTOCOL),
+    auditFrequency: s(r.AUDIT_FREQUENCY),
     createdAt: s(r.CREATED_AT),
     updatedAt: s(r.UPDATED_AT),
   }));

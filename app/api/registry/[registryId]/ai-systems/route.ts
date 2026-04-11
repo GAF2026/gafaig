@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { sfQuery } from "@/lib/snowflake";
+import { getRegistryAiSystemsByRegistryId } from "@/lib/queries/registry-ai-systems";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -18,34 +18,19 @@ export async function GET(
       );
     }
 
-    const rows = await sfQuery<any>(
-      `
-      SELECT
-        SYSTEM_ID,
-        REGISTRY_ID,
-        SYSTEM_NAME,
-        SYSTEM_TYPE,
-        INTENDED_USE,
-        DEPLOYMENT_STATUS,
-        OVERSIGHT_LEVEL,
-        RISK_TIER,
-        PUBLIC_SUMMARY,
-        DISPLAY_ORDER
-      FROM GAFAIG_DB.CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC
-      WHERE REGISTRY_ID = ?
-      ORDER BY DISPLAY_ORDER ASC, SYSTEM_NAME ASC
-      `,
-      [registryId]
-    );
+    const rows = await getRegistryAiSystemsByRegistryId(registryId, 200);
 
     return NextResponse.json({
       ok: true,
-      rows: Array.isArray(rows) ? rows : [],
-      total: Array.isArray(rows) ? rows.length : 0,
+      rows,
+      total: rows.length,
     });
-  } catch (e: any) {
+  } catch (e: unknown) {
+    const message =
+      e instanceof Error ? e.message : "Failed to load registry AI systems.";
+
     return NextResponse.json(
-      { ok: false, error: e?.message || "Failed to load registry AI systems." },
+      { ok: false, error: message },
       { status: 500 }
     );
   }
