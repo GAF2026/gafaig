@@ -23,6 +23,24 @@ function toneForCertification(value: string | null | undefined) {
   return "bg-slate-100 text-slate-600 ring-slate-200";
 }
 
+function toneForTier(value: string | null | undefined) {
+  const v = String(value || "").trim().toUpperCase();
+
+  if (v === "A") return "bg-emerald-50 text-emerald-700 ring-emerald-200";
+  if (v === "B") return "bg-blue-50 text-blue-700 ring-blue-200";
+  if (v === "C") return "bg-amber-50 text-amber-700 ring-amber-200";
+  if (v === "D") return "bg-slate-100 text-slate-700 ring-slate-200";
+
+  return "bg-slate-100 text-slate-600 ring-slate-200";
+}
+
+function toneForBand(value: string | null | undefined) {
+  const v = String(value || "").trim();
+
+  if (!v) return "bg-slate-100 text-slate-600 ring-slate-200";
+  return "bg-blue-50 text-blue-700 ring-blue-200";
+}
+
 function formatBoolean(value: boolean | null | undefined) {
   if (value === true) return "Required";
   if (value === false) return "Not required";
@@ -39,7 +57,7 @@ export default async function ExplorerSystemsPage() {
           eyebrow="EXPLORER"
           title="AI systems"
           description="Public AI systems surfaced through the registry’s canonical systems view."
-          secondaryDescription="This explorer surface now reflects the richer canonical systems contract: visible system metadata, risk posture, oversight details, public summaries, and links back to the associated public registry records."
+          secondaryDescription="This explorer surface reflects GAFAIG’s richer canonical systems contract: visible system metadata, risk posture, oversight details, certification signals, public summaries, and direct links into both the system trust surface and the linked registry record."
           actions={
             <>
               <PublicButtonLink href="/registry/ai-systems" variant="primary">
@@ -78,7 +96,7 @@ export default async function ExplorerSystemsPage() {
               <p className="mt-3 max-w-[860px] text-[15px] leading-[1.8] text-black/68">
                 Browse public system metadata connected to GAFAIG registry
                 records, including deployment status, risk tier, oversight
-                posture, and public system summaries.
+                posture, certification context, and public system summaries.
               </p>
             </div>
 
@@ -117,59 +135,122 @@ export default async function ExplorerSystemsPage() {
                       >
                         {row.certificationStatus || "Certification Pending"}
                       </span>
+
+                      {row.certifiedTier ? (
+                        <span
+                          className={`rounded-full px-2.5 py-1 text-xs font-medium ring-1 ${toneForTier(
+                            row.certifiedTier
+                          )}`}
+                        >
+                          {row.certifiedTier}
+                        </span>
+                      ) : null}
+
+                      {row.certifiedBand ? (
+                        <span
+                          className={`rounded-full px-2.5 py-1 text-xs font-medium ring-1 ${toneForBand(
+                            row.certifiedBand
+                          )}`}
+                        >
+                          Band {row.certifiedBand}
+                        </span>
+                      ) : null}
                     </div>
 
                     <div className="mt-2 text-[14px] text-black/55">
                       {row.systemId || "No system ID"}
                     </div>
 
+                    <div className="mt-3 text-xs text-black/52">
+                      This system is publicly disclosed through GAFAIG’s trust
+                      infrastructure and linked to a canonical registry record.
+                    </div>
+
                     <div className="mt-4 flex flex-wrap gap-x-5 gap-y-2 text-sm text-black/72">
                       <div>
-                        <span className="font-medium text-black/50">Developer:</span>{" "}
-                        {row.developerOrganization || row.entityName || "—"}
+                        <span className="font-medium text-black/50">
+                          Developer:
+                        </span>{" "}
+                        {row.developerOrganization || "—"}
                       </div>
                       <div>
-                        <span className="font-medium text-black/50">Country:</span>{" "}
-                        {row.country || "Not disclosed"}
+                        <span className="font-medium text-black/50">
+                          Organization:
+                        </span>{" "}
+                        {row.entityName ? (
+                          <Link
+                            href={`/explorer/organizations?org=${encodeURIComponent(
+                              row.entityName
+                            )}`}
+                            className="underline underline-offset-4"
+                          >
+                            {row.entityName}
+                          </Link>
+                        ) : (
+                          "—"
+                        )}
+                      </div>
+                      <div>
+                        <span className="font-medium text-black/50">
+                          Country:
+                        </span>{" "}
+                        {row.country ? (
+                          <Link
+                            href={`/explorer/countries?country=${encodeURIComponent(
+                              row.country
+                            )}`}
+                            className="underline underline-offset-4"
+                          >
+                            {row.country}
+                          </Link>
+                        ) : (
+                          "Not disclosed"
+                        )}
                       </div>
                       <div>
                         <span className="font-medium text-black/50">Type:</span>{" "}
                         {row.systemType || "—"}
                       </div>
                       <div>
-                        <span className="font-medium text-black/50">Deployment:</span>{" "}
+                        <span className="font-medium text-black/50">
+                          Deployment:
+                        </span>{" "}
                         {row.deploymentStatus || "—"}
                       </div>
                       <div>
-                        <span className="font-medium text-black/50">Oversight:</span>{" "}
+                        <span className="font-medium text-black/50">
+                          Oversight:
+                        </span>{" "}
                         {row.oversightLevel || "—"}
                       </div>
                     </div>
                   </div>
 
                   <div className="flex flex-wrap gap-3 lg:justify-end">
+                    {row.systemId ? (
+                      <PublicButtonLink
+                        href={`/registry/ai-systems/${row.systemId}`}
+                        variant="primary"
+                        size="sm"
+                      >
+                        View System
+                      </PublicButtonLink>
+                    ) : null}
+
                     {row.registryId ? (
                       <PublicButtonLink
                         href={`/registry/${row.registryId}`}
-                        variant="primary"
+                        variant="secondary"
                         size="sm"
                       >
                         View Registry
                       </PublicButtonLink>
                     ) : null}
-
-                    <PublicButtonLink
-                      href="/registry/ai-systems"
-                      variant="secondary"
-                      size="sm"
-                    >
-                      Open Systems Registry
-                    </PublicButtonLink>
                   </div>
                 </div>
 
                 <div className="mt-5 grid gap-3 md:grid-cols-2 lg:grid-cols-4">
-                  <Info label="Registry ID" value={row.registryId || "—"} breakAll />
+                  <Info label="Registry Record" value={row.registryId || "—"} breakAll />
                   <Info label="Case ID" value={row.caseId || "—"} />
                   <Info
                     label="Human Review"
@@ -177,7 +258,7 @@ export default async function ExplorerSystemsPage() {
                   />
                   <Info label="Audit Frequency" value={row.auditFrequency || "—"} />
                   <Info
-                    label="Certified Tier / Band"
+                    label="Tier / Band"
                     value={
                       row.certifiedTier || row.certifiedBand
                         ? `${row.certifiedTier || "—"} / ${row.certifiedBand || "—"}`
