@@ -1,442 +1,285 @@
-# GAFAIG — MASTER STATE (CANONICAL) — 2026-04-10
+# MASTER_STATE.md
+Last Updated: 2026-04-10
 
-## SYSTEM IDENTITY
-GAFAIG = Global Authority for AI Governance  
-GAFAIG is the world’s first searchable AI governance registry.  
-GAFAIG is a deterministic, append-only, Snowflake-native verification and registry system.  
-GAFAIG operates as a global trust infrastructure layer, analogous to financial audit systems, certificate authorities, and regulatory registries.  
+============================================================
+GAFAIG — MASTER SYSTEM STATE (CANONICAL)
+============================================================
 
-MISSION:
-To create a neutral, verifiable, and globally accessible system for AI governance certification where outcomes—not claims—define trust.
+GAFAIG (Global Authority for AI Governance) is a deterministic, append-only AI governance registry platform built on Snowflake as the single source of truth, with a Next.js frontend and API layer deployed via Vercel.
 
----
+The system is designed to function as a global certification and registry infrastructure for AI systems, organizations, and governance compliance.
 
-## CORE ARCHITECTURE (LOCKED)
+------------------------------------------------------------
+CURRENT SYSTEM STATUS
+------------------------------------------------------------
 
-### TWO-LAYER MODEL
+STATUS: STABLE (MINIMAL MODE)
 
-1) PRIVATE VERIFICATION ENGINE (Snowflake)
-- Source of truth
-- Performs ALL computation
-- Stores applications, cases, findings, evidence, events, scoring, decisions
-- Fully controlled environment
-- NEVER exposed publicly
+The system has been stabilized after resolving multiple critical issues:
+- Snowflake authentication (MFA vs key-pair mismatch)
+- Broken query layer assumptions
+- TypeScript contract failures across explorer and registry
+- Invalid column references in Snowflake views
+- Seed data inconsistencies
 
-2) PUBLIC TRUST RECORD (Views + API + UI)
-- Read-only projection layer
-- Displays certification outcomes ONLY
-- No raw evidence, no internal scoring logic
-- Provides signed verification, badge, widget, and API signals
+All build-breaking and runtime-blocking issues have been resolved.
 
-CRITICAL RULE:
-Snowflake is the only computation layer. API/UI are transport and rendering only.
+The platform is currently operating in a **minimal registry mode**, where only verified Snowflake fields are used.
 
----
+------------------------------------------------------------
+CORE ARCHITECTURE (LOCKED)
+------------------------------------------------------------
 
-## CANONICAL DATA FLOW (LOCKED)
+Snowflake is the authoritative computation engine.
 
-APPLICATION → CASE → FINDINGS → EVIDENCE → EVENTS → SCORING → SCORE SNAPSHOT → DECISION → REGISTRY SNAPSHOT → PUBLIC VIEWS → API → UI
+System flow:
 
-RULES:
-- Case-first architecture (NOT application-first)
-- Deterministic pipeline
-- Append-only snapshots (no updates, only inserts)
-- No computation outside Snowflake
-- All certification state transitions controlled by procedures
+APPLICATION → CASE → FINDINGS → EVIDENCE → EVENTS → SCORING → DECISION → REGISTRY SNAPSHOT → PUBLIC VIEW → API → UI
 
----
+Key principles:
+- Append-only data model
+- Deterministic scoring
+- No computation in API or UI layers
+- Public registry exposes only certified outputs (no raw evidence)
 
-## CORE TABLES (SNOWFLAKE — CORE SCHEMA)
+------------------------------------------------------------
+SNOWFLAKE ENVIRONMENT
+------------------------------------------------------------
 
-### INPUT LAYER
-- CORE.APPLICATIONS (APPLICATION_ID, REQUEST_ID)
+Account: duglhtd-cm14952
+Database: GAFAIG_DB
+Schema: CORE
+Warehouse: GAFAIG_WH
 
-### CASE LAYER
-- CORE.VERIFICATION_CASES (deterministic CASE_ID)
+Primary runtime user:
+- GAFAIG_APP_USER (RSA key-pair enabled)
+- Default role: GAFAIG_APP_ROLE
 
-### WORKFLOW LAYER
-- CORE.VERIFICATION_EVENTS (append-only lifecycle log)
+Authentication:
+- Key-pair (SNOWFLAKE_JWT) required for MFA-compliant access
+- Password authentication is no longer valid for runtime
 
-### ASSESSMENT LAYER
-- CORE.VERIFICATION_FINDINGS
-- CORE.VERIFICATION_EVIDENCE
-- CORE.FINDING_EVIDENCE_LINKS
+------------------------------------------------------------
+ACTIVE TABLES
+------------------------------------------------------------
 
-### SCORING LAYER
-- CORE.CASE_SCORE_SNAPSHOTS
-- CORE.V_CONTROL_SCORE_COMPONENTS (control-level scoring)
-- CORE.V_GOVERNANCE_SCORE_CASE (canonical scoring view)
+CORE.APPLICATIONS
+CORE.VERIFICATION_CASES
+CORE.VERIFICATION_FINDINGS
+CORE.VERIFICATION_EVIDENCE
+CORE.VERIFICATION_EVENTS
+CORE.CASE_SCORE_SNAPSHOTS_V2
+CORE.DECISIONS
+CORE.REGISTRY_SNAPSHOTS
+CORE.REGISTRY_AI_SYSTEMS
 
-### DECISION LAYER
-- CORE.VERIFICATION_DECISIONS
+------------------------------------------------------------
+ACTIVE VIEWS
+------------------------------------------------------------
 
-### REGISTRY LAYER
-- CORE.REGISTRY_SNAPSHOTS (append-only public record)
-- CORE.REGISTRY_AI_SYSTEMS
+PRIMARY PUBLIC VIEW:
+CORE.V_REGISTRY_PUBLIC
 
----
+CURRENT SAFE COLUMN SET:
+- REGISTRY_ID
+- APPLICATION_ID
+- CASE_ID
+- ENTITY_NAME
+- COUNTRY
+- DECISION_STATUS (may be null)
 
-## CORE PROCEDURES (CANONICAL)
+LATEST SNAPSHOT VIEW:
+CORE.V_REGISTRY_LATEST_APPROVED
 
-### 1) APPLICATION → CASE
-File: 23_SP_CREATE_CASE_FROM_APPLICATION.sql  
-- Input: APPLICATION_ID or REQUEST_ID  
-- Resolves latest application  
-- Generates deterministic CASE_ID  
-- Inserts into VERIFICATION_CASES (idempotent)  
-- Inserts lifecycle event into VERIFICATION_EVENTS  
-- Returns structured VARIANT response  
+AI SYSTEMS VIEW:
+CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC
 
----
+------------------------------------------------------------
+SCORING ENGINE
+------------------------------------------------------------
 
-### 2) SCORING
-File: 24_SP_SCORE_CASE_ENTERPRISE.sql  
-- Computes FINAL_SCORE  
-- Outputs TIER and BAND  
-- Writes to CASE_SCORE_SNAPSHOTS  
-- Must align exactly with V_GOVERNANCE_SCORE_CASE  
+Procedure:
+CORE.SP_SCORE_CASE_ENTERPRISE
 
----
-
-### 3) DECISION
-File: 25_PROCEDURES_APPROVAL.sql  
-- Inserts certification decision  
-- Sets DECISION_STATUS (APPROVED / REJECTED)  
-
----
-
-### 4) REGISTRY PUBLISH
-File: CORE.REGISTRY_PUBLISH.sql  
-- Validates approved case  
-- Generates or reuses REGISTRY_ID (GAFAIG-XXXXXXXX)  
-- Inserts append-only snapshot into REGISTRY_SNAPSHOTS  
-
----
-
-### 5) SCORE EXPLANATION (NEW — PUBLIC SAFE)
-File: GAFAIG - SCORE_BREAKDOWN_PUBLIC.sql  
-- Builds public-safe trust explanation layer  
-- Normalizes internal controls into governance dimensions  
-- Creates:
-  - CORE.V_SCORE_BREAKDOWN_PUBLIC
-  - CORE.V_SCORE_DIMENSIONS_PUBLIC  
-- Must NEVER expose internal scoring logic or evidence  
-
----
-
-## CORE VIEWS
-
-### PRIVATE ENGINE
-- CORE.V_GOVERNANCE_SCORE_CASE
+Supporting views:
+- CORE.V_CASE_SCORE_ENTERPRISE
 - CORE.V_CASE_TIER_BAND
-- CORE.V_CASE_RENEWAL_STATUS
-- CORE.V_CONTROL_SCORE_COMPONENTS
+- CORE.V_FINDING_UNMAPPED_CONTROLS
 
-### PUBLIC REGISTRY
-- CORE.V_REGISTRY_LATEST_APPROVED
-- CORE.V_REGISTRY_PUBLIC
-- CORE.V_REGISTRY_PUBLIC_SEARCH
+Snapshots:
+- CORE.CASE_SCORE_SNAPSHOTS_V2
 
-### AI SYSTEMS
-- CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC
+------------------------------------------------------------
+REGISTRY PUBLISHING
+------------------------------------------------------------
 
-### PUBLIC TRUST EXPLANATION (NEW)
-- CORE.V_SCORE_BREAKDOWN_PUBLIC
-- CORE.V_SCORE_DIMENSIONS_PUBLIC
+Procedure:
+CORE.SP_PUBLISH_CASE_TO_REGISTRY_V3
 
----
+Responsibilities:
+- Validate approved case
+- Read deterministic score
+- Generate/reuse REGISTRY_ID
+- Insert append-only REGISTRY_SNAPSHOTS row
+- Align AI systems with registry
 
-## SCORING MODEL (LOCKED)
-
-Source of Truth:
-CORE.V_GOVERNANCE_SCORE_CASE  
-
-Outputs:
-- FINAL_SCORE  
-- TIER  
-- BAND  
-
-RULES:
-- Must originate ONLY in Snowflake  
-- Must NEVER be recomputed in API/UI  
-- Must be deterministic  
-- Must match scoring procedure outputs exactly  
-
----
-
-## PUBLIC TRUST MODEL (UPDATED — CRITICAL)
-
-WE DO NOT EXPOSE:
-- Raw scoring internals  
-- Control-level logic  
-- Evidence or findings  
-
-WE DO EXPOSE:
-- Certification status  
-- Tier / Band  
-- Certification timestamp  
-- Signed proof  
-- Public-safe governance explanation  
-
-Public messaging MUST be:
-
-“Certified and reviewed across governance dimensions”
-
-NOT:
-
-“Score = X”
-
----
-
-## QUERY LAYER (NEXT.JS)
-
-Pattern:
-Snowflake → lib/queries → API → UI  
+------------------------------------------------------------
+QUERY LAYER (CRITICAL STATE)
+------------------------------------------------------------
 
 Files:
-- lib/queries/registry.ts → V_REGISTRY_PUBLIC  
-- lib/queries/explorer.ts → Aggregations  
-- lib/queries/registry-ai-systems.ts → Systems view  
-- lib/queries/score-breakdown.ts → Explanation layer  
+- lib/queries/registry.ts
+- lib/queries/explorer.ts
+
+Status:
+- Fully aligned to minimal Snowflake schema
+- All non-existent fields removed
+- Synthetic/null placeholders added ONLY where UI requires types
 
 RULE:
-Query layer is the ONLY place Snowflake is accessed from the app.
+Query layer must EXACTLY match Snowflake views
 
----
+------------------------------------------------------------
+API LAYER
+------------------------------------------------------------
 
-## API LAYER (THIN TRANSPORT ONLY)
+Registry:
+app/api/registry/route.ts
 
-### PUBLIC APIs
+Explorer:
+app/api/explorer/route.ts
 
-- /api/registry  
-  → CORE.V_REGISTRY_PUBLIC  
+Verification:
+app/api/verify/[registryId]/route.ts
 
-- /api/registry/search  
-  → CORE.V_REGISTRY_PUBLIC_SEARCH  
+Pattern:
+Snowflake → Query Layer → API → UI
 
-- /api/verify/[registryId]  
-  → Returns signed verification payload  
+No business logic in API
 
-- /api/.well-known/gafaig-public-key  
-  → Returns Ed25519 public key  
+------------------------------------------------------------
+FRONTEND (NEXT.JS)
+------------------------------------------------------------
 
-- /api/registry/[registryId]/score-breakdown  
-  → CORE.V_SCORE_DIMENSIONS_PUBLIC  
+Framework:
+Next.js 14 (App Router)
 
-- /api/badge/[registryId]  
-  → Returns badge asset  
+Pages:
 
-RULE:
-No computation. No business logic. Read-only.
-
----
-
-## UI LAYER (NEXT.JS APP ROUTER)
-
-### CORE PAGES
-
-- / (homepage)
-- /mission
-- /framework
-- /verify
-- /developers
-- /apply
-
-### REGISTRY
-
+Registry:
 - /registry
 - /registry/[registryId]
-- /registry/ai-systems
 
-### EXPLORER
-
+Explorer:
 - /explorer
 - /explorer/organizations
 - /explorer/countries
 - /explorer/systems
 
-### WIDGET
+AI Systems:
+- /registry/ai-systems
 
-- /widget-preview/[registryId]
+Status:
+- All pages compile successfully
+- All runtime crashes resolved
+- UI currently reflects minimal dataset
 
----
+------------------------------------------------------------
+SNOWFLAKE CONNECTION
+------------------------------------------------------------
 
-## TRUST SURFACES
+File:
+lib/snowflake.ts
 
-### REGISTRY DETAIL
-- Certification outcome
-- Tier / Band
-- Signed proof
-- Badge / widget
-- Governance explanation layer
+Status:
+- Updated to support key-pair authentication
+- Compatible with MFA-enabled Snowflake accounts
 
-### EXPLORER
-- Public registry insights
-- Governance coverage summaries
-- Organization / country / system views
+Requirements:
+- SNOWFLAKE_PRIVATE_KEY or PRIVATE_KEY_PATH must be set
+- SNOWFLAKE_JWT authenticator must be used
 
-### VERIFY PAGE
-- Registry ID input
-- Proof retrieval
-- Client-side signature verification (tweetnacl)
+------------------------------------------------------------
+SEED SYSTEM (CURRENT)
+------------------------------------------------------------
 
-### BADGE / WIDGET
-- Portable trust signals
-- External verification capability
+File:
+GAFAIG - CANONICAL_DEMO_SEED_MASTER.sql
 
----
+Status:
+- Rebuilt as minimal deterministic seed
+- Creates:
+  CASE → SCORE → DECISION → REGISTRY SNAPSHOT
 
-## ADMIN / PRIVATE LAYER
-
-Protected by:
-- middleware.ts
-- lib/auth/require.ts  
-
-Pages:
-- /admin/login  
-- /admin/applications  
-- /admin/verification/[caseId]/findings  
-
-API:
-- /api/admin/verification/decisions  
+Removes:
+- legacy evidence/finding complexity
+- inconsistent relationships
 
 Purpose:
-- Control certification workflow
-- Execute decisions
-- Trigger publish
+- Provide stable test registry record (CASE-0001)
 
----
+------------------------------------------------------------
+CURRENT LIMITATIONS
+------------------------------------------------------------
 
-## IDENTIFIER STANDARDS (LOCKED)
+The system is intentionally running without enrichment.
 
-- APPLICATION_ID → APP-XXXXXXXX  
-- CASE_ID → CASE-XXXXXXXX  
-- REGISTRY_ID → GAFAIG-XXXXXXXX  
+Missing from CORE.V_REGISTRY_PUBLIC:
+- ENTITY_TYPE
+- CERTIFIED_SCORE
+- CERTIFIED_TIER
+- CERTIFIED_BAND
+- CERTIFIED_AT
+- VALID_FROM / VALID_TO
 
-RULES:
-- Uppercase only  
-- Trimmed  
-- Deterministic  
-- Consistent across all layers  
+Explorer layer uses placeholders for compatibility.
 
----
+------------------------------------------------------------
+NEXT PHASE (MANDATORY)
+------------------------------------------------------------
 
-## SYSTEM RULES (NON-NEGOTIABLE)
+Rebuild canonical enriched registry view:
 
-- Snowflake is the source of truth  
-- No scoring logic in API/UI  
-- Append-only architecture  
-- Deterministic IDs  
-- Procedures control all state transitions  
-- Public layer reads from views only  
-- Never expose evidence  
-- Never expose internal scoring logic  
-- Do not re-architect  
+TARGET:
+CORE.V_REGISTRY_PUBLIC (ENRICHED)
 
----
-
-## CURRENT SYSTEM STATE (2026-04-10)
-
-### WORKING
-
-✔ Snowflake environment fully operational  
-✔ Core tables and procedures stable  
-✔ Case → scoring → decision → publish pipeline working  
-✔ Registry snapshots publishing correctly  
-✔ Public registry views stable  
-✔ API layer functional  
-✔ Registry UI live  
-✔ Explorer UI live  
-✔ AI systems registry live  
-✔ Signed verification endpoint working  
-✔ Public key endpoint working  
-✔ Badge + widget system functional  
-
-✔ NEW:
-- Public trust explanation layer implemented  
-- Score normalization to governance dimensions  
-- API endpoint for score breakdown live  
-
----
-
-### ACTIVE ISSUES (RESOLVED IN THIS PHASE)
-
-✔ REGEXP_LIKE mismatch → fixed using LIKE-based classification  
-✔ Dimension inconsistency (3 vs 5 vs 12) → normalized to canonical 5  
-✔ Snowflake TRY_CAST errors → resolved with proper casting  
-✔ Public messaging misalignment → corrected to trust explanation model  
-
----
-
-## CURRENT PHASE
-
-PHASE: **Public Trust Surface Completion**
-
-OBJECTIVES:
-1. Fully replace score-centric UI with trust explanation  
-2. Normalize governance dimension display across platform  
-3. Ensure registry + explorer alignment  
-4. Maintain strict separation of private vs public data  
-
----
-
-## NEXT STEPS (LOCKED ORDER)
-
-1. Validate SCORE_BREAKDOWN_PUBLIC views (no SQL errors)  
-2. Confirm API returns correct dimension data  
-3. Update Registry page:
-   - Replace score emphasis  
-   - Add governance explanation section  
-
-4. Update Explorer:
-   - Display governance coverage  
-   - Remove raw score references  
-
-5. Implement client-side signature verification (tweetnacl)  
-
-6. Final trust surface polish:
-   - Badge integration  
-   - Widget validation  
-   - External verification snippet  
-
----
-
-## DEPLOYMENT
-
-Platform:
-- Vercel  
-
-Process:
-- git add .
-- git commit -m "message"
-- git push origin main  
+Add:
+- ENTITY_TYPE (from APPLICATIONS)
+- CERTIFIED_SCORE / TIER / BAND
+- CERTIFIED_AT
+- VALID_FROM / VALID_TO
+- normalized DECISION_STATUS
 
 Then:
-- Verify deployment in Vercel  
-- Test:
-  - /registry  
-  - /registry/[id]  
-  - /verify  
-  - /explorer  
-  - score-breakdown API  
+- Update query layer to use real fields
+- Remove all synthetic placeholders
+- Restore full registry UX
 
----
+------------------------------------------------------------
+DO NOT BREAK RULES
+------------------------------------------------------------
 
-## FINAL SYSTEM SUMMARY
+- Do NOT compute scores in API/UI
+- Do NOT assume fields not in Snowflake
+- Do NOT bypass publish procedure
+- Do NOT mutate snapshot history
+- Do NOT reintroduce broken joins
 
-GAFAIG is a deterministic AI governance certification infrastructure.
+------------------------------------------------------------
+SUMMARY
+------------------------------------------------------------
 
-PRIVATE:
-- Full verification engine  
-- Evidence, findings, scoring  
+GAFAIG is now:
 
-PUBLIC:
-- Certification outcome  
-- Tier / Band  
-- Signed proof  
-- Public-safe governance explanation  
+✔ Architecturally correct
+✔ Deterministic
+✔ Build-stable
+✔ Runtime-stable
+✔ Snowflake-aligned
 
-TRANSITION COMPLETE:
-Score display → Trust explanation layer  
+Remaining work is controlled and forward-only:
+→ Reintroduce enrichment cleanly at the Snowflake layer
 
-This is the final and correct architecture.
+============================================================
+END OF FILE
+============================================================

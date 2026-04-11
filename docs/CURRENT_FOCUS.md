@@ -1,248 +1,218 @@
-# GAFAIG — CURRENT FOCUS — 2026-04-10
-
-## ACTIVE PHASE
-Public Trust Surface Completion (CRITICAL)
-
-This phase finalizes GAFAIG as a true trust infrastructure by aligning all public-facing surfaces with the canonical model:
-
-PRIVATE = full verification engine (hidden)  
-PUBLIC = certification outcome + trust explanation (visible)  
-
-The platform must no longer present raw scores as the primary signal.  
-All public surfaces must communicate **verified governance, not computed scoring**.
-
----
-
-## PRIMARY OBJECTIVE
-
-Transform GAFAIG from a “score display system” into a **trust signaling system**.
-
-This means:
-
-- Scores remain internal (Snowflake only)
-- Public surfaces show:
-  - Certification status
-  - Tier / Band
-  - Governance coverage (dimensions)
-  - Signed verification proof
-
----
-
-## CURRENT PRIORITY (LOCKED ORDER)
-
-### 1) FIX SCORE BREAKDOWN FOUNDATION (SNOWFLAKE)
-
-Status: IN PROGRESS
-
-File:
-GAFAIG - SCORE_BREAKDOWN_PUBLIC.sql
-
-Objectives:
-- Normalize control-level scoring into governance dimensions
-- Enforce canonical dimension count (5 ONLY)
-- Remove REGEXP_LIKE (use LIKE)
-- Fix TRY_CAST issues (strict numeric casting)
-- Ensure required output columns:
-
-  REQUIRED OUTPUT:
-  - CASE_ID
-  - DIMENSION
-  - COMPONENT_NAME
-  - COMPONENT_SCORE
-
-  DIMENSION OUTPUT:
-  - CASE_ID
-  - DIMENSION
-  - DIMENSION_SCORE
-  - CONTROLS_COUNT
-
-Rules:
-- No exposure of raw scoring logic
-- No exposure of evidence
-- Must be derived from V_CONTROL_SCORE_COMPONENTS
-- Must remain deterministic
-
-BLOCKERS ADDRESSED:
-✔ REGEXP_LIKE incompatibility  
-✔ TRY_CAST numeric errors  
-✔ Column naming mismatches  
-✔ Dimension inconsistency (3 vs 5 vs 12)  
-
-TARGET:
-Stable, queryable public-safe explanation layer
-
----
-
-### 2) BUILD API + QUERY LAYER (SCORE EXPLANATION)
-
-Status: IN PROGRESS
-
-Files:
-- lib/queries/score-breakdown.ts
-- /api/registry/[registryId]/score-breakdown/route.ts
-
-Objectives:
-- Pull from CORE.V_SCORE_DIMENSIONS_PUBLIC
-- Resolve REGISTRY_ID → CASE_ID
-- Return normalized JSON structure:
-
-{
-  registryId,
-  dimensions: [
-    { name, score, controls }
-  ]
-}
-
-Rules:
-- No computation
-- No transformation beyond mapping
-- Snowflake remains source of truth
-
----
-
-### 3) UPDATE REGISTRY PAGE (TRUST ALIGNMENT)
-
-Status: NEXT
-
-File:
-app/registry/[registryId]/page.tsx
-
-Objectives:
-- REMOVE emphasis on raw score
-- ADD governance explanation section
-- DISPLAY:
-
-  “Certified and reviewed across 5 governance dimensions”
-
-- Render dimension breakdown UI
-
-DO NOT:
-- Show control-level scoring
-- Show internal metrics
-- Show raw scoring formulas
-
----
-
-### 4) UPDATE EXPLORER (CRITICAL FIX)
-
-Status: IN PROGRESS
-
-File:
-app/explorer/page.tsx
-
-Current Issue:
-- Inconsistent dimension counts (3, 5, 12)
-
-Fix:
-- Enforce canonical 5 governance dimensions globally
-
-Objectives:
-- Replace:
-  “Score: 90”
-
-  WITH:
-
-  “Reviewed across 5 governance dimensions”
-
-- Show dimension coverage instead of score emphasis
-
----
-
-### 5) VERIFY PAGE (CRYPTOGRAPHIC TRUST)
-
-Status: READY
-
-File:
-app/verify/page.tsx
-
-Objectives:
-- Input: REGISTRY_ID
-- Fetch:
-  /api/verify/[registryId]
-
-- Perform client-side verification using:
-  tweetnacl (Ed25519)
-
-- Validate:
-  message + signature + public key
-
-Outcome:
-TRUE / FALSE verification status
-
----
-
-### 6) BADGE + WIDGET (PORTABLE TRUST)
-
-Status: READY
-
-Endpoints:
-- /api/badge/[registryId]
-- /widget-preview/[registryId]
-
-Objectives:
-- Embed trust externally
-- Provide verifiable certification signal
-- Connect to verification endpoint
-
----
-
-## CURRENT SYSTEM RISKS
-
-1) DIMENSION DRIFT
-- Different parts of system showing different counts
-- MUST remain fixed at 5
-
-2) PUBLIC/PRIVATE LEAKAGE
-- Risk of exposing internal scoring logic
-- MUST enforce strict separation
-
-3) UI MISALIGNMENT
-- Score-first messaging contradicts system design
-- Must shift to certification-first messaging
-
----
-
-## DEFINITION OF DONE (THIS PHASE)
-
-✔ Score breakdown views compile and return correct schema  
-✔ API returns dimension-level data  
-✔ Registry page shows governance explanation  
-✔ Explorer shows consistent 5-dimension coverage  
-✔ No raw score emphasis on public pages  
-✔ Verify page supports cryptographic validation  
-✔ Badge + widget functional  
-✔ All trust surfaces aligned with system identity  
-
----
-
-## NEXT PHASE (AFTER COMPLETION)
-
-Phase: External Trust Expansion
-
-- 1-click verification snippet (Node + browser)
-- Public developer documentation
-- Registry adoption onboarding
-- Ecosystem integrations
-
----
-
-## ENGINEERING RULE REMINDER
-
-- DO NOT re-architect  
-- DO NOT move logic out of Snowflake  
-- DO NOT expose private data  
-- DO NOT compute scores in API/UI  
-- ALWAYS enforce deterministic outputs  
-
----
-
-## FINAL NOTE
-
-We are no longer building features.
-
-We are finalizing **trust infrastructure**.
-
-Every change must reinforce:
-
-GAFAIG = Verified AI Governance  
-Not estimated. Not claimed. Verified.
+# CURRENT_FOCUS.md
+Last Updated: 2026-04-10
+
+============================================================
+CURRENT PHASE: REGISTRY STABILIZATION COMPLETE → ENRICHMENT REBUILD
+============================================================
+
+The GAFAIG platform has successfully exited the instability phase.
+
+All blocking issues have been resolved:
+- TypeScript build failures across Explorer and Registry
+- Snowflake authentication (MFA vs password vs key-pair)
+- Broken query layer assumptions
+- Invalid Snowflake column references
+- Seed file inconsistency and over-complexity
+- Runtime crashes in /explorer and /registry routes
+
+The system is now running in a **minimal, stable configuration**.
+
+------------------------------------------------------------
+WHAT IS WORKING (CONFIRMED)
+------------------------------------------------------------
+
+✔ Snowflake connection (MFA-compatible path established)
+✔ Next.js build completes successfully
+✔ All API routes respond without crashing
+✔ /registry loads from CORE.V_REGISTRY_PUBLIC
+✔ /explorer pages render without runtime failure
+✔ /registry/ai-systems and /explorer/systems render
+✔ Canonical seed successfully produces a registry record (CASE-0001)
+✔ Publish pipeline is functional (SP_PUBLISH_CASE_TO_REGISTRY_V3)
+
+------------------------------------------------------------
+CURRENT SYSTEM MODE
+------------------------------------------------------------
+
+MODE: MINIMAL REGISTRY COMPATIBILITY
+
+The system is intentionally running with a reduced schema to guarantee stability.
+
+Active public data source:
+CORE.V_REGISTRY_PUBLIC
+
+Current fields in use:
+- REGISTRY_ID
+- APPLICATION_ID
+- CASE_ID
+- ENTITY_NAME
+- COUNTRY
+- DECISION_STATUS (partial / fallback)
+
+Explorer and Registry UI have been downgraded to match this schema exactly.
+
+------------------------------------------------------------
+WHAT WAS REMOVED (TEMPORARILY)
+------------------------------------------------------------
+
+The following fields were removed from active usage due to instability:
+
+- ENTITY_TYPE
+- CERTIFIED_SCORE
+- CERTIFIED_TIER
+- CERTIFIED_BAND
+- CERTIFIED_AT
+- VALID_FROM
+- VALID_TO
+
+These fields previously caused:
+- Snowflake query failures
+- TypeScript contract mismatches
+- Runtime crashes
+
+------------------------------------------------------------
+WHY THIS WAS NECESSARY
+------------------------------------------------------------
+
+The system drifted into a broken state where:
+- UI assumed fields that did not exist
+- Query layer referenced invalid columns
+- Snowflake views were partially inconsistent
+- Seed data did not align with schema
+
+The correct decision was made:
+→ Stabilize FIRST
+→ Rebuild SECOND
+
+------------------------------------------------------------
+CURRENT PRIORITY (DO THIS NEXT)
+------------------------------------------------------------
+
+PHASE: CANONICAL REGISTRY ENRICHMENT REBUILD
+
+Objective:
+Rebuild CORE.V_REGISTRY_PUBLIC as a fully enriched, canonical view.
+
+This is the ONLY correct next step.
+
+------------------------------------------------------------
+ENRICHMENT TARGET (DEFINE CLEARLY)
+------------------------------------------------------------
+
+The rebuilt CORE.V_REGISTRY_PUBLIC MUST include:
+
+FROM REGISTRY_SNAPSHOTS:
+- REGISTRY_ID
+- CASE_ID
+- ENTITY_NAME
+- VERIFICATION_TYPE
+- SCORE
+- TIER
+- BAND
+- CERTIFIED_SCORE
+- CERTIFIED_TIER
+- CERTIFIED_BAND
+- CERTIFIED_AT
+- APPROVED_AT
+- PUBLISHED_AT
+
+FROM DECISIONS:
+- DECISION_STATUS
+- VALID_FROM
+- VALID_TO
+
+FROM APPLICATIONS:
+- ENTITY_TYPE
+- COUNTRY
+
+------------------------------------------------------------
+STRICT RULE FOR REBUILD
+------------------------------------------------------------
+
+DO NOT GUESS FIELDS.
+
+Every field must:
+✔ Exist in a real table
+✔ Be explicitly selected
+✔ Be validated with DESCRIBE or SELECT
+
+------------------------------------------------------------
+AFTER VIEW REBUILD (SEQUENCE)
+------------------------------------------------------------
+
+STEP 1:
+Rebuild CORE.V_REGISTRY_PUBLIC (ENRICHED)
+
+STEP 2:
+Validate with direct Snowflake query:
+SELECT * FROM CORE.V_REGISTRY_PUBLIC LIMIT 10;
+
+STEP 3:
+Update lib/queries/registry.ts to include new fields
+
+STEP 4:
+Update lib/queries/explorer.ts to remove placeholders
+
+STEP 5:
+Re-run:
+npm run build
+
+STEP 6:
+Verify:
+- /registry
+- /explorer
+- /explorer/organizations
+- /explorer/countries
+- /explorer/systems
+
+------------------------------------------------------------
+DO NOT DO (CRITICAL)
+------------------------------------------------------------
+
+🚫 Do NOT modify frontend to “fix” missing data
+🚫 Do NOT reintroduce guessed columns
+🚫 Do NOT bypass publish procedure
+🚫 Do NOT patch queries before Snowflake is correct
+🚫 Do NOT reintroduce legacy seed complexity
+
+------------------------------------------------------------
+SUCCESS CRITERIA
+------------------------------------------------------------
+
+The system is considered fully restored when:
+
+✔ CORE.V_REGISTRY_PUBLIC contains full enriched dataset
+✔ Query layer uses only real fields (no placeholders)
+✔ Explorer pages display:
+  - organization counts
+  - country breakdowns
+  - certification tiers
+✔ Registry detail pages show certification data
+✔ No TypeScript errors
+✔ No runtime Snowflake errors
+
+------------------------------------------------------------
+STRATEGIC POSITION
+------------------------------------------------------------
+
+You are no longer debugging.
+
+You are now:
+→ Rebuilding the canonical public trust surface of GAFAIG
+
+This is the transition from:
+“make it work”
+to:
+“make it correct and scalable”
+
+------------------------------------------------------------
+NEXT CHAT INSTRUCTION
+------------------------------------------------------------
+
+Start next chat with:
+
+"This is the continuation chat for building GAFAIG. Load MASTER_STATE.md, CURRENT_FOCUS.md, ENGINEERING_RULES.md. Snowflake is the source of truth. Do not re-architect. Begin rebuilding CORE.V_REGISTRY_PUBLIC as the canonical enriched registry view."
+
+============================================================
+END OF FILE
+============================================================

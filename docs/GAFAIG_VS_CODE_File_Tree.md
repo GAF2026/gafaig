@@ -1,254 +1,211 @@
-# GAFAIG — VS CODE FILE TREE (CANONICAL) — 2026-04-10
+# GAFAIG_VS_CODE_File_Tree.md
+Last Updated: 2026-04-10
 
-## OVERVIEW
-This document defines the complete active VS Code file structure for the GAFAIG platform.
+============================================================
+GAFAIG — FULL VS CODE FILE TREE (CANONICAL)
+============================================================
 
-GAFAIG is built using:
-- Next.js (App Router)
-- TypeScript
-- Snowflake (external computation layer)
-- Vercel (deployment)
+This document reflects the current, active VS Code file structure for the GAFAIG platform after stabilization.
 
-RULE:
-This codebase does NOT contain business logic.  
-It is a presentation + transport layer only.
+All files listed are:
+- Actively used
+- Aligned with Snowflake
+- Compatible with current build and runtime
 
-All computation lives in Snowflake.
-
----
-
-## ROOT DIRECTORY
+------------------------------------------------------------
+ROOT DIRECTORY
+------------------------------------------------------------
 
 gafaig/
-├─ app/                         # Next.js App Router (ALL UI + API routes)
-├─ components/                  # Shared UI components
-├─ lib/                         # Query layer + utilities
-├─ public/                      # Static assets
-├─ styles/                      # Global styles
-├─ docs/                        # Canonical documentation
-├─ .env.local                   # Local environment variables (NOT committed)
-├─ next.config.js               # Next.js configuration
-├─ package.json                 # Dependencies + scripts
-├─ tsconfig.json                # TypeScript configuration
-├─ README.md                    # Project overview
+├─ .next/                         (build output — ignore)
+├─ .vercel/                       (deployment metadata)
+├─ node_modules/                  (dependencies — ignore)
 
----
+├─ app/
+├─ components/
+├─ lib/
+├─ types/
+├─ public/
+├─ docs/
 
-## APP DIRECTORY (CORE)
+├─ .env.local
+├─ package.json
+├─ tsconfig.json
+├─ next.config.js
+├─ README.md
 
-app/
-├─ layout.tsx                   # Root layout wrapper
-├─ page.tsx                     # Homepage
-
----
-
-## PUBLIC PAGES
+------------------------------------------------------------
+APP DIRECTORY (NEXT.JS APP ROUTER)
+------------------------------------------------------------
 
 app/
-├─ mission/page.tsx
-├─ framework/page.tsx
-├─ verify/page.tsx              # Cryptographic verification page
-├─ developers/page.tsx
-├─ apply/page.tsx
 
----
+├─ page.tsx                      (homepage)
 
-## REGISTRY (PUBLIC TRUST RECORD)
-
-app/registry/
-├─ page.tsx                     # Registry list
-├─ [registryId]/
-│  ├─ page.tsx                  # Registry detail page (CORE TRUST PAGE)
-├─ ai-systems/
-│  ├─ page.tsx                  # AI systems registry view
-
----
-
-## EXPLORER (DISCOVERY LAYER)
-
-app/explorer/
-├─ page.tsx                     # Explorer overview
-├─ organizations/page.tsx
-├─ countries/page.tsx
-├─ systems/page.tsx
-
----
-
-## WIDGET PREVIEW
-
-app/widget-preview/
-├─ [registryId]/page.tsx        # Badge + embed preview
-
----
-
-## API ROUTES (THIN LAYER — NO LOGIC)
-
-app/api/
-
-### PUBLIC REGISTRY
+------------------------------------------------------------
+REGISTRY (PUBLIC)
+------------------------------------------------------------
 
 ├─ registry/
-│  ├─ route.ts                 # GET → V_REGISTRY_PUBLIC
-│  ├─ search/
-│  │  ├─ route.ts             # GET → V_REGISTRY_PUBLIC_SEARCH
+│  ├─ page.tsx                  (registry list page)
 │  ├─ [registryId]/
-│  │  ├─ score-breakdown/
-│  │  │  ├─ route.ts          # GET → V_SCORE_DIMENSIONS_PUBLIC
+│  │  └─ page.tsx              (registry detail page)
+│  └─ ai-systems/
+│     └─ page.tsx              (AI systems registry page)
 
----
+------------------------------------------------------------
+EXPLORER
+------------------------------------------------------------
 
-### VERIFICATION
+├─ explorer/
+│  ├─ page.tsx                 (explorer overview)
+│  ├─ organizations/
+│  │  └─ page.tsx
+│  ├─ countries/
+│  │  └─ page.tsx
+│  └─ systems/
+│     └─ page.tsx
 
-├─ verify/
-│  ├─ [registryId]/route.ts   # Signed verification payload
+------------------------------------------------------------
+API ROUTES
+------------------------------------------------------------
 
-├─ .well-known/
-│  ├─ gafaig-public-key/
-│  │  ├─ route.ts            # Public Ed25519 key
+├─ api/
 
----
+│  ├─ registry/
+│  │  └─ route.ts              (registry endpoint)
 
-### BADGE
+│  ├─ explorer/
+│  │  └─ route.ts              (explorer endpoint)
 
-├─ badge/
-│  ├─ [registryId]/route.ts  # Badge rendering endpoint
+│  ├─ verify/
+│  │  └─ [registryId]/
+│  │     └─ route.ts           (verification proof endpoint)
 
----
+│  ├─ badge/
+│  │  └─ [registryId]/
+│  │     └─ route.ts           (badge endpoint)
 
-## ADMIN (PRIVATE CONTROL LAYER)
+│  ├─ .well-known/
+│  │  └─ gafaig-public-key/
+│  │     └─ route.ts           (public key endpoint)
 
-app/admin/
-├─ login/page.tsx
-├─ applications/page.tsx
-├─ verification/
-│  ├─ [caseId]/
-│  │  ├─ findings/page.tsx
+------------------------------------------------------------
+ADMIN (VERIFICATION WORKFLOW)
+------------------------------------------------------------
 
----
+├─ admin/
 
-### ADMIN API
+│  ├─ login/
+│  │  └─ page.tsx
 
-app/api/admin/
-├─ verification/
-│  ├─ decisions/
-│  │  ├─ route.ts            # Inserts certification decisions
+│  ├─ applications/
+│  │  └─ page.tsx
 
----
+│  ├─ verification/
+│  │  └─ [caseId]/
+│  │     ├─ page.tsx
+│  │     ├─ findings/
+│  │     │  └─ page.tsx
+│  │     └─ decisions/
+│  │        └─ page.tsx
 
-## COMPONENTS
+------------------------------------------------------------
+SHARED COMPONENTS
+------------------------------------------------------------
 
 components/
 
-### REGISTRY COMPONENTS
+├─ ui/
+│  ├─ StatusChip.tsx
+│  ├─ Button.tsx
+│  └─ Table.tsx
 
 ├─ registry/
 │  ├─ RegistryHeaderPanel.tsx
 │  ├─ RegistryCertificationSummary.tsx
 │  ├─ RegistryVerificationPanel.tsx
 
----
+├─ explorer/
+│  ├─ ExplorerSummary.tsx
+│  ├─ ExplorerTable.tsx
 
-### UI COMPONENTS
+├─ _components/
+│  ├─ PublicButton.tsx
+│  ├─ PublicButtonLink.tsx
+│  ├─ PublicPageHero.tsx
 
-├─ ui/
-│  ├─ StatusChip.tsx
-
----
-
-### SHARED COMPONENTS
-
-app/_components/
-├─ PublicButton.tsx
-├─ PublicButtonLink.tsx
-├─ PublicPageHero.tsx
-
----
-
-## LIB DIRECTORY (CRITICAL — QUERY LAYER)
+------------------------------------------------------------
+QUERY LAYER (CRITICAL)
+------------------------------------------------------------
 
 lib/
 
-### SNOWFLAKE CONNECTION
+├─ queries/
+
+│  ├─ registry.ts
+│  │  → CORE.V_REGISTRY_PUBLIC
+│  │  → Minimal schema aligned
+
+│  ├─ explorer.ts
+│  │  → Fully patched
+│  │  → Uses only valid Snowflake fields
+│  │  → Provides compatibility fields:
+│  │     organizationCount, registryCount, decisionStatus, etc.
+
+│  ├─ registry-ai-systems.ts
+│     → CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC
+
+------------------------------------------------------------
+SNOWFLAKE CONNECTION
+------------------------------------------------------------
+
+lib/
 
 ├─ snowflake.ts
-Purpose:
-- Handles Snowflake connection
-- Exposes sfQuery()
+   → JWT key-pair authentication
+   → Uses:
+      SNOWFLAKE_PRIVATE_KEY
+      SNOWFLAKE_ACCOUNT
+      SNOWFLAKE_ROLE
+   → No longer relies on password auth
 
-RULE:
-Only entry point to Snowflake
+------------------------------------------------------------
+AUTH / SECURITY
+------------------------------------------------------------
 
----
+lib/
 
-### QUERY LAYER
+├─ auth/
+│  ├─ requireAdmin.ts
 
-lib/queries/
+├─ crypto/
+│  ├─ sign.ts
+│  ├─ verify.ts
+
+------------------------------------------------------------
+TYPES
+------------------------------------------------------------
+
+types/
 
 ├─ registry.ts
-Purpose:
-- Fetch registry list + detail
-- Uses V_REGISTRY_PUBLIC
-
----
-
 ├─ explorer.ts
-Purpose:
-- Explorer aggregations
-- Organizations, countries, systems
+├─ api.ts
 
----
-
-├─ registry-ai-systems.ts
-Purpose:
-- Fetch AI systems data
-- Uses V_REGISTRY_AI_SYSTEMS_PUBLIC
-
----
-
-├─ score-breakdown.ts
-Purpose:
-- Fetch governance dimension data
-- Uses V_SCORE_DIMENSIONS_PUBLIC
-
----
-
-## AUTH LAYER
-
-lib/auth/
-
-├─ require.ts
-Purpose:
-- Protect admin routes
-- Validate session cookies
-
----
-
-## CRYPTO (VERIFICATION)
-
-lib/crypto/
-
-├─ verifySignature.ts
-Purpose:
-- Verifies Ed25519 signatures using tweetnacl
-
----
-
-## STYLES
-
-styles/
-├─ globals.css
-
----
-
-## PUBLIC ASSETS
+------------------------------------------------------------
+PUBLIC ASSETS
+------------------------------------------------------------
 
 public/
+
+├─ badge/
 ├─ images/
-├─ icons/
+├─ favicon.ico
 
----
-
-## DOCS (CANONICAL SYSTEM FILES)
+------------------------------------------------------------
+DOCUMENTATION
+------------------------------------------------------------
 
 docs/
 
@@ -257,81 +214,58 @@ docs/
 ├─ ENGINEERING_RULES.md
 ├─ PROJECT_INDEX.md
 ├─ CHANGELOG.md
+
+├─ GAFAIG_ACTIVE_FILE_MAP.md
 ├─ GAFAIG_SNOWFLAKE_SQL_FILE_SUMMARY.md
 ├─ GAFAIG_VS_CODE_File_Tree.md
-├─ API_ROUTE_MAPPING.md
-├─ UI_COMPONENT_MAPPING.md
 
----
+------------------------------------------------------------
+CURRENT STATE SUMMARY
+------------------------------------------------------------
 
-## ENVIRONMENT VARIABLES
+✔ Build passes (Next.js + TypeScript)
+✔ All pages render without runtime crashes
+✔ Snowflake connection stable (JWT auth)
+✔ Query layer fully aligned with minimal schema
+✔ Explorer + Registry functional
 
-.env.local (LOCAL ONLY)
+------------------------------------------------------------
+KNOWN LIMITATIONS
+------------------------------------------------------------
 
-Examples:
-- GAFAIG_SESSION_SECRET
-- GAFAIG_ADMIN_PASSWORD
-- SNOWFLAKE_ACCOUNT
-- SNOWFLAKE_USER
-- SNOWFLAKE_PASSWORD
-- SNOWFLAKE_DATABASE
-- SNOWFLAKE_SCHEMA
-- SNOWFLAKE_WAREHOUSE
+Current mode: MINIMAL REGISTRY
 
-RULE:
-Never commit this file.
+Missing fields in Snowflake:
+- ENTITY_TYPE
+- CERTIFIED_SCORE / TIER / BAND
+- CERTIFIED_AT
+- VALID_FROM / VALID_TO
 
----
+These are temporarily removed from UI logic.
 
-## DATA FLOW (END-TO-END)
+------------------------------------------------------------
+NEXT PHASE
+------------------------------------------------------------
 
-Snowflake (CORE)
-→ lib/queries/*
-→ API routes (app/api/*)
-→ UI pages (app/*)
-→ User
+Rebuild Snowflake layer:
 
----
+→ CORE.V_REGISTRY_PUBLIC (ENRICHED)
 
-## KEY RULES
+Then:
 
-- No scoring logic in API
-- No certification logic in UI
-- No direct table access
-- Only query Snowflake via lib/queries
-- API routes = thin transport only
-- UI = display only
+→ Upgrade query layer
+→ Restore full UI fields
+→ Remove placeholders from explorer.ts
 
----
+------------------------------------------------------------
+DO NOT BREAK RULES
+------------------------------------------------------------
 
-## CURRENT SYSTEM STATE (2026-04-10)
+- Do NOT add fields in frontend not in Snowflake
+- Do NOT compute certification in UI
+- Do NOT bypass publish procedure
+- Do NOT modify working connection layer
 
-STABLE:
-✔ Registry pages  
-✔ Explorer pages  
-✔ API routes  
-✔ Query layer  
-✔ Snowflake connection  
-✔ Verification endpoint  
-✔ Badge endpoint  
-
-NEW:
-✔ Score breakdown API  
-✔ Governance dimension layer  
-✔ TweetNaCl signature verification  
-
-IN PROGRESS:
-- Registry UI trust alignment  
-- Explorer UI normalization (5 dimensions)  
-
----
-
-## FINAL NOTE
-
-This file tree is the **execution layer of GAFAIG**.
-
-It does NOT define truth.
-
-Truth lives in Snowflake.
-
-This layer simply renders it.
+------------------------------------------------------------
+END OF FILE
+------------------------------------------------------------
