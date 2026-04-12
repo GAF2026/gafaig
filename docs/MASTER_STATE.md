@@ -1,285 +1,281 @@
 # MASTER_STATE.md
-Last Updated: 2026-04-10
+# GAFAIG — Global Authority for AI Governance
+# Canonical System State
+# Last Updated: 2026-04-12
 
-============================================================
-GAFAIG — MASTER SYSTEM STATE (CANONICAL)
-============================================================
+---
 
-GAFAIG (Global Authority for AI Governance) is a deterministic, append-only AI governance registry platform built on Snowflake as the single source of truth, with a Next.js frontend and API layer deployed via Vercel.
+## SYSTEM DEFINITION
 
-The system is designed to function as a global certification and registry infrastructure for AI systems, organizations, and governance compliance.
+GAFAIG is the world’s first deterministic, Snowflake-native AI governance registry.
 
-------------------------------------------------------------
-CURRENT SYSTEM STATUS
-------------------------------------------------------------
+The platform provides:
+- A private verification engine (authoritative computation layer)
+- A public registry (trust and transparency layer)
 
-STATUS: STABLE (MINIMAL MODE)
+All certification outcomes are computed in Snowflake and surfaced publicly without exposing underlying evidence.
 
-The system has been stabilized after resolving multiple critical issues:
-- Snowflake authentication (MFA vs key-pair mismatch)
-- Broken query layer assumptions
-- TypeScript contract failures across explorer and registry
-- Invalid column references in Snowflake views
-- Seed data inconsistencies
+---
 
-All build-breaking and runtime-blocking issues have been resolved.
+## CORE PRINCIPLE
 
-The platform is currently operating in a **minimal registry mode**, where only verified Snowflake fields are used.
+Snowflake is the **single source of truth**.
 
-------------------------------------------------------------
-CORE ARCHITECTURE (LOCKED)
-------------------------------------------------------------
+All:
+- scoring
+- joins
+- certification decisions
+- registry outputs
 
-Snowflake is the authoritative computation engine.
+must originate from Snowflake.
 
-System flow:
+The API and UI are strictly read-only surfaces.
 
-APPLICATION → CASE → FINDINGS → EVIDENCE → EVENTS → SCORING → DECISION → REGISTRY SNAPSHOT → PUBLIC VIEW → API → UI
+---
 
-Key principles:
-- Append-only data model
-- Deterministic scoring
-- No computation in API or UI layers
-- Public registry exposes only certified outputs (no raw evidence)
+## CANONICAL DATA FLOW (LOCKED)
 
-------------------------------------------------------------
-SNOWFLAKE ENVIRONMENT
-------------------------------------------------------------
+CASE  
+→ FINDINGS  
+→ EVIDENCE  
+→ FINDING_EVIDENCE  
+→ EVENTS  
+→ SCORING  
+→ DECISION  
+→ REGISTRY_SNAPSHOT  
+→ PUBLIC VIEWS  
+→ API  
+→ UI  
 
-Account: duglhtd-cm14952
-Database: GAFAIG_DB
-Schema: CORE
-Warehouse: GAFAIG_WH
+This flow is deterministic and append-only where applicable.
 
-Primary runtime user:
-- GAFAIG_APP_USER (RSA key-pair enabled)
-- Default role: GAFAIG_APP_ROLE
+No stage may be skipped, re-ordered, or computed outside Snowflake.
 
-Authentication:
-- Key-pair (SNOWFLAKE_JWT) required for MFA-compliant access
-- Password authentication is no longer valid for runtime
+---
 
-------------------------------------------------------------
-ACTIVE TABLES
-------------------------------------------------------------
+## SYSTEM ARCHITECTURE
 
-CORE.APPLICATIONS
-CORE.VERIFICATION_CASES
-CORE.VERIFICATION_FINDINGS
-CORE.VERIFICATION_EVIDENCE
-CORE.VERIFICATION_EVENTS
-CORE.CASE_SCORE_SNAPSHOTS_V2
-CORE.DECISIONS
-CORE.REGISTRY_SNAPSHOTS
-CORE.REGISTRY_AI_SYSTEMS
+### 1. PRIVATE VERIFICATION ENGINE (Snowflake)
 
-------------------------------------------------------------
-ACTIVE VIEWS
-------------------------------------------------------------
+Location:
+GAFAIG_DB.CORE
 
-PRIMARY PUBLIC VIEW:
-CORE.V_REGISTRY_PUBLIC
+Primary Tables:
+- VERIFICATION_CASES
+- VERIFICATION_FINDINGS
+- VERIFICATION_EVIDENCE
+- VERIFICATION_FINDING_EVIDENCE
+- VERIFICATION_EVENTS
+- CASE_SCORE_SNAPSHOTS
+- DECISIONS
+- REGISTRY_SNAPSHOTS
 
-CURRENT SAFE COLUMN SET:
-- REGISTRY_ID
-- APPLICATION_ID
-- CASE_ID
-- ENTITY_NAME
-- COUNTRY
-- DECISION_STATUS (may be null)
+Key Characteristics:
+- Deterministic
+- Append-only (snapshots)
+- Case-first model
+- No UI/API computation
 
-LATEST SNAPSHOT VIEW:
-CORE.V_REGISTRY_LATEST_APPROVED
+---
 
-AI SYSTEMS VIEW:
-CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC
+### 2. PUBLIC REGISTRY LAYER
 
-------------------------------------------------------------
-SCORING ENGINE
-------------------------------------------------------------
+Primary Views:
+- V_REGISTRY_LATEST_APPROVED
+- V_REGISTRY_PUBLIC
+- V_REGISTRY_PUBLIC_SEARCH
+- V_REGISTRY_AI_SYSTEMS_PUBLIC
 
-Procedure:
-CORE.SP_SCORE_CASE_ENTERPRISE
-
-Supporting views:
-- CORE.V_CASE_SCORE_ENTERPRISE
-- CORE.V_CASE_TIER_BAND
-- CORE.V_FINDING_UNMAPPED_CONTROLS
-
-Snapshots:
-- CORE.CASE_SCORE_SNAPSHOTS_V2
-
-------------------------------------------------------------
-REGISTRY PUBLISHING
-------------------------------------------------------------
-
-Procedure:
-CORE.SP_PUBLISH_CASE_TO_REGISTRY_V3
-
-Responsibilities:
-- Validate approved case
-- Read deterministic score
-- Generate/reuse REGISTRY_ID
-- Insert append-only REGISTRY_SNAPSHOTS row
-- Align AI systems with registry
-
-------------------------------------------------------------
-QUERY LAYER (CRITICAL STATE)
-------------------------------------------------------------
-
-Files:
-- lib/queries/registry.ts
-- lib/queries/explorer.ts
-
-Status:
-- Fully aligned to minimal Snowflake schema
-- All non-existent fields removed
-- Synthetic/null placeholders added ONLY where UI requires types
-
-RULE:
-Query layer must EXACTLY match Snowflake views
-
-------------------------------------------------------------
-API LAYER
-------------------------------------------------------------
-
-Registry:
-app/api/registry/route.ts
-
-Explorer:
-app/api/explorer/route.ts
-
-Verification:
-app/api/verify/[registryId]/route.ts
-
-Pattern:
-Snowflake → Query Layer → API → UI
-
-No business logic in API
-
-------------------------------------------------------------
-FRONTEND (NEXT.JS)
-------------------------------------------------------------
-
-Framework:
-Next.js 14 (App Router)
-
-Pages:
-
-Registry:
-- /registry
-- /registry/[registryId]
-
-Explorer:
-- /explorer
-- /explorer/organizations
-- /explorer/countries
-- /explorer/systems
-
-AI Systems:
-- /registry/ai-systems
-
-Status:
-- All pages compile successfully
-- All runtime crashes resolved
-- UI currently reflects minimal dataset
-
-------------------------------------------------------------
-SNOWFLAKE CONNECTION
-------------------------------------------------------------
-
-File:
-lib/snowflake.ts
-
-Status:
-- Updated to support key-pair authentication
-- Compatible with MFA-enabled Snowflake accounts
-
-Requirements:
-- SNOWFLAKE_PRIVATE_KEY or PRIVATE_KEY_PATH must be set
-- SNOWFLAKE_JWT authenticator must be used
-
-------------------------------------------------------------
-SEED SYSTEM (CURRENT)
-------------------------------------------------------------
-
-File:
-GAFAIG - CANONICAL_DEMO_SEED_MASTER.sql
-
-Status:
-- Rebuilt as minimal deterministic seed
-- Creates:
-  CASE → SCORE → DECISION → REGISTRY SNAPSHOT
-
-Removes:
-- legacy evidence/finding complexity
-- inconsistent relationships
-
-Purpose:
-- Provide stable test registry record (CASE-0001)
-
-------------------------------------------------------------
-CURRENT LIMITATIONS
-------------------------------------------------------------
-
-The system is intentionally running without enrichment.
-
-Missing from CORE.V_REGISTRY_PUBLIC:
-- ENTITY_TYPE
+Public Fields:
 - CERTIFIED_SCORE
 - CERTIFIED_TIER
 - CERTIFIED_BAND
 - CERTIFIED_AT
-- VALID_FROM / VALID_TO
+- DECISION_STATUS
 
-Explorer layer uses placeholders for compatibility.
+No evidence is exposed publicly.
 
-------------------------------------------------------------
-NEXT PHASE (MANDATORY)
-------------------------------------------------------------
+---
 
-Rebuild canonical enriched registry view:
+### 3. API LAYER (Next.js)
 
-TARGET:
-CORE.V_REGISTRY_PUBLIC (ENRICHED)
+Pattern:
+Snowflake → Query Layer → API → UI
 
-Add:
-- ENTITY_TYPE (from APPLICATIONS)
-- CERTIFIED_SCORE / TIER / BAND
-- CERTIFIED_AT
-- VALID_FROM / VALID_TO
-- normalized DECISION_STATUS
+Endpoints:
+- /api/registry
+- /api/registry/search
+- /api/verify/[registryId]
+- /api/badge/[registryId]
 
-Then:
-- Update query layer to use real fields
-- Remove all synthetic placeholders
-- Restore full registry UX
+Rules:
+- No business logic
+- No scoring
+- No data transformation beyond mapping
 
-------------------------------------------------------------
-DO NOT BREAK RULES
-------------------------------------------------------------
+---
 
-- Do NOT compute scores in API/UI
-- Do NOT assume fields not in Snowflake
-- Do NOT bypass publish procedure
-- Do NOT mutate snapshot history
-- Do NOT reintroduce broken joins
+### 4. UI LAYER (Next.js App Router)
 
-------------------------------------------------------------
-SUMMARY
-------------------------------------------------------------
+Pages:
+- /registry
+- /registry/[registryId]
+- /registry/ai-systems
+- /explorer/*
+- /widget-preview/[registryId]
 
-GAFAIG is now:
+Rules:
+- Read-only
+- No computation
+- No direct table access
 
-✔ Architecturally correct
-✔ Deterministic
-✔ Build-stable
-✔ Runtime-stable
-✔ Snowflake-aligned
+---
 
-Remaining work is controlled and forward-only:
-→ Reintroduce enrichment cleanly at the Snowflake layer
+## DETERMINISTIC SCORING ENGINE
 
-============================================================
+Canonical Source:
+V_GOVERNANCE_SCORE_CASE
+
+Outputs:
+- FINAL_SCORE
+- TIER
+- BAND
+
+Rules:
+- Must originate in Snowflake
+- Must not be recomputed in API/UI
+- Must be tied to CASE_ID
+
+---
+
+## REGISTRY SNAPSHOT MODEL
+
+Table:
+CORE.REGISTRY_SNAPSHOTS
+
+Characteristics:
+- Append-only
+- Immutable
+- One snapshot per publish event
+- REGISTRY_ID reused for same entity
+
+Publishing Procedure:
+SP_PUBLISH_CASE_TO_REGISTRY_V3 (canonical)
+
+---
+
+## AI SYSTEMS REGISTRY
+
+Table:
+CORE.REGISTRY_AI_SYSTEMS
+
+Public View:
+V_REGISTRY_AI_SYSTEMS_PUBLIC
+
+Purpose:
+- Link AI systems to certified registry entries
+- Provide structured metadata for Explorer and Registry surfaces
+
+---
+
+## CANONICAL SEED STRATEGY (LOCKED)
+
+Single source:
+GAFAIG - CANONICAL_DEMO_SEED_MASTER.sql
+
+Purpose:
+- Seed demo cases
+- Rebuild full workflow
+- Populate registry
+- Validate system state
+
+This file must:
+- Be deterministic
+- Be idempotent
+- Use INSERT ... SELECT patterns
+- Avoid temp tables
+- Avoid session drift
+
+---
+
+## CURRENT SYSTEM STATE (2026-04-12)
+
+### WORKING
+
+- Registry pages rendering correctly
+- Explorer pages rendering correctly
+- AI systems registry rendering correctly
+- Public views operational
+- API endpoints operational
+- Events table populated
+- Canonical seed file executes without full failure
+
+---
+
+### ACTIVE ISSUE
+
+Workflow layer incomplete:
+
+- VERIFICATION_FINDINGS = 0
+- VERIFICATION_EVIDENCE = 0
+- VERIFICATION_FINDING_EVIDENCE = 0
+
+- VERIFICATION_EVENTS = populated
+
+This indicates failure in:
+FINDINGS → EVIDENCE → FINDING_EVIDENCE reconstruction
+
+---
+
+## CURRENT FOCUS (LOCKED)
+
+Fix canonical workflow rebuild inside:
+
+GAFAIG - CANONICAL_DEMO_SEED_MASTER.sql
+
+Specifically:
+- Deterministic INSERT patterns
+- Correct VALUES → alias structure
+- Proper CROSS JOIN usage
+- No malformed WITH clauses
+- No schema changes
+
+---
+
+## ENGINEERING RULES (ENFORCED)
+
+- Do NOT re-architect
+- Do NOT change schema
+- Do NOT move logic to API/UI
+- Do NOT introduce new seed files
+- Do NOT introduce temp tables
+- Do NOT rewrite working views
+- Do NOT modify registry or explorer surfaces during data fixes
+
+---
+
+## SUCCESS CRITERIA
+
+After running canonical seed:
+
+VERIFICATION_FINDINGS = 25  
+VERIFICATION_EVIDENCE = 25  
+VERIFICATION_FINDING_EVIDENCE = 25  
+VERIFICATION_EVENTS = 10  
+
+Registry and Explorer must remain unchanged and functional.
+
+---
+
+## NEXT STEP
+
+Complete deterministic workflow rebuild in canonical seed file and validate counts.
+
+Once complete:
+- Lock seed file as canonical
+- Proceed to scoring + certification stabilization
+- Continue registry enrichment
+
+---
+
 END OF FILE
-============================================================

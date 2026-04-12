@@ -1,218 +1,145 @@
 # CURRENT_FOCUS.md
-Last Updated: 2026-04-10
+# GAFAIG — Global Authority for AI Governance
+# Current Focus (Execution Lock)
+# Last Updated: 2026-04-12
 
-============================================================
-CURRENT PHASE: REGISTRY STABILIZATION COMPLETE → ENRICHMENT REBUILD
-============================================================
+## PRIMARY OBJECTIVE
 
-The GAFAIG platform has successfully exited the instability phase.
+Fix the canonical demo certification workflow inside:
 
-All blocking issues have been resolved:
-- TypeScript build failures across Explorer and Registry
-- Snowflake authentication (MFA vs password vs key-pair)
-- Broken query layer assumptions
-- Invalid Snowflake column references
-- Seed file inconsistency and over-complexity
-- Runtime crashes in /explorer and /registry routes
+GAFAIG - CANONICAL_DEMO_SEED_MASTER.sql
 
-The system is now running in a **minimal, stable configuration**.
+This is the ONLY active engineering task.
 
-------------------------------------------------------------
-WHAT IS WORKING (CONFIRMED)
-------------------------------------------------------------
+---
 
-✔ Snowflake connection (MFA-compatible path established)
-✔ Next.js build completes successfully
-✔ All API routes respond without crashing
-✔ /registry loads from CORE.V_REGISTRY_PUBLIC
-✔ /explorer pages render without runtime failure
-✔ /registry/ai-systems and /explorer/systems render
-✔ Canonical seed successfully produces a registry record (CASE-0001)
-✔ Publish pipeline is functional (SP_PUBLISH_CASE_TO_REGISTRY_V3)
+## PROBLEM STATEMENT
 
-------------------------------------------------------------
-CURRENT SYSTEM MODE
-------------------------------------------------------------
+The canonical seed file executes, but the workflow layer is incomplete:
 
-MODE: MINIMAL REGISTRY COMPATIBILITY
+- VERIFICATION_FINDINGS = 0
+- VERIFICATION_EVIDENCE = 0
+- VERIFICATION_FINDING_EVIDENCE = 0
+- VERIFICATION_EVENTS = populated
 
-The system is intentionally running with a reduced schema to guarantee stability.
+This indicates failure in deterministic workflow reconstruction:
 
-Active public data source:
-CORE.V_REGISTRY_PUBLIC
+FINDINGS → EVIDENCE → FINDING_EVIDENCE
 
-Current fields in use:
-- REGISTRY_ID
-- APPLICATION_ID
-- CASE_ID
-- ENTITY_NAME
-- COUNTRY
-- DECISION_STATUS (partial / fallback)
+The issue is not UI, not API, not registry views, and not explorer pages.
 
-Explorer and Registry UI have been downgraded to match this schema exactly.
+The issue is strictly within the canonical seed file SQL patterns.
 
-------------------------------------------------------------
-WHAT WAS REMOVED (TEMPORARILY)
-------------------------------------------------------------
+---
 
-The following fields were removed from active usage due to instability:
+## SCOPE (STRICTLY LIMITED)
 
-- ENTITY_TYPE
-- CERTIFIED_SCORE
-- CERTIFIED_TIER
-- CERTIFIED_BAND
-- CERTIFIED_AT
-- VALID_FROM
-- VALID_TO
+Modify ONLY:
 
-These fields previously caused:
-- Snowflake query failures
-- TypeScript contract mismatches
-- Runtime crashes
+GAFAIG - CANONICAL_DEMO_SEED_MASTER.sql
 
-------------------------------------------------------------
-WHY THIS WAS NECESSARY
-------------------------------------------------------------
+Focus ONLY on:
 
-The system drifted into a broken state where:
-- UI assumed fields that did not exist
-- Query layer referenced invalid columns
-- Snowflake views were partially inconsistent
-- Seed data did not align with schema
+- INSERT patterns for findings
+- INSERT patterns for evidence
+- INSERT patterns for finding-evidence links
+- Deterministic VALUES + alias structures
+- Correct CROSS JOIN usage
+- Proper column alignment
 
-The correct decision was made:
-→ Stabilize FIRST
-→ Rebuild SECOND
+Do NOT modify:
 
-------------------------------------------------------------
-CURRENT PRIORITY (DO THIS NEXT)
-------------------------------------------------------------
+- UI (any page)
+- API routes
+- Explorer pages
+- Registry pages
+- Public views
+- Schema definitions
+- Scoring logic (until workflow is fixed)
 
-PHASE: CANONICAL REGISTRY ENRICHMENT REBUILD
+---
 
-Objective:
-Rebuild CORE.V_REGISTRY_PUBLIC as a fully enriched, canonical view.
+## REQUIRED OUTCOME
 
-This is the ONLY correct next step.
+After running the canonical seed file in a fresh Snowflake worksheet:
 
-------------------------------------------------------------
-ENRICHMENT TARGET (DEFINE CLEARLY)
-------------------------------------------------------------
+VERIFICATION_FINDINGS = 25  
+VERIFICATION_EVIDENCE = 25  
+VERIFICATION_FINDING_EVIDENCE = 25  
+VERIFICATION_EVENTS = 10  
 
-The rebuilt CORE.V_REGISTRY_PUBLIC MUST include:
+All counts must be scoped to:
 
-FROM REGISTRY_SNAPSHOTS:
-- REGISTRY_ID
-- CASE_ID
-- ENTITY_NAME
-- VERIFICATION_TYPE
-- SCORE
-- TIER
-- BAND
-- CERTIFIED_SCORE
-- CERTIFIED_TIER
-- CERTIFIED_BAND
-- CERTIFIED_AT
-- APPROVED_AT
-- PUBLISHED_AT
+CASE-0001  
+CASE-0002  
+CASE-0003  
+CASE-0004  
+CASE-0005  
 
-FROM DECISIONS:
-- DECISION_STATUS
-- VALID_FROM
-- VALID_TO
+---
 
-FROM APPLICATIONS:
-- ENTITY_TYPE
-- COUNTRY
+## EXECUTION RULES
 
-------------------------------------------------------------
-STRICT RULE FOR REBUILD
-------------------------------------------------------------
+- Use deterministic INSERT ... SELECT patterns
+- Use inline VALUES blocks with explicit column aliases
+- Avoid malformed WITH clause usage
+- Avoid temp table dependency
+- Ensure all ID generation is deterministic
+- Ensure cleanup logic matches real table schema
 
-DO NOT GUESS FIELDS.
+---
 
-Every field must:
-✔ Exist in a real table
-✔ Be explicitly selected
-✔ Be validated with DESCRIBE or SELECT
+## DEBUGGING SEQUENCE (MANDATORY)
 
-------------------------------------------------------------
-AFTER VIEW REBUILD (SEQUENCE)
-------------------------------------------------------------
+1. Run canonical seed file
+2. Check counts for workflow tables
+3. Inspect inserted rows (not just counts)
+4. Fix SQL patterns if counts are incorrect
+5. Re-run seed file
+6. Repeat until counts match expected values
 
-STEP 1:
-Rebuild CORE.V_REGISTRY_PUBLIC (ENRICHED)
+Do NOT:
+- jump to scoring
+- modify views
+- modify UI
 
-STEP 2:
-Validate with direct Snowflake query:
-SELECT * FROM CORE.V_REGISTRY_PUBLIC LIMIT 10;
+---
 
-STEP 3:
-Update lib/queries/registry.ts to include new fields
+## NEXT STEP (AFTER SUCCESS)
 
-STEP 4:
-Update lib/queries/explorer.ts to remove placeholders
+Once workflow counts are correct:
 
-STEP 5:
-Re-run:
-npm run build
+1. Re-enable scoring calls:
+   CALL CORE.SP_SCORE_CASE_ENTERPRISE(...)
+2. Validate CASE_SCORE_SNAPSHOTS_V2
+3. Validate V_CASE_SCORE_ENTERPRISE
+4. Validate V_REGISTRY_PUBLIC
+5. Confirm Explorer and Registry surfaces reflect correct data
 
-STEP 6:
-Verify:
-- /registry
-- /explorer
-- /explorer/organizations
-- /explorer/countries
-- /explorer/systems
+---
 
-------------------------------------------------------------
-DO NOT DO (CRITICAL)
-------------------------------------------------------------
+## SUCCESS STATE DEFINITION
 
-🚫 Do NOT modify frontend to “fix” missing data
-🚫 Do NOT reintroduce guessed columns
-🚫 Do NOT bypass publish procedure
-🚫 Do NOT patch queries before Snowflake is correct
-🚫 Do NOT reintroduce legacy seed complexity
+The system is considered stable when:
 
-------------------------------------------------------------
-SUCCESS CRITERIA
-------------------------------------------------------------
+- Canonical seed file runs cleanly
+- Workflow tables are fully populated
+- Scoring executes without errors
+- Registry surfaces reflect correct certification state
+- No UI or API modifications were required to achieve correctness
 
-The system is considered fully restored when:
+---
 
-✔ CORE.V_REGISTRY_PUBLIC contains full enriched dataset
-✔ Query layer uses only real fields (no placeholders)
-✔ Explorer pages display:
-  - organization counts
-  - country breakdowns
-  - certification tiers
-✔ Registry detail pages show certification data
-✔ No TypeScript errors
-✔ No runtime Snowflake errors
+## FINAL RULE
 
-------------------------------------------------------------
-STRATEGIC POSITION
-------------------------------------------------------------
+Do not expand scope.
 
-You are no longer debugging.
+Do not introduce new files.
 
-You are now:
-→ Rebuilding the canonical public trust surface of GAFAIG
+Do not re-architect.
 
-This is the transition from:
-“make it work”
-to:
-“make it correct and scalable”
+Fix the workflow layer inside the canonical seed file only.
 
-------------------------------------------------------------
-NEXT CHAT INSTRUCTION
-------------------------------------------------------------
+---
 
-Start next chat with:
-
-"This is the continuation chat for building GAFAIG. Load MASTER_STATE.md, CURRENT_FOCUS.md, ENGINEERING_RULES.md. Snowflake is the source of truth. Do not re-architect. Begin rebuilding CORE.V_REGISTRY_PUBLIC as the canonical enriched registry view."
-
-============================================================
-END OF FILE
-============================================================
+## END OF FILE
