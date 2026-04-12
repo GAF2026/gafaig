@@ -63,12 +63,42 @@
     return value && value.nodeType === 1;
   }
 
+  function getRuntimeBaseUrl(config) {
+    var configured = config && config.baseUrl ? String(config.baseUrl).trim() : "";
+    if (configured && configured !== DEFAULT_BASE_URL) {
+      return configured.replace(/\/+$/, "");
+    }
+
+    if (typeof window !== "undefined" && window.location) {
+      var hostname = window.location.hostname || "";
+      var protocol = window.location.protocol || "https:";
+      var port = window.location.port ? ":" + window.location.port : "";
+
+      if (
+        hostname === "localhost" ||
+        hostname === "127.0.0.1" ||
+        hostname === "0.0.0.0"
+      ) {
+        return (protocol + "//" + hostname + port).replace(/\/+$/, "");
+      }
+
+      if (
+        hostname &&
+        hostname.indexOf("gafaig.com") !== -1
+      ) {
+        return (protocol + "//" + hostname + port).replace(/\/+$/, "");
+      }
+    }
+
+    return DEFAULT_BASE_URL.replace(/\/+$/, "");
+  }
+
   function getConfig(override) {
     return assign({}, state.config, override || {});
   }
 
   function getBaseUrl(config) {
-    return String(config.baseUrl || DEFAULT_BASE_URL).replace(/\/+$/, "");
+    return getRuntimeBaseUrl(config);
   }
 
   function joinUrl(base, path) {

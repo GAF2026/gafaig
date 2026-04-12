@@ -35,11 +35,19 @@ type VerifyApiResponse = {
   error?: string;
 };
 
+function getRuntimeBaseUrl() {
+  if (process.env.NODE_ENV === "development") {
+    return "http://localhost:3000";
+  }
+
+  return process.env.NEXT_PUBLIC_BASE_URL || "https://www.gafaig.com";
+}
+
 async function getVerifyData(
   registryId: string
 ): Promise<VerifyApiResponse | null> {
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://www.gafaig.com";
+    const baseUrl = getRuntimeBaseUrl();
     const res = await fetch(
       `${baseUrl}/api/verify/${encodeURIComponent(registryId)}`,
       { cache: "no-store" }
@@ -63,6 +71,12 @@ export default async function WidgetPreviewPage({
 }) {
   const registryId = params.registryId;
   const verifyData = await getVerifyData(registryId);
+
+  const runtimeBaseUrl = getRuntimeBaseUrl();
+  const widgetScriptSrc = `${runtimeBaseUrl}/widget/gafaig-widget.js`;
+
+  const productionBaseUrl =
+    process.env.NEXT_PUBLIC_BASE_URL || "https://www.gafaig.com";
 
   if (!verifyData?.ok || !verifyData?.verified || !verifyData?.record) {
     return (
@@ -93,10 +107,10 @@ export default async function WidgetPreviewPage({
   const record = verifyData.record;
   const entityName = record.entityName || "Unknown Entity";
 
-  const widgetSnippet = `<script src="https://www.gafaig.com/widget/gafaig-widget.js"></script>
+  const widgetSnippet = `<script src="${productionBaseUrl}/widget/gafaig-widget.js"></script>
 <div data-gafaig-id="${registryId}"></div>`;
 
-  const verifyButtonSnippet = `<script src="https://www.gafaig.com/widget/gafaig-verify.js"></script>
+  const verifyButtonSnippet = `<script src="${productionBaseUrl}/widget/gafaig-verify.js"></script>
 <button onclick="verifyGAFAIG('${registryId}')">Verify This AI System</button>`;
 
   return (
@@ -148,10 +162,7 @@ export default async function WidgetPreviewPage({
             </div>
 
             <div className="mt-4 rounded-2xl border border-black/10 bg-black/[0.02] p-6">
-              <Script
-                src="https://www.gafaig.com/widget/gafaig-widget.js"
-                strategy="afterInteractive"
-              />
+              <Script src={widgetScriptSrc} strategy="afterInteractive" />
               <div data-gafaig-id={registryId}></div>
             </div>
           </section>
