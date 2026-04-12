@@ -225,6 +225,7 @@ export async function POST(req: NextRequest, ctx: { params: Promise<{ caseId: st
     };
 
     const sfCtx = snowflakeCtx;
+    
     const warnings: string[] = [];
 
     let allowedEvidenceIds: string[] = [];
