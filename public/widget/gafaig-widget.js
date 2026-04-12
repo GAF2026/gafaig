@@ -1,7 +1,7 @@
 (function () {
   if (window.GAFAIG && window.GAFAIG.__sdkLoaded) return;
 
-  var VERSION = "1.1.0";
+  var VERSION = "1.1.1";
   var DEFAULT_BASE_URL = "https://www.gafaig.com";
   var DEFAULT_TIMEOUT_MS = 12000;
   var DEFAULT_RETRY_COUNT = 1;
@@ -63,42 +63,35 @@
     return value && value.nodeType === 1;
   }
 
-  function getRuntimeBaseUrl(config) {
-    var configured = config && config.baseUrl ? String(config.baseUrl).trim() : "";
-    if (configured && configured !== DEFAULT_BASE_URL) {
-      return configured.replace(/\/+$/, "");
-    }
-
-    if (typeof window !== "undefined" && window.location) {
-      var hostname = window.location.hostname || "";
-      var protocol = window.location.protocol || "https:";
-      var port = window.location.port ? ":" + window.location.port : "";
-
-      if (
-        hostname === "localhost" ||
-        hostname === "127.0.0.1" ||
-        hostname === "0.0.0.0"
-      ) {
-        return (protocol + "//" + hostname + port).replace(/\/+$/, "");
-      }
-
-      if (
-        hostname &&
-        hostname.indexOf("gafaig.com") !== -1
-      ) {
-        return (protocol + "//" + hostname + port).replace(/\/+$/, "");
-      }
-    }
-
-    return DEFAULT_BASE_URL.replace(/\/+$/, "");
-  }
-
   function getConfig(override) {
     return assign({}, state.config, override || {});
   }
 
-  function getBaseUrl(config) {
-    return getRuntimeBaseUrl(config);
+  function normalizeBaseUrl(value) {
+    return String(value || DEFAULT_BASE_URL).replace(/\/+$/, "");
+  }
+
+  function getElementBaseUrl(el) {
+    if (!isElement(el)) return "";
+    var attr =
+      el.getAttribute("data-gafaig-base-url") ||
+      el.getAttribute("data-base-url") ||
+      "";
+    return String(attr || "").trim();
+  }
+
+  function getBaseUrl(config, el) {
+    var elementBaseUrl = getElementBaseUrl(el);
+    if (elementBaseUrl) {
+      return normalizeBaseUrl(elementBaseUrl);
+    }
+
+    var configured = config && config.baseUrl ? String(config.baseUrl).trim() : "";
+    if (configured) {
+      return normalizeBaseUrl(configured);
+    }
+
+    return normalizeBaseUrl(DEFAULT_BASE_URL);
   }
 
   function joinUrl(base, path) {
@@ -142,7 +135,24 @@
 
     for (var attempt = 0; attempt <= retryCount; attempt++) {
       try {
-        var res = await withTimeout(fetch(url, options || {}), timeoutMs);
+        var res = await withTimeout(
+          fetch(
+            url,
+            assign(
+              {
+                method: "GET",
+                mode: "cors",
+                credentials: "omit",
+                headers: {
+                  Accept: "application/json",
+                },
+              },
+              options || {}
+            )
+          ),
+          timeoutMs
+        );
+
         var data = await res.json().catch(function () {
           return null;
         });
@@ -351,7 +361,7 @@
   function renderError(el, registryId, message, config) {
     var tokens = getThemeTokens(config.theme);
     var sizeTokens = getSizeTokens(config.size);
-    var base = getBaseUrl(config);
+    var base = getBaseUrl(config, el);
     var recordUrl = joinUrl(base, config.registryPath) + "/" + encodeURIComponent(registryId || "");
 
     el.innerHTML =
@@ -403,13 +413,13 @@
       "</div>";
   }
 
-  function renderWidgetMarkup(registryId, data, config) {
+  function renderWidgetMarkup(el, registryId, data, config) {
     var record = data.record || {};
     var entityName = record.entityName || "Unknown Entity";
     var statusText = normalizeStatusText(data, record);
     var tokens = getThemeTokens(config.theme);
     var sizeTokens = getSizeTokens(config.size);
-    var base = getBaseUrl(config);
+    var base = getBaseUrl(config, el);
 
     var registryUrl =
       joinUrl(base, config.registryPath) + "/" + encodeURIComponent(registryId);
@@ -423,7 +433,12 @@
     var isCertified = normalizedStatus === "certified";
     var primaryStatusPill = isCertified
       ? pill("Verified", { filled: true, border: tokens.successBorder }, tokens, sizeTokens)
-      : pill(statusText || "Not Certified", { filled: false, border: tokens.warningBorder, color: tokens.warningText }, tokens, sizeTokens);
+      : pill(
+          statusText || "Not Certified",
+          { filled: false, border: tokens.warningBorder, color: tokens.warningText },
+          tokens,
+          sizeTokens
+        );
 
     var fields = [];
 
@@ -563,15 +578,15 @@
     );
   }
 
-  async function verify(registryId, options) {
+  async function verify(registryId, options, el) {
     var config = getConfig(options);
-    var base = getBaseUrl(config);
+    var base = getBaseUrl(config, el);
     var endpoint =
       joinUrl(base, config.verifyPath) + "/" + encodeURIComponent(registryId);
 
     return fetchJsonWithRetry(
       endpoint,
-      { credentials: "omit" },
+      {},
       Number(config.retryCount || 0),
       Number(config.timeoutMs || DEFAULT_TIMEOUT_MS)
     );
@@ -605,8 +620,8 @@
     }
 
     try {
-      var data = await verify(id, config);
-      el.innerHTML = renderWidgetMarkup(id, data, config);
+      var data = await verify(id, config, el);
+      el.innerHTML = renderWidgetMarkup(el, id, data, config);
 
       if (typeof config.onRendered === "function") {
         try {
@@ -643,7 +658,7 @@
     var nodes = document.querySelectorAll(config.selectors || DEFAULTS.selectors);
     var promises = [];
 
-    nodes.forEach(function (el) {
+    Array.prototype.forEach.call(nodes, function (el) {
       promises.push(
         render(el, el.getAttribute("data-gafaig-id"), config).catch(function () {
           return null;
@@ -696,7 +711,10 @@
     init: init,
     scan: scan,
     render: render,
-    verify: verify,
+    verify: function (registryId, options, target) {
+      var el = resolveElement(target);
+      return verify(registryId, options, el);
+    },
     destroy: destroy,
   };
 
