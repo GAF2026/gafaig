@@ -95,20 +95,50 @@ function signProofMessage(messageString: string): string {
   return base64Url(signature);
 }
 
+function getCorsHeaders(origin?: string | null): HeadersInit {
+  return {
+    "Access-Control-Allow-Origin": origin?.trim() || "*",
+    "Access-Control-Allow-Methods": "GET, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type, Authorization",
+    "Access-Control-Max-Age": "86400",
+    Vary: "Origin",
+    "Cache-Control": "no-store",
+  };
+}
+
+function jsonWithCors(
+  body: unknown,
+  init: { status?: number; origin?: string | null } = {}
+) {
+  return NextResponse.json(body, {
+    status: init.status ?? 200,
+    headers: getCorsHeaders(init.origin),
+  });
+}
+
+export async function OPTIONS(req: Request) {
+  const origin = req.headers.get("origin");
+  return new NextResponse(null, {
+    status: 204,
+    headers: getCorsHeaders(origin),
+  });
+}
+
 export async function GET(
-  _req: Request,
+  req: Request,
   { params }: { params: { registryId: string } }
 ) {
+  const origin = req.headers.get("origin");
   const registryIdRaw = String(params.registryId || "").trim();
 
   if (!registryIdRaw) {
-    return NextResponse.json(
+    return jsonWithCors(
       {
         ok: false,
         verified: false,
         error: "Missing registryId",
       },
-      { status: 400, headers: { "Cache-Control": "no-store" } }
+      { status: 400, origin }
     );
   }
 
@@ -140,13 +170,13 @@ export async function GET(
     const row = rows[0];
 
     if (!row) {
-      return NextResponse.json(
+      return jsonWithCors(
         {
           ok: false,
           verified: false,
           error: "Registry record not found",
         },
-        { status: 404, headers: { "Cache-Control": "no-store" } }
+        { status: 404, origin }
       );
     }
 
@@ -201,7 +231,7 @@ export async function GET(
       String(process.env.NEXT_PUBLIC_SITE_URL || "").replace(/\/+$/, "") ||
       "http://localhost:3000";
 
-    return NextResponse.json(
+    return jsonWithCors(
       {
         ok: true,
         verified,
@@ -217,17 +247,17 @@ export async function GET(
         },
         record,
       },
-      { headers: { "Cache-Control": "no-store" } }
+      { origin }
     );
   } catch (error) {
-    return NextResponse.json(
+    return jsonWithCors(
       {
         ok: false,
         verified: false,
         error:
           error instanceof Error ? error.message : "Internal verification error",
       },
-      { status: 500, headers: { "Cache-Control": "no-store" } }
+      { status: 500, origin }
     );
   }
 }
