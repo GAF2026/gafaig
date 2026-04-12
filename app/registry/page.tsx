@@ -2,61 +2,15 @@ import Link from "next/link";
 import PublicPageHero from "@/app/_components/PublicPageHero";
 import PublicButtonLink from "@/app/_components/PublicButtonLink";
 import PublicButton from "@/app/_components/PublicButton";
-import { sfQuery } from "@/lib/snowflake";
+import {
+  getRegistryCountries,
+  searchRegistryRecords,
+  type RegistryQueryRow,
+} from "@/lib/queries/registry";
 
 export const dynamic = "force-dynamic";
 
-type RegistryRow = {
-  REGISTRY_ID: string | null;
-  APPLICATION_ID: string | null;
-  CASE_ID: string | null;
-  ENTITY_NAME: string | null;
-  COUNTRY: string | null;
-};
-
-type RegistryRecord = {
-  registryId: string;
-  applicationId: string | null;
-  caseId: string | null;
-  entityName: string | null;
-  entityType: string | null;
-  country: string | null;
-  certifiedScore: string | null;
-  certifiedTier: string | null;
-  certifiedBand: string | null;
-  decisionStatus: string | null;
-  validFrom: string | null;
-  validTo: string | null;
-  certifiedAt: string | null;
-};
-
-type CountryOptionRow = {
-  COUNTRY: string | null;
-};
-
-function asString(value: unknown): string | null {
-  if (value === null || value === undefined) return null;
-  const s = String(value).trim();
-  return s === "" ? null : s;
-}
-
-function normalizeRegistryRow(row: RegistryRow): RegistryRecord {
-  return {
-    registryId: asString(row.REGISTRY_ID) ?? "",
-    applicationId: asString(row.APPLICATION_ID),
-    caseId: asString(row.CASE_ID),
-    entityName: asString(row.ENTITY_NAME),
-    country: asString(row.COUNTRY),
-    entityType: null,
-    certifiedScore: null,
-    certifiedTier: null,
-    certifiedBand: null,
-    decisionStatus: null,
-    validFrom: null,
-    validTo: null,
-    certifiedAt: null,
-  };
-}
+type RegistryRecord = RegistryQueryRow;
 
 function formatDate(value: string | null | undefined) {
   if (!value) return "—";
@@ -73,7 +27,7 @@ function certificationTierBandLabel(
   tier: string | null,
   band: string | null
 ) {
-  return tier && band ? `${tier} · Band ${band}` : tier || band || "—";
+  return tier && band ? `${tier} · ${band}` : tier || band || "—";
 }
 
 function normalizeString(value: string | string[] | undefined) {
@@ -82,7 +36,10 @@ function normalizeString(value: string | string[] | undefined) {
 }
 
 function certificationStatus(row: RegistryRecord) {
-  return row.certifiedAt ? "Certified" : "Not Certified";
+  const decision = String(row.decisionStatus || "").trim().toLowerCase();
+  if (row.certifiedAt) return "Certified";
+  if (decision === "approved") return "Approved";
+  return "Not Certified";
 }
 
 export default async function RegistryPage({
@@ -96,62 +53,22 @@ export default async function RegistryPage({
   const q = normalizeString(searchParams?.q);
   const country = normalizeString(searchParams?.country);
 
-  const whereParts: string[] = [];
-  const binds: Array<string | number | null> = [];
-
-  if (q) {
-    whereParts.push(`
-      (
-        UPPER(COALESCE(ENTITY_NAME, '')) LIKE UPPER(?)
-        OR UPPER(COALESCE(REGISTRY_ID, '')) LIKE UPPER(?)
-        OR UPPER(COALESCE(APPLICATION_ID, '')) LIKE UPPER(?)
-        OR UPPER(COALESCE(CASE_ID, '')) LIKE UPPER(?)
-      )
-    `);
-    const like = `%${q}%`;
-    binds.push(like, like, like, like);
-  }
-
-  if (country) {
-    whereParts.push(`UPPER(COALESCE(COUNTRY, '')) = UPPER(?)`);
-    binds.push(country);
-  }
-
-  const whereClause = whereParts.length ? `WHERE ${whereParts.join(" AND ")}` : "";
-
   let rows: RegistryRecord[] = [];
-  let countries: CountryOptionRow[] = [];
+  let countries: string[] = [];
   let dataUnavailable = false;
 
   try {
-    const [rawRows, rawCountries] = await Promise.all([
-      sfQuery<RegistryRow>(
-        `
-        SELECT
-          REGISTRY_ID,
-          APPLICATION_ID,
-          CASE_ID,
-          ENTITY_NAME,
-          COUNTRY
-        FROM GAFAIG_DB.CORE.V_REGISTRY_PUBLIC
-        ${whereClause}
-        ORDER BY ENTITY_NAME ASC, REGISTRY_ID ASC
-        LIMIT 100
-        `,
-        binds
-      ),
-      sfQuery<CountryOptionRow>(
-        `
-        SELECT DISTINCT COUNTRY
-        FROM GAFAIG_DB.CORE.V_REGISTRY_PUBLIC
-        WHERE COUNTRY IS NOT NULL
-        ORDER BY COUNTRY ASC
-        `
-      ),
+    const [registryRows, countryRows] = await Promise.all([
+      searchRegistryRecords({
+        q,
+        country,
+        limit: 100,
+      }),
+      getRegistryCountries(),
     ]);
 
-    rows = rawRows.map(normalizeRegistryRow).filter((row) => row.registryId);
-    countries = rawCountries;
+    rows = registryRows.filter((row) => row.registryId);
+    countries = countryRows;
   } catch (error) {
     dataUnavailable = true;
     console.error("REGISTRY PAGE ERROR:", error);
@@ -242,14 +159,11 @@ export default async function RegistryPage({
                 className="w-full rounded-2xl border border-black/10 bg-white px-4 py-3 text-[15px] outline-none transition focus:border-black/30"
               >
                 <option value="">All countries</option>
-                {countries.map((row) => {
-                  const countryValue = asString(row.COUNTRY) ?? "";
-                  return (
-                    <option key={countryValue || "Unknown"} value={countryValue}>
-                      {countryValue || "Unknown"}
-                    </option>
-                  );
-                })}
+                {countries.map((countryValue) => (
+                  <option key={countryValue} value={countryValue}>
+                    {countryValue}
+                  </option>
+                ))}
               </select>
             </div>
 
@@ -331,7 +245,7 @@ export default async function RegistryPage({
             A public certification surface others can rely on
           </h2>
 
-          <div className="mt-7 grid gap-4 md:grid-cols-2">
+          <div className="mt-7 grid gap-4 md:grid-cols-2)">
             <StatementCard
               title="Canonical public certification records"
               body="Each entry represents a structured certification outcome issued through the GAFAIG verification framework and published as part of the public registry of record."
@@ -384,6 +298,7 @@ export default async function RegistryPage({
             <div className="mt-8 grid gap-4">
               {rows.map((row) => {
                 const cleanRegistryId = String(row.registryId || "").trim();
+                const statusValue = certificationStatus(row);
                 return (
                   <Link
                     key={cleanRegistryId}
@@ -393,7 +308,7 @@ export default async function RegistryPage({
                     <div className="flex flex-wrap items-start justify-between gap-5">
                       <div className="min-w-0 flex-1">
                         <div className="flex flex-wrap gap-2">
-                          <StatusPill value={certificationStatus(row)} />
+                          <StatusPill value={statusValue} />
                           <StatusPill value={row.decisionStatus || "—"} subtle />
                         </div>
 
@@ -425,6 +340,7 @@ export default async function RegistryPage({
                     <div className="mt-5 flex flex-wrap gap-x-5 gap-y-1 text-sm text-black/55">
                       <span>Application: {row.applicationId || "—"}</span>
                       <span>Case: {row.caseId || "—"}</span>
+                      <span>Score: {row.certifiedScore || "—"}</span>
                     </div>
                   </Link>
                 );
@@ -514,10 +430,14 @@ function StatusPill({
   const normalized = String(value || "").trim().toLowerCase();
 
   const classes = subtle
-    ? "border-blue-200 bg-blue-50 text-blue-700"
+    ? normalized === "approved"
+      ? "border-blue-200 bg-blue-50 text-blue-700"
+      : "border-black/10 bg-black/[0.03] text-black/65"
     : normalized === "certified"
       ? "border-emerald-200 bg-emerald-50 text-emerald-700"
-      : "border-black/10 bg-black/[0.03] text-black/65";
+      : normalized === "approved"
+        ? "border-blue-200 bg-blue-50 text-blue-700"
+        : "border-black/10 bg-black/[0.03] text-black/65";
 
   return (
     <span

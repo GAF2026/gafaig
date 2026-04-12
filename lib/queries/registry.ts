@@ -6,8 +6,6 @@ export type RegistryQueryRow = {
   caseId: string | null;
   entityName: string | null;
   country: string | null;
-
-  // keep UI contract safe
   entityType: string | null;
   certifiedScore: string | null;
   certifiedTier: string | null;
@@ -17,6 +15,8 @@ export type RegistryQueryRow = {
   validTo: string | null;
   certifiedAt: string | null;
 };
+
+type RegistrySourceRow = Record<string, unknown>;
 
 function asString(value: unknown): string | null {
   if (value === null || value === undefined) return null;
@@ -31,27 +31,25 @@ function normalizeId(value: string): string {
     .replace(/[^A-Z0-9]/g, "");
 }
 
-function normalizeRegistryRow(row: Record<string, unknown>): RegistryQueryRow {
+function normalizeRegistryRow(row: RegistrySourceRow): RegistryQueryRow {
   return {
     registryId: asString(row.REGISTRY_ID) ?? "",
     applicationId: asString(row.APPLICATION_ID),
     caseId: asString(row.CASE_ID),
     entityName: asString(row.ENTITY_NAME),
     country: asString(row.COUNTRY),
-
-    // 🔒 FORCE SAFE NULLS (CRITICAL)
-    entityType: null,
-    certifiedScore: null,
-    certifiedTier: null,
-    certifiedBand: null,
-    decisionStatus: null,
-    validFrom: null,
-    validTo: null,
-    certifiedAt: null,
+    entityType: asString(row.ENTITY_TYPE),
+    certifiedScore: asString(row.CERTIFIED_SCORE),
+    certifiedTier: asString(row.CERTIFIED_TIER),
+    certifiedBand: asString(row.CERTIFIED_BAND),
+    decisionStatus: asString(row.DECISION_STATUS),
+    validFrom: asString(row.VALID_FROM),
+    validTo: asString(row.VALID_TO),
+    certifiedAt: asString(row.CERTIFIED_AT),
   };
 }
 
-const REGISTRY_SOURCE = "CORE.V_REGISTRY_PUBLIC";
+const REGISTRY_SOURCE = "GAFAIG_DB.CORE.V_REGISTRY_PUBLIC";
 
 const REGISTRY_SELECT = `
   SELECT
@@ -59,7 +57,15 @@ const REGISTRY_SELECT = `
     APPLICATION_ID,
     CASE_ID,
     ENTITY_NAME,
-    COUNTRY
+    ENTITY_TYPE,
+    COUNTRY,
+    CERTIFIED_SCORE,
+    CERTIFIED_TIER,
+    CERTIFIED_BAND,
+    DECISION_STATUS,
+    VALID_FROM,
+    VALID_TO,
+    CERTIFIED_AT
   FROM ${REGISTRY_SOURCE}
 `;
 
@@ -68,7 +74,7 @@ export async function getRegistryRecords(
 ): Promise<RegistryQueryRow[]> {
   const safeLimit = Math.max(1, Math.min(limit, 1000));
 
-  const rows = await sfQuery<Record<string, unknown>>(
+  const rows = await sfQuery<RegistrySourceRow>(
     `
     ${REGISTRY_SELECT}
     ORDER BY ENTITY_NAME ASC, REGISTRY_ID ASC
@@ -77,7 +83,23 @@ export async function getRegistryRecords(
     [safeLimit]
   );
 
-  return rows.map(normalizeRegistryRow);
+  return rows.map(normalizeRegistryRow).filter((row) => row.registryId);
+}
+
+export async function getRegistryCountries(): Promise<string[]> {
+  const rows = await sfQuery<RegistrySourceRow>(
+    `
+    SELECT DISTINCT COUNTRY
+    FROM ${REGISTRY_SOURCE}
+    WHERE COUNTRY IS NOT NULL
+      AND TRIM(COUNTRY) <> ''
+    ORDER BY COUNTRY ASC
+    `
+  );
+
+  return rows
+    .map((row) => asString(row.COUNTRY))
+    .filter((value): value is string => Boolean(value));
 }
 
 export async function searchRegistryRecords(params: {
@@ -107,10 +129,14 @@ export async function searchRegistryRecords(params: {
     if (q) {
       const haystack = [
         row.entityName ?? "",
+        row.entityType ?? "",
         row.country ?? "",
         row.registryId ?? "",
         row.caseId ?? "",
         row.applicationId ?? "",
+        row.certifiedTier ?? "",
+        row.certifiedBand ?? "",
+        row.decisionStatus ?? "",
       ]
         .join(" ")
         .toUpperCase();
@@ -128,7 +154,7 @@ export async function getRegistryRecordByRegistryId(
   const id = String(registryId || "").trim();
   if (!id) return null;
 
-  const rows = await sfQuery<Record<string, unknown>>(
+  const rows = await sfQuery<RegistrySourceRow>(
     `
     ${REGISTRY_SELECT}
     WHERE UPPER(REGEXP_REPLACE(REGISTRY_ID, '[^A-Za-z0-9]', '')) =
