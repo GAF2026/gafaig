@@ -1,56 +1,287 @@
 (function () {
-  if (window.GAFAIG && window.GAFAIG.__sdkLoaded) return;
+  var SCRIPT = document.currentScript;
+  var SCRIPT_SRC = SCRIPT && SCRIPT.src ? SCRIPT.src : "";
+  var SCRIPT_URL = null;
 
-  var VERSION = "1.1.1";
-  var DEFAULT_BASE_URL = "https://www.gafaig.com";
-  var DEFAULT_TIMEOUT_MS = 12000;
-  var DEFAULT_RETRY_COUNT = 1;
-
-  var DEFAULTS = {
-    baseUrl: DEFAULT_BASE_URL,
-    theme: "light",
-    size: "md",
-    showBadgeImage: true,
-    showFooter: true,
-    showActions: true,
-    showVerifyJson: true,
-    showRegistryLink: true,
-    showStatus: true,
-    showDecision: true,
-    showValidity: true,
-    showTierBand: true,
-    autoInit: true,
-    timeoutMs: DEFAULT_TIMEOUT_MS,
-    retryCount: DEFAULT_RETRY_COUNT,
-    verifyGuidePath: "/verify",
-    registryPath: "/registry",
-    verifyPath: "/api/verify",
-    badgePath: "/badge",
-    selectors: "[data-gafaig-id]",
-    onBeforeRender: null,
-    onRendered: null,
-    onError: null,
-  };
-
-  var state = {
-    config: assign({}, DEFAULTS),
-    instanceMap: new WeakMap(),
-  };
-
-  function assign(target) {
-    target = target || {};
-    for (var i = 1; i < arguments.length; i++) {
-      var source = arguments[i] || {};
-      for (var key in source) {
-        if (Object.prototype.hasOwnProperty.call(source, key)) {
-          target[key] = source[key];
-        }
-      }
-    }
-    return target;
+  try {
+    SCRIPT_URL = new URL(SCRIPT_SRC, window.location.href);
+  } catch (error) {
+    SCRIPT_URL = null;
   }
 
-  function escapeHtml(value) {
+  var ORIGIN =
+    (SCRIPT_URL && SCRIPT_URL.origin) ||
+    window.location.origin ||
+    "https://www.gafaig.com";
+
+  var STYLE_ID = "gafaig-widget-styles-v3";
+
+  function injectStyles() {
+    if (document.getElementById(STYLE_ID)) return;
+
+    var style = document.createElement("style");
+    style.id = STYLE_ID;
+    style.textContent = `
+      .gafaig-widget-root,
+      .gafaig-widget-root * {
+        box-sizing: border-box;
+      }
+
+      .gafaig-widget-root {
+        width: 100%;
+        color: #0b0b0c;
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+
+      .gafaig-widget-card {
+        width: 100%;
+        max-width: 430px;
+        border: 1px solid rgba(0, 0, 0, 0.10);
+        border-radius: 24px;
+        background: #ffffff;
+        padding: 18px;
+        box-shadow: 0 12px 36px rgba(0, 0, 0, 0.05);
+      }
+
+      .gafaig-widget-topline {
+        height: 4px;
+        border-radius: 999px;
+        background: #16a34a;
+        margin-bottom: 14px;
+      }
+
+      .gafaig-widget-topline-error {
+        background: #dc2626;
+      }
+
+      .gafaig-widget-eyebrow {
+        font-size: 10px;
+        line-height: 1.2;
+        font-weight: 700;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: rgba(11, 11, 12, 0.48);
+      }
+
+      .gafaig-widget-chip-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 10px;
+      }
+
+      .gafaig-widget-chip {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 24px;
+        padding: 0 10px;
+        border-radius: 999px;
+        border: 1px solid rgba(0, 0, 0, 0.10);
+        font-size: 10px;
+        line-height: 1;
+        font-weight: 700;
+        letter-spacing: 0.10em;
+        text-transform: uppercase;
+        white-space: nowrap;
+      }
+
+      .gafaig-widget-chip-verified {
+        background: #e9f8ef;
+        color: #138a52;
+        border-color: #9fe0bb;
+      }
+
+      .gafaig-widget-chip-approved {
+        background: #eef4ff;
+        color: #2457d6;
+        border-color: #c9d9ff;
+      }
+
+      .gafaig-widget-chip-neutral {
+        background: #f5f5f5;
+        color: rgba(11, 11, 12, 0.62);
+      }
+
+      .gafaig-widget-title {
+        margin: 14px 0 0;
+        font-size: 20px;
+        line-height: 1.1;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        color: #0c1838;
+      }
+
+      .gafaig-widget-copy {
+        margin-top: 8px;
+        font-size: 13px;
+        line-height: 1.65;
+        color: rgba(11, 11, 12, 0.64);
+      }
+
+      .gafaig-widget-trust-panel {
+        margin-top: 14px;
+        border: 1px solid rgba(0, 0, 0, 0.08);
+        border-radius: 18px;
+        background: rgba(0, 0, 0, 0.02);
+        padding: 14px;
+      }
+
+      .gafaig-widget-trust-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+      }
+
+      .gafaig-widget-trust-title {
+        font-size: 11px;
+        line-height: 1.2;
+        font-weight: 700;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: rgba(11, 11, 12, 0.48);
+      }
+
+      .gafaig-widget-trust-mark {
+        width: 42px;
+        height: 42px;
+        border-radius: 999px;
+        background: #d8f3e2;
+        border: 2px solid #91dfb2;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex: 0 0 auto;
+      }
+
+      .gafaig-widget-trust-mark svg {
+        width: 20px;
+        height: 20px;
+        color: #0f9d58;
+      }
+
+      .gafaig-widget-trust-copy {
+        margin-top: 10px;
+        font-size: 12px;
+        line-height: 1.65;
+        color: rgba(11, 11, 12, 0.68);
+      }
+
+      .gafaig-widget-grid {
+        margin-top: 12px;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+      }
+
+      .gafaig-widget-metric {
+        border: 1px solid rgba(0, 0, 0, 0.08);
+        border-radius: 14px;
+        background: #ffffff;
+        padding: 10px 12px;
+        min-height: 66px;
+      }
+
+      .gafaig-widget-metric-label {
+        font-size: 9px;
+        line-height: 1.2;
+        font-weight: 700;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: rgba(11, 11, 12, 0.48);
+      }
+
+      .gafaig-widget-metric-value {
+        margin-top: 6px;
+        font-size: 13px;
+        line-height: 1.35;
+        font-weight: 700;
+        color: #0b0b0c;
+        word-break: break-word;
+      }
+
+      .gafaig-widget-id {
+        margin-top: 10px;
+        border: 1px solid rgba(0, 0, 0, 0.08);
+        border-radius: 14px;
+        background: #ffffff;
+        padding: 10px 12px;
+      }
+
+      .gafaig-widget-id .gafaig-widget-metric-value {
+        font-size: 12px;
+      }
+
+      .gafaig-widget-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 14px;
+      }
+
+      .gafaig-widget-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 38px;
+        padding: 0 14px;
+        border-radius: 999px;
+        border: 1px solid rgba(0, 0, 0, 0.10);
+        text-decoration: none;
+        font-size: 12px;
+        line-height: 1;
+        font-weight: 700;
+        transition: background 120ms ease, color 120ms ease, border-color 120ms ease, opacity 120ms ease;
+        cursor: pointer;
+      }
+
+      .gafaig-widget-btn-primary {
+        background: #0b0b0c;
+        border-color: #0b0b0c;
+        color: #ffffff;
+      }
+
+      .gafaig-widget-btn-secondary {
+        background: #ffffff;
+        color: #0b0b0c;
+      }
+
+      .gafaig-widget-btn:hover {
+        opacity: 0.92;
+      }
+
+      .gafaig-widget-footer {
+        margin-top: 12px;
+        font-size: 11px;
+        line-height: 1.5;
+        color: rgba(11, 11, 12, 0.46);
+      }
+
+      .gafaig-widget-footer a {
+        color: inherit;
+      }
+
+      @media (max-width: 480px) {
+        .gafaig-widget-card {
+          max-width: 100%;
+          padding: 16px;
+          border-radius: 20px;
+        }
+
+        .gafaig-widget-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .gafaig-widget-title {
+          font-size: 18px;
+        }
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
+  function esc(value) {
     return String(value == null ? "" : value)
       .replace(/&/g, "&amp;")
       .replace(/</g, "&lt;")
@@ -59,666 +290,213 @@
       .replace(/'/g, "&#39;");
   }
 
-  function isElement(value) {
-    return value && value.nodeType === 1;
-  }
-
-  function getConfig(override) {
-    return assign({}, state.config, override || {});
-  }
-
-  function normalizeBaseUrl(value) {
-    return String(value || DEFAULT_BASE_URL).replace(/\/+$/, "");
-  }
-
-  function getElementBaseUrl(el) {
-    if (!isElement(el)) return "";
-    var attr =
-      el.getAttribute("data-gafaig-base-url") ||
-      el.getAttribute("data-base-url") ||
-      "";
-    return String(attr || "").trim();
-  }
-
-  function getBaseUrl(config, el) {
-    var elementBaseUrl = getElementBaseUrl(el);
-    if (elementBaseUrl) {
-      return normalizeBaseUrl(elementBaseUrl);
-    }
-
-    var configured = config && config.baseUrl ? String(config.baseUrl).trim() : "";
-    if (configured) {
-      return normalizeBaseUrl(configured);
-    }
-
-    return normalizeBaseUrl(DEFAULT_BASE_URL);
-  }
-
-  function joinUrl(base, path) {
-    return String(base).replace(/\/+$/, "") + "/" + String(path).replace(/^\/+/, "");
-  }
-
-  function withTimeout(promise, ms) {
-    return new Promise(function (resolve, reject) {
-      var settled = false;
-      var timer = window.setTimeout(function () {
-        if (settled) return;
-        settled = true;
-        reject(new Error("Request timed out"));
-      }, ms);
-
-      promise.then(
-        function (value) {
-          if (settled) return;
-          settled = true;
-          window.clearTimeout(timer);
-          resolve(value);
-        },
-        function (error) {
-          if (settled) return;
-          settled = true;
-          window.clearTimeout(timer);
-          reject(error);
-        }
-      );
-    });
-  }
-
-  function sleep(ms) {
-    return new Promise(function (resolve) {
-      window.setTimeout(resolve, ms);
-    });
-  }
-
-  async function fetchJsonWithRetry(url, options, retryCount, timeoutMs) {
-    var lastError = null;
-
-    for (var attempt = 0; attempt <= retryCount; attempt++) {
-      try {
-        var res = await withTimeout(
-          fetch(
-            url,
-            assign(
-              {
-                method: "GET",
-                mode: "cors",
-                credentials: "omit",
-                headers: {
-                  Accept: "application/json",
-                },
-              },
-              options || {}
-            )
-          ),
-          timeoutMs
-        );
-
-        var data = await res.json().catch(function () {
-          return null;
-        });
-
-        if (!res.ok || !data || data.ok === false) {
-          throw new Error(
-            (data && (data.error || data.message)) ||
-              ("Request failed with status " + res.status)
-          );
-        }
-
-        return data;
-      } catch (error) {
-        lastError = error;
-        if (attempt < retryCount) {
-          await sleep(350 * (attempt + 1));
-        }
-      }
-    }
-
-    throw lastError || new Error("Request failed");
-  }
-
   function formatDate(value) {
     if (!value) return "—";
-    var date = new Date(value);
-    if (isNaN(date.getTime())) return String(value);
-    return date.toLocaleDateString(undefined, {
+    var d = new Date(value);
+    if (Number.isNaN(d.getTime())) return String(value);
+    return d.toLocaleDateString("en-US", {
       year: "numeric",
       month: "short",
       day: "numeric",
     });
   }
 
-  function normalizeStatusText(data, record) {
-    if (record && record.certificationStatus) return String(record.certificationStatus);
-    return data && data.verified ? "Certified" : "Not Certified";
+  function fmtTierBand(tier, band) {
+    var t = String(tier || "").trim();
+    var b = String(band || "").trim();
+    if (t && b) return t + " · " + b;
+    if (t) return t;
+    if (b) return b;
+    return "—";
   }
 
-  function formatTierBand(record) {
-    var tier = record && record.certifiedTier ? record.certifiedTier : "—";
-    var band = record && record.certifiedBand ? record.certifiedBand : "—";
-    return tier + " · " + band;
-  }
-
-  function getThemeTokens(theme) {
-    if (theme === "dark") {
-      return {
-        bg: "#0b1020",
-        surface: "#121a31",
-        mutedSurface: "#18213e",
-        border: "#25304f",
-        text: "#f8fafc",
-        subtext: "#cbd5e1",
-        accent: "#ffffff",
-        accentText: "#111111",
-        ghostBorder: "#475569",
-        ghostText: "#f8fafc",
-        successBorder: "#10b981",
-        successBg: "#052e24",
-        successText: "#a7f3d0",
-        warningBorder: "#f59e0b",
-        warningBg: "#3b2500",
-        warningText: "#fde68a",
-        shadow: "0 1px 2px rgba(0,0,0,.25)",
-      };
+  function safeText() {
+    for (var i = 0; i < arguments.length; i += 1) {
+      var s = String(arguments[i] || "").trim();
+      if (s) return s;
     }
-
-    return {
-      bg: "#ffffff",
-      surface: "#ffffff",
-      mutedSurface: "#fafafa",
-      border: "#d4d4d8",
-      text: "#111827",
-      subtext: "#52525b",
-      accent: "#111111",
-      accentText: "#ffffff",
-      ghostBorder: "#111111",
-      ghostText: "#111111",
-      successBorder: "#111111",
-      successBg: "#111111",
-      successText: "#ffffff",
-      warningBorder: "#92400e",
-      warningBg: "#ffffff",
-      warningText: "#92400e",
-      shadow: "0 1px 2px rgba(0,0,0,.04)",
-    };
+    return "—";
   }
 
-  function getSizeTokens(size) {
-    if (size === "sm") {
-      return {
-        maxWidth: "420px",
-        radius: "24px",
-        padding: "18px",
-        title: "24px",
-        body: "13px",
-        buttonHeight: "40px",
-        buttonPadding: "0 14px",
-        badgeHeight: "28px",
-        gridColumns: "repeat(1,minmax(0,1fr))",
-      };
-    }
+  function renderError(el, registryId, message) {
+    var recordUrl = ORIGIN + "/registry/" + encodeURIComponent(registryId);
 
-    if (size === "lg") {
-      return {
-        maxWidth: "640px",
-        radius: "32px",
-        padding: "26px",
-        title: "34px",
-        body: "15px",
-        buttonHeight: "46px",
-        buttonPadding: "0 18px",
-        badgeHeight: "32px",
-        gridColumns: "repeat(2,minmax(0,1fr))",
-      };
-    }
-
-    return {
-      maxWidth: "520px",
-      radius: "28px",
-      padding: "22px",
-      title: "30px",
-      body: "14px",
-      buttonHeight: "44px",
-      buttonPadding: "0 16px",
-      badgeHeight: "30px",
-      gridColumns: "repeat(2,minmax(0,1fr))",
-    };
-  }
-
-  function styleText(parts) {
-    return parts.join(";");
-  }
-
-  function pill(text, options, tokens, sizeTokens) {
-    var filled = options && options.filled;
-    var border = (options && options.border) || tokens.ghostBorder;
-    var background = filled ? border : tokens.surface;
-    var color = filled ? tokens.accentText : (options && options.color) || border;
-
-    return (
-      '<span style="' +
-      styleText([
-        "display:inline-flex",
-        "align-items:center",
-        "justify-content:center",
-        "height:" + sizeTokens.badgeHeight,
-        "padding:0 12px",
-        "border-radius:9999px",
-        "border:1px solid " + border,
-        "background:" + background,
-        "color:" + color,
-        "font-size:11px",
-        "font-weight:700",
-        "letter-spacing:.08em",
-        "text-transform:uppercase",
-        "white-space:nowrap",
-      ]) +
-      '">' +
-      escapeHtml(text) +
-      "</span>"
-    );
-  }
-
-  function fieldCard(label, value, emphasis, tokens) {
-    return (
-      '<div style="' +
-      styleText([
-        "border:1px solid " + tokens.border,
-        "border-radius:16px",
-        "padding:12px 14px",
-        "background:" + tokens.surface,
-        "min-width:0",
-      ]) +
-      '">' +
-      '<div style="' +
-      styleText([
-        "font-size:11px",
-        "font-weight:700",
-        "letter-spacing:.08em",
-        "text-transform:uppercase",
-        "color:" + tokens.subtext,
-      ]) +
-      '">' +
-      escapeHtml(label) +
-      "</div>" +
-      '<div style="' +
-      styleText([
-        "margin-top:8px",
-        "font-size:14px",
-        emphasis ? "font-weight:700" : "font-weight:600",
-        "line-height:1.45",
-        "color:" + tokens.text,
-        "word-break:break-word",
-        "overflow-wrap:anywhere",
-        "white-space:normal",
-      ]) +
-      '">' +
-      escapeHtml(value || "—") +
-      "</div>" +
-      "</div>"
-    );
-  }
-
-  function renderError(el, registryId, message, config) {
-    var tokens = getThemeTokens(config.theme);
-    var sizeTokens = getSizeTokens(config.size);
-    var base = getBaseUrl(config, el);
-    var recordUrl = joinUrl(base, config.registryPath) + "/" + encodeURIComponent(registryId || "");
-
+    el.className = "gafaig-widget-root";
     el.innerHTML =
-      '<div style="' +
-      styleText([
-        "font-family:Inter,Arial,Helvetica,sans-serif",
-        "color:" + tokens.text,
-        "max-width:" + sizeTokens.maxWidth,
-        "border:1px solid " + tokens.border,
-        "border-radius:" + sizeTokens.radius,
-        "padding:" + sizeTokens.padding,
-        "background:" + tokens.bg,
-        "box-shadow:" + tokens.shadow,
-      ]) +
-      '">' +
-      '<div style="display:flex;gap:8px;flex-wrap:wrap;">' +
-      pill("Unavailable", { filled: false, border: "#b91c1c" }, tokens, sizeTokens) +
-      pill("GAFAIG", { filled: false, border: tokens.ghostBorder }, tokens, sizeTokens) +
+      '<div class="gafaig-widget-card">' +
+      '<div class="gafaig-widget-topline gafaig-widget-topline-error"></div>' +
+      '<div class="gafaig-widget-chip-row">' +
+      '<span class="gafaig-widget-chip gafaig-widget-chip-neutral">Unavailable</span>' +
+      '<span class="gafaig-widget-chip gafaig-widget-chip-neutral">GAFAIG</span>' +
       "</div>" +
-      '<div style="margin-top:14px;font-size:22px;font-weight:800;color:' +
-      tokens.text +
-      ';">GAFAIG verification unavailable</div>' +
-      '<div style="margin-top:10px;font-size:14px;color:' +
-      tokens.subtext +
-      ';">' +
-      escapeHtml(message || "The certification record could not be verified.") +
+      '<h3 class="gafaig-widget-title">GAFAIG verification unavailable</h3>' +
+      '<p class="gafaig-widget-copy">' + esc(message || "Failed to fetch") + "</p>" +
+      '<div class="gafaig-widget-actions">' +
+      '<a class="gafaig-widget-btn gafaig-widget-btn-secondary" href="' + recordUrl + '" target="_blank" rel="noopener noreferrer">Open GAFAIG record</a>' +
       "</div>" +
-      '<a href="' +
-      recordUrl +
-      '" target="_blank" rel="noopener noreferrer" style="' +
-      styleText([
-        "margin-top:18px",
-        "display:inline-flex",
-        "align-items:center",
-        "justify-content:center",
-        "min-height:" + sizeTokens.buttonHeight,
-        "border-radius:9999px",
-        "border:1px solid " + tokens.ghostBorder,
-        "padding:" + sizeTokens.buttonPadding,
-        "font-size:14px",
-        "font-weight:700",
-        "text-decoration:none",
-        "background:" + tokens.surface,
-        "color:" + tokens.ghostText,
-      ]) +
-      '">' +
-      "Open GAFAIG record" +
-      "</a>" +
       "</div>";
   }
 
-  function renderWidgetMarkup(el, registryId, data, config) {
-    var record = data.record || {};
-    var entityName = record.entityName || "Unknown Entity";
-    var statusText = normalizeStatusText(data, record);
-    var tokens = getThemeTokens(config.theme);
-    var sizeTokens = getSizeTokens(config.size);
-    var base = getBaseUrl(config, el);
+  function renderWidget(el, registryId, registryData, verifyData) {
+    var row =
+      registryData && Array.isArray(registryData.rows)
+        ? registryData.rows[0] || null
+        : null;
+    var record = verifyData && verifyData.record ? verifyData.record : null;
 
-    var registryUrl =
-      joinUrl(base, config.registryPath) + "/" + encodeURIComponent(registryId);
-    var verifyUrl =
-      joinUrl(base, config.verifyPath) + "/" + encodeURIComponent(registryId);
-    var verifyGuideUrl = joinUrl(base, config.verifyGuidePath);
-    var badgeUrl =
-      joinUrl(base, config.badgePath) + "/" + encodeURIComponent(registryId);
-
-    var normalizedStatus = String(statusText || "").trim().toLowerCase();
-    var isCertified = normalizedStatus === "certified";
-    var primaryStatusPill = isCertified
-      ? pill("Verified", { filled: true, border: tokens.successBorder }, tokens, sizeTokens)
-      : pill(
-          statusText || "Not Certified",
-          { filled: false, border: tokens.warningBorder, color: tokens.warningText },
-          tokens,
-          sizeTokens
-        );
-
-    var fields = [];
-
-    if (config.showStatus) {
-      fields.push(fieldCard("Status", statusText, true, tokens));
-    }
-    if (config.showTierBand) {
-      fields.push(fieldCard("Tier / Band", formatTierBand(record), true, tokens));
-    }
-    if (config.showDecision) {
-      fields.push(fieldCard("Decision", record.decisionStatus || "—", true, tokens));
-    }
-    if (config.showValidity) {
-      fields.push(fieldCard("Valid To", formatDate(record.validTo), false, tokens));
-    }
-    fields.push(fieldCard("Registry ID", record.registryId || registryId, false, tokens));
-
-    var actions = [];
-    if (config.showRegistryLink) {
-      actions.push(
-        '<a href="' +
-          registryUrl +
-          '" target="_blank" rel="noopener noreferrer" style="' +
-          styleText([
-            "padding:10px 16px",
-            "border-radius:9999px",
-            "background:" + tokens.accent,
-            "color:" + tokens.accentText,
-            "text-decoration:none",
-            "font-weight:700",
-            "display:inline-flex",
-            "align-items:center",
-            "justify-content:center",
-            "min-height:" + sizeTokens.buttonHeight,
-          ]) +
-          '">' +
-          "Open record" +
-          "</a>"
-      );
-    }
-
-    if (config.showVerifyJson) {
-      actions.push(
-        '<a href="' +
-          verifyUrl +
-          '" target="_blank" rel="noopener noreferrer" style="' +
-          styleText([
-            "padding:10px 16px",
-            "border-radius:9999px",
-            "border:1px solid " + tokens.ghostBorder,
-            "text-decoration:none",
-            "font-weight:700",
-            "display:inline-flex",
-            "align-items:center",
-            "justify-content:center",
-            "min-height:" + sizeTokens.buttonHeight,
-            "color:" + tokens.ghostText,
-            "background:" + tokens.surface,
-          ]) +
-          '">' +
-          "Verify JSON" +
-          "</a>"
-      );
-    }
-
-    return (
-      '<div style="' +
-      styleText([
-        "font-family:Inter,Arial,Helvetica,sans-serif",
-        "color:" + tokens.text,
-        "max-width:" + sizeTokens.maxWidth,
-        "border:1px solid " + tokens.border,
-        "border-radius:" + sizeTokens.radius,
-        "padding:" + sizeTokens.padding,
-        "background:" + tokens.bg,
-        "box-shadow:" + tokens.shadow,
-      ]) +
-      '">' +
-      '<div style="display:flex;gap:8px;flex-wrap:wrap;">' +
-      primaryStatusPill +
-      pill("GAFAIG", { filled: false, border: tokens.ghostBorder }, tokens, sizeTokens) +
-      "</div>" +
-      '<div style="margin-top:14px;font-size:' +
-      sizeTokens.title +
-      ";font-weight:800;line-height:1.15;word-break:break-word;overflow-wrap:anywhere;color:" +
-      tokens.text +
-      ';">' +
-      escapeHtml(entityName) +
-      "</div>" +
-      '<div style="margin-top:10px;font-size:' +
-      sizeTokens.body +
-      ";color:" +
-      tokens.subtext +
-      ';line-height:1.7;">Public certification record independently verifiable through GAFAIG.</div>' +
-      (config.showBadgeImage
-        ? '<div style="' +
-          styleText([
-            "margin-top:18px",
-            "border:1px solid " + tokens.border,
-            "border-radius:20px",
-            "padding:14px",
-            "background:" + tokens.mutedSurface,
-          ]) +
-          '">' +
-          '<img src="' +
-          badgeUrl +
-          '" alt="' +
-          escapeHtml(entityName) +
-          ' badge" style="max-width:100%;border-radius:12px;" />' +
-          "</div>"
-        : "") +
-      '<div style="' +
-      styleText([
-        "margin-top:16px",
-        "display:grid",
-        "grid-template-columns:" + sizeTokens.gridColumns,
-        "gap:12px",
-      ]) +
-      '">' +
-      fields.join("") +
-      "</div>" +
-      (config.showActions
-        ? '<div style="margin-top:18px;display:flex;gap:10px;flex-wrap:wrap;">' +
-          actions.join("") +
-          "</div>"
-        : "") +
-      (config.showFooter
-        ? '<div style="margin-top:16px;font-size:12px;color:' +
-          tokens.subtext +
-          ';line-height:1.7;">Verified via GAFAIG public trust infrastructure · <a href="' +
-          verifyGuideUrl +
-          '" target="_blank" rel="noopener noreferrer" style="text-decoration:underline;color:' +
-          tokens.subtext +
-          ';">How verification works</a></div>'
-        : "") +
-      "</div>"
+    var entityName = safeText(
+      record && record.entityName,
+      row && row.entityName
     );
-  }
-
-  async function verify(registryId, options, el) {
-    var config = getConfig(options);
-    var base = getBaseUrl(config, el);
-    var endpoint =
-      joinUrl(base, config.verifyPath) + "/" + encodeURIComponent(registryId);
-
-    return fetchJsonWithRetry(
-      endpoint,
-      {},
-      Number(config.retryCount || 0),
-      Number(config.timeoutMs || DEFAULT_TIMEOUT_MS)
+    var country = safeText(
+      record && record.country,
+      row && row.country
     );
+    var tier = safeText(
+      record && record.certifiedTier,
+      row && row.certifiedTier
+    );
+    var band = safeText(
+      record && record.certifiedBand,
+      row && row.certifiedBand
+    );
+    var decision = safeText(
+      record && record.decisionStatus,
+      row && row.decisionStatus
+    );
+    var status = safeText(
+      record && record.certificationStatus,
+      row && row.certifiedAt ? "Certified" : null
+    );
+    var validTo = formatDate(
+      (record && record.validTo) || (row && row.validTo) || null
+    );
+
+    var verifyUrl = ORIGIN + "/api/verify/" + encodeURIComponent(registryId);
+    var recordUrl = ORIGIN + "/registry/" + encodeURIComponent(registryId);
+
+    el.className = "gafaig-widget-root";
+    el.innerHTML =
+      '<div class="gafaig-widget-card">' +
+      '<div class="gafaig-widget-topline"></div>' +
+      '<div class="gafaig-widget-eyebrow">GAFAIG Widget</div>' +
+      '<div class="gafaig-widget-chip-row">' +
+      '<span class="gafaig-widget-chip gafaig-widget-chip-verified">' + esc(status) + "</span>" +
+      '<span class="gafaig-widget-chip gafaig-widget-chip-approved">' + esc(decision) + "</span>" +
+      "</div>" +
+      '<h3 class="gafaig-widget-title">' + esc(entityName) + "</h3>" +
+      '<p class="gafaig-widget-copy">Public certification record independently verifiable through GAFAIG.</p>' +
+      '<div class="gafaig-widget-trust-panel">' +
+      '<div class="gafaig-widget-trust-header">' +
+      '<div class="gafaig-widget-trust-title">Public trust summary</div>' +
+      '<div class="gafaig-widget-trust-mark" aria-hidden="true">' +
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">' +
+      '<path d="M20 6 9 17l-5-5"></path>' +
+      "</svg>" +
+      "</div>" +
+      "</div>" +
+      '<div class="gafaig-widget-trust-copy">' +
+      esc(entityName) + " is listed in the GAFAIG registry with a public verification record and independently resolvable trust surface." +
+      "</div>" +
+      "</div>" +
+      '<div class="gafaig-widget-grid">' +
+      '<div class="gafaig-widget-metric">' +
+      '<div class="gafaig-widget-metric-label">Status</div>' +
+      '<div class="gafaig-widget-metric-value">' + esc(status) + "</div>" +
+      "</div>" +
+      '<div class="gafaig-widget-metric">' +
+      '<div class="gafaig-widget-metric-label">Tier / Band</div>' +
+      '<div class="gafaig-widget-metric-value">' + esc(fmtTierBand(tier === "—" ? "" : tier, band === "—" ? "" : band)) + "</div>" +
+      "</div>" +
+      '<div class="gafaig-widget-metric">' +
+      '<div class="gafaig-widget-metric-label">Decision</div>' +
+      '<div class="gafaig-widget-metric-value">' + esc(decision) + "</div>" +
+      "</div>" +
+      '<div class="gafaig-widget-metric">' +
+      '<div class="gafaig-widget-metric-label">Valid To</div>' +
+      '<div class="gafaig-widget-metric-value">' + esc(validTo) + "</div>" +
+      "</div>" +
+      "</div>" +
+      '<div class="gafaig-widget-id">' +
+      '<div class="gafaig-widget-metric-label">Registry ID</div>' +
+      '<div class="gafaig-widget-metric-value">' + esc(registryId) + "</div>" +
+      "</div>" +
+      '<div class="gafaig-widget-actions">' +
+      '<a class="gafaig-widget-btn gafaig-widget-btn-primary" href="' + recordUrl + '" target="_blank" rel="noopener noreferrer">Open record</a>' +
+      '<a class="gafaig-widget-btn gafaig-widget-btn-secondary" href="' + verifyUrl + '" target="_blank" rel="noopener noreferrer">Verify JSON</a>' +
+      "</div>" +
+      '<div class="gafaig-widget-footer">' +
+      'Verified via GAFAIG public trust infrastructure · <a href="' + verifyUrl + '" target="_blank" rel="noopener noreferrer">How verification works</a>' +
+      "</div>" +
+      "</div>";
   }
 
-  function resolveElement(target) {
-    if (isElement(target)) return target;
-    if (typeof target === "string") return document.querySelector(target);
-    return null;
-  }
-
-  async function render(target, registryId, options) {
-    var el = resolveElement(target);
-    if (!el) throw new Error("Target element not found");
-
-    var id = registryId || el.getAttribute("data-gafaig-id");
-    if (!id) throw new Error("Missing registryId");
-
-    var config = getConfig(options);
-
-    state.instanceMap.set(el, {
-      registryId: id,
-      config: config,
-      renderedAt: Date.now(),
+  async function fetchJson(url) {
+    var res = await fetch(url, {
+      credentials: "omit",
+      cache: "no-store",
     });
 
-    if (typeof config.onBeforeRender === "function") {
-      try {
-        config.onBeforeRender({ element: el, registryId: id, config: config });
-      } catch (_) {}
+    if (!res.ok) {
+      throw new Error("Request failed with status " + res.status);
     }
+
+    return res.json();
+  }
+
+  async function mountOne(el) {
+    var registryId =
+      el.getAttribute("data-gafaig-id") ||
+      el.getAttribute("data-registry-id") ||
+      "";
+
+    if (!registryId) return;
+
+    injectStyles();
 
     try {
-      var data = await verify(id, config, el);
-      el.innerHTML = renderWidgetMarkup(el, id, data, config);
+      var registryUrl =
+        ORIGIN +
+        "/api/registry?registryId=" +
+        encodeURIComponent(registryId);
+      var verifyUrl =
+        ORIGIN +
+        "/api/verify/" +
+        encodeURIComponent(registryId);
 
-      if (typeof config.onRendered === "function") {
-        try {
-          config.onRendered({
-            element: el,
-            registryId: id,
-            config: config,
-            data: data,
-          });
-        } catch (_) {}
-      }
+      var results = await Promise.all([
+        fetchJson(registryUrl),
+        fetchJson(verifyUrl),
+      ]);
 
-      return data;
+      renderWidget(el, registryId, results[0], results[1]);
     } catch (error) {
-      renderError(el, id, error && error.message ? error.message : "Verification failed", config);
+      var message =
+        error && typeof error.message === "string"
+          ? error.message
+          : "Failed to fetch";
+      renderError(el, registryId, message);
+    }
+  }
 
-      if (typeof config.onError === "function") {
-        try {
-          config.onError({
-            element: el,
-            registryId: id,
-            config: config,
-            error: error,
-          });
-        } catch (_) {}
+  function mountAll() {
+    var nodes = document.querySelectorAll("[data-gafaig-id], [data-registry-id]");
+    nodes.forEach(function (node) {
+      if (node instanceof HTMLElement) {
+        mountOne(node);
       }
-
-      throw error;
-    }
-  }
-
-  function scan(options) {
-    var config = getConfig(options);
-    var nodes = document.querySelectorAll(config.selectors || DEFAULTS.selectors);
-    var promises = [];
-
-    Array.prototype.forEach.call(nodes, function (el) {
-      promises.push(
-        render(el, el.getAttribute("data-gafaig-id"), config).catch(function () {
-          return null;
-        })
-      );
     });
-
-    return Promise.all(promises);
   }
 
-  function destroy(target) {
-    var el = resolveElement(target);
-    if (!el) return false;
-    el.innerHTML = "";
-    state.instanceMap.delete(el);
-    return true;
+  injectStyles();
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", mountAll, { once: true });
+  } else {
+    mountAll();
   }
 
-  function init(options) {
-    if (options) {
-      state.config = getConfig(options);
-    }
-
-    if (document.readyState === "loading") {
-      document.addEventListener(
-        "DOMContentLoaded",
-        function () {
-          scan();
-        },
-        { once: true }
-      );
-    } else {
-      scan();
-    }
-
-    return window.GAFAIG;
-  }
-
-  window.GAFAIG = {
-    __sdkLoaded: true,
-    version: VERSION,
-    defaults: assign({}, DEFAULTS),
-    configure: function (options) {
-      state.config = getConfig(options);
-      return assign({}, state.config);
-    },
-    getConfig: function () {
-      return assign({}, state.config);
-    },
-    init: init,
-    scan: scan,
-    render: render,
-    verify: function (registryId, options, target) {
-      var el = resolveElement(target);
-      return verify(registryId, options, el);
-    },
-    destroy: destroy,
+  window.GAFAIGWidget = {
+    mount: mountAll,
   };
-
-  if (state.config.autoInit) {
-    init();
-  }
 })();

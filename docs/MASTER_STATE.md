@@ -1,281 +1,274 @@
-# MASTER_STATE.md
-# GAFAIG — Global Authority for AI Governance
-# Canonical System State
-# Last Updated: 2026-04-12
+# GAFAIG MASTER STATE
 
----
+GAFAIG (Global Authority for AI Governance) is the world’s first deterministic AI governance registry. It functions as a global trust infrastructure layer for AI systems, analogous to financial audit systems, certificate authorities, and regulatory registries.
 
-## SYSTEM DEFINITION
+The system is designed as a dual-layer architecture:
 
-GAFAIG is the world’s first deterministic, Snowflake-native AI governance registry.
+1. Private Verification Engine (controlled environment)
+2. Public Registry of Record (trust surface)
 
-The platform provides:
-- A private verification engine (authoritative computation layer)
-- A public registry (trust and transparency layer)
+Snowflake is the single source of truth. All computation, scoring, certification, and registry state originate exclusively in Snowflake. The Next.js application is a presentation and transport layer only.
 
-All certification outcomes are computed in Snowflake and surfaced publicly without exposing underlying evidence.
+----------------------------------------
+CORE SYSTEM FLOW (LOCKED)
+----------------------------------------
 
----
+CASE → FINDINGS → EVIDENCE → EVENTS → SCORING → DECISION → REGISTRY SNAPSHOT → PUBLIC VIEWS → API → UI
 
-## CORE PRINCIPLE
+This flow is deterministic and append-only. No step may be bypassed or computed outside Snowflake.
 
-Snowflake is the **single source of truth**.
+----------------------------------------
+PRIVATE VERIFICATION ENGINE
+----------------------------------------
 
-All:
-- scoring
-- joins
-- certification decisions
-- registry outputs
+The private engine processes governance assessments using structured workflows:
 
-must originate from Snowflake.
+- CASE: Root verification object
+- FINDINGS: Control-level evaluation results
+- EVIDENCE: Supporting documentation (private)
+- EVENTS: Audit trail of actions
+- SCORING: Deterministic scoring (Snowflake only)
+- DECISION: Final certification outcome
 
-The API and UI are strictly read-only surfaces.
+All scoring outputs must come from canonical Snowflake views such as:
 
----
+- V_GOVERNANCE_SCORE_CASE
+- V_CASE_TIER_BAND
+- V_CASE_RENEWAL_STATUS
 
-## CANONICAL DATA FLOW (LOCKED)
+No scoring logic is permitted in the API or UI layer.
 
-CASE  
-→ FINDINGS  
-→ EVIDENCE  
-→ FINDING_EVIDENCE  
-→ EVENTS  
-→ SCORING  
-→ DECISION  
-→ REGISTRY_SNAPSHOT  
-→ PUBLIC VIEWS  
-→ API  
-→ UI  
+----------------------------------------
+PUBLIC REGISTRY (TRUST SURFACE)
+----------------------------------------
 
-This flow is deterministic and append-only where applicable.
+The public registry is an immutable, append-only record of certification outcomes.
 
-No stage may be skipped, re-ordered, or computed outside Snowflake.
+Core table:
+- CORE.REGISTRY_SNAPSHOTS
 
----
+Publishing is performed exclusively via stored procedures:
+- SP_PUBLISH_CASE_TO_REGISTRY_V3 (primary)
+- SP_PUBLISH_CASE_TO_REGISTRY_V4 (variant)
 
-## SYSTEM ARCHITECTURE
+Key rules:
+- Registry is append-only
+- Each publish creates a new snapshot
+- REGISTRY_ID is reused for the same entity
+- Snapshots are immutable
 
-### 1. PRIVATE VERIFICATION ENGINE (Snowflake)
+----------------------------------------
+CANONICAL PUBLIC VIEWS
+----------------------------------------
 
-Location:
-GAFAIG_DB.CORE
+The UI and APIs consume only canonical Snowflake views:
 
-Primary Tables:
-- VERIFICATION_CASES
-- VERIFICATION_FINDINGS
-- VERIFICATION_EVIDENCE
-- VERIFICATION_FINDING_EVIDENCE
-- VERIFICATION_EVENTS
-- CASE_SCORE_SNAPSHOTS
-- DECISIONS
-- REGISTRY_SNAPSHOTS
-
-Key Characteristics:
-- Deterministic
-- Append-only (snapshots)
-- Case-first model
-- No UI/API computation
-
----
-
-### 2. PUBLIC REGISTRY LAYER
-
-Primary Views:
 - V_REGISTRY_LATEST_APPROVED
 - V_REGISTRY_PUBLIC
 - V_REGISTRY_PUBLIC_SEARCH
 - V_REGISTRY_AI_SYSTEMS_PUBLIC
 
-Public Fields:
+These views provide:
 - CERTIFIED_SCORE
 - CERTIFIED_TIER
 - CERTIFIED_BAND
 - CERTIFIED_AT
 - DECISION_STATUS
+- ENTITY_NAME
+- COUNTRY
+- ENTITY_TYPE
 
-No evidence is exposed publicly.
+No direct table access is allowed from the application layer.
 
----
+----------------------------------------
+APPLICATION ARCHITECTURE
+----------------------------------------
 
-### 3. API LAYER (Next.js)
+Frontend:
+- Next.js (App Router)
+- TypeScript
+- Tailwind CSS
 
-Pattern:
-Snowflake → Query Layer → API → UI
+Backend:
+- Snowflake (all logic + data)
 
-Endpoints:
-- /api/registry
-- /api/registry/search
-- /api/verify/[registryId]
-- /api/badge/[registryId]
+Hosting:
+- Vercel (production)
 
-Rules:
+Query Layer:
+- lib/queries/*.ts
+- Uses sfQuery() from lib/snowflake.ts
+
+API Layer:
+- Thin transport only
 - No business logic
 - No scoring
-- No data transformation beyond mapping
+- No mutation of truth
 
----
+----------------------------------------
+PUBLIC TRUST SURFACES
+----------------------------------------
 
-### 4. UI LAYER (Next.js App Router)
+GAFAIG exposes multiple public verification surfaces:
 
-Pages:
-- /registry
-- /registry/[registryId]
-- /registry/ai-systems
-- /explorer/*
-- /widget-preview/[registryId]
+1. Registry Pages
+   - /registry
+   - /registry/[registryId]
 
-Rules:
-- Read-only
-- No computation
-- No direct table access
+2. Explorer
+   - /explorer
+   - /explorer/organizations
+   - /explorer/systems
+   - /explorer/countries
 
----
+3. Verification API
+   - /api/verify/[registryId]
 
-## DETERMINISTIC SCORING ENGINE
+4. Badge Endpoint
+   - /badge/[registryId] (route-based response)
 
-Canonical Source:
-V_GOVERNANCE_SCORE_CASE
+5. Widget
+   - public/widget/gafaig-widget.js
 
-Outputs:
-- FINAL_SCORE
-- TIER
-- BAND
+6. Widget Preview
+   - /widget-preview/[registryId]
 
-Rules:
-- Must originate in Snowflake
-- Must not be recomputed in API/UI
-- Must be tied to CASE_ID
+7. Badge Preview
+   - /badge-preview/[registryId]
 
----
+These surfaces allow third parties to independently verify governance status without accessing private data.
 
-## REGISTRY SNAPSHOT MODEL
+----------------------------------------
+REGISTRY AI SYSTEMS
+----------------------------------------
 
-Table:
-CORE.REGISTRY_SNAPSHOTS
+Core table:
+- CORE.REGISTRY_AI_SYSTEMS
 
-Characteristics:
-- Append-only
-- Immutable
-- One snapshot per publish event
-- REGISTRY_ID reused for same entity
+Public view:
+- V_REGISTRY_AI_SYSTEMS_PUBLIC
 
-Publishing Procedure:
-SP_PUBLISH_CASE_TO_REGISTRY_V3 (canonical)
+Fields include:
+- SYSTEM_NAME
+- SYSTEM_TYPE
+- INTENDED_USE
+- DEPLOYMENT_STATUS
+- RISK_TIER
+- DEVELOPER_ORGANIZATION
+- HUMAN_REVIEW_REQUIRED
+- AUDIT_FREQUENCY
 
----
+This powers system-level transparency within the registry.
 
-## AI SYSTEMS REGISTRY
+----------------------------------------
+ENGINEERING RULES (STRICT)
+----------------------------------------
 
-Table:
-CORE.REGISTRY_AI_SYSTEMS
+- Snowflake is the source of truth
+- No scoring in API/UI
+- No bypassing publish procedures
+- No mutation of registry snapshots
+- No UI hacks
+- No direct table queries
+- Only use canonical views
+- Maintain deterministic behavior
+- Maintain append-only architecture
+- Do not re-architect working systems
 
-Public View:
-V_REGISTRY_AI_SYSTEMS_PUBLIC
+----------------------------------------
+CURRENT SYSTEM STATUS
+----------------------------------------
 
-Purpose:
-- Link AI systems to certified registry entries
-- Provide structured metadata for Explorer and Registry surfaces
+COMPLETED:
+- Core verification pipeline (end-to-end)
+- Registry snapshot publishing
+- Canonical public views
+- Explorer pages (fully aligned UI + data)
+- Registry list page (aligned with design system)
+- Registry detail page (functional, minor refinements)
+- Badge preview page implemented
+- Widget rendering externally (functional)
+- Query layer stabilization (explorer.ts)
 
----
+IN PROGRESS:
+- Widget stabilization (external reliability)
+- Badge route visual alignment
+- Registry detail page UI consistency
+- Trust surface unification
 
-## CANONICAL SEED STRATEGY (LOCKED)
+----------------------------------------
+CURRENT PHASE
+----------------------------------------
 
-Single source:
-GAFAIG - CANONICAL_DEMO_SEED_MASTER.sql
+Trust Surface Completion + UI Consistency + External Trust Surfaces
 
-Purpose:
-- Seed demo cases
-- Rebuild full workflow
-- Populate registry
-- Validate system state
+Focus:
+- Make GAFAIG externally verifiable
+- Ensure all surfaces feel identical
+- Ensure API reliability for third-party usage
 
-This file must:
-- Be deterministic
-- Be idempotent
-- Use INSERT ... SELECT patterns
-- Avoid temp tables
-- Avoid session drift
+----------------------------------------
+ACTIVE FILES
+----------------------------------------
 
----
+- public/widget/gafaig-widget.js
+- app/widget-preview/[registryId]/page.tsx
+- app/badge/[registryId]/route.ts
+- app/badge-preview/[registryId]/page.tsx
+- app/registry/page.tsx
+- app/registry/[registryId]/page.tsx
+- lib/queries/explorer.ts
 
-## CURRENT SYSTEM STATE (2026-04-12)
+----------------------------------------
+NEXT EXECUTION PRIORITIES (STRICT ORDER)
+----------------------------------------
 
-### WORKING
+1. Fix CORS for external widget:
+   - app/api/verify/[registryId]/route.ts
+   - app/api/registry/route.ts
 
-- Registry pages rendering correctly
-- Explorer pages rendering correctly
-- AI systems registry rendering correctly
-- Public views operational
-- API endpoints operational
-- Events table populated
-- Canonical seed file executes without full failure
+2. Finalize widget:
+   - Reliable fetch
+   - Clean fallback state
+   - Consistent styling
 
----
+3. Align badge route output with UI system:
+   - Typography
+   - spacing
+   - trust signaling
 
-### ACTIVE ISSUE
+4. Standardize registry detail page layout:
+   - Match explorer + mission
+   - Fix typography + spacing
 
-Workflow layer incomplete:
+5. Build shared trust component:
+   - components/registry/RegistryTrustTools.tsx
 
-- VERIFICATION_FINDINGS = 0
-- VERIFICATION_EVIDENCE = 0
-- VERIFICATION_FINDING_EVIDENCE = 0
+6. Homepage upgrade:
+   - Clarify positioning
+   - Strengthen trust narrative
 
-- VERIFICATION_EVENTS = populated
+----------------------------------------
+DEPLOYMENT
+----------------------------------------
 
-This indicates failure in:
-FINDINGS → EVIDENCE → FINDING_EVIDENCE reconstruction
+Repository:
+- GitHub: GAF2026/gafaig
 
----
+Production:
+- Vercel
+- https://www.gafaig.com
 
-## CURRENT FOCUS (LOCKED)
+----------------------------------------
+KEY PRINCIPLE
+----------------------------------------
 
-Fix canonical workflow rebuild inside:
+GAFAIG is not a UI product.
 
-GAFAIG - CANONICAL_DEMO_SEED_MASTER.sql
+It is a trust infrastructure.
 
-Specifically:
-- Deterministic INSERT patterns
-- Correct VALUES → alias structure
-- Proper CROSS JOIN usage
-- No malformed WITH clauses
-- No schema changes
-
----
-
-## ENGINEERING RULES (ENFORCED)
-
-- Do NOT re-architect
-- Do NOT change schema
-- Do NOT move logic to API/UI
-- Do NOT introduce new seed files
-- Do NOT introduce temp tables
-- Do NOT rewrite working views
-- Do NOT modify registry or explorer surfaces during data fixes
-
----
-
-## SUCCESS CRITERIA
-
-After running canonical seed:
-
-VERIFICATION_FINDINGS = 25  
-VERIFICATION_EVIDENCE = 25  
-VERIFICATION_FINDING_EVIDENCE = 25  
-VERIFICATION_EVENTS = 10  
-
-Registry and Explorer must remain unchanged and functional.
-
----
-
-## NEXT STEP
-
-Complete deterministic workflow rebuild in canonical seed file and validate counts.
-
-Once complete:
-- Lock seed file as canonical
-- Proceed to scoring + certification stabilization
-- Continue registry enrichment
-
----
-
-END OF FILE
+Every decision must reinforce:
+- determinism
+- verifiability
+- independence
+- consistency across all trust surfaces

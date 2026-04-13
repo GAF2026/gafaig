@@ -1,301 +1,294 @@
-# GAFAIG_SNOWFLAKE_SQL_FILE_SUMMARY.md
-# GAFAIG — Global Authority for AI Governance
-# Snowflake SQL File Summary (Canonical)
-# Last Updated: 2026-04-12
+# GAFAIG SNOWFLAKE SQL FILE SUMMARY
 
-## OVERVIEW
+DATE: 2026-04-13
 
-This document defines the canonical Snowflake SQL file structure for GAFAIG.  
-All platform logic, scoring, certification, registry publishing, and public outputs are defined and executed in Snowflake.
+This document defines all canonical Snowflake SQL files used to build and operate the GAFAIG verification engine and public registry.
 
-Snowflake is the **single source of truth**.
+Snowflake is the single source of truth for GAFAIG.
 
-All files are organized by function:
-- Core tables
-- Workflow tables
-- Scoring engine
-- Registry publishing
-- Public views
-- Demo seed (canonical)
+All governance scoring, certification decisions, and registry outputs are computed in Snowflake.
 
----
+----------------------------------------
+CORE PRINCIPLES
+----------------------------------------
 
-## CORE TABLES (FOUNDATIONAL)
+- Snowflake computes ALL truth
+- Application layer does NOT compute logic
+- Registry is append-only
+- Views are canonical interfaces
+- Stored procedures control mutation
 
-### 10_TABLES_VERIFICATION_CASES.sql
-Defines:
-- CORE.VERIFICATION_CASES
+----------------------------------------
+DATABASE CONFIGURATION
+----------------------------------------
 
-Purpose:
-- Entry point for all certification workflows
-- Case-first architecture anchor
+Account: GAFAIG1  
+Database: GAFAIG_DB  
+Schema: CORE  
+Warehouse: GAFAIG_WH  
 
----
+----------------------------------------
+TABLES (CORE DATA MODEL)
+----------------------------------------
 
-### 11_TABLES_VERIFICATION_FINDINGS.sql
-Defines:
-- CORE.VERIFICATION_FINDINGS
+----------------------------------------
+VERIFICATION ENGINE TABLES
+----------------------------------------
 
-Purpose:
-- Stores governance findings per case
-- Drives scoring inputs
+GAFAIG - CORE.VERIFICATION_CASES.sql  
+- Root verification object  
+- Contains case metadata  
+- Primary key: CASE_ID  
 
----
+GAFAIG - CORE.VERIFICATION_FINDINGS.sql  
+- Stores control-level findings  
+- Linked to CASE_ID  
 
-### 12_TABLES_VERIFICATION_EVIDENCE.sql
-Defines:
-- CORE.VERIFICATION_EVIDENCE
+GAFAIG - CORE.VERIFICATION_EVIDENCE.sql  
+- Stores supporting evidence  
+- Private, not exposed publicly  
 
-Purpose:
-- Stores evidence supporting findings
-- Links to findings via mapping table
+GAFAIG - CORE.VERIFICATION_FINDING_EVIDENCE.sql  
+- Join table linking findings to evidence  
 
----
+GAFAIG - CORE.VERIFICATION_EVENTS.sql  
+- Audit trail of actions  
+- Append-only  
 
-### 13_TABLES_VERIFICATION_FINDING_EVIDENCE.sql
-Defines:
-- CORE.VERIFICATION_FINDING_EVIDENCE
+----------------------------------------
+SCORING TABLES
+----------------------------------------
 
-Purpose:
-- Many-to-many relationship between findings and evidence
-- Critical for scoring validation
+GAFAIG - 16_TABLES_CASE_SCORE_SNAPSHOTS.sql  
+- Stores scoring snapshots  
+- Append-only  
 
----
+GAFAIG - 17_TABLES_DECISIONS.sql  
+- Stores final certification decisions  
+- Linked to CASE_ID  
 
-### 14_TABLES_VERIFICATION_EVENTS.sql
-Defines:
-- CORE.VERIFICATION_EVENTS
+----------------------------------------
+REGISTRY TABLES
+----------------------------------------
 
-Purpose:
-- Immutable audit trail of workflow actions
-- Used for operational scoring signals
+GAFAIG - CORE.REGISTRY_SNAPSHOTS.sql  
+- Public registry snapshots  
+- Append-only  
+- Core output of GAFAIG  
 
----
+GAFAIG - 14_TABLES_REGISTRY_AI_SYSTEMS.sql  
+- Stores AI system metadata  
+- Linked to REGISTRY_ID  
 
-### 15_TABLES_CASE_SCORE_SNAPSHOTS.sql
-Defines:
-- CORE.CASE_SCORE_SNAPSHOTS_V2
+----------------------------------------
+DIMENSION / CONTROL TABLES
+----------------------------------------
 
-Purpose:
-- Stores deterministic scoring outputs
-- Snapshot-based scoring model
+GAFAIG - CANONICAL_DIMENSION_SYSTEM.sql  
+- Defines governance dimensions  
+- Used in scoring  
 
----
+----------------------------------------
+VIEWS (CANONICAL OUTPUT LAYER)
+----------------------------------------
 
-### 17_TABLES_DECISIONS.sql
-Defines:
-- CORE.DECISIONS
+----------------------------------------
+REGISTRY VIEWS
+----------------------------------------
 
-Purpose:
-- Stores certification decision outcomes
-- Defines VALID_FROM / VALID_TO
+21_VIEWS_PUBLIC_REGISTRY.sql  
 
----
+Includes:
 
-### GAFAIG - CORE.REGISTRY_SNAPSHOTS.sql
-Defines:
-- CORE.REGISTRY_SNAPSHOTS
+V_REGISTRY_LATEST_APPROVED  
+- Latest approved snapshot per CASE_ID  
+- Uses ROW_NUMBER()  
 
-Purpose:
-- Append-only public certification records
-- Immutable registry history
+V_REGISTRY_PUBLIC  
+- Canonical public registry view  
+- Used by all UI + APIs  
 
----
+V_REGISTRY_PUBLIC_SEARCH  
+- Search-optimized registry view  
+- Includes normalized fields  
 
-## AI SYSTEMS REGISTRY
+----------------------------------------
+AI SYSTEM VIEWS
+----------------------------------------
 
-### 14_TABLES_REGISTRY_AI_SYSTEMS.sql
-Defines:
-- CORE.REGISTRY_AI_SYSTEMS
+V_REGISTRY_AI_SYSTEMS_PUBLIC  
+- Public AI systems view  
+- Joins registry + system metadata  
+- Used by explorer and registry pages  
 
-Purpose:
-- Stores AI system metadata linked to registry entries
+----------------------------------------
+SCORING VIEWS
+----------------------------------------
 
----
+GAFAIG - Governance Scoring (Enterprise v1.0).sql  
 
-## SCORING ENGINE (CANONICAL)
+Includes:
 
-### GAFAIG - Governance Scoring (Enterprise v1.0).sql
-Defines:
-- CORE.V_CASE_SCORE_ENTERPRISE
-- CORE.V_CONTROL_SCORE_COMPONENTS
-- Supporting scoring views
+V_GOVERNANCE_SCORE_CASE  
+- Final deterministic score output  
+- Source of:
+  - FINAL_SCORE  
+  - TIER  
+  - BAND  
 
-Purpose:
-- Deterministic enterprise scoring engine
-- Computes:
-  - SCORE
-  - SUBSCORES
-  - EVENTS_90D
+V_CASE_TIER_BAND  
+- Tier and band classification  
 
----
+V_CASE_RENEWAL_STATUS  
+- Certification validity status  
 
-### V_CASE_TIER_BAND (defined within scoring files)
-Purpose:
-- Maps numeric score → TIER + BAND
+V_CONTROL_SCORE_COMPONENTS  
+- Detailed scoring breakdown  
 
----
+----------------------------------------
+STORED PROCEDURES
+----------------------------------------
 
-### SP_SCORE_CASE_ENTERPRISE.sql
-Defines:
-- CORE.SP_SCORE_CASE_ENTERPRISE
+----------------------------------------
+SCORING PROCEDURES
+----------------------------------------
 
-Purpose:
-- Executes scoring for a given CASE_ID
-- Inserts into CASE_SCORE_SNAPSHOTS_V2
+SP_SCORE_CASE_ENTERPRISE  
+- Executes full scoring pipeline  
+- Populates scoring snapshots  
 
----
+----------------------------------------
+PUBLISHING PROCEDURES
+----------------------------------------
 
-## REGISTRY PUBLISHING
+GAFAIG - CORE.REGISTRY_PUBLISH.sql  
 
-### CORE.REGISTRY_PUBLISH.sql
-Defines:
-- SP_PUBLISH_CASE_TO_REGISTRY_V3 (canonical)
+Includes:
 
-Purpose:
-- Validates case readiness
-- Creates registry snapshot
-- Reuses REGISTRY_ID for existing entities
-- Enforces append-only registry model
+SP_PUBLISH_CASE_TO_REGISTRY_V3  
+- Primary publish procedure  
+- Validates case  
+- Generates or reuses REGISTRY_ID  
+- Inserts registry snapshot  
 
----
+SP_PUBLISH_CASE_TO_REGISTRY_V4  
+- Variant of publish logic  
+- Used in newer workflows  
 
-## PUBLIC REGISTRY VIEWS
+----------------------------------------
+SEED / DEMO DATA
+----------------------------------------
 
-### 21_VIEWS_PUBLIC_REGISTRY.sql
-Defines:
-- CORE.V_REGISTRY_LATEST_APPROVED
-- CORE.V_REGISTRY_PUBLIC
+GAFAIG - CANONICAL_DEMO_SEED_MASTER.sql  
+- Seeds demo organizations  
+- Seeds demo cases  
+- Seeds findings and evidence  
 
-Purpose:
-- Canonical public registry projection
-- Used by:
-  - /registry
-  - /registry/[registryId]
+----------------------------------------
+UTILITY FILES
+----------------------------------------
 
----
+GAFAIG - SECURITY_ROW_ACCESS_POLICIES.sql  
+- Defines row-level access policies  
 
-### V_REGISTRY_PUBLIC_SEARCH (same file or extension)
-Purpose:
-- Normalized search view
-- Used by /api/registry/search
+REGISTRY_ID_RESOLUTION.sql  
+- Defines deterministic ID generation  
 
----
+VERIFICATION_SIGNATURE_CONTRACT.sql  
+- Defines verification payload structure  
 
-## AI SYSTEMS PUBLIC VIEW
+----------------------------------------
+IMPORTANT SQL RULES
+----------------------------------------
 
-### V_REGISTRY_AI_SYSTEMS_PUBLIC.sql
-Defines:
-- CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC
+----------------------------------------
+VARIABLE BINDING
+----------------------------------------
 
-Purpose:
-- Public projection of AI systems
-- Used by:
-  - /registry/ai-systems
-  - /explorer/systems
+- Always use :variable syntax inside Snowflake scripting  
+- Never interpolate directly  
 
----
+----------------------------------------
+INSERT RULES
+----------------------------------------
 
-## SCORE BREAKDOWN (PUBLIC)
+- Prefer INSERT ... SELECT  
+- Avoid INSERT ... VALUES when using VARIANT  
 
-### GAFAIG - SCORE_BREAKDOWN_PUBLIC.sql
-Defines:
-- CORE.V_SCORE_DIMENSIONS_PUBLIC
-- CORE.V_SCORE_COMPONENTS_PUBLIC
+----------------------------------------
+APPEND-ONLY RULE
+----------------------------------------
 
-Purpose:
-- Exposes scoring breakdown for UI
-- Used by:
-  - /api/registry/[registryId]/score-breakdown
+- Never update registry snapshots  
+- Never delete registry data  
+- Always insert new rows  
 
----
+----------------------------------------
+VIEW RULE
+----------------------------------------
 
-## CANONICAL DEMO SEED
+- UI must use views only  
+- Never query base tables directly  
 
-### GAFAIG - CANONICAL_DEMO_SEED_MASTER.sql (LOCKED)
+----------------------------------------
+ERROR PREVENTION
+----------------------------------------
 
-Purpose:
-- Single canonical demo seed file
-- Rebuilds full deterministic demo dataset
+Common issues to avoid:
 
-Responsibilities:
-- Seed verification cases (if included)
-- Rebuild workflow:
-  - VERIFICATION_FINDINGS
-  - VERIFICATION_EVIDENCE
-  - VERIFICATION_FINDING_EVIDENCE
-  - VERIFICATION_EVENTS
-- Execute scoring:
-  - SP_SCORE_CASE_ENTERPRISE
-- Validate system state
+- Invalid identifier (e.g., UPDATED_AT not existing)  
+- JSON binding errors  
+- Missing column mismatches  
 
-Rules:
-- Must be deterministic
-- Must be idempotent
-- Must not depend on temp tables
-- Must use INSERT ... SELECT patterns
-- Must not rely on external files
+----------------------------------------
+CANONICAL FILE ORDER (EXECUTION)
+----------------------------------------
 
----
+1. Dimension system  
+2. Core tables (verification)  
+3. Scoring tables  
+4. Registry tables  
+5. Views  
+6. Stored procedures  
+7. Seed data  
 
-## RETIRED / ARCHIVED FILES
+----------------------------------------
+RELATIONSHIP TO APPLICATION
+----------------------------------------
 
-### GAFAIG - DEMO_CERTIFICATION_WORKFLOW_REBUILD.sql
-Status:
-- RETIRED
+Snowflake → Views → Query Layer → API → UI  
 
-Reason:
-- Caused drift and duplication
-- Replaced by canonical seed master
+- Snowflake handles logic  
+- Query layer fetches  
+- API transports  
+- UI renders  
 
-Rule:
-- Do NOT execute
-- Do NOT depend on
+----------------------------------------
+CURRENT STATE
+----------------------------------------
 
----
+COMPLETED:
+- Full verification pipeline  
+- Deterministic scoring engine  
+- Registry snapshot system  
+- Public registry views  
+- AI systems registry  
 
-## EXECUTION ORDER (CANONICAL)
+STABLE:
+- V_REGISTRY_PUBLIC  
+- V_GOVERNANCE_SCORE_CASE  
+- SP_PUBLISH_CASE_TO_REGISTRY_V3  
 
-1. Core table definitions
-2. Scoring engine views
-3. Registry snapshot logic
-4. Public views
-5. AI systems views
-6. Canonical demo seed file
+ACTIVE:
+- Alignment with UI trust surfaces  
+- Validation of external API usage  
 
----
+----------------------------------------
+FINAL PRINCIPLE
+----------------------------------------
 
-## CURRENT SYSTEM STATE (2026-04-12)
+Snowflake defines reality.
 
-Working:
-- Public registry views operational
-- Explorer pages operational
-- AI systems registry operational
-- API layer operational
+The application reflects it.
 
-In Progress:
-- Canonical demo workflow rebuild inside seed file
-
-Issue:
-- Workflow tables not fully populated:
-  - VERIFICATION_FINDINGS
-  - VERIFICATION_EVIDENCE
-  - VERIFICATION_FINDING_EVIDENCE
-
-Focus:
-- Fix deterministic INSERT patterns in canonical seed file
-
----
-
-## FINAL RULE
-
-All Snowflake logic must:
-- originate from canonical SQL files
-- follow deterministic patterns
-- remain aligned with system architecture
-
-No logic may be moved to API or UI.
-
----
-
-## END OF FILE
+Never reverse that relationship.

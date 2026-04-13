@@ -1,145 +1,244 @@
-# CURRENT_FOCUS.md
-# GAFAIG — Global Authority for AI Governance
-# Current Focus (Execution Lock)
-# Last Updated: 2026-04-12
+# GAFAIG CURRENT FOCUS
 
-## PRIMARY OBJECTIVE
+DATE: 2026-04-13
 
-Fix the canonical demo certification workflow inside:
+----------------------------------------
+CURRENT PHASE
+----------------------------------------
 
-GAFAIG - CANONICAL_DEMO_SEED_MASTER.sql
+Trust Surface Completion + UI Consistency + External Trust Surfaces
 
-This is the ONLY active engineering task.
+The GAFAIG system has completed its core verification pipeline and public registry foundation. The current focus is to finalize all public-facing trust surfaces and ensure consistency, reliability, and external usability.
 
----
+----------------------------------------
+OBJECTIVE
+----------------------------------------
 
-## PROBLEM STATEMENT
+Transform GAFAIG from a functional registry into a fully coherent, externally verifiable trust infrastructure.
 
-The canonical seed file executes, but the workflow layer is incomplete:
+This means:
+- All public surfaces must look identical
+- All trust signals must be consistent
+- All external integrations must work reliably
+- No internal inconsistencies across pages, badge, widget, or API
 
-- VERIFICATION_FINDINGS = 0
-- VERIFICATION_EVIDENCE = 0
-- VERIFICATION_FINDING_EVIDENCE = 0
-- VERIFICATION_EVENTS = populated
+----------------------------------------
+WHAT WAS COMPLETED IN THIS SESSION
+----------------------------------------
 
-This indicates failure in deterministic workflow reconstruction:
+EXPLORER:
+- /explorer page fully stabilized
+- Supporting pages completed:
+  - /explorer/organizations
+  - /explorer/systems
+  - /explorer/countries
+- Layout aligned with design system
+- Data fully sourced from Snowflake views
 
-FINDINGS → EVIDENCE → FINDING_EVIDENCE
+REGISTRY LIST:
+- /registry page aligned with system layout
+- Typography, spacing, and card structure corrected
+- Search + filter section implemented and fixed
+- Country filter alignment corrected
 
-The issue is not UI, not API, not registry views, and not explorer pages.
+REGISTRY DETAIL:
+- /registry/[registryId] functional
+- Build issues resolved:
+  - Type errors
+  - JSX structure issues
+- Minor type and layout refinements still pending
 
-The issue is strictly within the canonical seed file SQL patterns.
+BADGE:
+- /badge route functioning
+- /badge-preview page created and working
+- Badge rendering but not yet aligned with design system
 
----
+WIDGET:
+- public/widget/gafaig-widget.js implemented
+- Widget renders on external HTML page
+- Initial styling aligned with GAFAIG UI
+- External fetch working locally but failing due to CORS
 
-## SCOPE (STRICTLY LIMITED)
+QUERY LAYER:
+- lib/queries/explorer.ts stabilized
+- Explorer queries now reliable and normalized
 
-Modify ONLY:
+DEPLOYMENT:
+- All recent changes pushed to Vercel
+- Production environment updated
 
-GAFAIG - CANONICAL_DEMO_SEED_MASTER.sql
+----------------------------------------
+CURRENT PROBLEMS TO SOLVE
+----------------------------------------
 
-Focus ONLY on:
+1. CORS BLOCKING WIDGET
+- External widget fails with "Failed to fetch"
+- Root cause: missing CORS headers on API routes
+- Affects:
+  - /api/verify/[registryId]
+  - /api/registry
 
-- INSERT patterns for findings
-- INSERT patterns for evidence
-- INSERT patterns for finding-evidence links
-- Deterministic VALUES + alias structures
-- Correct CROSS JOIN usage
-- Proper column alignment
+2. BADGE VISUAL MISALIGNMENT
+- Badge output does not match system design language
+- Issues:
+  - Typography
+  - spacing
+  - layout structure
+  - trust signal clarity
 
-Do NOT modify:
+3. REGISTRY DETAIL PAGE INCONSISTENCY
+- Does not fully match explorer/mission layout
+- Issues:
+  - font sizes
+  - spacing
+  - component structure
 
-- UI (any page)
-- API routes
-- Explorer pages
-- Registry pages
-- Public views
-- Schema definitions
-- Scoring logic (until workflow is fixed)
+4. WIDGET FALLBACK STATE
+- Error state currently rough
+- Needs:
+  - clean fallback UI
+  - consistent messaging
+  - trust-preserving design
 
----
+----------------------------------------
+NEXT EXECUTION PLAN (STRICT ORDER)
+----------------------------------------
 
-## REQUIRED OUTCOME
+STEP 1 — FIX CORS (CRITICAL BLOCKER)
 
-After running the canonical seed file in a fresh Snowflake worksheet:
+FILES:
+- app/api/verify/[registryId]/route.ts
+- app/api/registry/route.ts
 
-VERIFICATION_FINDINGS = 25  
-VERIFICATION_EVIDENCE = 25  
-VERIFICATION_FINDING_EVIDENCE = 25  
-VERIFICATION_EVENTS = 10  
+ACTION:
+- Add Access-Control-Allow-Origin headers
+- Add OPTIONS handler
+- Ensure all responses include CORS headers
 
-All counts must be scoped to:
+GOAL:
+- External widget fully functional
 
-CASE-0001  
-CASE-0002  
-CASE-0003  
-CASE-0004  
-CASE-0005  
+----------------------------------------
 
----
+STEP 2 — FINALIZE WIDGET
 
-## EXECUTION RULES
+FILE:
+- public/widget/gafaig-widget.js
 
-- Use deterministic INSERT ... SELECT patterns
-- Use inline VALUES blocks with explicit column aliases
-- Avoid malformed WITH clause usage
-- Avoid temp table dependency
-- Ensure all ID generation is deterministic
-- Ensure cleanup logic matches real table schema
+ACTION:
+- Improve fetch reliability
+- Improve fallback UI
+- Ensure consistent styling with GAFAIG UI system
 
----
+GOAL:
+- Production-ready embeddable trust widget
 
-## DEBUGGING SEQUENCE (MANDATORY)
+----------------------------------------
 
-1. Run canonical seed file
-2. Check counts for workflow tables
-3. Inspect inserted rows (not just counts)
-4. Fix SQL patterns if counts are incorrect
-5. Re-run seed file
-6. Repeat until counts match expected values
+STEP 3 — ALIGN BADGE OUTPUT
 
-Do NOT:
-- jump to scoring
-- modify views
-- modify UI
+FILE:
+- app/badge/[registryId]/route.ts
 
----
+ACTION:
+- Match GAFAIG typography scale
+- Fix spacing and layout
+- Improve trust signal clarity
 
-## NEXT STEP (AFTER SUCCESS)
+GOAL:
+- Badge = premium trust artifact
 
-Once workflow counts are correct:
+----------------------------------------
 
-1. Re-enable scoring calls:
-   CALL CORE.SP_SCORE_CASE_ENTERPRISE(...)
-2. Validate CASE_SCORE_SNAPSHOTS_V2
-3. Validate V_CASE_SCORE_ENTERPRISE
-4. Validate V_REGISTRY_PUBLIC
-5. Confirm Explorer and Registry surfaces reflect correct data
+STEP 4 — FIX REGISTRY DETAIL PAGE
 
----
+FILE:
+- app/registry/[registryId]/page.tsx
 
-## SUCCESS STATE DEFINITION
+ACTION:
+- Align with explorer + mission layout
+- Normalize typography
+- Standardize spacing and components
 
-The system is considered stable when:
+GOAL:
+- Full consistency across core pages
 
-- Canonical seed file runs cleanly
-- Workflow tables are fully populated
-- Scoring executes without errors
-- Registry surfaces reflect correct certification state
-- No UI or API modifications were required to achieve correctness
+----------------------------------------
 
----
+STEP 5 — BUILD TRUST COMPONENT
 
-## FINAL RULE
+FILE:
+- components/registry/RegistryTrustTools.tsx
+
+ACTION:
+- Unified component for:
+  - Verify endpoint
+  - Badge embed
+  - Widget embed
+
+GOAL:
+- Reusable trust surface across pages
+
+----------------------------------------
+
+STEP 6 — HOMEPAGE UPGRADE
+
+FILE:
+- app/page.tsx
+
+ACTION:
+- Clarify GAFAIG positioning
+- Improve messaging hierarchy
+- Strengthen trust narrative
+
+GOAL:
+- Instantly understandable product
+
+----------------------------------------
+ACTIVE FILES
+----------------------------------------
+
+- public/widget/gafaig-widget.js
+- app/widget-preview/[registryId]/page.tsx
+- app/badge/[registryId]/route.ts
+- app/badge-preview/[registryId]/page.tsx
+- app/registry/page.tsx
+- app/registry/[registryId]/page.tsx
+- app/api/verify/[registryId]/route.ts
+- app/api/registry/route.ts
+- lib/queries/explorer.ts
+
+----------------------------------------
+RULES DURING THIS PHASE
+----------------------------------------
+
+- Do not re-architect anything
+- Do not modify Snowflake logic
+- Do not introduce new data models
+- Only refine presentation and external interfaces
+- Maintain strict visual consistency across all pages
+- Every trust surface must feel identical
+
+----------------------------------------
+SUCCESS DEFINITION
+----------------------------------------
+
+GAFAIG is complete when:
+
+- External widget works on any website
+- Badge renders clean, consistent trust signal
+- Registry, Explorer, Badge, Widget all share identical UI language
+- Verification endpoint is publicly usable and reliable
+- No layout inconsistencies exist across pages
+
+----------------------------------------
+KEY FOCUS
+----------------------------------------
+
+Finish the trust surface.
 
 Do not expand scope.
 
-Do not introduce new files.
+Do not drift.
 
-Do not re-architect.
-
-Fix the workflow layer inside the canonical seed file only.
-
----
-
-## END OF FILE
+Execute cleanly, one file at a time.
