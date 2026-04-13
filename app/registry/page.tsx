@@ -94,44 +94,26 @@ export default async function RegistryPage({
           }
         />
 
+        {/* SEARCH SECTION — FIXED */}
         <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
-          <div className="grid gap-5 lg:grid-cols-[1fr_320px] lg:items-end">
-            <form action="/registry" className="space-y-3">
-              <label
-                htmlFor="registry-q"
-                className="block text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60"
-              >
+          <form action="/registry">
+            <div className="space-y-3">
+              <label className="block text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
                 Search records
               </label>
 
-              <input
-                id="registry-q"
-                name="q"
-                defaultValue={q}
-                placeholder="Entity, registry ID, application ID, or case ID"
-                className="h-14 w-full rounded-full border border-black/10 bg-white px-6 text-[15px] text-black outline-none transition placeholder:text-black/35 focus:border-black/20"
-              />
-
-              <input type="hidden" name="country" value={country} />
-            </form>
-
-            <form
-              action="/registry"
-              className="grid gap-3 sm:grid-cols-[1fr_auto_auto]"
-            >
-              <div className="space-y-3">
-                <label
-                  htmlFor="registry-country"
-                  className="block text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60"
-                >
-                  Country
-                </label>
+              <div className="flex flex-wrap items-center gap-3">
+                <input
+                  name="q"
+                  defaultValue={q}
+                  placeholder="Entity, registry ID, application ID, or case ID"
+                  className="flex-1 min-w-[280px] h-14 rounded-full border border-black/10 px-6 text-[15px] outline-none focus:border-black/20"
+                />
 
                 <select
-                  id="registry-country"
                   name="country"
                   defaultValue={country}
-                  className="h-14 w-full rounded-full border border-black/10 bg-white px-5 text-[15px] text-black outline-none transition focus:border-black/20"
+                  className="h-14 min-w-[160px] rounded-full border border-black/10 px-5 text-[15px] bg-white"
                 >
                   <option value="">All countries</option>
                   {countries.map((value) => (
@@ -141,30 +123,25 @@ export default async function RegistryPage({
                   ))}
                 </select>
 
-                <input type="hidden" name="q" value={q} />
-              </div>
-
-              <div className="flex items-end">
                 <button
                   type="submit"
-                  className="inline-flex h-14 items-center justify-center rounded-full bg-black px-8 text-[15px] font-semibold text-white transition hover:bg-black/90"
+                  className="h-14 rounded-full border border-black bg-black px-6 text-[15px] font-semibold text-white hover:bg-black/90"
                 >
                   Apply
                 </button>
-              </div>
 
-              <div className="flex items-end">
                 <Link
                   href="/registry"
-                  className="inline-flex h-14 items-center justify-center rounded-full border border-black/10 px-8 text-[15px] font-semibold text-black transition hover:bg-black/[0.03]"
+                  className="h-14 inline-flex items-center justify-center rounded-full border border-black/10 px-6 text-[15px] font-semibold hover:bg-black/[0.04]"
                 >
                   Reset
                 </Link>
               </div>
-            </form>
-          </div>
+            </div>
+          </form>
         </section>
 
+        {/* DIRECTORY */}
         <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
           <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
             <div>
@@ -172,15 +149,13 @@ export default async function RegistryPage({
                 PUBLIC RECORDS
               </div>
 
-              <h2 className="mt-4 text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
+              <h2 className="mt-4 text-[32px] font-semibold tracking-tight md:text-[38px]">
                 Registry directory
               </h2>
 
-              <p className="mt-3 max-w-[820px] text-[15px] leading-[1.8] text-black/68">
+              <p className="mt-3 max-w-[820px] text-[15px] leading-[1.8] text-black/70">
                 Browse surfaced certification records by organization,
-                jurisdiction, and registry identifier. Open any record to inspect
-                public certification details, linked AI systems, and verification
-                surfaces.
+                jurisdiction, and registry identifier.
               </p>
             </div>
 
@@ -193,78 +168,55 @@ export default async function RegistryPage({
             {rows.map((row) => (
               <article
                 key={row.registryId}
-                className="rounded-3xl border border-black/10 bg-white p-6"
+                className="rounded-3xl border border-black/10 p-6"
               >
-                <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-                  <div className="min-w-0">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className="inline-flex rounded-full bg-emerald-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-emerald-700 ring-1 ring-emerald-200">
+                <div className="flex justify-between">
+                  <div>
+                    <div className="flex gap-2">
+                      <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700 ring-1 ring-emerald-200">
                         Verified
                       </span>
 
-                      {row.decisionStatus ? (
+                      {row.decisionStatus && (
                         <span
-                          className={`inline-flex rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] ring-1 ${toneForDecision(
+                          className={`rounded-full px-3 py-1 text-xs font-semibold ring-1 ${toneForDecision(
                             row.decisionStatus
                           )}`}
                         >
                           {row.decisionStatus}
                         </span>
-                      ) : null}
+                      )}
                     </div>
 
-                    <h3 className="mt-4 text-[26px] font-semibold leading-[1.2] tracking-tight text-black">
+                    <h3 className="mt-3 text-[22px] font-semibold">
                       {row.entityName || "Unknown entity"}
                     </h3>
 
-                    <div className="mt-2 text-[14px] text-black/55">
-                      {(row.entityType || "Organization") + " · " + (row.country || "—") + " · " + row.registryId}
+                    <div className="text-sm text-black/60">
+                      {row.country} · {row.registryId}
                     </div>
                   </div>
 
-                  <div className="shrink-0">
-                    <PublicButtonLink
-                      href={`/registry/${encodeURIComponent(row.registryId)}`}
-                      variant="secondary"
-                      size="sm"
-                    >
-                      Open
-                    </PublicButtonLink>
-                  </div>
+                  <PublicButtonLink
+                    href={`/registry/${row.registryId}`}
+                    variant="secondary"
+                    size="sm"
+                  >
+                    Open
+                  </PublicButtonLink>
                 </div>
 
-                <div className="mt-5 grid gap-3 md:grid-cols-4">
+                <div className="mt-5 grid md:grid-cols-4 gap-3">
                   <InfoCard
-                    label="Certification / Tier / Band"
+                    label="Certification"
                     value={formatTierBand(row.certifiedTier, row.certifiedBand)}
                   />
-                  <InfoCard
-                    label="Certified At"
-                    value={formatDate(row.certifiedAt)}
-                  />
-                  <InfoCard
-                    label="Valid From"
-                    value={formatDate(row.validFrom)}
-                  />
-                  <InfoCard
-                    label="Valid To"
-                    value={formatDate(row.validTo)}
-                  />
-                </div>
-
-                <div className="mt-4 flex flex-wrap gap-x-5 gap-y-2 text-[13px] text-black/55">
-                  <span>Application: {row.applicationId || "—"}</span>
-                  <span>Case: {row.caseId || "—"}</span>
-                  <span>Score: {row.certifiedScore || "—"}</span>
+                  <InfoCard label="Certified" value={formatDate(row.certifiedAt)} />
+                  <InfoCard label="Valid From" value={formatDate(row.validFrom)} />
+                  <InfoCard label="Valid To" value={formatDate(row.validTo)} />
                 </div>
               </article>
             ))}
-
-            {rows.length === 0 ? (
-              <div className="rounded-2xl border border-black/10 p-6 text-sm text-black/60">
-                No records match your filters.
-              </div>
-            ) : null}
           </div>
         </section>
       </div>
@@ -272,21 +224,11 @@ export default async function RegistryPage({
   );
 }
 
-function InfoCard({
-  label,
-  value,
-}: {
-  label: string;
-  value: string;
-}) {
+function InfoCard({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-4">
-      <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-black/55">
-        {label}
-      </div>
-      <div className="mt-2 text-[15px] font-medium leading-[1.6] text-black">
-        {value}
-      </div>
+      <div className="text-xs uppercase text-black/60">{label}</div>
+      <div className="mt-2 font-medium">{value}</div>
     </div>
   );
 }

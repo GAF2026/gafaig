@@ -1,5 +1,7 @@
 import { notFound } from "next/navigation";
+import Link from "next/link";
 
+import PublicButtonLink from "@/app/_components/PublicButtonLink";
 import RegistryVerificationPanel from "@/components/registry/RegistryVerificationPanel";
 import RegistryTrustTools from "@/components/registry/RegistryTrustTools";
 
@@ -82,6 +84,7 @@ function getBaseUrl(): string {
 
 function formatDate(value?: string | null): string {
   if (!value) return "—";
+
   const d = new Date(value);
   if (Number.isNaN(d.getTime())) return String(value);
 
@@ -100,6 +103,30 @@ function infoValue(values: Array<string | null | undefined>): string {
   return "—";
 }
 
+function formatTierBand(tier?: string | null, band?: string | null): string {
+  const safeTier = String(tier ?? "").trim();
+  const safeBand = String(band ?? "").trim();
+
+  if (safeTier && safeBand) return `${safeTier} · ${safeBand}`;
+  if (safeTier) return safeTier;
+  if (safeBand) return safeBand;
+  return "—";
+}
+
+function statusTone(value: string) {
+  const v = value.trim().toUpperCase();
+
+  if (v === "APPROVED") {
+    return "bg-blue-50 text-blue-700 ring-blue-200";
+  }
+
+  if (v === "CERTIFIED") {
+    return "bg-emerald-50 text-emerald-700 ring-emerald-200";
+  }
+
+  return "bg-slate-100 text-slate-600 ring-slate-200";
+}
+
 function InfoCard({
   label,
   value,
@@ -108,7 +135,7 @@ function InfoCard({
   value: string;
 }) {
   return (
-    <div className="rounded-[18px] border border-black/10 bg-black/[0.02] p-4">
+    <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-4">
       <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-black/55">
         {label}
       </div>
@@ -138,9 +165,7 @@ export default async function RegistryRecordPage({
     }).catch(() => null),
     fetch(
       `${baseUrl}/api/registry/${encodeURIComponent(registryId)}/score-breakdown`,
-      {
-        cache: "no-store",
-      }
+      { cache: "no-store" }
     ).catch(() => null),
   ]);
 
@@ -168,18 +193,14 @@ export default async function RegistryRecordPage({
   const country = infoValue([record?.country, row?.country]);
   const applicationId = infoValue([record?.applicationId, row?.applicationId]);
   const caseId = infoValue([record?.caseId, row?.caseId]);
-  const certifiedTier = infoValue([record?.certifiedTier, row?.certifiedTier]);
-  const certifiedBand = infoValue([record?.certifiedBand, row?.certifiedBand]);
-  const decisionStatus = infoValue([
-    record?.decisionStatus,
-    row?.decisionStatus,
-  ]);
-  const certifiedAtRaw =
-    record?.certifiedAt ?? row?.certifiedAt ?? null;
-  const validFromRaw =
-    record?.validFrom ?? row?.validFrom ?? null;
-  const validToRaw =
-    record?.validTo ?? row?.validTo ?? null;
+
+  const certifiedTierRaw = infoValue([record?.certifiedTier, row?.certifiedTier]);
+  const certifiedBandRaw = infoValue([record?.certifiedBand, row?.certifiedBand]);
+  const decisionStatus = infoValue([record?.decisionStatus, row?.decisionStatus]);
+
+  const certifiedAtRaw = record?.certifiedAt ?? row?.certifiedAt ?? null;
+  const validFromRaw = record?.validFrom ?? row?.validFrom ?? null;
+  const validToRaw = record?.validTo ?? row?.validTo ?? null;
 
   const certifiedScore =
     record?.certifiedScore != null
@@ -196,16 +217,14 @@ export default async function RegistryRecordPage({
     .filter(Boolean);
 
   const dimensionCount =
-    scoreBreakdownData?.dimensionCount ?? dimensions.length ?? 0;
+    typeof scoreBreakdownData?.dimensionCount === "number"
+      ? scoreBreakdownData.dimensionCount
+      : dimensions.length;
 
-  const tierBand =
-    certifiedTier !== "—" && certifiedBand !== "—"
-      ? `${certifiedTier} · ${certifiedBand}`
-      : certifiedTier !== "—"
-      ? certifiedTier
-      : certifiedBand !== "—"
-      ? certifiedBand
-      : "—";
+  const tierBand = formatTierBand(
+    certifiedTierRaw === "—" ? null : certifiedTierRaw,
+    certifiedBandRaw === "—" ? null : certifiedBandRaw
+  );
 
   return (
     <main className="mx-auto max-w-[1180px] px-6 pb-16 pt-14">
@@ -217,14 +236,18 @@ export default async function RegistryRecordPage({
             </span>
 
             {decisionStatus !== "—" ? (
-              <span className="inline-flex rounded-full bg-blue-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-blue-700 ring-1 ring-blue-200">
+              <span
+                className={`inline-flex rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] ring-1 ${statusTone(
+                  decisionStatus
+                )}`}
+              >
                 {decisionStatus}
               </span>
             ) : null}
           </div>
 
-          <div className="mt-5 text-[12px] font-semibold uppercase tracking-[0.22em] text-black/60">
-            Canonical Public Trust Record
+          <div className="mt-5 text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
+            CANONICAL PUBLIC TRUST RECORD
           </div>
 
           <h1 className="mt-4 text-[40px] font-semibold leading-[1.08] tracking-tight text-black md:text-[52px]">
@@ -232,8 +255,8 @@ export default async function RegistryRecordPage({
           </h1>
 
           <p className="mt-4 max-w-[900px] text-[16px] leading-8 text-black/68">
-            This page is the public certification record for this entity within
-            the GAFAIG registry of record.
+            This page is the public certification record for this entity within the
+            GAFAIG registry of record.
           </p>
 
           <div className="mt-8 grid gap-3 md:grid-cols-5">
@@ -242,6 +265,16 @@ export default async function RegistryRecordPage({
             <InfoCard label="Decision" value={decisionStatus} />
             <InfoCard label="Certified At" value={formatDate(certifiedAtRaw)} />
             <InfoCard label="Valid To" value={formatDate(validToRaw)} />
+          </div>
+
+          <div className="mt-6 flex flex-wrap gap-3">
+            <PublicButtonLink href={`/api/verify/${encodeURIComponent(registryId)}`} variant="primary">
+              Open verify JSON
+            </PublicButtonLink>
+
+            <PublicButtonLink href="/registry" variant="secondary">
+              Back to registry
+            </PublicButtonLink>
           </div>
         </section>
 
@@ -253,11 +286,11 @@ export default async function RegistryRecordPage({
 
         {dimensionCount > 0 ? (
           <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
-            <div className="text-[12px] font-semibold uppercase tracking-[0.22em] text-black/60">
-              Public-Safe Trust Explanation
+            <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
+              PUBLIC-SAFE TRUST EXPLANATION
             </div>
 
-            <h2 className="mt-4 text-[30px] font-semibold leading-[1.18] tracking-tight text-black">
+            <h2 className="mt-4 text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
               Reviewed across governance dimensions
             </h2>
 
@@ -278,16 +311,16 @@ export default async function RegistryRecordPage({
             </div>
 
             <div className="mt-4 grid gap-3 md:grid-cols-2 lg:grid-cols-3">
-              {dimensions.map((d: string) => (
+              {dimensions.map((dimension: string) => (
                 <div
-                  key={d}
+                  key={dimension}
                   className="rounded-2xl border border-black/10 bg-white p-4"
                 >
                   <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-black/55">
                     Governance Dimension
                   </div>
                   <div className="mt-2 text-[15px] font-medium text-black">
-                    {d}
+                    {dimension}
                   </div>
                 </div>
               ))}
@@ -296,7 +329,11 @@ export default async function RegistryRecordPage({
         ) : null}
 
         <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
-          <div className="grid gap-3 md:grid-cols-4">
+          <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
+            PUBLIC RECORD METADATA
+          </div>
+
+          <div className="mt-6 grid gap-3 md:grid-cols-4">
             <InfoCard label="Entity Type" value={entityType} />
             <InfoCard label="Country" value={country} />
             <InfoCard label="Application ID" value={applicationId} />
@@ -313,12 +350,8 @@ export default async function RegistryRecordPage({
         <RegistryTrustTools
           registryId={registryId}
           entityName={entityName}
-          absoluteRegistryUrl={`${baseUrl}/registry/${encodeURIComponent(
-            registryId
-          )}`}
-          absoluteVerifyUrl={`${baseUrl}/api/verify/${encodeURIComponent(
-            registryId
-          )}`}
+          absoluteRegistryUrl={`${baseUrl}/registry/${encodeURIComponent(registryId)}`}
+          absoluteVerifyUrl={`${baseUrl}/api/verify/${encodeURIComponent(registryId)}`}
           absoluteBadgeUrl={`${baseUrl}/badge/${encodeURIComponent(registryId)}`}
         />
       </div>

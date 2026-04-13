@@ -1,259 +1,488 @@
-import { NextResponse } from "next/server";
-import { sfQuery } from "@/lib/snowflake";
+import { NextRequest, NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-type BadgeRow = {
-  REGISTRY_ID: string;
-  ENTITY_NAME: string | null;
-  COUNTRY: string | null;
-  CERTIFICATION_STATUS: string | null;
-  CERTIFIED_TIER: string | null;
-  CERTIFIED_BAND: string | null;
-  DECISION_STATUS: string | null;
-  VALID_TO: string | null;
-  CERTIFIED_AT: string | null;
+type RegistryApiRow = {
+  registryId?: string;
+  applicationId?: string | null;
+  caseId?: string | null;
+  entityName?: string | null;
+  entityType?: string | null;
+  country?: string | null;
+  certifiedScore?: string | null;
+  certifiedTier?: string | null;
+  certifiedBand?: string | null;
+  decisionStatus?: string | null;
+  validFrom?: string | null;
+  validTo?: string | null;
+  certifiedAt?: string | null;
 };
 
-function esc(value: string | null | undefined) {
+type RegistryApiResponse = {
+  ok?: boolean;
+  total?: number;
+  rows?: RegistryApiRow[];
+  error?: string;
+};
+
+type VerifyApiRecord = {
+  registryId?: string;
+  entityName?: string | null;
+  entityType?: string | null;
+  country?: string | null;
+  applicationId?: string | null;
+  caseId?: string | null;
+  certificationStatus?: string | null;
+  certifiedScore?: number | null;
+  certifiedTier?: string | null;
+  certifiedBand?: string | null;
+  decisionStatus?: string | null;
+  certifiedAt?: string | null;
+  validFrom?: string | null;
+  validTo?: string | null;
+};
+
+type VerifyApiResponse = {
+  ok?: boolean;
+  verified?: boolean;
+  registryId?: string;
+  record?: VerifyApiRecord;
+};
+
+function escapeHtml(value: unknown): string {
   return String(value ?? "")
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#39;");
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
 }
 
-function clean(value: string | null | undefined, fallback = "—") {
-  const v = String(value ?? "").trim();
-  return v.length ? v : fallback;
-}
-
-function formatDate(value: string | null | undefined) {
-  if (!value) return "—";
-  const d = new Date(value);
-  if (Number.isNaN(d.getTime())) return "—";
-  return d.toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-}
-
-function tierBandLabel(tier: string | null, band: string | null) {
-  if (tier && band) return `${tier} · Band ${band}`;
-  if (tier) return tier;
-  if (band) return `Band ${band}`;
+function infoValue(values: Array<string | null | undefined>): string {
+  for (const value of values) {
+    const s = String(value ?? "").trim();
+    if (s) return s;
+  }
   return "—";
 }
 
-function statusColors(status: string | null | undefined) {
-  const normalized = String(status ?? "").trim().toLowerCase();
+function formatDate(value?: string | null): string {
+  if (!value) return "—";
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return String(value);
+  return d.toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
+}
 
-  if (normalized === "certified") {
-    return {
-      pillBg: "#ECFDF3",
-      pillBorder: "#ABEFC6",
-      pillText: "#067647",
-      accent: "#079455",
-      accentSoft: "#D1FADF",
-    };
+function formatTierBand(tier?: string | null, band?: string | null): string {
+  const safeTier = String(tier ?? "").trim();
+  const safeBand = String(band ?? "").trim();
+  if (safeTier && safeBand) return `${safeTier} · ${safeBand}`;
+  if (safeTier) return safeTier;
+  if (safeBand) return safeBand;
+  return "—";
+}
+
+function htmlPage(input: {
+  entityName: string;
+  country: string;
+  registryId: string;
+  tierBand: string;
+  validTo: string;
+  verificationUrl: string;
+  certifiedAt: string;
+  status: string;
+  decision: string;
+  recordUrl: string;
+  accentClass: string;
+}) {
+  const entityName = escapeHtml(input.entityName);
+  const country = escapeHtml(input.country);
+  const registryId = escapeHtml(input.registryId);
+  const tierBand = escapeHtml(input.tierBand);
+  const validTo = escapeHtml(input.validTo);
+  const verificationUrl = escapeHtml(input.verificationUrl);
+  const certifiedAt = escapeHtml(input.certifiedAt);
+  const status = escapeHtml(input.status);
+  const decision = escapeHtml(input.decision);
+  const recordUrl = escapeHtml(input.recordUrl);
+  const accentClass = input.accentClass;
+
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>${entityName} — GAFAIG Badge</title>
+<style>
+  :root{
+    color-scheme: light;
+    --bg:#f5f5f3;
+    --card:#ffffff;
+    --line:rgba(0,0,0,0.10);
+    --text:#0b0b0c;
+    --muted:rgba(11,11,12,0.62);
+    --muted-2:rgba(11,11,12,0.42);
+    --shadow:0 14px 40px rgba(0,0,0,0.06);
+    --blue-bg:#eef4ff;
+    --blue-text:#2457d6;
+    --blue-line:#c9d9ff;
+    --green-bg:#e9f8ef;
+    --green-text:#138a52;
+    --green-line:#9fe0bb;
+    --navy:#071a49;
   }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+  body{padding:32px}
+  .shell{max-width:1280px;margin:0 auto}
+  .card{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:32px;
+    box-shadow:var(--shadow);
+    overflow:hidden;
+  }
+  .topbar{
+    height:10px;
+    background:${accentClass === "warning" ? "#1d4ed8" : "#0f9d58"};
+  }
+  .content{padding:34px 38px 28px}
+  .eyebrow{
+    font-size:12px;
+    font-weight:700;
+    letter-spacing:.28em;
+    text-transform:uppercase;
+    color:#61708e;
+  }
+  .header{
+    display:grid;
+    grid-template-columns:minmax(0,1fr) 160px;
+    gap:28px;
+    align-items:start;
+    margin-top:18px;
+  }
+  .chips{
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+    margin-bottom:18px;
+  }
+  .chip{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    border-radius:999px;
+    padding:11px 20px;
+    font-size:14px;
+    font-weight:800;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+    border:1px solid var(--line);
+    line-height:1;
+    white-space:nowrap;
+  }
+  .chip.green{background:var(--green-bg);color:var(--green-text);border-color:var(--green-line)}
+  .chip.blue{background:var(--blue-bg);color:var(--blue-text);border-color:var(--blue-line)}
+  .title{
+    margin:0;
+    font-size:72px;
+    line-height:1.02;
+    letter-spacing:-.04em;
+    font-weight:700;
+    color:#0c1838;
+  }
+  .subtitle{
+    margin:22px 0 0;
+    font-size:22px;
+    line-height:1.6;
+    color:#31435f;
+    max-width:860px;
+  }
+  .markWrap{
+    display:flex;
+    align-items:flex-start;
+    justify-content:flex-end;
+  }
+  .mark{
+    width:154px;
+    height:154px;
+    border-radius:999px;
+    background:#d8f3e2;
+    border:6px solid #91dfb2;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    margin-top:6px;
+  }
+  .markInner{
+    width:104px;
+    height:104px;
+    border-radius:999px;
+    background:#b7e9cb;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .mark svg{width:54px;height:54px;color:#0f9d58}
+  .metrics{
+    display:grid;
+    grid-template-columns:2fr 1.2fr 1.2fr .95fr;
+    gap:18px;
+    margin-top:40px;
+  }
+  .metric{
+    min-height:124px;
+    border:1px solid var(--line);
+    border-radius:24px;
+    background:#fff;
+    padding:20px 22px;
+    display:flex;
+    flex-direction:column;
+    justify-content:flex-start;
+  }
+  .metric.highlight{
+    background:#c9eed5;
+    border-color:#91dfb2;
+  }
+  .metricLabel{
+    font-size:12px;
+    font-weight:700;
+    letter-spacing:.20em;
+    text-transform:uppercase;
+    color:#61708e;
+  }
+  .metricValue{
+    margin-top:18px;
+    font-size:25px;
+    line-height:1.22;
+    font-weight:700;
+    color:#0c1838;
+    word-break:break-word;
+  }
+  .metricValue.compact{
+    font-size:19px;
+    line-height:1.35;
+  }
+  .verifyPanel{
+    margin-top:24px;
+    background:var(--navy);
+    border-radius:26px;
+    padding:24px 30px 22px;
+    color:#fff;
+  }
+  .verifyLabel{
+    font-size:12px;
+    font-weight:700;
+    letter-spacing:.20em;
+    text-transform:uppercase;
+    color:rgba(255,255,255,.62);
+  }
+  .verifyValue{
+    margin-top:14px;
+    font-size:21px;
+    line-height:1.5;
+    font-weight:700;
+    word-break:break-all;
+  }
+  .footer{
+    padding:18px 10px 0;
+    font-size:14px;
+    line-height:1.6;
+    color:#64748b;
+    font-weight:600;
+  }
+  .actions{
+    margin-top:18px;
+    display:flex;
+    flex-wrap:wrap;
+    gap:12px;
+  }
+  .button{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    min-height:48px;
+    padding:0 20px;
+    border-radius:999px;
+    border:1px solid var(--line);
+    text-decoration:none;
+    font-size:15px;
+    font-weight:700;
+    color:#0b0b0c;
+    background:#fff;
+  }
+  .button.primary{
+    background:#0b0b0c;
+    color:#fff;
+    border-color:#0b0b0c;
+  }
+  .button:hover{filter:brightness(.98)}
+  @media (max-width: 1120px){
+    .title{font-size:58px}
+    .metrics{grid-template-columns:1fr 1fr}
+  }
+  @media (max-width: 860px){
+    body{padding:16px}
+    .content{padding:24px 20px 20px}
+    .header{grid-template-columns:1fr}
+    .markWrap{justify-content:flex-start}
+    .title{font-size:44px}
+    .subtitle{font-size:18px}
+    .metrics{grid-template-columns:1fr}
+    .metric{min-height:auto}
+    .verifyValue{font-size:16px}
+  }
+</style>
+</head>
+<body>
+  <div class="shell">
+    <div class="card">
+      <div class="topbar"></div>
+      <div class="content">
+        <div class="eyebrow">GAFAIG Certification Badge</div>
 
-  return {
-    pillBg: "#F9FAFB",
-    pillBorder: "#D0D5DD",
-    pillText: "#344054",
-    accent: "#667085",
-    accentSoft: "#EAECF0",
-  };
-}
+        <div class="header">
+          <div>
+            <div class="chips">
+              <span class="chip green">${status}</span>
+              <span class="chip blue">${decision}</span>
+            </div>
 
-function fitFontSize(
-  value: string,
-  base: number,
-  min: number,
-  threshold: number,
-  step = 2
-) {
-  const len = value.length;
-  if (len <= threshold) return base;
-  const reduced = base - Math.ceil((len - threshold) / 3) * step;
-  return Math.max(min, reduced);
-}
+            <h1 class="title">${entityName}</h1>
 
-function buildSvg(row: BadgeRow, baseUrl: string) {
-  const width = 1280;
-  const height = 700;
+            <p class="subtitle">
+              Public certification record issued through the GAFAIG registry of record.
+            </p>
+          </div>
 
-  const panelX = 60;
-  const panelY = 46;
-  const panelW = 1160;
-  const panelH = 608;
+          <div class="markWrap">
+            <div class="mark" aria-hidden="true">
+              <div class="markInner">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M20 6 9 17l-5-5"></path>
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
 
-  const contentLeft = 140;
-  const contentTop = 126;
+        <div class="metrics">
+          <div class="metric">
+            <div class="metricLabel">Registry ID</div>
+            <div class="metricValue">${registryId}</div>
+          </div>
 
-  const entityName = clean(row.ENTITY_NAME, row.REGISTRY_ID);
-  const status = clean(
-    row.CERTIFICATION_STATUS,
-    row.CERTIFIED_AT ? "Certified" : "Published"
-  );
-  const decision = clean(row.DECISION_STATUS);
-  const country = clean(row.COUNTRY);
-  const tierBand = tierBandLabel(row.CERTIFIED_TIER, row.CERTIFIED_BAND);
-  const validTo = formatDate(row.VALID_TO);
-  const issuedAt = formatDate(row.CERTIFIED_AT);
-  const verificationUrl = `${baseUrl}/api/verify/${encodeURIComponent(
-    row.REGISTRY_ID
-  )}`;
-  const colors = statusColors(status);
+          <div class="metric">
+            <div class="metricLabel">Country</div>
+            <div class="metricValue">${country}</div>
+          </div>
 
-  const entityNameFont =
-    entityName.length > 34 ? 38 : entityName.length > 24 ? 46 : 54;
+          <div class="metric">
+            <div class="metricLabel">Tier / Band</div>
+            <div class="metricValue compact">${tierBand}</div>
+          </div>
 
-  const registryFont =
-    row.REGISTRY_ID.length > 30 ? 17 : row.REGISTRY_ID.length > 24 ? 19 : 21;
+          <div class="metric highlight">
+            <div class="metricLabel">Valid To</div>
+            <div class="metricValue compact">${validTo}</div>
+          </div>
+        </div>
 
-  const countryFont = fitFontSize(country, 26, 18, 14, 2);
-  const tierBandFont = fitFontSize(tierBand, 26, 18, 16, 2);
-  const validToFont = fitFontSize(validTo, 22, 16, 10, 2);
-  const verificationFont = verificationUrl.length > 82 ? 15 : 17;
+        <div class="verifyPanel">
+          <div class="verifyLabel">Verification Endpoint</div>
+          <div class="verifyValue">${verificationUrl}</div>
+        </div>
 
-  const pillY = 410;
-  const gap = 24;
-  const pillStartX = 150;
-  const w1 = 390;
-  const w2 = 220;
-  const w3 = 200;
-  const w4 = 128;
+        <div class="actions">
+          <a class="button primary" href="${recordUrl}">Open record</a>
+          <a class="button" href="${verificationUrl}">Verify JSON</a>
+        </div>
 
-  const p1 = pillStartX;
-  const p2 = p1 + w1 + gap;
-  const p3 = p2 + w2 + gap;
-  const p4 = p3 + w3 + gap;
-
-  return `<?xml version="1.0" encoding="UTF-8"?>
-<svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="GAFAIG certification badge for ${esc(entityName)}">
-  <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="${width}" y2="${height}" gradientUnits="userSpaceOnUse">
-      <stop offset="0%" stop-color="#F8FAFC"/>
-      <stop offset="55%" stop-color="#FFFFFF"/>
-      <stop offset="100%" stop-color="#F3F4F6"/>
-    </linearGradient>
-    <linearGradient id="panel" x1="${panelX}" y1="${panelY}" x2="${panelX + panelW}" y2="${panelY + panelH}" gradientUnits="userSpaceOnUse">
-      <stop offset="0%" stop-color="#FFFFFF"/>
-      <stop offset="100%" stop-color="#FCFCFD"/>
-    </linearGradient>
-    <filter id="shadow" x="20" y="20" width="${panelW + 80}" height="${panelH + 80}" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
-      <feDropShadow dx="0" dy="10" stdDeviation="20" flood-color="#101828" flood-opacity="0.10"/>
-    </filter>
-  </defs>
-
-  <rect width="${width}" height="${height}" fill="url(#bg)"/>
-
-  <g filter="url(#shadow)">
-    <rect x="${panelX}" y="${panelY}" width="${panelW}" height="${panelH}" rx="26" fill="url(#panel)" stroke="#E4E7EC" stroke-width="2"/>
-  </g>
-
-  <rect x="${panelX}" y="${panelY}" width="${panelW}" height="10" rx="5" fill="${colors.accent}"/>
-
-  <text x="${contentLeft}" y="${contentTop}" fill="#667085" font-family="Inter, Arial, sans-serif" font-size="17" font-weight="700" letter-spacing="4">GAFAIG CERTIFICATION BADGE</text>
-
-  <rect x="${contentLeft}" y="160" width="148" height="38" rx="19" fill="${colors.pillBg}" stroke="${colors.pillBorder}" stroke-width="2"/>
-  <text x="${contentLeft + 74}" y="185" text-anchor="middle" fill="${colors.pillText}" font-family="Inter, Arial, sans-serif" font-size="15" font-weight="800" letter-spacing="1">${esc(status.toUpperCase())}</text>
-
-  <rect x="${contentLeft + 160}" y="160" width="148" height="38" rx="19" fill="#F8FAFC" stroke="#D0D5DD" stroke-width="2"/>
-  <text x="${contentLeft + 234}" y="185" text-anchor="middle" fill="#344054" font-family="Inter, Arial, sans-serif" font-size="15" font-weight="800" letter-spacing="1">${esc(decision.toUpperCase())}</text>
-
-  <text x="${contentLeft}" y="286" fill="#0F172A" font-family="Inter, Arial, sans-serif" font-size="${entityNameFont}" font-weight="800">${esc(entityName)}</text>
-
-  <text x="${contentLeft}" y="338" fill="#475467" font-family="Inter, Arial, sans-serif" font-size="21" font-weight="500">Public certification record issued through the GAFAIG registry of record.</text>
-
-  <g transform="translate(1000 146)">
-    <circle cx="82" cy="82" r="68" fill="${colors.accentSoft}" stroke="${colors.pillBorder}" stroke-width="4"/>
-    <circle cx="82" cy="82" r="45" fill="${colors.accent}" opacity="0.16"/>
-    <path d="M58 84L74 100L106 68" stroke="${colors.accent}" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
-  </g>
-
-  <g>
-    <rect x="${p1}" y="${pillY}" width="${w1}" height="106" rx="18" fill="#FFFFFF" stroke="#DDE3EA" stroke-width="2"/>
-    <text x="${p1 + 26}" y="${pillY + 34}" fill="#667085" font-family="Inter, Arial, sans-serif" font-size="15" font-weight="700" letter-spacing="1.5">REGISTRY ID</text>
-    <text x="${p1 + 26}" y="${pillY + 78}" fill="#101828" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="${registryFont}" font-weight="700">${esc(row.REGISTRY_ID)}</text>
-  </g>
-
-  <g>
-    <rect x="${p2}" y="${pillY}" width="${w2}" height="106" rx="18" fill="#FFFFFF" stroke="#DDE3EA" stroke-width="2"/>
-    <text x="${p2 + 26}" y="${pillY + 34}" fill="#667085" font-family="Inter, Arial, sans-serif" font-size="15" font-weight="700" letter-spacing="1.5">COUNTRY</text>
-    <text x="${p2 + 26}" y="${pillY + 78}" fill="#101828" font-family="Inter, Arial, sans-serif" font-size="${countryFont}" font-weight="700" textLength="${w2 - 52}" lengthAdjust="spacingAndGlyphs">${esc(country)}</text>
-  </g>
-
-  <g>
-    <rect x="${p3}" y="${pillY}" width="${w3}" height="106" rx="18" fill="#FFFFFF" stroke="#DDE3EA" stroke-width="2"/>
-    <text x="${p3 + 26}" y="${pillY + 34}" fill="#667085" font-family="Inter, Arial, sans-serif" font-size="15" font-weight="700" letter-spacing="1.5">TIER / BAND</text>
-    <text x="${p3 + 26}" y="${pillY + 78}" fill="#101828" font-family="Inter, Arial, sans-serif" font-size="${tierBandFont}" font-weight="700" textLength="${w3 - 52}" lengthAdjust="spacingAndGlyphs">${esc(tierBand)}</text>
-  </g>
-
-  <g>
-    <rect x="${p4}" y="${pillY}" width="${w4}" height="106" rx="18" fill="${colors.accentSoft}" stroke="${colors.pillBorder}" stroke-width="2"/>
-    <text x="${p4 + 22}" y="${pillY + 34}" fill="#067647" font-family="Inter, Arial, sans-serif" font-size="15" font-weight="700" letter-spacing="1.5">VALID TO</text>
-    <text x="${p4 + 22}" y="${pillY + 78}" fill="#065F46" font-family="Inter, Arial, sans-serif" font-size="${validToFont}" font-weight="800" textLength="${w4 - 44}" lengthAdjust="spacingAndGlyphs">${esc(validTo)}</text>
-  </g>
-
-  <rect x="150" y="554" width="1080" height="96" rx="20" fill="#0B1736"/>
-  <text x="180" y="590" fill="#98A2B3" font-family="Inter, Arial, sans-serif" font-size="15" font-weight="700" letter-spacing="1.5">VERIFICATION ENDPOINT</text>
-  <text x="180" y="632" fill="#FFFFFF" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="${verificationFont}" font-weight="600">${esc(verificationUrl)}</text>
-
-  <text x="150" y="688" fill="#667085" font-family="Inter, Arial, sans-serif" font-size="15" font-weight="600">Issued ${esc(issuedAt)} • Public trust surface only • Private review materials not disclosed</text>
-</svg>`;
+        <div class="footer">
+          Issued ${certifiedAt} • Public trust surface only • Private review materials not disclosed
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>`;
 }
 
 export async function GET(
-  req: Request,
-  { params }: { params: { registryId: string } }
+  request: NextRequest,
+  context: { params: { registryId: string } }
 ) {
-  const registryId = String(params.registryId || "").trim();
-
+  const registryId = String(context.params.registryId || "").trim();
   if (!registryId) {
     return new NextResponse("Missing registryId", { status: 400 });
   }
 
-  const rows = await sfQuery<BadgeRow>(
-    `
-    SELECT
-      REGISTRY_ID,
-      ENTITY_NAME,
-      COUNTRY,
-      CERTIFICATION_STATUS,
-      CERTIFIED_TIER,
-      CERTIFIED_BAND,
-      DECISION_STATUS,
-      VALID_TO,
-      CERTIFIED_AT
-    FROM GAFAIG_DB.CORE.V_REGISTRY_PUBLIC
-    WHERE UPPER(TRIM(REGISTRY_ID)) = UPPER(TRIM(?))
-    LIMIT 1
-    `,
-    [registryId]
-  );
+  const origin = new URL(request.url).origin;
 
-  const row = rows[0];
+  const [registryRes, verifyRes] = await Promise.all([
+    fetch(`${origin}/api/registry?registryId=${encodeURIComponent(registryId)}`, {
+      cache: "no-store",
+    }).catch(() => null),
+    fetch(`${origin}/api/verify/${encodeURIComponent(registryId)}`, {
+      cache: "no-store",
+    }).catch(() => null),
+  ]);
 
-  if (!row) {
-    return new NextResponse("Registry record not found", { status: 404 });
+  const registryData: RegistryApiResponse | null = registryRes
+    ? ((await registryRes.json()) as RegistryApiResponse)
+    : null;
+
+  const verifyData: VerifyApiResponse | null = verifyRes
+    ? ((await verifyRes.json()) as VerifyApiResponse)
+    : null;
+
+  const row = registryData?.rows?.[0] ?? null;
+  const record = verifyData?.record ?? null;
+
+  if (!row && !record) {
+    return new NextResponse("Badge not found", { status: 404 });
   }
 
-  const url = new URL(req.url);
-  const baseUrl = `${url.protocol}//${url.host}`;
-  const svg = buildSvg(row, baseUrl);
+  const entityName = infoValue([record?.entityName, row?.entityName]);
+  const country = infoValue([record?.country, row?.country]);
+  const decision = infoValue([record?.decisionStatus, row?.decisionStatus]);
+  const status = infoValue([
+    record?.certificationStatus,
+    row?.certifiedAt ? "Certified" : null,
+  ]);
+  const certifiedTier = infoValue([record?.certifiedTier, row?.certifiedTier]);
+  const certifiedBand = infoValue([record?.certifiedBand, row?.certifiedBand]);
+  const validTo = formatDate(record?.validTo ?? row?.validTo ?? null);
+  const certifiedAt = formatDate(record?.certifiedAt ?? row?.certifiedAt ?? null);
+  const tierBand = formatTierBand(
+    certifiedTier === "—" ? null : certifiedTier,
+    certifiedBand === "—" ? null : certifiedBand
+  );
 
-  return new NextResponse(svg, {
+  const html = htmlPage({
+    entityName,
+    country,
+    registryId,
+    tierBand,
+    validTo,
+    verificationUrl: `${origin}/api/verify/${encodeURIComponent(registryId)}`,
+    certifiedAt,
+    status,
+    decision,
+    recordUrl: `${origin}/registry/${encodeURIComponent(registryId)}`,
+    accentClass: "success",
+  });
+
+  return new NextResponse(html, {
     status: 200,
     headers: {
-      "Content-Type": "image/svg+xml; charset=utf-8",
-      "Cache-Control": "no-store, max-age=0",
-      "Content-Disposition": `inline; filename="${row.REGISTRY_ID}.svg"`,
+      "content-type": "text/html; charset=utf-8",
+      "cache-control": "no-store",
     },
   });
 }
