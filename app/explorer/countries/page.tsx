@@ -2,7 +2,7 @@ import PublicPageHero from "@/app/_components/PublicPageHero";
 import PublicButtonLink from "@/app/_components/PublicButtonLink";
 import { getExplorerCountries } from "@/lib/queries/explorer";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 300;
 
 export default async function ExplorerCountriesPage() {
   const rows = await getExplorerCountries(200);

@@ -1,10 +1,12 @@
 import Link from "next/link";
 import PublicPageHero from "@/app/_components/PublicPageHero";
 import PublicButtonLink from "@/app/_components/PublicButtonLink";
-import { searchRegistryRecords } from "@/lib/queries/registry";
+import {
+  getRegistryCountries,
+  searchRegistryRecords,
+} from "@/lib/queries/registry";
 
-export const dynamic = "force-dynamic";
-export const revalidate = 0;
+export const revalidate = 300;
 
 type RegistryPageSearchParams = {
   q?: string;
@@ -34,18 +36,6 @@ function formatTierBand(tier?: string | null, band?: string | null) {
   return "—";
 }
 
-function getCountries(
-  rows: Awaited<ReturnType<typeof searchRegistryRecords>>
-): string[] {
-  return Array.from(
-    new Set(
-      rows
-        .map((row) => String(row.country ?? "").trim())
-        .filter(Boolean)
-    )
-  ).sort((a, b) => a.localeCompare(b));
-}
-
 function toneForDecision(value: string | null | undefined) {
   const v = String(value || "").trim().toUpperCase();
 
@@ -64,14 +54,14 @@ export default async function RegistryPage({
   const q = String(searchParams?.q ?? "").trim();
   const country = String(searchParams?.country ?? "").trim();
 
-  const allRows = await searchRegistryRecords({ limit: 500 });
-  const rows = await searchRegistryRecords({
-    q,
-    country,
-    limit: 500,
-  });
-
-  const countries = getCountries(allRows);
+  const [rows, countries] = await Promise.all([
+    searchRegistryRecords({
+      q,
+      country,
+      limit: 500,
+    }),
+    getRegistryCountries(),
+  ]);
 
   return (
     <main className="mx-auto max-w-[1180px] px-6 pb-16 pt-14">
@@ -94,7 +84,6 @@ export default async function RegistryPage({
           }
         />
 
-        {/* SEARCH SECTION — FIXED */}
         <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
           <form action="/registry">
             <div className="space-y-3">
@@ -107,13 +96,13 @@ export default async function RegistryPage({
                   name="q"
                   defaultValue={q}
                   placeholder="Entity, registry ID, application ID, or case ID"
-                  className="flex-1 min-w-[280px] h-14 rounded-full border border-black/10 px-6 text-[15px] outline-none focus:border-black/20"
+                  className="h-14 min-w-[280px] flex-1 rounded-full border border-black/10 px-6 text-[15px] outline-none focus:border-black/20"
                 />
 
                 <select
                   name="country"
                   defaultValue={country}
-                  className="h-14 min-w-[160px] rounded-full border border-black/10 px-5 text-[15px] bg-white"
+                  className="h-14 min-w-[160px] rounded-full border border-black/10 bg-white px-5 text-[15px]"
                 >
                   <option value="">All countries</option>
                   {countries.map((value) => (
@@ -132,7 +121,7 @@ export default async function RegistryPage({
 
                 <Link
                   href="/registry"
-                  className="h-14 inline-flex items-center justify-center rounded-full border border-black/10 px-6 text-[15px] font-semibold hover:bg-black/[0.04]"
+                  className="inline-flex h-14 items-center justify-center rounded-full border border-black/10 px-6 text-[15px] font-semibold hover:bg-black/[0.04]"
                 >
                   Reset
                 </Link>
@@ -141,7 +130,6 @@ export default async function RegistryPage({
           </form>
         </section>
 
-        {/* DIRECTORY */}
         <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
           <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
             <div>
@@ -165,58 +153,76 @@ export default async function RegistryPage({
           </div>
 
           <div className="mt-8 space-y-4">
-            {rows.map((row) => (
-              <article
-                key={row.registryId}
-                className="rounded-3xl border border-black/10 p-6"
-              >
-                <div className="flex justify-between">
-                  <div>
-                    <div className="flex gap-2">
-                      <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700 ring-1 ring-emerald-200">
-                        Verified
-                      </span>
-
-                      {row.decisionStatus && (
-                        <span
-                          className={`rounded-full px-3 py-1 text-xs font-semibold ring-1 ${toneForDecision(
-                            row.decisionStatus
-                          )}`}
-                        >
-                          {row.decisionStatus}
+            {rows.length > 0 ? (
+              rows.map((row) => (
+                <article
+                  key={row.registryId}
+                  className="rounded-3xl border border-black/10 p-6"
+                >
+                  <div className="flex flex-col gap-5 md:flex-row md:items-start md:justify-between">
+                    <div>
+                      <div className="flex flex-wrap gap-2">
+                        <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700 ring-1 ring-emerald-200">
+                          Verified
                         </span>
-                      )}
+
+                        {row.decisionStatus ? (
+                          <span
+                            className={`rounded-full px-3 py-1 text-xs font-semibold ring-1 ${toneForDecision(
+                              row.decisionStatus
+                            )}`}
+                          >
+                            {row.decisionStatus}
+                          </span>
+                        ) : null}
+                      </div>
+
+                      <h3 className="mt-3 text-[22px] font-semibold">
+                        {row.entityName || "Unknown entity"}
+                      </h3>
+
+                      <div className="text-sm text-black/60">
+                        {row.country || "—"} · {row.registryId}
+                      </div>
                     </div>
 
-                    <h3 className="mt-3 text-[22px] font-semibold">
-                      {row.entityName || "Unknown entity"}
-                    </h3>
-
-                    <div className="text-sm text-black/60">
-                      {row.country} · {row.registryId}
-                    </div>
+                    <PublicButtonLink
+                      href={`/registry/${row.registryId}`}
+                      variant="secondary"
+                      size="sm"
+                    >
+                      Open
+                    </PublicButtonLink>
                   </div>
 
-                  <PublicButtonLink
-                    href={`/registry/${row.registryId}`}
-                    variant="secondary"
-                    size="sm"
-                  >
-                    Open
-                  </PublicButtonLink>
-                </div>
-
-                <div className="mt-5 grid md:grid-cols-4 gap-3">
-                  <InfoCard
-                    label="Certification"
-                    value={formatTierBand(row.certifiedTier, row.certifiedBand)}
-                  />
-                  <InfoCard label="Certified" value={formatDate(row.certifiedAt)} />
-                  <InfoCard label="Valid From" value={formatDate(row.validFrom)} />
-                  <InfoCard label="Valid To" value={formatDate(row.validTo)} />
-                </div>
-              </article>
-            ))}
+                  <div className="mt-5 grid gap-3 md:grid-cols-4">
+                    <InfoCard
+                      label="Certification"
+                      value={formatTierBand(
+                        row.certifiedTier,
+                        row.certifiedBand
+                      )}
+                    />
+                    <InfoCard
+                      label="Certified"
+                      value={formatDate(row.certifiedAt)}
+                    />
+                    <InfoCard
+                      label="Valid From"
+                      value={formatDate(row.validFrom)}
+                    />
+                    <InfoCard
+                      label="Valid To"
+                      value={formatDate(row.validTo)}
+                    />
+                  </div>
+                </article>
+              ))
+            ) : (
+              <div className="rounded-3xl border border-dashed border-black/10 bg-black/[0.02] p-8 text-[15px] text-black/60">
+                No registry records matched your current search.
+              </div>
+            )}
           </div>
         </section>
       </div>

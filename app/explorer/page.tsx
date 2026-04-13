@@ -6,7 +6,7 @@ import {
   getRecentRegistryRecords,
 } from "@/lib/queries/explorer";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 300;
 
 function formatDate(value: string | null) {
   if (!value) return "—";

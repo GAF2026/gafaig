@@ -3,8 +3,7 @@ import PublicPageHero from "@/app/_components/PublicPageHero";
 import PublicButtonLink from "@/app/_components/PublicButtonLink";
 import { getExplorerSystems } from "@/lib/queries/explorer";
 
-export const dynamic = "force-dynamic";
-export const revalidate = 0;
+export const revalidate = 300;
 
 function toneForRisk(value: string | null | undefined) {
   const v = String(value || "").trim().toLowerCase();

@@ -31,6 +31,10 @@ function normalizeId(value: string): string {
     .replace(/[^A-Z0-9]/g, "");
 }
 
+function escapeLike(value: string): string {
+  return value.replace(/[\\%_]/g, "\\$&");
+}
+
 function normalizeRegistryRow(row: RegistrySourceRow): RegistryQueryRow {
   return {
     registryId: asString(row.REGISTRY_ID) ?? "",
@@ -68,6 +72,77 @@ const REGISTRY_SELECT = `
     CERTIFIED_AT
   FROM ${REGISTRY_SOURCE}
 `;
+
+function buildRegistryWhereClause(params: {
+  q?: string;
+  country?: string;
+  registryId?: string;
+  caseId?: string;
+  applicationId?: string;
+}) {
+  const where: string[] = [];
+  const binds: Array<string | number> = [];
+
+  const q = String(params.q ?? "").trim();
+  const country = String(params.country ?? "").trim();
+  const registryId = String(params.registryId ?? "").trim();
+  const caseId = String(params.caseId ?? "").trim();
+  const applicationId = String(params.applicationId ?? "").trim();
+
+  if (country) {
+    where.push(`UPPER(TRIM(COUNTRY)) = UPPER(TRIM(?))`);
+    binds.push(country);
+  }
+
+  if (registryId) {
+    where.push(`
+      UPPER(REGEXP_REPLACE(REGISTRY_ID, '[^A-Za-z0-9]', '')) =
+      UPPER(REGEXP_REPLACE(?, '[^A-Za-z0-9]', ''))
+    `);
+    binds.push(registryId);
+  }
+
+  if (caseId) {
+    where.push(`
+      UPPER(REGEXP_REPLACE(CASE_ID, '[^A-Za-z0-9]', '')) =
+      UPPER(REGEXP_REPLACE(?, '[^A-Za-z0-9]', ''))
+    `);
+    binds.push(caseId);
+  }
+
+  if (applicationId) {
+    where.push(`
+      UPPER(REGEXP_REPLACE(APPLICATION_ID, '[^A-Za-z0-9]', '')) =
+      UPPER(REGEXP_REPLACE(?, '[^A-Za-z0-9]', ''))
+    `);
+    binds.push(applicationId);
+  }
+
+  if (q) {
+    const like = `%${escapeLike(q)}%`;
+
+    where.push(`
+      (
+        COALESCE(ENTITY_NAME, '') ILIKE ? ESCAPE '\\'
+        OR COALESCE(ENTITY_TYPE, '') ILIKE ? ESCAPE '\\'
+        OR COALESCE(COUNTRY, '') ILIKE ? ESCAPE '\\'
+        OR COALESCE(REGISTRY_ID, '') ILIKE ? ESCAPE '\\'
+        OR COALESCE(CASE_ID, '') ILIKE ? ESCAPE '\\'
+        OR COALESCE(APPLICATION_ID, '') ILIKE ? ESCAPE '\\'
+        OR COALESCE(CERTIFIED_TIER, '') ILIKE ? ESCAPE '\\'
+        OR COALESCE(CERTIFIED_BAND, '') ILIKE ? ESCAPE '\\'
+        OR COALESCE(DECISION_STATUS, '') ILIKE ? ESCAPE '\\'
+      )
+    `);
+
+    binds.push(like, like, like, like, like, like, like, like, like);
+  }
+
+  return {
+    whereSql: where.length > 0 ? `WHERE ${where.join("\n      AND ")}` : "",
+    binds,
+  };
+}
 
 export async function getRegistryRecords(
   limit = 100
@@ -110,42 +185,20 @@ export async function searchRegistryRecords(params: {
   applicationId?: string;
   limit?: number;
 }): Promise<RegistryQueryRow[]> {
-  const rows = await getRegistryRecords(params.limit ?? 500);
+  const safeLimit = Math.max(1, Math.min(params.limit ?? 500, 1000));
+  const { whereSql, binds } = buildRegistryWhereClause(params);
 
-  const q = (params.q ?? "").trim().toUpperCase();
-  const country = normalizeId(params.country ?? "");
-  const registryId = normalizeId(params.registryId ?? "");
-  const caseId = normalizeId(params.caseId ?? "");
-  const applicationId = normalizeId(params.applicationId ?? "");
+  const rows = await sfQuery<RegistrySourceRow>(
+    `
+    ${REGISTRY_SELECT}
+    ${whereSql}
+    ORDER BY ENTITY_NAME ASC, REGISTRY_ID ASC
+    LIMIT ?
+    `,
+    [...binds, safeLimit]
+  );
 
-  return rows.filter((row) => {
-    if (country && normalizeId(row.country ?? "") !== country) return false;
-    if (registryId && normalizeId(row.registryId) !== registryId) return false;
-    if (caseId && normalizeId(row.caseId ?? "") !== caseId) return false;
-    if (applicationId && normalizeId(row.applicationId ?? "") !== applicationId) {
-      return false;
-    }
-
-    if (q) {
-      const haystack = [
-        row.entityName ?? "",
-        row.entityType ?? "",
-        row.country ?? "",
-        row.registryId ?? "",
-        row.caseId ?? "",
-        row.applicationId ?? "",
-        row.certifiedTier ?? "",
-        row.certifiedBand ?? "",
-        row.decisionStatus ?? "",
-      ]
-        .join(" ")
-        .toUpperCase();
-
-      if (!haystack.includes(q)) return false;
-    }
-
-    return true;
-  });
+  return rows.map(normalizeRegistryRow).filter((row) => row.registryId);
 }
 
 export async function getRegistryRecordByRegistryId(
