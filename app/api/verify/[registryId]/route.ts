@@ -97,9 +97,9 @@ function signProofMessage(messageString: string): string {
 
 function getCorsHeaders(origin?: string | null): HeadersInit {
   return {
-    "Access-Control-Allow-Origin": origin?.trim() || "*",
+    "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Methods": "GET, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type, Authorization",
+    "Access-Control-Allow-Headers": "Content-Type",
     "Access-Control-Max-Age": "86400",
     Vary: "Origin",
     "Cache-Control": "no-store",
