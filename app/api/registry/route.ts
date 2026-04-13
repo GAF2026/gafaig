@@ -10,6 +10,22 @@ function clean(value: string | null): string {
   return String(value ?? "").trim();
 }
 
+function getCorsHeaders(): HeadersInit {
+  return {
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Methods": "GET, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type",
+    "Cache-Control": "no-store",
+  };
+}
+
+function jsonWithCors(body: RegistryApiResponse, init: { status?: number } = {}) {
+  return NextResponse.json(body, {
+    status: init.status ?? 200,
+    headers: getCorsHeaders(),
+  });
+}
+
 function toRegistryRow(row: {
   registryId: string;
   applicationId: string | null;
@@ -40,6 +56,13 @@ function toRegistryRow(row: {
     validTo: row.validTo,
     certifiedAt: row.certifiedAt,
   };
+}
+
+export async function OPTIONS() {
+  return new NextResponse(null, {
+    status: 204,
+    headers: getCorsHeaders(),
+  });
 }
 
 export async function GET(req: Request) {
@@ -87,18 +110,13 @@ export async function GET(req: Request) {
       },
     };
 
-    return NextResponse.json(response, {
-      headers: { "Cache-Control": "no-store" },
-    });
+    return jsonWithCors(response);
   } catch (error) {
     const response: RegistryApiResponse = {
       ok: false,
       error: error instanceof Error ? error.message : "Registry endpoint failed.",
     };
 
-    return NextResponse.json(response, {
-      status: 500,
-      headers: { "Cache-Control": "no-store" },
-    });
+    return jsonWithCors(response, { status: 500 });
   }
 }
