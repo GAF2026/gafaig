@@ -1,21 +1,22 @@
 import Link from "next/link";
 import PublicPageHero from "@/app/_components/PublicPageHero";
 import PublicButtonLink from "@/app/_components/PublicButtonLink";
-import PublicButton from "@/app/_components/PublicButton";
-import {
-  getRegistryCountries,
-  searchRegistryRecords,
-  type RegistryQueryRow,
-} from "@/lib/queries/registry";
+import { searchRegistryRecords } from "@/lib/queries/registry";
 
 export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
-type RegistryRecord = RegistryQueryRow;
+type RegistryPageSearchParams = {
+  q?: string;
+  country?: string;
+};
 
-function formatDate(value: string | null | undefined) {
+function formatDate(value?: string | null) {
   if (!value) return "—";
+
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return value;
+
   return date.toLocaleDateString("en-US", {
     year: "numeric",
     month: "short",
@@ -23,357 +24,247 @@ function formatDate(value: string | null | undefined) {
   });
 }
 
-function certificationTierBandLabel(
-  tier: string | null,
-  band: string | null
-) {
-  return tier && band ? `${tier} · ${band}` : tier || band || "—";
+function formatTierBand(tier?: string | null, band?: string | null) {
+  const safeTier = String(tier ?? "").trim();
+  const safeBand = String(band ?? "").trim();
+
+  if (safeTier && safeBand) return `${safeTier} · ${safeBand}`;
+  if (safeTier) return safeTier;
+  if (safeBand) return safeBand;
+  return "—";
 }
 
-function normalizeString(value: string | string[] | undefined) {
-  if (Array.isArray(value)) return value[0]?.trim() || "";
-  return String(value || "").trim();
+function getCountries(
+  rows: Awaited<ReturnType<typeof searchRegistryRecords>>
+): string[] {
+  return Array.from(
+    new Set(
+      rows
+        .map((row) => String(row.country ?? "").trim())
+        .filter(Boolean)
+    )
+  ).sort((a, b) => a.localeCompare(b));
 }
 
-function certificationStatus(row: RegistryRecord) {
-  const decision = String(row.decisionStatus || "").trim().toLowerCase();
-  if (row.certifiedAt) return "Certified";
-  if (decision === "approved") return "Approved";
-  return "Not Certified";
+function toneForDecision(value: string | null | undefined) {
+  const v = String(value || "").trim().toUpperCase();
+
+  if (v === "APPROVED") {
+    return "bg-blue-50 text-blue-700 ring-blue-200";
+  }
+
+  return "bg-slate-100 text-slate-600 ring-slate-200";
 }
 
 export default async function RegistryPage({
   searchParams,
 }: {
-  searchParams?: {
-    q?: string | string[];
-    country?: string | string[];
-  };
+  searchParams?: RegistryPageSearchParams;
 }) {
-  const q = normalizeString(searchParams?.q);
-  const country = normalizeString(searchParams?.country);
+  const q = String(searchParams?.q ?? "").trim();
+  const country = String(searchParams?.country ?? "").trim();
 
-  let rows: RegistryRecord[] = [];
-  let countries: string[] = [];
-  let dataUnavailable = false;
+  const allRows = await searchRegistryRecords({ limit: 500 });
+  const rows = await searchRegistryRecords({
+    q,
+    country,
+    limit: 500,
+  });
 
-  try {
-    const [registryRows, countryRows] = await Promise.all([
-      searchRegistryRecords({
-        q,
-        country,
-        limit: 100,
-      }),
-      getRegistryCountries(),
-    ]);
-
-    rows = registryRows.filter((row) => row.registryId);
-    countries = countryRows;
-  } catch (error) {
-    dataUnavailable = true;
-    console.error("REGISTRY PAGE ERROR:", error);
-  }
-
-  const totalRecords = rows.length;
-  const certifiedRecords = rows.filter(
-    (row) => certificationStatus(row).trim().toLowerCase() === "certified"
-  ).length;
-  const approvedRecords = rows.filter(
-    (row) => String(row.decisionStatus || "").trim().toLowerCase() === "approved"
-  ).length;
+  const countries = getCountries(allRows);
 
   return (
     <main className="mx-auto max-w-[1180px] px-6 pb-16 pt-14">
       <div className="space-y-8">
         <PublicPageHero
           eyebrow="REGISTRY OF RECORD"
-          title="Public AI governance certification records"
-          description="The GAFAIG Registry is the canonical public record of certification outcomes issued through the GAFAIG verification framework. Each record discloses certification status, validity information, and linked trust surfaces without exposing private evidence, findings, or internal review workflow."
-          secondaryDescription="This is not a simple directory. It is a public trust layer for AI governance certification. Every record is intended to function as a portable trust signal that can be inspected directly, linked to disclosed AI systems, and verified through badge, proof, and public verification surfaces."
+          title="Public AI governance registry of record"
+          description="The GAFAIG Registry is the canonical public record of certification outcomes issued through the GAFAIG verification framework. Each record provides a verifiable trust signal with certification status, tier, band, and validity without exposing private evidence or internal review workflows."
+          secondaryDescription="Registry is the canonical record layer. Use Explorer to discover organizations, countries, and AI systems across the broader GAFAIG public trust surface."
           actions={
             <>
-              <PublicButtonLink href="/explorer" variant="secondary">
+              <PublicButtonLink href="/explorer" variant="primary">
                 Open Explorer
               </PublicButtonLink>
 
               <PublicButtonLink href="/verify" variant="secondary">
-                Open the Verification Guide
+                Verify a record
               </PublicButtonLink>
             </>
           }
         />
 
         <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
-          <div className="mt-0 grid gap-4 md:grid-cols-2">
-            <IntroCard
-              title="Canonical public record"
-              body="GAFAIG publishes certification outcomes through a registry of record designed for external reliance, institutional review, and public trust."
-            />
-            <IntroCard
-              title="Verifiable trust surface"
-              body="Each record can resolve into badge, proof, and verification layers so certification status can be checked rather than merely claimed."
-            />
-          </div>
-
-          <div className="mt-6 rounded-2xl border border-black/10 bg-black/[0.02] px-4 py-4 text-[15px] leading-[1.8] text-black/72">
-            Need to understand how public verification works?{" "}
-            <PublicButtonLink
-              href="/verify"
-              variant="link"
-              size="sm"
-              className="h-auto px-0 py-0"
-            >
-              Open the verification guide
-            </PublicButtonLink>
-            .
-          </div>
-
-          <form className="mt-8 grid gap-4 md:grid-cols-[1.3fr_0.7fr_auto]">
-            <div>
+          <div className="grid gap-5 lg:grid-cols-[1fr_320px] lg:items-end">
+            <form action="/registry" className="space-y-3">
               <label
-                htmlFor="q"
-                className="mb-2 block text-[12px] font-semibold uppercase tracking-[0.16em] text-black/55"
+                htmlFor="registry-q"
+                className="block text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60"
               >
                 Search records
               </label>
+
               <input
-                id="q"
+                id="registry-q"
                 name="q"
                 defaultValue={q}
                 placeholder="Entity, registry ID, application ID, or case ID"
-                className="w-full rounded-2xl border border-black/10 px-4 py-3 text-[15px] outline-none transition focus:border-black/30"
+                className="h-14 w-full rounded-full border border-black/10 bg-white px-6 text-[15px] text-black outline-none transition placeholder:text-black/35 focus:border-black/20"
               />
-            </div>
 
+              <input type="hidden" name="country" value={country} />
+            </form>
+
+            <form
+              action="/registry"
+              className="grid gap-3 sm:grid-cols-[1fr_auto_auto]"
+            >
+              <div className="space-y-3">
+                <label
+                  htmlFor="registry-country"
+                  className="block text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60"
+                >
+                  Country
+                </label>
+
+                <select
+                  id="registry-country"
+                  name="country"
+                  defaultValue={country}
+                  className="h-14 w-full rounded-full border border-black/10 bg-white px-5 text-[15px] text-black outline-none transition focus:border-black/20"
+                >
+                  <option value="">All countries</option>
+                  {countries.map((value) => (
+                    <option key={value} value={value}>
+                      {value}
+                    </option>
+                  ))}
+                </select>
+
+                <input type="hidden" name="q" value={q} />
+              </div>
+
+              <div className="flex items-end">
+                <button
+                  type="submit"
+                  className="inline-flex h-14 items-center justify-center rounded-full bg-black px-8 text-[15px] font-semibold text-white transition hover:bg-black/90"
+                >
+                  Apply
+                </button>
+              </div>
+
+              <div className="flex items-end">
+                <Link
+                  href="/registry"
+                  className="inline-flex h-14 items-center justify-center rounded-full border border-black/10 px-8 text-[15px] font-semibold text-black transition hover:bg-black/[0.03]"
+                >
+                  Reset
+                </Link>
+              </div>
+            </form>
+          </div>
+        </section>
+
+        <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
+          <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
             <div>
-              <label
-                htmlFor="country"
-                className="mb-2 block text-[12px] font-semibold uppercase tracking-[0.16em] text-black/55"
-              >
-                Country
-              </label>
-              <select
-                id="country"
-                name="country"
-                defaultValue={country}
-                className="w-full rounded-2xl border border-black/10 bg-white px-4 py-3 text-[15px] outline-none transition focus:border-black/30"
-              >
-                <option value="">All countries</option>
-                {countries.map((countryValue) => (
-                  <option key={countryValue} value={countryValue}>
-                    {countryValue}
-                  </option>
-                ))}
-              </select>
-            </div>
+              <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
+                PUBLIC RECORDS
+              </div>
 
-            <div className="flex items-end gap-3">
-              <PublicButton type="submit" variant="primary">
-                Apply
-              </PublicButton>
-
-              <PublicButtonLink href="/registry" variant="secondary">
-                Reset
-              </PublicButtonLink>
-            </div>
-          </form>
-        </section>
-
-        {dataUnavailable && (
-          <section className="rounded-3xl border border-amber-200 bg-amber-50 p-6">
-            <div className="text-[13px] font-semibold uppercase tracking-[0.18em] text-amber-800">
-              Data temporarily unavailable
-            </div>
-            <p className="mt-3 max-w-[900px] text-[15px] leading-[1.8] text-amber-900/85">
-              Registry data could not be loaded from the registry backend at this
-              moment. The page remains available, but live listings and filters
-              are temporarily unavailable. Please refresh shortly.
-            </p>
-          </section>
-        )}
-
-        <section className="grid gap-4 md:grid-cols-3">
-          <MetricCard label="Visible records" value={String(totalRecords)} />
-          <MetricCard label="Certified" value={String(certifiedRecords)} />
-          <MetricCard label="Approved decisions" value={String(approvedRecords)} />
-        </section>
-
-        <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
-          <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
-            TRUST INFRASTRUCTURE
-          </div>
-
-          <h2 className="mt-4 max-w-[880px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
-            Registry publication is only one layer. Each record is part of a broader trust infrastructure.
-          </h2>
-
-          <p className="mt-5 max-w-[980px] text-[16px] leading-[1.9] text-black/75">
-            GAFAIG extends beyond registry disclosure into public trust
-            infrastructure. Certification records can connect to signed proof
-            payloads, published verification keys, public verification endpoints,
-            embeddable trust badges, QR-linked verification paths, and portable
-            widget surfaces that allow third parties to validate governance status
-            independently.
-          </p>
-
-          <div className="mt-7 grid gap-4 md:grid-cols-2">
-            <StatementCard
-              title="Signed proof layer"
-              body="Registry records can resolve into signed public proof so external parties can validate that the disclosed record matches what GAFAIG issued."
-            />
-            <StatementCard
-              title="Verification endpoint"
-              body="Public verification surfaces allow programmatic validation of certification status, supporting external integrations and independent checks."
-            />
-            <StatementCard
-              title="Portable badge + widget layer"
-              body="Certification trust can travel beyond the registry page through embeddable badges, QR links, verify buttons, and widgets that resolve back to the canonical public record."
-            />
-            <StatementCard
-              title="Public trust without private exposure"
-              body="The registry exposes what must be relied on publicly while preserving the confidentiality of internal evidence, findings, and controlled review workflow."
-            />
-          </div>
-        </section>
-
-        <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
-          <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
-            WHAT THIS REGISTRY PROVIDES
-          </div>
-
-          <h2 className="mt-4 max-w-[860px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
-            A public certification surface others can rely on
-          </h2>
-
-          <div className="mt-7 grid gap-4 md:grid-cols-2)">
-            <StatementCard
-              title="Canonical public certification records"
-              body="Each entry represents a structured certification outcome issued through the GAFAIG verification framework and published as part of the public registry of record."
-            />
-            <StatementCard
-              title="Private review remains private"
-              body="Evidence, findings, and internal review workflow remain inside the controlled verification engine. Only public certification outcomes and trust signals are disclosed here."
-            />
-            <StatementCard
-              title="Linked systems and trust surfaces"
-              body="Registry records can connect to disclosed AI systems, badge endpoints, signed proof payloads, and verification surfaces so external parties can inspect governance status in context."
-            />
-            <StatementCard
-              title="Deterministic, structured outcomes"
-              body="Records reflect certification decisions produced through a deterministic framework designed to support consistency, repeatability, and institutional reliance."
-            />
-          </div>
-        </section>
-
-        <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
-          <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
-            PUBLIC RECORDS
-          </div>
-
-          <div className="mt-4 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-            <div>
-              <h2 className="text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
+              <h2 className="mt-4 text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
                 Registry directory
               </h2>
+
               <p className="mt-3 max-w-[820px] text-[15px] leading-[1.8] text-black/68">
-                Browse certification records by organization, jurisdiction, and
-                registry identifier. Open any record to inspect public
-                certification details, linked AI systems, and verification
+                Browse surfaced certification records by organization,
+                jurisdiction, and registry identifier. Open any record to inspect
+                public certification details, linked AI systems, and verification
                 surfaces.
               </p>
             </div>
 
-            <div className="rounded-2xl border border-black/10 px-4 py-3 text-sm text-black/70">
-              {rows.length} visible record{rows.length === 1 ? "" : "s"}
+            <div className="text-[13px] text-black/50">
+              {rows.length} visible records
             </div>
           </div>
 
-          {rows.length === 0 ? (
-            <div className="mt-8 rounded-2xl border border-black/10 p-6 text-sm text-black/70">
-              {dataUnavailable
-                ? "Registry records are temporarily unavailable."
-                : "No registry records matched your current filters."}
-            </div>
-          ) : (
-            <div className="mt-8 grid gap-4">
-              {rows.map((row) => {
-                const cleanRegistryId = String(row.registryId || "").trim();
-                const statusValue = certificationStatus(row);
-                return (
-                  <Link
-                    key={cleanRegistryId}
-                    href={`/registry/${encodeURIComponent(cleanRegistryId)}`}
-                    className="rounded-2xl border border-black/10 p-5 transition hover:bg-black/[0.03]"
-                  >
-                    <div className="flex flex-wrap items-start justify-between gap-5">
-                      <div className="min-w-0 flex-1">
-                        <div className="flex flex-wrap gap-2">
-                          <StatusPill value={statusValue} />
-                          <StatusPill value={row.decisionStatus || "—"} subtle />
-                        </div>
+          <div className="mt-8 space-y-4">
+            {rows.map((row) => (
+              <article
+                key={row.registryId}
+                className="rounded-3xl border border-black/10 bg-white p-6"
+              >
+                <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+                  <div className="min-w-0">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="inline-flex rounded-full bg-emerald-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-emerald-700 ring-1 ring-emerald-200">
+                        Verified
+                      </span>
 
-                        <div className="mt-4 text-[24px] font-semibold tracking-tight text-black">
-                          {row.entityName || cleanRegistryId}
-                        </div>
-
-                        <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm text-black/65">
-                          <span>{row.entityType || "Organization"}</span>
-                          <span>{row.country || "Unknown country"}</span>
-                          <span>{cleanRegistryId}</span>
-                        </div>
-                      </div>
+                      {row.decisionStatus ? (
+                        <span
+                          className={`inline-flex rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] ring-1 ${toneForDecision(
+                            row.decisionStatus
+                          )}`}
+                        >
+                          {row.decisionStatus}
+                        </span>
+                      ) : null}
                     </div>
 
-                    <div className="mt-5 grid gap-3 md:grid-cols-4">
-                      <Info
-                        label="Certification / Tier / Band"
-                        value={certificationTierBandLabel(
-                          row.certifiedTier,
-                          row.certifiedBand
-                        )}
-                      />
-                      <Info label="Certified at" value={formatDate(row.certifiedAt)} />
-                      <Info label="Valid from" value={formatDate(row.validFrom)} />
-                      <Info label="Valid to" value={formatDate(row.validTo)} />
+                    <h3 className="mt-4 text-[26px] font-semibold leading-[1.2] tracking-tight text-black">
+                      {row.entityName || "Unknown entity"}
+                    </h3>
+
+                    <div className="mt-2 text-[14px] text-black/55">
+                      {(row.entityType || "Organization") + " · " + (row.country || "—") + " · " + row.registryId}
                     </div>
+                  </div>
 
-                    <div className="mt-5 flex flex-wrap gap-x-5 gap-y-1 text-sm text-black/55">
-                      <span>Application: {row.applicationId || "—"}</span>
-                      <span>Case: {row.caseId || "—"}</span>
-                      <span>Score: {row.certifiedScore || "—"}</span>
-                    </div>
-                  </Link>
-                );
-              })}
-            </div>
-          )}
-        </section>
+                  <div className="shrink-0">
+                    <PublicButtonLink
+                      href={`/registry/${encodeURIComponent(row.registryId)}`}
+                      variant="secondary"
+                      size="sm"
+                    >
+                      Open
+                    </PublicButtonLink>
+                  </div>
+                </div>
 
-        <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
-          <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
-            HOW TO USE THE REGISTRY
-          </div>
+                <div className="mt-5 grid gap-3 md:grid-cols-4">
+                  <InfoCard
+                    label="Certification / Tier / Band"
+                    value={formatTierBand(row.certifiedTier, row.certifiedBand)}
+                  />
+                  <InfoCard
+                    label="Certified At"
+                    value={formatDate(row.certifiedAt)}
+                  />
+                  <InfoCard
+                    label="Valid From"
+                    value={formatDate(row.validFrom)}
+                  />
+                  <InfoCard
+                    label="Valid To"
+                    value={formatDate(row.validTo)}
+                  />
+                </div>
 
-          <h2 className="mt-4 max-w-[860px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
-            Start with the record, then verify the trust signal
-          </h2>
+                <div className="mt-4 flex flex-wrap gap-x-5 gap-y-2 text-[13px] text-black/55">
+                  <span>Application: {row.applicationId || "—"}</span>
+                  <span>Case: {row.caseId || "—"}</span>
+                  <span>Score: {row.certifiedScore || "—"}</span>
+                </div>
+              </article>
+            ))}
 
-          <div className="mt-7 grid gap-4 md:grid-cols-3">
-            <PathCard
-              number="1"
-              title="Open a registry record"
-              body="Select an entity to inspect certification status, validity window, and linked public metadata."
-            />
-            <PathCard
-              number="2"
-              title="Review linked systems"
-              body="See any disclosed AI systems associated with that certification record."
-            />
-            <PathCard
-              number="3"
-              title="Verify badge and proof"
-              body="Use the badge, verify JSON, signed proof, and trust tools on the record page to validate the public trust signal."
-            />
+            {rows.length === 0 ? (
+              <div className="rounded-2xl border border-black/10 p-6 text-sm text-black/60">
+                No records match your filters.
+              </div>
+            ) : null}
           </div>
         </section>
       </div>
@@ -381,106 +272,21 @@ export default async function RegistryPage({
   );
 }
 
-function IntroCard({
-  title,
-  body,
+function InfoCard({
+  label,
+  value,
 }: {
-  title: string;
-  body: string;
+  label: string;
+  value: string;
 }) {
   return (
-    <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
-      <div className="text-[18px] font-semibold tracking-tight text-black">
-        {title}
-      </div>
-      <p className="mt-3 text-[15px] leading-[1.8] text-black/72">{body}</p>
-    </div>
-  );
-}
-
-function MetricCard({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-2xl border border-black/10 bg-white p-5">
-      <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/60">
-        {label}
-      </div>
-      <div className="mt-2 text-[28px] font-semibold text-black">{value}</div>
-    </div>
-  );
-}
-
-function Info({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-xl border border-black/5 px-3 py-3">
+    <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-4">
       <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-black/55">
         {label}
       </div>
-      <div className="mt-2 text-[14px] text-black/85">{value}</div>
-    </div>
-  );
-}
-
-function StatusPill({
-  value,
-  subtle = false,
-}: {
-  value: string;
-  subtle?: boolean;
-}) {
-  const normalized = String(value || "").trim().toLowerCase();
-
-  const classes = subtle
-    ? normalized === "approved"
-      ? "border-blue-200 bg-blue-50 text-blue-700"
-      : "border-black/10 bg-black/[0.03] text-black/65"
-    : normalized === "certified"
-      ? "border-emerald-200 bg-emerald-50 text-emerald-700"
-      : normalized === "approved"
-        ? "border-blue-200 bg-blue-50 text-blue-700"
-        : "border-black/10 bg-black/[0.03] text-black/65";
-
-  return (
-    <span
-      className={`inline-flex rounded-full border px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] ${classes}`}
-    >
-      {value}
-    </span>
-  );
-}
-
-function StatementCard({
-  title,
-  body,
-}: {
-  title: string;
-  body: string;
-}) {
-  return (
-    <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
-      <div className="text-[18px] font-semibold tracking-tight text-black">
-        {title}
+      <div className="mt-2 text-[15px] font-medium leading-[1.6] text-black">
+        {value}
       </div>
-      <p className="mt-3 text-[15px] leading-[1.8] text-black/72">{body}</p>
-    </div>
-  );
-}
-
-function PathCard({
-  number,
-  title,
-  body,
-}: {
-  number: string;
-  title: string;
-  body: string;
-}) {
-  return (
-    <div className="rounded-2xl border border-black/10 p-4">
-      <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/55">
-        {number}
-      </div>
-      <div className="mt-2 text-[16px] font-semibold text-black">{title}</div>
-      <p className="mt-2 text-[14px] leading-[1.7] text-black/72">{body}</p>
     </div>
   );
 }

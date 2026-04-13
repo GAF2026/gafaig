@@ -5,17 +5,6 @@ import { getExplorerOrganizations } from "@/lib/queries/explorer";
 
 export const dynamic = "force-dynamic";
 
-function formatDate(value: string | null) {
-  if (!value) return "—";
-  const d = new Date(value);
-  if (Number.isNaN(d.getTime())) return value;
-  return d.toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  });
-}
-
 export default async function ExplorerOrganizationsPage() {
   const rows = await getExplorerOrganizations(200);
 
@@ -26,7 +15,7 @@ export default async function ExplorerOrganizationsPage() {
           eyebrow="EXPLORER"
           title="Organizations"
           description="Publicly visible organizations represented in the GAFAIG registry of record."
-          secondaryDescription="This explorer surface shows organizations that appear in GAFAIG’s public certification layer, along with their public record counts, certification status, and latest visible certification timing."
+          secondaryDescription="This explorer surface shows organizations that appear in GAFAIG’s public certification layer, along with their public record counts."
           actions={
             <>
               <PublicButtonLink href="/registry" variant="primary">
@@ -37,10 +26,7 @@ export default async function ExplorerOrganizationsPage() {
                 Back to Explorer
               </PublicButtonLink>
 
-              <PublicButtonLink
-                href="/explorer/countries"
-                variant="secondary"
-              >
+              <PublicButtonLink href="/explorer/countries" variant="secondary">
                 Countries
               </PublicButtonLink>
 
@@ -63,8 +49,7 @@ export default async function ExplorerOrganizationsPage() {
               </h2>
 
               <p className="mt-3 max-w-[820px] text-[15px] leading-[1.8] text-black/68">
-                Browse organizations currently represented in the GAFAIG public
-                trust surface.
+                Browse organizations currently represented in the GAFAIG public trust surface.
               </p>
             </div>
 
@@ -82,9 +67,8 @@ export default async function ExplorerOrganizationsPage() {
                   <th className="px-0 py-3">Organization</th>
                   <th className="px-4 py-3">Type</th>
                   <th className="px-4 py-3">Country</th>
-                  <th className="px-4 py-3">Records</th>
-                  <th className="px-4 py-3">Status</th>
-                  <th className="px-4 py-3">Last certified</th>
+                  <th className="px-4 py-3">Registry Records</th>
+                  <th className="px-4 py-3">Systems</th>
                 </tr>
               </thead>
               <tbody>
@@ -110,18 +94,14 @@ export default async function ExplorerOrganizationsPage() {
                     </td>
 
                     <td className="px-4 py-4 text-sm text-black/75">
-                      {row.decisionStatus ?? "—"}
-                    </td>
-
-                    <td className="px-4 py-4 text-sm text-black/75">
-                      {formatDate(row.lastCertifiedAt)}
+                      {row.systemCount}
                     </td>
                   </tr>
                 ))}
 
                 {rows.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="px-0 py-8 text-sm text-black/60">
+                    <td colSpan={5} className="px-0 py-8 text-sm text-black/60">
                       No organizations found.
                     </td>
                   </tr>

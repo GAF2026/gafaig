@@ -19,6 +19,17 @@ function formatDate(value: string | null) {
   });
 }
 
+function formatTierBand(tier: string | null, band: string | null) {
+  if (!tier && !band) return "—";
+  if (tier && band) return `${tier} · ${band}`;
+  return tier ?? band ?? "—";
+}
+
+function formatStatus(status: string | null) {
+  if (!status) return "—";
+  return status.toUpperCase();
+}
+
 export default async function ExplorerPage() {
   const [summary, recentRecords] = await Promise.all([
     getExplorerSummary(),
@@ -39,10 +50,7 @@ export default async function ExplorerPage() {
                 View Registry
               </PublicButtonLink>
 
-              <PublicButtonLink
-                href="/explorer/organizations"
-                variant="secondary"
-              >
+              <PublicButtonLink href="/explorer/organizations" variant="secondary">
                 Organizations
               </PublicButtonLink>
 
@@ -58,13 +66,10 @@ export default async function ExplorerPage() {
         />
 
         <section className="grid gap-4 md:grid-cols-4">
-          <MetricCard label="Registry records" value={String(summary.totalRecords)} />
-          <MetricCard
-            label="Organizations"
-            value={String(summary.totalOrganizations)}
-          />
-          <MetricCard label="Countries" value={String(summary.totalCountries)} />
-          <MetricCard label="AI systems" value={String(summary.totalSystems)} />
+          <MetricCard label="Registry records" value={String(summary.totalRecords ?? 0)} />
+          <MetricCard label="Organizations" value={String(summary.totalOrganizations ?? 0)} />
+          <MetricCard label="Countries" value={String(summary.totalCountries ?? 0)} />
+          <MetricCard label="AI systems" value={String(summary.totalSystems ?? 0)} />
         </section>
 
         <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
@@ -111,8 +116,7 @@ export default async function ExplorerPage() {
               </h2>
 
               <p className="mt-3 max-w-[820px] text-[15px] leading-[1.8] text-black/68">
-                Recently surfaced certification records from the GAFAIG public
-                registry.
+                Recently surfaced certification records from the GAFAIG public registry.
               </p>
             </div>
 
@@ -132,7 +136,7 @@ export default async function ExplorerPage() {
                   <th className="px-4 py-3">Tier / Band</th>
                   <th className="px-4 py-3">Status</th>
                   <th className="px-4 py-3">Certified</th>
-                  <th className="px-4 py-3">Review Scope</th>
+                  <th className="px-4 py-3">Trust</th>
                   <th className="px-4 py-3">Record</th>
                 </tr>
               </thead>
@@ -153,21 +157,27 @@ export default async function ExplorerPage() {
                     </td>
 
                     <td className="px-4 py-4 text-sm text-black/75">
-                      {[row.certifiedTier, row.certifiedBand]
-                        .filter(Boolean)
-                        .join(" · ") || "—"}
+                      {formatTierBand(row.certifiedTier, row.certifiedBand)}
                     </td>
 
                     <td className="px-4 py-4 text-sm text-black/75">
-                      {row.decisionStatus ?? "—"}
+                      {formatStatus(row.decisionStatus)}
                     </td>
 
                     <td className="px-4 py-4 text-sm text-black/75">
                       {formatDate(row.certifiedAt)}
                     </td>
 
-                    <td className="px-4 py-4 text-sm text-black/75">
-                      Governance review completed
+                    <td className="px-4 py-4 text-sm">
+                      {row.decisionStatus === "APPROVED" ? (
+                        <span className="inline-flex items-center rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-700">
+                          Verified
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-600">
+                          Pending
+                        </span>
+                      )}
                     </td>
 
                     <td className="px-4 py-4">
@@ -181,13 +191,13 @@ export default async function ExplorerPage() {
                   </tr>
                 ))}
 
-                {recentRecords.length === 0 ? (
+                {recentRecords.length === 0 && (
                   <tr>
                     <td colSpan={7} className="px-0 py-8 text-sm text-black/60">
                       No recent public records found.
                     </td>
                   </tr>
-                ) : null}
+                )}
               </tbody>
             </table>
           </div>
@@ -197,13 +207,7 @@ export default async function ExplorerPage() {
   );
 }
 
-function MetricCard({
-  label,
-  value,
-}: {
-  label: string;
-  value: string;
-}) {
+function MetricCard({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-2xl border border-black/10 bg-white p-5">
       <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/55">
@@ -216,13 +220,7 @@ function MetricCard({
   );
 }
 
-function ExplanationCard({
-  title,
-  body,
-}: {
-  title: string;
-  body: string;
-}) {
+function ExplanationCard({ title, body }: { title: string; body: string }) {
   return (
     <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-6">
       <div className="text-[18px] font-semibold tracking-tight text-black">

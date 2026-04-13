@@ -1,62 +1,57 @@
 import { sfQuery } from "@/lib/snowflake";
 
-type Row = Record<string, unknown>;
-
-function s(v: unknown): string | null {
-  if (v == null) return null;
-  const x = String(v).trim();
-  return x === "" ? null : x;
+function asString(value: unknown): string | null {
+  if (value === null || value === undefined) return null;
+  const s = String(value).trim();
+  return s === "" ? null : s;
 }
 
-function n(v: unknown): number {
-  return Number(v ?? 0);
-}
+function asBoolean(value: unknown): boolean | null {
+  if (value === null || value === undefined) return null;
+  if (typeof value === "boolean") return value;
 
-function b(v: unknown): boolean | null {
-  if (v === null || v === undefined || v === "") return null;
-  if (typeof v === "boolean") return v;
-  if (typeof v === "number") return v !== 0;
+  const v = String(value).trim().toLowerCase();
+  if (["true", "1", "yes", "y"].includes(v)) return true;
+  if (["false", "0", "no", "n"].includes(v)) return false;
 
-  const x = String(v).trim().toLowerCase();
-  if (["true", "t", "yes", "y", "1"].includes(x)) return true;
-  if (["false", "f", "no", "n", "0"].includes(x)) return false;
   return null;
 }
 
-export type ExplorerSummary = {
-  totalRecords: number;
-  totalOrganizations: number;
-  totalCountries: number;
-  totalSystems: number;
-};
+function asNumber(value: unknown): number | null {
+  if (value === null || value === undefined) return null;
+  const n = Number(value);
+  return Number.isFinite(n) ? n : null;
+}
 
-export type ExplorerRegistryRecord = {
-  registryId: string | null;
+export type ExplorerRegistryRow = {
+  registryId: string;
   applicationId: string | null;
   caseId: string | null;
   entityName: string | null;
+  entityType: string | null;
   country: string | null;
+  certifiedScore: string | null;
   certifiedTier: string | null;
   certifiedBand: string | null;
   decisionStatus: string | null;
+  validFrom: string | null;
+  validTo: string | null;
   certifiedAt: string | null;
 };
 
 export type ExplorerOrganizationRow = {
-  entityName: string | null;
+  entityName: string;
   entityType: string | null;
   country: string | null;
   registryCount: number;
   systemCount: number;
-  decisionStatus: string | null;
-  lastCertifiedAt: string | null;
 };
 
 export type ExplorerCountryRow = {
-  country: string | null;
-  organizationCount: number;
+  country: string;
   registryCount: number;
-  lastCertifiedAt: string | null;
+  organizationCount: number;
+  systemCount: number;
 };
 
 export type ExplorerSystemRow = {
@@ -70,9 +65,6 @@ export type ExplorerSystemRow = {
   deploymentStatus: string | null;
   oversightLevel: string | null;
   riskTier: string | null;
-  displayOrder: number;
-  entityName: string | null;
-  country: string | null;
   developerOrganization: string | null;
   verificationType: string | null;
   modelVersion: string | null;
@@ -92,139 +84,199 @@ export type ExplorerSystemRow = {
   humanReviewRequired: boolean | null;
   evaluationProtocol: string | null;
   auditFrequency: string | null;
-  createdAt: string | null;
-  updatedAt: string | null;
+  entityName: string | null;
+  country: string | null;
+  displayOrder: number | null;
+  validFrom: string | null;
+  validTo: string | null;
 };
 
-export async function getExplorerSummary(): Promise<ExplorerSummary> {
-  const rows = await sfQuery<Row>(`
-    SELECT
-      COUNT(*) AS TOTAL_RECORDS,
-      COUNT(DISTINCT ENTITY_NAME) AS TOTAL_ORGANIZATIONS,
-      COUNT(DISTINCT COUNTRY) AS TOTAL_COUNTRIES
-    FROM CORE.V_REGISTRY_PUBLIC
-  `);
+export type ExplorerSummary = {
+  totalRecords: number;
+  totalOrganizations: number;
+  totalCountries: number;
+  totalSystems: number;
+};
 
-  const systemRows = await sfQuery<Row>(`
-    SELECT COUNT(*) AS TOTAL_SYSTEMS
-    FROM CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC
-  `);
-
+function normalizeRegistryRow(row: Record<string, unknown>): ExplorerRegistryRow {
   return {
-    totalRecords: n(rows?.[0]?.TOTAL_RECORDS),
-    totalOrganizations: n(rows?.[0]?.TOTAL_ORGANIZATIONS),
-    totalCountries: n(rows?.[0]?.TOTAL_COUNTRIES),
-    totalSystems: n(systemRows?.[0]?.TOTAL_SYSTEMS),
+    registryId: asString(row.REGISTRY_ID) ?? "",
+    applicationId: asString(row.APPLICATION_ID),
+    caseId: asString(row.CASE_ID),
+    entityName: asString(row.ENTITY_NAME),
+    entityType: asString(row.ENTITY_TYPE),
+    country: asString(row.COUNTRY),
+    certifiedScore: asString(row.CERTIFIED_SCORE),
+    certifiedTier: asString(row.CERTIFIED_TIER),
+    certifiedBand: asString(row.CERTIFIED_BAND),
+    decisionStatus: asString(row.DECISION_STATUS),
+    validFrom: asString(row.VALID_FROM),
+    validTo: asString(row.VALID_TO),
+    certifiedAt: asString(row.CERTIFIED_AT),
   };
 }
 
-export async function getLatestRegistryRecords(
-  limit = 10
-): Promise<ExplorerRegistryRecord[]> {
-  const safeLimit = Math.max(1, Math.min(limit, 100));
+function normalizeOrganizationRow(
+  row: Record<string, unknown>
+): ExplorerOrganizationRow {
+  return {
+    entityName: asString(row.ENTITY_NAME) ?? "Unknown",
+    entityType: asString(row.ENTITY_TYPE),
+    country: asString(row.COUNTRY),
+    registryCount: asNumber(row.REGISTRY_COUNT) ?? 0,
+    systemCount: asNumber(row.SYSTEM_COUNT) ?? 0,
+  };
+}
 
-  const rows = await sfQuery<Row>(
+function normalizeCountryRow(row: Record<string, unknown>): ExplorerCountryRow {
+  return {
+    country: asString(row.COUNTRY) ?? "Unknown",
+    registryCount: asNumber(row.REGISTRY_COUNT) ?? 0,
+    organizationCount: asNumber(row.ORGANIZATION_COUNT) ?? 0,
+    systemCount: asNumber(row.SYSTEM_COUNT) ?? 0,
+  };
+}
+
+function normalizeSystemRow(row: Record<string, unknown>): ExplorerSystemRow {
+  return {
+    systemId: asString(row.SYSTEM_ID),
+    registryId: asString(row.REGISTRY_ID),
+    applicationId: asString(row.APPLICATION_ID),
+    caseId: asString(row.CASE_ID),
+    systemName: asString(row.SYSTEM_NAME),
+    systemType: asString(row.SYSTEM_TYPE),
+    intendedUse: asString(row.INTENDED_USE),
+    deploymentStatus: asString(row.DEPLOYMENT_STATUS),
+    oversightLevel: asString(row.OVERSIGHT_LEVEL),
+    riskTier: asString(row.RISK_TIER),
+    developerOrganization: asString(row.DEVELOPER_ORGANIZATION),
+    verificationType: asString(row.VERIFICATION_TYPE),
+    modelVersion: asString(row.MODEL_VERSION),
+    score: asString(row.SCORE),
+    certifiedTier: asString(row.CERTIFIED_TIER),
+    certifiedBand: asString(row.CERTIFIED_BAND),
+    certifiedAt: asString(row.CERTIFIED_AT),
+    renewalStatus: asString(row.RENEWAL_STATUS),
+    approvedAt: asString(row.APPROVED_AT),
+    publishedAt: asString(row.PUBLISHED_AT),
+    registryStatus: asString(row.REGISTRY_STATUS),
+    decisionStatus: asString(row.DECISION_STATUS),
+    certificationStatus: asString(row.CERTIFICATION_STATUS),
+    publicSummary: asString(row.PUBLIC_SUMMARY),
+    trainingDataCategory: asString(row.TRAINING_DATA_CATEGORY),
+    oversightModel: asString(row.OVERSIGHT_MODEL),
+    humanReviewRequired: asBoolean(row.HUMAN_REVIEW_REQUIRED),
+    evaluationProtocol: asString(row.EVALUATION_PROTOCOL),
+    auditFrequency: asString(row.AUDIT_FREQUENCY),
+    entityName: asString(row.ENTITY_NAME),
+    country: asString(row.COUNTRY),
+    displayOrder: asNumber(row.DISPLAY_ORDER),
+    validFrom: asString(row.VALID_FROM),
+    validTo: asString(row.VALID_TO),
+  };
+}
+
+export async function getExplorerRegistry(limit = 50): Promise<ExplorerRegistryRow[]> {
+  const safeLimit = Math.max(1, Math.min(limit, 500));
+
+  const rows = await sfQuery<Record<string, unknown>>(
     `
     SELECT
       REGISTRY_ID,
       APPLICATION_ID,
       CASE_ID,
       ENTITY_NAME,
-      COUNTRY
+      ENTITY_TYPE,
+      COUNTRY,
+      CERTIFIED_SCORE,
+      CERTIFIED_TIER,
+      CERTIFIED_BAND,
+      DECISION_STATUS,
+      TO_VARCHAR(VALID_FROM) AS VALID_FROM,
+      TO_VARCHAR(VALID_TO) AS VALID_TO,
+      TO_VARCHAR(CERTIFIED_AT) AS CERTIFIED_AT
     FROM CORE.V_REGISTRY_PUBLIC
-    ORDER BY ENTITY_NAME ASC, REGISTRY_ID ASC
+    ORDER BY
+      COALESCE(CERTIFIED_AT, VALID_FROM) DESC,
+      ENTITY_NAME ASC,
+      REGISTRY_ID ASC
     LIMIT ?
     `,
     [safeLimit]
   );
 
-  return rows.map((r) => ({
-    registryId: s(r.REGISTRY_ID),
-    applicationId: s(r.APPLICATION_ID),
-    caseId: s(r.CASE_ID),
-    entityName: s(r.ENTITY_NAME),
-    country: s(r.COUNTRY),
-    certifiedTier: null,
-    certifiedBand: null,
-    decisionStatus: null,
-    certifiedAt: null,
-  }));
+  return rows.map(normalizeRegistryRow);
 }
 
-export const getRecentRegistryRecords = getLatestRegistryRecords;
+export async function getRecentRegistryRecords(
+  limit = 10
+): Promise<ExplorerRegistryRow[]> {
+  return getExplorerRegistry(limit);
+}
 
 export async function getExplorerOrganizations(
-  limit = 50
+  limit = 200
 ): Promise<ExplorerOrganizationRow[]> {
-  const safeLimit = Math.max(1, Math.min(limit, 500));
+  const safeLimit = Math.max(1, Math.min(limit, 1000));
 
-  const rows = await sfQuery<Row>(
+  const rows = await sfQuery<Record<string, unknown>>(
     `
     SELECT
       rp.ENTITY_NAME,
-      NULL AS ENTITY_TYPE,
+      rp.ENTITY_TYPE,
       rp.COUNTRY,
       COUNT(DISTINCT rp.REGISTRY_ID) AS REGISTRY_COUNT,
-      COUNT(DISTINCT s.SYSTEM_ID) AS SYSTEM_COUNT,
-      MAX(s.DECISION_STATUS) AS DECISION_STATUS,
-      MAX(TO_VARCHAR(COALESCE(s.PUBLISHED_AT, s.APPROVED_AT))) AS LAST_CERTIFIED_AT
+      COUNT(DISTINCT s.SYSTEM_ID) AS SYSTEM_COUNT
     FROM CORE.V_REGISTRY_PUBLIC rp
     LEFT JOIN CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC s
-      ON UPPER(TRIM(s.CASE_ID)) = UPPER(TRIM(rp.CASE_ID))
-    GROUP BY rp.ENTITY_NAME, rp.COUNTRY
-    ORDER BY rp.ENTITY_NAME ASC, rp.COUNTRY ASC
+      ON UPPER(TRIM(rp.CASE_ID)) = UPPER(TRIM(s.CASE_ID))
+    GROUP BY
+      rp.ENTITY_NAME,
+      rp.ENTITY_TYPE,
+      rp.COUNTRY
+    ORDER BY
+      REGISTRY_COUNT DESC,
+      rp.ENTITY_NAME ASC
     LIMIT ?
     `,
     [safeLimit]
   );
 
-  return rows.map((r) => ({
-    entityName: s(r.ENTITY_NAME),
-    entityType: s(r.ENTITY_TYPE),
-    country: s(r.COUNTRY),
-    registryCount: n(r.REGISTRY_COUNT),
-    systemCount: n(r.SYSTEM_COUNT),
-    decisionStatus: s(r.DECISION_STATUS),
-    lastCertifiedAt: s(r.LAST_CERTIFIED_AT),
-  }));
+  return rows.map(normalizeOrganizationRow);
 }
 
 export async function getExplorerCountries(
-  limit = 50
+  limit = 200
 ): Promise<ExplorerCountryRow[]> {
   const safeLimit = Math.max(1, Math.min(limit, 500));
 
-  const rows = await sfQuery<Row>(
+  const rows = await sfQuery<Record<string, unknown>>(
     `
     SELECT
       rp.COUNTRY,
-      COUNT(DISTINCT rp.ENTITY_NAME) AS ORGANIZATION_COUNT,
       COUNT(DISTINCT rp.REGISTRY_ID) AS REGISTRY_COUNT,
-      MAX(TO_VARCHAR(COALESCE(s.PUBLISHED_AT, s.APPROVED_AT))) AS LAST_CERTIFIED_AT
+      COUNT(DISTINCT rp.ENTITY_NAME) AS ORGANIZATION_COUNT,
+      COUNT(DISTINCT s.SYSTEM_ID) AS SYSTEM_COUNT
     FROM CORE.V_REGISTRY_PUBLIC rp
     LEFT JOIN CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC s
-      ON UPPER(TRIM(s.CASE_ID)) = UPPER(TRIM(rp.CASE_ID))
-    GROUP BY rp.COUNTRY
-    ORDER BY rp.COUNTRY ASC
+      ON UPPER(TRIM(rp.CASE_ID)) = UPPER(TRIM(s.CASE_ID))
+    GROUP BY
+      rp.COUNTRY
+    ORDER BY
+      REGISTRY_COUNT DESC,
+      rp.COUNTRY ASC
     LIMIT ?
     `,
     [safeLimit]
   );
 
-  return rows.map((r) => ({
-    country: s(r.COUNTRY),
-    organizationCount: n(r.ORGANIZATION_COUNT),
-    registryCount: n(r.REGISTRY_COUNT),
-    lastCertifiedAt: s(r.LAST_CERTIFIED_AT),
-  }));
+  return rows.map(normalizeCountryRow);
 }
 
-export async function getExplorerSystems(
-  limit = 50
-): Promise<ExplorerSystemRow[]> {
+export async function getExplorerSystems(limit = 200): Promise<ExplorerSystemRow[]> {
   const safeLimit = Math.max(1, Math.min(limit, 1000));
 
-  const rows = await sfQuery<Row>(
+  const rows = await sfQuery<Record<string, unknown>>(
     `
     SELECT
       s.SYSTEM_ID,
@@ -237,30 +289,34 @@ export async function getExplorerSystems(
       s.DEPLOYMENT_STATUS,
       s.OVERSIGHT_LEVEL,
       s.RISK_TIER,
-      s.DISPLAY_ORDER,
-      s.ENTITY_NAME,
-      rp.COUNTRY,
       s.DEVELOPER_ORGANIZATION,
       s.VERIFICATION_TYPE,
       s.MODEL_VERSION,
-      CAST(s.SCORE AS STRING) AS SCORE,
-      s.CERTIFIED_TIER,
-      s.CERTIFIED_BAND,
-      TO_VARCHAR(COALESCE(s.PUBLISHED_AT, s.APPROVED_AT)) AS CERTIFIED_AT,
-      s.RENEWAL_STATUS,
-      TO_VARCHAR(s.APPROVED_AT) AS APPROVED_AT,
-      TO_VARCHAR(s.PUBLISHED_AT) AS PUBLISHED_AT,
-      s.REGISTRY_STATUS,
-      s.DECISION_STATUS,
-      s.CERTIFICATION_STATUS,
+      CAST(rp.CERTIFIED_SCORE AS STRING) AS SCORE,
+      rp.CERTIFIED_TIER,
+      rp.CERTIFIED_BAND,
+      TO_VARCHAR(rp.CERTIFIED_AT) AS CERTIFIED_AT,
+      CAST(NULL AS STRING) AS RENEWAL_STATUS,
+      CAST(NULL AS STRING) AS APPROVED_AT,
+      CAST(NULL AS STRING) AS PUBLISHED_AT,
+      CAST(NULL AS STRING) AS REGISTRY_STATUS,
+      rp.DECISION_STATUS,
+      CASE
+        WHEN LOWER(COALESCE(rp.DECISION_STATUS, '')) = 'approved' THEN 'Certified'
+        WHEN rp.CERTIFIED_TIER IS NOT NULL OR rp.CERTIFIED_BAND IS NOT NULL THEN 'Certified'
+        ELSE 'Pending'
+      END AS CERTIFICATION_STATUS,
       s.PUBLIC_SUMMARY,
       s.TRAINING_DATA_CATEGORY,
       s.OVERSIGHT_MODEL,
       s.HUMAN_REVIEW_REQUIRED,
       s.EVALUATION_PROTOCOL,
       s.AUDIT_FREQUENCY,
-      TO_VARCHAR(s.CREATED_AT) AS CREATED_AT,
-      TO_VARCHAR(s.UPDATED_AT) AS UPDATED_AT
+      rp.ENTITY_NAME,
+      rp.COUNTRY,
+      s.DISPLAY_ORDER,
+      TO_VARCHAR(rp.VALID_FROM) AS VALID_FROM,
+      TO_VARCHAR(rp.VALID_TO) AS VALID_TO
     FROM CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC s
     LEFT JOIN CORE.V_REGISTRY_PUBLIC rp
       ON UPPER(TRIM(rp.CASE_ID)) = UPPER(TRIM(s.CASE_ID))
@@ -273,40 +329,42 @@ export async function getExplorerSystems(
     [safeLimit]
   );
 
-  return rows.map((r) => ({
-    systemId: s(r.SYSTEM_ID),
-    registryId: s(r.REGISTRY_ID),
-    applicationId: s(r.APPLICATION_ID),
-    caseId: s(r.CASE_ID),
-    systemName: s(r.SYSTEM_NAME),
-    systemType: s(r.SYSTEM_TYPE),
-    intendedUse: s(r.INTENDED_USE),
-    deploymentStatus: s(r.DEPLOYMENT_STATUS),
-    oversightLevel: s(r.OVERSIGHT_LEVEL),
-    riskTier: s(r.RISK_TIER),
-    displayOrder: n(r.DISPLAY_ORDER),
-    entityName: s(r.ENTITY_NAME),
-    country: s(r.COUNTRY),
-    developerOrganization: s(r.DEVELOPER_ORGANIZATION),
-    verificationType: s(r.VERIFICATION_TYPE),
-    modelVersion: s(r.MODEL_VERSION),
-    score: s(r.SCORE),
-    certifiedTier: s(r.CERTIFIED_TIER),
-    certifiedBand: s(r.CERTIFIED_BAND),
-    certifiedAt: s(r.CERTIFIED_AT),
-    renewalStatus: s(r.RENEWAL_STATUS),
-    approvedAt: s(r.APPROVED_AT),
-    publishedAt: s(r.PUBLISHED_AT),
-    registryStatus: s(r.REGISTRY_STATUS),
-    decisionStatus: s(r.DECISION_STATUS),
-    certificationStatus: s(r.CERTIFICATION_STATUS),
-    publicSummary: s(r.PUBLIC_SUMMARY),
-    trainingDataCategory: s(r.TRAINING_DATA_CATEGORY),
-    oversightModel: s(r.OVERSIGHT_MODEL),
-    humanReviewRequired: b(r.HUMAN_REVIEW_REQUIRED),
-    evaluationProtocol: s(r.EVALUATION_PROTOCOL),
-    auditFrequency: s(r.AUDIT_FREQUENCY),
-    createdAt: s(r.CREATED_AT),
-    updatedAt: s(r.UPDATED_AT),
-  }));
+  return rows.map(normalizeSystemRow);
+}
+
+export async function getExplorerSummary(): Promise<ExplorerSummary> {
+  const [registryRows, organizationRows, countryRows, systemRows] =
+    await Promise.all([
+      sfQuery<Record<string, unknown>>(
+        `
+        SELECT COUNT(DISTINCT REGISTRY_ID) AS TOTAL_RECORDS
+        FROM CORE.V_REGISTRY_PUBLIC
+        `
+      ),
+      sfQuery<Record<string, unknown>>(
+        `
+        SELECT COUNT(DISTINCT ENTITY_NAME) AS TOTAL_ORGANIZATIONS
+        FROM CORE.V_REGISTRY_PUBLIC
+        `
+      ),
+      sfQuery<Record<string, unknown>>(
+        `
+        SELECT COUNT(DISTINCT COUNTRY) AS TOTAL_COUNTRIES
+        FROM CORE.V_REGISTRY_PUBLIC
+        `
+      ),
+      sfQuery<Record<string, unknown>>(
+        `
+        SELECT COUNT(DISTINCT SYSTEM_ID) AS TOTAL_SYSTEMS
+        FROM CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC
+        `
+      ),
+    ]);
+
+  return {
+    totalRecords: asNumber(registryRows[0]?.TOTAL_RECORDS) ?? 0,
+    totalOrganizations: asNumber(organizationRows[0]?.TOTAL_ORGANIZATIONS) ?? 0,
+    totalCountries: asNumber(countryRows[0]?.TOTAL_COUNTRIES) ?? 0,
+    totalSystems: asNumber(systemRows[0]?.TOTAL_SYSTEMS) ?? 0,
+  };
 }

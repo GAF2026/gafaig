@@ -4,17 +4,6 @@ import { getExplorerCountries } from "@/lib/queries/explorer";
 
 export const dynamic = "force-dynamic";
 
-function formatDate(value: string | null) {
-  if (!value) return "—";
-  const d = new Date(value);
-  if (Number.isNaN(d.getTime())) return value;
-  return d.toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  });
-}
-
 export default async function ExplorerCountriesPage() {
   const rows = await getExplorerCountries(200);
 
@@ -25,7 +14,7 @@ export default async function ExplorerCountriesPage() {
           eyebrow="EXPLORER"
           title="Countries"
           description="Public country-level visibility across the current GAFAIG registry surface."
-          secondaryDescription="This explorer surface shows how GAFAIG’s public trust layer is distributed across countries, including visible organization counts, registry record counts, and the most recent public certification timing."
+          secondaryDescription="This explorer surface shows how GAFAIG’s public trust layer is distributed across countries, including visible organization counts and registry record counts."
           actions={
             <>
               <PublicButtonLink href="/registry" variant="primary">
@@ -62,8 +51,7 @@ export default async function ExplorerCountriesPage() {
               </h2>
 
               <p className="mt-3 max-w-[820px] text-[15px] leading-[1.8] text-black/68">
-                Browse country-level representation across the GAFAIG public
-                trust surface.
+                Browse country-level representation across the GAFAIG public trust surface.
               </p>
             </div>
 
@@ -80,8 +68,8 @@ export default async function ExplorerCountriesPage() {
                 <tr className="border-b border-black/10 text-left text-[12px] uppercase tracking-[0.16em] text-black/55">
                   <th className="px-0 py-3">Country</th>
                   <th className="px-4 py-3">Organizations</th>
-                  <th className="px-4 py-3">Registry records</th>
-                  <th className="px-4 py-3">Last certified</th>
+                  <th className="px-4 py-3">Registry Records</th>
+                  <th className="px-4 py-3">Systems</th>
                 </tr>
               </thead>
               <tbody>
@@ -103,7 +91,7 @@ export default async function ExplorerCountriesPage() {
                     </td>
 
                     <td className="px-4 py-4 text-sm text-black/75">
-                      {formatDate(row.lastCertifiedAt)}
+                      {row.systemCount}
                     </td>
                   </tr>
                 ))}
