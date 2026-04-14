@@ -1,6 +1,6 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import PublicButtonLink from "@/app/_components/PublicButtonLink";
 import RegistryVerificationPanel from "@/components/registry/RegistryVerificationPanel";
 import RegistryTrustTools from "@/components/registry/RegistryTrustTools";
 
@@ -80,6 +80,11 @@ function getBaseUrl(): string {
   );
 }
 
+function safe(value?: string | null): string {
+  const s = String(value ?? "").trim();
+  return s || "—";
+}
+
 function formatDate(value?: string | null): string {
   if (!value) return "—";
   const d = new Date(value);
@@ -91,20 +96,12 @@ function formatDate(value?: string | null): string {
   });
 }
 
-function infoValue(values: Array<string | null | undefined>): string {
-  for (const value of values) {
-    const s = String(value ?? "").trim();
-    if (s) return s;
-  }
-  return "—";
-}
-
 function formatTierBand(tier?: string | null, band?: string | null): string {
-  const safeTier = String(tier ?? "").trim();
-  const safeBand = String(band ?? "").trim();
-  if (safeTier && safeBand) return `${safeTier} · ${safeBand}`;
-  if (safeTier) return safeTier;
-  if (safeBand) return safeBand;
+  const safeTier = safe(tier);
+  const safeBand = safe(band);
+  if (safeTier !== "—" && safeBand !== "—") return `${safeTier} · ${safeBand}`;
+  if (safeTier !== "—") return safeTier;
+  if (safeBand !== "—") return safeBand;
   return "—";
 }
 
@@ -115,34 +112,14 @@ function statusTone(value: string) {
   return "bg-slate-100 text-slate-600 ring-slate-200";
 }
 
-function getTrustState({
-  isCertified,
-  decisionStatus,
-}: {
-  isCertified: boolean;
-  decisionStatus: string;
-}) {
-  if (isCertified) {
-    return {
-      label: "Verified",
-      className:
-        "inline-flex rounded-full bg-emerald-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-emerald-700 ring-1 ring-emerald-200",
-    };
+function trustTone(kind: "verified" | "approved" | "pending") {
+  if (kind === "verified") {
+    return "bg-emerald-50 text-emerald-700 ring-emerald-200";
   }
-
-  if (decisionStatus !== "—" && decisionStatus.toUpperCase() === "APPROVED") {
-    return {
-      label: "Approved",
-      className:
-        "inline-flex rounded-full bg-blue-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-blue-700 ring-1 ring-blue-200",
-    };
+  if (kind === "approved") {
+    return "bg-blue-50 text-blue-700 ring-blue-200";
   }
-
-  return {
-    label: "Pending",
-    className:
-      "inline-flex rounded-full bg-slate-100 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-600 ring-1 ring-slate-200",
-  };
+  return "bg-slate-100 text-slate-600 ring-slate-200";
 }
 
 function InfoCard({
@@ -161,6 +138,35 @@ function InfoCard({
         {value}
       </div>
     </div>
+  );
+}
+
+function Section({
+  eyebrow,
+  title,
+  description,
+  children,
+}: {
+  eyebrow: string;
+  title: string;
+  description?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10 xl:p-12">
+      <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
+        {eyebrow}
+      </div>
+      <h2 className="mt-4 text-[30px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
+        {title}
+      </h2>
+      {description ? (
+        <p className="mt-3 max-w-[980px] text-[15px] leading-[1.8] text-black/68">
+          {description}
+        </p>
+      ) : null}
+      <div className="mt-6">{children}</div>
+    </section>
   );
 }
 
@@ -204,26 +210,28 @@ export default async function RegistryRecordPage({
 
   if (!row && !record) notFound();
 
-  const entityName = infoValue([record?.entityName, row?.entityName]);
-  const entityType = infoValue([record?.entityType, row?.entityType]);
-  const country = infoValue([record?.country, row?.country]);
-  const applicationId = infoValue([record?.applicationId, row?.applicationId]);
-  const caseId = infoValue([record?.caseId, row?.caseId]);
+  const entityName = safe(record?.entityName ?? row?.entityName);
+  const entityType = safe(record?.entityType ?? row?.entityType);
+  const country = safe(record?.country ?? row?.country);
+  const applicationId = safe(record?.applicationId ?? row?.applicationId);
+  const caseId = safe(record?.caseId ?? row?.caseId);
 
-  const certifiedTierRaw = infoValue([record?.certifiedTier, row?.certifiedTier]);
-  const certifiedBandRaw = infoValue([record?.certifiedBand, row?.certifiedBand]);
-  const decisionStatus = infoValue([record?.decisionStatus, row?.decisionStatus]);
+  const certifiedScore =
+    record?.certifiedScore != null
+      ? String(record.certifiedScore)
+      : safe(row?.certifiedScore);
+
+  const certifiedTier = safe(record?.certifiedTier ?? row?.certifiedTier);
+  const certifiedBand = safe(record?.certifiedBand ?? row?.certifiedBand);
+  const decisionStatus = safe(record?.decisionStatus ?? row?.decisionStatus);
 
   const certifiedAtRaw = record?.certifiedAt ?? row?.certifiedAt ?? null;
   const validFromRaw = record?.validFrom ?? row?.validFrom ?? null;
   const validToRaw = record?.validTo ?? row?.validTo ?? null;
 
-  const certifiedScore =
-    record?.certifiedScore != null
-      ? String(record.certifiedScore)
-      : infoValue([row?.certifiedScore]);
-
   const isCertified = Boolean(String(certifiedAtRaw ?? "").trim());
+  const isApprovedOnly =
+    !isCertified && decisionStatus !== "—" && decisionStatus.toUpperCase() === "APPROVED";
 
   const dimensions: string[] = (scoreBreakdownData?.dimensions ?? [])
     .map((d) => String(d.scoreDimension ?? "").trim())
@@ -235,80 +243,221 @@ export default async function RegistryRecordPage({
       : dimensions.length;
 
   const tierBand = formatTierBand(
-    certifiedTierRaw === "—" ? null : certifiedTierRaw,
-    certifiedBandRaw === "—" ? null : certifiedBandRaw
+    certifiedTier === "—" ? null : certifiedTier,
+    certifiedBand === "—" ? null : certifiedBand
   );
 
-  const trustState = getTrustState({
-    isCertified,
-    decisionStatus,
-  });
+  const trustKind: "verified" | "approved" | "pending" = isCertified
+    ? "verified"
+    : isApprovedOnly
+    ? "approved"
+    : "pending";
+
+  const trustLabel =
+    trustKind === "verified"
+      ? "Verified"
+      : trustKind === "approved"
+      ? "Approved"
+      : "Pending";
+
+  const headerEyebrow = isCertified
+    ? "CANONICAL PUBLIC TRUST RECORD"
+    : isApprovedOnly
+    ? "APPROVED PUBLIC RECORD"
+    : "PUBLIC EXPLORER RECORD";
+
+  const headerDescription = isCertified
+    ? "This page is the public certified record for this entity within the GAFAIG registry of record."
+    : isApprovedOnly
+    ? "This page is an approved public record surfaced through GAFAIG Explorer. It has passed governance review and public publication checks, but it does not represent a certified public outcome."
+    : "This page is a public record surfaced through GAFAIG Explorer.";
 
   return (
     <main className="mx-auto max-w-[1440px] px-6 pb-20 pt-12 lg:px-10">
       <div className="space-y-8">
         <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10 xl:p-12">
           <div className="flex flex-wrap items-center gap-2">
-            <span className={trustState.className}>{trustState.label}</span>
+            <span
+              className={`inline-flex rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] ring-1 ${trustTone(
+                trustKind
+              )}`}
+            >
+              {trustLabel}
+            </span>
 
-            {decisionStatus !== "—" && (
-              <span className={`inline-flex rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] ring-1 ${statusTone(decisionStatus)}`}>
+            {decisionStatus !== "—" ? (
+              <span
+                className={`inline-flex rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] ring-1 ${statusTone(
+                  decisionStatus
+                )}`}
+              >
                 {decisionStatus}
               </span>
-            )}
+            ) : null}
           </div>
 
-          <h1 className="mt-4 text-[42px] font-semibold">{entityName}</h1>
+          <div className="mt-4 text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
+            {headerEyebrow}
+          </div>
+
+          <h1 className="mt-3 text-[42px] font-semibold leading-[1.05] tracking-tight text-black md:text-[56px] xl:text-[64px]">
+            {entityName}
+          </h1>
+
+          <p className="mt-4 max-w-[980px] text-[15px] leading-[1.8] text-black/68">
+            {headerDescription}
+          </p>
 
           <div className="mt-8 grid gap-3 md:grid-cols-5">
-            <InfoCard label="Status" value={isCertified ? "Certified" : "Not Certified"} />
+            <InfoCard
+              label="Status"
+              value={isCertified ? "Certified" : isApprovedOnly ? "Not Certified" : "Pending"}
+            />
             <InfoCard label="Tier / Band" value={isCertified ? tierBand : "—"} />
             <InfoCard label="Decision" value={decisionStatus} />
             <InfoCard label="Certified At" value={isCertified ? formatDate(certifiedAtRaw) : "—"} />
             <InfoCard label="Valid To" value={formatDate(validToRaw)} />
           </div>
-        </section>
 
-        {isCertified && (
-          <RegistryVerificationPanel
-            registryId={registryId}
-            entityName={entityName}
-            verifyData={verifyData}
-          />
-        )}
+          <div className="mt-6 flex flex-wrap gap-3">
+            {isApprovedOnly ? (
+              <Link
+                href="/explorer"
+                className="inline-flex items-center rounded-full bg-black px-5 py-3 text-sm font-semibold text-white transition hover:bg-black/90"
+              >
+                Back to explorer
+              </Link>
+            ) : null}
 
-        {dimensionCount > 0 && (
-          <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10 xl:p-12">
-            <h2 className="text-[28px] font-semibold">
-              {isCertified ? "Reviewed across governance dimensions" : "Public-safe governance review scope"}
-            </h2>
-
-            <div className="mt-6 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-              {dimensions.map((d) => (
-                <div key={d} className="rounded-2xl border p-5">
-                  {d}
-                </div>
-              ))}
-            </div>
-          </section>
-        )}
-
-        <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10 xl:p-12">
-          <div className="grid gap-3 md:grid-cols-3">
-            <InfoCard label="Registry ID" value={registryId} />
-            <InfoCard label="Application ID" value={applicationId} />
-            <InfoCard label="Case ID" value={caseId} />
+            <Link
+              href={isApprovedOnly ? "/registry" : "/registry"}
+              className="inline-flex items-center rounded-full border border-black px-5 py-3 text-sm font-semibold transition hover:bg-black/[0.04]"
+            >
+              Back to registry
+            </Link>
           </div>
         </section>
 
-        {isCertified && (
-          <RegistryTrustTools
-            registryId={registryId}
-            entityName={entityName}
-            absoluteRegistryUrl={`${baseUrl}/registry/${registryId}`}
-            absoluteVerifyUrl={`${baseUrl}/api/verify/${registryId}`}
-            absoluteBadgeUrl={`${baseUrl}/badge/${registryId}`}
-          />
+        {isCertified ? (
+          <>
+            <RegistryVerificationPanel
+              registryId={registryId}
+              entityName={entityName}
+              verifyData={verifyData}
+            />
+
+            {dimensionCount > 0 ? (
+              <Section
+                eyebrow="PUBLIC-SAFE TRUST EXPLANATION"
+                title="Reviewed across governance dimensions"
+                description="GAFAIG publishes certification outcomes and high-level governance review scope without exposing private reviewer materials, internal evidence, certified-by-control scoring logic, or controlled workflow details from the private verification engine."
+              >
+                <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
+                  <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-black/55">
+                    Review Scope
+                  </div>
+                  <div className="mt-2 text-[15px] font-medium text-black">
+                    Reviewed across {dimensionCount} governance dimensions
+                  </div>
+                </div>
+
+                <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+                  {dimensions.map((dimension) => (
+                    <div
+                      key={dimension}
+                      className="rounded-2xl border border-black/10 bg-black/[0.02] p-5"
+                    >
+                      <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-black/55">
+                        Governance Dimension
+                      </div>
+                      <div className="mt-2 text-[15px] font-medium text-black">
+                        {dimension}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </Section>
+            ) : null}
+
+            <Section
+              eyebrow="PUBLIC RECORD METADATA"
+              title="Registry metadata"
+              description="Public metadata is surfaced to support verifiability, record lookup, and high-level public trust review."
+            >
+              <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+                <InfoCard label="Entity Type" value={entityType} />
+                <InfoCard label="Country" value={country} />
+                <InfoCard label="Application ID" value={applicationId} />
+                <InfoCard label="Case ID" value={caseId} />
+                <InfoCard label="Registry ID" value={registryId} />
+                <InfoCard label="Certified Score" value={certifiedScore} />
+                <InfoCard label="Valid From" value={formatDate(validFromRaw)} />
+                <InfoCard label="Valid To" value={formatDate(validToRaw)} />
+              </div>
+            </Section>
+
+            <RegistryTrustTools
+              registryId={registryId}
+              entityName={entityName}
+              absoluteRegistryUrl={`${baseUrl}/registry/${encodeURIComponent(registryId)}`}
+              absoluteVerifyUrl={`${baseUrl}/api/verify/${encodeURIComponent(registryId)}`}
+              absoluteBadgeUrl={`${baseUrl}/badge/${encodeURIComponent(registryId)}`}
+            />
+          </>
+        ) : (
+          <>
+            <Section
+              eyebrow="PUBLIC-SAFE TRUST EXPLANATION"
+              title="Public-safe governance review scope"
+              description="This approved public record may disclose limited public-safe governance review scope without exposing private reviewer materials, internal evidence, control-by-control governance logic, or controlled workflow details from the private verification engine."
+            >
+              <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
+                <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-black/55">
+                  Review Scope
+                </div>
+                <div className="mt-2 text-[15px] font-medium text-black">
+                  {dimensionCount > 0
+                    ? `Reviewed across ${dimensionCount} governance dimensions`
+                    : "Public-safe review scope available"}
+                </div>
+              </div>
+
+              {dimensions.length > 0 ? (
+                <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+                  {dimensions.map((dimension) => (
+                    <div
+                      key={dimension}
+                      className="rounded-2xl border border-black/10 bg-black/[0.02] p-5"
+                    >
+                      <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-black/55">
+                        Governance Dimension
+                      </div>
+                      <div className="mt-2 text-[15px] font-medium text-black">
+                        {dimension}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : null}
+            </Section>
+
+            <Section
+              eyebrow="PUBLIC RECORD METADATA"
+              title="Approved public record metadata"
+              description="This page surfaces approved public metadata and governance review scope. It does not claim a certified public outcome."
+            >
+              <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+                <InfoCard label="Entity Type" value={entityType} />
+                <InfoCard label="Country" value={country} />
+                <InfoCard label="Application ID" value={applicationId} />
+                <InfoCard label="Case ID" value={caseId} />
+                <InfoCard label="Registry ID" value={registryId} />
+                <InfoCard label="Certified Score" value="—" />
+                <InfoCard label="Valid From" value={formatDate(validFromRaw)} />
+                <InfoCard label="Valid To" value={formatDate(validToRaw)} />
+              </div>
+            </Section>
+          </>
         )}
       </div>
     </main>
