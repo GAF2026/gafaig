@@ -318,6 +318,23 @@
     return "—";
   }
 
+  function resolveTrustState(record) {
+    if (!record) return "Pending";
+
+    if (record.certifiedAt && String(record.certifiedAt).trim()) {
+      return "Certified";
+    }
+
+    if (
+      record.decisionStatus &&
+      String(record.decisionStatus).trim().toUpperCase() === "APPROVED"
+    ) {
+      return "Approved";
+    }
+
+    return "Pending";
+  }
+
   function renderError(el, registryId, message) {
     var recordUrl = ORIGIN + "/registry/" + encodeURIComponent(registryId);
 
@@ -364,10 +381,7 @@
       record && record.decisionStatus,
       row && row.decisionStatus
     );
-    var status = safeText(
-      record && record.certificationStatus,
-      row && row.certifiedAt ? "Certified" : null
-    );
+    var status = resolveTrustState(record);
     var validTo = formatDate(
       (record && record.validTo) || (row && row.validTo) || null
     );
@@ -375,17 +389,24 @@
     var verifyUrl = ORIGIN + "/api/verify/" + encodeURIComponent(registryId);
     var recordUrl = ORIGIN + "/registry/" + encodeURIComponent(registryId);
 
+    var statusChipClass =
+      status === "Certified"
+        ? "gafaig-widget-chip-verified"
+        : status === "Approved"
+        ? "gafaig-widget-chip-approved"
+        : "gafaig-widget-chip-neutral";
+
     el.className = "gafaig-widget-root";
     el.innerHTML =
       '<div class="gafaig-widget-card">' +
       '<div class="gafaig-widget-topline"></div>' +
       '<div class="gafaig-widget-eyebrow">GAFAIG Widget</div>' +
       '<div class="gafaig-widget-chip-row">' +
-      '<span class="gafaig-widget-chip gafaig-widget-chip-verified">' + esc(status) + "</span>" +
+      '<span class="gafaig-widget-chip ' + statusChipClass + '">' + esc(status) + "</span>" +
       '<span class="gafaig-widget-chip gafaig-widget-chip-approved">' + esc(decision) + "</span>" +
       "</div>" +
       '<h3 class="gafaig-widget-title">' + esc(entityName) + "</h3>" +
-      '<p class="gafaig-widget-copy">Public certification record independently verifiable through GAFAIG.</p>' +
+      '<p class="gafaig-widget-copy">Public trust record independently verifiable through GAFAIG.</p>' +
       '<div class="gafaig-widget-trust-panel">' +
       '<div class="gafaig-widget-trust-header">' +
       '<div class="gafaig-widget-trust-title">Public trust summary</div>' +

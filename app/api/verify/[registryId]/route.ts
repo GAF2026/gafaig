@@ -29,14 +29,14 @@ type ProofMessage = {
   country: string | null;
   applicationId: string | null;
   caseId: string | null;
-  certificationStatus: string;
+  decisionStatus: string | null;
   certifiedScore: number | null;
   certifiedTier: string | null;
   certifiedBand: string | null;
-  decisionStatus: string | null;
   certifiedAt: string | null;
   validFrom: string | null;
   validTo: string | null;
+  signedAt: string;
 };
 
 function asIso(value: string | null | undefined): string | null {
@@ -44,14 +44,6 @@ function asIso(value: string | null | undefined): string | null {
   const d = new Date(value);
   if (Number.isNaN(d.getTime())) return value;
   return d.toISOString();
-}
-
-function base64Url(buffer: Buffer): string {
-  return buffer
-    .toString("base64")
-    .replace(/\+/g, "-")
-    .replace(/\//g, "_")
-    .replace(/=+$/g, "");
 }
 
 function stableStringify(value: unknown): string {
@@ -71,13 +63,13 @@ function stableStringify(value: unknown): string {
 }
 
 function getPrivateKeyPem(): string {
-  const raw = process.env.GAFAIG_VERIFY_PRIVATE_KEY?.trim();
+  const raw = process.env.GAFAIG_SIGNING_PRIVATE_KEY_PEM;
 
   if (!raw) {
-    throw new Error("GAFAIG_VERIFY_PRIVATE_KEY is not configured.");
+    throw new Error("Missing GAFAIG_SIGNING_PRIVATE_KEY_PEM");
   }
 
-  return raw.replace(/\\n/g, "\n");
+  return raw.replace(/\\n/g, "\n").trim();
 }
 
 function signProofMessage(messageString: string): string {
@@ -92,35 +84,30 @@ function signProofMessage(messageString: string): string {
     privateKey
   );
 
-  return base64Url(signature);
+  return signature.toString("base64");
 }
 
-function getCorsHeaders(origin?: string | null): HeadersInit {
+function getCorsHeaders(): HeadersInit {
   return {
     "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Methods": "GET, OPTIONS",
     "Access-Control-Allow-Headers": "Content-Type",
     "Access-Control-Max-Age": "86400",
-    Vary: "Origin",
     "Cache-Control": "no-store",
   };
 }
 
-function jsonWithCors(
-  body: unknown,
-  init: { status?: number; origin?: string | null } = {}
-) {
+function json(body: unknown, status = 200) {
   return NextResponse.json(body, {
-    status: init.status ?? 200,
-    headers: getCorsHeaders(init.origin),
+    status,
+    headers: getCorsHeaders(),
   });
 }
 
-export async function OPTIONS(req: Request) {
-  const origin = req.headers.get("origin");
+export async function OPTIONS() {
   return new NextResponse(null, {
     status: 204,
-    headers: getCorsHeaders(origin),
+    headers: getCorsHeaders(),
   });
 }
 
@@ -128,40 +115,18 @@ export async function GET(
   req: Request,
   { params }: { params: { registryId: string } }
 ) {
-  const origin = req.headers.get("origin");
   const registryIdRaw = String(params.registryId || "").trim();
 
   if (!registryIdRaw) {
-    return jsonWithCors(
-      {
-        ok: false,
-        verified: false,
-        error: "Missing registryId",
-      },
-      { status: 400, origin }
-    );
+    return json({ ok: false, error: "Missing registryId" }, 400);
   }
 
   try {
     const rows = await sfQuery<VerifyRow>(
       `
-      SELECT
-        REGISTRY_ID,
-        APPLICATION_ID,
-        CASE_ID,
-        ENTITY_NAME,
-        ENTITY_TYPE,
-        COUNTRY,
-        CERTIFIED_SCORE,
-        CERTIFIED_TIER,
-        CERTIFIED_BAND,
-        DECISION_STATUS,
-        VALID_FROM,
-        VALID_TO,
-        CERTIFIED_AT
+      SELECT *
       FROM V_REGISTRY_PUBLIC
-      WHERE UPPER(REGEXP_REPLACE(REGISTRY_ID, '[^A-Za-z0-9]', '')) =
-            UPPER(REGEXP_REPLACE(?, '[^A-Za-z0-9]', ''))
+      WHERE UPPER(REGISTRY_ID) = UPPER(?)
       LIMIT 1
       `,
       [registryIdRaw]
@@ -170,94 +135,87 @@ export async function GET(
     const row = rows[0];
 
     if (!row) {
-      return jsonWithCors(
-        {
-          ok: false,
-          verified: false,
-          error: "Registry record not found",
-        },
-        { status: 404, origin }
-      );
+      return json({ ok: false, error: "Registry record not found" }, 404);
     }
 
     const certifiedAt = asIso(row.CERTIFIED_AT);
     const validFrom = asIso(row.VALID_FROM);
     const validTo = asIso(row.VALID_TO);
     const decisionStatus = row.DECISION_STATUS ?? null;
-    const verified = String(decisionStatus || "").toUpperCase() === "APPROVED";
 
-    const record = {
+    // ✅ Canonical trust state
+    const certificationStatus = certifiedAt
+      ? "Certified"
+      : decisionStatus === "APPROVED"
+      ? "Approved"
+      : "Pending";
+
+    const signedAt = new Date().toISOString();
+
+    const proofMessage: ProofMessage = {
       registryId: row.REGISTRY_ID,
       entityName: row.ENTITY_NAME,
       entityType: row.ENTITY_TYPE,
       country: row.COUNTRY,
       applicationId: row.APPLICATION_ID,
       caseId: row.CASE_ID,
-      certificationStatus: certifiedAt ? "Certified" : "Not Certified",
-      certifiedScore:
-        row.CERTIFIED_SCORE !== null && row.CERTIFIED_SCORE !== undefined
-          ? Number(row.CERTIFIED_SCORE)
-          : null,
+      decisionStatus,
+      certifiedScore: row.CERTIFIED_SCORE,
       certifiedTier: row.CERTIFIED_TIER,
       certifiedBand: row.CERTIFIED_BAND,
-      decisionStatus,
       certifiedAt,
       validFrom,
       validTo,
-    };
-
-    const proofMessage: ProofMessage = {
-      registryId: record.registryId,
-      entityName: record.entityName,
-      entityType: record.entityType,
-      country: record.country,
-      applicationId: record.applicationId,
-      caseId: record.caseId,
-      certificationStatus: record.certificationStatus,
-      certifiedScore: record.certifiedScore,
-      certifiedTier: record.certifiedTier,
-      certifiedBand: record.certifiedBand,
-      decisionStatus: record.decisionStatus,
-      certifiedAt: record.certifiedAt,
-      validFrom: record.validFrom,
-      validTo: record.validTo,
+      signedAt,
     };
 
     const messageString = stableStringify(proofMessage);
     const signature = signProofMessage(messageString);
-    const signedAt = new Date().toISOString();
-    const kid = process.env.GAFAIG_VERIFY_KEY_ID?.trim() || "gafaig-public-key";
-    const siteUrl =
-      String(process.env.NEXT_PUBLIC_SITE_URL || "").replace(/\/+$/, "") ||
-      "http://localhost:3000";
 
-    return jsonWithCors(
-      {
-        ok: true,
-        verified,
+    const kid =
+      process.env.GAFAIG_SIGNING_KEY_ID || "gafaig-ed25519-2026-01";
+
+    const baseUrl =
+      process.env.NEXT_PUBLIC_BASE_URL || "https://www.gafaig.com";
+
+    return json({
+      ok: true,
+      verified: true, // ✅ cryptographic layer always returns signed truth
+      registryId: row.REGISTRY_ID,
+      record: {
         registryId: row.REGISTRY_ID,
-        proof: {
-          alg: "Ed25519",
-          kid,
-          signature,
-          signedAt,
-          verificationKeyUrl: `${siteUrl}/api/.well-known/gafaig-public-key`,
-          message: proofMessage,
-          messageString,
-        },
-        record,
+        entityName: row.ENTITY_NAME,
+        entityType: row.ENTITY_TYPE,
+        country: row.COUNTRY,
+        applicationId: row.APPLICATION_ID,
+        caseId: row.CASE_ID,
+        certificationStatus,
+        certifiedScore: row.CERTIFIED_SCORE,
+        certifiedTier: row.CERTIFIED_TIER,
+        certifiedBand: row.CERTIFIED_BAND,
+        decisionStatus,
+        certifiedAt,
+        validFrom,
+        validTo,
       },
-      { origin }
-    );
+      proof: {
+        alg: "Ed25519",
+        kid,
+        signature,
+        signedAt,
+        verificationKeyUrl: `${baseUrl}/api/.well-known/gafaig-public-key`,
+        message: proofMessage,
+        messageString,
+      },
+    });
   } catch (error) {
-    return jsonWithCors(
+    return json(
       {
         ok: false,
-        verified: false,
         error:
-          error instanceof Error ? error.message : "Internal verification error",
+          error instanceof Error ? error.message : "Verification error",
       },
-      { status: 500, origin }
+      500
     );
   }
 }

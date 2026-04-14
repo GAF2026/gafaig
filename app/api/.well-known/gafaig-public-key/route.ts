@@ -1,31 +1,40 @@
 import { NextResponse } from "next/server";
+import { getPublicKeyPem, getSigningKeyId, GAFAIG_VERIFY_ALG } from "@/lib/crypto/verify-signing";
 
+export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
-function normalizePublicKey(raw: string) {
-  return raw
+function pemToBase64(pem: string) {
+  return pem
     .replace(/-----BEGIN PUBLIC KEY-----/g, "")
     .replace(/-----END PUBLIC KEY-----/g, "")
     .replace(/\s+/g, "")
     .trim();
 }
 
+function getCorsHeaders(): HeadersInit {
+  return {
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Methods": "GET, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type",
+    "Access-Control-Max-Age": "86400",
+    "Cache-Control": "public, max-age=300, s-maxage=300",
+  };
+}
+
+export async function OPTIONS() {
+  return new NextResponse(null, {
+    status: 204,
+    headers: getCorsHeaders(),
+  });
+}
+
 export async function GET() {
   try {
-    const publicKeyPem = process.env.GAFAIG_VERIFY_PUBLIC_KEY_PEM?.trim() || "";
-    const kid = process.env.GAFAIG_VERIFY_KID?.trim() || "gafaig-ed25519-1";
-
-    if (!publicKeyPem) {
-      return NextResponse.json(
-        {
-          ok: false,
-          error: "GAFAIG_VERIFY_PUBLIC_KEY_PEM is not configured",
-        },
-        { status: 500 }
-      );
-    }
-
-    const publicKeyBase64 = normalizePublicKey(publicKeyPem);
+    const publicKeyPem = getPublicKeyPem();
+    const kid = getSigningKeyId();
+    const publicKeyBase64 = pemToBase64(publicKeyPem);
 
     return NextResponse.json(
       {
@@ -40,9 +49,7 @@ export async function GET() {
       },
       {
         status: 200,
-        headers: {
-          "Cache-Control": "public, max-age=300, s-maxage=300",
-        },
+        headers: getCorsHeaders(),
       }
     );
   } catch (err) {
@@ -51,9 +58,15 @@ export async function GET() {
     return NextResponse.json(
       {
         ok: false,
-        error: "Failed to load public key",
+        error:
+          err instanceof Error ? err.message : "Failed to load public key",
       },
-      { status: 500 }
+      {
+        status: 500,
+        headers: {
+          "Cache-Control": "no-store",
+        },
+      }
     );
   }
 }
