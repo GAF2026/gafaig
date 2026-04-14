@@ -1,244 +1,227 @@
-# GAFAIG CURRENT FOCUS
+# CURRENT_FOCUS.md
+Last Updated: 2026-04-14
 
-DATE: 2026-04-13
+============================================================
+GAFAIG — CURRENT DEVELOPMENT FOCUS
+============================================================
 
-----------------------------------------
+This document defines the ACTIVE execution focus for the GAFAIG platform.
+
+It reflects:
+- What is COMPLETE
+- What is BROKEN
+- What must be FIXED NEXT
+- What is explicitly OFF-LIMITS
+
+============================================================
 CURRENT PHASE
-----------------------------------------
+============================================================
 
-Trust Surface Completion + UI Consistency + External Trust Surfaces
+PHASE: POST-CANONICAL SEED → APPLICATION STABILIZATION
 
-The GAFAIG system has completed its core verification pipeline and public registry foundation. The current focus is to finalize all public-facing trust surfaces and ensure consistency, reliability, and external usability.
+The Snowflake engine is COMPLETE and FUNCTIONAL.
 
-----------------------------------------
-OBJECTIVE
-----------------------------------------
+The system has transitioned from:
+- Data pipeline construction
 
-Transform GAFAIG from a functional registry into a fully coherent, externally verifiable trust infrastructure.
+→ to:
 
-This means:
-- All public surfaces must look identical
-- All trust signals must be consistent
-- All external integrations must work reliably
-- No internal inconsistencies across pages, badge, widget, or API
+- Application layer stabilization
 
-----------------------------------------
-WHAT WAS COMPLETED IN THIS SESSION
-----------------------------------------
+============================================================
+WHAT WAS JUST COMPLETED
+============================================================
 
-EXPLORER:
-- /explorer page fully stabilized
-- Supporting pages completed:
-  - /explorer/organizations
-  - /explorer/systems
-  - /explorer/countries
-- Layout aligned with design system
-- Data fully sourced from Snowflake views
+1. Canonical Demo Seed System
+   - GAFAIG - FINAL_CANONICAL_DEMO_SEED.sql created
+   - Full pipeline executed:
+     CASE → FINDINGS → EVIDENCE → EVENTS → SCORING → DECISION → PUBLISH
 
-REGISTRY LIST:
-- /registry page aligned with system layout
-- Typography, spacing, and card structure corrected
-- Search + filter section implemented and fixed
-- Country filter alignment corrected
+2. Snowflake Alignment
+   - REGISTRY_SNAPSHOTS schema corrected
+   - DECISION_STATUS integrated
+   - V_REGISTRY_PUBLIC fully enriched
+   - V_REGISTRY_AI_SYSTEMS_PUBLIC aligned
 
-REGISTRY DETAIL:
-- /registry/[registryId] functional
-- Build issues resolved:
-  - Type errors
-  - JSX structure issues
-- Minor type and layout refinements still pending
+3. Registry ID Policy
+   - Sequential policy established
+   - Demo normalization performed
 
-BADGE:
-- /badge route functioning
-- /badge-preview page created and working
-- Badge rendering but not yet aligned with design system
+4. Registry Detail Page (UI)
+   - Certified vs Approved branching implemented
+   - Proof rendering controlled correctly
 
-WIDGET:
-- public/widget/gafaig-widget.js implemented
-- Widget renders on external HTML page
-- Initial styling aligned with GAFAIG UI
-- External fetch working locally but failing due to CORS
+============================================================
+CURRENT DATA STATE
+============================================================
 
-QUERY LAYER:
-- lib/queries/explorer.ts stabilized
-- Explorer queries now reliable and normalized
+Snowflake now contains:
 
-DEPLOYMENT:
-- All recent changes pushed to Vercel
-- Production environment updated
+- 6 total registry records
+- 2 certified records
+- 4 approved-only records
 
-----------------------------------------
-CURRENT PROBLEMS TO SOLVE
-----------------------------------------
+All data is correct and verified.
 
-1. CORS BLOCKING WIDGET
-- External widget fails with "Failed to fetch"
-- Root cause: missing CORS headers on API routes
-- Affects:
-  - /api/verify/[registryId]
-  - /api/registry
+============================================================
+PRIMARY PROBLEM (BLOCKER)
+============================================================
 
-2. BADGE VISUAL MISALIGNMENT
-- Badge output does not match system design language
-- Issues:
-  - Typography
-  - spacing
-  - layout structure
-  - trust signal clarity
+The application layer is currently BROKEN.
 
-3. REGISTRY DETAIL PAGE INCONSISTENCY
-- Does not fully match explorer/mission layout
-- Issues:
-  - font sizes
-  - spacing
-  - component structure
+Specifically:
 
-4. WIDGET FALLBACK STATE
-- Error state currently rough
-- Needs:
-  - clean fallback UI
-  - consistent messaging
-  - trust-preserving design
+lib/queries/registry.ts
 
-----------------------------------------
-NEXT EXECUTION PLAN (STRICT ORDER)
-----------------------------------------
+Issues:
+- TypeScript interface mismatch
+- Missing filter fields expected by API
+- Missing exports expected by API
+- Incorrect filtering logic previously introduced
+- Inconsistent normalization between certified and approved records
 
-STEP 1 — FIX CORS (CRITICAL BLOCKER)
+Impact:
+- Build failures
+- Broken /registry page
+- Broken /explorer page
+- Inconsistent registry detail pages
 
-FILES:
-- app/api/verify/[registryId]/route.ts
-- app/api/registry/route.ts
+============================================================
+WHAT IS NOT BROKEN
+============================================================
 
-ACTION:
-- Add Access-Control-Allow-Origin headers
-- Add OPTIONS handler
-- Ensure all responses include CORS headers
+DO NOT TOUCH:
 
-GOAL:
-- External widget fully functional
+- Snowflake tables
+- Snowflake views
+- Snowflake procedures
+- Demo seed files
+- Scoring engine
+- Publish logic
 
-----------------------------------------
+These are:
+✅ Correct
+✅ Canonical
+✅ Locked
 
-STEP 2 — FINALIZE WIDGET
+============================================================
+ACTIVE OBJECTIVE
+============================================================
 
-FILE:
-- public/widget/gafaig-widget.js
+Stabilize the application layer by fixing:
 
-ACTION:
-- Improve fetch reliability
-- Improve fallback UI
-- Ensure consistent styling with GAFAIG UI system
+lib/queries/registry.ts
 
-GOAL:
-- Production-ready embeddable trust widget
+============================================================
+REQUIRED OUTCOME
+============================================================
 
-----------------------------------------
+1. Build must pass:
+   npm run build → SUCCESS
 
-STEP 3 — ALIGN BADGE OUTPUT
+2. API routes must work:
+   - /api/registry
+   - /api/registry/search
+   - /api/badge/[registryId]
 
-FILE:
-- app/badge/[registryId]/route.ts
+3. Pages must render correctly:
+   - /registry → shows ALL records
+   - /explorer → shows ALL records
+   - /registry/[registryId] → correct certified vs approved display
 
-ACTION:
-- Match GAFAIG typography scale
-- Fix spacing and layout
-- Improve trust signal clarity
+============================================================
+REQUIRED FIXES (STRICT)
+============================================================
 
-GOAL:
-- Badge = premium trust artifact
+The registry query layer MUST:
 
-----------------------------------------
+1. Export required functions:
+   - getRegistryRecords
+   - getRegistryRecord
+   - getRegistryByRegistryId
+   - searchRegistryRecords
+   - getRegistrySummary
+   - getRegistryCountries
 
-STEP 4 — FIX REGISTRY DETAIL PAGE
+2. Support all filters used by API:
+   - q
+   - country
+   - registryId
+   - caseId
+   - applicationId
+   - entityName
+   - limit
+   - offset
+   - certifiedOnly
 
-FILE:
-- app/registry/[registryId]/page.tsx
+3. Normalize records:
+   CERTIFIED:
+     - expose certified fields
 
-ACTION:
-- Align with explorer + mission layout
-- Normalize typography
-- Standardize spacing and components
+   APPROVED:
+     - certified fields MUST be null
 
-GOAL:
-- Full consistency across core pages
+4. NOT filter records by default
 
-----------------------------------------
+============================================================
+STRICT DO NOT RULES
+============================================================
 
-STEP 5 — BUILD TRUST COMPONENT
+DO NOT:
 
-FILE:
-- components/registry/RegistryTrustTools.tsx
+- Modify Snowflake
+- Modify UI layout
+- Add business logic to API
+- Create new views
+- Introduce alternate data sources
+- Re-architect system
 
-ACTION:
-- Unified component for:
-  - Verify endpoint
-  - Badge embed
-  - Widget embed
+============================================================
+SUCCESS CRITERIA
+============================================================
 
-GOAL:
-- Reusable trust surface across pages
+System is considered stable when:
 
-----------------------------------------
+- Build passes with zero errors
+- /registry shows 6 records
+- /explorer shows 6 records
+- Certified records show:
+  - Score
+  - Tier
+  - Band
+  - Proof
 
-STEP 6 — HOMEPAGE UPGRADE
+- Approved records show:
+  - No certification fields
+  - No proof
+  - Clean UI
 
-FILE:
-- app/page.tsx
+============================================================
+NEXT PHASE (AFTER FIX)
+============================================================
 
-ACTION:
-- Clarify GAFAIG positioning
-- Improve messaging hierarchy
-- Strengthen trust narrative
+Once stable:
 
-GOAL:
-- Instantly understandable product
+PHASE: REGISTRY EXPERIENCE POLISH
 
-----------------------------------------
-ACTIVE FILES
-----------------------------------------
+- UX refinement
+- Trust signaling
+- Explorer enhancements
+- Badge system finalization
 
-- public/widget/gafaig-widget.js
-- app/widget-preview/[registryId]/page.tsx
-- app/badge/[registryId]/route.ts
-- app/badge-preview/[registryId]/page.tsx
-- app/registry/page.tsx
-- app/registry/[registryId]/page.tsx
-- app/api/verify/[registryId]/route.ts
-- app/api/registry/route.ts
-- lib/queries/explorer.ts
+============================================================
+SUMMARY
+============================================================
 
-----------------------------------------
-RULES DURING THIS PHASE
-----------------------------------------
+Snowflake = COMPLETE  
+Data = CORRECT  
+System = FUNCTIONAL  
 
-- Do not re-architect anything
-- Do not modify Snowflake logic
-- Do not introduce new data models
-- Only refine presentation and external interfaces
-- Maintain strict visual consistency across all pages
-- Every trust surface must feel identical
+ONLY remaining issue:
+→ Query layer instability
 
-----------------------------------------
-SUCCESS DEFINITION
-----------------------------------------
+Fix that → Platform is fully operational
 
-GAFAIG is complete when:
-
-- External widget works on any website
-- Badge renders clean, consistent trust signal
-- Registry, Explorer, Badge, Widget all share identical UI language
-- Verification endpoint is publicly usable and reliable
-- No layout inconsistencies exist across pages
-
-----------------------------------------
-KEY FOCUS
-----------------------------------------
-
-Finish the trust surface.
-
-Do not expand scope.
-
-Do not drift.
-
-Execute cleanly, one file at a time.
+============================================================
+END
+============================================================

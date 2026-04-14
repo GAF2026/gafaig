@@ -12,8 +12,6 @@ type RegistryRecord = {
   country?: string | null;
   applicationId?: string | null;
   caseId?: string | null;
-  verificationType?: string | null;
-  modelVersion?: string | null;
   certifiedScore?: number | string | null;
   certifiedTier?: string | null;
   certifiedBand?: string | null;
@@ -22,8 +20,6 @@ type RegistryRecord = {
   decisionStatus?: string | null;
   validFrom?: string | null;
   validTo?: string | null;
-  lifecycleStatus?: string | null;
-  renewalStatus?: string | null;
 };
 
 type RegistryApiResponse = {
@@ -173,11 +169,30 @@ function InfoCard({
   value: string;
 }) {
   return (
-    <div className="rounded-xl border border-black/10 bg-white p-4">
-      <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-black/45">
+    <div className="rounded-2xl border border-black/10 bg-white p-5">
+      <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/50">
         {label}
       </div>
-      <div className="mt-1 text-sm font-medium text-black">{value}</div>
+      <div className="mt-3 break-words text-[16px] font-semibold leading-[1.45] text-black">
+        {value}
+      </div>
+    </div>
+  );
+}
+
+function StatementCard({
+  title,
+  body,
+}: {
+  title: string;
+  body: string;
+}) {
+  return (
+    <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
+      <div className="text-[18px] font-semibold tracking-tight text-black">
+        {title}
+      </div>
+      <p className="mt-3 text-[15px] leading-[1.8] text-black/72">{body}</p>
     </div>
   );
 }
@@ -195,18 +210,18 @@ function Section({
 }) {
   return (
     <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
-      <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-black/50">
+      <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
         {eyebrow}
       </div>
-      <h2 className="mt-3 text-[32px] font-semibold leading-[1.15] tracking-tight text-black">
+      <h2 className="mt-4 max-w-[900px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
         {title}
       </h2>
       {description ? (
-        <p className="mt-3 max-w-[920px] text-[14px] leading-[1.8] text-black/65">
+        <p className="mt-4 max-w-[980px] text-[16px] leading-[1.85] text-black/72">
           {description}
         </p>
       ) : null}
-      <div className="mt-6">{children}</div>
+      <div className="mt-7">{children}</div>
     </section>
   );
 }
@@ -241,12 +256,17 @@ export default async function RegistryRecordPage({
     : "PUBLIC RECORD";
 
   const headerDescription = isCertified
-    ? "This page is the public certified record for this entity within the GAFAIG registry of record."
+    ? "This page is the canonical public trust record for this certified entity within the GAFAIG registry of record. It presents the public certification outcome, trust status, validity window, and verification surfaces without exposing private reviewer materials or controlled internal evidence."
     : isApprovedOnly
-    ? "This page is an approved public record surfaced through GAFAIG Explorer. It has passed governance review and public publication checks, but it does not represent a certified public outcome."
-    : "This page is a public record surfaced through GAFAIG Explorer.";
+    ? "This page is an approved public record surfaced through GAFAIG Explorer. It reflects a completed governance review and public publication state, but it does not represent a certified public outcome."
+    : "This page is a public record surfaced through the GAFAIG trust surface.";
 
-  const primaryStatusLabel = isCertified ? "Certified" : isApprovedOnly ? "Approved" : certificationStatus;
+  const primaryStatusLabel = isCertified
+    ? "Certified"
+    : isApprovedOnly
+    ? "Approved"
+    : certificationStatus;
+
   const signedMessageObject =
     verify?.signedMessageObject && typeof verify.signedMessageObject === "object"
       ? JSON.stringify(verify.signedMessageObject, null, 2)
@@ -261,9 +281,9 @@ export default async function RegistryRecordPage({
   ];
 
   return (
-    <main className="mx-auto max-w-[1440px] px-6 pb-20 pt-12 lg:px-10">
-      <div className="space-y-10">
-        <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10 xl:p-12">
+    <main className="mx-auto max-w-[1180px] px-6 pb-16 pt-14">
+      <div className="space-y-8">
+        <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
           <div className="flex flex-wrap items-center gap-2">
             <span
               className={classNames(
@@ -288,27 +308,48 @@ export default async function RegistryRecordPage({
             ) : null}
           </div>
 
-          <div className="mt-4 text-[11px] font-semibold uppercase tracking-[0.22em] text-black/50">
+          <div className="mt-5 text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
             {pageEyebrow}
           </div>
 
-          <h1 className="mt-3 text-[44px] font-semibold leading-[1.04] tracking-tight text-black md:text-[56px] xl:text-[64px]">
+          <h1 className="mt-4 max-w-[980px] text-[44px] font-semibold leading-[1.05] tracking-tight text-black md:text-[56px]">
             {entityName}
           </h1>
 
-          <p className="mt-4 max-w-[980px] text-[15px] leading-[1.8] text-black/68">
+          <p className="mt-5 max-w-[980px] text-[16px] leading-[1.9] text-black/75">
             {headerDescription}
           </p>
 
-          <div className="mt-6 grid gap-3 md:grid-cols-5">
-            <InfoCard label="Status" value={isCertified ? "Certified" : isApprovedOnly ? "Not Certified" : certificationStatus} />
-            <InfoCard label="Tier / Band" value={prettifyBand(record.certifiedTier, record.certifiedBand)} />
+          <div className="mt-8 grid gap-4 md:grid-cols-5">
+            <InfoCard
+              label="Trust Status"
+              value={
+                isCertified
+                  ? "Certified"
+                  : isApprovedOnly
+                  ? "Approved Only"
+                  : certificationStatus
+              }
+            />
+            {isCertified ? (
+              <>
+                <InfoCard
+                  label="Certification"
+                  value={prettifyBand(record.certifiedTier, record.certifiedBand)}
+                />
+                <InfoCard label="Certified At" value={formatDate(record.certifiedAt)} />
+              </>
+            ) : (
+              <>
+                <InfoCard label="Record Type" value="Approved Public Record" />
+                <InfoCard label="Certified At" value="—" />
+              </>
+            )}
             <InfoCard label="Decision" value={decisionStatus} />
-            <InfoCard label="Certified At" value={formatDate(record.certifiedAt)} />
             <InfoCard label="Valid To" value={formatDate(record.validTo)} />
           </div>
 
-          <div className="mt-6 flex flex-wrap gap-3">
+          <div className="mt-7 flex flex-wrap gap-3">
             {isApprovedOnly ? (
               <Link
                 href="/explorer"
@@ -324,72 +365,191 @@ export default async function RegistryRecordPage({
             >
               Back to registry
             </Link>
+
+            {isCertified ? (
+              <a
+                href={`/api/verify/${encodeURIComponent(registryId)}`}
+                className="inline-flex items-center rounded-full border border-black px-5 py-3 text-sm font-semibold transition hover:bg-black hover:text-white"
+              >
+                Open verify endpoint
+              </a>
+            ) : null}
           </div>
         </section>
 
+        <section className="grid gap-4 md:grid-cols-2">
+          <StatementCard
+            title={
+              isCertified
+                ? "Public certification outcome"
+                : "Approved public record"
+            }
+            body={
+              isCertified
+                ? "This entity has a published certified outcome in the GAFAIG registry of record. The public surface includes status, certification banding, validity dates, and independently verifiable proof."
+                : "This entity has a published approved public record. It may appear in GAFAIG Explorer as part of the public trust surface, but it does not claim a certified public outcome."
+            }
+          />
+          <StatementCard
+            title="Privacy boundary"
+            body="GAFAIG publishes trust outcomes and public-safe metadata while keeping reviewer materials, raw evidence, internal scoring workflow details, and controlled private verification artifacts out of the public layer."
+          />
+        </section>
+
+        <Section
+          eyebrow="PUBLIC RECORD SUMMARY"
+          title={
+            isCertified
+              ? "Certification and governance summary"
+              : "Approval and governance summary"
+          }
+          description={
+            isCertified
+              ? "This section summarizes the public certification outcome and the non-sensitive governance context exposed through the GAFAIG trust surface."
+              : "This section summarizes the public approval state and the non-sensitive governance context exposed through the GAFAIG trust surface."
+          }
+        >
+          <div className="grid gap-4 md:grid-cols-3">
+            <InfoCard label="Entity Type" value={safe(record.entityType)} />
+            <InfoCard label="Country" value={safe(record.country)} />
+            <InfoCard label="Registry ID" value={safe(record.registryId)} />
+            <InfoCard label="Application ID" value={safe(record.applicationId)} />
+            <InfoCard label="Case ID" value={safe(record.caseId)} />
+            {isCertified ? (
+              <InfoCard
+                label="Certified Score"
+                value={formatScore(record.certifiedScore)}
+              />
+            ) : (
+              <InfoCard label="Decision Status" value={decisionStatus} />
+            )}
+          </div>
+
+          <div className="mt-4 grid gap-4 md:grid-cols-2">
+            <InfoCard label="Valid From" value={formatDate(record.validFrom)} />
+            <InfoCard label="Valid To" value={formatDate(record.validTo)} />
+          </div>
+        </Section>
+
+        <Section
+          eyebrow="PUBLIC-SAFE TRUST EXPLANATION"
+          title={
+            isCertified
+              ? "Reviewed across governance dimensions"
+              : "Public-safe governance review scope"
+          }
+          description={
+            isCertified
+              ? "GAFAIG publishes certification outcomes and high-level governance review scope without exposing private reviewer materials, internal evidence, control-by-control scoring logic, or controlled workflow details from the private verification engine."
+              : "This approved public record may disclose limited public-safe governance review scope without exposing private reviewer materials, internal evidence, control-by-control governance logic, or controlled workflow details from the private verification engine."
+          }
+        >
+          <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
+            <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/50">
+              Review Scope
+            </div>
+            <div className="mt-3 text-[18px] font-semibold tracking-tight text-black">
+              Reviewed across 5 governance dimensions
+            </div>
+          </div>
+
+          <div className="mt-4 grid gap-4 md:grid-cols-3">
+            {governanceDimensions.map((dimension) => (
+              <div
+                key={dimension}
+                className="rounded-2xl border border-black/10 bg-white p-5"
+              >
+                <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/50">
+                  Governance Dimension
+                </div>
+                <div className="mt-3 text-[16px] font-semibold leading-[1.45] text-black">
+                  {dimension}
+                </div>
+              </div>
+            ))}
+          </div>
+        </Section>
+
         {isCertified ? (
           <Section
-            eyebrow="VERIFY THIS CERTIFICATION"
+            eyebrow="INDEPENDENT VERIFICATION"
             title="Signed public proof"
-            description="This certification can be independently verified using the GAFAIG verification endpoint and the published public key. The proof below contains the signature, key identifier, key URL, and exact signed message string used for external verification."
+            description="This technical section contains the public verification materials for this certified record. It supports external validation through the verification endpoint and the published public key, while keeping the human-readable trust record separate from the machine-readable proof payload."
           >
-            <div className="flex flex-wrap items-center gap-2">
+            <div className="flex flex-wrap gap-3">
               <a
                 href={`/api/verify/${encodeURIComponent(registryId)}`}
-                className="inline-flex items-center rounded-full border border-black px-4 py-2 text-xs font-semibold transition hover:bg-black hover:text-white"
+                className="inline-flex items-center rounded-full border border-black px-5 py-3 text-sm font-semibold transition hover:bg-black hover:text-white"
               >
                 Open verify endpoint
               </a>
               <a
                 href="/api/.well-known/gafaig-public-key"
-                className="inline-flex items-center rounded-full border border-black px-4 py-2 text-xs font-semibold transition hover:bg-black hover:text-white"
+                className="inline-flex items-center rounded-full border border-black px-5 py-3 text-sm font-semibold transition hover:bg-black hover:text-white"
               >
                 Open public key
               </a>
             </div>
 
-            <div className="mt-6 grid gap-3 md:grid-cols-4">
+            <div className="mt-6 grid gap-4 md:grid-cols-4">
               <InfoCard label="Registry ID" value={safe(record.registryId)} />
               <InfoCard label="Entity" value={entityName} />
-              <InfoCard label="Decision" value={safe(verify?.decisionStatus ?? record.decisionStatus)} />
-              <InfoCard label="Tier / Band" value={prettifyBand(verify?.certifiedTier ?? record.certifiedTier, verify?.certifiedBand ?? record.certifiedBand)} />
+              <InfoCard
+                label="Decision"
+                value={safe(verify?.decisionStatus ?? record.decisionStatus)}
+              />
+              <InfoCard
+                label="Tier / Band"
+                value={prettifyBand(
+                  verify?.certifiedTier ?? record.certifiedTier,
+                  verify?.certifiedBand ?? record.certifiedBand
+                )}
+              />
             </div>
 
-            <div className="mt-3 grid gap-3 md:grid-cols-2">
-              <InfoCard label="Verification Key URL" value={safe(verify?.verificationKeyUrl)} />
-              <InfoCard label="Signed At" value={formatDateTime(verify?.signedAt)} />
+            <div className="mt-4 grid gap-4 md:grid-cols-2">
+              <InfoCard
+                label="Verification Key URL"
+                value={safe(verify?.verificationKeyUrl)}
+              />
+              <InfoCard
+                label="Signed At"
+                value={formatDateTime(verify?.signedAt)}
+              />
             </div>
 
-            <div className="mt-3 rounded-2xl border border-black/10 bg-black/[0.02] p-4">
-              <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-black/45">
+            <div className="mt-4 rounded-2xl border border-black/10 bg-black/[0.02] p-5">
+              <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/50">
                 Signature
               </div>
-              <div className="mt-2 break-all text-[12px] leading-[1.8] text-black/70">
+              <div className="mt-3 break-all text-[13px] leading-[1.9] text-black/72">
                 {safe(verify?.signature)}
               </div>
             </div>
 
-            <div className="mt-3 rounded-2xl border border-black/10 bg-black/[0.02] p-4">
-              <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-black/45">
+            <div className="mt-4 rounded-2xl border border-black/10 bg-black/[0.02] p-5">
+              <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/50">
                 Signed Message String
               </div>
-              <pre className="mt-2 overflow-x-auto whitespace-pre-wrap break-words text-[12px] leading-[1.8] text-black/70">
+              <pre className="mt-3 overflow-x-auto whitespace-pre-wrap break-words text-[13px] leading-[1.9] text-black/72">
                 {safe(verify?.signedMessageString)}
               </pre>
             </div>
 
-            <div className="mt-3 rounded-2xl border border-black/10 bg-black/[0.02] p-4">
-              <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-black/45">
+            <div className="mt-4 rounded-2xl border border-black/10 bg-black/[0.02] p-5">
+              <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/50">
                 Signed Message Object
               </div>
-              <pre className="mt-2 overflow-x-auto whitespace-pre-wrap break-words text-[12px] leading-[1.8] text-black/70">
+              <pre className="mt-3 overflow-x-auto whitespace-pre-wrap break-words text-[13px] leading-[1.9] text-black/72">
                 {signedMessageObject}
               </pre>
             </div>
 
-            <div className="mt-3 rounded-2xl border border-black/10 bg-black/[0.02] p-4">
-              <div className="text-sm font-semibold text-black">External verification flow</div>
-              <ol className="mt-3 space-y-2 pl-5 text-[13px] leading-[1.8] text-black/65">
+            <div className="mt-4 rounded-2xl border border-black/10 bg-white p-5">
+              <div className="text-[18px] font-semibold tracking-tight text-black">
+                External verification flow
+              </div>
+              <ol className="mt-4 space-y-2 pl-5 text-[15px] leading-[1.85] text-black/72">
                 <li>Fetch the proof from the verification endpoint for this registry ID.</li>
                 <li>Fetch the Ed25519 public key from the published key URL.</li>
                 <li>Verify the signature against the exact message string shown here.</li>
@@ -398,74 +558,6 @@ export default async function RegistryRecordPage({
             </div>
           </Section>
         ) : null}
-
-        <Section
-          eyebrow="PUBLIC-SAFE TRUST EXPLANATION"
-          title={isCertified ? "Reviewed across governance dimensions" : "Public-safe governance review scope"}
-          description={
-            isCertified
-              ? "GAFAIG publishes certification outcomes and high-level governance review scope without exposing private reviewer materials, internal evidence, control-by-control scoring logic, or controlled workflow details from the private verification engine."
-              : "This approved public record may disclose limited public-safe governance review scope without exposing private reviewer materials, internal evidence, control-by-control governance logic, or controlled workflow details from the private verification engine."
-          }
-        >
-          <div className="rounded-xl border border-black/10 bg-black/[0.02] p-4">
-            <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-black/45">
-              Review Scope
-            </div>
-            <div className="mt-2 text-sm font-medium text-black">
-              {isCertified
-                ? "Reviewed across 5 governance dimensions"
-                : "Reviewed across 5 governance dimensions"}
-            </div>
-          </div>
-
-          <div className="mt-3 grid gap-3 md:grid-cols-3">
-            {governanceDimensions.map((dimension) => (
-              <div
-                key={dimension}
-                className="rounded-xl border border-black/10 bg-white p-4"
-              >
-                <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-black/45">
-                  Governance Dimension
-                </div>
-                <div className="mt-1 text-sm font-medium text-black">
-                  {dimension}
-                </div>
-              </div>
-            ))}
-          </div>
-        </Section>
-
-        <Section
-          eyebrow="PUBLIC RECORD METADATA"
-          title={isCertified ? "Registry record metadata" : "Approved public record metadata"}
-          description={
-            isCertified
-              ? "Public registry metadata associated with the certified record of record."
-              : "This page surfaces approved public metadata and governance review scope. It does not claim a certified public outcome."
-          }
-        >
-          <div className="grid gap-3 md:grid-cols-4">
-            <InfoCard label="Entity Type" value={safe(record.entityType)} />
-            <InfoCard label="Country" value={safe(record.country)} />
-            <InfoCard label="Application ID" value={safe(record.applicationId)} />
-            <InfoCard label="Case ID" value={safe(record.caseId)} />
-          </div>
-
-          <div className="mt-3 grid gap-3 md:grid-cols-4">
-            <InfoCard label="Registry ID" value={safe(record.registryId)} />
-            <InfoCard label="Certified Score" value={formatScore(record.certifiedScore)} />
-            <InfoCard label="Valid From" value={formatDate(record.validFrom)} />
-            <InfoCard label="Valid To" value={formatDate(record.validTo)} />
-          </div>
-
-          <div className="mt-3 grid gap-3 md:grid-cols-4">
-            <InfoCard label="Verification Type" value={safe(record.verificationType)} />
-            <InfoCard label="Model Version" value={safe(record.modelVersion)} />
-            <InfoCard label="Lifecycle Status" value={safe(record.lifecycleStatus)} />
-            <InfoCard label="Renewal Status" value={safe(record.renewalStatus)} />
-          </div>
-        </Section>
       </div>
     </main>
   );

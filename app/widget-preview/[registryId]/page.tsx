@@ -106,6 +106,7 @@ export default async function WidgetPreviewPage({
 
   const record = verifyData.record;
   const entityName = record.entityName || "Unknown Entity";
+  const isCertified = Boolean(String(record.certifiedAt ?? "").trim());
 
   const widgetSnippet = `<script src="${productionBaseUrl}/widget/gafaig-widget.js"></script>
 <div data-gafaig-id="${registryId}"></div>`;
@@ -119,8 +120,8 @@ export default async function WidgetPreviewPage({
         <PublicPageHero
           eyebrow="GAFAIG WIDGET PREVIEW"
           title="Preview the live verification widget"
-          description="This page shows the public GAFAIG widget exactly as external sites can embed it. The widget pulls from the live verification endpoint and renders the current public certification record."
-          secondaryDescription="Use this page to inspect the live widget, copy installation snippets, and confirm how the registry page, badge, widget, and verify JSON work together as one public trust surface."
+          description="This page shows the public GAFAIG widget exactly as external sites can embed it. The widget pulls from the live verification endpoint and renders the current public trust record."
+          secondaryDescription="A record may be Approved or Certified. Approved means evaluated. Certified means trusted and published as a finalized public registry record. Use this page to inspect the live widget, copy installation snippets, and confirm how the registry page, badge, widget, and verify JSON work together as one public trust surface."
           actions={
             <>
               <PublicButtonLink
@@ -140,17 +141,47 @@ export default async function WidgetPreviewPage({
           }
         />
 
+        <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
+          <div className="max-w-[980px] space-y-3 text-[15px] leading-[1.8] text-black/65">
+            <p>
+              The widget preview distinguishes between evaluated records and publicly trusted records.
+            </p>
+
+            <div className="rounded-2xl border border-black/10 bg-black/[0.03] p-5">
+              <div className="grid gap-3 text-[15px] leading-[1.8] text-black/72">
+                <div>
+                  <span className="font-semibold text-black">Approved</span>{" "}
+                  means the record has completed the GAFAIG evaluation process and received a governance decision.
+                </div>
+
+                <div>
+                  <span className="font-semibold text-black">Certified</span>{" "}
+                  means the evaluated outcome has been finalized and published as a trusted public record in the GAFAIG registry of record.
+                </div>
+              </div>
+            </div>
+
+            <p className="text-black/60">
+              This widget renders the live public trust state for the selected record.
+            </p>
+          </div>
+        </section>
+
         <section className="grid gap-4 md:grid-cols-4">
           <MetricCard label="Entity" value={entityName} />
           <MetricCard
-            label="Tier / Band"
-            value={`${valueOrDash(record.certifiedTier)} · ${valueOrDash(
-              record.certifiedBand
-            )}`}
+            label="Trust State"
+            value={isCertified ? "Certified" : "Approved"}
           />
           <MetricCard
-            label="Decision"
-            value={valueOrDash(record.decisionStatus)}
+            label="Tier / Band"
+            value={
+              isCertified
+                ? `${valueOrDash(record.certifiedTier)} · ${valueOrDash(
+                    record.certifiedBand
+                  )}`
+                : "—"
+            }
           />
           <MetricCard label="Valid To" value={valueOrDash(record.validTo)} />
         </section>
@@ -202,14 +233,14 @@ export default async function WidgetPreviewPage({
           <div className="mt-4 grid gap-4 md:grid-cols-3">
             <div className="rounded-2xl border border-black/10 p-5 text-[14px] leading-7 text-black/72">
               The widget runs against the live GAFAIG verification endpoint and
-              renders the public certification record in real time.
+              renders the current public trust record in real time.
             </div>
             <div className="rounded-2xl border border-black/10 p-5 text-[14px] leading-7 text-black/72">
               External sites can embed the same widget without reproducing
-              certification logic or touching private evidence.
+              evaluation or certification logic or touching private evidence.
             </div>
             <div className="rounded-2xl border border-black/10 p-5 text-[14px] leading-7 text-black/72">
-              The registry page, badge, widget, and verify JSON now form one
+              The registry page, badge, widget, and verify JSON form one
               unified public trust surface.
             </div>
           </div>

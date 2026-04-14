@@ -73,32 +73,50 @@ export default async function RegistryPage() {
   }).catch(() => null);
 
   const data: RegistryResponse | null = res ? await res.json() : null;
-
   const allRows = data?.rows ?? [];
-
   const rows = allRows.filter((row) =>
     Boolean(String(row.certifiedAt ?? "").trim())
   );
 
   return (
-    <main className="mx-auto max-w-[1440px] px-6 pb-20 pt-12 lg:px-10">
-      <div className="space-y-10">
-        <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10 xl:p-12">
+    <main className="mx-auto max-w-[1180px] px-6 pb-16 pt-14">
+      <div className="space-y-8">
+        <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
           <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
             REGISTRY OF RECORD
           </div>
 
-          <h1 className="mt-4 text-[42px] font-semibold leading-[1.05] tracking-tight text-black md:text-[56px] xl:text-[64px]">
+          <h1 className="mt-4 max-w-[980px] text-[42px] font-semibold leading-[1.05] tracking-tight text-black md:text-[56px]">
             Certified public AI governance registry
           </h1>
 
-          <p className="mt-4 max-w-[980px] text-[15px] leading-[1.8] text-black/70">
+          <p className="mt-5 max-w-[980px] text-[16px] leading-[1.85] text-black/75">
             The GAFAIG registry is the canonical public record of certified outcomes issued through the GAFAIG verification framework.
           </p>
 
-          <p className="mt-3 max-w-[980px] text-[15px] leading-[1.8] text-black/60">
-            Only certified records appear here. Approved but uncertified records remain visible in Explorer, not in the registry of record.
-          </p>
+          <div className="mt-4 max-w-[980px] space-y-3 text-[15px] leading-[1.8] text-black/65">
+            <p>
+              The registry distinguishes between evaluated systems and publicly trusted systems.
+            </p>
+
+            <div className="rounded-2xl border border-black/10 bg-black/[0.03] p-5">
+              <div className="grid gap-3 text-[15px] leading-[1.8] text-black/72">
+                <div>
+                  <span className="font-semibold text-black">Approved</span>{" "}
+                  means a system has completed the full GAFAIG evaluation process, including findings, evidence review, and governance scoring.
+                </div>
+
+                <div>
+                  <span className="font-semibold text-black">Certified</span>{" "}
+                  means the evaluated outcome has been finalized, assigned a governance score and certification tier, and published as a verifiable public record in the registry.
+                </div>
+              </div>
+            </div>
+
+            <p className="text-black/60">
+              Only certified records appear in the registry of record. Approved but uncertified systems remain visible in Explorer.
+            </p>
+          </div>
 
           <div className="mt-6 flex flex-wrap gap-3">
             <Link
@@ -117,23 +135,23 @@ export default async function RegistryPage() {
           </div>
         </section>
 
-        <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10 xl:p-12">
-          <div className="flex items-center justify-between gap-4">
+        <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
+          <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
             <div>
               <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
                 CERTIFIED PUBLIC RECORDS
               </div>
 
-              <h2 className="mt-4 text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[40px]">
+              <h2 className="mt-4 max-w-[860px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
                 Registry directory
               </h2>
 
-              <p className="mt-3 max-w-[900px] text-[15px] leading-[1.8] text-black/68">
-                Browse surfaced certified records by organization, jurisdiction, and registry identifier.
+              <p className="mt-4 max-w-[900px] text-[15px] leading-[1.8] text-black/68">
+                Browse certified public trust records by organization, jurisdiction, and registry identifier.
               </p>
             </div>
 
-            <div className="text-sm text-black/55">
+            <div className="text-[13px] text-black/50">
               {rows.length} visible certified records
             </div>
           </div>
@@ -158,7 +176,7 @@ export default async function RegistryPage() {
                         <span
                           className={`inline-flex rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] ring-1 ${trustTone()}`}
                         >
-                          Verified
+                          Certified
                         </span>
 
                         {decisionStatus !== "—" ? (
@@ -189,39 +207,39 @@ export default async function RegistryPage() {
                     </Link>
                   </div>
 
-                  <div className="mt-6 grid gap-3 md:grid-cols-4">
-                    <div className="rounded-xl border border-black/10 bg-white p-4">
-                      <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-black/50">
+                  <div className="mt-6 grid gap-4 md:grid-cols-4">
+                    <div className="rounded-2xl border border-black/10 bg-white p-5">
+                      <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/50">
                         Certification
                       </div>
-                      <div className="mt-1 text-sm font-medium text-black">
+                      <div className="mt-3 text-[16px] font-semibold leading-[1.45] text-black">
                         {tierBand}
                       </div>
                     </div>
 
-                    <div className="rounded-xl border border-black/10 bg-white p-4">
-                      <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-black/50">
+                    <div className="rounded-2xl border border-black/10 bg-white p-5">
+                      <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/50">
                         Certified
                       </div>
-                      <div className="mt-1 text-sm font-medium text-black">
+                      <div className="mt-3 text-[16px] font-semibold leading-[1.45] text-black">
                         {formatDate(certifiedAt)}
                       </div>
                     </div>
 
-                    <div className="rounded-xl border border-black/10 bg-white p-4">
-                      <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-black/50">
+                    <div className="rounded-2xl border border-black/10 bg-white p-5">
+                      <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/50">
                         Valid From
                       </div>
-                      <div className="mt-1 text-sm font-medium text-black">
+                      <div className="mt-3 text-[16px] font-semibold leading-[1.45] text-black">
                         {formatDate(row.validFrom)}
                       </div>
                     </div>
 
-                    <div className="rounded-xl border border-black/10 bg-white p-4">
-                      <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-black/50">
+                    <div className="rounded-2xl border border-black/10 bg-white p-5">
+                      <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/50">
                         Valid To
                       </div>
-                      <div className="mt-1 text-sm font-medium text-black">
+                      <div className="mt-3 text-[16px] font-semibold leading-[1.45] text-black">
                         {formatDate(row.validTo)}
                       </div>
                     </div>

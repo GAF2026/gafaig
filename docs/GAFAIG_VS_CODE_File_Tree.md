@@ -1,12 +1,24 @@
-# GAFAIG VS CODE FILE TREE
+# GAFAIG_VS_CODE_File_Tree.md
+Last Updated: 2026-04-14
 
-DATE: 2026-04-13
+============================================================
+PURPOSE
+============================================================
 
-This file represents the current working file and folder structure for the GAFAIG platform in VS Code. It is aligned to the active development phase: Trust Surface Completion.
+This document defines the COMPLETE and CANONICAL VS Code file structure for the GAFAIG application.
 
-----------------------------------------
-ROOT
-----------------------------------------
+It reflects:
+- Active Next.js App Router structure
+- API routes
+- Query layer
+- Shared utilities
+- Documentation files
+
+Only files listed here should be actively used and modified.
+
+============================================================
+ROOT STRUCTURE
+============================================================
 
 gafaig/
 │
@@ -19,215 +31,190 @@ gafaig/
 ├── package.json
 ├── tsconfig.json
 ├── next.config.js
-├── tailwind.config.ts
 └── README.md
 
-----------------------------------------
+============================================================
 APP DIRECTORY (NEXT.JS APP ROUTER)
-----------------------------------------
+============================================================
 
 app/
 │
-├── page.tsx                           # Homepage (to be upgraded)
-├── layout.tsx                         # Root layout
-├── globals.css                        # Global styles
-│
-├── mission/
-│   └── page.tsx                       # Mission page (design reference)
-│
-├── explorer/
-│   ├── page.tsx                       # Explorer landing
-│   ├── organizations/
-│   │   └── page.tsx                   # Organizations explorer
-│   ├── systems/
-│   │   └── page.tsx                   # AI systems explorer
-│   └── countries/
-│       └── page.tsx                   # Countries explorer
+├── page.tsx
 │
 ├── registry/
-│   ├── page.tsx                       # Registry list page
-│   ├── ai-systems/
-│   │   └── page.tsx                   # AI systems registry (next target)
+│   ├── page.tsx
 │   └── [registryId]/
-│       └── page.tsx                   # Registry detail page
+│       └── page.tsx
+│
+├── explorer/
+│   ├── page.tsx
+│   ├── organizations/
+│   │   └── page.tsx
+│   ├── systems/
+│   │   └── page.tsx
+│   └── countries/
+│       └── page.tsx
 │
 ├── widget-preview/
 │   └── [registryId]/
-│       └── page.tsx                   # Widget preview page
+│       └── page.tsx
 │
-├── badge/
-│   └── [registryId]/
-│       └── route.ts                   # Badge endpoint (HTML response)
-│
-├── badge-preview/
-│   └── [registryId]/
-│       └── page.tsx                   # Badge preview page
+├── admin/
+│   ├── login/
+│   │   └── page.tsx
+│   ├── applications/
+│   │   └── page.tsx
+│   └── verification/
+│       └── [caseId]/
+│           └── findings/
+│               └── page.tsx
 │
 ├── api/
 │   │
 │   ├── registry/
-│   │   └── route.ts                   # Registry API (search + fetch)
+│   │   ├── route.ts
+│   │   └── search/
+│   │       └── route.ts
 │   │
 │   ├── verify/
 │   │   └── [registryId]/
-│   │       └── route.ts               # Verification API (public trust endpoint)
+│   │       └── route.ts
 │   │
-│   └── badge/
-│       └── [registryId]/
-│           └── route.ts               # Badge API (if separate endpoint used)
+│   ├── badge/
+│   │   └── [registryId]/
+│   │       └── route.ts
+│   │
+│   └── .well-known/
+│       └── gafaig-public-key/
+│           └── route.ts
 
-----------------------------------------
+============================================================
 COMPONENTS DIRECTORY
-----------------------------------------
+============================================================
 
 components/
 │
-├── registry/
-│   ├── RegistryTrustTools.tsx         # Trust distribution component (active)
-│   ├── RegistryVerificationPanel.tsx  # Verification panel (used in detail page)
-│   └── RegistryHeaderPanel.tsx        # Header panel (if used)
-│
 ├── ui/
-│   ├── StatusChip.tsx                 # Standardized status chip
+│   ├── StatusChip.tsx
 │   └── (other shared UI components)
 │
-└── (other component folders as needed)
+├── registry/
+│   ├── RegistryHeaderPanel.tsx
+│   ├── RegistryCertificationSummary.tsx
+│   ├── RegistryVerificationPanel.tsx
+│   ├── RegistryAiSystemsSection.tsx
+│   └── RegistryTrustTools.tsx
+│
+└── (shared layout / utility components)
 
-----------------------------------------
-LIB DIRECTORY (QUERY + INFRA)
-----------------------------------------
+============================================================
+LIB DIRECTORY (CRITICAL)
+============================================================
 
 lib/
 │
-├── queries/
-│   ├── registry.ts                   # Registry queries
-│   ├── explorer.ts                   # Explorer queries (active)
-│   ├── registry-ai-systems.ts        # AI systems queries
-│   └── (future query files)
+├── snowflake.ts
+│   → Canonical Snowflake query execution layer
 │
-├── snowflake.ts                      # Snowflake connection + sfQuery()
+├── queries/
+│   │
+│   ├── registry.ts        ⚠️ PRIMARY ACTIVE FILE (CURRENTLY UNSTABLE)
+│   ├── explorer.ts
+│   ├── registry-ai-systems.ts
+│   └── (other query helpers)
+│
 ├── auth/
-│   └── require.ts                    # Admin/auth helpers (if used)
-└── (other utility modules)
+│   └── require.ts
+│
+└── (other shared utilities)
 
-----------------------------------------
-PUBLIC DIRECTORY (STATIC + EXTERNAL SURFACES)
-----------------------------------------
+============================================================
+PUBLIC DIRECTORY
+============================================================
 
 public/
 │
 ├── widget/
-│   ├── gafaig-widget.js              # External embeddable widget (active)
-│   └── gafaig-verify.js              # Optional verify helper script
+│   └── gafaig-widget.js
 │
-├── images/                           # Static images (if used)
-└── (other static assets)
+└── (static assets, images, etc.)
 
-----------------------------------------
-DOCS DIRECTORY (CANONICAL CONTEXT)
-----------------------------------------
+============================================================
+DOCS DIRECTORY (CANONICAL CONTEXT FILES)
+============================================================
 
 docs/
 │
-├── MASTER_STATE.md                   # System architecture (canonical)
-├── CURRENT_FOCUS.md                  # Active execution plan
-├── ENGINEERING_RULES.md              # Strict rules (must follow)
-├── GAFAIG_ACTIVE_FILE_MAP.md         # Active working files
+├── MASTER_STATE.md
+├── CURRENT_FOCUS.md
+├── GAFAIG_ACTIVE_FILE_MAP.md
 ├── GAFAIG_SNOWFLAKE_SQL_FILE_SUMMARY.md
-├── GAFAIG_VS_CODE_File_Tree.md       # This file
-│
-├── CANONICAL_DATA_CONTRACTS.md
-├── CANONICAL_DIMENSION_SYSTEM.md
-├── REGISTRY_ID_RESOLUTION.md
-├── VERIFICATION_SIGNATURE_CONTRACT.md
-├── ENVIRONMENT_PARITY_RULES.md
-├── VERIFIED_DEFINITION.md
-├── FAILURE_MODES.md
-├── TEST_CASES.md
-├── VERSIONING.md
-├── DO_NOT_BREAK.md
-│
-└── test-widget.html                  # External widget test harness
+├── GAFAIG_VS_CODE_File_Tree.md
+├── ENGINEERING_RULES.md
+├── CANONICAL_RUN_ORDER.md
+├── PROJECT_INDEX.md
+├── CHANGELOG.md
+├── API_ROUTE_MAPPING.md
+├── UI_COMPONENT_MAPPING.md
+├── SNOWFLAKE_WORKSHEET_MAPPING.md
+└── (additional canonical docs)
 
-----------------------------------------
-ENVIRONMENT FILES
-----------------------------------------
+============================================================
+CRITICAL FILES (DO NOT BREAK)
+============================================================
 
-.env.local
-- GAFAIG_SESSION_SECRET
-- GAFAIG_ADMIN_PASSWORD
-- GAFAIG_ADMIN_DEMO_PASSWORD
-- NEXT_PUBLIC_BASE_URL
-- Snowflake credentials
-
-----------------------------------------
-BUILD + CONFIG FILES
-----------------------------------------
-
-package.json                          # Dependencies + scripts
-tsconfig.json                         # TypeScript config
-next.config.js                        # Next.js config
-tailwind.config.ts                    # Tailwind config
-
-----------------------------------------
-CURRENTLY ACTIVE FILES (HIGH PRIORITY)
-----------------------------------------
-
-These files are actively being modified:
-
-- public/widget/gafaig-widget.js
-- app/widget-preview/[registryId]/page.tsx
-- app/badge/[registryId]/route.ts
-- app/badge-preview/[registryId]/page.tsx
+Frontend Pages:
 - app/registry/page.tsx
 - app/registry/[registryId]/page.tsx
-- app/api/verify/[registryId]/route.ts
+- app/explorer/page.tsx
+
+API Routes:
 - app/api/registry/route.ts
-- lib/queries/explorer.ts
-- components/registry/RegistryTrustTools.tsx
+- app/api/registry/search/route.ts
+- app/api/badge/[registryId]/route.ts
 
-----------------------------------------
-NEXT TARGET FILES
-----------------------------------------
+Query Layer:
+- lib/queries/registry.ts ⚠️ PRIMARY FAILURE POINT
 
-Execution order:
+============================================================
+CURRENT SYSTEM STATUS
+============================================================
 
-1. app/api/verify/[registryId]/route.ts
-2. app/api/registry/route.ts
-3. public/widget/gafaig-widget.js
-4. app/widget-preview/[registryId]/page.tsx
-5. app/badge/[registryId]/route.ts
-6. app/registry/[registryId]/page.tsx
-7. components/registry/RegistryTrustTools.tsx
-8. app/page.tsx
+Snowflake:
+- ✅ Stable
+- ✅ Canonical
 
-----------------------------------------
-RULES FOR FILE TREE
-----------------------------------------
+Next.js:
+- ⚠️ Build instability resolved but fragile
+- ❌ Query layer mismatch causing system inconsistency
 
-- Reflect actual repo structure
-- Keep aligned with ACTIVE_FILE_MAP
-- Do not include deprecated files
-- Update when new routes/components are added
+UI:
+- ⚠️ Rendering dependent on query layer stability
 
-----------------------------------------
-PURPOSE
-----------------------------------------
+============================================================
+ACTIVE ISSUE LOCATION
+============================================================
 
-This file ensures:
-- Clear navigation of the codebase
-- Alignment across sessions
-- Fast onboarding into active development
-- Zero ambiguity about file locations
+lib/queries/registry.ts
 
-----------------------------------------
-FINAL NOTE
-----------------------------------------
+Problems:
+- Interface mismatch with API
+- Missing filter fields
+- Missing exports (previously)
+- Incorrect filtering logic (previously)
 
-This is the live system map.
+This file must be stabilized BEFORE any UI work.
 
-Follow it strictly.
+============================================================
+RULES
+============================================================
 
-One file at a time.
+- Do not modify Snowflake
+- Do not modify UI unnecessarily
+- Fix query layer first
+- Maintain API compatibility
+- Maintain deterministic data flow
 
-No drift.
+============================================================
+END
+============================================================

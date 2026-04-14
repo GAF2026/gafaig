@@ -5,7 +5,6 @@ import PublicPageHero from "@/app/_components/PublicPageHero";
 import PublicButtonLink from "@/app/_components/PublicButtonLink";
 import nacl from "tweetnacl";
 
-
 const EXAMPLE_ID = "GAFAIG-4cf088b9796f492f934acf69615de934";
 
 type VerifyApiResponse = {
@@ -16,8 +15,8 @@ type VerifyApiResponse = {
   proof?: {
     alg?: string;
     kid?: string;
-    signature?: string;
     signedAt?: string | null;
+    signature?: string;
     verificationKeyUrl?: string;
     message?: Record<string, unknown>;
     messageString?: string;
@@ -104,6 +103,33 @@ function prettyJson(value: unknown) {
   } catch {
     return String(value);
   }
+}
+
+function getTrustState(
+  certifiedAt?: string | null,
+  decisionStatus?: string | null
+) {
+  const isCertified = Boolean(String(certifiedAt ?? "").trim());
+  const decision = String(decisionStatus ?? "").trim().toUpperCase();
+
+  if (isCertified) {
+    return {
+      label: "Certified",
+      description: "Trusted + published",
+    };
+  }
+
+  if (decision === "APPROVED") {
+    return {
+      label: "Approved",
+      description: "Evaluated",
+    };
+  }
+
+  return {
+    label: "Pending",
+    description: "Not finalized",
+  };
 }
 
 function VerificationBadge({
@@ -238,10 +264,15 @@ export default function VerifyPage() {
   }
 
   const result =
-    state.status === "success" ? state.payload : state.status === "error" ? state.payload : null;
+    state.status === "success"
+      ? state.payload
+      : state.status === "error"
+      ? state.payload
+      : null;
 
   const proof = result?.proof;
   const record = result?.record;
+  const trust = getTrustState(record?.certifiedAt, record?.decisionStatus);
 
   return (
     <main className="mx-auto max-w-[1180px] px-6 pb-16 pt-14">
@@ -249,11 +280,14 @@ export default function VerifyPage() {
         <PublicPageHero
           eyebrow="Public verification"
           title="Verify a GAFAIG record"
-          description="Confirm whether a public GAFAIG certification record is valid by registry ID. Verification checks the live record, public proof payload, signature metadata, and current certification status."
-          secondaryDescription="This public trust surface exposes certification outcomes without exposing private evidence, findings, reviewer notes, or controlled assessment materials."
+          description="Confirm whether a GAFAIG record is valid by registry ID. Verification checks the live record, proof payload, signature, and trust state."
+          secondaryDescription="Records may be Approved (evaluated) or Certified (trusted and published). Verification confirms cryptographic integrity and alignment with the public registry, without exposing private evidence."
           actions={
             <>
-              <PublicButtonLink href={`/registry/${EXAMPLE_ID}`} variant="secondary">
+              <PublicButtonLink
+                href={`/registry/${EXAMPLE_ID}`}
+                variant="secondary"
+              >
                 View example record
               </PublicButtonLink>
               <PublicButtonLink href="/registry" variant="secondary">
@@ -265,6 +299,32 @@ export default function VerifyPage() {
             </>
           }
         />
+
+        <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
+          <div className="max-w-[980px] space-y-3 text-[15px] leading-[1.8] text-black/65">
+            <p>
+              GAFAIG verification distinguishes between evaluated records and publicly trusted records.
+            </p>
+
+            <div className="rounded-2xl border border-black/10 bg-black/[0.03] p-5">
+              <div className="grid gap-3 text-[15px] leading-[1.8] text-black/72">
+                <div>
+                  <span className="font-semibold text-black">Approved</span>{" "}
+                  means the record has completed the GAFAIG evaluation process and received a governance decision.
+                </div>
+
+                <div>
+                  <span className="font-semibold text-black">Certified</span>{" "}
+                  means the evaluated outcome has been finalized and published as a trusted public record in the registry of record.
+                </div>
+              </div>
+            </div>
+
+            <p className="text-black/60">
+              Verification confirms record integrity and proof validity. Trust state determines whether the record is publicly certified.
+            </p>
+          </div>
+        </section>
 
         <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
           <div className="text-[12px] font-semibold uppercase tracking-[0.22em] text-black/55">
@@ -365,7 +425,7 @@ export default function VerifyPage() {
               </div>
               <p className="mt-3 text-[14px] leading-7 text-white/68">
                 GAFAIG creates a deterministic public proof payload from the
-                disclosed certification record.
+                disclosed trust record.
               </p>
             </div>
 
@@ -386,6 +446,24 @@ export default function VerifyPage() {
 
         {state.status === "success" && result && proof && record ? (
           <>
+            <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
+              <div className="text-[12px] font-semibold uppercase tracking-[0.22em] text-black/55">
+                Trust state
+              </div>
+
+              <h2 className="mt-3 text-[28px] font-semibold text-black">
+                {trust.label}
+              </h2>
+
+              <p className="mt-3 text-[15px] leading-[1.8] text-black/70">
+                {trust.label === "Certified"
+                  ? "This record is a certified public trust record in the GAFAIG registry of record."
+                  : trust.label === "Approved"
+                  ? "This record has been evaluated and approved, but has not been finalized as a certified public registry record."
+                  : "This record is not yet finalized."}
+              </p>
+            </section>
+
             <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
               <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
                 <div>
@@ -452,11 +530,10 @@ export default function VerifyPage() {
 
                 <div className="rounded-3xl border border-black/10 bg-[#fcfcfb] p-5">
                   <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-black/45">
-                    Tier / Band
+                    Trust State
                   </div>
                   <div className="mt-3 text-[14px] font-medium text-black/85">
-                    {record.certifiedTier ?? "—"}
-                    {record.certifiedBand ? ` · ${record.certifiedBand}` : ""}
+                    {trust.label}
                   </div>
                 </div>
               </div>
@@ -538,7 +615,10 @@ export default function VerifyPage() {
                   <ul className="mt-4 space-y-3 text-[14px] leading-7 text-black/70">
                     <li>• Algorithm: {proof.alg ?? "—"}</li>
                     <li>• Key ID: {proof.kid ?? "—"}</li>
-                    <li>• Public key bytes: {state.publicKeyBase64.length > 0 ? "Loaded" : "Missing"}</li>
+                    <li>
+                      • Public key bytes:{" "}
+                      {state.publicKeyBase64.length > 0 ? "Loaded" : "Missing"}
+                    </li>
                     <li>
                       • Result:{" "}
                       {state.signatureVerified
@@ -555,7 +635,10 @@ export default function VerifyPage() {
                 </PublicButtonLink>
 
                 {proof.verificationKeyUrl ? (
-                  <PublicButtonLink href={proof.verificationKeyUrl} variant="secondary">
+                  <PublicButtonLink
+                    href={proof.verificationKeyUrl}
+                    variant="secondary"
+                  >
                     Open public key
                   </PublicButtonLink>
                 ) : null}

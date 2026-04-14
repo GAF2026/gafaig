@@ -13,8 +13,8 @@ export default async function ExplorerCountriesPage() {
         <PublicPageHero
           eyebrow="EXPLORER"
           title="Countries"
-          description="Public country-level visibility across the current GAFAIG registry surface."
-          secondaryDescription="This explorer surface shows how GAFAIG’s public trust layer is distributed across countries, including visible organization counts and registry record counts."
+          description="Public country-level visibility across the GAFAIG trust surface."
+          secondaryDescription="This explorer surface includes both evaluated (Approved) and publicly trusted (Certified) records across countries, showing how GAFAIG’s public trust layer is distributed by geography, organizations, registry records, and visible AI systems."
           actions={
             <>
               <PublicButtonLink href="/registry" variant="primary">
@@ -40,6 +40,32 @@ export default async function ExplorerCountriesPage() {
         />
 
         <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
+          <div className="max-w-[980px] space-y-3 text-[15px] leading-[1.8] text-black/65">
+            <p>
+              Explorer distinguishes between evaluated country presence and publicly trusted country presence.
+            </p>
+
+            <div className="rounded-2xl border border-black/10 bg-black/[0.03] p-5">
+              <div className="grid gap-3 text-[15px] leading-[1.8] text-black/72">
+                <div>
+                  <span className="font-semibold text-black">Approved</span>{" "}
+                  means a country may contain organizations or systems that have completed the GAFAIG evaluation process and received governance decisions, even if those records are not yet published as certified public records.
+                </div>
+
+                <div>
+                  <span className="font-semibold text-black">Certified</span>{" "}
+                  means a country contains finalized, published GAFAIG trust records that appear in the registry of record.
+                </div>
+              </div>
+            </div>
+
+            <p className="text-black/60">
+              This countries view may include both Approved and Certified records. The Registry of Record shows Certified records only.
+            </p>
+          </div>
+        </section>
+
+        <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
           <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
             <div>
               <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
@@ -47,7 +73,7 @@ export default async function ExplorerCountriesPage() {
               </div>
 
               <h2 className="mt-4 text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
-                Public country coverage in the registry
+                Public country coverage in the trust surface
               </h2>
 
               <p className="mt-3 max-w-[820px] text-[15px] leading-[1.8] text-black/68">

@@ -127,7 +127,7 @@ export type VerifyApiResponse =
         entityType: string | null;
         country: string | null;
         certificationStatus: string | null;
-        certifiedScore?: number | null;
+        certifiedScore?: number | string | null;
         certifiedTier: string | null;
         certifiedBand: string | null;
         decisionStatus: string | null;

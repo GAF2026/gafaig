@@ -1,294 +1,302 @@
-# GAFAIG SNOWFLAKE SQL FILE SUMMARY
+# GAFAIG_SNOWFLAKE_SQL_FILE_SUMMARY.md
+Last Updated: 2026-04-14
 
-DATE: 2026-04-13
+============================================================
+PURPOSE
+============================================================
 
-This document defines all canonical Snowflake SQL files used to build and operate the GAFAIG verification engine and public registry.
+This document defines the COMPLETE and CANONICAL set of Snowflake SQL files used in GAFAIG.
 
-Snowflake is the single source of truth for GAFAIG.
+It identifies:
+- Source-of-truth schema files
+- Core pipeline tables
+- Views used by the application
+- Stored procedures driving system behavior
+- Demo seed files
 
-All governance scoring, certification decisions, and registry outputs are computed in Snowflake.
+ONLY these files should be used for development and execution.
 
-----------------------------------------
-CORE PRINCIPLES
-----------------------------------------
+============================================================
+CANONICAL PRINCIPLE
+============================================================
 
-- Snowflake computes ALL truth
-- Application layer does NOT compute logic
-- Registry is append-only
-- Views are canonical interfaces
-- Stored procedures control mutation
+Snowflake is the source of truth.
 
-----------------------------------------
-DATABASE CONFIGURATION
-----------------------------------------
+ALL:
+- Scoring
+- Certification
+- Decisions
+- Registry state
 
-Account: GAFAIG1  
-Database: GAFAIG_DB  
-Schema: CORE  
-Warehouse: GAFAIG_WH  
+Must originate from Snowflake.
 
-----------------------------------------
-TABLES (CORE DATA MODEL)
-----------------------------------------
+No logic is allowed in:
+- API
+- UI
+- Query layer
 
-----------------------------------------
-VERIFICATION ENGINE TABLES
-----------------------------------------
+============================================================
+FOUNDATION (FULL REBUILD)
+============================================================
 
-GAFAIG - CORE.VERIFICATION_CASES.sql  
-- Root verification object  
-- Contains case metadata  
-- Primary key: CASE_ID  
+01_REBUILD_ENVIRONMENT_CANONICAL.sql
 
-GAFAIG - CORE.VERIFICATION_FINDINGS.sql  
-- Stores control-level findings  
-- Linked to CASE_ID  
+Purpose:
+- Defines the base system schema
+- Rebuilds entire verification pipeline
 
-GAFAIG - CORE.VERIFICATION_EVIDENCE.sql  
-- Stores supporting evidence  
-- Private, not exposed publicly  
+Creates:
+- CORE.VERIFICATION_CASES
+- CORE.VERIFICATION_FINDINGS
+- CORE.VERIFICATION_EVIDENCE
+- CORE.VERIFICATION_FINDING_EVIDENCE
+- CORE.VERIFICATION_EVENTS
+- CORE.CASE_SCORE_SNAPSHOTS
+- CORE.DECISIONS
+- CORE.REGISTRY_SNAPSHOTS
 
-GAFAIG - CORE.VERIFICATION_FINDING_EVIDENCE.sql  
-- Join table linking findings to evidence  
+This is the TRUE canonical base layer.
 
-GAFAIG - CORE.VERIFICATION_EVENTS.sql  
-- Audit trail of actions  
-- Append-only  
+============================================================
+APPLICATION INGESTION
+============================================================
 
-----------------------------------------
-SCORING TABLES
-----------------------------------------
+11_TABLES_APPLICATIONS.sql
 
-GAFAIG - 16_TABLES_CASE_SCORE_SNAPSHOTS.sql  
-- Stores scoring snapshots  
-- Append-only  
+Creates:
+- CORE.APPLICATIONS
 
-GAFAIG - 17_TABLES_DECISIONS.sql  
-- Stores final certification decisions  
-- Linked to CASE_ID  
+Purpose:
+- Stores incoming applications
+- Provides APPLICATION_ID for pipeline linkage
 
-----------------------------------------
-REGISTRY TABLES
-----------------------------------------
+============================================================
+AI SYSTEM REGISTRY
+============================================================
 
-GAFAIG - CORE.REGISTRY_SNAPSHOTS.sql  
-- Public registry snapshots  
-- Append-only  
-- Core output of GAFAIG  
+14_TABLES_REGISTRY_AI_SYSTEMS.sql
 
-GAFAIG - 14_TABLES_REGISTRY_AI_SYSTEMS.sql  
-- Stores AI system metadata  
-- Linked to REGISTRY_ID  
+Creates:
+- CORE.REGISTRY_AI_SYSTEMS
 
-----------------------------------------
-DIMENSION / CONTROL TABLES
-----------------------------------------
+Purpose:
+- Stores AI system metadata
+- Links systems to CASE_ID and REGISTRY_ID
 
-GAFAIG - CANONICAL_DIMENSION_SYSTEM.sql  
-- Defines governance dimensions  
-- Used in scoring  
+------------------------------------------------------------
 
-----------------------------------------
-VIEWS (CANONICAL OUTPUT LAYER)
-----------------------------------------
+22_VIEWS_REGISTRY_AI_SYSTEMS_PUBLIC.sql
 
-----------------------------------------
-REGISTRY VIEWS
-----------------------------------------
+Creates:
+- CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC
 
-21_VIEWS_PUBLIC_REGISTRY.sql  
+Purpose:
+- Public-facing AI system registry view
+- Joins systems to V_REGISTRY_PUBLIC
 
-Includes:
+============================================================
+REGISTRY SNAPSHOT SYSTEM
+============================================================
 
-V_REGISTRY_LATEST_APPROVED  
-- Latest approved snapshot per CASE_ID  
-- Uses ROW_NUMBER()  
+GAFAIG - CORE.REGISTRY_SNAPSHOTS.sql
 
-V_REGISTRY_PUBLIC  
-- Canonical public registry view  
-- Used by all UI + APIs  
+Creates:
+- CORE.REGISTRY_SNAPSHOTS (append-only)
 
-V_REGISTRY_PUBLIC_SEARCH  
-- Search-optimized registry view  
-- Includes normalized fields  
+Also defines:
+- CORE.V_REGISTRY_LATEST_APPROVED
 
-----------------------------------------
-AI SYSTEM VIEWS
-----------------------------------------
+Purpose:
+- Stores immutable registry history
+- Provides latest approved snapshot per case
 
-V_REGISTRY_AI_SYSTEMS_PUBLIC  
-- Public AI systems view  
-- Joins registry + system metadata  
-- Used by explorer and registry pages  
+Key Fields:
+- REGISTRY_ID
+- CASE_ID
+- SCORE / TIER / BAND
+- CERTIFIED_* fields
+- DECISION_STATUS
+- PUBLISHED_AT
 
-----------------------------------------
-SCORING VIEWS
-----------------------------------------
+============================================================
+PUBLIC REGISTRY VIEWS
+============================================================
 
-GAFAIG - Governance Scoring (Enterprise v1.0).sql  
+21_VIEWS_PUBLIC_REGISTRY.sql
 
-Includes:
+Creates:
+- CORE.V_REGISTRY_PUBLIC
+- CORE.V_REGISTRY_LATEST_APPROVED (if included)
 
-V_GOVERNANCE_SCORE_CASE  
-- Final deterministic score output  
-- Source of:
-  - FINAL_SCORE  
-  - TIER  
-  - BAND  
+Purpose:
+- Final public data contract
+- Enriched with:
+  - DECISIONS
+  - APPLICATIONS
 
-V_CASE_TIER_BAND  
-- Tier and band classification  
+This is the ONLY allowed source for:
+- API responses
+- UI rendering
 
-V_CASE_RENEWAL_STATUS  
-- Certification validity status  
+============================================================
+SCORING SYSTEM
+============================================================
 
-V_CONTROL_SCORE_COMPONENTS  
-- Detailed scoring breakdown  
+CORE.SP_SCORE_CASE_ENTERPRISE
 
-----------------------------------------
-STORED PROCEDURES
-----------------------------------------
+Purpose:
+- Executes deterministic scoring
 
-----------------------------------------
-SCORING PROCEDURES
-----------------------------------------
+Writes to:
+- CORE.CASE_SCORE_SNAPSHOTS_V2
 
-SP_SCORE_CASE_ENTERPRISE  
-- Executes full scoring pipeline  
-- Populates scoring snapshots  
+Uses:
+- CORE.V_CASE_SCORE_ENTERPRISE
+- CORE.V_CASE_TIER_BAND
 
-----------------------------------------
-PUBLISHING PROCEDURES
-----------------------------------------
+Outputs:
+- SCORE
+- SUBSCORES
+- TIER
+- BAND
 
-GAFAIG - CORE.REGISTRY_PUBLISH.sql  
+============================================================
+PUBLISH SYSTEM
+============================================================
 
-Includes:
+CORE.SP_PUBLISH_CASE_TO_REGISTRY_V3
 
-SP_PUBLISH_CASE_TO_REGISTRY_V3  
-- Primary publish procedure  
-- Validates case  
-- Generates or reuses REGISTRY_ID  
-- Inserts registry snapshot  
+Purpose:
+- Publishes approved case to registry
 
-SP_PUBLISH_CASE_TO_REGISTRY_V4  
-- Variant of publish logic  
-- Used in newer workflows  
+Steps:
+1. Validates case approval
+2. Reads score from V_GOVERNANCE_SCORE_CASE
+3. Generates or reuses REGISTRY_ID
+4. Inserts append-only snapshot
+5. Aligns REGISTRY_AI_SYSTEMS
 
-----------------------------------------
-SEED / DEMO DATA
-----------------------------------------
+Writes to:
+- CORE.REGISTRY_SNAPSHOTS
 
-GAFAIG - CANONICAL_DEMO_SEED_MASTER.sql  
-- Seeds demo organizations  
-- Seeds demo cases  
-- Seeds findings and evidence  
+============================================================
+CASE CREATION
+============================================================
 
-----------------------------------------
-UTILITY FILES
-----------------------------------------
+23_SP_CREATE_CASE_FROM_APPLICATION.sql
+
+Creates:
+- CORE.SP_CREATE_CASE_FROM_APPLICATION
+
+Purpose:
+- Converts APPLICATION → CASE
+- Generates deterministic CASE_ID
+- Inserts initial event
+
+============================================================
+DECISION SYSTEM
+============================================================
+
+17_TABLES_DECISIONS.sql
 
-GAFAIG - SECURITY_ROW_ACCESS_POLICIES.sql  
-- Defines row-level access policies  
-
-REGISTRY_ID_RESOLUTION.sql  
-- Defines deterministic ID generation  
-
-VERIFICATION_SIGNATURE_CONTRACT.sql  
-- Defines verification payload structure  
-
-----------------------------------------
-IMPORTANT SQL RULES
-----------------------------------------
-
-----------------------------------------
-VARIABLE BINDING
-----------------------------------------
-
-- Always use :variable syntax inside Snowflake scripting  
-- Never interpolate directly  
-
-----------------------------------------
-INSERT RULES
-----------------------------------------
-
-- Prefer INSERT ... SELECT  
-- Avoid INSERT ... VALUES when using VARIANT  
-
-----------------------------------------
-APPEND-ONLY RULE
-----------------------------------------
-
-- Never update registry snapshots  
-- Never delete registry data  
-- Always insert new rows  
-
-----------------------------------------
-VIEW RULE
-----------------------------------------
-
-- UI must use views only  
-- Never query base tables directly  
-
-----------------------------------------
-ERROR PREVENTION
-----------------------------------------
-
-Common issues to avoid:
-
-- Invalid identifier (e.g., UPDATED_AT not existing)  
-- JSON binding errors  
-- Missing column mismatches  
-
-----------------------------------------
-CANONICAL FILE ORDER (EXECUTION)
-----------------------------------------
-
-1. Dimension system  
-2. Core tables (verification)  
-3. Scoring tables  
-4. Registry tables  
-5. Views  
-6. Stored procedures  
-7. Seed data  
-
-----------------------------------------
-RELATIONSHIP TO APPLICATION
-----------------------------------------
-
-Snowflake → Views → Query Layer → API → UI  
-
-- Snowflake handles logic  
-- Query layer fetches  
-- API transports  
-- UI renders  
-
-----------------------------------------
-CURRENT STATE
-----------------------------------------
-
-COMPLETED:
-- Full verification pipeline  
-- Deterministic scoring engine  
-- Registry snapshot system  
-- Public registry views  
-- AI systems registry  
-
-STABLE:
-- V_REGISTRY_PUBLIC  
-- V_GOVERNANCE_SCORE_CASE  
-- SP_PUBLISH_CASE_TO_REGISTRY_V3  
-
-ACTIVE:
-- Alignment with UI trust surfaces  
-- Validation of external API usage  
-
-----------------------------------------
-FINAL PRINCIPLE
-----------------------------------------
-
-Snowflake defines reality.
-
-The application reflects it.
-
-Never reverse that relationship.
+Creates:
+- CORE.DECISIONS
+
+Purpose:
+- Stores certification decisions
+- Defines:
+  - DECISION_STATUS
+  - CERTIFICATION_TIER
+  - CERTIFICATION_BAND
+  - VALID_FROM / VALID_TO
+
+============================================================
+CASE DETAIL VIEW (ADMIN)
+============================================================
+
+20_VIEWS_VERIFICATION_CASE_DETAIL.sql
+
+Creates:
+- CORE.V_VERIFICATION_CASE_DETAIL
+
+Purpose:
+- Unified case detail surface
+- Used for admin/debugging
+
+============================================================
+DEMO DATA SYSTEM
+============================================================
+
+PRIMARY FILE (ACTIVE):
+- GAFAIG - FINAL_CANONICAL_DEMO_SEED.sql
+
+Purpose:
+- Seeds full pipeline:
+  CASE → FINDINGS → EVIDENCE → EVENTS → SCORING → DECISION → PUBLISH
+
+------------------------------------------------------------
+
+SUPPORTING FILE:
+- GAFAIG - CANONICAL DEMO DATASET.sql
+
+Purpose:
+- Adds:
+  - Entities
+  - AI system linkage
+
+------------------------------------------------------------
+
+RESULTING DATA:
+- 6 registry records
+- 2 certified
+- 4 approved-only
+
+============================================================
+CRITICAL VIEWS (USED BY APP)
+============================================================
+
+- CORE.V_REGISTRY_PUBLIC → PRIMARY CONTRACT
+- CORE.V_REGISTRY_LATEST_APPROVED → snapshot resolution
+- CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC → systems explorer
+
+============================================================
+DEPRECATED / DO NOT USE
+============================================================
+
+Any:
+- Archived SQL files
+- Duplicate schema files
+- Legacy scoring procedures
+- Non-canonical views
+
+============================================================
+RUN ORDER (REFERENCE)
+============================================================
+
+1. 01_REBUILD_ENVIRONMENT_CANONICAL.sql
+2. 11_TABLES_APPLICATIONS.sql
+3. 14_TABLES_REGISTRY_AI_SYSTEMS.sql
+4. 17_TABLES_DECISIONS.sql
+5. GAFAIG - CORE.REGISTRY_SNAPSHOTS.sql
+6. 21_VIEWS_PUBLIC_REGISTRY.sql
+7. 22_VIEWS_REGISTRY_AI_SYSTEMS_PUBLIC.sql
+8. 23_SP_CREATE_CASE_FROM_APPLICATION.sql
+9. SP_SCORE_CASE_ENTERPRISE
+10. SP_PUBLISH_CASE_TO_REGISTRY_V3
+11. GAFAIG - FINAL_CANONICAL_DEMO_SEED.sql
+
+============================================================
+SYSTEM STATUS
+============================================================
+
+Snowflake:
+- ✅ Fully operational
+- ✅ Canonical
+- ✅ Deterministic
+
+All pipeline stages:
+- Working end-to-end
+
+============================================================
+END
+============================================================

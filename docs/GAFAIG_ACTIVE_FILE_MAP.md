@@ -1,491 +1,239 @@
-# GAFAIG ACTIVE FILE MAP
+# GAFAIG_ACTIVE_FILE_MAP.md
+Last Updated: 2026-04-14
 
-DATE: 2026-04-13
-
-This document defines the actively used files in the GAFAIG system during the current development phase.
-
-This is NOT a full repository map.  
-This is the execution map for the current phase: Trust Surface Completion.
-
-----------------------------------------
-CURRENT PHASE
-----------------------------------------
-
-Trust Surface Completion + UI Consistency + External Trust Surfaces
-
-Focus:
-- Finalize all public-facing pages
-- Ensure visual consistency across all trust surfaces
-- Enable external verification via widget
-- Stabilize API access (CORS)
-
-----------------------------------------
-CORE APPLICATION FILES
-----------------------------------------
-
-These are the primary files currently being edited and iterated.
-
-----------------------------------------
-REGISTRY (PRIMARY TRUST SURFACE)
-----------------------------------------
-
-app/registry/page.tsx  
-- Public registry list page  
-- Displays certified entities  
-- Includes search + filters  
-- Must match Explorer and Mission layout  
-
-app/registry/[registryId]/page.tsx  
-- Registry detail page  
-- Displays certification record  
-- Includes trust signals and metadata  
-- Uses RegistryTrustTools component  
-
-----------------------------------------
-EXPLORER (DISCOVERY LAYER)
-----------------------------------------
-
-app/explorer/page.tsx  
-- Explorer landing page  
-
-app/explorer/organizations/page.tsx  
-- Organization-level exploration  
-
-app/explorer/systems/page.tsx  
-- AI systems exploration  
-
-app/explorer/countries/page.tsx  
-- Country-level exploration  
-
-lib/queries/explorer.ts  
-- Query layer for explorer  
-- Pulls from Snowflake views  
-- Must remain deterministic  
-
-----------------------------------------
-BADGE (TRUST ARTIFACT)
-----------------------------------------
-
-app/badge/[registryId]/route.ts  
-- Badge endpoint (HTML response)  
-- Public trust artifact  
-- Must align visually with GAFAIG UI  
-
-app/badge-preview/[registryId]/page.tsx  
-- Human-facing badge preview  
-- Used for testing and demonstration  
-
-----------------------------------------
-WIDGET (EXTERNAL TRUST SURFACE)
-----------------------------------------
-
-public/widget/gafaig-widget.js  
-- Embeddable widget  
-- Fetches data from public APIs  
-- Must work cross-origin  
-- Must fail gracefully  
-
-app/widget-preview/[registryId]/page.tsx  
-- Widget preview page  
-- Must mirror widget exactly  
-- Used for testing and demos  
-
-docs/test-widget.html  
-- External test harness  
-- Used with Live Server  
-- Validates widget outside GAFAIG  
-
-----------------------------------------
-TRUST COMPONENTS
-----------------------------------------
-
-components/registry/RegistryTrustTools.tsx  
-- Shared trust distribution component  
-- Provides:
-  - verify endpoint links  
-  - badge embed  
-  - widget embed  
-
-components/registry/RegistryVerificationPanel.tsx  
-- Displays verification data  
-- Used on registry detail page  
-
-components/ui/StatusChip.tsx  
-- Standardized status display  
-- Used across pages  
-
-----------------------------------------
-API LAYER (PUBLIC ACCESS)
-----------------------------------------
-
-app/api/registry/route.ts  
-- Registry search + fetch endpoint  
-- Uses V_REGISTRY_PUBLIC  
-
-app/api/verify/[registryId]/route.ts  
-- Verification endpoint  
-- Returns signed trust payload  
-
-RULE:
-- Must include CORS headers  
-- Must support OPTIONS requests  
-
-----------------------------------------
-QUERY LAYER
-----------------------------------------
-
-lib/queries/registry.ts  
-- Registry data access  
-- Uses V_REGISTRY_PUBLIC  
-
-lib/queries/registry-ai-systems.ts  
-- AI systems registry queries  
-
-lib/queries/explorer.ts  
-- Explorer queries  
-
-RULE:
-- Must only use canonical views  
-- Must not compute business logic  
-
-----------------------------------------
-SNOWFLAKE (SOURCE OF TRUTH)
-----------------------------------------
-
-All data originates from Snowflake:
-
-Database:
-- GAFAIG_DB
-
-Schema:
-- CORE
-
-Key objects:
-- CORE.V_REGISTRY_PUBLIC  
-- CORE.V_REGISTRY_LATEST_APPROVED  
-- CORE.V_GOVERNANCE_SCORE_CASE  
-- CORE.REGISTRY_SNAPSHOTS  
-- CORE.REGISTRY_AI_SYSTEMS  
-
-RULE:
-- No direct table usage in UI  
-- Only use views  
-
-----------------------------------------
-DEPLOYMENT
-----------------------------------------
-
-Repository:
-- GitHub: GAF2026/gafaig  
-
-Hosting:
-- Vercel  
-
-Production:
-- https://www.gafaig.com  
-
-----------------------------------------
-CURRENTLY MODIFIED FILES (ACTIVE WORK)
-----------------------------------------
-
-These files are actively being refined:
-
-- public/widget/gafaig-widget.js  
-- app/widget-preview/[registryId]/page.tsx  
-- app/badge/[registryId]/route.ts  
-- app/badge-preview/[registryId]/page.tsx  
-- app/registry/page.tsx  
-- app/registry/[registryId]/page.tsx  
-- lib/queries/explorer.ts  
-- app/api/verify/[registryId]/route.ts  
-- app/api/registry/route.ts  
-
-----------------------------------------
-NEXT FILES TO TOUCH (ORDERED)
-----------------------------------------
-
-1. app/api/verify/[registryId]/route.ts  
-2. app/api/registry/route.ts  
-3. public/widget/gafaig-widget.js  
-4. app/widget-preview/[registryId]/page.tsx  
-5. app/badge/[registryId]/route.ts  
-6. app/registry/[registryId]/page.tsx  
-7. components/registry/RegistryTrustTools.tsx  
-8. app/page.tsx  
-
-----------------------------------------
-RULES FOR THIS FILE MAP
-----------------------------------------
-
-- Only include actively used files  
-- Do not list unused or deprecated files  
-- Keep aligned with CURRENT_FOCUS.md  
-- Update when execution order changes  
-
-----------------------------------------
+============================================================
 PURPOSE
-----------------------------------------
+============================================================
+
+This document defines the ACTIVE, CANONICAL file map for the GAFAIG platform.
+
+It identifies:
+- Source-of-truth Snowflake files
+- Active Next.js application files
+- Critical query layer dependencies
+- API ↔ Query ↔ Snowflake relationships
+
+Only files listed here should be modified.
+Archived or duplicate files must NOT be used.
 
-This file ensures:
+============================================================
+SYSTEM ARCHITECTURE (LOCKED)
+============================================================
 
-- No confusion about what to work on  
-- No wasted effort on inactive files  
-- Strict execution order  
-- Alignment across sessions  
+Snowflake (Source of Truth)
+→ Query Layer (lib/queries)
+→ API Layer (app/api)
+→ UI Layer (app/*)
+→ Vercel (Production)
 
-----------------------------------------
-FINAL NOTE
-----------------------------------------
+NO business logic exists outside Snowflake.
 
-This is the execution map.
+============================================================
+SNOWFLAKE — CANONICAL FILES
+============================================================
+
+CORE PIPELINE TABLES (Defined in rebuild file):
+- 01_REBUILD_ENVIRONMENT_CANONICAL.sql
+  - CORE.VERIFICATION_CASES
+  - CORE.VERIFICATION_FINDINGS
+  - CORE.VERIFICATION_EVIDENCE
+  - CORE.VERIFICATION_FINDING_EVIDENCE
+  - CORE.VERIFICATION_EVENTS
+  - CORE.CASE_SCORE_SNAPSHOTS
+  - CORE.DECISIONS
+  - CORE.REGISTRY_SNAPSHOTS
+
+APPLICATION LAYER:
+- 11_TABLES_APPLICATIONS.sql
+  - CORE.APPLICATIONS
+
+REGISTRY SNAPSHOTS:
+- GAFAIG - CORE.REGISTRY_SNAPSHOTS.sql
+  - CORE.REGISTRY_SNAPSHOTS
+  - CORE.V_REGISTRY_LATEST_APPROVED
+
+PUBLIC REGISTRY VIEWS:
+- 21_VIEWS_PUBLIC_REGISTRY.sql
+  - CORE.V_REGISTRY_PUBLIC
+  - CORE.V_REGISTRY_LATEST_APPROVED
+
+AI SYSTEMS:
+- 14_TABLES_REGISTRY_AI_SYSTEMS.sql
+  - CORE.REGISTRY_AI_SYSTEMS
+
+- 22_VIEWS_REGISTRY_AI_SYSTEMS_PUBLIC.sql
+  - CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC
 
-Follow it strictly.
+SCORING:
+- CORE.SP_SCORE_CASE_ENTERPRISE
+- CORE.V_CASE_SCORE_ENTERPRISE
+- CORE.V_CASE_TIER_BAND
+
+PUBLISHING:
+- CORE.SP_PUBLISH_CASE_TO_REGISTRY_V3
 
-One file at a time.
+CASE CREATION:
+- 23_SP_CREATE_CASE_FROM_APPLICATION.sql
 
-No drift.# GAFAIG ACTIVE FILE MAP
+DEMO DATA:
+- GAFAIG - FINAL_CANONICAL_DEMO_SEED.sql (ACTIVE)
+- GAFAIG - CANONICAL DEMO DATASET.sql (SUPPORTING)
 
-DATE: 2026-04-13
+============================================================
+NEXT.JS — ACTIVE APPLICATION FILES
+============================================================
+
+APP ROUTES (UI)
+
+Registry:
+- app/registry/page.tsx
+- app/registry/[registryId]/page.tsx
+
+Explorer:
+- app/explorer/page.tsx
+- app/explorer/organizations/page.tsx
+- app/explorer/systems/page.tsx
+- app/explorer/countries/page.tsx
 
-This document defines the actively used files in the GAFAIG system during the current development phase.
+Widget Preview:
+- app/widget-preview/[registryId]/page.tsx
+
+============================================================
+API ROUTES (CRITICAL)
+============================================================
+
+Registry API:
+- app/api/registry/route.ts
+- app/api/registry/search/route.ts
 
-This is NOT a full repository map.  
-This is the execution map for the current phase: Trust Surface Completion.
+Verification:
+- app/api/verify/[registryId]/route.ts
 
-----------------------------------------
-CURRENT PHASE
-----------------------------------------
+Badge:
+- app/api/badge/[registryId]/route.ts
 
-Trust Surface Completion + UI Consistency + External Trust Surfaces
+Well-known:
+- app/api/.well-known/gafaig-public-key/route.ts
 
-Focus:
-- Finalize all public-facing pages
-- Ensure visual consistency across all trust surfaces
-- Enable external verification via widget
-- Stabilize API access (CORS)
+============================================================
+QUERY LAYER (CRITICAL — CURRENTLY UNSTABLE)
+============================================================
 
-----------------------------------------
-CORE APPLICATION FILES
-----------------------------------------
+Primary file:
+- lib/queries/registry.ts  ⚠️ ACTIVE BREAKPOINT
 
-These are the primary files currently being edited and iterated.
+This file MUST provide:
 
-----------------------------------------
-REGISTRY (PRIMARY TRUST SURFACE)
-----------------------------------------
+Exports:
+- getRegistryRecords
+- getRegistryRecord
+- getRegistryByRegistryId
+- searchRegistryRecords
+- getRegistrySummary
+- getRegistryCountries
 
-app/registry/page.tsx  
-- Public registry list page  
-- Displays certified entities  
-- Includes search + filters  
-- Must match Explorer and Mission layout  
-
-app/registry/[registryId]/page.tsx  
-- Registry detail page  
-- Displays certification record  
-- Includes trust signals and metadata  
-- Uses RegistryTrustTools component  
-
-----------------------------------------
-EXPLORER (DISCOVERY LAYER)
-----------------------------------------
-
-app/explorer/page.tsx  
-- Explorer landing page  
-
-app/explorer/organizations/page.tsx  
-- Organization-level exploration  
-
-app/explorer/systems/page.tsx  
-- AI systems exploration  
-
-app/explorer/countries/page.tsx  
-- Country-level exploration  
-
-lib/queries/explorer.ts  
-- Query layer for explorer  
-- Pulls from Snowflake views  
-- Must remain deterministic  
-
-----------------------------------------
-BADGE (TRUST ARTIFACT)
-----------------------------------------
-
-app/badge/[registryId]/route.ts  
-- Badge endpoint (HTML response)  
-- Public trust artifact  
-- Must align visually with GAFAIG UI  
-
-app/badge-preview/[registryId]/page.tsx  
-- Human-facing badge preview  
-- Used for testing and demonstration  
-
-----------------------------------------
-WIDGET (EXTERNAL TRUST SURFACE)
-----------------------------------------
-
-public/widget/gafaig-widget.js  
-- Embeddable widget  
-- Fetches data from public APIs  
-- Must work cross-origin  
-- Must fail gracefully  
-
-app/widget-preview/[registryId]/page.tsx  
-- Widget preview page  
-- Must mirror widget exactly  
-- Used for testing and demos  
-
-docs/test-widget.html  
-- External test harness  
-- Used with Live Server  
-- Validates widget outside GAFAIG  
-
-----------------------------------------
-TRUST COMPONENTS
-----------------------------------------
-
-components/registry/RegistryTrustTools.tsx  
-- Shared trust distribution component  
-- Provides:
-  - verify endpoint links  
-  - badge embed  
-  - widget embed  
-
-components/registry/RegistryVerificationPanel.tsx  
-- Displays verification data  
-- Used on registry detail page  
-
-components/ui/StatusChip.tsx  
-- Standardized status display  
-- Used across pages  
-
-----------------------------------------
-API LAYER (PUBLIC ACCESS)
-----------------------------------------
-
-app/api/registry/route.ts  
-- Registry search + fetch endpoint  
-- Uses V_REGISTRY_PUBLIC  
-
-app/api/verify/[registryId]/route.ts  
-- Verification endpoint  
-- Returns signed trust payload  
-
-RULE:
-- Must include CORS headers  
-- Must support OPTIONS requests  
-
-----------------------------------------
-QUERY LAYER
-----------------------------------------
-
-lib/queries/registry.ts  
-- Registry data access  
-- Uses V_REGISTRY_PUBLIC  
-
-lib/queries/registry-ai-systems.ts  
-- AI systems registry queries  
-
-lib/queries/explorer.ts  
-- Explorer queries  
-
-RULE:
-- Must only use canonical views  
-- Must not compute business logic  
-
-----------------------------------------
-SNOWFLAKE (SOURCE OF TRUTH)
-----------------------------------------
-
-All data originates from Snowflake:
-
-Database:
-- GAFAIG_DB
-
-Schema:
-- CORE
-
-Key objects:
-- CORE.V_REGISTRY_PUBLIC  
-- CORE.V_REGISTRY_LATEST_APPROVED  
-- CORE.V_GOVERNANCE_SCORE_CASE  
-- CORE.REGISTRY_SNAPSHOTS  
-- CORE.REGISTRY_AI_SYSTEMS  
-
-RULE:
-- No direct table usage in UI  
-- Only use views  
-
-----------------------------------------
-DEPLOYMENT
-----------------------------------------
-
-Repository:
-- GitHub: GAF2026/gafaig  
-
-Hosting:
-- Vercel  
-
-Production:
-- https://www.gafaig.com  
-
-----------------------------------------
-CURRENTLY MODIFIED FILES (ACTIVE WORK)
-----------------------------------------
-
-These files are actively being refined:
-
-- public/widget/gafaig-widget.js  
-- app/widget-preview/[registryId]/page.tsx  
-- app/badge/[registryId]/route.ts  
-- app/badge-preview/[registryId]/page.tsx  
-- app/registry/page.tsx  
-- app/registry/[registryId]/page.tsx  
-- lib/queries/explorer.ts  
-- app/api/verify/[registryId]/route.ts  
-- app/api/registry/route.ts  
-
-----------------------------------------
-NEXT FILES TO TOUCH (ORDERED)
-----------------------------------------
-
-1. app/api/verify/[registryId]/route.ts  
-2. app/api/registry/route.ts  
-3. public/widget/gafaig-widget.js  
-4. app/widget-preview/[registryId]/page.tsx  
-5. app/badge/[registryId]/route.ts  
-6. app/registry/[registryId]/page.tsx  
-7. components/registry/RegistryTrustTools.tsx  
-8. app/page.tsx  
-
-----------------------------------------
-RULES FOR THIS FILE MAP
-----------------------------------------
-
-- Only include actively used files  
-- Do not list unused or deprecated files  
-- Keep aligned with CURRENT_FOCUS.md  
-- Update when execution order changes  
-
-----------------------------------------
-PURPOSE
-----------------------------------------
-
-This file ensures:
-
-- No confusion about what to work on  
-- No wasted effort on inactive files  
-- Strict execution order  
-- Alignment across sessions  
-
-----------------------------------------
-FINAL NOTE
-----------------------------------------
-
-This is the execution map.
-
-Follow it strictly.
-
-One file at a time.
-
-No drift.
+This file MUST align with:
+- API route expectations
+- Snowflake column names
+- UI component expectations
+
+Current issue:
+- Mismatched filters
+- Missing exports (previously)
+- Incorrect filtering logic (previously)
+- TypeScript interface mismatch
+
+STATUS: NEEDS STABILIZATION
+
+============================================================
+SUPPORTING QUERY FILES
+============================================================
+
+- lib/queries/explorer.ts
+- lib/queries/registry-ai-systems.ts
+
+============================================================
+SHARED INFRASTRUCTURE
+============================================================
+
+Snowflake Client:
+- lib/snowflake.ts
+
+Auth:
+- lib/auth/require.ts
+
+============================================================
+CRITICAL DATA CONTRACT
+============================================================
+
+All data must originate from:
+- CORE.V_REGISTRY_PUBLIC
+
+This is the ONLY public contract view.
+
+============================================================
+RECORD TYPES (LOCKED LOGIC)
+============================================================
+
+CERTIFIED RECORD:
+- CERTIFIED_AT NOT NULL
+- Has:
+  - CERTIFIED_SCORE
+  - CERTIFIED_TIER
+  - CERTIFIED_BAND
+  - Signed proof
+
+APPROVED-ONLY RECORD:
+- DECISION_STATUS = APPROVED
+- CERTIFIED_AT NULL
+- Has NO certification fields
+
+UI must respect this distinction.
+
+============================================================
+CURRENT SYSTEM STATUS
+============================================================
+
+Snowflake:
+- ✅ Fully operational
+- ✅ Canonical pipeline working
+- ✅ Demo data seeded (6 records)
+
+Application Layer:
+- ❌ Query layer unstable
+- ❌ API contract mismatch
+- ❌ Build errors recently resolved but fragile
+
+UI:
+- ⚠️ Rendering correctly but dependent on unstable data layer
+
+============================================================
+IMMEDIATE PRIORITY
+============================================================
+
+1. Stabilize:
+   lib/queries/registry.ts
+
+2. Ensure compatibility with:
+   - /api/registry
+   - /api/registry/search
+   - /api/badge/[registryId]
+
+3. Do NOT modify:
+   - Snowflake
+   - UI components
+
+============================================================
+RULES
+============================================================
+
+- Snowflake is the source of truth
+- No business logic in API or UI
+- Do not re-architect
+- Do not introduce new data sources
+- Fix only what is broken
+- Maintain deterministic pipeline
+
+============================================================
+END
+============================================================
