@@ -14,38 +14,54 @@ type VerifyResponse = {
     signedAt: string;
     message?: {
       registryId?: string;
-      entityName?: string;
-      entityType?: string;
-      country?: string;
-      applicationId?: string;
-      caseId?: string;
-      certificationStatus?: string;
+      entityName?: string | null;
+      entityType?: string | null;
+      country?: string | null;
+      applicationId?: string | null;
+      caseId?: string | null;
+      certificationStatus?: string | null;
       certifiedScore?: number | null;
-      certifiedTier?: string;
-      certifiedBand?: string;
-      decisionStatus?: string;
-      certifiedAt?: string;
-      validFrom?: string;
-      validTo?: string;
-      signedAt?: string;
+      certifiedTier?: string | null;
+      certifiedBand?: string | null;
+      decisionStatus?: string | null;
+      certifiedAt?: string | null;
+      validFrom?: string | null;
+      validTo?: string | null;
+      signedAt?: string | null;
     };
   };
   record?: {
     registryId?: string;
-    entityName?: string;
-    entityType?: string;
-    country?: string;
-    applicationId?: string;
-    caseId?: string;
-    certificationStatus?: string;
+    entityName?: string | null;
+    entityType?: string | null;
+    country?: string | null;
+    applicationId?: string | null;
+    caseId?: string | null;
+    certificationStatus?: string | null;
     certifiedScore?: number | null;
-    certifiedTier?: string;
-    certifiedBand?: string;
-    decisionStatus?: string;
-    certifiedAt?: string;
-    validFrom?: string;
-    validTo?: string;
+    certifiedTier?: string | null;
+    certifiedBand?: string | null;
+    decisionStatus?: string | null;
+    certifiedAt?: string | null;
+    validFrom?: string | null;
+    validTo?: string | null;
   };
+};
+
+type TrustSummary = {
+  entityName: string;
+  entityType: string;
+  country: string;
+  applicationId: string;
+  caseId: string;
+  certificationStatusRaw: string | null;
+  certifiedScoreRaw: number | null;
+  certifiedTierRaw: string | null;
+  certifiedBandRaw: string | null;
+  decisionStatusRaw: string | null;
+  certifiedAtRaw: string | null;
+  validFromRaw: string | null;
+  validToRaw: string | null;
 };
 
 async function getVerification(registryId: string): Promise<VerifyResponse | null> {
@@ -86,41 +102,52 @@ function formatScore(value?: number | null) {
   return `${Math.round(Number(value))} / 100`;
 }
 
-function trustSummary(data: VerifyResponse) {
+function displayText(value?: string | null, fallback = "—") {
+  const text = String(value ?? "").trim();
+  return text || fallback;
+}
+
+function trustSummary(data: VerifyResponse): TrustSummary {
   const record = data.record;
   const proofMessage = data.proof?.message;
 
   return {
-    entityName: record?.entityName || proofMessage?.entityName || data.registryId,
-    entityType: record?.entityType || proofMessage?.entityType || "Organization",
-    country: record?.country || proofMessage?.country || "—",
-    applicationId: record?.applicationId || proofMessage?.applicationId || "—",
-    caseId: record?.caseId || proofMessage?.caseId || "—",
-    certificationStatus:
-      record?.certificationStatus || proofMessage?.certificationStatus || "—",
-    certifiedScore:
-      record?.certifiedScore ?? proofMessage?.certifiedScore ?? null,
-    certifiedTier: record?.certifiedTier || proofMessage?.certifiedTier || "—",
-    certifiedBand: record?.certifiedBand || proofMessage?.certifiedBand || "—",
-    decisionStatus: record?.decisionStatus || proofMessage?.decisionStatus || "—",
-    certifiedAt: record?.certifiedAt || proofMessage?.certifiedAt || "—",
-    validFrom: record?.validFrom || proofMessage?.validFrom || "—",
-    validTo: record?.validTo || proofMessage?.validTo || "—",
+    entityName: displayText(record?.entityName ?? proofMessage?.entityName ?? data.registryId, data.registryId),
+    entityType: displayText(record?.entityType ?? proofMessage?.entityType, "Organization"),
+    country: displayText(record?.country ?? proofMessage?.country, "—"),
+    applicationId: displayText(record?.applicationId ?? proofMessage?.applicationId, "—"),
+    caseId: displayText(record?.caseId ?? proofMessage?.caseId, "—"),
+    certificationStatusRaw: record?.certificationStatus ?? proofMessage?.certificationStatus ?? null,
+    certifiedScoreRaw:
+      record?.certifiedScore ??
+      proofMessage?.certifiedScore ??
+      null,
+    certifiedTierRaw: record?.certifiedTier ?? proofMessage?.certifiedTier ?? null,
+    certifiedBandRaw: record?.certifiedBand ?? proofMessage?.certifiedBand ?? null,
+    decisionStatusRaw: record?.decisionStatus ?? proofMessage?.decisionStatus ?? null,
+    certifiedAtRaw: record?.certifiedAt ?? proofMessage?.certifiedAt ?? null,
+    validFromRaw: record?.validFrom ?? proofMessage?.validFrom ?? null,
+    validToRaw: record?.validTo ?? proofMessage?.validTo ?? null,
   };
 }
 
-function getTrustState(certifiedAt?: string | null, decisionStatus?: string | null) {
-  const isCertified = Boolean(String(certifiedAt ?? "").trim());
+function getTrustState(
+  certifiedAt?: string | null,
+  decisionStatus?: string | null,
+  certificationStatus?: string | null
+) {
+  const certified = String(certifiedAt ?? "").trim();
   const decision = String(decisionStatus ?? "").trim().toUpperCase();
+  const contractStatus = String(certificationStatus ?? "").trim().toUpperCase();
 
-  if (isCertified) {
+  if (certified) {
     return {
       label: "Certified",
       description: "Trusted + published",
     };
   }
 
-  if (decision === "APPROVED") {
+  if (contractStatus === "APPROVED" || decision === "APPROVED") {
     return {
       label: "Approved",
       description: "Evaluated",
@@ -144,7 +171,11 @@ export default async function VerifyPage({
 
   const verified = !!data.verified;
   const summary = trustSummary(data);
-  const trust = getTrustState(summary.certifiedAt, summary.decisionStatus);
+  const trust = getTrustState(
+    summary.certifiedAtRaw,
+    summary.decisionStatusRaw,
+    summary.certificationStatusRaw
+  );
   const shortSignature = data.proof?.signature
     ? `${data.proof.signature.slice(0, 18)}…${data.proof.signature.slice(-18)}`
     : "—";
@@ -163,13 +194,14 @@ export default async function VerifyPage({
             </h1>
 
             <p className="mt-5 max-w-[820px] text-[17px] leading-[1.7] text-black/72">
-              This page confirms whether the public GAFAIG record matches the signed verification payload generated from the registry trust layer.
+              This page confirms whether the public GAFAIG record matches the signed
+              verification payload generated from the registry trust layer.
             </p>
 
             <div className="mt-6 flex flex-wrap items-center gap-3">
               <StatusPill verified={verified} />
               <NeutralPill>{trust.label}</NeutralPill>
-              <NeutralPill>{summary.decisionStatus}</NeutralPill>
+              <NeutralPill>{displayText(summary.decisionStatusRaw)}</NeutralPill>
             </div>
 
             <div className="mt-8 flex flex-wrap gap-3">
@@ -230,7 +262,10 @@ export default async function VerifyPage({
       <section className="mt-10 grid gap-4 md:grid-cols-4">
         <MetricCard label="Registry ID" value={data.registryId} />
         <MetricCard label="Trust State" value={trust.label} />
-        <MetricCard label="Certified score" value={formatScore(summary.certifiedScore)} />
+        <MetricCard
+          label="Certified score"
+          value={formatScore(summary.certifiedScoreRaw)}
+        />
         <MetricCard label="Country" value={summary.country} />
       </section>
 
@@ -248,15 +283,18 @@ export default async function VerifyPage({
             <Info label="Entity name" value={summary.entityName} />
             <Info label="Entity type" value={summary.entityType} />
             <Info label="Trust state" value={trust.label} />
-            <Info label="Decision status" value={summary.decisionStatus} />
+            <Info label="Decision status" value={displayText(summary.decisionStatusRaw)} />
             <Info label="Application ID" value={summary.applicationId} />
             <Info label="Case ID" value={summary.caseId} />
-            <Info label="Certified at" value={formatDate(summary.certifiedAt)} />
-            <Info label="Valid from" value={formatDate(summary.validFrom)} />
-            <Info label="Valid to" value={formatDate(summary.validTo)} />
-            <Info label="Tier" value={summary.certifiedTier} />
-            <Info label="Band" value={summary.certifiedBand} />
-            <Info label="Certified score" value={formatScore(summary.certifiedScore)} />
+            <Info label="Certified at" value={formatDate(summary.certifiedAtRaw)} />
+            <Info label="Valid from" value={formatDate(summary.validFromRaw)} />
+            <Info label="Valid to" value={formatDate(summary.validToRaw)} />
+            <Info label="Tier" value={displayText(summary.certifiedTierRaw)} />
+            <Info label="Band" value={displayText(summary.certifiedBandRaw)} />
+            <Info
+              label="Certified score"
+              value={formatScore(summary.certifiedScoreRaw)}
+            />
           </div>
         </div>
 
@@ -332,7 +370,9 @@ function Info({ label, value }: { label: string; value: string }) {
       <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-black/55">
         {label}
       </div>
-      <div className="mt-2 break-words text-[14px] text-black/85">{value || "—"}</div>
+      <div className="mt-2 break-words text-[14px] text-black/85">
+        {value || "—"}
+      </div>
     </div>
   );
 }
@@ -360,7 +400,7 @@ function StatusPill({ verified }: { verified: boolean }) {
   );
 }
 
-function NeutralPill({ children }: { children: React.ReactNode }) {
+function NeutralPill({ children }: { children: string }) {
   return (
     <span className="inline-flex rounded-full border border-black/10 bg-black/[0.03] px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-black/65">
       {children}
