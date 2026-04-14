@@ -82,10 +82,8 @@ function getBaseUrl(): string {
 
 function formatDate(value?: string | null): string {
   if (!value) return "—";
-
   const d = new Date(value);
   if (Number.isNaN(d.getTime())) return String(value);
-
   return d.toLocaleDateString("en-US", {
     year: "numeric",
     month: "short",
@@ -104,7 +102,6 @@ function infoValue(values: Array<string | null | undefined>): string {
 function formatTierBand(tier?: string | null, band?: string | null): string {
   const safeTier = String(tier ?? "").trim();
   const safeBand = String(band ?? "").trim();
-
   if (safeTier && safeBand) return `${safeTier} · ${safeBand}`;
   if (safeTier) return safeTier;
   if (safeBand) return safeBand;
@@ -113,28 +110,19 @@ function formatTierBand(tier?: string | null, band?: string | null): string {
 
 function statusTone(value: string) {
   const v = value.trim().toUpperCase();
-
-  if (v === "APPROVED") {
-    return "bg-blue-50 text-blue-700 ring-blue-200";
-  }
-
-  if (v === "CERTIFIED") {
-    return "bg-emerald-50 text-emerald-700 ring-emerald-200";
-  }
-
+  if (v === "APPROVED") return "bg-blue-50 text-blue-700 ring-blue-200";
+  if (v === "CERTIFIED") return "bg-emerald-50 text-emerald-700 ring-emerald-200";
   return "bg-slate-100 text-slate-600 ring-slate-200";
 }
 
 function getTrustState({
-  certificationStatus,
-  certifiedAt,
+  isCertified,
   decisionStatus,
 }: {
-  certificationStatus: string;
-  certifiedAt?: string | null;
+  isCertified: boolean;
   decisionStatus: string;
 }) {
-  if (certifiedAt || certificationStatus.toUpperCase() === "CERTIFIED") {
+  if (isCertified) {
     return {
       label: "Verified",
       className:
@@ -200,23 +188,21 @@ export default async function RegistryRecordPage({
   ]);
 
   const registryData: RegistryApiResponse | null = registryRes
-    ? ((await registryRes.json()) as RegistryApiResponse)
+    ? await registryRes.json()
     : null;
 
   const verifyData: VerifyApiResponse | null = verifyRes
-    ? ((await verifyRes.json()) as VerifyApiResponse)
+    ? await verifyRes.json()
     : null;
 
   const scoreBreakdownData: ScoreBreakdownApiResponse | null = scoreBreakdownRes
-    ? ((await scoreBreakdownRes.json()) as ScoreBreakdownApiResponse)
+    ? await scoreBreakdownRes.json()
     : null;
 
   const row = registryData?.rows?.[0] ?? null;
   const record = verifyData?.record ?? null;
 
-  if (!row && !record) {
-    notFound();
-  }
+  if (!row && !record) notFound();
 
   const entityName = infoValue([record?.entityName, row?.entityName]);
   const entityType = infoValue([record?.entityType, row?.entityType]);
@@ -237,19 +223,10 @@ export default async function RegistryRecordPage({
       ? String(record.certifiedScore)
       : infoValue([row?.certifiedScore]);
 
-  const certificationStatus = infoValue([
-    record?.certificationStatus,
-    certifiedAtRaw ? "Certified" : "Not Certified",
-  ]);
-
-  const trustState = getTrustState({
-    certificationStatus,
-    certifiedAt: certifiedAtRaw,
-    decisionStatus,
-  });
+  const isCertified = Boolean(String(certifiedAtRaw ?? "").trim());
 
   const dimensions: string[] = (scoreBreakdownData?.dimensions ?? [])
-    .map((d: ScoreBreakdownDimension) => String(d.scoreDimension ?? "").trim())
+    .map((d) => String(d.scoreDimension ?? "").trim())
     .filter(Boolean);
 
   const dimensionCount =
@@ -262,6 +239,11 @@ export default async function RegistryRecordPage({
     certifiedBandRaw === "—" ? null : certifiedBandRaw
   );
 
+  const trustState = getTrustState({
+    isCertified,
+    decisionStatus,
+  });
+
   return (
     <main className="mx-auto max-w-[1440px] px-6 pb-20 pt-12 lg:px-10">
       <div className="space-y-8">
@@ -269,128 +251,65 @@ export default async function RegistryRecordPage({
           <div className="flex flex-wrap items-center gap-2">
             <span className={trustState.className}>{trustState.label}</span>
 
-            {decisionStatus !== "—" ? (
-              <span
-                className={`inline-flex rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] ring-1 ${statusTone(
-                  decisionStatus
-                )}`}
-              >
+            {decisionStatus !== "—" && (
+              <span className={`inline-flex rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] ring-1 ${statusTone(decisionStatus)}`}>
                 {decisionStatus}
               </span>
-            ) : null}
+            )}
           </div>
 
-          <div className="mt-5 text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
-            CANONICAL PUBLIC TRUST RECORD
-          </div>
-
-          <h1 className="mt-4 max-w-[1100px] text-[42px] font-semibold leading-[1.05] tracking-tight text-black md:text-[56px] xl:text-[64px]">
-            {entityName}
-          </h1>
-
-          <p className="mt-4 max-w-[1000px] text-[17px] leading-8 text-black/68">
-            This page is the public record for this entity within the GAFAIG
-            registry of record.
-          </p>
+          <h1 className="mt-4 text-[42px] font-semibold">{entityName}</h1>
 
           <div className="mt-8 grid gap-3 md:grid-cols-5">
-            <InfoCard label="Status" value={certificationStatus} />
-            <InfoCard label="Tier / Band" value={tierBand} />
+            <InfoCard label="Status" value={isCertified ? "Certified" : "Not Certified"} />
+            <InfoCard label="Tier / Band" value={isCertified ? tierBand : "—"} />
             <InfoCard label="Decision" value={decisionStatus} />
-            <InfoCard label="Certified At" value={formatDate(certifiedAtRaw)} />
+            <InfoCard label="Certified At" value={isCertified ? formatDate(certifiedAtRaw) : "—"} />
             <InfoCard label="Valid To" value={formatDate(validToRaw)} />
-          </div>
-
-          <div className="mt-6 flex flex-wrap gap-3">
-            <PublicButtonLink
-              href={`/api/verify/${encodeURIComponent(registryId)}`}
-              variant="primary"
-            >
-              Open verify JSON
-            </PublicButtonLink>
-
-            <PublicButtonLink href="/registry" variant="secondary">
-              Back to registry
-            </PublicButtonLink>
           </div>
         </section>
 
-        <RegistryVerificationPanel
-          registryId={registryId}
-          entityName={entityName}
-          verifyData={verifyData}
-        />
+        {isCertified && (
+          <RegistryVerificationPanel
+            registryId={registryId}
+            entityName={entityName}
+            verifyData={verifyData}
+          />
+        )}
 
-        {dimensionCount > 0 ? (
+        {dimensionCount > 0 && (
           <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10 xl:p-12">
-            <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
-              PUBLIC-SAFE TRUST EXPLANATION
-            </div>
-
-            <h2 className="mt-4 text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[40px]">
-              Reviewed across governance dimensions
+            <h2 className="text-[28px] font-semibold">
+              {isCertified ? "Reviewed across governance dimensions" : "Public-safe governance review scope"}
             </h2>
 
-            <p className="mt-3 max-w-[1000px] text-[15px] leading-[1.8] text-black/68">
-              GAFAIG publishes certification outcomes and high-level governance
-              review scope without exposing private reviewer materials, internal
-              evidence, control-by-control scoring logic, or controlled workflow
-              details from the private verification engine.
-            </p>
-
-            <div className="mt-6 rounded-2xl border border-black/10 bg-black/[0.02] p-5">
-              <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-black/55">
-                Review Scope
-              </div>
-              <div className="mt-2 text-[16px] font-medium text-black">
-                Reviewed across {dimensionCount} governance dimensions
-              </div>
-            </div>
-
-            <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-              {dimensions.map((dimension: string) => (
-                <div
-                  key={dimension}
-                  className="rounded-2xl border border-black/10 bg-white p-5"
-                >
-                  <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-black/55">
-                    Governance Dimension
-                  </div>
-                  <div className="mt-2 text-[16px] font-medium text-black">
-                    {dimension}
-                  </div>
+            <div className="mt-6 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+              {dimensions.map((d) => (
+                <div key={d} className="rounded-2xl border p-5">
+                  {d}
                 </div>
               ))}
             </div>
           </section>
-        ) : null}
+        )}
 
         <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10 xl:p-12">
-          <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
-            PUBLIC RECORD METADATA
-          </div>
-
-          <div className="mt-6 grid gap-3 md:grid-cols-4">
-            <InfoCard label="Entity Type" value={entityType} />
-            <InfoCard label="Country" value={country} />
+          <div className="grid gap-3 md:grid-cols-3">
+            <InfoCard label="Registry ID" value={registryId} />
             <InfoCard label="Application ID" value={applicationId} />
             <InfoCard label="Case ID" value={caseId} />
           </div>
-
-          <div className="mt-3 grid gap-3 md:grid-cols-3">
-            <InfoCard label="Registry ID" value={registryId} />
-            <InfoCard label="Certified Score" value={certifiedScore} />
-            <InfoCard label="Valid From" value={formatDate(validFromRaw)} />
-          </div>
         </section>
 
-        <RegistryTrustTools
-          registryId={registryId}
-          entityName={entityName}
-          absoluteRegistryUrl={`${baseUrl}/registry/${encodeURIComponent(registryId)}`}
-          absoluteVerifyUrl={`${baseUrl}/api/verify/${encodeURIComponent(registryId)}`}
-          absoluteBadgeUrl={`${baseUrl}/badge/${encodeURIComponent(registryId)}`}
-        />
+        {isCertified && (
+          <RegistryTrustTools
+            registryId={registryId}
+            entityName={entityName}
+            absoluteRegistryUrl={`${baseUrl}/registry/${registryId}`}
+            absoluteVerifyUrl={`${baseUrl}/api/verify/${registryId}`}
+            absoluteBadgeUrl={`${baseUrl}/badge/${registryId}`}
+          />
+        )}
       </div>
     </main>
   );
