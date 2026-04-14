@@ -29,6 +29,11 @@ function getBaseUrl(): string {
   );
 }
 
+function safe(v?: string | null): string {
+  const s = String(v ?? "").trim();
+  return s || "—";
+}
+
 function formatDate(value?: string | null): string {
   if (!value) return "—";
   const d = new Date(value);
@@ -38,11 +43,6 @@ function formatDate(value?: string | null): string {
     month: "short",
     day: "numeric",
   });
-}
-
-function safe(v?: string | null): string {
-  const s = String(v ?? "").trim();
-  return s || "—";
 }
 
 function formatTierBand(tier?: string | null, band?: string | null): string {
@@ -61,15 +61,8 @@ function statusTone(value: string) {
   return "bg-slate-100 text-slate-600 ring-slate-200";
 }
 
-function trustState(decisionStatus: string) {
-  return {
-    label: "Verified",
-    className:
-      "inline-flex rounded-full bg-emerald-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-emerald-700 ring-1 ring-emerald-200",
-    decisionClass: `inline-flex rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] ring-1 ${statusTone(
-      decisionStatus
-    )}`,
-  };
+function trustTone() {
+  return "bg-emerald-50 text-emerald-700 ring-emerald-200";
 }
 
 export default async function RegistryPage() {
@@ -100,11 +93,11 @@ export default async function RegistryPage() {
           </h1>
 
           <p className="mt-4 max-w-[980px] text-[15px] leading-[1.8] text-black/70">
-            The GAFAIG registry is the canonical public record of certified outcomes issued through the GAFAIG verification framework. This page intentionally reserves the registry layer for records with a surfaced public certification outcome.
+            The GAFAIG registry is the canonical public record of certified outcomes issued through the GAFAIG verification framework.
           </p>
 
           <p className="mt-3 max-w-[980px] text-[15px] leading-[1.8] text-black/60">
-            Approved but uncertified records belong in Explorer. Registry is the stricter certification layer of record.
+            Only certified records appear here. Approved but uncertified records remain visible in Explorer, not in the registry of record.
           </p>
 
           <div className="mt-6 flex flex-wrap gap-3">
@@ -130,9 +123,11 @@ export default async function RegistryPage() {
               <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
                 CERTIFIED PUBLIC RECORDS
               </div>
+
               <h2 className="mt-4 text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[40px]">
                 Registry directory
               </h2>
+
               <p className="mt-3 max-w-[900px] text-[15px] leading-[1.8] text-black/68">
                 Browse surfaced certified records by organization, jurisdiction, and registry identifier.
               </p>
@@ -151,7 +146,6 @@ export default async function RegistryPage() {
               const decisionStatus = safe(row.decisionStatus);
               const certifiedAt = row.certifiedAt ?? null;
               const tierBand = formatTierBand(row.certifiedTier, row.certifiedBand);
-              const trust = trustState(decisionStatus);
 
               return (
                 <div
@@ -161,10 +155,20 @@ export default async function RegistryPage() {
                   <div className="flex flex-wrap items-start justify-between gap-4">
                     <div>
                       <div className="flex flex-wrap items-center gap-2">
-                        <span className={trust.className}>{trust.label}</span>
+                        <span
+                          className={`inline-flex rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] ring-1 ${trustTone()}`}
+                        >
+                          Verified
+                        </span>
 
                         {decisionStatus !== "—" ? (
-                          <span className={trust.decisionClass}>{decisionStatus}</span>
+                          <span
+                            className={`inline-flex rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] ring-1 ${statusTone(
+                              decisionStatus
+                            )}`}
+                          >
+                            {decisionStatus}
+                          </span>
                         ) : null}
                       </div>
 
