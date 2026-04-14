@@ -81,7 +81,7 @@ export default async function RegistryPage({
   const q = String(searchParams?.q ?? "").trim();
   const country = String(searchParams?.country ?? "").trim();
 
-  const [rows, countries] = await Promise.all([
+  const [allRows, countries] = await Promise.all([
     searchRegistryRecords({
       q,
       country,
@@ -90,14 +90,18 @@ export default async function RegistryPage({
     getRegistryCountries(),
   ]);
 
+  const rows = allRows.filter((row) =>
+    Boolean(String(row.certifiedAt ?? "").trim())
+  );
+
   return (
-    <main className="mx-auto max-w-[1180px] px-6 pb-16 pt-14">
+    <main className="mx-auto max-w-[1320px] px-6 pb-16 pt-14 lg:px-8">
       <div className="space-y-8">
         <PublicPageHero
           eyebrow="REGISTRY OF RECORD"
-          title="Public AI governance registry of record"
-          description="The GAFAIG Registry is the canonical public record of certification outcomes issued through the GAFAIG verification framework. Each record provides a verifiable trust signal with certification status, tier, band, and validity without exposing private evidence or internal review workflows."
-          secondaryDescription="Registry is the canonical record layer. Use Explorer to discover organizations, countries, and AI systems across the broader GAFAIG public trust surface."
+          title="Certified public AI governance registry"
+          description="The GAFAIG Registry is the canonical public record of certified outcomes issued through the GAFAIG verification framework. This page is intentionally reserved for records with a surfaced public certification outcome."
+          secondaryDescription="Approved but uncertified records belong in Explorer. Registry is the stricter certification layer of record."
           actions={
             <>
               <PublicButtonLink href="/explorer" variant="primary">
@@ -115,7 +119,7 @@ export default async function RegistryPage({
           <form action="/registry">
             <div className="space-y-3">
               <label className="block text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
-                Search records
+                Search certified records
               </label>
 
               <div className="flex flex-wrap items-center gap-3">
@@ -161,21 +165,21 @@ export default async function RegistryPage({
           <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
             <div>
               <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
-                PUBLIC RECORDS
+                CERTIFIED PUBLIC RECORDS
               </div>
 
-              <h2 className="mt-4 text-[32px] font-semibold tracking-tight md:text-[38px]">
+              <h2 className="mt-4 text-[32px] font-semibold tracking-tight md:text-[40px]">
                 Registry directory
               </h2>
 
-              <p className="mt-3 max-w-[820px] text-[15px] leading-[1.8] text-black/70">
-                Browse surfaced certification records by organization,
-                jurisdiction, and registry identifier.
+              <p className="mt-3 max-w-[860px] text-[15px] leading-[1.8] text-black/70">
+                Browse surfaced certified records by organization, jurisdiction,
+                and registry identifier.
               </p>
             </div>
 
             <div className="text-[13px] text-black/50">
-              {rows.length} visible records
+              {rows.length} visible certified records
             </div>
           </div>
 
@@ -187,7 +191,7 @@ export default async function RegistryPage({
                 return (
                   <article
                     key={row.registryId}
-                    className="rounded-3xl border border-black/10 p-6"
+                    className="rounded-3xl border border-black/10 p-6 md:p-7"
                   >
                     <div className="flex flex-col gap-5 md:flex-row md:items-start md:justify-between">
                       <div>
@@ -207,7 +211,7 @@ export default async function RegistryPage({
                           ) : null}
                         </div>
 
-                        <h3 className="mt-3 text-[22px] font-semibold">
+                        <h3 className="mt-3 text-[24px] font-semibold tracking-tight">
                           {row.entityName || "Unknown entity"}
                         </h3>
 
@@ -251,7 +255,7 @@ export default async function RegistryPage({
               })
             ) : (
               <div className="rounded-3xl border border-dashed border-black/10 bg-black/[0.02] p-8 text-[15px] text-black/60">
-                No registry records matched your current search.
+                No certified registry records matched your current search.
               </div>
             )}
           </div>

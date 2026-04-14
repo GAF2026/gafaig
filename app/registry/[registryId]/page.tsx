@@ -1,5 +1,4 @@
 import { notFound } from "next/navigation";
-import Link from "next/link";
 
 import PublicButtonLink from "@/app/_components/PublicButtonLink";
 import RegistryVerificationPanel from "@/components/registry/RegistryVerificationPanel";
@@ -126,6 +125,38 @@ function statusTone(value: string) {
   return "bg-slate-100 text-slate-600 ring-slate-200";
 }
 
+function getTrustState({
+  certificationStatus,
+  certifiedAt,
+  decisionStatus,
+}: {
+  certificationStatus: string;
+  certifiedAt?: string | null;
+  decisionStatus: string;
+}) {
+  if (certifiedAt || certificationStatus.toUpperCase() === "CERTIFIED") {
+    return {
+      label: "Verified",
+      className:
+        "inline-flex rounded-full bg-emerald-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-emerald-700 ring-1 ring-emerald-200",
+    };
+  }
+
+  if (decisionStatus !== "—" && decisionStatus.toUpperCase() === "APPROVED") {
+    return {
+      label: "Approved",
+      className:
+        "inline-flex rounded-full bg-blue-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-blue-700 ring-1 ring-blue-200",
+    };
+  }
+
+  return {
+    label: "Pending",
+    className:
+      "inline-flex rounded-full bg-slate-100 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-600 ring-1 ring-slate-200",
+  };
+}
+
 function InfoCard({
   label,
   value,
@@ -134,7 +165,7 @@ function InfoCard({
   value: string;
 }) {
   return (
-    <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-4">
+    <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
       <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-black/55">
         {label}
       </div>
@@ -211,6 +242,12 @@ export default async function RegistryRecordPage({
     certifiedAtRaw ? "Certified" : "Not Certified",
   ]);
 
+  const trustState = getTrustState({
+    certificationStatus,
+    certifiedAt: certifiedAtRaw,
+    decisionStatus,
+  });
+
   const dimensions: string[] = (scoreBreakdownData?.dimensions ?? [])
     .map((d: ScoreBreakdownDimension) => String(d.scoreDimension ?? "").trim())
     .filter(Boolean);
@@ -226,13 +263,11 @@ export default async function RegistryRecordPage({
   );
 
   return (
-    <main className="mx-auto max-w-[1180px] px-6 pb-16 pt-14">
+    <main className="mx-auto max-w-[1440px] px-6 pb-20 pt-12 lg:px-10">
       <div className="space-y-8">
-        <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
+        <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10 xl:p-12">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="inline-flex rounded-full bg-emerald-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-emerald-700 ring-1 ring-emerald-200">
-              Verified
-            </span>
+            <span className={trustState.className}>{trustState.label}</span>
 
             {decisionStatus !== "—" ? (
               <span
@@ -249,13 +284,13 @@ export default async function RegistryRecordPage({
             CANONICAL PUBLIC TRUST RECORD
           </div>
 
-          <h1 className="mt-4 text-[40px] font-semibold leading-[1.08] tracking-tight text-black md:text-[52px]">
+          <h1 className="mt-4 max-w-[1100px] text-[42px] font-semibold leading-[1.05] tracking-tight text-black md:text-[56px] xl:text-[64px]">
             {entityName}
           </h1>
 
-          <p className="mt-4 max-w-[900px] text-[16px] leading-8 text-black/68">
-            This page is the public certification record for this entity within the
-            GAFAIG registry of record.
+          <p className="mt-4 max-w-[1000px] text-[17px] leading-8 text-black/68">
+            This page is the public record for this entity within the GAFAIG
+            registry of record.
           </p>
 
           <div className="mt-8 grid gap-3 md:grid-cols-5">
@@ -267,7 +302,10 @@ export default async function RegistryRecordPage({
           </div>
 
           <div className="mt-6 flex flex-wrap gap-3">
-            <PublicButtonLink href={`/api/verify/${encodeURIComponent(registryId)}`} variant="primary">
+            <PublicButtonLink
+              href={`/api/verify/${encodeURIComponent(registryId)}`}
+              variant="primary"
+            >
               Open verify JSON
             </PublicButtonLink>
 
@@ -284,41 +322,41 @@ export default async function RegistryRecordPage({
         />
 
         {dimensionCount > 0 ? (
-          <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
+          <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10 xl:p-12">
             <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
               PUBLIC-SAFE TRUST EXPLANATION
             </div>
 
-            <h2 className="mt-4 text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
+            <h2 className="mt-4 text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[40px]">
               Reviewed across governance dimensions
             </h2>
 
-            <p className="mt-3 max-w-[900px] text-[15px] leading-[1.8] text-black/68">
+            <p className="mt-3 max-w-[1000px] text-[15px] leading-[1.8] text-black/68">
               GAFAIG publishes certification outcomes and high-level governance
               review scope without exposing private reviewer materials, internal
               evidence, control-by-control scoring logic, or controlled workflow
               details from the private verification engine.
             </p>
 
-            <div className="mt-6 rounded-2xl border border-black/10 bg-black/[0.02] p-4">
+            <div className="mt-6 rounded-2xl border border-black/10 bg-black/[0.02] p-5">
               <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-black/55">
                 Review Scope
               </div>
-              <div className="mt-2 text-[15px] font-medium text-black">
+              <div className="mt-2 text-[16px] font-medium text-black">
                 Reviewed across {dimensionCount} governance dimensions
               </div>
             </div>
 
-            <div className="mt-4 grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+            <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
               {dimensions.map((dimension: string) => (
                 <div
                   key={dimension}
-                  className="rounded-2xl border border-black/10 bg-white p-4"
+                  className="rounded-2xl border border-black/10 bg-white p-5"
                 >
                   <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-black/55">
                     Governance Dimension
                   </div>
-                  <div className="mt-2 text-[15px] font-medium text-black">
+                  <div className="mt-2 text-[16px] font-medium text-black">
                     {dimension}
                   </div>
                 </div>
@@ -327,7 +365,7 @@ export default async function RegistryRecordPage({
           </section>
         ) : null}
 
-        <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
+        <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10 xl:p-12">
           <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
             PUBLIC RECORD METADATA
           </div>

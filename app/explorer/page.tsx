@@ -54,7 +54,7 @@ function getTrustState(row: {
     label: "Pending",
     className:
       "inline-flex items-center rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-600",
-    };
+  };
 }
 
 export default async function ExplorerPage() {
@@ -64,13 +64,13 @@ export default async function ExplorerPage() {
   ]);
 
   return (
-    <main className="mx-auto max-w-[1180px] px-6 pb-16 pt-14">
+    <main className="mx-auto max-w-[1320px] px-6 pb-16 pt-14 lg:px-8">
       <div className="space-y-8">
         <PublicPageHero
           eyebrow="GLOBAL EXPLORER"
           title="Explore the public GAFAIG trust surface."
-          description="Discover public certification records across organizations, countries, and AI systems using the canonical registry views published from Snowflake."
-          secondaryDescription="The explorer provides a public discovery layer across the GAFAIG network so third parties can inspect governance presence, review recent certifications, and navigate linked records without accessing private evidence or internal reviewer workflow."
+          description="Discover public records across organizations, countries, and AI systems using the canonical registry views published from Snowflake."
+          secondaryDescription="Explorer is broader than Registry. It may include certified public records and approved public records that do not surface a certification outcome."
           actions={
             <>
               <PublicButtonLink href="/registry" variant="primary">
@@ -119,25 +119,25 @@ export default async function ExplorerPage() {
             PUBLIC-SAFE TRUST EXPLANATION
           </div>
 
-          <h2 className="mt-4 text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
+          <h2 className="mt-4 text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[40px]">
             What Explorer publishes
           </h2>
 
           <p className="mt-4 max-w-[920px] text-[15px] leading-[1.8] text-black/68">
-            Explorer publishes certification outcomes and public-safe governance
-            review scope. It does not expose private evidence, internal reviewer
-            materials, control-by-control scoring logic, or controlled workflow
-            details from the private verification engine.
+            Explorer publishes certification outcomes and broader public-safe
+            governance record visibility. It does not expose private evidence,
+            internal reviewer materials, control-by-control scoring logic, or
+            controlled workflow details from the private verification engine.
           </p>
 
           <div className="mt-8 grid gap-4 md:grid-cols-3">
             <ExplanationCard
-              title="Certification outcome"
-              body="Public explorer surfaces status, tier, band, and validity information for public trust review."
+              title="Certified outcomes"
+              body="Certified records surface tier, band, certification date, and validity information for public trust review."
             />
             <ExplanationCard
-              title="Governance review scope"
-              body="Explorer may disclose public-safe review scope without exposing internal scoring mechanics."
+              title="Approved public records"
+              body="Explorer may also disclose approved public records that do not surface a certification outcome."
             />
             <ExplanationCard
               title="Protected private engine"
@@ -150,16 +150,15 @@ export default async function ExplorerPage() {
           <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
             <div>
               <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
-                RECENT REGISTRY ACTIVITY
+                RECENT PUBLIC RECORDS
               </div>
 
-              <h2 className="mt-4 text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
+              <h2 className="mt-4 text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[40px]">
                 Latest public records
               </h2>
 
-              <p className="mt-3 max-w-[820px] text-[15px] leading-[1.8] text-black/68">
-                Recently surfaced certification records from the GAFAIG public
-                registry.
+              <p className="mt-3 max-w-[860px] text-[15px] leading-[1.8] text-black/68">
+                Recently surfaced records from the GAFAIG public trust surface.
               </p>
             </div>
 
