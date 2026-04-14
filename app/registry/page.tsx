@@ -46,6 +46,33 @@ function toneForDecision(value: string | null | undefined) {
   return "bg-slate-100 text-slate-600 ring-slate-200";
 }
 
+function getTrustState(row: {
+  certifiedAt?: string | null;
+  decisionStatus?: string | null;
+}) {
+  if (row.certifiedAt) {
+    return {
+      label: "Verified",
+      className:
+        "rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700 ring-1 ring-emerald-200",
+    };
+  }
+
+  if (String(row.decisionStatus ?? "").trim().toUpperCase() === "APPROVED") {
+    return {
+      label: "Approved",
+      className:
+        "rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700 ring-1 ring-blue-200",
+    };
+  }
+
+  return {
+    label: "Pending",
+    className:
+      "rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-600 ring-1 ring-gray-200",
+  };
+}
+
 export default async function RegistryPage({
   searchParams,
 }: {
@@ -154,70 +181,74 @@ export default async function RegistryPage({
 
           <div className="mt-8 space-y-4">
             {rows.length > 0 ? (
-              rows.map((row) => (
-                <article
-                  key={row.registryId}
-                  className="rounded-3xl border border-black/10 p-6"
-                >
-                  <div className="flex flex-col gap-5 md:flex-row md:items-start md:justify-between">
-                    <div>
-                      <div className="flex flex-wrap gap-2">
-                        <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700 ring-1 ring-emerald-200">
-                          Verified
-                        </span>
+              rows.map((row) => {
+                const trustState = getTrustState(row);
 
-                        {row.decisionStatus ? (
-                          <span
-                            className={`rounded-full px-3 py-1 text-xs font-semibold ring-1 ${toneForDecision(
-                              row.decisionStatus
-                            )}`}
-                          >
-                            {row.decisionStatus}
+                return (
+                  <article
+                    key={row.registryId}
+                    className="rounded-3xl border border-black/10 p-6"
+                  >
+                    <div className="flex flex-col gap-5 md:flex-row md:items-start md:justify-between">
+                      <div>
+                        <div className="flex flex-wrap gap-2">
+                          <span className={trustState.className}>
+                            {trustState.label}
                           </span>
-                        ) : null}
+
+                          {row.decisionStatus ? (
+                            <span
+                              className={`rounded-full px-3 py-1 text-xs font-semibold ring-1 ${toneForDecision(
+                                row.decisionStatus
+                              )}`}
+                            >
+                              {row.decisionStatus}
+                            </span>
+                          ) : null}
+                        </div>
+
+                        <h3 className="mt-3 text-[22px] font-semibold">
+                          {row.entityName || "Unknown entity"}
+                        </h3>
+
+                        <div className="text-sm text-black/60">
+                          {row.country || "—"} · {row.registryId}
+                        </div>
                       </div>
 
-                      <h3 className="mt-3 text-[22px] font-semibold">
-                        {row.entityName || "Unknown entity"}
-                      </h3>
-
-                      <div className="text-sm text-black/60">
-                        {row.country || "—"} · {row.registryId}
-                      </div>
+                      <PublicButtonLink
+                        href={`/registry/${row.registryId}`}
+                        variant="secondary"
+                        size="sm"
+                      >
+                        Open
+                      </PublicButtonLink>
                     </div>
 
-                    <PublicButtonLink
-                      href={`/registry/${row.registryId}`}
-                      variant="secondary"
-                      size="sm"
-                    >
-                      Open
-                    </PublicButtonLink>
-                  </div>
-
-                  <div className="mt-5 grid gap-3 md:grid-cols-4">
-                    <InfoCard
-                      label="Certification"
-                      value={formatTierBand(
-                        row.certifiedTier,
-                        row.certifiedBand
-                      )}
-                    />
-                    <InfoCard
-                      label="Certified"
-                      value={formatDate(row.certifiedAt)}
-                    />
-                    <InfoCard
-                      label="Valid From"
-                      value={formatDate(row.validFrom)}
-                    />
-                    <InfoCard
-                      label="Valid To"
-                      value={formatDate(row.validTo)}
-                    />
-                  </div>
-                </article>
-              ))
+                    <div className="mt-5 grid gap-3 md:grid-cols-4">
+                      <InfoCard
+                        label="Certification"
+                        value={formatTierBand(
+                          row.certifiedTier,
+                          row.certifiedBand
+                        )}
+                      />
+                      <InfoCard
+                        label="Certified"
+                        value={formatDate(row.certifiedAt)}
+                      />
+                      <InfoCard
+                        label="Valid From"
+                        value={formatDate(row.validFrom)}
+                      />
+                      <InfoCard
+                        label="Valid To"
+                        value={formatDate(row.validTo)}
+                      />
+                    </div>
+                  </article>
+                );
+              })
             ) : (
               <div className="rounded-3xl border border-dashed border-black/10 bg-black/[0.02] p-8 text-[15px] text-black/60">
                 No registry records matched your current search.

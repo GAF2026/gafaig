@@ -30,6 +30,33 @@ function formatStatus(status: string | null) {
   return status.toUpperCase();
 }
 
+function getTrustState(row: {
+  certifiedAt: string | null;
+  decisionStatus: string | null;
+}) {
+  if (row.certifiedAt) {
+    return {
+      label: "Verified",
+      className:
+        "inline-flex items-center rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-700",
+    };
+  }
+
+  if (String(row.decisionStatus ?? "").trim().toUpperCase() === "APPROVED") {
+    return {
+      label: "Approved",
+      className:
+        "inline-flex items-center rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-700",
+    };
+  }
+
+  return {
+    label: "Pending",
+    className:
+      "inline-flex items-center rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-600",
+    };
+}
+
 export default async function ExplorerPage() {
   const [summary, recentRecords] = await Promise.all([
     getExplorerSummary(),
@@ -50,7 +77,10 @@ export default async function ExplorerPage() {
                 View Registry
               </PublicButtonLink>
 
-              <PublicButtonLink href="/explorer/organizations" variant="secondary">
+              <PublicButtonLink
+                href="/explorer/organizations"
+                variant="secondary"
+              >
                 Organizations
               </PublicButtonLink>
 
@@ -66,10 +96,22 @@ export default async function ExplorerPage() {
         />
 
         <section className="grid gap-4 md:grid-cols-4">
-          <MetricCard label="Registry records" value={String(summary.totalRecords ?? 0)} />
-          <MetricCard label="Organizations" value={String(summary.totalOrganizations ?? 0)} />
-          <MetricCard label="Countries" value={String(summary.totalCountries ?? 0)} />
-          <MetricCard label="AI systems" value={String(summary.totalSystems ?? 0)} />
+          <MetricCard
+            label="Registry records"
+            value={String(summary.totalRecords ?? 0)}
+          />
+          <MetricCard
+            label="Organizations"
+            value={String(summary.totalOrganizations ?? 0)}
+          />
+          <MetricCard
+            label="Countries"
+            value={String(summary.totalCountries ?? 0)}
+          />
+          <MetricCard
+            label="AI systems"
+            value={String(summary.totalSystems ?? 0)}
+          />
         </section>
 
         <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
@@ -116,7 +158,8 @@ export default async function ExplorerPage() {
               </h2>
 
               <p className="mt-3 max-w-[820px] text-[15px] leading-[1.8] text-black/68">
-                Recently surfaced certification records from the GAFAIG public registry.
+                Recently surfaced certification records from the GAFAIG public
+                registry.
               </p>
             </div>
 
@@ -141,55 +184,53 @@ export default async function ExplorerPage() {
                 </tr>
               </thead>
               <tbody>
-                {recentRecords.map((row) => (
-                  <tr key={row.registryId} className="border-b border-black/5">
-                    <td className="px-0 py-4">
-                      <div className="font-semibold text-black">
-                        {row.entityName ?? "—"}
-                      </div>
-                      <div className="mt-1 text-sm text-black/60">
-                        {row.registryId}
-                      </div>
-                    </td>
+                {recentRecords.map((row) => {
+                  const trustState = getTrustState(row);
 
-                    <td className="px-4 py-4 text-sm text-black/75">
-                      {row.country ?? "—"}
-                    </td>
+                  return (
+                    <tr key={row.registryId} className="border-b border-black/5">
+                      <td className="px-0 py-4">
+                        <div className="font-semibold text-black">
+                          {row.entityName ?? "—"}
+                        </div>
+                        <div className="mt-1 text-sm text-black/60">
+                          {row.registryId}
+                        </div>
+                      </td>
 
-                    <td className="px-4 py-4 text-sm text-black/75">
-                      {formatTierBand(row.certifiedTier, row.certifiedBand)}
-                    </td>
+                      <td className="px-4 py-4 text-sm text-black/75">
+                        {row.country ?? "—"}
+                      </td>
 
-                    <td className="px-4 py-4 text-sm text-black/75">
-                      {formatStatus(row.decisionStatus)}
-                    </td>
+                      <td className="px-4 py-4 text-sm text-black/75">
+                        {formatTierBand(row.certifiedTier, row.certifiedBand)}
+                      </td>
 
-                    <td className="px-4 py-4 text-sm text-black/75">
-                      {formatDate(row.certifiedAt)}
-                    </td>
+                      <td className="px-4 py-4 text-sm text-black/75">
+                        {formatStatus(row.decisionStatus)}
+                      </td>
 
-                    <td className="px-4 py-4 text-sm">
-                      {row.decisionStatus === "APPROVED" ? (
-                        <span className="inline-flex items-center rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-700">
-                          Verified
+                      <td className="px-4 py-4 text-sm text-black/75">
+                        {formatDate(row.certifiedAt)}
+                      </td>
+
+                      <td className="px-4 py-4 text-sm">
+                        <span className={trustState.className}>
+                          {trustState.label}
                         </span>
-                      ) : (
-                        <span className="inline-flex items-center rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-600">
-                          Pending
-                        </span>
-                      )}
-                    </td>
+                      </td>
 
-                    <td className="px-4 py-4">
-                      <Link
-                        href={`/registry/${row.registryId}`}
-                        className="text-sm font-semibold text-black underline underline-offset-4"
-                      >
-                        Open
-                      </Link>
-                    </td>
-                  </tr>
-                ))}
+                      <td className="px-4 py-4">
+                        <Link
+                          href={`/registry/${row.registryId}`}
+                          className="text-sm font-semibold text-black underline underline-offset-4"
+                        >
+                          Open
+                        </Link>
+                      </td>
+                    </tr>
+                  );
+                })}
 
                 {recentRecords.length === 0 && (
                   <tr>
