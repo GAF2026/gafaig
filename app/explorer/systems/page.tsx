@@ -10,70 +10,51 @@ type SearchParams = {
   pageSize?: string;
 };
 
-function fmtDate(value: string | null | undefined) {
-  if (!value) return "Not issued";
-  const d = new Date(value);
-  if (Number.isNaN(d.getTime())) return "Not issued";
-  return d.toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-}
-
-function toneForTier(value: string | null | undefined) {
-  const v = String(value || "").toUpperCase();
-  if (v === "A") return "bg-emerald-100 text-emerald-700 border border-emerald-200";
-  if (v === "B") return "bg-blue-100 text-blue-700 border border-blue-200";
-  if (v === "C") return "bg-amber-100 text-amber-700 border border-amber-200";
-  if (v === "D") return "bg-slate-100 text-slate-700 border border-slate-200";
-  return "bg-slate-100 text-slate-600 border border-slate-200";
-}
-
-function toneForRisk(value: string | null | undefined) {
-  const v = String(value || "").toLowerCase();
-  if (v === "high") return "bg-red-100 text-red-700 border border-red-200";
-  if (v === "medium") return "bg-amber-100 text-amber-700 border border-amber-200";
-  if (v === "low") return "bg-emerald-100 text-emerald-700 border border-emerald-200";
-  return "bg-slate-100 text-slate-600 border border-slate-200";
-}
-
-function normalizeTrustState(
-  certifiedAt: string | null | undefined,
-  decisionStatus: string | null | undefined
-) {
-  const isCertified = Boolean(String(certifiedAt ?? "").trim());
-  const decision = String(decisionStatus ?? "").trim().toUpperCase();
-
-  if (isCertified) {
-    return {
-      label: "Certified",
-      className: "bg-emerald-100 text-emerald-700 border border-emerald-200",
-      isCertified: true,
-    };
-  }
-
-  if (decision === "APPROVED") {
-    return {
-      label: "Approved",
-      className: "bg-blue-100 text-blue-700 border border-blue-200",
-      isCertified: false,
-    };
-  }
-
-  return {
-    label: "Unverified",
-    className: "bg-slate-100 text-slate-600 border border-slate-200",
-    isCertified: false,
-  };
+function formatDate(value: string | null | undefined) {
+  if (!value) return "—";
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return value;
+  return parsed.toLocaleDateString("en-US");
 }
 
 function safeText(value: string | null | undefined, fallback = "—") {
-  const v = String(value ?? "").trim();
-  return v ? v : fallback;
+  const text = String(value ?? "").trim();
+  return text || fallback;
 }
 
-function MetricCard({
+function trustPillClass(label: string) {
+  const normalized = label.trim().toUpperCase();
+
+  if (normalized === "CERTIFIED") {
+    return "bg-emerald-100 text-emerald-700";
+  }
+
+  if (normalized === "APPROVED") {
+    return "bg-blue-100 text-blue-700";
+  }
+
+  return "bg-neutral-100 text-black/65";
+}
+
+function riskPillClass(label: string) {
+  const normalized = label.trim().toUpperCase();
+
+  if (normalized === "HIGH") {
+    return "bg-red-100 text-red-700";
+  }
+
+  if (normalized === "MEDIUM") {
+    return "bg-amber-100 text-amber-700";
+  }
+
+  if (normalized === "LOW") {
+    return "bg-emerald-100 text-emerald-700";
+  }
+
+  return "bg-neutral-100 text-black/65";
+}
+
+function MetricCell({
   label,
   value,
 }: {
@@ -96,63 +77,55 @@ export default async function ExplorerSystemsPage({
   searchParams?: SearchParams;
 }) {
   const page = Math.max(1, Number(searchParams?.page || "1") || 1);
-  const pageSize = Math.max(1, Number(searchParams?.pageSize || "200") || 200);
+  const pageSize = Math.max(1, Number(searchParams?.pageSize || "24") || 24);
 
   const result = await getRegistryAiSystemsPaginated({ page, pageSize });
-  const systems = result.rows ?? [];
-
-  const certifiedCount = systems.filter((row) =>
-    Boolean(String(row.certifiedAt ?? "").trim())
-  ).length;
+  const rows = result.rows ?? [];
+  const total = Number(result.total ?? rows.length);
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
   return (
     <main className="mx-auto max-w-[1180px] space-y-8 px-6 py-10">
       <PublicPageHero
-        eyebrow="Explorer"
-        title="Public AI systems"
-        description="Certified public AI systems represented across the GAFAIG trust surface."
-        actions={
-          <>
-            <PublicButtonLink href="/explorer" variant="secondary">
-              Back to Explorer
-            </PublicButtonLink>
-            <PublicButtonLink href="/registry/ai-systems" variant="primary">
-              Open AI Systems Registry
-            </PublicButtonLink>
-          </>
-        }
+        eyebrow="Explorer Systems"
+        title="Public AI systems in the GAFAIG trust surface"
       />
 
       <section className="rounded-3xl border border-black/10 bg-white p-8">
-        <div className="max-w-[980px] space-y-4">
+        <div className="max-w-4xl space-y-4">
           <p className="text-base leading-7 text-black/70">
-            This systems view reflects the public GAFAIG trust surface for AI
-            systems linked to certified and published registry records.
+            This page lists publicly visible AI systems linked to certified
+            GAFAIG registry records. It is the systems view of the public trust
+            surface.
           </p>
           <p className="text-base leading-7 text-black/70">
-            Approved-only workflow records remain private. Public systems shown
-            here are tied to certified registry outcomes only.
+            Approved-only workflow records remain private. Systems shown here
+            are tied to certified and published registry outcomes only.
           </p>
+          <div className="flex flex-wrap gap-3 pt-2">
+            <PublicButtonLink href="/explorer">Back to Explorer</PublicButtonLink>
+            <PublicButtonLink href="/registry/ai-systems">
+              AI Systems Registry
+            </PublicButtonLink>
+          </div>
         </div>
       </section>
 
       <section className="grid gap-4 md:grid-cols-4">
         <div className="rounded-3xl border border-black/10 bg-white p-6">
           <div className="text-xs font-semibold uppercase tracking-[0.24em] text-black/40">
-            Public systems
+            Systems shown
           </div>
           <div className="mt-3 text-3xl font-semibold text-black">
-            {systems.length}
+            {rows.length}
           </div>
         </div>
 
         <div className="rounded-3xl border border-black/10 bg-white p-6">
           <div className="text-xs font-semibold uppercase tracking-[0.24em] text-black/40">
-            Certified
+            Total systems
           </div>
-          <div className="mt-3 text-3xl font-semibold text-black">
-            {certifiedCount}
-          </div>
+          <div className="mt-3 text-3xl font-semibold text-black">{total}</div>
         </div>
 
         <div className="rounded-3xl border border-black/10 bg-white p-6">
@@ -164,38 +137,42 @@ export default async function ExplorerSystemsPage({
 
         <div className="rounded-3xl border border-black/10 bg-white p-6">
           <div className="text-xs font-semibold uppercase tracking-[0.24em] text-black/40">
-            Page size
+            Total pages
           </div>
           <div className="mt-3 text-3xl font-semibold text-black">
-            {pageSize}
+            {totalPages}
           </div>
         </div>
       </section>
 
       <section className="rounded-3xl border border-black/10 bg-white p-8">
-        <div className="flex items-end justify-between gap-4">
-          <div className="space-y-3">
+        <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+          <div className="max-w-4xl space-y-4">
             <div className="text-xs font-semibold uppercase tracking-[0.24em] text-black/40">
-              Systems directory
+              Public systems directory
             </div>
             <h2 className="text-3xl font-semibold tracking-tight text-black">
               Certified public AI systems
             </h2>
-            <p className="max-w-3xl text-base leading-7 text-black/70">
+            <p className="text-base leading-7 text-black/70">
               Browse public AI systems linked to certified registry records,
-              including trust status, organization, country, risk posture, and
-              registry linkage.
+              including organization, country, trust state, and registry
+              linkage.
             </p>
           </div>
-          <div className="text-sm text-black/45">{systems.length} shown</div>
+
+          <div className="text-sm text-black/45">{rows.length} shown</div>
         </div>
 
         <div className="mt-6 space-y-4">
-          {systems.map((row: any) => {
-            const trustState = normalizeTrustState(
-              row.certifiedAt,
-              row.decisionStatus
-            );
+          {rows.map((row: any) => {
+            const certificationStatus = safeText(row.certificationStatus, "");
+            const decisionStatus = safeText(row.decisionStatus, "");
+            const riskTier = safeText(row.riskTier, "");
+            const certificationLabel =
+              row.certifiedTier && row.certifiedBand
+                ? `${row.certifiedTier} ${row.certifiedBand}`
+                : safeText(row.certifiedTier);
 
             return (
               <article
@@ -205,32 +182,33 @@ export default async function ExplorerSystemsPage({
                 <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
                   <div className="space-y-3">
                     <div className="flex flex-wrap gap-2">
-                      <span
-                        className={`rounded-full px-3 py-1 text-xs font-semibold ${trustState.className}`}
-                      >
-                        {trustState.label}
-                      </span>
-
-                      {row.certifiedTier ? (
+                      {certificationStatus ? (
                         <span
-                          className={`rounded-full px-3 py-1 text-xs font-semibold ${toneForTier(
-                            row.certifiedBand
+                          className={`rounded-full px-3 py-1 text-xs font-semibold ${trustPillClass(
+                            certificationStatus
                           )}`}
                         >
-                          {safeText(row.certifiedTier)}
-                          {row.certifiedBand
-                            ? ` · ${safeText(row.certifiedBand)}`
-                            : ""}
+                          {certificationStatus}
                         </span>
                       ) : null}
 
-                      {row.riskTier ? (
+                      {decisionStatus ? (
                         <span
-                          className={`rounded-full px-3 py-1 text-xs font-semibold ${toneForRisk(
-                            row.riskTier
+                          className={`rounded-full px-3 py-1 text-xs font-semibold uppercase ${trustPillClass(
+                            decisionStatus
                           )}`}
                         >
-                          {safeText(row.riskTier)} risk
+                          {decisionStatus}
+                        </span>
+                      ) : null}
+
+                      {riskTier ? (
+                        <span
+                          className={`rounded-full px-3 py-1 text-xs font-semibold uppercase ${riskPillClass(
+                            riskTier
+                          )}`}
+                        >
+                          {riskTier} risk
                         </span>
                       ) : null}
                     </div>
@@ -247,58 +225,59 @@ export default async function ExplorerSystemsPage({
                   </div>
 
                   <div className="flex flex-wrap gap-3">
-                    <PublicButtonLink
+                    <a
                       href={`/registry/ai-systems/${encodeURIComponent(
                         row.systemId
                       )}`}
-                      variant="secondary"
+                      className="inline-flex min-h-[42px] shrink-0 items-center justify-center rounded-full border border-black/20 bg-white px-5 text-sm font-semibold text-black transition hover:bg-black hover:text-white"
                     >
-                      System detail
-                    </PublicButtonLink>
-                    <PublicButtonLink
+                      System Detail
+                    </a>
+
+                    <a
                       href={`/registry/${encodeURIComponent(row.registryId)}`}
-                      variant="primary"
+                      className="inline-flex min-h-[42px] shrink-0 items-center justify-center rounded-full border border-black/20 bg-white px-5 text-sm font-semibold text-black transition hover:bg-black hover:text-white"
                     >
-                      Registry record
-                    </PublicButtonLink>
+                      View Certified Record
+                    </a>
                   </div>
                 </div>
 
                 <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-                  <MetricCard
+                  <MetricCell
                     label="Organization"
                     value={safeText(
-                      row.developerOrganization ?? row.entityName
+                      row.developerOrganization || row.entityName
                     )}
                   />
-                  <MetricCard
+                  <MetricCell
                     label="System type"
                     value={safeText(row.systemType)}
                   />
-                  <MetricCard
-                    label="Oversight"
-                    value={safeText(row.oversightLevel)}
+                  <MetricCell
+                    label="Intended use"
+                    value={safeText(row.intendedUse)}
                   />
-                  <MetricCard
+                  <MetricCell
                     label="Deployment"
                     value={safeText(row.deploymentStatus)}
                   />
                 </div>
 
                 <div className="mt-3 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-                  <MetricCard
-                    label="Intended use"
-                    value={safeText(row.intendedUse)}
+                  <MetricCell
+                    label="Certification"
+                    value={certificationLabel}
                   />
-                  <MetricCard
+                  <MetricCell
                     label="Certified"
-                    value={fmtDate(row.certifiedAt)}
+                    value={formatDate(row.certifiedAt)}
                   />
-                  <MetricCard
-                    label="Decision"
-                    value={safeText(row.decisionStatus)}
+                  <MetricCell
+                    label="Oversight"
+                    value={safeText(row.oversightLevel)}
                   />
-                  <MetricCard
+                  <MetricCell
                     label="Lifecycle"
                     value={safeText(row.lifecycleStatus)}
                   />
