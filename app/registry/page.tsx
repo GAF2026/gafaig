@@ -52,41 +52,29 @@ export default async function RegistryPage() {
           </div>
 
           <h2 className="mt-4 max-w-[860px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
-            Public certification outcomes published through the GAFAIG trust layer
+            The registry is the public record of certified outcomes
           </h2>
 
           <p className="mt-5 max-w-[960px] text-[16px] leading-[1.85] text-black/75">
-            The registry discloses certification outcomes without exposing private
-            reviewer materials, internal evidence, or controlled workflow details.
-            Each published record represents a public trust artifact that can be
-            opened, inspected, and independently verified.
+            The Registry of Record displays certified public trust records issued
+            through the GAFAIG verification engine. It is narrower than
+            Explorer. Explorer can show both evaluated and publicly trusted
+            systems, while the Registry of Record is reserved for certification
+            outcomes that have been finalized and published.
           </p>
 
           <div className="mt-7 rounded-2xl border border-black/10 bg-black/[0.02] p-5">
-            <div className="text-[18px] font-semibold tracking-tight text-black">
-              Status definitions
-            </div>
-
-            <div className="mt-4 space-y-5">
+            <div className="space-y-5 text-[15px] leading-[1.8] text-black/75">
               <div>
-                <div className="text-[16px] font-semibold text-black">
-                  Approved
-                </div>
-                <p className="mt-2 text-[15px] leading-[1.8] text-black/75">
-                  A system has completed the full GAFAIG evaluation process,
-                  including findings, evidence review, and governance scoring.
-                </p>
+                <span className="font-semibold text-black">Approved</span>{" "}
+                means a system has completed the full GAFAIG evaluation process,
+                including findings, evidence review, and governance scoring.
               </div>
-
               <div>
-                <div className="text-[16px] font-semibold text-black">
-                  Certified
-                </div>
-                <p className="mt-2 text-[15px] leading-[1.8] text-black/75">
-                  The evaluated outcome has been finalized, assigned a governance
-                  score and certification tier, and published as a verifiable
-                  public record in the registry.
-                </p>
+                <span className="font-semibold text-black">Certified</span>{" "}
+                means the evaluated outcome has been finalized, assigned a
+                governance score and certification tier, and published as a
+                verifiable public record in the registry.
               </div>
             </div>
           </div>
@@ -94,7 +82,7 @@ export default async function RegistryPage() {
 
         <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
           <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-            <div className="max-w-[920px]">
+            <div className="max-w-[900px]">
               <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
                 CERTIFIED PUBLIC RECORDS
               </div>
@@ -103,13 +91,13 @@ export default async function RegistryPage() {
                 Registry directory
               </h2>
 
-              <p className="mt-3 max-w-[860px] text-[16px] leading-[1.85] text-black/75">
+              <p className="mt-4 max-w-[820px] text-[16px] leading-[1.85] text-black/75">
                 Browse certified public trust records by organization,
                 jurisdiction, and registry identifier.
               </p>
             </div>
 
-            <div className="shrink-0 text-[15px] font-medium text-black/45">
+            <div className="shrink-0 text-[15px] font-medium text-black/50">
               {rows.length} certified records
             </div>
           </div>
@@ -124,29 +112,29 @@ export default async function RegistryPage() {
               return (
                 <article
                   key={row.registryId}
-                  className="rounded-2xl border border-black/10 bg-white p-5 md:p-6"
+                  className="rounded-3xl border border-black/10 bg-white p-6"
                 >
-                  <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                  <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
                     <div className="min-w-0 flex-1">
                       <div className="flex flex-wrap items-center gap-2">
                         {certificationStatus ? (
-                          <span className="rounded-full bg-emerald-100 px-3 py-1 text-[12px] font-semibold text-emerald-700">
+                          <span className="inline-flex items-center rounded-full bg-emerald-100 px-3 py-1 text-[12px] font-semibold text-emerald-700">
                             {certificationStatus}
                           </span>
                         ) : null}
 
                         {decisionStatus ? (
-                          <span className="rounded-full bg-blue-100 px-3 py-1 text-[12px] font-semibold uppercase text-blue-700">
+                          <span className="inline-flex items-center rounded-full bg-blue-100 px-3 py-1 text-[12px] font-semibold uppercase text-blue-700">
                             {decisionStatus}
                           </span>
                         ) : null}
                       </div>
 
-                      <h3 className="mt-4 text-[26px] font-semibold leading-[1.08] tracking-tight text-black">
+                      <h3 className="mt-4 text-[24px] font-semibold leading-[1.12] tracking-tight text-black md:text-[28px]">
                         {row.entityName || row.registryId}
                       </h3>
 
-                      <div className="mt-2 text-[15px] leading-[1.6] text-black/45">
+                      <div className="mt-2 text-[15px] leading-[1.7] text-black/50">
                         {(row.country || "—") + " · " + (row.registryId || "—")}
                       </div>
                     </div>
@@ -164,7 +152,7 @@ export default async function RegistryPage() {
                       <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-black/42">
                         Certification
                       </div>
-                      <div className="mt-2 text-[15px] font-semibold leading-[1.4] text-black">
+                      <div className="mt-2 text-[15px] font-semibold leading-[1.45] text-black">
                         {getCertificationLabel(row)}
                       </div>
                     </div>
@@ -173,7 +161,7 @@ export default async function RegistryPage() {
                       <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-black/42">
                         Certified
                       </div>
-                      <div className="mt-2 text-[15px] font-semibold leading-[1.4] text-black">
+                      <div className="mt-2 text-[15px] font-semibold leading-[1.45] text-black">
                         {formatDate(row.certifiedAt)}
                       </div>
                     </div>
@@ -182,7 +170,7 @@ export default async function RegistryPage() {
                       <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-black/42">
                         Valid from
                       </div>
-                      <div className="mt-2 text-[15px] font-semibold leading-[1.4] text-black">
+                      <div className="mt-2 text-[15px] font-semibold leading-[1.45] text-black">
                         {formatDate(row.validFrom)}
                       </div>
                     </div>
@@ -191,7 +179,7 @@ export default async function RegistryPage() {
                       <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-black/42">
                         Valid to
                       </div>
-                      <div className="mt-2 text-[15px] font-semibold leading-[1.4] text-black">
+                      <div className="mt-2 text-[15px] font-semibold leading-[1.45] text-black">
                         {formatDate(row.validTo)}
                       </div>
                     </div>
