@@ -98,7 +98,9 @@ export default async function RegistryPage() {
             </p>
           </div>
 
-          <div className="text-sm text-black/45">{rows.length} certified records</div>
+          <div className="text-sm text-black/45">
+            {rows.length} certified records
+          </div>
         </div>
 
         <div className="mt-6 space-y-4">
@@ -145,7 +147,7 @@ export default async function RegistryPage() {
                     href={`/registry/${row.registryId}`}
                     className="inline-flex min-h-[42px] shrink-0 items-center justify-center rounded-full border border-black/20 bg-white px-5 text-sm font-semibold text-black transition hover:bg-black hover:text-white"
                   >
-                    Open
+                    View Certified Record
                   </Link>
                 </div>
 

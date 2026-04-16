@@ -188,9 +188,12 @@ export default async function ExplorerPage() {
                   </div>
                 </div>
 
-                <PublicButtonLink href={`/registry/${record.REGISTRY_ID}`}>
+                <a
+                  href={`/registry/${record.REGISTRY_ID}`}
+                  className="inline-flex min-h-[42px] shrink-0 items-center justify-center rounded-full border border-black/20 bg-white px-5 text-sm font-semibold text-black transition hover:bg-black hover:text-white"
+                >
                   View Certified Record
-                </PublicButtonLink>
+                </a>
               </div>
 
               <div className="mt-5 grid gap-3 md:grid-cols-4">
@@ -337,9 +340,12 @@ export default async function ExplorerPage() {
                   {system.certifiedTier ?? "—"}
                   {system.certifiedBand ? ` ${system.certifiedBand}` : ""}
                 </span>
-                <PublicButtonLink href={`/registry/${system.registryId}`}>
+                <a
+                  href={`/registry/${system.registryId}`}
+                  className="inline-flex min-h-[42px] shrink-0 items-center justify-center rounded-full border border-black/20 bg-white px-5 text-sm font-semibold text-black transition hover:bg-black hover:text-white"
+                >
                   View Certified Record
-                </PublicButtonLink>
+                </a>
               </div>
             </div>
           ))}
