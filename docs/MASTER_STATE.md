@@ -1,205 +1,321 @@
 # MASTER_STATE.md
-Last Updated: 2026-04-15
+Last Updated: 2026-04-16
+
+---
 
 ## SYSTEM IDENTITY
-GAFAIG = Global Authority for AI Governance. GAFAIG is a trust infrastructure for AI systems, providing a deterministic, auditable, and publicly searchable registry of governance outcomes. It functions similarly to a certificate authority, audit registry, and ratings system combined. It is not a SaaS dashboard; it is a public trust layer backed by a private verification engine.
+
+GAFAIG (Global Authority for AI Governance) is the world’s first deterministic AI governance registry.
+
+It is a system designed to:
+- Evaluate AI systems
+- Assign governance scores
+- Issue certification decisions
+- Publish verifiable public records
+- Enable external trust through cryptographic verification
+
+---
 
 ## CORE ARCHITECTURE
-The system is composed of two layers: (1) Private Verification Engine (Snowflake) and (2) Public Trust Surface (Next.js). Snowflake performs all authoritative operations including case management, findings, evidence, events, scoring, decisions, registry snapshot creation, and public view projection. Next.js renders the registry, explorer, verify, widget, and API endpoints by reading Snowflake outputs. No business logic, scoring, or certification decisions occur in Next.js.
 
-## CORE PRINCIPLE
-Snowflake is the single source of truth. All APIs, UI pages, widgets, and verification outputs must strictly reflect Snowflake data. No derived logic in the application layer may override or reinterpret Snowflake outputs.
+GAFAIG is built on a strict two-layer model:
 
-## CANONICAL EXECUTION FLOW
-CASE → FINDINGS → EVIDENCE → EVENTS → SCORING → SCORE SNAPSHOT → DECISION → REGISTRY SNAPSHOT → PUBLIC VIEW → VERIFY (SIGNATURE). This order is deterministic and enforced. Failure at any stage blocks downstream layers.
+1. PRIVATE VERIFICATION ENGINE (Snowflake)
+2. PUBLIC TRUST LAYER (Views → API → UI)
 
-## CURRENT PLATFORM STATE
+---
 
-### WORKING (CONFIRMED)
-Public surfaces:
-- /registry
-- /registry/[registryId]
-- /registry/ai-systems
-- /explorer
-- /explorer/organizations
-- /explorer/systems
-- /explorer/countries
-- /verify
-- /verify/[registryId]
-- /widget-preview/[registryId]
+## CANONICAL DATA FLOW
 
-API layer:
-- /api/registry
-- /api/registry/search
-- /api/verify/[registryId]
-- /api/badge/[registryId]
-- /api/.well-known/gafaig-public-key
+APPLICATION
+→ CASE
+→ FINDINGS
+→ EVIDENCE
+→ EVENTS
+→ SCORING
+→ DECISION
+→ REGISTRY SNAPSHOT
+→ PUBLIC VIEWS
+→ API
+→ UI
 
-Proof/signature system:
-- Ed25519 signing implemented
-- deterministic message payload
-- public key endpoint live
-- external verification possible
+This flow is immutable and must never be re-architected.
 
-UI:
-- unified layout across pages
-- correct separation of Approved vs Certified
-- stable navigation and rendering
+---
 
-## ACTIVE BLOCKER
-The system is currently blocked at SCORING → PUBLISH.
+## SOURCE OF TRUTH
 
-Observed behavior:
-- Cases inserted successfully
-- Findings inserted successfully
-- Evidence inserted successfully
-- Events inserted successfully
-- Decisions inserted successfully
-- SP_SCORE_CASE_ENTERPRISE executes but inserts 0 rows
-- V_GOVERNANCE_SCORE_CASE returns no rows for new cases
-- SP_PUBLISH_CASE_TO_REGISTRY_V3 produces no registry snapshots
-- V_REGISTRY_PUBLIC does not show new cases
+Snowflake is the single source of truth.
 
-## ROOT CAUSE
-This is not a UI issue, not an API issue, and no longer a schema mismatch issue. The root cause is a SCORING INPUT CONTRACT FAILURE. The rebuilt seed data does not satisfy the exact conditions required by the scoring engine (SP_SCORE_CASE_ENTERPRISE and V_GOVERNANCE_SCORE_CASE), so scoring emits no rows, and publish has nothing to process.
+All:
+- scoring
+- certification
+- registry publication
+- trust state
 
-## CONFIRMED LIVE DATA CONTRACTS
+must originate in Snowflake.
 
-### VERIFICATION_CASES
-Key fields include: CASE_ID, ENTITY_NAME, STATUS, APPLICATION_ID, ORG_ID, CREATED_AT, SUBMITTED_AT, APPROVED_AT, DECIDED_AT, PRIORITY, ASSIGNED_REVIEWER, DECISION_SUMMARY. CASE_ID is unique and drives all downstream relationships.
+No logic is allowed in:
+- API
+- UI
 
-### VERIFICATION_FINDINGS (CRITICAL)
-Correct fields: CONTROL_ID, CONTROL_TITLE, RESULT, RATIONALE, SEVERITY, EVIDENCE_IDS (array), CREATED_AT, UPDATED_AT, ORG_ID. Prior assumptions using RAW_CONTROL_ID or RESULT_RAW are invalid.
+---
 
-### VERIFICATION_EVIDENCE
-Fields include: EVIDENCE_ID, CASE_ID, EVIDENCE_TYPE, TITLE, DESCRIPTION, SOURCE_URL, STORAGE_REF, SUBMITTED_BY, SUBMITTED_AT, CREATED_AT, UPDATED_AT, ORG_ID.
+## CORE TABLES
 
-### DECISIONS
-Fields include: DECISION_ID, APPLICATION_ID, SNAPSHOT_ID, DECISION_STATUS, CERTIFICATION_TIER, CERTIFICATION_BAND, VALID_FROM, VALID_TO, CREATED_AT, CASE_ID.
+APPLICATION
+- CORE.APPLICATIONS
 
-### SCORE STORAGE
-Live table: CORE.CASE_SCORE_SNAPSHOTS_V2. Fields include CASE_ID, MODEL_VERSION, SCORE, SUBSCORE_CONTROLS, SUBSCORE_COVERAGE, SUBSCORE_FRESHNESS, SUBSCORE_OPERATIONAL, TIER, BAND, RENEWAL_STATUS, EVENTS_90D, SCORED_AT, CREATED_AT. SNAPSHOT_AT is not a valid column.
+VERIFICATION
+- CORE.VERIFICATION_CASES
+- CORE.VERIFICATION_FINDINGS
+- CORE.VERIFICATION_EVIDENCE
+- CORE.VERIFICATION_FINDING_EVIDENCE
+- CORE.VERIFICATION_EVENTS
 
-## SCORING SYSTEM
+SCORING
+- CORE.CASE_SCORE_SNAPSHOTS
 
-Active components:
-- GAFAIG - Governance Scoring (Enterprise v1.2).sql
-- CORE.SP_SCORE_CASE_ENTERPRISE
-- CORE.V_GOVERNANCE_SCORE_CASE
-- CORE.V_CASE_SCORE_ENTERPRISE
-- CORE.V_CASE_TIER_BAND
-- CORE.V_CASE_RENEWAL_STATUS
-- CORE.V_FINDING_UNMAPPED_CONTROLS
+DECISION
+- CORE.DECISIONS
 
-Current behavior: SP_SCORE_CASE_ENTERPRISE runs but returns rowsInserted = 0, indicating that required inputs are not satisfied.
+REGISTRY
+- CORE.REGISTRY_SNAPSHOTS
+- CORE.REGISTRY_AI_SYSTEMS
 
-## REGISTRY SYSTEM
+---
 
-Snapshot layer:
-- CORE.REGISTRY_SNAPSHOTS (append-only)
+## CORE VIEWS
+
+REGISTRY (AUTHORITATIVE)
+- CORE.V_REGISTRY_PUBLIC
 - CORE.V_REGISTRY_LATEST_APPROVED
 
-Publish layer:
-- SP_PUBLISH_CASE_TO_REGISTRY_V3
-- SP_PUBLISH_CASE_TO_REGISTRY_V4
+AI SYSTEMS
+- CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC
 
-Public layer:
-- CORE.V_REGISTRY_PUBLIC
-- CORE.V_REGISTRY_PUBLIC_SEARCH
+EXPLORER / STATS
+- CORE.V_REGISTRY_STATS_GLOBAL
+- CORE.V_REGISTRY_STATS_BY_COUNTRY
+- CORE.V_REGISTRY_STATS_BY_STATUS
+- CORE.V_REGISTRY_STATS_BY_TIER
+- CORE.V_REGISTRY_STATS_BY_BAND
+- CORE.V_REGISTRY_STATS_BY_ENTITY_TYPE
 
-Publish requires valid score output; without it, registry remains unchanged.
+SCORING
+- CORE.V_GOVERNANCE_SCORE_CASE
+- CORE.V_SCORE_BREAKDOWN_PUBLIC
+- CORE.V_SCORE_DIMENSIONS_PUBLIC
+
+---
+
+## CORE PROCEDURES
+
+- CORE.SP_CREATE_CASE_FROM_APPLICATION
+- CORE.SP_SCORE_CASE_ENTERPRISE
+- CORE.APPROVE_CASE_V1
+- CORE.SP_PUBLISH_CASE_TO_REGISTRY_V3
+
+---
 
 ## TRUST MODEL
 
-Verified: cryptographic integrity confirmed via signature.
-Approved: evaluated and decision recorded.
-Certified: evaluated, meets thresholds, published, and time-valid.
+GAFAIG defines three trust states:
 
-Certification is time-bound and governed by VALID_FROM and VALID_TO. Lifecycle states include Active, Expiring Soon, Expired, and Not Certified.
+### 1. Unverified
+- No evaluation completed
+- No registry presence
 
-## PROOF / SIGNATURE SYSTEM
+### 2. Approved (Evaluated)
+- Evaluation complete
+- Decision issued
+- Not yet published as certified record
 
-Location:
-- app/api/verify/[registryId]/route.ts
-- lib/crypto/verify-signing.ts
+### 3. Certified (Verified)
+- Published in registry
+- Has certification metadata
+- Cryptographically signed
+- Externally verifiable
+
+---
+
+## VERIFIED DEFINITION
+
+A record is VERIFIED only if:
+
+1. It exists in CORE.REGISTRY_SNAPSHOTS
+2. It is exposed via CORE.V_REGISTRY_PUBLIC
+3. It has a valid registryId
+4. It has a valid cryptographic signature
+
+Verified = Certified + Signed
+
+---
+
+## SIGNATURE SYSTEM
 
 Algorithm:
 - Ed25519
 
-Payload:
-- deterministic JSON message
-- signed as messageString
+Proof object includes:
+- alg
+- kid
+- signature
+- signedAt
+- verificationKeyUrl
+- message
+- messageString
 
 Public key endpoint:
-- /api/.well-known/gafaig-public-key
+/api/.well-known/gafaig-public-key
 
-Verification is independent of approval and certification.
+Verification endpoint:
+/api/verify/[registryId]
 
-## SYSTEM CONSTRAINTS
+---
 
-- Do not compute scores in API or UI
-- Do not bypass publish procedures
-- Do not mutate registry snapshots
-- Do not invent schema fields
-- Do not break proof contract
-- Do not re-architect system
+## SEED SYSTEM
 
-## DEMO SEED SYSTEM
+Canonical seed:
+- GAFAIG - FINAL_CANONICAL_MULTI_SEED.sql
 
-Primary file:
-- GAFAIG - FINAL_CANONICAL_DEMO_SEED.sql
+Rules:
+- Only one seed file allowed
+- Must follow full pipeline
+- Must produce deterministic dataset
 
-Goal:
-- seed 12 cases across industries
-- mix of certified and approved
+All legacy seed files are archived.
 
-Current status:
-- base data loads correctly
-- scoring pipeline not satisfied
-- publish not triggered
+---
 
-## ACTIVE PRIORITY
+## PUBLIC SURFACES
 
-Focus exclusively on:
-SP_SCORE_CASE_ENTERPRISE → V_GOVERNANCE_SCORE_CASE → PUBLISH
+### REGISTRY
 
-Determine:
-- required event states
-- required control mappings
-- required case status values
-- required relationships across findings, evidence, and events
+- Authoritative
+- Certified records only
+- Source of verification
 
-## NEXT EXECUTION STRATEGY
+### EXPLORER
 
-1. Inspect SP_SCORE_CASE_ENTERPRISE logic in detail
-2. Trace dependencies into V_CASE_SCORE_ENTERPRISE and V_GOVERNANCE_SCORE_CASE
-3. Compare working legacy cases vs new seed cases
-4. Identify missing inputs or signals
-5. Adjust seed data to satisfy scoring contract
-6. Re-run scoring and publish
+- Discovery layer
+- Shows:
+  - Approved systems
+  - Certified systems
+- Not authoritative
 
-## STABILITY STATUS
+---
 
-Stable:
-- frontend architecture
-- API layer
-- verification system
-- widget system
-- registry UI
+## API LAYER
 
-Unstable:
-- scoring pipeline inputs
-- seed-to-score alignment
-- publish trigger conditions
+Endpoints:
 
-## SYSTEM RISK
+/api/registry
+/api/registry/search
+/api/registry/[registryId]
+/api/registry/[registryId]/ai-systems
+/api/explorer
+/api/verify/[registryId]
+/api/badge/[registryId]
+/api/.well-known/gafaig-public-key
 
-If scoring is not resolved:
-- registry will not update
-- no new certifications can be issued
-- platform appears static
-- trust layer loses credibility
+Rules:
+- No computation
+- No trust logic
+- Must reflect Snowflake views exactly
 
-## SUMMARY
+---
 
-GAFAIG system architecture is complete and functioning at the surface level. The verification proof system is operational. The data layer is populated correctly. The only blocking issue is the scoring input contract. Resolving scoring will unlock publishing, registry growth, and full platform functionality.
+## UI SYSTEM
+
+Framework:
+- Next.js (App Router)
+- TypeScript
+
+Layout:
+- PublicPageHero system
+- max-w-[1180px]
+- px-6 padding
+- space-y-8 spacing
+- rounded-3xl containers
+- border-black/10
+- bg-white
+
+No custom layout systems allowed.
+
+---
+
+## CURRENT STATE (APRIL 2026)
+
+System is in CANONICALIZATION PHASE.
+
+Status:
+
+- Core pipeline implemented
+- Seed system consolidated
+- Public views exist but require fixes
+- Explorer and Registry UI built
+- Signature system operational
+
+---
+
+## CURRENT ISSUES
+
+1. V_REGISTRY_PUBLIC incorrectly conflates Approved and Certified
+2. CERTIFIED_AT incorrectly mapped
+3. Explorer stats misaligned with actual data
+4. Summary counts incorrect
+5. Legacy seed files previously caused drift
+6. Public trust surface not fully deterministic
+
+---
+
+## CURRENT PRIORITY
+
+1. Fix 21_VIEWS_PUBLIC_REGISTRY.sql
+2. Fix 22_VIEWS_EXPLORER_STATS.sql
+3. Validate FINAL_CANONICAL_MULTI_SEED.sql
+4. Re-run full pipeline
+5. Align UI to corrected data
+6. Archive non-canonical SQL files
+
+---
+
+## SYSTEM GUARANTEES (TARGET STATE)
+
+GAFAIG must guarantee:
+
+- Deterministic outputs
+- Correct trust classification
+- Accurate counts across all surfaces
+- Clear separation of Approved vs Certified
+- Immutable registry records
+- Cryptographically verifiable public data
+
+---
+
+## DO NOT BREAK
+
+- Canonical data flow
+- Snowflake as source of truth
+- Append-only registry
+- Signature verification system
+- Separation of trust states
+- Public view contracts
+- Layout system consistency
+
+---
+
+## FINAL RULE
+
+If any layer:
+- Computes its own logic
+- Overrides Snowflake outputs
+- Mixes trust states
+- Breaks determinism
+
+The system is invalid.
+
+---
+
+END OF FILE

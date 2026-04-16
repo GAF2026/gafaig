@@ -1,398 +1,350 @@
-import Link from "next/link";
-import PublicPageHero from "../_components/PublicPageHero";
-import PublicButtonLink from "../_components/PublicButtonLink";
-import {
-  getExplorerSummary,
-  getRecentRegistryRecords,
-} from "@/lib/queries/explorer";
-
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-function firstValue(...values: unknown[]): string {
-  for (const value of values) {
-    if (value === null || value === undefined) continue;
-    const s = String(value).trim();
-    if (s) return s;
-  }
-  return "";
-}
+import PublicPageHero from "../_components/PublicPageHero";
+import PublicButtonLink from "../_components/PublicButtonLink";
 
-function safeText(...values: unknown[]): string {
-  const value = firstValue(...values);
-  return value || "—";
-}
+import {
+  getExplorerSummary,
+  getExplorerOrganizations,
+  getExplorerCountries,
+  getExplorerSystems,
+  getRecentRegistryRecords,
+} from "@/lib/queries/explorer";
 
-function safeNumber(value: unknown, fallback = 0): number {
-  const n = Number(value);
-  return Number.isFinite(n) ? n : fallback;
-}
-
-function formatCount(value: unknown): string {
-  return safeNumber(value, 0).toLocaleString("en-US");
-}
-
-function formatDate(...values: unknown[]): string {
-  const raw = firstValue(...values);
-  if (!raw) return "—";
-  const d = new Date(raw);
-  if (Number.isNaN(d.getTime())) return raw;
-  return d.toLocaleDateString("en-US");
-}
-
-function formatCertification(tier: string, band: string): string {
-  if (tier && band) return `${tier} · ${band}`;
-  if (tier) return tier;
-  if (band) return band;
-  return "—";
-}
-
-function normalizeStatus(value: unknown): string {
-  return firstValue(value).toUpperCase();
-}
-
-function getRegistryCertifiedPillClass() {
-  return "inline-flex items-center rounded-full bg-emerald-100 px-3 py-1 text-[12px] font-semibold text-emerald-700";
-}
-
-function getRegistryApprovedPillClass() {
-  return "inline-flex items-center rounded-full bg-blue-100 px-3 py-1 text-[12px] font-semibold uppercase text-blue-700";
-}
-
-function MetricCard({
-  label,
-  value,
-}: {
-  label: string;
-  value: string;
-}) {
-  return (
-    <div className="rounded-3xl border border-black/10 bg-white p-6">
-      <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/52">
-        {label}
-      </div>
-      <div className="mt-4 text-[34px] font-semibold leading-none tracking-tight text-black">
-        {value}
-      </div>
-    </div>
-  );
+function formatDate(value: unknown): string {
+  if (!value) return "—";
+  const date = new Date(String(value));
+  if (Number.isNaN(date.getTime())) return "—";
+  return date.toLocaleDateString("en-US");
 }
 
 export default async function ExplorerPage() {
-  const [summaryRaw, recentRaw] = await Promise.all([
-    getExplorerSummary(),
-    getRecentRegistryRecords(),
-  ]);
-
-  const summary = (summaryRaw ?? {}) as any;
-  const recentRecords = Array.isArray(recentRaw) ? recentRaw.slice(0, 8) : [];
-
-  const derivedCertifiedCount = recentRecords.filter((row: any) => {
-    return normalizeStatus(
-      row?.certificationStatus ?? row?.CERTIFICATION_STATUS
-    ) === "CERTIFIED";
-  }).length;
-
-  const derivedApprovedCount = recentRecords.filter((row: any) => {
-    return normalizeStatus(row?.decisionStatus ?? row?.DECISION_STATUS) === "APPROVED";
-  }).length;
-
-  const derivedCountryCount = new Set(
-    recentRecords
-      .map((row: any) => firstValue(row?.country, row?.COUNTRY))
-      .filter(Boolean)
-  ).size;
-
-  const certifiedCountNumber =
-    safeNumber(
-      summary?.certifiedRecordCount ??
-        summary?.certifiedRecords ??
-        summary?.certifiedPublicRecords ??
-        summary?.CERTIFIED_RECORD_COUNT ??
-        summary?.CERTIFIED_COUNT,
-      0
-    ) || derivedCertifiedCount;
-
-  const approvedCountNumber =
-    safeNumber(
-      summary?.approvedRecordCount ??
-        summary?.approvedRecords ??
-        summary?.approvedPublicRecords ??
-        summary?.APPROVED_RECORD_COUNT ??
-        summary?.APPROVED_COUNT,
-      0
-    ) || derivedApprovedCount;
-
-  const publicRecordsNumber =
-    safeNumber(
-      summary?.publicRecordCount ??
-        summary?.totalPublicRecords ??
-        summary?.recordCount ??
-        summary?.totalRecords ??
-        summary?.TOTAL_RECORDS ??
-        summary?.PUBLIC_RECORD_COUNT,
-      0
-    ) || certifiedCountNumber + approvedCountNumber || recentRecords.length;
-
-  const countryCountNumber =
-    safeNumber(
-      summary?.countryCount ??
-        summary?.countriesCount ??
-        summary?.COUNTRY_COUNT ??
-        summary?.COUNTRIES,
-      0
-    ) || derivedCountryCount;
+  const [summary, organizations, countries, systems, recentRecords] =
+    await Promise.all([
+      getExplorerSummary(),
+      getExplorerOrganizations(6),
+      getExplorerCountries(6),
+      getExplorerSystems(8),
+      getRecentRegistryRecords(8),
+    ]);
 
   return (
-    <main className="mx-auto max-w-[1180px] px-6 pb-16 pt-14">
-      <div className="space-y-8">
-        <PublicPageHero
-          eyebrow="PUBLIC TRUST SURFACE"
-          title="Explore the public GAFAIG trust surface"
-          description="Explorer shows the broader public governance footprint across organizations, countries, and publicly surfaced records in the GAFAIG network."
-          secondaryDescription="Explorer includes both evaluated systems and publicly trusted systems."
-          actions={
-            <>
-              <PublicButtonLink href="/registry" variant="secondary">
-                View Registry
-              </PublicButtonLink>
-              <PublicButtonLink href="/explorer/organizations" variant="secondary">
-                Organizations
-              </PublicButtonLink>
-              <PublicButtonLink href="/explorer/countries" variant="secondary">
-                Countries
-              </PublicButtonLink>
-              <PublicButtonLink href="/explorer/systems" variant="primary">
-                AI Systems
-              </PublicButtonLink>
-            </>
-          }
-        />
+    <main className="mx-auto max-w-[1180px] space-y-8 px-6 py-10">
+      <PublicPageHero
+        eyebrow="Public Trust Surface"
+        title="Explore the public GAFAIG trust surface"
+      />
 
-        <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
-          <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
-            HOW TO READ EXPLORER
+      <section className="rounded-3xl border border-black/10 bg-white p-8">
+        <div className="max-w-4xl space-y-4">
+          <p className="text-base leading-7 text-black/70">
+            Explorer shows the broader public governance footprint across
+            organizations, countries, and publicly surfaced records in the
+            GAFAIG network.
+          </p>
+          <p className="text-base leading-7 text-black/70">
+            Public registry visibility includes only certified and published
+            records.
+          </p>
+          <div className="flex flex-wrap gap-3 pt-2">
+            <PublicButtonLink href="/registry">View Registry</PublicButtonLink>
+            <PublicButtonLink href="/explorer/organizations">
+              Organizations
+            </PublicButtonLink>
+            <PublicButtonLink href="/explorer/countries">
+              Countries
+            </PublicButtonLink>
+            <PublicButtonLink href="/registry/ai-systems">
+              AI Systems
+            </PublicButtonLink>
           </div>
+        </div>
+      </section>
 
-          <h2 className="mt-4 max-w-[860px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
-            Approved and Certified records appear together in the public surface
+      <section className="rounded-3xl border border-black/10 bg-white p-8">
+        <div className="max-w-4xl space-y-4">
+          <div className="text-xs font-semibold uppercase tracking-[0.24em] text-black/40">
+            How to read Explorer
+          </div>
+          <h2 className="text-3xl font-semibold tracking-tight text-black">
+            Certified and published records appear in the public trust surface
           </h2>
-
-          <p className="mt-5 max-w-[960px] text-[16px] leading-[1.85] text-black/75">
-            Explorer is broader than the Registry of Record. It includes both
-            systems that have completed evaluation and systems that have already
-            been published as certified public trust records.
+          <p className="text-base leading-7 text-black/70">
+            Explorer is broader than a single Registry of Record detail page,
+            but it still follows the public trust policy. Only records that have
+            completed publication are shown here.
           </p>
-
-          <div className="mt-7 rounded-2xl border border-black/10 bg-black/[0.02] p-5">
-            <div className="space-y-5 text-[15px] leading-[1.8] text-black/75">
-              <div>
-                <span className="font-semibold text-black">Approved</span>{" "}
-                means a system has completed the GAFAIG evaluation process and
-                received a governance decision, but it has not been published as
-                a certified public record.
-              </div>
-              <div>
-                <span className="font-semibold text-black">Certified</span>{" "}
-                means the evaluated outcome has been finalized, assigned a
-                governance score and certification tier, and published as a
-                verifiable public record in the registry.
-              </div>
-            </div>
-          </div>
-
-          <p className="mt-5 max-w-[960px] text-[15px] leading-[1.8] text-black/62">
-            Explorer shows both Approved and Certified records. The Registry of
-            Record shows Certified records only.
-          </p>
-        </section>
-
-        <section className="grid gap-4 md:grid-cols-4">
-          <MetricCard label="Public records" value={formatCount(publicRecordsNumber)} />
-          <MetricCard label="Certified" value={formatCount(certifiedCountNumber)} />
-          <MetricCard label="Approved" value={formatCount(approvedCountNumber)} />
-          <MetricCard label="Countries" value={formatCount(countryCountNumber)} />
-        </section>
-
-        <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
-          <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-            <div className="max-w-[900px]">
-              <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
-                LATEST PUBLIC RECORDS
-              </div>
-
-              <h2 className="mt-4 text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
-                Public records currently visible in Explorer
-              </h2>
-
-              <p className="mt-4 text-[16px] leading-[1.85] text-black/75">
-                This view surfaces public registry metadata across entities and
-                certification states without exposing private reviewer materials.
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="rounded-2xl border border-black/10 bg-neutral-50 p-5">
+              <div className="text-sm font-semibold text-black">Certified</div>
+              <p className="mt-2 text-sm leading-6 text-black/65">
+                Certified means the evaluated outcome has been finalized,
+                published into the GAFAIG registry, assigned certification
+                metadata, and surfaced as a public record.
               </p>
             </div>
-
-            <div className="shrink-0 text-[15px] font-medium text-black/45">
-              {recentRecords.length} shown
+            <div className="rounded-2xl border border-black/10 bg-neutral-50 p-5">
+              <div className="text-sm font-semibold text-black">
+                Explorer visibility
+              </div>
+              <p className="mt-2 text-sm leading-6 text-black/65">
+                Approved-only workflow records remain private. Explorer and the
+                public registry reflect published trust records only.
+              </p>
             </div>
           </div>
+        </div>
+      </section>
 
-          <div className="mt-8 space-y-4">
-            {recentRecords.map((row: any, index: number) => {
-              const registryId = safeText(
-                row?.registryId,
-                row?.REGISTRY_ID,
-                row?.id,
-                row?.ID
-              );
+      <section className="grid gap-4 md:grid-cols-5">
+        <div className="rounded-3xl border border-black/10 bg-white p-6">
+          <div className="text-xs font-semibold uppercase tracking-[0.24em] text-black/40">
+            Public records
+          </div>
+          <div className="mt-3 text-3xl font-semibold text-black">
+            {summary.certifiedCount}
+          </div>
+        </div>
 
-              const entityName = safeText(
-                row?.entityName,
-                row?.ENTITY_NAME,
-                row?.organization,
-                row?.ORGANIZATION,
-                row?.name,
-                row?.NAME,
-                row?.developerOrganization,
-                row?.DEVELOPER_ORGANIZATION,
-                registryId
-              );
+        <div className="rounded-3xl border border-black/10 bg-white p-6">
+          <div className="text-xs font-semibold uppercase tracking-[0.24em] text-black/40">
+            Certified
+          </div>
+          <div className="mt-3 text-3xl font-semibold text-black">
+            {summary.certifiedCount}
+          </div>
+        </div>
 
-              const country = safeText(
-                row?.country,
-                row?.COUNTRY,
-                row?.jurisdiction,
-                row?.JURISDICTION
-              );
+        <div className="rounded-3xl border border-black/10 bg-white p-6">
+          <div className="text-xs font-semibold uppercase tracking-[0.24em] text-black/40">
+            Organizations
+          </div>
+          <div className="mt-3 text-3xl font-semibold text-black">
+            {summary.totalOrganizations}
+          </div>
+        </div>
 
-              const certificationStatus = normalizeStatus(
-                row?.certificationStatus ?? row?.CERTIFICATION_STATUS
-              );
+        <div className="rounded-3xl border border-black/10 bg-white p-6">
+          <div className="text-xs font-semibold uppercase tracking-[0.24em] text-black/40">
+            Countries
+          </div>
+          <div className="mt-3 text-3xl font-semibold text-black">
+            {summary.totalCountries}
+          </div>
+        </div>
 
-              const decisionStatus = normalizeStatus(
-                row?.decisionStatus ?? row?.DECISION_STATUS
-              );
+        <div className="rounded-3xl border border-black/10 bg-white p-6">
+          <div className="text-xs font-semibold uppercase tracking-[0.24em] text-black/40">
+            Systems
+          </div>
+          <div className="mt-3 text-3xl font-semibold text-black">
+            {summary.totalSystems}
+          </div>
+        </div>
+      </section>
 
-              const tier = firstValue(
-                row?.certifiedTier,
-                row?.CERTIFIED_TIER,
-                row?.tier,
-                row?.TIER
-              );
+      <section className="rounded-3xl border border-black/10 bg-white p-8">
+        <div className="flex items-end justify-between gap-4">
+          <div className="space-y-3">
+            <div className="text-xs font-semibold uppercase tracking-[0.24em] text-black/40">
+              Latest public records
+            </div>
+            <h2 className="text-3xl font-semibold tracking-tight text-black">
+              Public records currently visible in Explorer
+            </h2>
+            <p className="max-w-3xl text-base leading-7 text-black/70">
+              This view surfaces public registry metadata across entities and
+              certification state without exposing private reviewer materials.
+            </p>
+          </div>
+          <div className="text-sm text-black/45">{recentRecords.length} shown</div>
+        </div>
 
-              const band = firstValue(
-                row?.certifiedBand,
-                row?.CERTIFIED_BAND,
-                row?.band,
-                row?.BAND
-              );
-
-              const certifiedAt = formatDate(
-                row?.certifiedAt,
-                row?.CERTIFIED_AT,
-                row?.approvedAt,
-                row?.APPROVED_AT,
-                row?.publishedAt,
-                row?.PUBLISHED_AT
-              );
-
-              const validFrom = formatDate(row?.validFrom, row?.VALID_FROM);
-              const validTo = formatDate(row?.validTo, row?.VALID_TO);
-
-              return (
-                <article
-                  key={`${registryId}-${index}`}
-                  className="rounded-3xl border border-black/10 bg-white p-6"
-                >
-                  <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
-                    <div className="min-w-0 flex-1">
-                      <div className="flex flex-wrap items-center gap-3">
-                        {certificationStatus === "CERTIFIED" ? (
-                          <span className={getRegistryCertifiedPillClass()}>
-                            Certified
-                          </span>
-                        ) : null}
-
-                        {decisionStatus === "APPROVED" ? (
-                          <span className={getRegistryApprovedPillClass()}>
-                            APPROVED
-                          </span>
-                        ) : null}
-                      </div>
-
-                      <h3 className="mt-4 text-[26px] font-semibold leading-[1.08] tracking-tight text-black">
-                        {entityName}
-                      </h3>
-
-                      <div className="mt-2 text-[15px] leading-[1.6] text-black/45">
-                        {country} · {registryId}
-                      </div>
-                    </div>
-
-                    <div className="flex shrink-0 flex-wrap gap-3">
-                      <Link
-                        href={`/registry/${registryId}`}
-                        className="inline-flex min-h-[42px] items-center justify-center rounded-full border border-black bg-black px-4 text-[13px] font-semibold text-white transition hover:bg-black/85"
-                      >
-                        View Certified Record
-                      </Link>
-                    </div>
+        <div className="mt-6 space-y-4">
+          {recentRecords.map((record: any) => (
+            <div
+              key={record.REGISTRY_ID}
+              className="rounded-2xl border border-black/10 bg-white p-5"
+            >
+              <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+                <div className="space-y-3">
+                  <div className="flex flex-wrap gap-2">
+                    <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700">
+                      Certified
+                    </span>
+                    <span className="rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold uppercase text-blue-700">
+                      {record.DECISION_STATUS ?? "APPROVED"}
+                    </span>
                   </div>
 
-                  <div className="mt-6 grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
-                    <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-4">
-                      <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-black/42">
-                        Certification
-                      </div>
-                      <div className="mt-2 text-[15px] font-semibold leading-[1.45] text-black">
-                        {formatCertification(tier, band)}
-                      </div>
+                  <div>
+                    <div className="text-2xl font-semibold tracking-tight text-black">
+                      {record.ENTITY_NAME}
                     </div>
-
-                    <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-4">
-                      <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-black/42">
-                        Certified
-                      </div>
-                      <div className="mt-2 text-[15px] font-semibold leading-[1.45] text-black">
-                        {certifiedAt}
-                      </div>
-                    </div>
-
-                    <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-4">
-                      <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-black/42">
-                        Valid from
-                      </div>
-                      <div className="mt-2 text-[15px] font-semibold leading-[1.45] text-black">
-                        {validFrom}
-                      </div>
-                    </div>
-
-                    <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-4">
-                      <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-black/42">
-                        Valid to
-                      </div>
-                      <div className="mt-2 text-[15px] font-semibold leading-[1.45] text-black">
-                        {validTo}
-                      </div>
+                    <div className="mt-1 text-sm text-black/50">
+                      {record.COUNTRY ?? "Unknown"} · {record.REGISTRY_ID}
                     </div>
                   </div>
-                </article>
-              );
-            })}
-          </div>
+                </div>
 
-          <div className="mt-8 flex flex-wrap gap-3">
-            <PublicButtonLink href="/explorer/organizations" variant="secondary">
-              Browse organizations
-            </PublicButtonLink>
-            <PublicButtonLink href="/explorer/countries" variant="secondary">
-              Browse countries
-            </PublicButtonLink>
-            <PublicButtonLink href="/explorer/systems" variant="primary">
-              Browse AI systems
-            </PublicButtonLink>
-          </div>
-        </section>
-      </div>
+                <PublicButtonLink href={`/registry/${record.REGISTRY_ID}`}>
+                  View Certified Record
+                </PublicButtonLink>
+              </div>
+
+              <div className="mt-5 grid gap-3 md:grid-cols-4">
+                <div className="rounded-2xl border border-black/10 bg-neutral-50 p-4">
+                  <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-black/35">
+                    Certification
+                  </div>
+                  <div className="mt-2 text-sm font-medium text-black">
+                    {record.CERTIFIED_TIER ?? "—"}
+                    {record.CERTIFIED_BAND ? ` · ${record.CERTIFIED_BAND}` : ""}
+                  </div>
+                </div>
+
+                <div className="rounded-2xl border border-black/10 bg-neutral-50 p-4">
+                  <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-black/35">
+                    Certified
+                  </div>
+                  <div className="mt-2 text-sm font-medium text-black">
+                    {formatDate(record.CERTIFIED_AT)}
+                  </div>
+                </div>
+
+                <div className="rounded-2xl border border-black/10 bg-neutral-50 p-4">
+                  <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-black/35">
+                    Valid from
+                  </div>
+                  <div className="mt-2 text-sm font-medium text-black">
+                    {formatDate(record.VALID_FROM)}
+                  </div>
+                </div>
+
+                <div className="rounded-2xl border border-black/10 bg-neutral-50 p-4">
+                  <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-black/35">
+                    Valid to
+                  </div>
+                  <div className="mt-2 text-sm font-medium text-black">
+                    {formatDate(record.VALID_TO)}
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="rounded-3xl border border-black/10 bg-white p-8">
+        <div className="mb-5 flex items-center justify-between gap-4">
+          <h2 className="text-2xl font-semibold tracking-tight text-black">
+            Top organizations
+          </h2>
+          <PublicButtonLink href="/explorer/organizations">
+            View all
+          </PublicButtonLink>
+        </div>
+
+        <div className="space-y-3">
+          {organizations.map((org) => (
+            <div
+              key={org.organization}
+              className="flex flex-col gap-4 rounded-2xl border border-black/10 bg-white p-4 md:flex-row md:items-center md:justify-between"
+            >
+              <div>
+                <div className="text-lg font-medium text-black">
+                  {org.organization}
+                </div>
+                <div className="mt-1 text-sm text-black/55">
+                  {org.country ?? "Unknown"}
+                </div>
+              </div>
+
+              <div className="flex flex-wrap gap-2 text-sm text-black/65">
+                <span className="rounded-full border border-black/10 bg-neutral-50 px-3 py-1">
+                  {org.systemCount} systems
+                </span>
+                <span className="rounded-full border border-black/10 bg-neutral-50 px-3 py-1">
+                  {org.registryCount} registry records
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="rounded-3xl border border-black/10 bg-white p-8">
+        <div className="mb-5 flex items-center justify-between gap-4">
+          <h2 className="text-2xl font-semibold tracking-tight text-black">
+            Countries
+          </h2>
+          <PublicButtonLink href="/explorer/countries">
+            View all
+          </PublicButtonLink>
+        </div>
+
+        <div className="space-y-3">
+          {countries.map((country) => (
+            <div
+              key={country.country}
+              className="flex flex-col gap-4 rounded-2xl border border-black/10 bg-white p-4 md:flex-row md:items-center md:justify-between"
+            >
+              <div className="text-lg font-medium text-black">
+                {country.country}
+              </div>
+
+              <div className="flex flex-wrap gap-2 text-sm text-black/65">
+                <span className="rounded-full border border-black/10 bg-neutral-50 px-3 py-1">
+                  {country.organizationCount} organizations
+                </span>
+                <span className="rounded-full border border-black/10 bg-neutral-50 px-3 py-1">
+                  {country.systemCount} systems
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="rounded-3xl border border-black/10 bg-white p-8">
+        <div className="mb-5 flex items-center justify-between gap-4">
+          <h2 className="text-2xl font-semibold tracking-tight text-black">
+            AI systems
+          </h2>
+          <PublicButtonLink href="/explorer/systems">
+            View all
+          </PublicButtonLink>
+        </div>
+
+        <div className="space-y-3">
+          {systems.map((system) => (
+            <div
+              key={system.systemId}
+              className="flex flex-col gap-4 rounded-2xl border border-black/10 bg-white p-4 md:flex-row md:items-center md:justify-between"
+            >
+              <div>
+                <div className="text-lg font-medium text-black">
+                  {system.systemName}
+                </div>
+                <div className="mt-1 text-sm text-black/55">
+                  {system.entityName} · {system.country}
+                </div>
+              </div>
+
+              <div className="flex flex-wrap gap-3">
+                <span className="rounded-full border border-black/10 bg-neutral-50 px-3 py-1 text-sm text-black/65">
+                  {system.certifiedTier ?? "—"}
+                  {system.certifiedBand ? ` ${system.certifiedBand}` : ""}
+                </span>
+                <PublicButtonLink href={`/registry/${system.registryId}`}>
+                  View Certified Record
+                </PublicButtonLink>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
     </main>
   );
 }

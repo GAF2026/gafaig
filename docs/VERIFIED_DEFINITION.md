@@ -1,345 +1,278 @@
 # VERIFIED_DEFINITION.md
-Last Updated: 2026-04-15
+Last Updated: 2026-04-16
+
+---
 
 ## PURPOSE
-This document defines the canonical meaning of “Verified”, “Approved”, and “Certified” across the GAFAIG platform. It establishes a strict, non-overlapping trust model used consistently across Snowflake, API, UI, registry, explorer, verify, and widget surfaces. These definitions are foundational to GAFAIG and must not drift.
+
+This document defines the canonical meaning of "Verified" within the GAFAIG system.
+
+It establishes:
+- What constitutes a verified record
+- How verification is determined
+- The difference between evaluation, approval, and certification
+- The relationship between verification and public trust
+
+This definition is authoritative and must be used consistently across:
+- Snowflake
+- API
+- UI
+- Documentation
+- External integrations
 
 ---
 
 ## CORE PRINCIPLE
-GAFAIG separates three independent trust layers:
-- Verification (cryptographic integrity)
-- Approval (evaluation completion)
-- Certification (trusted public state)
 
-These layers must remain strictly distinct and must never be conflated in any system component.
+Verification is a deterministic state derived from the GAFAIG evaluation pipeline.
 
----
+A record is verified only when it has passed through the full canonical workflow and meets the required conditions defined in Snowflake.
 
-## VERIFIED
+Verification is not:
+- A UI label
+- A heuristic
+- A partial state
+- A manually assigned flag
 
-### Definition
-A record is Verified if its data integrity is cryptographically proven using a valid signature.
-
-### Requirements
-- A valid signature exists
-- The messageString matches the signed payload
-- Verification using the public key succeeds
-
-### Source
-- Application-layer proof system
-- `/api/verify/[registryId]`
-
-### Meaning
-“This record has not been altered and was issued by GAFAIG.”
-
-### Important Constraints
-- Verified does NOT imply Approved
-- Verified does NOT imply Certified
-- Verification is independent of governance evaluation
+Verification is a system-defined outcome.
 
 ---
 
-## APPROVED
+## CANONICAL PIPELINE
 
-### Definition
-A system is Approved if it has been evaluated through the GAFAIG verification process and has received a formal decision.
+APPLICATION
+→ CASE
+→ FINDINGS
+→ EVIDENCE
+→ EVENTS
+→ SCORING
+→ DECISION
+→ REGISTRY SNAPSHOT
+→ PUBLIC VIEWS
 
-### Requirements
-- Case exists in Snowflake
-- Findings, evidence, and events processed
-- Decision exists with valid `DECISION_STATUS`
-- Typically:
-  - `DECISION_STATUS = 'APPROVED'`
-
-### Source
-- `CORE.DECISIONS`
-- Derived into `CORE.V_REGISTRY_PUBLIC`
-
-### Meaning
-“This system has been evaluated under the GAFAIG governance framework.”
-
-### Important Constraints
-- Approved systems are NOT automatically trusted
-- Approved systems may have weaknesses or gaps
-- Approved systems may or may not be certified
+Verification is only meaningful after the DECISION stage.
 
 ---
 
-## CERTIFIED
+## TRUST STATES
 
-### Definition
-A system is Certified if it has:
-1. Been evaluated
-2. Achieved required governance thresholds
-3. Been formally published to the GAFAIG registry
+GAFAIG defines distinct trust states:
 
-### Requirements
-- `CERTIFIED_AT` is NOT NULL
-- `CERTIFIED_TIER` exists
-- `CERTIFIED_BAND` exists
-- A valid decision exists
-- Record published via:
-  - `SP_PUBLISH_CASE_TO_REGISTRY_V3` or `V4`
-- Present in:
-  - `CORE.REGISTRY_SNAPSHOTS`
-  - `CORE.V_REGISTRY_PUBLIC`
+### 1. Unverified
 
-### Meaning
-“This system is trusted and publicly certified by GAFAIG.”
+Definition:
+- A system that has not completed evaluation
 
-### Authority
-Certification authority comes from:
-- GAFAIG governance framework
-- Scoring system
-- Decision layer
-
-NOT from:
-- signature
-- API
-- UI
+Characteristics:
+- No decision
+- No score
+- No registry presence
+- Not visible in public registry
 
 ---
 
-## TIME-BOUND TRUST (CRITICAL)
+### 2. Evaluated (Approved)
 
-Certification is NOT permanent.
+Definition:
+- A system that has completed evaluation and received a decision
 
-### Controlled By
-- `VALID_FROM`
-- `VALID_TO`
+Characteristics:
+- Has findings, evidence, and score
+- Decision status = APPROVED
+- May be visible in Explorer
+- Not yet a certified public record
 
-### Interpretation
-- A certification is only valid within its defined time window
-- Outside this window, certification is no longer active
-
-### Meaning
-“Certified” always implies:
-→ Certified AND currently within validity period
-
----
-
-## LIFECYCLE STATES
-
-Derived from:
-- `CERTIFIED_AT`
-- `VALID_TO`
-- system time
-
-### ACTIVE
-- Certification exists
-- Current time is within validity window
-
-Meaning:
-“Currently certified and valid”
+Important:
+- Approved does NOT mean certified
+- Approved is an internal governance outcome
 
 ---
 
-### EXPIRING SOON
-- Certification exists
-- Approaching expiration window (typically last 30 days)
+### 3. Certified
 
-Meaning:
-“Certification nearing expiration; renewal required”
+Definition:
+- A system whose evaluation outcome has been finalized and published as a public trust record
 
----
+Characteristics:
+- Decision completed
+- Certification status = CERTIFIED
+- Registry snapshot created
+- Public record exists in V_REGISTRY_PUBLIC
+- Certification metadata assigned:
+  - certifiedScore
+  - certifiedTier
+  - certifiedBand
+  - certifiedAt
+  - validFrom / validTo
 
-### EXPIRED
-- Certification exists
-- Current time is past `VALID_TO`
-
-Meaning:
-“Previously certified but no longer valid”
-
----
-
-### NOT CERTIFIED
-- No certification exists (`CERTIFIED_AT` is NULL)
-
-Meaning:
-“Evaluated but not certified”
+This is the only authoritative public trust state.
 
 ---
 
-### FUTURE STATE (NOT YET ACTIVE)
-REVOCATION (planned):
-- Certification may be revoked prior to expiration
-- Will represent active invalidation of trust
+## VERIFIED DEFINITION
+
+A record is considered VERIFIED if and only if:
+
+1. It exists in CORE.REGISTRY_SNAPSHOTS
+2. It is exposed through CORE.V_REGISTRY_PUBLIC
+3. It has a valid registryId
+4. It has a valid cryptographic signature (proof object)
+5. It passes external verification using the public key
 
 ---
 
-## RELATIONSHIP MODEL
+## VERIFIED ≠ APPROVED
 
-Conceptual progression:
-Verified → Approved → Certified
+This distinction is critical.
 
-But technically:
-- Verified is independent
-- Approved is evaluation state
-- Certified is trust + publication state
+Approved:
+- Internal evaluation complete
+- Not yet a public trust artifact
 
----
-
-## COMBINED STATES
-
-| Verified | Approved | Certified | Lifecycle | Meaning |
-|---------|----------|----------|----------|--------|
-| ❌ | ❌ | ❌ | — | No valid record |
-| ✅ | ❌ | ❌ | — | Valid record, not evaluated |
-| ✅ | ✅ | ❌ | — | Evaluated, not certified |
-| ✅ | ✅ | ✅ | Active | Fully trusted |
-| ✅ | ✅ | ✅ | Expired | Previously trusted |
+Verified:
+- Publicly published
+- Cryptographically signed
+- Externally verifiable
 
 ---
 
-## REGISTRY VS VERIFICATION (CRITICAL DISTINCTION)
+## VERIFIED DATA REQUIREMENTS
 
-### VERIFY SURFACE (`/verify`)
-- Shows cryptographic truth
-- Confirms data integrity
-- Independent of certification
+A verified record must include:
 
-### REGISTRY SURFACE (`/registry`)
-- Shows governance truth
-- Reflects approval and certification
-- Derived from Snowflake
+- registryId
+- entityName
+- entityType
+- country
+- decisionStatus
+- certificationStatus
+- certifiedScore
+- certifiedTier
+- certifiedBand
+- certifiedAt
+- validFrom
+- validTo
 
-### Key Principle
-Verification ≠ Governance
-
----
-
-## MINIMUM CERTIFICATION CRITERIA
-
-A system cannot be certified unless ALL are true:
-
-- Valid case exists
-- Findings and evidence processed
-- Events support lifecycle progression
-- Scoring completed
-- Tier and band assigned
-- Decision approved
-- Registry snapshot published
+These fields must originate from Snowflake.
 
 ---
 
-## SIGNAL SOURCES
+## VERIFIED SIGNATURE REQUIREMENTS
 
-### VERIFIED
-- Source: verify API
-- Field: `verified`
+A verified record must include a valid proof object:
 
-### APPROVED
-- Source: decisions table
-- Field: `DECISION_STATUS`
+- alg = Ed25519
+- kid = key identifier
+- signature = valid signature
+- signedAt = timestamp
+- verificationKeyUrl = public key endpoint
+- message = canonical payload
+- messageString = deterministic string
 
-### CERTIFIED
-- Source: registry snapshot
-- Field: `CERTIFIED_AT`
-
-### LIFECYCLE
-- Derived from:
-  - `VALID_TO`
-  - current time
+If any of these are missing or invalid:
+→ the record is NOT verified
 
 ---
 
-## UI CONTRACT
+## VERIFIED ENDPOINT
 
-### VERIFY PAGE
-Must show:
-- Verified status
-- Approval status
-- Certification status
-- Lifecycle state
-- Full record details
+/api/verify/[registryId]
 
----
+This endpoint is the only authoritative verification surface.
 
-### REGISTRY PAGE
-Must:
-- prioritize certified records
-- clearly label approved-only records
-- reflect lifecycle state
+It must:
+- Return canonical data from Snowflake
+- Include a valid proof object
+- Be deterministic
+- Be externally verifiable
 
 ---
 
-### EXPLORER
-Must:
-- include both approved and certified
-- distinguish clearly
+## VERIFIED VS DISPLAYED DATA
+
+Displayed data:
+- UI-rendered
+- May include formatting
+- May include grouping or summaries
+
+Verified data:
+- Raw canonical payload
+- Signed
+- Deterministic
+- Independent of UI
+
+Only verified data is trusted.
 
 ---
 
-### WIDGET
-Must:
-- show certification only if certified
-- show approved otherwise
-- include verify link
-- never imply certification incorrectly
+## EXPLORER VS REGISTRY
+
+Explorer:
+- Shows evaluated (approved) and certified systems
+- Not authoritative
+- Discovery layer only
+
+Registry:
+- Shows certified records only
+- Authoritative public record
+- Source of verification
 
 ---
 
-## API CONTRACT
+## INVALID VERIFICATION STATES
 
-### VERIFY API
-Must return:
-- verified
-- record
-- proof
+A record is NOT verified if:
 
----
-
-### REGISTRY API
-Must:
-- reflect `CORE.V_REGISTRY_PUBLIC`
-- not compute certification logic
+- It is not in V_REGISTRY_PUBLIC
+- It lacks a registryId
+- It is not signed
+- Signature does not validate
+- Data is modified after signing
+- It exists only in UI or API layer
 
 ---
 
-## PROHIBITED MISINTERPRETATIONS
+## EXTERNAL VERIFICATION
 
-The following are incorrect and must never appear:
+External systems must:
 
-- Verified = Certified
-- Approved = Trusted
-- Signature = Certification
-- Certification is permanent
+1. Fetch record from /api/verify/[registryId]
+2. Extract messageString and signature
+3. Fetch public key
+4. Verify signature using Ed25519
 
----
-
-## TRUST MODEL SUMMARY
-
-- VERIFIED = cryptographic integrity
-- APPROVED = evaluated
-- CERTIFIED = trusted + published + time-valid
-
-All three layers must remain independent.
+If valid:
+→ record is verified
 
 ---
 
-## ENFORCEMENT
+## SYSTEM RULES
 
-These definitions must be enforced in:
-- Snowflake views
-- API responses
-- UI rendering
-- widget output
-- external integrations
-
-Any change requires:
-- updating this file
-- updating all dependent layers
+- Verification is computed in Snowflake
+- Signature is generated in API
+- UI must not determine verification state
+- No inferred or assumed verification
 
 ---
 
-## SUMMARY
+## DO NOT BREAK
 
-GAFAIG trust is multi-layered and deterministic:
-- Verification proves integrity
-- Approval proves evaluation
-- Certification proves trust and publication
-- Certification is time-bound
-- Lifecycle state defines current validity
+- Verified = Certified + Signed
+- No mixing Approved with Verified
+- No UI-derived verification
+- No unsigned trust claims
+- No partial verification
 
-This separation is fundamental and must not drift.
+---
+
+## FINAL RULE
+
+If a record is not both:
+1. Published in the registry
+2. Cryptographically signed
+
+It is NOT verified.
+
+---
+
+END OF FILE

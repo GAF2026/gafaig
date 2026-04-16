@@ -1,360 +1,335 @@
 # GAFAIG_SNOWFLAKE_SQL_FILE_SUMMARY.md
-Last Updated: 2026-04-15
+Last Updated: 2026-04-16
+
+---
 
 ## PURPOSE
-This file is the **canonical summary of all active Snowflake SQL files** used in the GAFAIG platform.
 
-It defines:
-- what each file does
-- how files relate to each other
-- where the system is currently blocked
-- which files are authoritative vs deprecated vs diagnostic
+This document defines the canonical Snowflake SQL file structure for GAFAIG.
 
-This file must reflect the **REAL LIVE SYSTEM**, not assumptions.
+It establishes:
+- Which files are ACTIVE (canonical)
+- Which files are ARCHIVED (legacy)
+- Which files must be FIXED before production
+- The correct execution order of the system
 
-Snowflake is the source of truth.
-
----
-
-## 🚨 CRITICAL RULES
-
-- Do NOT compute scores in API or UI
-- Do NOT bypass publish procedures
-- Do NOT create alternate registry logic
-- Do NOT invent schema fields
-- Always align with live `DESC TABLE` output
-- Always follow `CANONICAL_RUN_ORDER.md`
+This file is the source of truth for Snowflake structure.
 
 ---
 
-## 🧠 CANONICAL EXECUTION FLOW
+## CORE PRINCIPLE
 
-The system MUST execute in this order:
+Snowflake is the single source of truth.
 
-CASE  
-→ FINDINGS  
-→ EVIDENCE  
-→ EVENTS  
-→ SCORING  
-→ DECISION  
-→ REGISTRY SNAPSHOT  
-→ PUBLIC VIEWS  
+ALL:
+- scoring
+- certification logic
+- registry publication
+- trust state
 
-If any step fails, everything downstream fails.
+must originate from Snowflake.
 
----
-
-## 🧩 CORE TABLE FILES
-
-### Verification Cases
-- `10_TABLES_VERIFICATION_CASES.sql`
-  → Creates `CORE.VERIFICATION_CASES`
-  → Core entry point for all workflows
+No logic is allowed in:
+- API
+- UI
 
 ---
 
-### Verification Findings
-- `11_TABLES_VERIFICATION_FINDINGS.sql`
-  → Creates `CORE.VERIFICATION_FINDINGS`
+## CANONICAL DATA FLOW
 
-⚠️ LIVE SCHEMA (CONFIRMED):
-- CONTROL_ID (NOT RAW_CONTROL_ID)
-- CONTROL_TITLE
-- RESULT (NOT RESULT_RAW)
-- RATIONALE
-- SEVERITY
-- EVIDENCE_IDS (ARRAY)
-
----
-
-### Verification Evidence
-- `12_TABLES_VERIFICATION_EVIDENCE.sql`
-  → Creates `CORE.VERIFICATION_EVIDENCE`
+APPLICATION
+→ CASE
+→ FINDINGS
+→ EVIDENCE
+→ EVENTS
+→ SCORING
+→ DECISION
+→ REGISTRY SNAPSHOT
+→ PUBLIC VIEWS
 
 ---
 
-### Verification Events
-- `13_TABLES_VERIFICATION_EVENTS.sql`
-  → Creates `CORE.VERIFICATION_EVENTS`
-  → Drives lifecycle state:
-    - submitted
-    - review_started
-    - evidence_reviewed
-    - approved
+## ACTIVE CANONICAL FILES
 
----
+### ENVIRONMENT
 
-### Decisions
-- `17_TABLES_DECISIONS.sql`
-  → Creates `CORE.DECISIONS`
-
-⚠️ IMPORTANT FIELDS:
-- CERTIFICATION_TIER
-- CERTIFICATION_BAND
-- DECISION_STATUS
-- VALID_FROM / VALID_TO
-
----
-
-### Score Snapshots (LIVE)
-- `16_TABLES_CASE_SCORE_SNAPSHOTS.sql` (legacy reference)
-- LIVE TABLE: `CORE.CASE_SCORE_SNAPSHOTS_V2`
-
-⚠️ CONFIRMED STRUCTURE:
-- CASE_ID
-- MODEL_VERSION
-- SCORE
-- SUBSCORE_CONTROLS
-- SUBSCORE_COVERAGE
-- SUBSCORE_FRESHNESS
-- SUBSCORE_OPERATIONAL
-- TIER
-- BAND
-- RENEWAL_STATUS
-- EVENTS_90D
-- SCORED_AT
-- CREATED_AT
-
-⚠️ NOTE:
-- `SNAPSHOT_AT` does NOT exist
-- Using it causes failure
-
----
-
-## 🧩 SCORING ENGINE FILES (CRITICAL)
-
-### Enterprise Scoring Engine
-- `GAFAIG - Governance Scoring (Enterprise v1.2).sql`
-
-Defines:
-- scoring logic
-- scoring dependencies
-- supporting views
-
----
-
-### Stored Procedure
-- `CORE.SP_SCORE_CASE_ENTERPRISE`
+- 00_CORE_SETUP.sql
+- 01_REBUILD_ENVIRONMENT_CANONICAL.sql
 
 Purpose:
-- executes scoring pipeline for a case
-
-Current Behavior:
-- returns ok = true
-- returns rowsInserted = 0 ❌
-
-Meaning:
-- procedure runs
-- but no score rows are produced
+- Initialize database, schema, roles
+- Reset environment deterministically
 
 ---
 
-### Governance Score View (CRITICAL)
-- `CORE.V_GOVERNANCE_SCORE_CASE`
+### TABLES
+
+- 11_TABLES_APPLICATIONS.sql
+- 13_TABLES_FINDINGS.sql
+- 14_TABLES_EVIDENCE.sql
+- 16_TABLES_CASE_SCORE_SNAPSHOTS.sql
+- 17_TABLES_DECISIONS.sql
+- 18_TABLES_REGISTRY_ENTITIES.sql
+- REGISTRY_AI_SYSTEMS.sql
 
 Purpose:
-- canonical score output
-- required by publish procedure
-
-Current Issue:
-- rebuilt demo cases DO NOT appear here ❌
-- publish depends on this → system blocked
+- Define canonical storage layer
+- Must match production schema exactly
 
 ---
 
-### Supporting Scoring Views
-- `CORE.V_CASE_SCORE_ENTERPRISE`
-- `CORE.V_CASE_TIER_BAND`
-- `CORE.V_CASE_RENEWAL_STATUS`
-- `CORE.V_FINDING_UNMAPPED_CONTROLS`
+### VIEWS (CRITICAL TRUST LAYER)
 
-Use:
-- scoring diagnostics
-- scoring decomposition
+#### 1. REGISTRY CONTRACT (FOUNDATIONAL)
 
----
-
-## 🧩 REGISTRY FILES
-
-### Registry Snapshots
-- `GAFAIG - CORE.REGISTRY_SNAPSHOTS.sql`
-
-Defines:
-- `CORE.REGISTRY_SNAPSHOTS` (append-only)
-- `CORE.V_REGISTRY_LATEST_APPROVED`
-
----
-
-### Publish Procedure
-- `GAFAIG - CORE.REGISTRY_PUBLISH.sql`
-
-Contains:
-- `SP_PUBLISH_CASE_TO_REGISTRY_V3`
-- `SP_PUBLISH_CASE_TO_REGISTRY_V4`
-
-Purpose:
-- converts scored + approved case into registry record
-
-Dependency:
-- requires valid row in `V_GOVERNANCE_SCORE_CASE`
-
----
-
-## 🧩 PUBLIC REGISTRY FILES
-
-### Public Registry View
-- `21_VIEWS_PUBLIC_REGISTRY.sql`
-
-Defines:
-- `CORE.V_REGISTRY_PUBLIC`
-
-Purpose:
-- canonical public dataset
-- consumed by API + UI
-
----
-
-### Public Search View
-- `GAFAIG - Public Registry Search View.sql`
-
-Defines:
-- `CORE.V_REGISTRY_PUBLIC_SEARCH`
-
-Purpose:
-- search normalization
-- uppercase + concatenated fields
-
----
-
-## 🧩 AI SYSTEM REGISTRY FILES
-
-### Table
-- `14_TABLES_REGISTRY_AI_SYSTEMS.sql`
-
-Creates:
-- `CORE.REGISTRY_AI_SYSTEMS`
-
----
-
-### Public View
-- `V_REGISTRY_AI_SYSTEMS_PUBLIC`
-
-Purpose:
-- expose AI systems tied to registry records
-
----
-
-## 🧩 DEMO / SEED FILES
-
-### Primary Seed File
-- `GAFAIG - FINAL_CANONICAL_DEMO_SEED.sql`
-
-Purpose:
-- builds demo dataset end-to-end
+- 21_VIEWS_PUBLIC_REGISTRY.sql
 
 Status:
-- PARTIALLY WORKING
-- loads data
-- FAILS at scoring/publish
+- ACTIVE
+- REQUIRES FIX
+
+Responsibilities:
+- Define V_REGISTRY_LATEST_APPROVED
+- Define V_REGISTRY_PUBLIC
+
+Critical Requirements:
+- Approved ≠ Certified
+- CERTIFIED_AT must represent certification, not approval
+- DECISION_STATUS must be correct
+- LIFECYCLE_STATUS must be correct
+- Only published/certified records exposed
+
+THIS FILE CONTROLS:
+- Registry UI
+- Explorer trust state
+- API outputs
+- Score exposure
 
 ---
 
-### Master Seed Orchestration
-- `GAFAIG - CANONICAL_DEMO_SEED_MASTER.sql`
+#### 2. AI SYSTEMS PUBLIC SURFACE
+
+- 22_VIEWS_REGISTRY_AI_SYSTEMS_PUBLIC.sql
+
+Status:
+- ACTIVE
+- CORRECT STRUCTURE
+
+Responsibilities:
+- One row per system
+- Join to V_REGISTRY_PUBLIC on CASE_ID
+- Expose system metadata + trust metadata
+
+Rules:
+- Do NOT compute scoring here
+- Do NOT fabricate fields
+- Use only:
+  - REGISTRY_AI_SYSTEMS
+  - V_REGISTRY_PUBLIC
+
+Depends on:
+- Correct V_REGISTRY_PUBLIC semantics
+
+---
+
+#### 3. EXPLORER STATS
+
+- 22_VIEWS_EXPLORER_STATS.sql
+
+Status:
+- ACTIVE
+- REQUIRES FIX
+
+Responsibilities:
+- Aggregate:
+  - total records
+  - certified
+  - approved
+  - countries
+  - tiers
+  - bands
+  - entity types
+
+Current Issues:
+- Derived only from V_REGISTRY_PUBLIC (too narrow)
+- Misaligned with Explorer surface
+- Causes incorrect UI summary pills
+
+Must be corrected to:
+- Align with actual public system surface
+- Avoid double counting
+- Correct trust-state classification
+
+---
+
+#### 4. SCORE BREAKDOWN (PUBLIC)
+
+- GAFAIG - SCORE_BREAKDOWN_PUBLIC.sql
+
+Status:
+- ACTIVE
+- DEPENDENT ON REGISTRY FIX
+
+Responsibilities:
+- Provide:
+  - V_SCORE_BREAKDOWN_PUBLIC
+  - V_SCORE_DIMENSIONS_PUBLIC
+
+Rules:
+- No recomputation of scores
+- Only expose values from CASE_SCORE_SNAPSHOTS
+- Respect registry trust boundaries
+
+Depends on:
+- Correct V_REGISTRY_PUBLIC semantics
+
+---
+
+### PROCEDURES
+
+- 23_SP_CREATE_CASE_FROM_APPLICATION.sql
+- 24_SP_SCORE_CASE_ENTERPRISE.sql
+- APPROVE_CASE_V1.sql
+- CORE.REGISTRY_PUBLISH.sql
 
 Purpose:
-- orchestrates seed execution
+- Drive workflow execution
+- Ensure deterministic transitions:
+  - Application → Case
+  - Case → Score
+  - Score → Decision
+  - Decision → Registry
+
+Critical:
+- REGISTRY_PUBLISH must:
+  - Enforce approval → certification gating
+  - Reuse registry IDs
+  - Prevent duplicates
 
 ---
 
-### Multi-Case Validation
-- `GAFAIG - MULTI-CASE DEMO SCORE + PUBLISH + VALIDATION.sql`
+## CANONICAL SEED FILE
+
+### ACTIVE
+
+- GAFAIG - FINAL_CANONICAL_MULTI_SEED.sql
 
 Purpose:
-- debug scoring + publish chain
+- Seed full deterministic dataset:
+  - Applications
+  - Cases
+  - Findings
+  - Evidence
+  - Events
+  - Scores
+  - Decisions
+  - Registry entries
+  - AI systems
+
+Rules:
+- This is the ONLY active seed file
+- Must follow full pipeline
+- Must produce consistent counts
 
 ---
 
-### Run Order
-- `GAFAIG - CANONICAL RUN ORDER.sql`
+### ARCHIVED (DO NOT USE)
 
-Purpose:
-- defines correct execution sequence
+- CANONICAL_DEMO_SEED_MASTER.sql
+- FINAL_CANONICAL_CASE_0001_SEED.sql
+- SAFE_MULTI_CASE_EXPANSION V2.sql
+- Canonical Demo Seed.sql
+- Demo Dataset files
+- Any experimental or partial seed scripts
 
----
-
-### Backfill (Optional)
-- `DATA_BACKFILL_DEMO_DECISIONS.sql`
-
-Purpose:
-- patch decisions if needed
-
-⚠️ DO NOT USE to bypass scoring unless explicitly required
+Reason:
+- Cause data drift
+- Create inconsistent trust surfaces
 
 ---
 
-## 🔥 CURRENT SYSTEM FAILURE
+## EXECUTION ORDER (MANDATORY)
 
-The system currently behaves as:
+Run in this exact order:
 
-1. CASES inserted ✅  
-2. FINDINGS inserted ✅  
-3. EVIDENCE inserted ✅  
-4. EVENTS inserted ✅  
-5. DECISIONS inserted ✅  
-6. SCORING runs but produces 0 rows ❌  
-7. V_GOVERNANCE_SCORE_CASE empty ❌  
-8. PUBLISH produces nothing ❌  
-9. V_REGISTRY_PUBLIC empty ❌  
-
----
-
-## 🎯 ROOT CAUSE
-
-NOT schema anymore  
-NOT UI  
-NOT API  
-
-The issue is:
-
-→ **SCORING INPUT CONTRACT FAILURE**
-
-Meaning:
-- seed data does NOT meet requirements expected by:
-  - `SP_SCORE_CASE_ENTERPRISE`
-  - `V_GOVERNANCE_SCORE_CASE`
+1. 01_REBUILD_ENVIRONMENT_CANONICAL.sql
+2. All TABLES files
+3. All VIEW files (including registry + AI systems)
+4. PROCEDURES
+5. FINAL_CANONICAL_MULTI_SEED.sql
+6. SCORING procedure
+7. APPROVAL procedure
+8. REGISTRY publish procedure
 
 ---
 
-## 🎯 ACTIVE DEBUG TARGET
+## VALIDATION QUERIES
 
-Focus ONLY on:
+After execution:
 
-- `SP_SCORE_CASE_ENTERPRISE`
-- `V_GOVERNANCE_SCORE_CASE`
+SELECT * FROM CORE.V_REGISTRY_PUBLIC;
+SELECT * FROM CORE.V_REGISTRY_LATEST_APPROVED;
 
-We must determine:
-- required input fields
-- required event states
-- required relationships
-- required control mappings
+SELECT
+  DECISION_STATUS,
+  CERTIFICATION_STATUS,
+  COUNT(*) AS RECORDS
+FROM CORE.V_REGISTRY_PUBLIC
+GROUP BY 1,2;
 
----
-
-## ⚠️ DO NOT MODIFY WITHOUT CARE
-
-- `GAFAIG - CORE.REGISTRY_PUBLISH.sql`
-- `GAFAIG - CORE.REGISTRY_SNAPSHOTS.sql`
-- `21_VIEWS_PUBLIC_REGISTRY.sql`
-- `GAFAIG - Governance Scoring (Enterprise v1.2).sql`
+SELECT * FROM CORE.V_REGISTRY_STATS_GLOBAL;
+SELECT * FROM CORE.V_REGISTRY_STATS_BY_COUNTRY;
+SELECT * FROM CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC;
 
 ---
 
-## SUMMARY
+## CURRENT ISSUES (IN PROGRESS)
 
-- Snowflake system is structurally correct
-- Live schemas are now understood
-- Seed file corrected for schema mismatches
-- System is blocked at scoring layer
-- Publish fails because scoring fails
-- Fixing scoring visibility into `V_GOVERNANCE_SCORE_CASE` is the ONLY priority
+- V_REGISTRY_PUBLIC incorrectly conflates Approved and Certified
+- Explorer stats not aligned with system truth
+- Summary counts incorrect
+- Legacy seed files causing conflicts
+- Public trust surface not deterministic
+
+---
+
+## CURRENT PRIORITY
+
+1. Fix 21_VIEWS_PUBLIC_REGISTRY.sql
+2. Fix 22_VIEWS_EXPLORER_STATS.sql
+3. Re-run canonical seed
+4. Validate pipeline
+5. Align UI with corrected data
+6. Archive non-canonical files
+
+---
+
+## FINAL TARGET STATE
+
+System must produce:
+
+- Deterministic outputs
+- Correct trust classification
+- Accurate counts across:
+  - Explorer
+  - Registry
+  - API
+- Zero ambiguity between:
+  - Approved
+  - Certified
+- Clean, minimal SQL file set
+
+---
+
+## DO NOT BREAK
+
+- Snowflake as source of truth
+- Canonical data flow
+- Single seed system
+- No duplicate registry logic
+- No UI-derived values
+- No mixing of trust states
+
+---
+
+END OF FILE

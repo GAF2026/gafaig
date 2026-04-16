@@ -1,5 +1,5 @@
 # ENGINEERING_RULES.md
-Last Updated: 2026-04-15
+Last Updated: 2026-04-16
 
 ============================================================
 GAFAIG — ENGINEERING RULES (CANONICAL)
@@ -117,12 +117,6 @@ Pipeline is fixed:
 
 CASE → FINDINGS → EVIDENCE → EVENTS → SCORING → DECISION → PUBLISH
 
-Rules:
-- No shortcuts
-- No skipped steps
-- No manual overrides outside procedures
-- No direct inserts into downstream trust layers as a substitute for canonical flow
-
 Expanded runtime interpretation:
 
 CASE
@@ -136,6 +130,12 @@ CASE
 → PUBLIC VIEW
 → VERIFY (SIGNATURE)
 
+Rules:
+- No shortcuts
+- No skipped steps
+- No manual overrides
+- No direct inserts into downstream layers
+
 ============================================================
 RULE 6 — SCORING IS LOCKED TO SNOWFLAKE
 ============================================================
@@ -148,7 +148,7 @@ Outputs must come from:
 - CORE.V_CASE_SCORE_ENTERPRISE
 - CORE.V_GOVERNANCE_SCORE_CASE
 
-Supporting live objects include:
+Supporting objects:
 - CORE.V_CASE_TIER_BAND
 - CORE.V_CASE_RENEWAL_STATUS
 - CORE.V_FINDING_UNMAPPED_CONTROLS
@@ -157,13 +157,12 @@ Supporting live objects include:
 DO NOT:
 - Recalculate scores in API
 - Recalculate scores in UI
-- Fabricate score rows in query layer
-- Pretend a successful procedure call means scoring succeeded if rowsInserted = 0
+- Fabricate score rows
+- Assume success if rowsInserted = 0
 
 If scoring inserts 0 rows:
 → treat as failure
-→ diagnose scoring input contract
-→ do NOT patch downstream surfaces
+→ fix input contract
 
 ============================================================
 RULE 7 — PUBLISH IS THE ONLY WAY TO ENTER REGISTRY
@@ -173,378 +172,240 @@ Publishing must be done via:
 
 CORE.SP_PUBLISH_CASE_TO_REGISTRY_V3
 
-If V4 is active in the environment, it must still remain canonical and Snowflake-owned.
-
 Rules:
 - No direct inserts into REGISTRY_SNAPSHOTS
 - No manual registry manipulation
-- No fake registry data for UI testing
-- No bypass of score requirements
+- No fake registry data
+- No bypass of scoring
 
 ============================================================
 RULE 8 — RECORD TYPE INTEGRITY
 ============================================================
 
-There are ONLY two valid public record types:
-
-------------------------------------------------------------
+Two valid public record types:
 
 CERTIFIED RECORD:
 - CERTIFIED_AT NOT NULL
 - Has:
-  - CERTIFIED_SCORE
-  - CERTIFIED_TIER
-  - CERTIFIED_BAND
-  - Proof-capable verify surface
-
-------------------------------------------------------------
+  CERTIFIED_SCORE
+  CERTIFIED_TIER
+  CERTIFIED_BAND
 
 APPROVED-ONLY RECORD:
-- DECISION_STATUS = APPROVED (or canonical equivalent)
+- DECISION_STATUS = APPROVED
 - CERTIFIED_AT = NULL
-- No certification fields should be fabricated
-
-------------------------------------------------------------
 
 CRITICAL:
-UI MUST NOT fabricate certification data.
+UI MUST NOT fabricate certification data
 
 ============================================================
 RULE 9 — QUERY LAYER RESTRICTIONS
 ============================================================
 
-lib/queries/* files must:
-
-- NOT implement business logic
-- NOT filter data unless explicitly required
-- NOT transform meaning of data
+lib/queries must:
 
 Allowed:
-- Field normalization (case, null handling)
-- Type conversion
-- Simple mapping
+- normalization
+- null handling
+- type conversion
 
 Forbidden:
-- Score calculation
-- Certification inference beyond direct fields
-- Data fabrication
-- Lifecycle invention
-- Business rules
+- scoring logic
+- certification inference
+- lifecycle invention
+- data fabrication
 
 ============================================================
 RULE 10 — API CONTRACT STABILITY
 ============================================================
 
-API routes must:
+API must:
+- mirror Snowflake truth
+- not hide missing data
+- not reinterpret logic
 
-- Match query layer interfaces exactly
-- Not introduce new semantic fields casually
-- Not hide missing data
-- Not reinterpret Snowflake truth
-
-If data is missing:
-→ Fix Snowflake or query layer
-→ NOT the API
+If data is wrong:
+→ fix Snowflake
+→ NOT API
 
 ============================================================
 RULE 11 — UI HONESTY
 ============================================================
 
-UI must reflect reality.
+UI must:
+- reflect real data
+- not fabricate
+- not infer
+- not guess
 
-Rules:
-- Do not hide missing data
-- Do not fabricate fields
-- Do not guess values
-- Do not imply certification where only approval exists
-- Do not imply approval where only verification exists
-
-Display logic:
-- Certified → full trust surface
-- Approved → limited surface
-- Verified → cryptographic integrity only
+Display rules:
+- Certified → full trust
+- Approved → limited
+- Verified → signed
 
 ============================================================
 RULE 12 — NO RE-ARCHITECTURE
 ============================================================
 
 DO NOT:
-- Change pipeline structure
-- Introduce new layers
-- Replace Snowflake logic
-- Move authoritative logic into API/UI
-
-Only fix what is broken.
+- change pipeline
+- move logic out of Snowflake
+- introduce new trust layers
 
 ============================================================
 RULE 13 — ID CONSISTENCY
 ============================================================
 
-Identifiers must be deterministic and consistent:
+- CASE_ID → CASE-XXXX
+- APPLICATION_ID → APP-XXXX
+- REGISTRY_ID → GAFAIG-XXXXXXXX
 
-- CASE_ID → "CASE-XXXX"
-- APPLICATION_ID → "APP-XXXX"
-- REGISTRY_ID → "GAFAIG-XXXXXXXX"
-
-Rules:
-- No random ID formats
-- No mixed casing
-- Always normalize (UPPER + TRIM)
+Always:
+UPPER(TRIM())
 
 ============================================================
-RULE 14 — NORMALIZATION RULES
+RULE 14 — NORMALIZATION
 ============================================================
 
 All joins must use:
 
 UPPER(TRIM(field))
 
-Applied to:
-- CASE_ID
-- APPLICATION_ID
-- REGISTRY_ID
-- ORG_ID where required by live contracts
-
 ============================================================
 RULE 15 — NO DUPLICATE LOGIC
 ============================================================
 
-Each piece of logic must exist in ONE place only.
-
-Examples:
-- Scoring → Snowflake only
-- Certification → Snowflake only
-- Registry state → Snowflake only
-- Verification signature generation → application crypto layer only
-- Public key exposure → dedicated public key endpoint only
+Each logic must exist in ONE place only.
 
 ============================================================
 RULE 16 — BUILD MUST PASS
 ============================================================
 
-Every Next.js change must result in:
-
 npm run build → SUCCESS
-
-No type regressions allowed to accumulate.
 
 ============================================================
 RULE 17 — FIX ROOT CAUSE ONLY
 ============================================================
 
-When debugging:
-
-- Identify root cause
-- Fix at correct layer
-
-DO NOT:
-- Patch UI to hide issues
-- Add temporary fixes
-- Introduce workarounds that violate architecture
-- Fake success in downstream layers
+Never patch UI to hide backend problems.
 
 ============================================================
 RULE 18 — CANONICAL FILES ONLY
 ============================================================
 
 Only use:
-- Files listed in GAFAIG_ACTIVE_FILE_MAP.md
-- SQL files listed in GAFAIG_SNOWFLAKE_SQL_FILE_SUMMARY.md
-
-Ignore:
-- Archived files
-- Duplicate files
-- Legacy scripts
-- Unverified scratch SQL
+- GAFAIG_ACTIVE_FILE_MAP.md
+- GAFAIG_SNOWFLAKE_SQL_FILE_SUMMARY.md
 
 ============================================================
 RULE 19 — TEST AFTER EVERY CHANGE
 ============================================================
 
-After changes, verify:
-
-- Build passes
-- /registry loads
-- /explorer loads
-- /registry/[id] behaves correctly
-- /verify/[id] behaves correctly
-- /api/verify/[id] behaves correctly
-- Widget preview still works
-- Snowflake scoring/publish path still holds if Snowflake was touched
+Must verify:
+- build
+- explorer
+- registry
+- verify endpoint
+- widget
 
 ============================================================
 RULE 20 — CURRENT CRITICAL FOCUS
 ============================================================
 
-The ONLY current engineering priority is:
+Fix Snowflake canonicalization:
 
-Stabilize the Snowflake scoring-to-publish path for the expanded demo seed system.
+- V_REGISTRY_PUBLIC semantics
+- Explorer stats
+- Seed integrity
+- Scoring pipeline
 
-Specifically:
-- diagnose why rebuilt cases do not appear in V_GOVERNANCE_SCORE_CASE
-- restore SP_SCORE_CASE_ENTERPRISE output for new seed cases
-- restore SP_PUBLISH_CASE_TO_REGISTRY_V3 output into REGISTRY_SNAPSHOTS / V_REGISTRY_PUBLIC
-
-Do NOT treat UI as the blocker.
-Do NOT treat API as the blocker.
-The blocker is Snowflake scoring input contract alignment.
+UI is NOT the blocker.
 
 ============================================================
 RULE 21 — LIVE SCHEMA ONLY
 ============================================================
 
-All SQL must align to live DESC TABLE / DESC VIEW output.
+Use DESC TABLE / VIEW only.
 
-Do NOT assume fields from:
-- prior chats
-- draft files
-- inferred view structures
-- outdated memory
-
-Examples of live-schema corrections already discovered:
-- VERIFICATION_FINDINGS uses CONTROL_ID, CONTROL_TITLE, RESULT, RATIONALE, SEVERITY, EVIDENCE_IDS
-- CASE_SCORE_SNAPSHOTS_V2 uses SCORED_AT, not SNAPSHOT_AT
+Never assume schema.
 
 ============================================================
 RULE 22 — VERIFICATION IS NOT CERTIFICATION
 ============================================================
 
-Trust semantics must remain separate:
-
-- VERIFIED = cryptographic integrity
+- VERIFIED = signature
 - APPROVED = evaluated
-- CERTIFIED = trusted + published + time-valid
+- CERTIFIED = trusted
 
-Do NOT conflate them in:
-- Snowflake outputs
-- API payloads
-- UI labels
-- Widgets
-- Public copy
+Never mix.
 
 ============================================================
 RULE 23 — TIME-BOUND CERTIFICATION
 ============================================================
 
-Certification is not permanent.
-
-It must be governed by:
+Must use:
 - VALID_FROM
 - VALID_TO
 
-Lifecycle states such as:
-- Active
-- Expiring Soon
-- Expired
-
-must be derived from canonical Snowflake logic, not guessed in UI/API.
+No UI guesses.
 
 ============================================================
 RULE 24 — SIGNATURE CONTRACT STABILITY
 ============================================================
 
-Verification proof contract must remain stable.
-
-Current contract includes:
-- proof.alg
-- proof.kid
-- proof.signature
-- proof.signedAt
-- proof.verificationKeyUrl
-- proof.message
-- proof.messageString
-
-Rules:
-- messageString must be deterministic
-- signature must be base64
-- signing algorithm must remain Ed25519 unless explicitly versioned
-- any contract change must be coordinated across verify API, key endpoint, widget, and UI
+Proof must include:
+- alg
+- kid
+- signature
+- signedAt
+- verificationKeyUrl
+- message
+- messageString
 
 ============================================================
 RULE 25 — PRIVATE KEY SAFETY
 ============================================================
 
-Private signing key material must never be exposed.
-
-Allowed:
-- public key endpoint
-- public key PEM/base64 exposure
-- key id exposure
-
-Forbidden:
-- logging private key
-- returning private key in API
-- embedding private key in client bundle
-- storing private key in public files
+Never expose private key.
 
 ============================================================
-RULE 26 — PUBLIC TRUST SURFACE MUST FOLLOW SNOWFLAKE
+RULE 26 — PUBLIC TRUST SURFACE = SNOWFLAKE
 ============================================================
 
-The following surfaces must only reflect canonical Snowflake truth:
-- /registry
-- /registry/[registryId]
-- /registry/ai-systems
-- /explorer
-- /explorer/organizations
-- /explorer/systems
-- /explorer/countries
-- /verify
-- /verify/[registryId]
-- /widget-preview/[registryId]
-
-No surface may “look better” by drifting from Snowflake.
+All pages must reflect Snowflake truth.
 
 ============================================================
-RULE 27 — DEMO SEEDS MUST BE REAL PIPELINE DATA
+RULE 27 — DEMO SEEDS MUST BE REAL
 ============================================================
 
-Demo seed data must:
-- respect live schemas
-- pass through canonical scoring and publish flow
-- generate real downstream records
-
-Demo seed data must NOT:
-- fake registry visibility
-- fake certification
-- bypass procedures for convenience
-- create contradictions between Snowflake and UI
+No fake data.
 
 ============================================================
 RULE 28 — CONTROL FILES ARE AUTHORITATIVE
 ============================================================
 
-These files are system control files and must be treated as authoritative:
-- MASTER_STATE.md
-- CURRENT_FOCUS.md
-- ENGINEERING_RULES.md
-- CANONICAL_RUN_ORDER.md
-- GAFAIG_ACTIVE_FILE_MAP.md
-- GAFAIG_SNOWFLAKE_SQL_FILE_SUMMARY.md
-
-They are not optional reference docs.
-They are the operating control layer.
+MASTER_STATE.md
+CURRENT_FOCUS.md
+ENGINEERING_RULES.md
+GAFAIG_ACTIVE_FILE_MAP.md
+GAFAIG_SNOWFLAKE_SQL_FILE_SUMMARY.md
 
 ============================================================
-RULE 29 — WHEN IN DOUBT, TRACE THE PIPELINE
+RULE 29 — DEBUG FROM SNOWFLAKE FIRST
 ============================================================
 
-If something is missing in UI or API:
+Trace:
 
-Trace in this order:
-1. VERIFICATION_CASES
-2. VERIFICATION_FINDINGS
-3. VERIFICATION_EVIDENCE
-4. VERIFICATION_EVENTS
-5. V_CASE_SCORE_ENTERPRISE / V_GOVERNANCE_SCORE_CASE
-6. DECISIONS
-7. REGISTRY_SNAPSHOTS
-8. V_REGISTRY_LATEST_APPROVED
-9. V_REGISTRY_PUBLIC
-10. API
-11. UI
-
-Never debug top-down first if Snowflake truth is uncertain.
+CASE
+→ FINDINGS
+→ EVIDENCE
+→ EVENTS
+→ SCORING
+→ DECISION
+→ REGISTRY
+→ VIEWS
+→ API
+→ UI
 
 ============================================================
 END
