@@ -1,157 +1,202 @@
 import Link from "next/link";
+import PublicPageHero from "../_components/PublicPageHero";
+import PublicButtonLink from "../_components/PublicButtonLink";
 import { getRegistryList } from "@/lib/queries/registry";
 
 export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
+function formatDate(value: string | null | undefined) {
+  if (!value) return "—";
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return value;
+  return parsed.toLocaleDateString("en-US");
+}
+
+function getCertificationLabel(row: any) {
+  if (row.certificationLevel) return String(row.certificationLevel);
+  if (row.certifiedTier && row.certifiedBand) {
+    return `${row.certifiedTier} · ${row.certifiedBand}`;
+  }
+  if (row.certifiedTier) return String(row.certifiedTier);
+  if (row.certifiedBand) return `Band ${row.certifiedBand}`;
+  if (row.certificationStatus) return String(row.certificationStatus);
+  return "Certified";
+}
 
 export default async function RegistryPage() {
   const rows = await getRegistryList();
 
   return (
-    <main className="min-h-screen bg-[#f7f7f7] px-6 py-10">
-      <div className="mx-auto w-full max-w-3xl space-y-8">
+    <main className="mx-auto max-w-[1180px] px-6 pb-16 pt-14">
+      <div className="space-y-8">
+        <PublicPageHero
+          eyebrow="REGISTRY OF RECORD"
+          title="Certified public AI governance registry"
+          description="This registry serves as the public record of AI governance certifications issued through the GAFAIG verification engine."
+          actions={
+            <>
+              <PublicButtonLink href="/explorer" variant="primary">
+                Open Explorer
+              </PublicButtonLink>
+              <PublicButtonLink href="/verify" variant="secondary">
+                Verify a record
+              </PublicButtonLink>
+            </>
+          }
+        />
 
-        {/* HERO */}
-        <section className="rounded-2xl border border-black/10 bg-white p-6 shadow-sm">
-          <div className="text-[11px] uppercase tracking-wide text-black/40">
-            Registry of record
+        <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
+          <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
+            HOW TO READ THE REGISTRY
           </div>
 
-          <h1 className="mt-2 text-[26px] font-semibold leading-tight text-black">
-            Certified public AI governance registry
-          </h1>
+          <h2 className="mt-4 max-w-[860px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
+            Public certification outcomes published through the GAFAIG trust layer
+          </h2>
 
-          {/* ✅ NEW AUTHORITY LINE */}
-          <p className="mt-2 text-[14px] text-black/60">
-            This registry serves as the public record of AI governance certifications issued through the GAFAIG verification engine.
+          <p className="mt-5 max-w-[960px] text-[16px] leading-[1.85] text-black/75">
+            The registry discloses certification outcomes without exposing private
+            reviewer materials, internal evidence, or controlled workflow details.
+            Each published record represents a public trust artifact that can be
+            opened, inspected, and independently verified.
           </p>
 
-          <div className="mt-4 rounded-xl border border-black/10 bg-[#fafafa] p-4 text-[13px] text-black/70">
-            <div className="font-medium text-black">Approved</div>
-            A system has completed the full GAFAIG evaluation process, including findings, evidence review, and governance scoring.
-            <div className="mt-3 font-medium text-black">Certified</div>
-            The evaluated outcome has been finalized, assigned a governance score and certification tier, and published as a verifiable public record in the registry.
-          </div>
+          <div className="mt-7 rounded-2xl border border-black/10 bg-black/[0.02] p-5">
+            <div className="text-[18px] font-semibold tracking-tight text-black">
+              Status definitions
+            </div>
 
-          <div className="mt-5 flex gap-3">
-            <Link
-              href="/explorer"
-              className="rounded-full bg-black px-4 py-2 text-[13px] font-medium text-white"
-            >
-              Open Explorer
-            </Link>
-            <Link
-              href="/verify"
-              className="rounded-full border border-black/20 px-4 py-2 text-[13px] font-medium text-black"
-            >
-              Verify a record
-            </Link>
+            <div className="mt-4 space-y-5">
+              <div>
+                <div className="text-[16px] font-semibold text-black">
+                  Approved
+                </div>
+                <p className="mt-2 text-[15px] leading-[1.8] text-black/75">
+                  A system has completed the full GAFAIG evaluation process,
+                  including findings, evidence review, and governance scoring.
+                </p>
+              </div>
+
+              <div>
+                <div className="text-[16px] font-semibold text-black">
+                  Certified
+                </div>
+                <p className="mt-2 text-[15px] leading-[1.8] text-black/75">
+                  The evaluated outcome has been finalized, assigned a governance
+                  score and certification tier, and published as a verifiable
+                  public record in the registry.
+                </p>
+              </div>
+            </div>
           </div>
         </section>
 
-        {/* DIRECTORY */}
-        <section className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="text-[11px] uppercase tracking-wide text-black/40">
-                Certified public records
+        <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
+          <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+            <div className="max-w-[920px]">
+              <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
+                CERTIFIED PUBLIC RECORDS
               </div>
-              <h2 className="text-[20px] font-semibold text-black">
+
+              <h2 className="mt-4 text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
                 Registry directory
               </h2>
+
+              <p className="mt-3 max-w-[860px] text-[16px] leading-[1.85] text-black/75">
+                Browse certified public trust records by organization,
+                jurisdiction, and registry identifier.
+              </p>
             </div>
 
-            <div className="text-[12px] text-black/40">
+            <div className="shrink-0 text-[15px] font-medium text-black/45">
               {rows.length} certified records
             </div>
           </div>
 
-          <div className="space-y-4">
+          <div className="mt-8 space-y-4">
             {rows.map((row: any) => {
-              const isCertified =
-                String(row.certificationStatus || "").toLowerCase() === "certified";
+              const certificationStatus = String(
+                row.certificationStatus || ""
+              ).trim();
+              const decisionStatus = String(row.decisionStatus || "").trim();
 
               return (
-                <div
+                <article
                   key={row.registryId}
-                  className="rounded-2xl border border-black/10 bg-white p-5 shadow-sm"
+                  className="rounded-2xl border border-black/10 bg-white p-5 md:p-6"
                 >
-                  <div className="flex items-start justify-between">
-                    <div>
-                      {/* STATUS CHIPS */}
-                      <div className="flex gap-2">
-                        <span className="rounded-full bg-green-100 px-2 py-[2px] text-[11px] font-medium text-green-700">
-                          {isCertified ? "Certified" : "Approved"}
-                        </span>
-                        <span className="rounded-full bg-blue-100 px-2 py-[2px] text-[11px] font-medium text-blue-700">
-                          {row.decisionStatus || "Approved"}
-                        </span>
+                  <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-2">
+                        {certificationStatus ? (
+                          <span className="rounded-full bg-emerald-100 px-3 py-1 text-[12px] font-semibold text-emerald-700">
+                            {certificationStatus}
+                          </span>
+                        ) : null}
+
+                        {decisionStatus ? (
+                          <span className="rounded-full bg-blue-100 px-3 py-1 text-[12px] font-semibold uppercase text-blue-700">
+                            {decisionStatus}
+                          </span>
+                        ) : null}
                       </div>
 
-                      {/* ENTITY NAME */}
-                      <div className="mt-2 text-[16px] font-semibold text-black">
-                        {row.entityName}
-                      </div>
+                      <h3 className="mt-4 text-[26px] font-semibold leading-[1.08] tracking-tight text-black">
+                        {row.entityName || row.registryId}
+                      </h3>
 
-                      {/* SUBTEXT */}
-                      <div className="text-[12px] text-black/40">
-                        {row.country || "—"} · {row.registryId}
+                      <div className="mt-2 text-[15px] leading-[1.6] text-black/45">
+                        {(row.country || "—") + " · " + (row.registryId || "—")}
                       </div>
                     </div>
 
-                    {/* ACTION BUTTON */}
                     <Link
                       href={`/registry/${row.registryId}`}
-                      className="rounded-full border border-black/20 px-3 py-1 text-[12px] font-medium text-black hover:bg-black hover:text-white"
+                      className="inline-flex min-h-[42px] shrink-0 items-center justify-center rounded-full border border-black/20 bg-white px-4 text-[13px] font-semibold text-black transition hover:bg-black hover:text-white"
                     >
                       Open
                     </Link>
                   </div>
 
-                  {/* META GRID */}
-                  <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
-                    <div className="rounded-lg border border-black/10 p-2">
-                      <div className="text-[10px] uppercase text-black/40">
+                  <div className="mt-5 grid grid-cols-2 gap-3 xl:grid-cols-4">
+                    <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-4">
+                      <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-black/42">
                         Certification
                       </div>
-                      <div className="text-[12px] font-medium text-black">
-                        {row.certificationLevel || "Enterprise Baseline"}
+                      <div className="mt-2 text-[15px] font-semibold leading-[1.4] text-black">
+                        {getCertificationLabel(row)}
                       </div>
                     </div>
 
-                    <div className="rounded-lg border border-black/10 p-2">
-                      <div className="text-[10px] uppercase text-black/40">
+                    <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-4">
+                      <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-black/42">
                         Certified
                       </div>
-                      <div className="text-[12px] font-medium text-black">
-                        {row.certifiedAt
-                          ? new Date(row.certifiedAt).toLocaleDateString()
-                          : "—"}
+                      <div className="mt-2 text-[15px] font-semibold leading-[1.4] text-black">
+                        {formatDate(row.certifiedAt)}
                       </div>
                     </div>
 
-                    <div className="rounded-lg border border-black/10 p-2">
-                      <div className="text-[10px] uppercase text-black/40">
+                    <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-4">
+                      <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-black/42">
                         Valid from
                       </div>
-                      <div className="text-[12px] font-medium text-black">
-                        {row.validFrom
-                          ? new Date(row.validFrom).toLocaleDateString()
-                          : "—"}
+                      <div className="mt-2 text-[15px] font-semibold leading-[1.4] text-black">
+                        {formatDate(row.validFrom)}
                       </div>
                     </div>
 
-                    <div className="rounded-lg border border-black/10 p-2">
-                      <div className="text-[10px] uppercase text-black/40">
+                    <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-4">
+                      <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-black/42">
                         Valid to
                       </div>
-                      <div className="text-[12px] font-medium text-black">
-                        {row.validTo
-                          ? new Date(row.validTo).toLocaleDateString()
-                          : "—"}
+                      <div className="mt-2 text-[15px] font-semibold leading-[1.4] text-black">
+                        {formatDate(row.validTo)}
                       </div>
                     </div>
                   </div>
-                </div>
+                </article>
               );
             })}
           </div>
