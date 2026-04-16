@@ -30,6 +30,13 @@ function formatDate(v?: string | null) {
   return d.toLocaleDateString("en-US");
 }
 
+function formatDateTime(v?: string | null) {
+  if (!v) return "—";
+  const d = new Date(v);
+  if (Number.isNaN(d.getTime())) return v;
+  return d.toLocaleString("en-US");
+}
+
 function pillTone(value: string) {
   const v = value.toUpperCase();
 
@@ -45,7 +52,7 @@ function InfoCard({ label, value }: { label: string; value: string }) {
       <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-black/50">
         {label}
       </div>
-      <div className="mt-2 text-[15px] font-semibold text-black">
+      <div className="mt-2 break-words text-[15px] font-semibold text-black">
         {value}
       </div>
     </div>
@@ -53,10 +60,14 @@ function InfoCard({ label, value }: { label: string; value: string }) {
 }
 
 async function getVerify(registryId: string): Promise<VerifyData | null> {
-  const res = await fetch(
-    `${process.env.NEXT_PUBLIC_BASE_URL}/api/verify/${registryId}`,
-    { cache: "no-store" }
-  );
+  const baseUrl =
+    process.env.NEXT_PUBLIC_BASE_URL ||
+    process.env.NEXT_PUBLIC_SITE_URL ||
+    "http://localhost:3000";
+
+  const res = await fetch(`${baseUrl}/api/verify/${registryId}`, {
+    cache: "no-store",
+  });
 
   if (!res.ok) return null;
   return res.json();
@@ -74,10 +85,7 @@ export default async function VerifyPage({
   return (
     <main className="mx-auto max-w-[1180px] px-6 pb-16 pt-14">
       <div className="space-y-8">
-
-        {/* HERO */}
         <section className="rounded-3xl border border-black/10 bg-white p-8">
-
           <div className="flex gap-2">
             <span className="inline-flex rounded-full bg-emerald-50 px-3 py-1 text-[11px] font-semibold text-emerald-700 ring-1 ring-emerald-200">
               Verified
@@ -96,56 +104,81 @@ export default async function VerifyPage({
             {safe(data.entityName)}
           </h1>
 
+          <div className="mt-4 max-w-4xl text-base leading-7 text-black/70">
+            This page verifies the public GAFAIG trust record for this registry
+            entry. It shows the public certification window and the signing
+            surface used for trust verification.
+          </div>
+
           <div className="mt-6 grid gap-4 md:grid-cols-4">
-            <InfoCard label="Certification" value={`${safe(data.certifiedTier)} ${safe(data.certifiedBand)}`} />
+            <InfoCard
+              label="Certification"
+              value={`${safe(data.certifiedTier)} ${safe(data.certifiedBand)}`.trim()}
+            />
             <InfoCard label="Certified" value={formatDate(data.certifiedAt)} />
             <InfoCard label="Valid From" value={formatDate(data.validFrom)} />
             <InfoCard label="Valid To" value={formatDate(data.validTo)} />
           </div>
 
-          <div className="mt-6 flex gap-3">
+          <div className="mt-6 flex flex-wrap gap-3">
             <Link
               href={`/registry/${params.registryId}`}
-              className="inline-flex rounded-full border border-black/20 px-5 py-2 text-sm font-semibold"
+              className="inline-flex min-h-[42px] items-center justify-center rounded-full border border-black/20 bg-white px-5 text-sm font-semibold text-black transition hover:bg-black hover:text-white"
             >
               View Registry Record
             </Link>
 
             <Link
               href="/explorer"
-              className="inline-flex rounded-full border border-black/20 px-5 py-2 text-sm font-semibold"
+              className="inline-flex min-h-[42px] items-center justify-center rounded-full border border-black/20 bg-white px-5 text-sm font-semibold text-black transition hover:bg-black hover:text-white"
             >
               Back to Explorer
             </Link>
           </div>
         </section>
 
-        {/* VERIFICATION DETAILS */}
         <section className="rounded-3xl border border-black/10 bg-white p-8">
-          <h2 className="text-[22px] font-semibold">
-            Verification details
-          </h2>
+          <div className="space-y-4">
+            <div className="text-xs font-semibold uppercase tracking-[0.24em] text-black/40">
+              Trust verification
+            </div>
+            <h2 className="text-3xl font-semibold tracking-tight text-black">
+              Verification details
+            </h2>
+            <p className="max-w-3xl text-base leading-7 text-black/70">
+              These fields identify the public record, signing time, key
+              reference, and signature surface used to verify the trust payload.
+            </p>
+          </div>
 
-          <div className="mt-5 grid gap-4 md:grid-cols-3">
+          <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
             <InfoCard label="Registry ID" value={safe(data.registryId)} />
-            <InfoCard label="Signed At" value={formatDate(data.signedAt)} />
+            <InfoCard label="Signed At" value={formatDateTime(data.signedAt)} />
+            <InfoCard label="Verification Key" value={safe(data.verificationKeyUrl)} />
             <InfoCard label="Signature" value={safe(data.signature)} />
           </div>
         </section>
 
-        {/* SIGNED PAYLOAD */}
         <section className="rounded-3xl border border-black/10 bg-white p-8">
-          <h2 className="text-[22px] font-semibold">
-            Signed payload
-          </h2>
+          <div className="space-y-4">
+            <div className="text-xs font-semibold uppercase tracking-[0.24em] text-black/40">
+              Signed payload
+            </div>
+            <h2 className="text-3xl font-semibold tracking-tight text-black">
+              Public signed message
+            </h2>
+            <p className="max-w-3xl text-base leading-7 text-black/70">
+              This is the public payload returned by the verification surface.
+              It is intended for trust inspection and signature validation.
+            </p>
+          </div>
 
-          <div className="mt-4 rounded-2xl border border-black/10 bg-neutral-50 p-4 overflow-x-auto text-sm">
-            <pre className="whitespace-pre-wrap">
+          <div className="mt-6 rounded-2xl border border-black/10 bg-neutral-50 p-4 text-sm text-black/75">
+            <pre className="overflow-x-auto whitespace-pre-wrap break-words">
               {safe(data.signedMessageString)}
             </pre>
           </div>
         </section>
-
       </div>
     </main>
   );
