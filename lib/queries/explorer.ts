@@ -1,81 +1,42 @@
-import { sfQuery } from "@/lib/snowflake";
+import { getRegistryAiSystemsPaginated } from "./registry-ai-systems";
 
-export type ExplorerSystemRow = {
-  systemId: string;
-  systemName: string;
-  systemType: string;
-  intendedUse: string;
+export async function getExplorerSystems() {
+  const result = await getRegistryAiSystemsPaginated();
+  return result.rows;
+}
 
-  deploymentStatus: string | null;
-  oversightLevel: string | null;
-  riskTier: string | null;
+export async function getExplorerOrganizations() {
+  const systems = await getExplorerSystems();
+  const orgs = new Set<string>();
 
-  developerOrganization: string | null;
-  country: string | null;
+  systems.forEach((s) => {
+    if (s.developerOrganization) {
+      orgs.add(s.developerOrganization);
+    }
+  });
 
-  registryId: string;
-  entityName: string;
+  return Array.from(orgs).sort();
+}
 
-  certificationStatus: string | null;
-  certifiedTier: string | null;
-  certifiedBand: string | null;
-  decisionStatus: string | null;
-  lifecycleStatus: string | null;
-};
+export async function getExplorerCountries() {
+  const systems = await getExplorerSystems();
+  const countries = new Set<string>();
 
-export async function getExplorerSystems(): Promise<ExplorerSystemRow[]> {
-  const rows = await sfQuery<any>(`
-    SELECT
-      s.SYSTEM_ID,
-      s.SYSTEM_NAME,
-      s.SYSTEM_TYPE,
-      s.INTENDED_USE,
+  systems.forEach((s) => {
+    if (s.country) {
+      countries.add(s.country);
+    }
+  });
 
-      s.DEPLOYMENT_STATUS,
-      s.OVERSIGHT_LEVEL,
-      s.RISK_TIER,
+  return Array.from(countries).sort();
+}
 
-      s.DEVELOPER_ORGANIZATION,
-      s.COUNTRY,
+/* ✅ REQUIRED EXPORT FIX */
 
-      s.REGISTRY_ID,
-      s.ENTITY_NAME,
-
-      s.CERTIFICATION_STATUS,
-      s.CERTIFIED_TIER,
-      s.CERTIFIED_BAND,
-      s.DECISION_STATUS,
-      s.LIFECYCLE_STATUS
-
-    FROM CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC s
-    WHERE s.REGISTRY_ID IS NOT NULL
-      AND s.REGISTRY_ID LIKE 'GAFAIG-%'
-    ORDER BY
-      COALESCE(s.DISPLAY_ORDER, 999999) ASC,
-      s.SYSTEM_NAME ASC,
-      s.SYSTEM_ID ASC
-  `);
-
-  return rows.map((r) => ({
-    systemId: r.SYSTEM_ID,
-    systemName: r.SYSTEM_NAME,
-    systemType: r.SYSTEM_TYPE,
-    intendedUse: r.INTENDED_USE,
-
-    deploymentStatus: r.DEPLOYMENT_STATUS,
-    oversightLevel: r.OVERSIGHT_LEVEL,
-    riskTier: r.RISK_TIER,
-
-    developerOrganization: r.DEVELOPER_ORGANIZATION,
-    country: r.COUNTRY,
-
-    registryId: r.REGISTRY_ID,
-    entityName: r.ENTITY_NAME,
-
-    certificationStatus: r.CERTIFICATION_STATUS,
-    certifiedTier: r.CERTIFIED_TIER,
-    certifiedBand: r.CERTIFIED_BAND,
-    decisionStatus: r.DECISION_STATUS,
-    lifecycleStatus: r.LIFECYCLE_STATUS,
-  }));
+export async function getExplorerSummary() {
+  return {
+    systems: await getExplorerSystems(),
+    organizations: await getExplorerOrganizations(),
+    countries: await getExplorerCountries(),
+  };
 }

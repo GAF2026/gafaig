@@ -133,3 +133,15 @@ export async function getRegistryAiSystemsPaginated({
     })),
   };
 }
+
+/* ✅ REQUIRED EXPORT FIXES */
+
+export async function getRegistryAiSystemBySystemId(systemId: string) {
+  const result = await getRegistryAiSystemsPaginated({ page: 1, pageSize: 500 });
+  return result.rows.find((r) => r.systemId === systemId) || null;
+}
+
+export async function getRelatedRegistryAiSystems(registryId: string) {
+  const result = await getRegistryAiSystemsPaginated({ page: 1, pageSize: 500 });
+  return result.rows.filter((r) => r.registryId === registryId);
+}
