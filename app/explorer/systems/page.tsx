@@ -1,12 +1,34 @@
-import Link from "next/link";
 import PublicPageHero from "@/app/_components/PublicPageHero";
 import PublicButtonLink from "@/app/_components/PublicButtonLink";
-import { getExplorerSystems } from "@/lib/queries/explorer";
+import { getRegistryAiSystemsPaginated } from "@/lib/queries/registry-ai-systems";
 
-export const revalidate = 300;
+type SearchParams = {
+  page?: string;
+  pageSize?: string;
+};
+
+function fmtDate(value: string | null | undefined) {
+  if (!value) return "Not issued";
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return "Not issued";
+  return d.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+
+function toneForTier(value: string | null | undefined) {
+  const v = String(value || "").toUpperCase();
+  if (v === "A") return "bg-emerald-50 text-emerald-700 ring-emerald-200";
+  if (v === "B") return "bg-blue-50 text-blue-700 ring-blue-200";
+  if (v === "C") return "bg-amber-50 text-amber-700 ring-amber-200";
+  if (v === "D") return "bg-slate-100 text-slate-700 ring-slate-200";
+  return "bg-slate-100 text-slate-600 ring-slate-200";
+}
 
 function toneForRisk(value: string | null | undefined) {
-  const v = String(value || "").trim().toLowerCase();
+  const v = String(value || "").toLowerCase();
   if (v === "high") return "bg-red-50 text-red-700 ring-red-200";
   if (v === "medium") return "bg-amber-50 text-amber-700 ring-amber-200";
   if (v === "low") return "bg-emerald-50 text-emerald-700 ring-emerald-200";
@@ -24,6 +46,7 @@ function normalizeTrustState(
     return {
       label: "Certified",
       className: "bg-emerald-50 text-emerald-700 ring-emerald-200",
+      isCertified: true,
     };
   }
 
@@ -31,37 +54,48 @@ function normalizeTrustState(
     return {
       label: "Approved",
       className: "bg-blue-50 text-blue-700 ring-blue-200",
+      isCertified: false,
     };
   }
 
   return {
-    label: "Pending",
+    label: "Unverified",
     className: "bg-slate-100 text-slate-600 ring-slate-200",
+    isCertified: false,
   };
 }
 
-function toneForTier(value: string | null | undefined) {
-  const v = String(value || "").trim().toUpperCase();
-  if (v === "A") return "bg-emerald-50 text-emerald-700 ring-emerald-200";
-  if (v === "B") return "bg-blue-50 text-blue-700 ring-blue-200";
-  if (v === "C") return "bg-amber-50 text-amber-700 ring-amber-200";
-  if (v === "D") return "bg-slate-100 text-slate-700 ring-slate-200";
-  return "bg-slate-100 text-slate-600 ring-slate-200";
+function trustDescriptor(trustState: string) {
+  if (trustState === "Certified") return "Certified public AI system";
+  if (trustState === "Approved") return "Evaluated AI system (not yet certified)";
+  return "Unverified system";
 }
 
-function toneForBand(value: string | null | undefined) {
-  if (!value) return "bg-slate-100 text-slate-600 ring-slate-200";
-  return "bg-blue-50 text-blue-700 ring-blue-200";
+function safeText(value: string | null | undefined, fallback = "—") {
+  const v = String(value ?? "").trim();
+  return v ? v : fallback;
 }
 
-function formatBoolean(value: boolean | null | undefined) {
-  if (value === true) return "Required";
-  if (value === false) return "Not required";
-  return "—";
-}
+export default async function ExplorerSystemsPage({
+  searchParams,
+}: {
+  searchParams?: SearchParams;
+}) {
+  const page = Math.max(1, Number(searchParams?.page || "1") || 1);
+  const pageSize = Math.max(1, Number(searchParams?.pageSize || "200") || 200);
 
-export default async function ExplorerSystemsPage() {
-  const rows = await getExplorerSystems(200);
+  const result = await getRegistryAiSystemsPaginated({ page, pageSize });
+  const systems = result.rows;
+
+  const certifiedCount = systems.filter((row) =>
+    Boolean(String(row.certifiedAt ?? "").trim())
+  ).length;
+
+  const approvedOnlyCount = systems.filter((row) => {
+    const hasCertifiedAt = Boolean(String(row.certifiedAt ?? "").trim());
+    const decision = String(row.decisionStatus ?? "").trim().toUpperCase();
+    return !hasCertifiedAt && decision === "APPROVED";
+  }).length;
 
   return (
     <main className="mx-auto max-w-[1180px] px-6 pb-16 pt-14">
@@ -91,9 +125,7 @@ export default async function ExplorerSystemsPage() {
 
         <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
           <div className="max-w-[980px] space-y-3 text-[15px] leading-[1.8] text-black/65">
-            <p>
-              Explorer distinguishes between evaluated systems and publicly trusted systems.
-            </p>
+            <p>Explorer distinguishes between evaluated systems and publicly trusted systems.</p>
 
             <div className="rounded-2xl border border-black/10 bg-black/[0.03] p-5">
               <div className="grid gap-3 text-[15px] leading-[1.8] text-black/72">
@@ -122,208 +154,240 @@ export default async function ExplorerSystemsPage() {
                 SYSTEM DIRECTORY
               </div>
 
-              <h2 className="mt-4 text-[32px] font-semibold tracking-tight text-black md:text-[38px]">
+              <h2 className="mt-4 text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
                 Public AI systems in the trust surface
               </h2>
 
-              <p className="mt-3 max-w-[860px] text-[15px] leading-[1.8] text-black/68">
+              <p className="mt-3 max-w-[820px] text-[15px] leading-[1.8] text-black/68">
                 Browse public system metadata connected to GAFAIG registry records, including deployment status, risk tier, oversight posture, certification signals, and public summaries.
               </p>
             </div>
 
-            <PublicButtonLink href="/registry/ai-systems" variant="secondary">
-              Open Full AI Systems Registry
-            </PublicButtonLink>
+            <div className="flex flex-wrap items-center gap-2">
+              <div className="rounded-full border border-black/10 bg-black/[0.03] px-3 py-1 text-[12px] text-black/55">
+                {systems.length} total systems
+              </div>
+              <div className="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-[12px] text-emerald-700">
+                {certifiedCount} certified
+              </div>
+              <div className="rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-[12px] text-blue-700">
+                {approvedOnlyCount} approved only
+              </div>
+            </div>
           </div>
 
           <div className="mt-8 space-y-5">
-            {rows.map((row) => {
+            {systems.map((row) => {
               const trust = normalizeTrustState(row.certifiedAt, row.decisionStatus);
+              const trustLabel = trustDescriptor(trust.label);
 
               return (
                 <article
-                  key={row.systemId || `${row.registryId}-${row.displayOrder}`}
-                  className="rounded-2xl border border-black/10 p-5"
+                  key={row.systemId}
+                  className="rounded-2xl border border-black/10 bg-white p-5 md:p-6"
                 >
-                  <div className="flex flex-col gap-4 lg:flex-row lg:justify-between">
+                  <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
                     <div className="min-w-0 flex-1">
                       <div className="flex flex-wrap items-center gap-2">
-                        <h3 className="text-[24px] font-semibold text-black">
-                          {row.systemName || "Unnamed System"}
+                        <h3 className="text-[24px] font-semibold leading-[1.2] tracking-tight text-black">
+                          {safeText(row.systemName, "Unnamed system")}
                         </h3>
 
                         <span
-                          className={`rounded-full px-2.5 py-1 text-xs ring-1 ${toneForRisk(
+                          className={`inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-semibold ring-1 ring-inset ${toneForRisk(
                             row.riskTier
                           )}`}
                         >
-                          {row.riskTier ? `${row.riskTier} Risk` : "Risk Unknown"}
+                          {safeText(row.riskTier, "Unknown risk")}
                         </span>
 
                         <span
-                          className={`rounded-full px-2.5 py-1 text-xs ring-1 ${trust.className}`}
+                          className={`inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-semibold ring-1 ring-inset ${trust.className}`}
                         >
                           {trust.label}
                         </span>
 
-                        {row.certifiedTier && (
-                          <span
-                            className={`rounded-full px-2.5 py-1 text-xs ring-1 ${toneForTier(
-                              row.certifiedTier
-                            )}`}
-                          >
-                            Tier {row.certifiedTier}
-                          </span>
-                        )}
+                        <span
+                          className={`inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-semibold ring-1 ring-inset ${toneForTier(
+                            row.certifiedBand
+                          )}`}
+                        >
+                          {safeText(row.certifiedTier, "—")}
+                        </span>
 
-                        {row.certifiedBand && (
-                          <span
-                            className={`rounded-full px-2.5 py-1 text-xs ring-1 ${toneForBand(
-                              row.certifiedBand
-                            )}`}
-                          >
-                            Band {row.certifiedBand}
-                          </span>
-                        )}
+                        <span
+                          className={`inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-semibold ring-1 ring-inset ${toneForTier(
+                            row.certifiedBand
+                          )}`}
+                        >
+                          {safeText(row.certifiedBand, "—")}
+                        </span>
                       </div>
 
-                      <div className="mt-2 text-[13px] text-black/55">
-                        {row.systemId || "No system ID"}
+                      <div className="mt-1 text-[13px] font-medium text-black/60">
+                        {trustLabel}
                       </div>
 
-                      <div className="mt-4 flex flex-wrap gap-x-5 gap-y-2 text-sm text-black/72">
-                        <div>
-                          <span className="font-medium text-black/50">Developer:</span>{" "}
-                          {row.developerOrganization || "—"}
-                        </div>
-                        <div>
-                          <span className="font-medium text-black/50">Country:</span>{" "}
-                          {row.country || "—"}
-                        </div>
-                        <div>
-                          <span className="font-medium text-black/50">Type:</span>{" "}
-                          {row.systemType || "—"}
-                        </div>
-                        <div>
-                          <span className="font-medium text-black/50">Deployment:</span>{" "}
-                          {row.deploymentStatus || "—"}
-                        </div>
-                        <div>
-                          <span className="font-medium text-black/50">Oversight:</span>{" "}
-                          {row.oversightLevel || "—"}
-                        </div>
+                      <div className="mt-2 text-[13px] leading-[1.7] text-black/60">
+                        {safeText(row.developerOrganization, "Unknown developer")} ·{" "}
+                        {safeText(row.country, "Unknown country")} ·{" "}
+                        {safeText(row.systemType, "Unknown type")} ·{" "}
+                        {safeText(row.deploymentStatus, "Unknown deployment")} ·{" "}
+                        {safeText(row.oversightLevel, "Unknown oversight")}
                       </div>
                     </div>
 
-                    <div className="flex flex-wrap gap-3">
-                      {row.systemId && (
-                        <PublicButtonLink
-                          href={`/registry/ai-systems/${row.systemId}`}
-                          variant="primary"
-                          size="sm"
-                        >
-                          View System
-                        </PublicButtonLink>
-                      )}
+                    <div className="flex shrink-0 items-center gap-2">
+                      <PublicButtonLink
+                        href={`/verify/${row.registryId}`}
+                        variant="primary"
+                      >
+                        View System Profile
+                      </PublicButtonLink>
 
-                      {row.registryId && (
-                        <PublicButtonLink
-                          href={`/registry/${row.registryId}`}
-                          variant="secondary"
-                          size="sm"
-                        >
-                          View Registry
-                        </PublicButtonLink>
-                      )}
+                      <PublicButtonLink
+                        href={`/registry/${row.registryId}`}
+                        variant="secondary"
+                      >
+                        View Certified Record
+                      </PublicButtonLink>
                     </div>
                   </div>
 
-                  <div className="mt-5 grid gap-3 md:grid-cols-2 lg:grid-cols-4">
-                    <Info label="Registry ID" value={row.registryId || "—"} breakAll />
-                    <Info label="Case ID" value={row.caseId || "—"} />
-                    <Info label="Human Review" value={formatBoolean(row.humanReviewRequired)} />
-                    <Info label="Audit Frequency" value={row.auditFrequency || "—"} />
-                    <Info label="Decision" value={row.decisionStatus || "—"} />
-                    <Info label="Training Data" value={row.trainingDataCategory || "—"} />
-                    <Info label="Oversight Model" value={row.oversightModel || "—"} />
-                    <Info label="Trust State" value={trust.label} />
+                  <div className="mt-5 grid grid-cols-2 gap-3 md:grid-cols-6">
+                    <div className="rounded-xl border border-black/8 bg-[#fafafa] p-3">
+                      <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-black/38">
+                        Registry ID
+                      </div>
+                      <div className="mt-2 text-[13px] font-medium text-black/78">
+                        {safeText(row.registryId)}
+                      </div>
+                    </div>
+
+                    <div className="rounded-xl border border-black/8 bg-[#fafafa] p-3">
+                      <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-black/38">
+                        Case ID
+                      </div>
+                      <div className="mt-2 text-[13px] font-medium text-black/78">
+                        {safeText(row.caseId)}
+                      </div>
+                    </div>
+
+                    <div className="rounded-xl border border-black/8 bg-[#fafafa] p-3">
+                      <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-black/38">
+                        Human Review
+                      </div>
+                      <div className="mt-2 text-[13px] font-medium text-black/78">
+                        {row.humanReviewRequired === true
+                          ? "Required"
+                          : row.humanReviewRequired === false
+                          ? "Not required"
+                          : "—"}
+                      </div>
+                    </div>
+
+                    <div className="rounded-xl border border-black/8 bg-[#fafafa] p-3">
+                      <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-black/38">
+                        Oversight Model
+                      </div>
+                      <div className="mt-2 text-[13px] font-medium text-black/78">
+                        {safeText(row.oversightModel)}
+                      </div>
+                    </div>
+
+                    <div className="rounded-xl border border-black/8 bg-[#fafafa] p-3">
+                      <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-black/38">
+                        Audit Frequency
+                      </div>
+                      <div className="mt-2 text-[13px] font-medium text-black/78">
+                        {safeText(row.auditFrequency)}
+                      </div>
+                    </div>
+
+                    <div className="rounded-xl border border-black/8 bg-[#fafafa] p-3">
+                      <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-black/38">
+                        Trust State
+                      </div>
+                      <div className="mt-2 text-[13px] font-medium text-black/78">
+                        {trust.label}
+                      </div>
+                    </div>
+
+                    <div className="rounded-xl border border-black/8 bg-[#fafafa] p-3">
+                      <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-black/38">
+                        Decision
+                      </div>
+                      <div className="mt-2 text-[13px] font-medium text-black/78">
+                        {safeText(row.decisionStatus)}
+                      </div>
+                    </div>
+
+                    <div className="rounded-xl border border-black/8 bg-[#fafafa] p-3">
+                      <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-black/38">
+                        Training Data
+                      </div>
+                      <div className="mt-2 text-[13px] font-medium text-black/78">
+                        {safeText(row.trainingDataCategory)}
+                      </div>
+                    </div>
+
+                    <div className="rounded-xl border border-black/8 bg-[#fafafa] p-3">
+                      <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-black/38">
+                        Trust State
+                      </div>
+                      <div className="mt-2 text-[13px] font-medium text-black/78">
+                        {trust.label}
+                      </div>
+                    </div>
+
+                    <div className="rounded-xl border border-black/8 bg-[#fafafa] p-3">
+                      <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-black/38">
+                        Country
+                      </div>
+                      <div className="mt-2 text-[13px] font-medium text-black/78">
+                        {safeText(row.country)}
+                      </div>
+                    </div>
                   </div>
 
-                  <div className="mt-5 rounded-xl bg-black/[0.03] p-4">
-                    <div className="text-[11px] uppercase tracking-[0.16em] text-black/55">
+                  <div className="mt-4 rounded-xl border border-black/8 bg-[#fafafa] p-3">
+                    <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-black/38">
                       Intended Use
                     </div>
-                    <div className="mt-2 text-sm text-black/75">
-                      {row.intendedUse || "No intended use available."}
+                    <div className="mt-2 text-[13px] leading-[1.7] text-black/72">
+                      {safeText(row.intendedUse)}
                     </div>
                   </div>
 
-                  <div className="mt-3 rounded-xl bg-black/[0.03] p-4">
-                    <div className="text-[11px] uppercase tracking-[0.16em] text-black/55">
+                  <div className="mt-3 rounded-xl border border-black/8 bg-[#fafafa] p-3">
+                    <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-black/38">
                       Public Summary
                     </div>
-                    <div className="mt-2 text-sm text-black/75">
-                      {row.publicSummary || "No public summary available."}
+                    <div className="mt-2 text-[13px] leading-[1.7] text-black/72">
+                      {String(row.publicSummary ?? "").trim() || "No public summary provided for this system."}
                     </div>
                   </div>
                 </article>
               );
             })}
-
-            {rows.length === 0 && (
-              <div className="rounded-2xl border border-black/10 p-6 text-sm text-black/60">
-                No AI systems found.
-              </div>
-            )}
           </div>
 
-          <div className="mt-8 flex flex-wrap gap-3 border-t border-black/10 pt-6">
+          <div className="mt-8 flex flex-wrap items-center gap-3">
             <PublicButtonLink href="/explorer" variant="secondary">
               Explorer
             </PublicButtonLink>
-
             <PublicButtonLink href="/explorer/organizations" variant="secondary">
               Organizations
             </PublicButtonLink>
-
             <PublicButtonLink href="/explorer/countries" variant="secondary">
               Countries
             </PublicButtonLink>
-
-            <Link
-              href="/registry/ai-systems"
-              className="inline-flex items-center justify-center rounded-full border border-black/15 px-5 py-3 text-sm font-semibold transition hover:bg-black/[0.04]"
-            >
+            <PublicButtonLink href="/registry/ai-systems" variant="secondary">
               Open AI Systems Registry
-            </Link>
+            </PublicButtonLink>
           </div>
         </section>
       </div>
     </main>
-  );
-}
-
-function Info({
-  label,
-  value,
-  breakAll = false,
-}: {
-  label: string;
-  value: string;
-  breakAll?: boolean;
-}) {
-  return (
-    <div className="rounded-xl border border-black/5 px-3 py-3">
-      <div className="text-[11px] uppercase tracking-[0.16em] text-black/55">
-        {label}
-      </div>
-      <div
-        className={`mt-2 text-[14px] text-black/85 ${
-          breakAll ? "break-all" : ""
-        }`}
-      >
-        {value}
-      </div>
-    </div>
   );
 }

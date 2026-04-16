@@ -1,239 +1,361 @@
 # GAFAIG_ACTIVE_FILE_MAP.md
-Last Updated: 2026-04-14
+Last Updated: 2026-04-15
 
-============================================================
-PURPOSE
-============================================================
+## PURPOSE
+This file is the **active execution map** of the GAFAIG platform. It defines the **files that matter right now** for building, debugging, and operating the system.
 
-This document defines the ACTIVE, CANONICAL file map for the GAFAIG platform.
+This is NOT a full repo tree.
+This is the **live control + execution map**.
 
-It identifies:
-- Source-of-truth Snowflake files
-- Active Next.js application files
-- Critical query layer dependencies
-- API ↔ Query ↔ Snowflake relationships
+Snowflake is the source of truth.
+Next.js only surfaces Snowflake outputs.
 
-Only files listed here should be modified.
-Archived or duplicate files must NOT be used.
+---
 
-============================================================
-SYSTEM ARCHITECTURE (LOCKED)
-============================================================
+## 🚨 CRITICAL CONTROL FILES (LOAD FIRST — NON-OPTIONAL)
 
-Snowflake (Source of Truth)
-→ Query Layer (lib/queries)
-→ API Layer (app/api)
-→ UI Layer (app/*)
-→ Vercel (Production)
+These are NOT documentation.
 
-NO business logic exists outside Snowflake.
+These are **system control files** and must be loaded at the start of every chat and treated as authoritative.
 
-============================================================
-SNOWFLAKE — CANONICAL FILES
-============================================================
+- docs/MASTER_STATE.md  
+  → Canonical architecture (what exists, what is allowed)
 
-CORE PIPELINE TABLES (Defined in rebuild file):
-- 01_REBUILD_ENVIRONMENT_CANONICAL.sql
-  - CORE.VERIFICATION_CASES
-  - CORE.VERIFICATION_FINDINGS
-  - CORE.VERIFICATION_EVIDENCE
-  - CORE.VERIFICATION_FINDING_EVIDENCE
-  - CORE.VERIFICATION_EVENTS
-  - CORE.CASE_SCORE_SNAPSHOTS
-  - CORE.DECISIONS
-  - CORE.REGISTRY_SNAPSHOTS
+- docs/CURRENT_FOCUS.md  
+  → Execution state (what we are doing now)
 
-APPLICATION LAYER:
-- 11_TABLES_APPLICATIONS.sql
-  - CORE.APPLICATIONS
+- docs/ENGINEERING_RULES.md  
+  → Hard rules (what must NEVER be broken)
 
-REGISTRY SNAPSHOTS:
-- GAFAIG - CORE.REGISTRY_SNAPSHOTS.sql
-  - CORE.REGISTRY_SNAPSHOTS
-  - CORE.V_REGISTRY_LATEST_APPROVED
+- docs/CANONICAL_RUN_ORDER.md  
+  → Deterministic system execution sequence  
+  → CASE → FINDINGS → EVIDENCE → EVENTS → SCORING → DECISION → REGISTRY → PUBLIC
 
-PUBLIC REGISTRY VIEWS:
-- 21_VIEWS_PUBLIC_REGISTRY.sql
-  - CORE.V_REGISTRY_PUBLIC
-  - CORE.V_REGISTRY_LATEST_APPROVED
+Failure to follow these files results in:
+- scoring failures  
+- publish failures  
+- silent data gaps  
+- broken registry surfaces  
 
-AI SYSTEMS:
-- 14_TABLES_REGISTRY_AI_SYSTEMS.sql
-  - CORE.REGISTRY_AI_SYSTEMS
+---
 
-- 22_VIEWS_REGISTRY_AI_SYSTEMS_PUBLIC.sql
-  - CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC
+## 🧠 CORE SYSTEM PRINCIPLE
 
-SCORING:
-- CORE.SP_SCORE_CASE_ENTERPRISE
-- CORE.V_CASE_SCORE_ENTERPRISE
-- CORE.V_CASE_TIER_BAND
+- Snowflake = **Truth Engine**
+- Next.js = **Trust Surface**
+- API Layer = **Transport only**
+- No logic duplication outside Snowflake
+- No scoring outside Snowflake
+- No certification logic outside Snowflake
 
-PUBLISHING:
-- CORE.SP_PUBLISH_CASE_TO_REGISTRY_V3
+---
 
-CASE CREATION:
-- 23_SP_CREATE_CASE_FROM_APPLICATION.sql
+## 🔴 CURRENT PLATFORM STATE
 
-DEMO DATA:
-- GAFAIG - FINAL_CANONICAL_DEMO_SEED.sql (ACTIVE)
-- GAFAIG - CANONICAL DEMO DATASET.sql (SUPPORTING)
+### ✅ Working
+- Public registry pages
+- Explorer pages
+- Verify pages
+- Widget preview + embed
+- Proof/signature system (API-based)
 
-============================================================
-NEXT.JS — ACTIVE APPLICATION FILES
-============================================================
+### ❌ Active Blocker
+Canonical seed pipeline is broken at:
 
-APP ROUTES (UI)
+SCORING → PUBLISH
 
-Registry:
-- app/registry/page.tsx
-- app/registry/[registryId]/page.tsx
+Specifically:
+- `SP_SCORE_CASE_ENTERPRISE` runs but inserts 0 rows
+- `V_GOVERNANCE_SCORE_CASE` does not return rebuilt cases
+- `SP_PUBLISH_CASE_TO_REGISTRY_V3` produces no registry records
 
-Explorer:
-- app/explorer/page.tsx
-- app/explorer/organizations/page.tsx
-- app/explorer/systems/page.tsx
-- app/explorer/countries/page.tsx
+---
 
-Widget Preview:
-- app/widget-preview/[registryId]/page.tsx
+## 🧩 SNOWFLAKE — CORE EXECUTION FILES
 
-============================================================
-API ROUTES (CRITICAL)
-============================================================
+### Registry Layer
+- `21_VIEWS_PUBLIC_REGISTRY.sql`
+  → Defines `CORE.V_REGISTRY_PUBLIC`
 
-Registry API:
-- app/api/registry/route.ts
-- app/api/registry/search/route.ts
+- `GAFAIG - CORE.REGISTRY_SNAPSHOTS.sql`
+  → Defines:
+    - `CORE.REGISTRY_SNAPSHOTS`
+    - `CORE.V_REGISTRY_LATEST_APPROVED`
 
-Verification:
+- `GAFAIG - CORE.REGISTRY_PUBLISH.sql`
+  → Contains:
+    - `SP_PUBLISH_CASE_TO_REGISTRY_V3`
+    - `SP_PUBLISH_CASE_TO_REGISTRY_V4`
+
+---
+
+### Scoring Layer (CRITICAL BLOCK AREA)
+
+- `GAFAIG - Governance Scoring (Enterprise v1.2).sql`
+
+- `CORE.SP_SCORE_CASE_ENTERPRISE`
+  → Currently returns:
+    - ok = true
+    - rowsInserted = 0 ❌
+
+- `CORE.V_GOVERNANCE_SCORE_CASE`
+  → Required by publish
+  → Currently missing rebuilt cases ❌
+
+- Supporting Views:
+  - `CORE.V_CASE_SCORE_ENTERPRISE`
+  - `CORE.V_CASE_TIER_BAND`
+  - `CORE.V_CASE_RENEWAL_STATUS`
+  - `CORE.V_FINDING_UNMAPPED_CONTROLS`
+
+---
+
+### Score Storage (LIVE CONFIRMED)
+- `CORE.CASE_SCORE_SNAPSHOTS_V2`
+
+Key columns:
+- CASE_ID
+- MODEL_VERSION
+- SCORE
+- SUBSCORE_CONTROLS
+- SUBSCORE_COVERAGE
+- SUBSCORE_FRESHNESS
+- SUBSCORE_OPERATIONAL
+- TIER
+- BAND
+- RENEWAL_STATUS
+- EVENTS_90D
+- SCORED_AT
+- CREATED_AT
+
+⚠️ NOTE:
+- `SNAPSHOT_AT` does NOT exist
+- Prior seed logic was incorrect
+
+---
+
+## 🧩 SNOWFLAKE — VERIFIED LIVE TABLE SHAPES
+
+### VERIFICATION_CASES
+Key columns:
+- CASE_ID (PK)
+- ENTITY_NAME
+- STATUS
+- APPLICATION_ID
+- ORG_ID
+- CREATED_AT
+- SUBMITTED_AT
+- APPROVED_AT
+- DECIDED_AT
+- PRIORITY
+- ASSIGNED_REVIEWER
+- DECISION_SUMMARY
+
+---
+
+### VERIFICATION_FINDINGS (CRITICAL CORRECTION)
+
+Correct schema:
+- FINDING_ID
+- CASE_ID
+- CONTROL_ID ✅ (NOT RAW_CONTROL_ID)
+- CONTROL_TITLE
+- RESULT ✅ (NOT RESULT_RAW)
+- RATIONALE
+- SEVERITY
+- EVIDENCE_IDS (ARRAY)
+- CREATED_AT
+- UPDATED_AT
+- ORG_ID
+
+---
+
+### VERIFICATION_EVIDENCE
+- EVIDENCE_ID
+- CASE_ID
+- EVIDENCE_TYPE
+- TITLE
+- DESCRIPTION
+- SOURCE_URL
+- STORAGE_REF
+- SUBMITTED_BY
+- SUBMITTED_AT
+- CREATED_AT
+- UPDATED_AT
+- ORG_ID
+
+---
+
+### DECISIONS
+- DECISION_ID
+- APPLICATION_ID
+- SNAPSHOT_ID
+- DECISION_STATUS
+- CERTIFICATION_TIER
+- CERTIFICATION_BAND
+- VALID_FROM
+- VALID_TO
+- DECISION_NOTES
+- CREATED_AT
+- CASE_ID
+
+---
+
+## 🧩 DEMO SEED FILES (ACTIVE)
+
+- `GAFAIG - FINAL_CANONICAL_DEMO_SEED.sql`
+  → Primary seed file (currently broken at scoring)
+
+- `GAFAIG - MULTI-CASE DEMO SCORE + PUBLISH + VALIDATION.sql`
+  → Diagnostic + validation execution file
+
+- `GAFAIG - CANONICAL_RUN_ORDER.sql`
+  → Required execution order reference
+
+---
+
+## 🧩 NEXT.JS TRUST SURFACE FILES
+
+### Registry
+- `app/registry/page.tsx`
+- `app/registry/[registryId]/page.tsx`
+- `app/registry/ai-systems/page.tsx`
+
+---
+
+### Explorer
+- `app/explorer/page.tsx`
+- `app/explorer/organizations/page.tsx`
+- `app/explorer/systems/page.tsx`
+- `app/explorer/countries/page.tsx`
+
+---
+
+### Verify
+- `app/verify/page.tsx`
+- `app/verify/[registryId]/page.tsx`
+
+---
+
+### Widget
+- `app/widget-preview/[registryId]/page.tsx`
+- `public/widget/gafaig-widget.js` ⚠️ DO NOT BREAK
+
+---
+
+## 🧩 API LAYER
+
+### Verification
+- `app/api/verify/[registryId]/route.ts`
+  → Generates signed proof payload
+
+- `app/api/.well-known/gafaig-public-key/route.ts`
+  → Public key endpoint
+
+---
+
+### Registry / Explorer
+- `app/api/registry/route.ts`
+- `app/api/registry/search/route.ts`
+- `app/api/badge/[registryId]/route.ts`
+
+---
+
+## 🧩 QUERY LAYER
+
+- `lib/queries/registry.ts`
+- `lib/queries/explorer.ts`
+- `lib/queries/registry-ai-systems.ts`
+
+Rule:
+These must NEVER compute truth.
+They only pass Snowflake results through.
+
+---
+
+## 🧩 CRYPTO / SIGNING
+
+- `lib/crypto/verify-signing.ts`
+
+Handles:
+- Ed25519 signing
+- Signature verification
+- Key ID management
+
+---
+
+## 🧩 TYPE CONTRACTS
+
+- `types/registry.ts`
+
+Includes:
+- registry responses
+- verify response
+- proof object
+
+---
+
+## ⚠️ DO NOT BREAK FILES
+
+These are highly sensitive:
+
+- public/widget/gafaig-widget.js
 - app/api/verify/[registryId]/route.ts
-
-Badge:
-- app/api/badge/[registryId]/route.ts
-
-Well-known:
 - app/api/.well-known/gafaig-public-key/route.ts
+- lib/crypto/verify-signing.ts
+- GAFAIG - CORE.REGISTRY_PUBLISH.sql
+- GAFAIG - CORE.REGISTRY_SNAPSHOTS.sql
+- 21_VIEWS_PUBLIC_REGISTRY.sql
 
-============================================================
-QUERY LAYER (CRITICAL — CURRENTLY UNSTABLE)
-============================================================
+---
 
-Primary file:
-- lib/queries/registry.ts  ⚠️ ACTIVE BREAKPOINT
+## 🔥 ROOT CAUSE (CURRENT FAILURE)
 
-This file MUST provide:
+The system is failing because:
 
-Exports:
-- getRegistryRecords
-- getRegistryRecord
-- getRegistryByRegistryId
-- searchRegistryRecords
-- getRegistrySummary
-- getRegistryCountries
+1. Seed data loads ✅  
+2. Findings + evidence exist ✅  
+3. Decisions exist ✅  
+4. Events exist ✅  
+5. Scoring runs but produces 0 rows ❌  
+6. Publish sees no score → produces nothing ❌  
 
-This file MUST align with:
-- API route expectations
-- Snowflake column names
-- UI component expectations
+This is NOT a UI problem.
+This is NOT a schema problem anymore.
 
-Current issue:
-- Mismatched filters
-- Missing exports (previously)
-- Incorrect filtering logic (previously)
-- TypeScript interface mismatch
+This is a:
+→ **SCORING INPUT CONTRACT FAILURE**
 
-STATUS: NEEDS STABILIZATION
+---
 
-============================================================
-SUPPORTING QUERY FILES
-============================================================
+## 🎯 NEXT EXECUTION TARGET
 
-- lib/queries/explorer.ts
-- lib/queries/registry-ai-systems.ts
+Focus ONLY on:
 
-============================================================
-SHARED INFRASTRUCTURE
-============================================================
+- `SP_SCORE_CASE_ENTERPRISE`
+- `V_GOVERNANCE_SCORE_CASE`
 
-Snowflake Client:
-- lib/snowflake.ts
+We must determine:
 
-Auth:
-- lib/auth/require.ts
+- What exact inputs they require
+- Why rebuilt cases are not being picked up
+- Whether event/state/structure mismatch is blocking scoring
 
-============================================================
-CRITICAL DATA CONTRACT
-============================================================
+---
 
-All data must originate from:
-- CORE.V_REGISTRY_PUBLIC
+## 🧭 NEW CHAT STARTER
 
-This is the ONLY public contract view.
+Use this EXACT block in next chat:
 
-============================================================
-RECORD TYPES (LOCKED LOGIC)
-============================================================
+“This is the continuation chat for building GAFAIG. Load MASTER_STATE.md, CURRENT_FOCUS.md, ENGINEERING_RULES.md, CANONICAL_RUN_ORDER.md, and GAFAIG_ACTIVE_FILE_MAP.md as canonical system context. Do not re-architect anything. Snowflake is the source of truth. We are blocked in SCORING → PUBLISH. The seed loads but does not appear in V_GOVERNANCE_SCORE_CASE, so publish produces nothing. Focus only on diagnosing SP_SCORE_CASE_ENTERPRISE and its required inputs.”
 
-CERTIFIED RECORD:
-- CERTIFIED_AT NOT NULL
-- Has:
-  - CERTIFIED_SCORE
-  - CERTIFIED_TIER
-  - CERTIFIED_BAND
-  - Signed proof
+---
 
-APPROVED-ONLY RECORD:
-- DECISION_STATUS = APPROVED
-- CERTIFIED_AT NULL
-- Has NO certification fields
+## SUMMARY
 
-UI must respect this distinction.
-
-============================================================
-CURRENT SYSTEM STATUS
-============================================================
-
-Snowflake:
-- ✅ Fully operational
-- ✅ Canonical pipeline working
-- ✅ Demo data seeded (6 records)
-
-Application Layer:
-- ❌ Query layer unstable
-- ❌ API contract mismatch
-- ❌ Build errors recently resolved but fragile
-
-UI:
-- ⚠️ Rendering correctly but dependent on unstable data layer
-
-============================================================
-IMMEDIATE PRIORITY
-============================================================
-
-1. Stabilize:
-   lib/queries/registry.ts
-
-2. Ensure compatibility with:
-   - /api/registry
-   - /api/registry/search
-   - /api/badge/[registryId]
-
-3. Do NOT modify:
-   - Snowflake
-   - UI components
-
-============================================================
-RULES
-============================================================
-
-- Snowflake is the source of truth
-- No business logic in API or UI
-- Do not re-architect
-- Do not introduce new data sources
-- Fix only what is broken
-- Maintain deterministic pipeline
-
-============================================================
-END
-============================================================
+- Frontend trust surface is working
+- Proof/signature system is working
+- Data loads into Snowflake correctly
+- System fails at scoring layer
+- Publish fails because scoring fails
+- The only priority now is fixing scoring visibility into V_GOVERNANCE_SCORE_CASE

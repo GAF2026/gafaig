@@ -1,227 +1,240 @@
 # CURRENT_FOCUS.md
-Last Updated: 2026-04-14
+Last Updated: 2026-04-15
 
-============================================================
-GAFAIG — CURRENT DEVELOPMENT FOCUS
-============================================================
+## PURPOSE
+This document defines the **current execution focus** of the GAFAIG platform. It is the single source of truth for what we are working on RIGHT NOW. It must stay tightly aligned with MASTER_STATE.md and ENGINEERING_RULES.md. This is not a roadmap. This is the active execution state.
 
-This document defines the ACTIVE execution focus for the GAFAIG platform.
+---
 
-It reflects:
-- What is COMPLETE
-- What is BROKEN
-- What must be FIXED NEXT
-- What is explicitly OFF-LIMITS
+## CURRENT PHASE
+System Phase: **SCORING → PUBLISH BLOCK RESOLUTION**
 
-============================================================
-CURRENT PHASE
-============================================================
+All frontend surfaces, APIs, and proof/signature systems are sufficiently stable for this phase. The platform is now blocked entirely within Snowflake at the scoring layer.
 
-PHASE: POST-CANONICAL SEED → APPLICATION STABILIZATION
+---
 
-The Snowflake engine is COMPLETE and FUNCTIONAL.
+## PRIMARY OBJECTIVE
+Restore full canonical pipeline execution:
 
-The system has transitioned from:
-- Data pipeline construction
-
-→ to:
-
-- Application layer stabilization
-
-============================================================
-WHAT WAS JUST COMPLETED
-============================================================
-
-1. Canonical Demo Seed System
-   - GAFAIG - FINAL_CANONICAL_DEMO_SEED.sql created
-   - Full pipeline executed:
-     CASE → FINDINGS → EVIDENCE → EVENTS → SCORING → DECISION → PUBLISH
-
-2. Snowflake Alignment
-   - REGISTRY_SNAPSHOTS schema corrected
-   - DECISION_STATUS integrated
-   - V_REGISTRY_PUBLIC fully enriched
-   - V_REGISTRY_AI_SYSTEMS_PUBLIC aligned
-
-3. Registry ID Policy
-   - Sequential policy established
-   - Demo normalization performed
-
-4. Registry Detail Page (UI)
-   - Certified vs Approved branching implemented
-   - Proof rendering controlled correctly
-
-============================================================
-CURRENT DATA STATE
-============================================================
-
-Snowflake now contains:
-
-- 6 total registry records
-- 2 certified records
-- 4 approved-only records
-
-All data is correct and verified.
-
-============================================================
-PRIMARY PROBLEM (BLOCKER)
-============================================================
-
-The application layer is currently BROKEN.
+CASE → FINDINGS → EVIDENCE → EVENTS → SCORING → DECISION → PUBLISH → REGISTRY → PUBLIC VIEW
 
 Specifically:
 
-lib/queries/registry.ts
+Fix:
+SP_SCORE_CASE_ENTERPRISE → V_GOVERNANCE_SCORE_CASE → SP_PUBLISH_CASE_TO_REGISTRY_V3
 
-Issues:
-- TypeScript interface mismatch
-- Missing filter fields expected by API
-- Missing exports expected by API
-- Incorrect filtering logic previously introduced
-- Inconsistent normalization between certified and approved records
+---
 
-Impact:
-- Build failures
-- Broken /registry page
-- Broken /explorer page
-- Inconsistent registry detail pages
+## CURRENT BLOCKER
 
-============================================================
-WHAT IS NOT BROKEN
-============================================================
+### Observed Behavior
 
-DO NOT TOUCH:
+- Cases inserted into CORE.VERIFICATION_CASES ✅  
+- Findings inserted into CORE.VERIFICATION_FINDINGS ✅  
+- Evidence inserted into CORE.VERIFICATION_EVIDENCE ✅  
+- Events inserted into CORE.VERIFICATION_EVENTS ✅  
+- Decisions inserted into CORE.DECISIONS ✅  
+- SP_SCORE_CASE_ENTERPRISE executes successfully but returns rowsInserted = 0 ❌  
+- V_GOVERNANCE_SCORE_CASE returns no rows for new cases ❌  
+- SP_PUBLISH_CASE_TO_REGISTRY_V3 produces no registry snapshots ❌  
+- V_REGISTRY_PUBLIC does not include new cases ❌  
 
-- Snowflake tables
-- Snowflake views
-- Snowflake procedures
-- Demo seed files
-- Scoring engine
-- Publish logic
+---
 
-These are:
-✅ Correct
-✅ Canonical
-✅ Locked
+## ROOT CAUSE (WORKING THEORY)
 
-============================================================
-ACTIVE OBJECTIVE
-============================================================
+The system is experiencing a **SCORING INPUT CONTRACT FAILURE**.
 
-Stabilize the application layer by fixing:
+Meaning:
+- Seed data is structurally correct
+- But does NOT meet the exact required inputs expected by the scoring engine
+- Therefore scoring emits no rows
+- Therefore publish has no valid input
 
-lib/queries/registry.ts
+---
 
-============================================================
-REQUIRED OUTCOME
-============================================================
+## CONFIRMED NON-ISSUES
 
-1. Build must pass:
-   npm run build → SUCCESS
+Do NOT waste time on:
 
-2. API routes must work:
-   - /api/registry
-   - /api/registry/search
-   - /api/badge/[registryId]
+- UI layout
+- API endpoints
+- registry page rendering
+- explorer page rendering
+- verify page rendering
+- widget behavior
+- signature/proof system
+- Snowflake table existence
+- basic schema mismatches (already resolved)
 
-3. Pages must render correctly:
-   - /registry → shows ALL records
-   - /explorer → shows ALL records
-   - /registry/[registryId] → correct certified vs approved display
+These are all functioning correctly.
 
-============================================================
-REQUIRED FIXES (STRICT)
-============================================================
+---
 
-The registry query layer MUST:
+## CRITICAL FILES IN SCOPE
 
-1. Export required functions:
-   - getRegistryRecords
-   - getRegistryRecord
-   - getRegistryByRegistryId
-   - searchRegistryRecords
-   - getRegistrySummary
-   - getRegistryCountries
+### Snowflake (Primary Focus)
 
-2. Support all filters used by API:
-   - q
-   - country
-   - registryId
-   - caseId
-   - applicationId
-   - entityName
-   - limit
-   - offset
-   - certifiedOnly
+- GAFAIG - Governance Scoring (Enterprise v1.2).sql
+- CORE.SP_SCORE_CASE_ENTERPRISE
+- CORE.V_GOVERNANCE_SCORE_CASE
+- CORE.V_CASE_SCORE_ENTERPRISE
+- CORE.V_CASE_TIER_BAND
+- CORE.V_CASE_RENEWAL_STATUS
+- CORE.V_FINDING_UNMAPPED_CONTROLS
+- CORE.CASE_SCORE_SNAPSHOTS_V2
+- GAFAIG - FINAL_CANONICAL_DEMO_SEED.sql
 
-3. Normalize records:
-   CERTIFIED:
-     - expose certified fields
+---
 
-   APPROVED:
-     - certified fields MUST be null
+## REQUIRED INVESTIGATION
 
-4. NOT filter records by default
+We must determine EXACTLY:
 
-============================================================
-STRICT DO NOT RULES
-============================================================
+### 1. Scoring Entry Conditions
+- What conditions must be true for SP_SCORE_CASE_ENTERPRISE to insert rows?
+- Required CASE status?
+- Required EVENTS?
+- Required timestamps?
 
-DO NOT:
+---
 
-- Modify Snowflake
-- Modify UI layout
-- Add business logic to API
-- Create new views
-- Introduce alternate data sources
-- Re-architect system
+### 2. Findings Requirements
+- Required CONTROL_ID values?
+- Required RESULT values?
+- Required mapping to scoring framework?
 
-============================================================
-SUCCESS CRITERIA
-============================================================
+---
 
-System is considered stable when:
+### 3. Evidence Requirements
+- Minimum evidence per finding?
+- Required linkage via EVIDENCE_IDS array?
 
-- Build passes with zero errors
-- /registry shows 6 records
-- /explorer shows 6 records
-- Certified records show:
-  - Score
-  - Tier
-  - Band
-  - Proof
+---
 
-- Approved records show:
-  - No certification fields
-  - No proof
-  - Clean UI
+### 4. Event Requirements
+- Required event types?
+- Required sequence (submitted → review → approved)?
+- Required timestamps?
 
-============================================================
-NEXT PHASE (AFTER FIX)
-============================================================
+---
 
-Once stable:
+### 5. Decision Dependencies
+- Must decision exist BEFORE scoring?
+- Or AFTER scoring?
+- Does scoring depend on DECISION_STATUS?
 
-PHASE: REGISTRY EXPERIENCE POLISH
+---
 
-- UX refinement
-- Trust signaling
-- Explorer enhancements
-- Badge system finalization
+### 6. Application / Org Linkage
+- Does scoring require APPLICATION_ID?
+- Does it require ORG_ID alignment across tables?
 
-============================================================
-SUMMARY
-============================================================
+---
 
-Snowflake = COMPLETE  
-Data = CORRECT  
-System = FUNCTIONAL  
+## DIAGNOSTIC STRATEGY
 
-ONLY remaining issue:
-→ Query layer instability
+### Step 1
+Identify a **known working legacy case** that successfully:
+- appears in V_GOVERNANCE_SCORE_CASE
+- was published to registry
 
-Fix that → Platform is fully operational
+---
 
-============================================================
-END
-============================================================
+### Step 2
+Compare working case vs new seed case across:
+
+- VERIFICATION_CASES
+- VERIFICATION_FINDINGS
+- VERIFICATION_EVIDENCE
+- VERIFICATION_EVENTS
+- DECISIONS
+
+---
+
+### Step 3
+Identify missing or mismatched fields
+
+---
+
+### Step 4
+Update seed file to match required contract
+
+---
+
+### Step 5
+Re-run:
+
+CALL CORE.SP_SCORE_CASE_ENTERPRISE('CASE-XXXX')
+
+---
+
+### Step 6
+Verify:
+
+SELECT * FROM CORE.V_GOVERNANCE_SCORE_CASE WHERE CASE_ID = 'CASE-XXXX';
+
+---
+
+### Step 7
+Publish:
+
+CALL CORE.SP_PUBLISH_CASE_TO_REGISTRY_V3('CASE-XXXX');
+
+---
+
+## SUCCESS CRITERIA
+
+The system is considered unblocked when:
+
+- SP_SCORE_CASE_ENTERPRISE inserts rows for new cases
+- V_GOVERNANCE_SCORE_CASE returns rows for those cases
+- SP_PUBLISH_CASE_TO_REGISTRY_V3 creates registry snapshots
+- CORE.REGISTRY_SNAPSHOTS contains new rows
+- CORE.V_REGISTRY_PUBLIC reflects new cases
+- UI surfaces show expanded dataset
+
+---
+
+## DO NOT DO
+
+- Do NOT modify registry views
+- Do NOT bypass scoring
+- Do NOT insert directly into REGISTRY_SNAPSHOTS
+- Do NOT fabricate scores
+- Do NOT change UI to “fake” data presence
+- Do NOT create alternate pipelines
+
+---
+
+## NEXT STEP (IMMEDIATE)
+
+Run side-by-side comparison:
+
+Working CASE vs New CASE
+
+Focus on:
+- EVENTS
+- FINDINGS (CONTROL_ID + RESULT)
+- STATUS fields
+- TIMESTAMPS
+
+---
+
+## AFTER BLOCK IS RESOLVED
+
+Next phase:
+
+**Registry Expansion + Market Readiness**
+
+- expand demo dataset
+- refine explorer UX
+- enhance registry detail richness
+- prepare investor-facing narrative
+- finalize trust signaling
+
+---
+
+## SUMMARY
+
+The GAFAIG platform is structurally complete and publicly functional. The only blocker is within Snowflake at the scoring layer. Fixing scoring restores the entire downstream system including publishing, registry growth, and certification issuance. All focus must remain on satisfying the scoring input contract.
