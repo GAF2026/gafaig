@@ -81,7 +81,7 @@ export default async function ExplorerSystemsPage({
 
   const result = await getRegistryAiSystemsPaginated({ page, pageSize });
   const rows = result.rows ?? [];
-  const total = Number(result.total ?? rows.length);
+  const total = Number((result as { total?: number }).total ?? rows.length);
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
   return (
