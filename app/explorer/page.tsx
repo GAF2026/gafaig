@@ -158,7 +158,9 @@ export default async function ExplorerPage() {
               certification state without exposing private reviewer materials.
             </p>
           </div>
-          <div className="text-sm text-black/45">{recentRecords.length} shown</div>
+          <div className="text-sm text-black/45">
+            {recentRecords.length} shown
+          </div>
         </div>
 
         <div className="mt-6 space-y-4">
@@ -336,7 +338,7 @@ export default async function ExplorerPage() {
               </div>
 
               <div className="flex flex-wrap gap-3">
-                <span className="rounded-full border border-black/10 bg-neutral-50 px-3 py-1 text-sm text-black/65">
+                <span className="inline-flex items-center justify-center rounded-full border border-black/10 bg-neutral-50 px-3 py-1 text-sm font-semibold text-black/65">
                   {system.certifiedTier ?? "—"}
                   {system.certifiedBand ? ` ${system.certifiedBand}` : ""}
                 </span>
