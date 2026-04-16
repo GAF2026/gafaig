@@ -9,59 +9,54 @@ import {
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-function safe(value: unknown, fallback = "—") {
-  const s = String(value ?? "").trim();
-  return s || fallback;
+function firstValue(...values: unknown[]): string {
+  for (const value of values) {
+    if (value === null || value === undefined) continue;
+    const s = String(value).trim();
+    if (s) return s;
+  }
+  return "";
 }
 
-function formatDate(value: unknown) {
-  const s = String(value ?? "").trim();
-  if (!s) return "—";
-  const d = new Date(s);
-  if (Number.isNaN(d.getTime())) return s;
+function safeText(...values: unknown[]): string {
+  const value = firstValue(...values);
+  return value || "—";
+}
+
+function safeNumber(value: unknown, fallback = 0): number {
+  const n = Number(value);
+  return Number.isFinite(n) ? n : fallback;
+}
+
+function formatCount(value: unknown): string {
+  return safeNumber(value, 0).toLocaleString("en-US");
+}
+
+function formatDate(...values: unknown[]): string {
+  const raw = firstValue(...values);
+  if (!raw) return "—";
+  const d = new Date(raw);
+  if (Number.isNaN(d.getTime())) return raw;
   return d.toLocaleDateString("en-US");
 }
 
-function formatTierBand(tier: unknown, band: unknown) {
-  const t = safe(tier, "");
-  const b = safe(band, "");
-  if (t && b) return `${t} · ${b}`;
-  if (t) return t;
-  if (b) return b;
+function formatCertification(tier: string, band: string): string {
+  if (tier && band) return `${tier} · ${band}`;
+  if (tier) return tier;
+  if (band) return band;
   return "—";
 }
 
-function formatCount(value: unknown) {
-  const n = Number(value ?? 0);
-  if (!Number.isFinite(n)) return "0";
-  return n.toLocaleString("en-US");
+function normalizeStatus(value: unknown): string {
+  return firstValue(value).toUpperCase();
 }
 
-function trustTone(certificationStatus: unknown, decisionStatus: unknown) {
-  const cert = safe(certificationStatus, "").toUpperCase();
-  const decision = safe(decisionStatus, "").toUpperCase();
+function getRegistryCertifiedPillClass() {
+  return "inline-flex items-center rounded-full bg-emerald-100 px-3 py-1 text-[12px] font-semibold text-emerald-700";
+}
 
-  if (cert === "CERTIFIED") {
-    return {
-      label: "Certified",
-      className:
-        "inline-flex rounded-full bg-emerald-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-emerald-700 ring-1 ring-emerald-200",
-    };
-  }
-
-  if (decision === "APPROVED") {
-    return {
-      label: "Approved",
-      className:
-        "inline-flex rounded-full bg-blue-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-blue-700 ring-1 ring-blue-200",
-    };
-  }
-
-  return {
-    label: "Public",
-    className:
-      "inline-flex rounded-full bg-slate-100 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-600 ring-1 ring-slate-200",
-  };
+function getRegistryApprovedPillClass() {
+  return "inline-flex items-center rounded-full bg-blue-100 px-3 py-1 text-[12px] font-semibold uppercase text-blue-700";
 }
 
 function MetricCard({
@@ -72,11 +67,11 @@ function MetricCard({
   value: string;
 }) {
   return (
-    <div className="rounded-2xl border border-black/10 bg-white p-5">
-      <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-black/42">
+    <div className="rounded-3xl border border-black/10 bg-white p-6">
+      <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/52">
         {label}
       </div>
-      <div className="mt-3 text-[28px] font-semibold leading-none tracking-tight text-black">
+      <div className="mt-4 text-[34px] font-semibold leading-none tracking-tight text-black">
         {value}
       </div>
     </div>
@@ -84,24 +79,69 @@ function MetricCard({
 }
 
 export default async function ExplorerPage() {
-  const summary = ((await getExplorerSummary()) ?? {}) as any;
-  const recentRecords = (((await getRecentRegistryRecords()) ?? []) as any[]).slice(
-    0,
-    8
-  );
+  const [summaryRaw, recentRaw] = await Promise.all([
+    getExplorerSummary(),
+    getRecentRegistryRecords(),
+  ]);
 
-  const totalRecords = formatCount(
-    summary.totalRecords ?? summary.recordCount ?? summary.records ?? 0
-  );
-  const certifiedCount = formatCount(
-    summary.certifiedCount ?? summary.certified ?? 0
-  );
-  const approvedCount = formatCount(
-    summary.approvedCount ?? summary.approved ?? 0
-  );
-  const countryCount = formatCount(
-    summary.countryCount ?? summary.countries ?? 0
-  );
+  const summary = (summaryRaw ?? {}) as any;
+  const recentRecords = Array.isArray(recentRaw) ? recentRaw.slice(0, 8) : [];
+
+  const derivedCertifiedCount = recentRecords.filter((row: any) => {
+    return normalizeStatus(
+      row?.certificationStatus ?? row?.CERTIFICATION_STATUS
+    ) === "CERTIFIED";
+  }).length;
+
+  const derivedApprovedCount = recentRecords.filter((row: any) => {
+    return normalizeStatus(row?.decisionStatus ?? row?.DECISION_STATUS) === "APPROVED";
+  }).length;
+
+  const derivedCountryCount = new Set(
+    recentRecords
+      .map((row: any) => firstValue(row?.country, row?.COUNTRY))
+      .filter(Boolean)
+  ).size;
+
+  const certifiedCountNumber =
+    safeNumber(
+      summary?.certifiedRecordCount ??
+        summary?.certifiedRecords ??
+        summary?.certifiedPublicRecords ??
+        summary?.CERTIFIED_RECORD_COUNT ??
+        summary?.CERTIFIED_COUNT,
+      0
+    ) || derivedCertifiedCount;
+
+  const approvedCountNumber =
+    safeNumber(
+      summary?.approvedRecordCount ??
+        summary?.approvedRecords ??
+        summary?.approvedPublicRecords ??
+        summary?.APPROVED_RECORD_COUNT ??
+        summary?.APPROVED_COUNT,
+      0
+    ) || derivedApprovedCount;
+
+  const publicRecordsNumber =
+    safeNumber(
+      summary?.publicRecordCount ??
+        summary?.totalPublicRecords ??
+        summary?.recordCount ??
+        summary?.totalRecords ??
+        summary?.TOTAL_RECORDS ??
+        summary?.PUBLIC_RECORD_COUNT,
+      0
+    ) || certifiedCountNumber + approvedCountNumber || recentRecords.length;
+
+  const countryCountNumber =
+    safeNumber(
+      summary?.countryCount ??
+        summary?.countriesCount ??
+        summary?.COUNTRY_COUNT ??
+        summary?.COUNTRIES,
+      0
+    ) || derivedCountryCount;
 
   return (
     <main className="mx-auto max-w-[1180px] px-6 pb-16 pt-14">
@@ -149,8 +189,8 @@ export default async function ExplorerPage() {
               <div>
                 <span className="font-semibold text-black">Approved</span>{" "}
                 means a system has completed the GAFAIG evaluation process and
-                received a governance decision, but it has not yet been
-                published as a certified public record.
+                received a governance decision, but it has not been published as
+                a certified public record.
               </div>
               <div>
                 <span className="font-semibold text-black">Certified</span>{" "}
@@ -168,10 +208,10 @@ export default async function ExplorerPage() {
         </section>
 
         <section className="grid gap-4 md:grid-cols-4">
-          <MetricCard label="Public records" value={totalRecords} />
-          <MetricCard label="Certified" value={certifiedCount} />
-          <MetricCard label="Approved" value={approvedCount} />
-          <MetricCard label="Countries" value={countryCount} />
+          <MetricCard label="Public records" value={formatCount(publicRecordsNumber)} />
+          <MetricCard label="Certified" value={formatCount(certifiedCountNumber)} />
+          <MetricCard label="Approved" value={formatCount(approvedCountNumber)} />
+          <MetricCard label="Countries" value={formatCount(countryCountNumber)} />
         </section>
 
         <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
@@ -198,26 +238,83 @@ export default async function ExplorerPage() {
 
           <div className="mt-8 space-y-4">
             {recentRecords.map((row: any, index: number) => {
-              const entityName = safe(row.entityName ?? row.entity ?? row.organization);
-              const registryId = safe(row.registryId);
-              const country = safe(row.country);
-              const certificationStatus = safe(row.certificationStatus, "");
-              const decisionStatus = safe(row.decisionStatus, "");
-              const tone = trustTone(certificationStatus, decisionStatus);
+              const registryId = safeText(
+                row?.registryId,
+                row?.REGISTRY_ID,
+                row?.id,
+                row?.ID
+              );
+
+              const entityName = safeText(
+                row?.entityName,
+                row?.ENTITY_NAME,
+                row?.organization,
+                row?.ORGANIZATION,
+                row?.name,
+                row?.NAME,
+                row?.developerOrganization,
+                row?.DEVELOPER_ORGANIZATION,
+                registryId
+              );
+
+              const country = safeText(
+                row?.country,
+                row?.COUNTRY,
+                row?.jurisdiction,
+                row?.JURISDICTION
+              );
+
+              const certificationStatus = normalizeStatus(
+                row?.certificationStatus ?? row?.CERTIFICATION_STATUS
+              );
+
+              const decisionStatus = normalizeStatus(
+                row?.decisionStatus ?? row?.DECISION_STATUS
+              );
+
+              const tier = firstValue(
+                row?.certifiedTier,
+                row?.CERTIFIED_TIER,
+                row?.tier,
+                row?.TIER
+              );
+
+              const band = firstValue(
+                row?.certifiedBand,
+                row?.CERTIFIED_BAND,
+                row?.band,
+                row?.BAND
+              );
+
+              const certifiedAt = formatDate(
+                row?.certifiedAt,
+                row?.CERTIFIED_AT,
+                row?.approvedAt,
+                row?.APPROVED_AT,
+                row?.publishedAt,
+                row?.PUBLISHED_AT
+              );
+
+              const validFrom = formatDate(row?.validFrom, row?.VALID_FROM);
+              const validTo = formatDate(row?.validTo, row?.VALID_TO);
 
               return (
                 <article
                   key={`${registryId}-${index}`}
-                  className="rounded-2xl border border-black/10 bg-white p-5 md:p-6"
+                  className="rounded-3xl border border-black/10 bg-white p-6"
                 >
-                  <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                  <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
                     <div className="min-w-0 flex-1">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <span className={tone.className}>{tone.label}</span>
+                      <div className="flex flex-wrap items-center gap-3">
+                        {certificationStatus === "CERTIFIED" ? (
+                          <span className={getRegistryCertifiedPillClass()}>
+                            Certified
+                          </span>
+                        ) : null}
 
-                        {decisionStatus && decisionStatus !== "—" ? (
-                          <span className="inline-flex rounded-full bg-black/[0.04] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-black/65 ring-1 ring-black/10">
-                            {decisionStatus}
+                        {decisionStatus === "APPROVED" ? (
+                          <span className={getRegistryApprovedPillClass()}>
+                            APPROVED
                           </span>
                         ) : null}
                       </div>
@@ -241,13 +338,13 @@ export default async function ExplorerPage() {
                     </div>
                   </div>
 
-                  <div className="mt-5 grid grid-cols-2 gap-3 xl:grid-cols-4">
+                  <div className="mt-6 grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
                     <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-4">
                       <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-black/42">
                         Certification
                       </div>
-                      <div className="mt-2 text-[15px] font-semibold leading-[1.4] text-black">
-                        {formatTierBand(row.certifiedTier, row.certifiedBand)}
+                      <div className="mt-2 text-[15px] font-semibold leading-[1.45] text-black">
+                        {formatCertification(tier, band)}
                       </div>
                     </div>
 
@@ -255,8 +352,8 @@ export default async function ExplorerPage() {
                       <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-black/42">
                         Certified
                       </div>
-                      <div className="mt-2 text-[15px] font-semibold leading-[1.4] text-black">
-                        {formatDate(row.certifiedAt)}
+                      <div className="mt-2 text-[15px] font-semibold leading-[1.45] text-black">
+                        {certifiedAt}
                       </div>
                     </div>
 
@@ -264,8 +361,8 @@ export default async function ExplorerPage() {
                       <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-black/42">
                         Valid from
                       </div>
-                      <div className="mt-2 text-[15px] font-semibold leading-[1.4] text-black">
-                        {formatDate(row.validFrom)}
+                      <div className="mt-2 text-[15px] font-semibold leading-[1.45] text-black">
+                        {validFrom}
                       </div>
                     </div>
 
@@ -273,8 +370,8 @@ export default async function ExplorerPage() {
                       <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-black/42">
                         Valid to
                       </div>
-                      <div className="mt-2 text-[15px] font-semibold leading-[1.4] text-black">
-                        {formatDate(row.validTo)}
+                      <div className="mt-2 text-[15px] font-semibold leading-[1.45] text-black">
+                        {validTo}
                       </div>
                     </div>
                   </div>
