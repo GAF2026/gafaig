@@ -83,12 +83,71 @@ function CopySnippetButton({
   );
 }
 
+function MetricCard({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-2xl border border-black/10 bg-white p-5">
+      <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/55">
+        {label}
+      </div>
+      <div className="mt-3 break-words text-[20px] font-semibold tracking-tight text-black">
+        {value}
+      </div>
+    </div>
+  );
+}
+
+function StatementCard({
+  title,
+  body,
+}: {
+  title: string;
+  body: string;
+}) {
+  return (
+    <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
+      <div className="text-[18px] font-semibold tracking-tight text-black">
+        {title}
+      </div>
+      <p className="mt-3 text-[15px] leading-[1.8] text-black/72">{body}</p>
+    </div>
+  );
+}
+
+function StepCard({
+  number,
+  title,
+  body,
+}: {
+  number: string;
+  title: string;
+  body: string;
+}) {
+  return (
+    <div className="rounded-2xl border border-black/10 p-4">
+      <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/55">
+        {number}
+      </div>
+      <div className="mt-2 text-[16px] font-semibold text-black">{title}</div>
+      <p className="mt-2 text-[14px] leading-[1.7] text-black/72">{body}</p>
+    </div>
+  );
+}
+
+function BulletCard({ text }: { text: string }) {
+  return (
+    <div className="flex gap-3 rounded-2xl border border-black/10 bg-white p-4">
+      <span className="mt-[8px] h-1.5 w-1.5 shrink-0 rounded-full bg-black" />
+      <span className="text-[14px] leading-6 text-black/75">{text}</span>
+    </div>
+  );
+}
+
 export default async function WidgetPreviewPage({
   params,
 }: {
   params: { registryId: string };
 }) {
-  const registryId = params.registryId;
+  const registryId = decodeURIComponent(params.registryId);
   const verifyData = await getVerifyData(registryId);
 
   const runtimeBaseUrl = getRuntimeBaseUrl();
@@ -98,26 +157,33 @@ export default async function WidgetPreviewPage({
   const productionBaseUrl =
     process.env.NEXT_PUBLIC_BASE_URL || "https://www.gafaig.com";
 
-  if (!verifyData?.ok || !verifyData?.verified || !verifyData?.record) {
+  if (!verifyData?.ok || !verifyData?.record) {
     return (
-      <main className="mx-auto max-w-[1180px] px-6 pb-16 pt-14">
+      <main className="mx-auto max-w-[1180px] px-6 py-10">
         <div className="space-y-8">
-          <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
-            <div className="text-[12px] font-semibold uppercase tracking-[0.18em] text-black/55">
-              Widget Preview
-            </div>
-            <h1 className="mt-4 text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
-              Widget unavailable
-            </h1>
-            <p className="mt-4 max-w-2xl text-[15px] leading-8 text-black/70">
-              This registry record could not be verified or is not currently
-              available for widget preview.
+          <PublicPageHero
+            eyebrow="WIDGET PREVIEW"
+            title="Widget unavailable"
+            description="This registry record could not be loaded for widget preview."
+            secondaryDescription="The widget preview depends on a live public verification record. If the record is unavailable, unpublished, or unresolved, the widget cannot render."
+            actions={
+              <>
+                <PublicButtonLink href="/demo" variant="primary">
+                  Return to Demo
+                </PublicButtonLink>
+                <PublicButtonLink href="/registry" variant="secondary">
+                  Browse Registry
+                </PublicButtonLink>
+              </>
+            }
+          />
+
+          <section className="rounded-3xl border border-black/10 bg-white p-8">
+            <p className="max-w-[900px] text-[15px] leading-[1.85] text-black/72">
+              This preview uses the same public trust surfaces that external
+              sites use. If a live verification record is not available, the
+              widget cannot show a trust result.
             </p>
-            <div className="mt-8">
-              <PublicButtonLink href="/registry" variant="secondary">
-                Back to registry
-              </PublicButtonLink>
-            </div>
           </section>
         </div>
       </main>
@@ -125,8 +191,19 @@ export default async function WidgetPreviewPage({
   }
 
   const record = verifyData.record;
+  const proof = verifyData.proof ?? {};
+
   const entityName = record.entityName || "Unknown Entity";
-  const isCertified = Boolean(String(record.certifiedAt ?? "").trim());
+  const trustState = verifyData.verified
+    ? "Verified"
+    : String(record.certifiedAt ?? "").trim()
+      ? "Certified"
+      : "Approved";
+
+  const tierBand =
+    [valueOrDash(record.certifiedTier), valueOrDash(record.certifiedBand)]
+      .filter((v) => v !== "—")
+      .join(" · ") || "—";
 
   const widgetSnippet = `<script src="${productionBaseUrl}/widget/gafaig-widget.js"></script>
 <div data-gafaig-id="${registryId}"></div>`;
@@ -146,90 +223,124 @@ export default async function WidgetPreviewPage({
   const verifyPageUrl = `${productionBaseUrl}/verify/${encodeURIComponent(
     registryId
   )}`;
+  const demoUrl = `${productionBaseUrl}/demo`;
 
   return (
-    <main className="mx-auto max-w-[1180px] px-6 pb-16 pt-14">
+    <main className="mx-auto max-w-[1180px] px-6 py-10">
       <div className="space-y-8">
         <PublicPageHero
-          eyebrow="GAFAIG WIDGET PREVIEW"
-          title="Preview the live verification widget"
-          description="This page shows the public GAFAIG widget exactly as external sites can embed it. The widget pulls from the live verification endpoint and renders the current public trust record."
-          secondaryDescription="A record may be Approved or Certified. Approved means evaluated. Certified means trusted and published as a finalized public registry record. Use this page to inspect the live widget, copy installation snippets, and confirm how the registry page, badge, widget, and verify JSON work together as one public trust surface."
+          eyebrow="WIDGET PREVIEW"
+          title="See how GAFAIG trust travels outside the platform"
+          description="This page shows how a real GAFAIG record can be displayed on a third-party website through a live widget and verification modal."
+          secondaryDescription="The widget preview is part of the GAFAIG proof flow. A record is certified in GAFAIG, verified through signed public proof, and then surfaced as a portable trust signal that can appear outside the originating organization’s platform."
           actions={
             <>
               <PublicButtonLink
-                href={`/api/verify/${encodeURIComponent(registryId)}`}
+                href={`/registry/${encodeURIComponent(registryId)}`}
                 variant="primary"
               >
-                Open Verify JSON
+                Open Registry Record
               </PublicButtonLink>
 
               <PublicButtonLink
-                href={`/registry/${encodeURIComponent(registryId)}`}
+                href={`/verify/${encodeURIComponent(registryId)}`}
                 variant="secondary"
               >
-                Open Registry Record
+                Open Verify Page
+              </PublicButtonLink>
+
+              <PublicButtonLink href="/demo" variant="secondary">
+                Return to Demo
               </PublicButtonLink>
             </>
           }
         />
 
-        <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
-          <div className="max-w-[980px] space-y-3 text-[15px] leading-[1.8] text-black/65">
-            <p>
-              The widget preview distinguishes between evaluated records and
-              publicly trusted records.
-            </p>
+        <section className="rounded-3xl border border-black/10 bg-white p-8">
+          <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
+            WHAT THIS PAGE SHOWS
+          </div>
 
-            <div className="rounded-2xl border border-black/10 bg-black/[0.03] p-5">
-              <div className="grid gap-3 text-[15px] leading-[1.8] text-black/72">
-                <div>
-                  <span className="font-semibold text-black">Approved</span>{" "}
-                  means the record has completed the GAFAIG evaluation process
-                  and received a governance decision.
-                </div>
+          <h2 className="mt-4 max-w-[860px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
+            A public trust signal that can appear anywhere
+          </h2>
 
-                <div>
-                  <span className="font-semibold text-black">Certified</span>{" "}
-                  means the evaluated outcome has been finalized and published as
-                  a trusted public record in the GAFAIG registry of record.
-                </div>
-              </div>
-            </div>
+          <p className="mt-5 max-w-[980px] text-[16px] leading-[1.85] text-black/75">
+            The widget is not a static badge. It is a live trust surface that
+            reads from GAFAIG’s public verification layer. This allows a
+            third-party site to display a current GAFAIG trust record without
+            recreating the verification process or exposing private internal
+            materials.
+          </p>
 
-            <p className="text-black/60">
-              This widget renders the live public trust state for the selected
-              record.
-            </p>
+          <div className="mt-7 grid gap-4 md:grid-cols-2">
+            <StatementCard
+              title="What it proves"
+              body="A certified GAFAIG record can be surfaced outside the GAFAIG website while preserving the same public trust outcome."
+            />
+            <StatementCard
+              title="Why it matters"
+              body="Trust no longer has to remain inside the certifying platform. It can be reviewed and verified wherever the record appears."
+            />
           </div>
         </section>
 
         <section className="grid gap-4 md:grid-cols-4">
           <MetricCard label="Entity" value={entityName} />
-          <MetricCard
-            label="Trust State"
-            value={isCertified ? "Certified" : "Approved"}
-          />
-          <MetricCard
-            label="Tier / Band"
-            value={
-              isCertified
-                ? `${valueOrDash(record.certifiedTier)} · ${valueOrDash(
-                    record.certifiedBand
-                  )}`
-                : "—"
-            }
-          />
+          <MetricCard label="Trust State" value={trustState} />
+          <MetricCard label="Tier / Band" value={tierBand} />
           <MetricCard label="Valid To" value={valueOrDash(record.validTo)} />
         </section>
 
+        <section className="rounded-3xl border border-black/10 bg-white p-8">
+          <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
+            THE WIDGET FLOW
+          </div>
+
+          <h2 className="mt-4 max-w-[860px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
+            How external trust is delivered
+          </h2>
+
+          <div className="mt-8 grid gap-4 md:grid-cols-4">
+            <StepCard
+              number="1"
+              title="Certified record"
+              body="A GAFAIG record exists in the public registry and can be verified through the public trust surface."
+            />
+            <StepCard
+              number="2"
+              title="Widget script"
+              body="An external site loads the GAFAIG widget script using the registry identifier."
+            />
+            <StepCard
+              number="3"
+              title="Live trust fetch"
+              body="The widget resolves the live trust data from GAFAIG’s public verification endpoints."
+            />
+            <StepCard
+              number="4"
+              title="Portable proof"
+              body="The site displays a current GAFAIG trust signal without running its own governance verification logic."
+            />
+          </div>
+        </section>
+
         <section className="grid gap-8 xl:grid-cols-[1.05fr_0.95fr]">
-          <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
-            <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/60">
-              Live widget
+          <section className="rounded-3xl border border-black/10 bg-white p-8">
+            <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
+              LIVE PREVIEW
             </div>
 
-            <div className="mt-4 rounded-2xl border border-black/10 bg-black/[0.02] p-6">
+            <h2 className="mt-4 text-[26px] font-semibold tracking-tight text-black">
+              Embedded trust widget
+            </h2>
+
+            <p className="mt-4 max-w-[820px] text-[15px] leading-[1.8] text-black/72">
+              This is the live widget rendering for the selected record. It is
+              the same trust surface that can be embedded on an external website.
+            </p>
+
+            <div className="mt-6 rounded-2xl border border-black/10 bg-black/[0.02] p-6">
               <Script src={widgetScriptSrc} strategy="afterInteractive" />
               <div data-gafaig-id={registryId}></div>
             </div>
@@ -251,12 +362,16 @@ export default async function WidgetPreviewPage({
             </div>
           </section>
 
-          <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
-            <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/60">
-              Quick install
+          <section className="rounded-3xl border border-black/10 bg-white p-8">
+            <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
+              QUICK INSTALL
             </div>
 
-            <div className="mt-4 space-y-6">
+            <h2 className="mt-4 text-[26px] font-semibold tracking-tight text-black">
+              Copy and use on a third-party site
+            </h2>
+
+            <div className="mt-6 space-y-6">
               <div>
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div className="text-sm font-semibold text-black">
@@ -275,7 +390,7 @@ export default async function WidgetPreviewPage({
               <div>
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div className="text-sm font-semibold text-black">
-                    Verify button snippet
+                    Verification modal snippet
                   </div>
                   <CopySnippetButton
                     label="Copy Verify Snippet"
@@ -290,17 +405,20 @@ export default async function WidgetPreviewPage({
           </section>
         </section>
 
-        <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
-          <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/60">
-            Verification modal test
+        <section className="rounded-3xl border border-black/10 bg-white p-8">
+          <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
+            MODAL EXPERIENCE
           </div>
 
-          <div className="mt-4 max-w-[900px] text-[15px] leading-[1.8] text-black/68">
-            The external verification modal can be launched from any site that
-            includes the GAFAIG verification helper. This simulates how a
-            third-party site can let users inspect the live trust result without
-            leaving the page.
-          </div>
+          <h2 className="mt-4 max-w-[860px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
+            Open verification without leaving the page
+          </h2>
+
+          <p className="mt-5 max-w-[960px] text-[16px] leading-[1.85] text-black/75">
+            The verification helper allows a third-party site to open a live
+            GAFAIG verification modal. This lets users inspect the trust result
+            without navigating away from the host site.
+          </p>
 
           <div className="mt-6 rounded-2xl border border-black/10 bg-black/[0.02] p-6">
             <Script src={verifyScriptSrc} strategy="afterInteractive" />
@@ -314,36 +432,58 @@ export default async function WidgetPreviewPage({
           </div>
         </section>
 
-        <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
-          <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/60">
-            What this proves
+        <section className="rounded-3xl border border-black/10 bg-white p-8">
+          <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
+            WHAT THIS ADDS TO THE DEMO
           </div>
 
-          <div className="mt-4 grid gap-4 md:grid-cols-3">
-            <div className="rounded-2xl border border-black/10 p-5 text-[14px] leading-7 text-black/72">
-              The widget runs against the live GAFAIG verification endpoint and
-              renders the current public trust record in real time.
+          <h2 className="mt-4 max-w-[860px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
+            The proof does not stop at the verify page
+          </h2>
+
+          <div className="mt-7 grid gap-4 md:grid-cols-2">
+            <BulletCard text="The registry page proves a public certification record exists." />
+            <BulletCard text="The verify page proves the record is backed by signed public proof." />
+            <BulletCard text="The widget preview proves the trust signal can travel outside GAFAIG." />
+            <BulletCard text="The modal proves verification can be surfaced in third-party environments." />
+          </div>
+
+          <div className="mt-6 rounded-2xl border border-black/10 bg-black/[0.02] p-5">
+            <div className="text-[18px] font-semibold tracking-tight text-black">
+              Why this matters
             </div>
-            <div className="rounded-2xl border border-black/10 p-5 text-[14px] leading-7 text-black/72">
-              External sites can embed the same widget without reproducing
-              evaluation or certification logic or touching private evidence.
-            </div>
-            <div className="rounded-2xl border border-black/10 p-5 text-[14px] leading-7 text-black/72">
-              The registry page, badge, widget, and verify JSON form one
-              unified public trust surface.
-            </div>
+            <p className="mt-3 text-[15px] leading-[1.85] text-black/75">
+              GAFAIG is not just a place to store trust records. It is a public
+              trust infrastructure layer that allows verified governance outcomes
+              to appear, be reviewed, and be trusted outside the originating
+              organization’s platform.
+            </p>
           </div>
         </section>
 
-        <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
-          <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/60">
-            External URLs
+        <section className="rounded-3xl border border-black/10 bg-white p-8">
+          <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
+            RELATED LINKS
           </div>
 
-          <div className="mt-4 grid gap-4 md:grid-cols-3">
+          <h2 className="mt-4 max-w-[860px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
+            Open each connected trust surface
+          </h2>
+
+          <div className="mt-7 grid gap-4 md:grid-cols-4">
             <MetricCard label="Registry Record" value={registryUrl} />
             <MetricCard label="Verify Page" value={verifyPageUrl} />
             <MetricCard label="Verify JSON" value={verifyJsonUrl} />
+            <MetricCard label="Demo Page" value={demoUrl} />
+          </div>
+
+          <div className="mt-6 flex flex-wrap gap-3">
+            <PublicButtonLink href="/demo" variant="primary">
+              Return to Demo
+            </PublicButtonLink>
+            <PublicButtonLink href="/registry" variant="secondary">
+              Browse Registry
+            </PublicButtonLink>
           </div>
         </section>
 
@@ -392,9 +532,9 @@ export default async function WidgetPreviewPage({
                 const verifyButton = document.querySelector('[data-gafaig-open-verify]');
                 if (verifyButton) {
                   verifyButton.addEventListener('click', () => {
-                    const registryId = verifyButton.getAttribute('data-gafaig-open-verify');
-                    if (registryId && window.verifyGAFAIG) {
-                      window.verifyGAFAIG(registryId, {
+                    const targetRegistryId = verifyButton.getAttribute('data-gafaig-open-verify');
+                    if (targetRegistryId && window.verifyGAFAIG) {
+                      window.verifyGAFAIG(targetRegistryId, {
                         baseUrl: '${productionBaseUrl}',
                       });
                     }
@@ -406,18 +546,5 @@ export default async function WidgetPreviewPage({
         />
       </div>
     </main>
-  );
-}
-
-function MetricCard({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-2xl border border-black/10 bg-white p-5">
-      <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/55">
-        {label}
-      </div>
-      <div className="mt-3 break-words text-[20px] font-semibold tracking-tight text-black">
-        {value}
-      </div>
-    </div>
   );
 }
