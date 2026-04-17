@@ -14,7 +14,7 @@
     window.location.origin ||
     "https://www.gafaig.com";
 
-  var STYLE_ID = "gafaig-widget-styles-v3";
+  var STYLE_ID = "gafaig-widget-styles-v4";
 
   function injectStyles() {
     if (document.getElementById(STYLE_ID)) return;
@@ -35,7 +35,7 @@
 
       .gafaig-widget-card {
         width: 100%;
-        max-width: 430px;
+        max-width: 460px;
         border: 1px solid rgba(0, 0, 0, 0.10);
         border-radius: 24px;
         background: #ffffff;
@@ -101,6 +101,12 @@
       .gafaig-widget-chip-neutral {
         background: #f5f5f5;
         color: rgba(11, 11, 12, 0.62);
+      }
+
+      .gafaig-widget-chip-invalid {
+        background: #fff1f2;
+        color: #be123c;
+        border-color: #fecdd3;
       }
 
       .gafaig-widget-title {
@@ -335,6 +341,13 @@
     return "Pending";
   }
 
+  function resolveVerificationState(verifyData) {
+    if (!verifyData) return "Unavailable";
+    if (verifyData.verified === true) return "Signature Valid";
+    if (verifyData.verified === false) return "Signature Invalid";
+    return "Unavailable";
+  }
+
   function renderError(el, registryId, message) {
     var recordUrl = ORIGIN + "/registry/" + encodeURIComponent(registryId);
 
@@ -358,8 +371,11 @@
     var row =
       registryData && Array.isArray(registryData.rows)
         ? registryData.rows[0] || null
-        : null;
+        : registryData && registryData.row
+          ? registryData.row
+          : null;
     var record = verifyData && verifyData.record ? verifyData.record : null;
+    var proof = verifyData && verifyData.proof ? verifyData.proof : null;
 
     var entityName = safeText(
       record && record.entityName,
@@ -381,28 +397,41 @@
       record && record.decisionStatus,
       row && row.decisionStatus
     );
-    var status = resolveTrustState(record);
+    var status = resolveTrustState(record || row);
+    var validation = resolveVerificationState(verifyData);
     var validTo = formatDate(
       (record && record.validTo) || (row && row.validTo) || null
     );
+    var certifiedAt = formatDate(
+      (record && record.certifiedAt) || (row && row.certifiedAt) || null
+    );
 
-    var verifyUrl = ORIGIN + "/api/verify/" + encodeURIComponent(registryId);
+    var verifyPageUrl = ORIGIN + "/verify/" + encodeURIComponent(registryId);
+    var verifyApiUrl = ORIGIN + "/api/verify/" + encodeURIComponent(registryId);
     var recordUrl = ORIGIN + "/registry/" + encodeURIComponent(registryId);
 
     var statusChipClass =
       status === "Certified"
         ? "gafaig-widget-chip-verified"
         : status === "Approved"
-        ? "gafaig-widget-chip-approved"
-        : "gafaig-widget-chip-neutral";
+          ? "gafaig-widget-chip-approved"
+          : "gafaig-widget-chip-neutral";
+
+    var validationChipClass =
+      validation === "Signature Valid"
+        ? "gafaig-widget-chip-verified"
+        : validation === "Signature Invalid"
+          ? "gafaig-widget-chip-invalid"
+          : "gafaig-widget-chip-neutral";
 
     el.className = "gafaig-widget-root";
     el.innerHTML =
       '<div class="gafaig-widget-card">' +
       '<div class="gafaig-widget-topline"></div>' +
-      '<div class="gafaig-widget-eyebrow">GAFAIG Widget</div>' +
+      '<div class="gafaig-widget-eyebrow">GAFAIG Trust Widget</div>' +
       '<div class="gafaig-widget-chip-row">' +
       '<span class="gafaig-widget-chip ' + statusChipClass + '">' + esc(status) + "</span>" +
+      '<span class="gafaig-widget-chip ' + validationChipClass + '">' + esc(validation) + "</span>" +
       '<span class="gafaig-widget-chip gafaig-widget-chip-approved">' + esc(decision) + "</span>" +
       "</div>" +
       '<h3 class="gafaig-widget-title">' + esc(entityName) + "</h3>" +
@@ -421,22 +450,12 @@
       "</div>" +
       "</div>" +
       '<div class="gafaig-widget-grid">' +
-      '<div class="gafaig-widget-metric">' +
-      '<div class="gafaig-widget-metric-label">Status</div>' +
-      '<div class="gafaig-widget-metric-value">' + esc(status) + "</div>" +
-      "</div>" +
-      '<div class="gafaig-widget-metric">' +
-      '<div class="gafaig-widget-metric-label">Tier / Band</div>' +
-      '<div class="gafaig-widget-metric-value">' + esc(fmtTierBand(tier === "—" ? "" : tier, band === "—" ? "" : band)) + "</div>" +
-      "</div>" +
-      '<div class="gafaig-widget-metric">' +
-      '<div class="gafaig-widget-metric-label">Decision</div>' +
-      '<div class="gafaig-widget-metric-value">' + esc(decision) + "</div>" +
-      "</div>" +
-      '<div class="gafaig-widget-metric">' +
-      '<div class="gafaig-widget-metric-label">Valid To</div>' +
-      '<div class="gafaig-widget-metric-value">' + esc(validTo) + "</div>" +
-      "</div>" +
+      metric("Status", status) +
+      metric("Validation", validation) +
+      metric("Tier / Band", fmtTierBand(tier === "—" ? "" : tier, band === "—" ? "" : band)) +
+      metric("Certified", certifiedAt) +
+      metric("Decision", decision) +
+      metric("Valid To", validTo) +
       "</div>" +
       '<div class="gafaig-widget-id">' +
       '<div class="gafaig-widget-metric-label">Registry ID</div>' +
@@ -444,12 +463,26 @@
       "</div>" +
       '<div class="gafaig-widget-actions">' +
       '<a class="gafaig-widget-btn gafaig-widget-btn-primary" href="' + recordUrl + '" target="_blank" rel="noopener noreferrer">Open record</a>' +
-      '<a class="gafaig-widget-btn gafaig-widget-btn-secondary" href="' + verifyUrl + '" target="_blank" rel="noopener noreferrer">Verify JSON</a>' +
+      '<a class="gafaig-widget-btn gafaig-widget-btn-secondary" href="' + verifyPageUrl + '" target="_blank" rel="noopener noreferrer">Open verify page</a>' +
+      '<a class="gafaig-widget-btn gafaig-widget-btn-secondary" href="' + verifyApiUrl + '" target="_blank" rel="noopener noreferrer">Verify JSON</a>' +
       "</div>" +
       '<div class="gafaig-widget-footer">' +
-      'Verified via GAFAIG public trust infrastructure · <a href="' + verifyUrl + '" target="_blank" rel="noopener noreferrer">How verification works</a>' +
+      'Verified via GAFAIG public trust infrastructure · <a href="' + verifyPageUrl + '" target="_blank" rel="noopener noreferrer">View verification details</a>' +
       "</div>" +
       "</div>";
+
+    function metric(label, value) {
+      return (
+        '<div class="gafaig-widget-metric">' +
+        '<div class="gafaig-widget-metric-label">' +
+        esc(label) +
+        "</div>" +
+        '<div class="gafaig-widget-metric-value">' +
+        esc(value) +
+        "</div>" +
+        "</div>"
+      );
+    }
   }
 
   async function fetchJson(url) {

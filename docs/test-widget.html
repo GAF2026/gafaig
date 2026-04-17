@@ -1,13 +1,119 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="utf-8" />
   <title>GAFAIG Widget Test</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body {
+      margin: 0;
+      padding: 40px 20px;
+      font-family: Inter, Arial, Helvetica, sans-serif;
+      background: #f7f7f8;
+      color: #111827;
+    }
+
+    .wrap {
+      max-width: 1040px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      margin: 0 0 10px;
+      font-size: 36px;
+      line-height: 1.1;
+    }
+
+    p {
+      margin: 0 0 24px;
+      font-size: 16px;
+      line-height: 1.7;
+      color: rgba(17, 24, 39, 0.72);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 20px;
+      margin-top: 24px;
+    }
+
+    .card {
+      border: 1px solid rgba(0, 0, 0, 0.08);
+      border-radius: 20px;
+      background: #ffffff;
+      padding: 20px;
+    }
+
+    .label {
+      margin-bottom: 12px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: rgba(17, 24, 39, 0.46);
+    }
+
+    .verify-actions {
+      margin-top: 16px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .verify-actions button {
+      min-height: 42px;
+      border-radius: 999px;
+      border: 1px solid rgba(0, 0, 0, 0.16);
+      background: #ffffff;
+      color: #111827;
+      padding: 0 16px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .verify-actions button:hover {
+      background: #111827;
+      color: #ffffff;
+    }
+  </style>
 </head>
 <body>
-  <h1>External Site Test</h1>
+  <div class="wrap">
+    <h1>GAFAIG External Widget Test</h1>
+    <p>
+      This test page simulates how GAFAIG trust widgets and verification modals
+      render on a third-party website.
+    </p>
 
-  <div data-gafaig-id="GAFAIG-DEMO-0001"></div>
+    <div class="grid">
+      <div class="card">
+        <div class="label">Embedded Trust Widget</div>
+        <div data-gafaig-id="GAFAIG-00000001"></div>
+      </div>
+
+      <div class="card">
+        <div class="label">Verification Modal Trigger</div>
+        <div class="verify-actions">
+          <button type="button" id="verify-button">
+            Open Verification Modal
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <script src="https://www.gafaig.com/widget/gafaig-widget.js"></script>
+  <script src="https://www.gafaig.com/widget/gafaig-verify.js"></script>
+  <script>
+    document.getElementById("verify-button").addEventListener("click", function () {
+      if (window.verifyGAFAIG) {
+        window.verifyGAFAIG("GAFAIG-00000001", {
+          baseUrl: "https://www.gafaig.com"
+        });
+      }
+    });
+  </script>
 </body>
 </html>

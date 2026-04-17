@@ -1,5 +1,5 @@
 (function () {
-  var VERSION = "1.1.0";
+  var VERSION = "1.2.0";
 
   function escapeHtml(value) {
     return String(value == null ? "" : value)
@@ -14,11 +14,13 @@
     var record = (data && data.record) || {};
     var proof = (data && data.proof) || {};
     var baseUrl = (options && options.baseUrl) || "https://www.gafaig.com";
-    var registryUrl = baseUrl.replace(/\/+$/, "") + "/registry/" + encodeURIComponent(registryId);
-    var verifyUrl = baseUrl.replace(/\/+$/, "") + "/api/verify/" + encodeURIComponent(registryId);
+    var base = baseUrl.replace(/\/+$/, "");
+    var registryUrl = base + "/registry/" + encodeURIComponent(registryId);
+    var verifyPageUrl = base + "/verify/" + encodeURIComponent(registryId);
+    var verifyUrl = base + "/api/verify/" + encodeURIComponent(registryId);
     var keyUrl =
       proof.verificationKeyUrl ||
-      baseUrl.replace(/\/+$/, "") + "/api/.well-known/gafaig-public-key";
+      base + "/api/.well-known/gafaig-public-key";
 
     var overlay = document.createElement("div");
     overlay.setAttribute("data-gafaig-verify-overlay", "true");
@@ -32,13 +34,13 @@
       "align-items:center",
       "justify-content:center",
       "padding:24px",
-      "z-index:999999",
+      "z-index:999999"
     ].join(";");
 
     var panel = document.createElement("div");
     panel.style.cssText = [
       "width:100%",
-      "max-width:560px",
+      "max-width:620px",
       "background:#ffffff",
       "border:1px solid #e5e7eb",
       "border-radius:24px",
@@ -47,8 +49,13 @@
       "font-family:Inter,Arial,Helvetica,sans-serif",
       "color:#111827",
       "max-height:calc(100vh - 48px)",
-      "overflow:auto",
+      "overflow:auto"
     ].join(";");
+
+    var verified = !!(data && data.verified);
+    var decision = record.decisionStatus || "—";
+    var tierBand =
+      ((record.certifiedTier || "—") + " · " + (record.certifiedBand || "—")).replace(/^— · —$/, "—");
 
     panel.innerHTML =
       '<div style="display:flex;justify-content:space-between;gap:16px;align-items:flex-start;">' +
@@ -70,19 +77,19 @@
         "height:40px",
         "cursor:pointer",
         "font-size:18px",
-        "font-weight:700",
+        "font-weight:700"
       ].join(";") +
       '">×</button>' +
       "</div>" +
       '<div style="margin-top:16px;display:flex;gap:8px;flex-wrap:wrap;">' +
       '<span style="display:inline-flex;align-items:center;justify-content:center;height:30px;padding:0 12px;border-radius:9999px;border:1px solid ' +
-      (data && data.verified ? "#111111" : "#b91c1c") +
+      (verified ? "#9fe0bb" : "#fecdd3") +
       ";background:" +
-      (data && data.verified ? "#111111" : "#ffffff") +
+      (verified ? "#e9f8ef" : "#fff1f2") +
       ";color:" +
-      (data && data.verified ? "#ffffff" : "#b91c1c") +
+      (verified ? "#138a52" : "#be123c") +
       ';font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;">' +
-      (data && data.verified ? "Verified" : "Unverified") +
+      (verified ? "Signature Valid" : "Signature Invalid") +
       "</span>" +
       (proof.alg
         ? '<span style="display:inline-flex;align-items:center;justify-content:center;height:30px;padding:0 12px;border-radius:9999px;border:1px solid #d4d4d8;background:#ffffff;color:#111827;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;">' +
@@ -91,8 +98,8 @@
         : "") +
       "</div>" +
       '<div style="margin-top:18px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;">' +
-      metric("Decision", record.decisionStatus || "—") +
-      metric("Tier / Band", (record.certifiedTier || "—") + " · " + (record.certifiedBand || "—")) +
+      metric("Decision", decision) +
+      metric("Tier / Band", tierBand) +
       metric("Valid To", record.validTo || "—") +
       metric("Signed At", proof.signedAt || "—") +
       "</div>" +
@@ -110,6 +117,7 @@
       "</div>" +
       '<div style="margin-top:18px;display:flex;gap:10px;flex-wrap:wrap;">' +
       linkButton(registryUrl, "Open record", true) +
+      linkButton(verifyPageUrl, "Open verify page", false) +
       linkButton(verifyUrl, "Verify JSON", false) +
       linkButton(keyUrl, "Public key", false) +
       "</div>";
@@ -145,7 +153,7 @@
           "display:inline-flex",
           "align-items:center",
           "justify-content:center",
-          "min-height:44px",
+          "min-height:44px"
         ].join(";") +
         '">' +
         escapeHtml(label) +
@@ -210,7 +218,7 @@
 
   window.GAFAIG_VERIFY = {
     version: VERSION,
-    open: verifyGAFAIG,
+    open: verifyGAFAIG
   };
 
   window.verifyGAFAIG = verifyGAFAIG;
