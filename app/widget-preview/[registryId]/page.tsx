@@ -3,6 +3,7 @@ import PublicPageHero from "@/app/_components/PublicPageHero";
 import PublicButtonLink from "@/app/_components/PublicButtonLink";
 
 export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 type VerifyApiResponse = {
   ok?: boolean;
@@ -64,6 +65,24 @@ function valueOrDash(value?: string | null) {
   return value && value.trim() ? value : "—";
 }
 
+function CopySnippetButton({
+  label,
+  copyValue,
+}: {
+  label: string;
+  copyValue: string;
+}) {
+  return (
+    <button
+      type="button"
+      data-copy-text={copyValue}
+      className="gafaig-copy-button inline-flex min-h-[42px] items-center justify-center rounded-full border border-black/20 bg-white px-5 text-sm font-semibold text-black transition hover:bg-black hover:text-white"
+    >
+      {label}
+    </button>
+  );
+}
+
 export default async function WidgetPreviewPage({
   params,
 }: {
@@ -74,6 +93,7 @@ export default async function WidgetPreviewPage({
 
   const runtimeBaseUrl = getRuntimeBaseUrl();
   const widgetScriptSrc = `${runtimeBaseUrl}/widget/gafaig-widget.js`;
+  const verifyScriptSrc = `${runtimeBaseUrl}/widget/gafaig-verify.js`;
 
   const productionBaseUrl =
     process.env.NEXT_PUBLIC_BASE_URL || "https://www.gafaig.com";
@@ -111,8 +131,21 @@ export default async function WidgetPreviewPage({
   const widgetSnippet = `<script src="${productionBaseUrl}/widget/gafaig-widget.js"></script>
 <div data-gafaig-id="${registryId}"></div>`;
 
-  const verifyButtonSnippet = `<script src="${productionBaseUrl}/widget/gafaig-verify.js"></script>
-<button onclick="verifyGAFAIG('${registryId}')">Verify This AI System</button>`;
+  const verifyButtonSnippet = `<script src="${productionBaseUrl}/widget/gafaig-widget.js"></script>
+<script src="${productionBaseUrl}/widget/gafaig-verify.js"></script>
+<button onclick="verifyGAFAIG('${registryId}', { baseUrl: '${productionBaseUrl}' })">
+  Verify this GAFAIG record
+</button>`;
+
+  const verifyJsonUrl = `${productionBaseUrl}/api/verify/${encodeURIComponent(
+    registryId
+  )}`;
+  const registryUrl = `${productionBaseUrl}/registry/${encodeURIComponent(
+    registryId
+  )}`;
+  const verifyPageUrl = `${productionBaseUrl}/verify/${encodeURIComponent(
+    registryId
+  )}`;
 
   return (
     <main className="mx-auto max-w-[1180px] px-6 pb-16 pt-14">
@@ -144,25 +177,29 @@ export default async function WidgetPreviewPage({
         <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
           <div className="max-w-[980px] space-y-3 text-[15px] leading-[1.8] text-black/65">
             <p>
-              The widget preview distinguishes between evaluated records and publicly trusted records.
+              The widget preview distinguishes between evaluated records and
+              publicly trusted records.
             </p>
 
             <div className="rounded-2xl border border-black/10 bg-black/[0.03] p-5">
               <div className="grid gap-3 text-[15px] leading-[1.8] text-black/72">
                 <div>
                   <span className="font-semibold text-black">Approved</span>{" "}
-                  means the record has completed the GAFAIG evaluation process and received a governance decision.
+                  means the record has completed the GAFAIG evaluation process
+                  and received a governance decision.
                 </div>
 
                 <div>
                   <span className="font-semibold text-black">Certified</span>{" "}
-                  means the evaluated outcome has been finalized and published as a trusted public record in the GAFAIG registry of record.
+                  means the evaluated outcome has been finalized and published as
+                  a trusted public record in the GAFAIG registry of record.
                 </div>
               </div>
             </div>
 
             <p className="text-black/60">
-              This widget renders the live public trust state for the selected record.
+              This widget renders the live public trust state for the selected
+              record.
             </p>
           </div>
         </section>
@@ -196,6 +233,22 @@ export default async function WidgetPreviewPage({
               <Script src={widgetScriptSrc} strategy="afterInteractive" />
               <div data-gafaig-id={registryId}></div>
             </div>
+
+            <div className="mt-6 flex flex-wrap gap-3">
+              <PublicButtonLink
+                href={`/registry/${encodeURIComponent(registryId)}`}
+                variant="secondary"
+              >
+                Open record
+              </PublicButtonLink>
+
+              <PublicButtonLink
+                href={`/verify/${encodeURIComponent(registryId)}`}
+                variant="secondary"
+              >
+                Open verify page
+              </PublicButtonLink>
+            </div>
           </section>
 
           <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
@@ -205,8 +258,14 @@ export default async function WidgetPreviewPage({
 
             <div className="mt-4 space-y-6">
               <div>
-                <div className="text-sm font-semibold text-black">
-                  Widget embed snippet
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div className="text-sm font-semibold text-black">
+                    Widget embed snippet
+                  </div>
+                  <CopySnippetButton
+                    label="Copy Widget Snippet"
+                    copyValue={widgetSnippet}
+                  />
                 </div>
                 <pre className="mt-3 overflow-x-auto whitespace-pre-wrap break-words rounded-2xl border border-black/10 bg-black/[0.03] p-5 text-[13px] leading-[1.8] text-black/85">
                   <code>{widgetSnippet}</code>
@@ -214,8 +273,14 @@ export default async function WidgetPreviewPage({
               </div>
 
               <div>
-                <div className="text-sm font-semibold text-black">
-                  Verify button snippet
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div className="text-sm font-semibold text-black">
+                    Verify button snippet
+                  </div>
+                  <CopySnippetButton
+                    label="Copy Verify Snippet"
+                    copyValue={verifyButtonSnippet}
+                  />
                 </div>
                 <pre className="mt-3 overflow-x-auto whitespace-pre-wrap break-words rounded-2xl border border-black/10 bg-black/[0.03] p-5 text-[13px] leading-[1.8] text-black/85">
                   <code>{verifyButtonSnippet}</code>
@@ -223,6 +288,30 @@ export default async function WidgetPreviewPage({
               </div>
             </div>
           </section>
+        </section>
+
+        <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
+          <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/60">
+            Verification modal test
+          </div>
+
+          <div className="mt-4 max-w-[900px] text-[15px] leading-[1.8] text-black/68">
+            The external verification modal can be launched from any site that
+            includes the GAFAIG verification helper. This simulates how a
+            third-party site can let users inspect the live trust result without
+            leaving the page.
+          </div>
+
+          <div className="mt-6 rounded-2xl border border-black/10 bg-black/[0.02] p-6">
+            <Script src={verifyScriptSrc} strategy="afterInteractive" />
+            <button
+              type="button"
+              data-gafaig-open-verify={registryId}
+              className="inline-flex min-h-[42px] items-center justify-center rounded-full border border-black/20 bg-white px-5 text-sm font-semibold text-black transition hover:bg-black hover:text-white"
+            >
+              Open Verification Modal
+            </button>
+          </div>
         </section>
 
         <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
@@ -245,6 +334,76 @@ export default async function WidgetPreviewPage({
             </div>
           </div>
         </section>
+
+        <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
+          <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/60">
+            External URLs
+          </div>
+
+          <div className="mt-4 grid gap-4 md:grid-cols-3">
+            <MetricCard label="Registry Record" value={registryUrl} />
+            <MetricCard label="Verify Page" value={verifyPageUrl} />
+            <MetricCard label="Verify JSON" value={verifyJsonUrl} />
+          </div>
+        </section>
+
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (() => {
+                const copyButtons = Array.from(document.querySelectorAll('.gafaig-copy-button'));
+
+                async function copyText(text) {
+                  try {
+                    if (navigator.clipboard && window.isSecureContext) {
+                      await navigator.clipboard.writeText(text);
+                      return true;
+                    }
+                  } catch (_) {}
+
+                  try {
+                    const textarea = document.createElement('textarea');
+                    textarea.value = text;
+                    textarea.style.position = 'fixed';
+                    textarea.style.left = '-9999px';
+                    document.body.appendChild(textarea);
+                    textarea.focus();
+                    textarea.select();
+                    const ok = document.execCommand('copy');
+                    document.body.removeChild(textarea);
+                    return ok;
+                  } catch (_) {
+                    return false;
+                  }
+                }
+
+                copyButtons.forEach((button) => {
+                  button.addEventListener('click', async () => {
+                    const original = button.textContent || 'Copy';
+                    const text = button.getAttribute('data-copy-text') || '';
+                    const ok = await copyText(text);
+                    button.textContent = ok ? 'Copied' : 'Copy Failed';
+                    setTimeout(() => {
+                      button.textContent = original;
+                    }, 1500);
+                  });
+                });
+
+                const verifyButton = document.querySelector('[data-gafaig-open-verify]');
+                if (verifyButton) {
+                  verifyButton.addEventListener('click', () => {
+                    const registryId = verifyButton.getAttribute('data-gafaig-open-verify');
+                    if (registryId && window.verifyGAFAIG) {
+                      window.verifyGAFAIG(registryId, {
+                        baseUrl: '${productionBaseUrl}',
+                      });
+                    }
+                  });
+                }
+              })();
+            `,
+          }}
+        />
       </div>
     </main>
   );
