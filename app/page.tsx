@@ -96,8 +96,8 @@ export default async function HomePage() {
                 Get Certified
               </PublicButtonLink>
 
-              <PublicButtonLink href="/developers" variant="secondary">
-                Explore Integrations
+              <PublicButtonLink href="/registry" variant="secondary">
+                View Public Records
               </PublicButtonLink>
 
               <PublicButtonLink href="/mission" variant="secondary">
@@ -115,24 +115,24 @@ export default async function HomePage() {
           <PillarCard
             eyebrow="Pillar 1"
             title="Private Verification Engine"
-            body="A controlled review environment where organizations move through application intake, evidence review, findings, deterministic scoring, and certification workflow."
+            body="Organizations move through a structured review process where evidence, findings, governance controls, and human oversight materials are assessed in a controlled environment."
             points={[
-              "Reviewer-only operational layer",
-              "Structured evidence and findings flow",
-              "Deterministic certification process",
+              "Private review workflow",
+              "Structured evidence and findings process",
+              "Deterministic certification path",
             ]}
-            href="/admin/login"
-            cta="Open reviewer layer"
+            href="/framework"
+            cta="See the process"
           />
 
           <PillarCard
             eyebrow="Pillar 2"
-            title="Public Trust Record"
-            body="A canonical public record where certification outcomes are published without exposing private reviewer materials, internal evidence, or controlled assessment workflows."
+            title="Public Certification Record"
+            body="When a record is certified, GAFAIG publishes a public trust record that can be reviewed and independently verified without exposing sensitive internal materials."
             points={[
-              "Canonical certification records",
+              "Public certification outcome",
               "Signed proof and verification layer",
-              "Portable badge, widget, and API signals",
+              "Registry, badge, widget, and API trust signals",
             ]}
             href="/registry"
             cta="View public records"
@@ -140,12 +140,12 @@ export default async function HomePage() {
 
           <PillarCard
             eyebrow="Pillar 3"
-            title="Global Explorer"
-            body="A discovery layer for organizations, AI systems, countries, and governance presence across the GAFAIG network."
+            title="Global Trust Surface"
+            body="GAFAIG makes AI governance visible through public registry pages, verification endpoints, and portable trust surfaces that can travel across the web."
             points={[
-              "Organizations and systems",
-              "Country-level visibility",
-              "Global governance footprint",
+              "Organizations and AI systems",
+              "Country-level public visibility",
+              "Portable external trust verification",
             ]}
             href="/explorer"
             cta="Open explorer"
@@ -158,25 +158,24 @@ export default async function HomePage() {
           </div>
 
           <h2 className="mt-4 max-w-[860px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
-            AI governance must be provable, not just promised
+            Human oversight should be visible, reviewable, and provable
           </h2>
 
           <p className="mt-5 max-w-[980px] text-[16px] leading-[1.9] text-black/75">
-            As AI systems move into real-world deployment, governance cannot
-            remain a policy statement, a marketing claim, or an internal memo.
-            Organizations need a credible way to demonstrate that human
-            oversight actually exists. GAFAIG provides that independent proof
-            layer.
+            As AI systems move into real-world use, governance cannot remain a
+            policy statement, a marketing promise, or a private internal claim.
+            Organizations need a credible way to show that meaningful human
+            oversight actually exists. GAFAIG provides that proof layer.
           </p>
 
           <div className="mt-7 grid gap-4 md:grid-cols-2">
             <StatementCard
-              title="Private verification, controlled environment"
-              body="Evidence, findings, and internal assessment materials are reviewed inside a controlled verification engine and are not exposed publicly."
+              title="Private review, public trust"
+              body="Evidence, findings, and internal review materials are assessed in a controlled verification environment. The public only sees the trust outcome, not the private record set behind it."
             />
             <StatementCard
-              title="Public proof as a trust signal"
-              body="Certification outcomes are published as verifiable public records backed by signed proof, badges, widgets, and verification endpoints."
+              title="Certification backed by proof"
+              body="Certified records are published as independently verifiable public trust records supported by signed proof, verification endpoints, and portable trust surfaces."
             />
           </div>
 
@@ -185,91 +184,90 @@ export default async function HomePage() {
               What GAFAIG is
             </div>
             <ul className="mt-3 space-y-2 text-[15px] text-black/75">
-              <li>• Independent verification authority</li>
-              <li>• Deterministic certification engine</li>
-              <li>• Public proof layer for human oversight in AI</li>
+              <li>• A verification authority for human oversight in AI</li>
+              <li>• A deterministic certification system</li>
+              <li>• A public registry of independently verifiable trust records</li>
             </ul>
           </div>
         </section>
 
         <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
           <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
-            HOW THE SYSTEM WORKS
+            HOW THE PLATFORM WORKS
           </div>
 
           <h2 className="mt-4 max-w-[860px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
-            From controlled review to verifiable public proof
+            From evidence review to public proof
           </h2>
 
           <p className="mt-5 max-w-[960px] text-[16px] leading-[1.85] text-black/75">
-            GAFAIG operates as a two-layer system. A private verification engine
-            evaluates governance evidence and produces certification outcomes.
-            Those outcomes are then published to a public trust layer, where
-            they can be independently verified.
+            GAFAIG operates as a two-layer platform. A private verification
+            engine evaluates evidence of human oversight and governance controls.
+            Certified outcomes are then published to a public trust layer where
+            anyone can verify them independently.
           </p>
 
           <div className="mt-8 grid gap-4 md:grid-cols-5">
             <PathCard
               number="1"
               title="Application"
-              body="Organizations enter a controlled verification workflow."
+              body="An organization enters the GAFAIG review process."
             />
             <PathCard
               number="2"
-              title="Evidence"
-              body="Governance materials and oversight records are evaluated."
+              title="Evidence Review"
+              body="Oversight records, governance materials, and supporting evidence are assessed."
             />
             <PathCard
               number="3"
-              title="Deterministic scoring"
-              body="The same inputs produce the same certification outcome."
+              title="Findings & Scoring"
+              body="Structured review outputs feed a deterministic certification path."
             />
             <PathCard
               number="4"
-              title="Certification"
-              body="Formal decisions determine certification status."
+              title="Certification Decision"
+              body="GAFAIG determines whether the oversight standard has been met."
             />
             <PathCard
               number="5"
-              title="Public proof"
-              body="Results are published and can be verified through registry, badge, widget, and API."
+              title="Public Trust Record"
+              body="Certified outcomes are published as signed, independently verifiable records."
             />
           </div>
         </section>
 
         <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
           <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
-            TRUST INFRASTRUCTURE
+            WHAT THE PUBLIC CAN VERIFY
           </div>
 
           <h2 className="mt-4 max-w-[860px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
-            Human oversight that can be independently verified
+            Trust signals that extend beyond the GAFAIG website
           </h2>
 
           <p className="mt-5 max-w-[960px] text-[16px] leading-[1.85] text-black/75">
-            GAFAIG extends beyond publication into a full trust infrastructure
-            layer. Every certification record includes signed public proof, a
-            verification endpoint, and embeddable trust surfaces that allow
-            third parties to verify oversight status without touching private
-            evidence.
+            GAFAIG is not just a registry page. It is a public trust
+            infrastructure layer. Certified records can be verified through the
+            registry, the verify page, signed payloads, badges, widgets, and
+            public APIs.
           </p>
 
           <div className="mt-7 grid gap-4 md:grid-cols-2">
             <StatementCard
+              title="Registry and verify pages"
+              body="Every certified record is visible through a public registry record and a verification page with signed proof and public-key trust surfaces."
+            />
+            <StatementCard
+              title="Badges, widgets, and APIs"
+              body="Organizations can surface live GAFAIG trust signals on external websites and third-party systems without exposing private assessment materials."
+            />
+            <StatementCard
               title="Signed public certification proofs"
-              body="Each certification is issued as a signed payload that can be independently validated using GAFAIG’s published public key."
+              body="Certified outcomes are published with cryptographic signing so trust can be independently validated instead of simply asserted."
             />
             <StatementCard
-              title="Public verification endpoint"
-              body="External systems can fetch and verify certification records programmatically through the GAFAIG verification API."
-            />
-            <StatementCard
-              title="Embeddable trust badge"
-              body="Organizations can display a GAFAIG certification badge that links directly to a verifiable public record."
-            />
-            <StatementCard
-              title="Live verification widget"
-              body="A portable widget allows external websites to display real-time certification status backed by GAFAIG’s trust infrastructure."
+              title="Portable trust across the web"
+              body="GAFAIG allows verification to travel outside the platform through embeddable trust surfaces and machine-readable public endpoints."
             />
           </div>
 
@@ -278,10 +276,10 @@ export default async function HomePage() {
               What this enables
             </div>
             <ul className="mt-3 space-y-2 text-[15px] text-black/75">
-              <li>• Independent third-party proof</li>
-              <li>• Portable trust across the web</li>
-              <li>• Cryptographic verification of certification</li>
-              <li>• Public trust without exposing private evidence</li>
+              <li>• Independent third-party verification</li>
+              <li>• Public proof of meaningful human oversight</li>
+              <li>• Trust signals that can be embedded outside GAFAIG</li>
+              <li>• Governance visibility without exposing private evidence</li>
             </ul>
           </div>
         </section>
@@ -294,12 +292,12 @@ export default async function HomePage() {
               </div>
 
               <h2 className="mt-4 max-w-[860px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
-                Current public governance footprint
+                Current public GAFAIG footprint
               </h2>
 
               <p className="mt-4 max-w-[760px] text-[15px] leading-[1.85] text-black/72">
-                These counters are derived from GAFAIG&apos;s public registry
-                and explorer surfaces.
+                These counters are derived from GAFAIG&apos;s live public
+                registry and explorer surfaces.
               </p>
             </div>
 
@@ -325,19 +323,19 @@ export default async function HomePage() {
         <section className="grid gap-4 md:grid-cols-4">
           <FeatureCard
             title="Mission"
-            body="Learn why independent proof of human oversight in AI is needed and what problem GAFAIG is designed to solve."
+            body="Learn why GAFAIG exists and why proof of human oversight matters."
             href="/mission"
             cta="Read Mission"
           />
           <FeatureCard
             title="Framework"
-            body="See the deterministic model behind evidence review, findings, certification outcomes, and public trust."
+            body="See how evidence review, findings, certification, and public proof work together."
             href="/framework"
             cta="Read Framework"
           />
           <FeatureCard
             title="Registry"
-            body="Browse public certification records and verify governance outcomes through structured trust signals."
+            body="Browse public certification records and verify outcomes through structured trust signals."
             href="/registry"
             cta="Open Registry"
           />
@@ -362,9 +360,6 @@ export default async function HomePage() {
             <PublicButtonLink href="/apply" variant="primary">
               Apply
             </PublicButtonLink>
-            <PublicButtonLink href="/developers" variant="secondary">
-              Developers
-            </PublicButtonLink>
             <PublicButtonLink href="/mission" variant="secondary">
               Mission
             </PublicButtonLink>
@@ -376,6 +371,9 @@ export default async function HomePage() {
             </PublicButtonLink>
             <PublicButtonLink href="/explorer" variant="secondary">
               Explorer
+            </PublicButtonLink>
+            <PublicButtonLink href="/developers" variant="secondary">
+              Developers
             </PublicButtonLink>
             <PublicButtonLink href="/demo" variant="secondary">
               Demo
