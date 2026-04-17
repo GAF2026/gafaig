@@ -95,6 +95,10 @@ export default async function RegistryPage({
         }
       />
 
+      <div className="max-w-3xl text-[15px] leading-7 text-black/70">
+        This record represents a verified outcome of GAFAIG’s independent review process.
+      </div>
+
       <section className="rounded-3xl border border-black/10 bg-white p-8">
         <div className="max-w-4xl space-y-4">
           <div className="text-xs font-semibold uppercase tracking-[0.24em] text-black/40">
@@ -105,11 +109,10 @@ export default async function RegistryPage({
           </h2>
           <p className="text-base leading-7 text-black/70">
             The Registry of Record displays certified public trust records issued
-            through the GAFAIG verification engine. This record represents a
-            verified outcome of GAFAIG’s independent review process. It is
-            narrower than Explorer. Explorer can surface the broader public
-            trust footprint, while the Registry of Record is reserved for
-            certification outcomes that have been finalized and published.
+            through the GAFAIG verification engine. It is narrower than
+            Explorer. Explorer can surface the broader public trust footprint,
+            while the Registry of Record is reserved for certification outcomes
+            that have been finalized and published.
           </p>
 
           <div className="grid gap-4 md:grid-cols-2">
