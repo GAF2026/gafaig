@@ -133,7 +133,7 @@ export default function ApplyForm() {
           disabled={isSubmitting}
           className="inline-flex min-h-[42px] items-center justify-center rounded-full bg-black px-6 py-3 text-sm font-semibold text-white transition hover:bg-black/90 disabled:cursor-not-allowed disabled:opacity-60"
         >
-          {isSubmitting ? "Submitting..." : "Begin verification intake"}
+          {isSubmitting ? "Submitting..." : "Begin GAFAIG verification intake"}
         </button>
 
         {submitState.kind === "success" ? (
