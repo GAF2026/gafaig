@@ -111,17 +111,6 @@ async function getVerify(registryId: string): Promise<VerifyApiResponse | null> 
   return res.json();
 }
 
-function extractPemFromText(text: string): string | null {
-  const trimmed = text.trim();
-  if (!trimmed) return null;
-
-  if (trimmed.includes("-----BEGIN PUBLIC KEY-----")) {
-    return trimmed;
-  }
-
-  return null;
-}
-
 async function getVerificationKey(url: string | null | undefined): Promise<KeyFetchResult> {
   const keyUrl = String(url ?? "").trim();
   if (!keyUrl) {
@@ -134,49 +123,54 @@ async function getVerificationKey(url: string | null | undefined): Promise<KeyFe
       return { pem: null, keyId: null, algorithm: null };
     }
 
-    const contentType = res.headers.get("content-type") || "";
-    const rawText = await res.text();
+    const parsed = (await res.json()) as Record<string, unknown>;
 
-    const textPem = extractPemFromText(rawText);
-    if (textPem) {
-      return { pem: textPem, keyId: null, algorithm: null };
-    }
+    const pem =
+      String(
+        parsed.publicKeyPem ??
+          parsed.publicKey ??
+          parsed.pem ??
+          ""
+      ).trim() || null;
 
-    if (contentType.includes("application/json") || rawText.trim().startsWith("{")) {
-      const parsed = JSON.parse(rawText) as Record<string, unknown>;
+    const keyId =
+      String(
+        parsed.kid ??
+          parsed.keyId ??
+          parsed.key_id ??
+          ""
+      ).trim() || null;
 
-      const pemCandidates = [
-        parsed.publicKeyPem,
-        parsed.publicKey,
-        parsed.key,
-        parsed.pem,
-      ];
+    const algorithm =
+      String(
+        parsed.alg ??
+          parsed.algorithm ??
+          parsed.crv ??
+          ""
+      ).trim() || null;
 
-      const pem = pemCandidates
-        .map((v) => String(v ?? "").trim())
-        .find((v) => v.includes("-----BEGIN PUBLIC KEY-----")) || null;
-
-      const keyId =
-        String(
-          parsed.kid ??
-            parsed.keyId ??
-            parsed.key_id ??
-            ""
-        ).trim() || null;
-
-      const algorithm =
-        String(
-          parsed.alg ??
-            parsed.algorithm ??
-            ""
-        ).trim() || null;
-
-      return { pem, keyId, algorithm };
-    }
-
-    return { pem: null, keyId: null, algorithm: null };
+    return { pem, keyId, algorithm };
   } catch {
     return { pem: null, keyId: null, algorithm: null };
+  }
+}
+
+function decodeSignature(input: string): Buffer | null {
+  const raw = String(input ?? "").trim();
+  if (!raw) return null;
+
+  try {
+    return Buffer.from(raw, "base64");
+  } catch {
+    // continue
+  }
+
+  try {
+    const normalized = raw.replace(/-/g, "+").replace(/_/g, "/");
+    const padding = normalized.length % 4 === 0 ? "" : "=".repeat(4 - (normalized.length % 4));
+    return Buffer.from(normalized + padding, "base64");
+  } catch {
+    return null;
   }
 }
 
@@ -185,7 +179,7 @@ function validateSignature(
   signature: string | null,
   publicKeyPem: string | null
 ): SignatureValidationResult {
-  const msg = String(messageString ?? "").trim();
+  const msg = String(messageString ?? "");
   const sig = String(signature ?? "").trim();
   const pem = String(publicKeyPem ?? "").trim();
 
@@ -198,9 +192,16 @@ function validateSignature(
 
   try {
     const keyObject = createPublicKey(pem);
-    const signatureBuffer = Buffer.from(sig, "base64");
-    const messageBuffer = Buffer.from(msg, "utf8");
+    const signatureBuffer = decodeSignature(sig);
 
+    if (!signatureBuffer) {
+      return {
+        status: "unavailable",
+        detail: "The signature could not be decoded from base64 or base64url format.",
+      };
+    }
+
+    const messageBuffer = Buffer.from(msg, "utf8");
     const isValid = cryptoVerify(null, messageBuffer, keyObject, signatureBuffer);
 
     return isValid
@@ -212,10 +213,13 @@ function validateSignature(
           status: "invalid",
           detail: "The signature does not validate against the published verification key.",
         };
-  } catch {
+  } catch (error) {
     return {
       status: "unavailable",
-      detail: "The verification key or signature format could not be validated.",
+      detail:
+        error instanceof Error
+          ? `Validation could not be completed: ${error.message}`
+          : "The verification key or signature format could not be validated.",
     };
   }
 }
