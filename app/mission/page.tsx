@@ -4,8 +4,8 @@ export const dynamic = "force-dynamic";
 
 export default function MissionPage() {
   return (
-    <main className="mx-auto max-w-[1180px] px-6 pb-16 pt-14">
-      <div className="space-y-10">
+    <main className="mx-auto max-w-[1180px] px-6 py-10">
+      <div className="space-y-8">
         <PublicPageHero
           eyebrow="MISSION"
           title="Why GAFAIG exists"
@@ -13,7 +13,7 @@ export default function MissionPage() {
           secondaryDescription="GAFAIG provides a system for verifying whether meaningful human oversight exists and for publishing that outcome as a public, independently verifiable certification record."
         />
 
-        <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
+        <section className="rounded-3xl border border-black/10 bg-white p-8">
           <h2 className="text-[26px] font-semibold tracking-tight text-black">
             The problem GAFAIG solves
           </h2>
@@ -33,7 +33,7 @@ export default function MissionPage() {
           </p>
         </section>
 
-        <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
+        <section className="rounded-3xl border border-black/10 bg-white p-8">
           <h2 className="text-[26px] font-semibold tracking-tight text-black">
             A shift from claims to proof
           </h2>
@@ -56,7 +56,7 @@ export default function MissionPage() {
           </p>
         </section>
 
-        <section className="grid gap-6 md:grid-cols-3">
+        <section className="grid gap-4 md:grid-cols-3">
           <Pillar
             title="Verify oversight"
             text="GAFAIG evaluates whether meaningful human oversight exists across an organization’s AI operations."
@@ -71,7 +71,7 @@ export default function MissionPage() {
           />
         </section>
 
-        <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
+        <section className="rounded-3xl border border-black/10 bg-white p-8">
           <h2 className="text-[26px] font-semibold tracking-tight text-black">
             What makes GAFAIG different
           </h2>
@@ -84,7 +84,7 @@ export default function MissionPage() {
           </div>
         </section>
 
-        <section className="rounded-3xl border border-black/10 bg-black/[0.03] p-8 md:p-10">
+        <section className="rounded-3xl border border-black/10 bg-black/[0.03] p-8">
           <h2 className="text-[26px] font-semibold tracking-tight text-black">
             The GAFAIG mission
           </h2>
@@ -114,9 +114,11 @@ export default function MissionPage() {
 
 function Pillar({ title, text }: { title: string; text: string }) {
   return (
-    <div className="rounded-2xl border border-black/10 bg-white p-6">
-      <h3 className="text-[18px] font-semibold text-black">{title}</h3>
-      <p className="mt-3 text-[14px] leading-6 text-black/70">{text}</p>
+    <div className="rounded-3xl border border-black/10 bg-white p-6">
+      <h3 className="text-[22px] font-semibold tracking-tight text-black">
+        {title}
+      </h3>
+      <p className="mt-3 text-[15px] leading-7 text-black/72">{text}</p>
     </div>
   );
 }
@@ -129,9 +131,11 @@ function StatementCard({
   body: string;
 }) {
   return (
-    <div className="rounded-2xl border border-black/10 bg-neutral-50 p-5">
-      <div className="text-[16px] font-semibold text-black">{title}</div>
-      <p className="mt-2 text-[14px] leading-6 text-black/70">{body}</p>
+    <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
+      <div className="text-[18px] font-semibold tracking-tight text-black">
+        {title}
+      </div>
+      <p className="mt-3 text-[15px] leading-[1.8] text-black/72">{body}</p>
     </div>
   );
 }

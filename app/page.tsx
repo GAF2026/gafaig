@@ -83,7 +83,7 @@ export default async function HomePage() {
   const metrics = metricsResp && metricsResp.ok ? metricsResp.metrics : null;
 
   return (
-    <main className="mx-auto max-w-[1180px] px-6 pb-16 pt-14">
+    <main className="mx-auto max-w-[1180px] px-6 py-10">
       <div className="space-y-8">
         <PublicPageHero
           eyebrow="GLOBAL AUTHORITY FOR AI GOVERNANCE"
@@ -152,7 +152,7 @@ export default async function HomePage() {
           />
         </section>
 
-        <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
+        <section className="rounded-3xl border border-black/10 bg-white p-8">
           <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
             WHY GAFAIG EXISTS
           </div>
@@ -191,7 +191,7 @@ export default async function HomePage() {
           </div>
         </section>
 
-        <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
+        <section className="rounded-3xl border border-black/10 bg-white p-8">
           <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
             HOW THE PLATFORM WORKS
           </div>
@@ -236,7 +236,7 @@ export default async function HomePage() {
           </div>
         </section>
 
-        <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
+        <section className="rounded-3xl border border-black/10 bg-white p-8">
           <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
             WHAT THE PUBLIC CAN VERIFY
           </div>
@@ -284,7 +284,7 @@ export default async function HomePage() {
           </div>
         </section>
 
-        <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
+        <section className="rounded-3xl border border-black/10 bg-white p-8">
           <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
             <div>
               <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
@@ -347,7 +347,7 @@ export default async function HomePage() {
           />
         </section>
 
-        <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
+        <section className="rounded-3xl border border-black/10 bg-white p-8">
           <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
             START HERE
           </div>
