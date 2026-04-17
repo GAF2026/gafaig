@@ -97,6 +97,24 @@ function InfoCard({ label, value }: { label: string; value: string }) {
   );
 }
 
+function ActionButton({
+  label,
+  copyValue,
+}: {
+  label: string;
+  copyValue: string;
+}) {
+  return (
+    <button
+      type="button"
+      data-copy-text={copyValue}
+      className="gafaig-copy-button inline-flex min-h-[42px] items-center justify-center rounded-full border border-black/20 bg-white px-5 text-sm font-semibold text-black transition hover:bg-black hover:text-white"
+    >
+      {label}
+    </button>
+  );
+}
+
 async function getVerify(registryId: string): Promise<VerifyApiResponse | null> {
   const baseUrl =
     process.env.NEXT_PUBLIC_BASE_URL ||
@@ -126,28 +144,13 @@ async function getVerificationKey(url: string | null | undefined): Promise<KeyFe
     const parsed = (await res.json()) as Record<string, unknown>;
 
     const pem =
-      String(
-        parsed.publicKeyPem ??
-          parsed.publicKey ??
-          parsed.pem ??
-          ""
-      ).trim() || null;
+      String(parsed.publicKeyPem ?? parsed.publicKey ?? parsed.pem ?? "").trim() || null;
 
     const keyId =
-      String(
-        parsed.kid ??
-          parsed.keyId ??
-          parsed.key_id ??
-          ""
-      ).trim() || null;
+      String(parsed.kid ?? parsed.keyId ?? parsed.key_id ?? "").trim() || null;
 
     const algorithm =
-      String(
-        parsed.alg ??
-          parsed.algorithm ??
-          parsed.crv ??
-          ""
-      ).trim() || null;
+      String(parsed.alg ?? parsed.algorithm ?? parsed.crv ?? "").trim() || null;
 
     return { pem, keyId, algorithm };
   } catch {
@@ -238,10 +241,11 @@ export default async function VerifyPage({
 
   const entityName = safe(record.entityName);
   const decisionStatus = safe(record.decisionStatus);
-  const certification = [safe(record.certifiedTier), safe(record.certifiedBand)]
-    .filter((v) => v !== "—")
-    .join(" ")
-    .trim() || "—";
+  const certification =
+    [safe(record.certifiedTier), safe(record.certifiedBand)]
+      .filter((v) => v !== "—")
+      .join(" ")
+      .trim() || "—";
   const certifiedAt = formatDate(record.certifiedAt);
   const validFrom = formatDate(record.validFrom);
   const validTo = formatDate(record.validTo);
@@ -256,6 +260,8 @@ export default async function VerifyPage({
       : proof.message
         ? JSON.stringify(proof.message, null, 2)
         : "—";
+
+  const rawVerifyJson = JSON.stringify(data, null, 2);
 
   const keyData = await getVerificationKey(
     proof.verificationKeyUrl || data.verificationKeyUrl || null
@@ -319,6 +325,15 @@ export default async function VerifyPage({
             >
               Back to Explorer
             </Link>
+
+            <a
+              href={`/api/verify/${params.registryId}`}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex min-h-[42px] items-center justify-center rounded-full border border-black/20 bg-white px-5 text-sm font-semibold text-black transition hover:bg-black hover:text-white"
+            >
+              View Raw Verification JSON
+            </a>
           </div>
         </section>
 
@@ -350,6 +365,18 @@ export default async function VerifyPage({
                     : "Validation Unavailable"}
               </span>
               <span className="text-sm text-black/70">{validation.detail}</span>
+            </div>
+
+            <p className="mt-4 text-sm text-black/60">
+              This record can be independently verified using the public key,
+              signature, and signed payload surfaced below.
+            </p>
+
+            <div className="mt-4 flex flex-wrap gap-3">
+              <ActionButton label="Copy Signature" copyValue={signature} />
+              <ActionButton label="Copy Signed Payload" copyValue={signedPayload} />
+              <ActionButton label="Copy Public Key URL" copyValue={verificationKeyUrl} />
+              <ActionButton label="Copy Raw Verification JSON" copyValue={rawVerifyJson} />
             </div>
           </div>
         </section>
@@ -402,6 +429,58 @@ export default async function VerifyPage({
             </pre>
           </div>
         </section>
+
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (() => {
+                const buttons = Array.from(document.querySelectorAll('.gafaig-copy-button'));
+                const copyText = async (text) => {
+                  try {
+                    if (navigator.clipboard && window.isSecureContext) {
+                      await navigator.clipboard.writeText(text);
+                      return true;
+                    }
+                  } catch (_) {}
+                  try {
+                    const textarea = document.createElement('textarea');
+                    textarea.value = text;
+                    textarea.style.position = 'fixed';
+                    textarea.style.left = '-9999px';
+                    document.body.appendChild(textarea);
+                    textarea.focus();
+                    textarea.select();
+                    const ok = document.execCommand('copy');
+                    document.body.removeChild(textarea);
+                    return ok;
+                  } catch (_) {
+                    return false;
+                  }
+                };
+
+                buttons.forEach((button) => {
+                  button.addEventListener('click', async () => {
+                    const original = button.textContent || 'Copy';
+                    const text = button.getAttribute('data-copy-text') || '';
+                    if (!text || text === '—') {
+                      button.textContent = 'Nothing to Copy';
+                      setTimeout(() => {
+                        button.textContent = original;
+                      }, 1500);
+                      return;
+                    }
+
+                    const ok = await copyText(text);
+                    button.textContent = ok ? 'Copied' : 'Copy Failed';
+                    setTimeout(() => {
+                      button.textContent = original;
+                    }, 1500);
+                  });
+                });
+              })();
+            `,
+          }}
+        />
       </div>
     </main>
   );
