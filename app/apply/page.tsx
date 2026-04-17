@@ -7,13 +7,13 @@ export const revalidate = 0;
 
 export default function ApplyPage() {
   return (
-    <main className="mx-auto max-w-[1180px] px-6 pb-16 pt-14">
+    <main className="mx-auto max-w-[1180px] px-6 py-10">
       <div className="space-y-8">
         <PublicPageHero
-          eyebrow="Apply"
+          eyebrow="APPLY"
           title="Apply for independent verification of human oversight in AI"
-          description="GAFAIG certification is for organizations that want credible, third-party proof that meaningful human oversight exists across their AI operations. Certification is performed inside a controlled private verification environment and published as a verifiable public trust record."
-          secondaryDescription="The public registry is not the application system. Intake, evidence review, findings, deterministic scoring, and certification decisions all occur inside the private verification engine. Only certification outcomes and public trust surfaces are published."
+          description="GAFAIG certification is for organizations that want credible, third-party proof that meaningful human oversight exists across their AI operations. Verification is performed inside a controlled private review environment and, if certified, published as a verifiable public trust record."
+          secondaryDescription="The public registry is not the application system. Intake, evidence review, findings, deterministic scoring, and certification decisions occur inside the private GAFAIG verification engine. Only public certification outcomes and trust surfaces are published."
           actions={
             <>
               <PublicButtonLink href="/demo" variant="primary">
@@ -22,34 +22,166 @@ export default function ApplyPage() {
               <PublicButtonLink href="/framework" variant="secondary">
                 Review the Framework
               </PublicButtonLink>
-              <PublicButtonLink href="/developers" variant="secondary">
-                Explore Integrations
+              <PublicButtonLink href="/registry" variant="secondary">
+                View Public Records
               </PublicButtonLink>
             </>
           }
         />
 
-        <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
+        <section className="rounded-3xl border border-black/10 bg-white p-8">
           <SectionEyebrow>Submit application</SectionEyebrow>
-          <h2 className="mt-4 text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
-            Start your certification intake
+          <h2 className="mt-4 max-w-[860px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
+            Start your private verification intake
           </h2>
 
-          <p className="mt-4 max-w-[860px] text-[16px] leading-[1.85] text-black/70">
+          <p className="mt-4 max-w-[900px] text-[16px] leading-[1.85] text-black/72">
             Submit your organization details to enter the GAFAIG intake process.
-            This creates an intake record for review and routes your application
-            into the certification workflow.
+            This creates an intake record for private review and routes your
+            application into the verification workflow. Applying does not place
+            your organization in the public registry.
           </p>
 
           <ApplyForm />
         </section>
 
-        <section className="rounded-3xl border border-black/10 bg-black p-8 md:p-10 text-white">
+        <section className="rounded-3xl border border-black/10 bg-white p-8">
+          <SectionEyebrow>What happens after submission</SectionEyebrow>
+          <h2 className="mt-4 max-w-[860px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
+            From intake to certification to public proof
+          </h2>
+
+          <p className="mt-4 max-w-[920px] text-[16px] leading-[1.9] text-black/72">
+            GAFAIG operates through a controlled verification workflow. Public
+            publication happens only after the private review process produces a
+            formal certification outcome.
+          </p>
+
+          <div className="mt-8 grid gap-4 md:grid-cols-5">
+            <PathCard
+              number="1"
+              title="Intake"
+              body="Your organization enters the private GAFAIG verification process."
+            />
+            <PathCard
+              number="2"
+              title="Evidence review"
+              body="Governance materials and oversight artifacts are assessed."
+            />
+            <PathCard
+              number="3"
+              title="Findings + scoring"
+              body="Inputs are translated into deterministic review outputs."
+            />
+            <PathCard
+              number="4"
+              title="Decision"
+              body="GAFAIG records a formal certification decision."
+            />
+            <PathCard
+              number="5"
+              title="Publication"
+              body="Certified outcomes are published as public trust records."
+            />
+          </div>
+        </section>
+
+        <section className="grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
+          <div className="rounded-3xl border border-black/10 bg-white p-8">
+            <SectionEyebrow>Who should apply</SectionEyebrow>
+            <h2 className="mt-4 max-w-[760px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
+              Organizations seeking provable governance
+            </h2>
+
+            <div className="mt-8 grid gap-4">
+              <AudienceCard
+                title="AI companies"
+                body="Organizations building or deploying AI products that want to show that human oversight is operational, not merely stated."
+              />
+              <AudienceCard
+                title="Enterprises using AI internally"
+                body="Teams introducing AI into real workflows and seeking an independently verifiable governance signal for customers, partners, or leadership."
+              />
+              <AudienceCard
+                title="Platforms serving regulated or high-trust markets"
+                body="Organizations that need a public proof layer for oversight, certification status, and trust distribution."
+              />
+            </div>
+          </div>
+
+          <div className="rounded-3xl border border-black/10 bg-white p-8">
+            <SectionEyebrow>Application readiness</SectionEyebrow>
+            <h2 className="mt-4 max-w-[760px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
+              What GAFAIG evaluates
+            </h2>
+
+            <div className="mt-6 space-y-4">
+              <ChecklistCard
+                title="Oversight model"
+                body="How humans review, intervene, escalate, or control material AI outcomes."
+              />
+              <ChecklistCard
+                title="Policies and controls"
+                body="Governance documents, operational controls, and accountability structures."
+              />
+              <ChecklistCard
+                title="Evidence and findings"
+                body="Artifacts that support oversight claims and findings that can be scored deterministically."
+              />
+              <ChecklistCard
+                title="Certification decision readiness"
+                body="Sufficient inputs to support deterministic scoring and a formal certification outcome."
+              />
+            </div>
+          </div>
+        </section>
+
+        <section className="grid gap-4 lg:grid-cols-2">
+          <div className="rounded-3xl border border-black/10 bg-white p-8">
+            <SectionEyebrow>Public vs private</SectionEyebrow>
+            <h2 className="mt-4 max-w-[760px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
+              What remains private
+            </h2>
+
+            <div className="mt-8 grid gap-4">
+              <BoundaryCard
+                title="Private verification engine"
+                points={[
+                  "Structured intake and case creation",
+                  "Evidence and finding review",
+                  "Reviewer workflow and internal assessment materials",
+                  "Deterministic scoring inputs before publication",
+                ]}
+              />
+            </div>
+          </div>
+
+          <div className="rounded-3xl border border-black/10 bg-white p-8">
+            <SectionEyebrow>Public trust layer</SectionEyebrow>
+            <h2 className="mt-4 max-w-[760px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
+              What becomes public
+            </h2>
+
+            <div className="mt-8 grid gap-4">
+              <BoundaryCard
+                title="Published trust surfaces"
+                points={[
+                  "Canonical registry record",
+                  "Signed verification proof",
+                  "Public verification endpoint",
+                  "Badge, widget, and portable trust signals",
+                ]}
+              />
+            </div>
+          </div>
+        </section>
+
+        <section className="rounded-3xl border border-black/10 bg-black p-8 text-white">
           <div className="text-[12px] font-semibold uppercase tracking-[0.22em] text-white/55">
             What you receive
           </div>
 
-          <h2 className="mt-3 text-[32px] font-semibold leading-[1.18] tracking-tight text-white md:text-[38px]">
+          <h2 className="mt-3 max-w-[860px] text-[32px] font-semibold leading-[1.18] tracking-tight text-white md:text-[38px]">
             Certification becomes a public proof layer
           </h2>
 
@@ -84,140 +216,9 @@ export default function ApplyPage() {
           </div>
         </section>
 
-        <section className="grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
-          <div className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
-            <SectionEyebrow>Who should apply</SectionEyebrow>
-            <h2 className="mt-4 text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
-              Organizations seeking provable governance
-            </h2>
-
-            <div className="mt-8 grid gap-4">
-              <AudienceCard
-                title="AI companies"
-                body="Organizations building or deploying AI products that want to show that human oversight is operational, not merely stated."
-              />
-              <AudienceCard
-                title="Enterprises using AI internally"
-                body="Teams introducing AI into real workflows and seeking an independently verifiable governance signal for customers, partners, or leadership."
-              />
-              <AudienceCard
-                title="Platforms serving regulated or high-trust markets"
-                body="Organizations that need a public proof layer for oversight, certification status, and trust distribution."
-              />
-            </div>
-          </div>
-
-          <div className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
-            <SectionEyebrow>Application readiness</SectionEyebrow>
-            <h2 className="mt-4 text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
-              What GAFAIG evaluates
-            </h2>
-
-            <div className="mt-6 space-y-4">
-              <ChecklistCard
-                title="Oversight model"
-                body="How humans review, intervene, escalate, or control material AI outcomes."
-              />
-              <ChecklistCard
-                title="Policies and controls"
-                body="Governance documents, operational controls, and accountability structures."
-              />
-              <ChecklistCard
-                title="Evidence and findings"
-                body="Artifacts that support oversight claims and findings that can be scored deterministically."
-              />
-              <ChecklistCard
-                title="Certification decision readiness"
-                body="Sufficient inputs to support deterministic scoring and a formal certification outcome."
-              />
-            </div>
-          </div>
-        </section>
-
-        <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
-          <SectionEyebrow>How the application process works</SectionEyebrow>
-          <h2 className="mt-4 text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
-            From intake to verifiable publication
-          </h2>
-
-          <p className="mt-4 max-w-[920px] text-[16px] leading-[1.9] text-black/70">
-            GAFAIG operates through a controlled verification workflow. Public
-            publication happens only after the private review process produces a
-            formal certification outcome.
-          </p>
-
-          <div className="mt-8 grid gap-4 md:grid-cols-5">
-            <PathCard
-              number="1"
-              title="Intake"
-              body="Organization enters the verification process."
-            />
-            <PathCard
-              number="2"
-              title="Evidence review"
-              body="Governance materials and oversight artifacts are assessed."
-            />
-            <PathCard
-              number="3"
-              title="Findings + scoring"
-              body="Inputs are translated into deterministic scoring outputs."
-            />
-            <PathCard
-              number="4"
-              title="Decision"
-              body="GAFAIG records the formal certification decision."
-            />
-            <PathCard
-              number="5"
-              title="Publication"
-              body="A public trust record is issued with proof, badge, and verification interfaces."
-            />
-          </div>
-        </section>
-
-        <section className="grid gap-4 lg:grid-cols-2">
-          <div className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
-            <SectionEyebrow>Public vs private</SectionEyebrow>
-            <h2 className="mt-4 text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
-              What remains private
-            </h2>
-
-            <div className="mt-8 grid gap-4">
-              <BoundaryCard
-                title="Private verification engine"
-                points={[
-                  "Structured intake and case creation",
-                  "Evidence and finding review",
-                  "Reviewer workflow and internal assessment materials",
-                  "Deterministic scoring inputs before publication",
-                ]}
-              />
-            </div>
-          </div>
-
-          <div className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
-            <SectionEyebrow>Public trust layer</SectionEyebrow>
-            <h2 className="mt-4 text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
-              What becomes public
-            </h2>
-
-            <div className="mt-8 grid gap-4">
-              <BoundaryCard
-                title="Published trust surfaces"
-                points={[
-                  "Canonical registry record",
-                  "Signed verification proof",
-                  "Public verification endpoint",
-                  "Badge, widget, and portable trust signals",
-                ]}
-              />
-            </div>
-          </div>
-        </section>
-
-        <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
+        <section className="rounded-3xl border border-black/10 bg-white p-8">
           <SectionEyebrow>What happens after certification</SectionEyebrow>
-          <h2 className="mt-4 text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
+          <h2 className="mt-4 max-w-[860px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
             Your outcome is externally verifiable
           </h2>
 
@@ -245,9 +246,9 @@ export default function ApplyPage() {
           </div>
         </section>
 
-        <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
+        <section className="rounded-3xl border border-black/10 bg-white p-8">
           <SectionEyebrow>How to begin</SectionEyebrow>
-          <h2 className="mt-4 text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
+          <h2 className="mt-4 max-w-[860px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
             Start with the current GAFAIG experience
           </h2>
 
@@ -280,19 +281,19 @@ export default function ApplyPage() {
           </div>
         </section>
 
-        <section className="rounded-3xl bg-black p-8 md:p-10 text-white">
+        <section className="rounded-3xl bg-black p-8 text-white">
           <div className="text-[12px] font-semibold uppercase tracking-[0.22em] text-white/55">
             Next step
           </div>
 
-          <h2 className="mt-3 text-[32px] font-semibold leading-[1.18] tracking-tight text-white md:text-[38px]">
+          <h2 className="mt-3 max-w-[860px] text-[32px] font-semibold leading-[1.18] tracking-tight text-white md:text-[38px]">
             Begin the GAFAIG certification journey
           </h2>
 
           <p className="mt-4 max-w-[760px] text-[16px] leading-[1.85] text-white/80">
             Start by reviewing the mission, framework, and live trust surfaces.
-            Then move into the demonstration pathway that shows how GAFAIG
-            certification is experienced publicly.
+            Then enter the private verification intake process to begin formal
+            GAFAIG review.
           </p>
 
           <div className="mt-6 flex flex-wrap gap-3">
