@@ -300,6 +300,10 @@ export default function VerifyPage() {
           }
         />
 
+        <div className="max-w-3xl text-[15px] leading-7 text-black/70">
+          This is the independent proof layer behind the certification record.
+        </div>
+
         <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
           <div className="max-w-[980px] space-y-3 text-[15px] leading-[1.8] text-black/65">
             <p>

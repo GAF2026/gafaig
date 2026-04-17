@@ -13,7 +13,7 @@ export default function DemoPage() {
           eyebrow="DEMO"
           title="See how AI governance becomes verifiable"
           description="GAFAIG turns AI governance from a private claim into a public, independently verifiable trust record. This demo walks through the exact sequence from certification record to signed proof to portable trust signal."
-          secondaryDescription="This page shows how GAFAIG delivers a real, step-by-step verification of AI governance through a public record that can be independently reviewed, verified, and trusted outside an organization’s platform."
+          secondaryDescription="This page shows how a real GAFAIG record can be reviewed, verified, and trusted outside an organization’s platform."
           actions={
             <>
               <PublicButtonLink

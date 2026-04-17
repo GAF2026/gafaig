@@ -191,8 +191,6 @@ export default async function WidgetPreviewPage({
   }
 
   const record = verifyData.record;
-  const proof = verifyData.proof ?? {};
-
   const entityName = record.entityName || "Unknown Entity";
   const trustState = verifyData.verified
     ? "Verified"
@@ -255,6 +253,10 @@ export default async function WidgetPreviewPage({
             </>
           }
         />
+
+        <div className="max-w-3xl text-[15px] leading-7 text-black/70">
+          This is how GAFAIG trust appears outside the originating organization’s platform.
+        </div>
 
         <section className="rounded-3xl border border-black/10 bg-white p-8">
           <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">

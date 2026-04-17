@@ -12,7 +12,7 @@ export default function ApplyPage() {
         <PublicPageHero
           eyebrow="APPLY"
           title="Apply for independent verification of human oversight in AI"
-          description="GAFAIG certification is for organizations that want credible, third-party proof that meaningful human oversight exists across their AI operations. Verification is performed inside a controlled private review environment and, if certified, published as a verifiable public trust record."
+          description="GAFAIG certification is for organizations that want credible, third-party proof that meaningful human oversight is actually functioning across their AI operations. Verification is performed inside a controlled private review environment and, if certified, published as a verifiable public trust record."
           secondaryDescription="The public registry is not the application system. Intake, evidence review, findings, deterministic scoring, and certification decisions occur inside the private GAFAIG verification engine. Only public certification outcomes and trust surfaces are published."
           actions={
             <>
@@ -40,6 +40,12 @@ export default function ApplyPage() {
             This creates an intake record for private review and routes your
             application into the verification workflow. Applying does not place
             your organization in the public registry.
+          </p>
+
+          <p className="mt-4 max-w-[900px] text-[15px] leading-[1.85] text-black/68">
+            You do not need complete documentation to begin. GAFAIG intake is
+            designed to structure the verification process from your current
+            state.
           </p>
 
           <ApplyForm />
