@@ -3,6 +3,7 @@ export const revalidate = 0;
 
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { createPublicKey, verify as cryptoVerify } from "crypto";
 
 type VerifyApiResponse = {
   ok?: boolean;
@@ -38,6 +39,17 @@ type VerifyApiResponse = {
   signedMessageString?: string;
 };
 
+type KeyFetchResult = {
+  pem: string | null;
+  keyId: string | null;
+  algorithm: string | null;
+};
+
+type SignatureValidationResult = {
+  status: "valid" | "invalid" | "unavailable";
+  detail: string;
+};
+
 function safe(v?: string | number | null) {
   const text = String(v ?? "").trim();
   return text || "—";
@@ -66,6 +78,12 @@ function pillTone(value: string) {
   return "bg-slate-100 text-slate-600 ring-slate-200";
 }
 
+function validationTone(status: SignatureValidationResult["status"]) {
+  if (status === "valid") return "bg-emerald-50 text-emerald-700 ring-emerald-200";
+  if (status === "invalid") return "bg-red-50 text-red-700 ring-red-200";
+  return "bg-slate-100 text-slate-600 ring-slate-200";
+}
+
 function InfoCard({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-2xl border border-black/10 bg-neutral-50 p-4">
@@ -91,6 +109,115 @@ async function getVerify(registryId: string): Promise<VerifyApiResponse | null> 
 
   if (!res.ok) return null;
   return res.json();
+}
+
+function extractPemFromText(text: string): string | null {
+  const trimmed = text.trim();
+  if (!trimmed) return null;
+
+  if (trimmed.includes("-----BEGIN PUBLIC KEY-----")) {
+    return trimmed;
+  }
+
+  return null;
+}
+
+async function getVerificationKey(url: string | null | undefined): Promise<KeyFetchResult> {
+  const keyUrl = String(url ?? "").trim();
+  if (!keyUrl) {
+    return { pem: null, keyId: null, algorithm: null };
+  }
+
+  try {
+    const res = await fetch(keyUrl, { cache: "no-store" });
+    if (!res.ok) {
+      return { pem: null, keyId: null, algorithm: null };
+    }
+
+    const contentType = res.headers.get("content-type") || "";
+    const rawText = await res.text();
+
+    const textPem = extractPemFromText(rawText);
+    if (textPem) {
+      return { pem: textPem, keyId: null, algorithm: null };
+    }
+
+    if (contentType.includes("application/json") || rawText.trim().startsWith("{")) {
+      const parsed = JSON.parse(rawText) as Record<string, unknown>;
+
+      const pemCandidates = [
+        parsed.publicKeyPem,
+        parsed.publicKey,
+        parsed.key,
+        parsed.pem,
+      ];
+
+      const pem = pemCandidates
+        .map((v) => String(v ?? "").trim())
+        .find((v) => v.includes("-----BEGIN PUBLIC KEY-----")) || null;
+
+      const keyId =
+        String(
+          parsed.kid ??
+            parsed.keyId ??
+            parsed.key_id ??
+            ""
+        ).trim() || null;
+
+      const algorithm =
+        String(
+          parsed.alg ??
+            parsed.algorithm ??
+            ""
+        ).trim() || null;
+
+      return { pem, keyId, algorithm };
+    }
+
+    return { pem: null, keyId: null, algorithm: null };
+  } catch {
+    return { pem: null, keyId: null, algorithm: null };
+  }
+}
+
+function validateSignature(
+  messageString: string | null,
+  signature: string | null,
+  publicKeyPem: string | null
+): SignatureValidationResult {
+  const msg = String(messageString ?? "").trim();
+  const sig = String(signature ?? "").trim();
+  const pem = String(publicKeyPem ?? "").trim();
+
+  if (!msg || !sig || !pem) {
+    return {
+      status: "unavailable",
+      detail: "Signature validation inputs are incomplete.",
+    };
+  }
+
+  try {
+    const keyObject = createPublicKey(pem);
+    const signatureBuffer = Buffer.from(sig, "base64");
+    const messageBuffer = Buffer.from(msg, "utf8");
+
+    const isValid = cryptoVerify(null, messageBuffer, keyObject, signatureBuffer);
+
+    return isValid
+      ? {
+          status: "valid",
+          detail: "The signed payload validates against the published verification key.",
+        }
+      : {
+          status: "invalid",
+          detail: "The signature does not validate against the published verification key.",
+        };
+  } catch {
+    return {
+      status: "unavailable",
+      detail: "The verification key or signature format could not be validated.",
+    };
+  }
 }
 
 export default async function VerifyPage({
@@ -125,6 +252,19 @@ export default async function VerifyPage({
       : proof.message
         ? JSON.stringify(proof.message, null, 2)
         : "—";
+
+  const keyData = await getVerificationKey(
+    proof.verificationKeyUrl || data.verificationKeyUrl || null
+  );
+
+  const validation = validateSignature(
+    proof.messageString || data.signedMessageString || null,
+    proof.signature || data.signature || null,
+    keyData.pem
+  );
+
+  const algorithm = safe(keyData.algorithm || proof.alg || null);
+  const keyId = safe(keyData.keyId || proof.kid || null);
 
   return (
     <main className="mx-auto max-w-[1180px] px-6 pb-16 pt-14">
@@ -181,6 +321,38 @@ export default async function VerifyPage({
         <section className="rounded-3xl border border-black/10 bg-white p-8">
           <div className="space-y-4">
             <div className="text-xs font-semibold uppercase tracking-[0.24em] text-black/40">
+              Signature validation
+            </div>
+            <h2 className="text-3xl font-semibold tracking-tight text-black">
+              Cryptographic validation status
+            </h2>
+            <p className="max-w-3xl text-base leading-7 text-black/70">
+              GAFAIG validates the returned signed payload against the published
+              verification key for this record.
+            </p>
+          </div>
+
+          <div className="mt-6 rounded-2xl border border-black/10 bg-neutral-50 p-5">
+            <div className="flex flex-wrap items-center gap-3">
+              <span
+                className={`inline-flex rounded-full px-3 py-1 text-[11px] font-semibold ring-1 ${validationTone(
+                  validation.status
+                )}`}
+              >
+                {validation.status === "valid"
+                  ? "Signature Valid"
+                  : validation.status === "invalid"
+                    ? "Signature Invalid"
+                    : "Validation Unavailable"}
+              </span>
+              <span className="text-sm text-black/70">{validation.detail}</span>
+            </div>
+          </div>
+        </section>
+
+        <section className="rounded-3xl border border-black/10 bg-white p-8">
+          <div className="space-y-4">
+            <div className="text-xs font-semibold uppercase tracking-[0.24em] text-black/40">
               Trust verification
             </div>
             <h2 className="text-3xl font-semibold tracking-tight text-black">
@@ -188,7 +360,8 @@ export default async function VerifyPage({
             </h2>
             <p className="max-w-3xl text-base leading-7 text-black/70">
               These fields identify the public record, signing time, key
-              reference, and signature surface used to verify the trust payload.
+              reference, algorithm, and signature surface used to verify the
+              trust payload.
             </p>
           </div>
 
@@ -197,6 +370,11 @@ export default async function VerifyPage({
             <InfoCard label="Signed At" value={signedAt} />
             <InfoCard label="Verification Key" value={verificationKeyUrl} />
             <InfoCard label="Signature" value={signature} />
+          </div>
+
+          <div className="mt-4 grid gap-4 md:grid-cols-2">
+            <InfoCard label="Algorithm" value={algorithm} />
+            <InfoCard label="Key ID" value={keyId} />
           </div>
         </section>
 
