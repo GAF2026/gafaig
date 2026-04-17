@@ -4,23 +4,43 @@ export const revalidate = 0;
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-type VerifyData = {
+type VerifyApiResponse = {
+  ok?: boolean;
+  verified?: boolean;
   registryId?: string;
-  entityName?: string;
-  decisionStatus?: string;
-  certifiedTier?: string;
-  certifiedBand?: string;
-  certifiedAt?: string;
-  validFrom?: string;
-  validTo?: string;
+  record?: {
+    registryId?: string;
+    entityName?: string;
+    entityType?: string;
+    country?: string;
+    applicationId?: string;
+    caseId?: string;
+    decisionStatus?: string;
+    certifiedScore?: number | string;
+    certifiedTier?: string;
+    certifiedBand?: string;
+    certifiedAt?: string;
+    validFrom?: string;
+    validTo?: string;
+  } | null;
+  proof?: {
+    alg?: string;
+    kid?: string;
+    signature?: string;
+    signedAt?: string;
+    verificationKeyUrl?: string;
+    message?: Record<string, unknown>;
+    messageString?: string;
+  } | null;
   signature?: string;
   signedAt?: string;
   verificationKeyUrl?: string;
   signedMessageString?: string;
 };
 
-function safe(v?: string | null) {
-  return (v || "").trim() || "—";
+function safe(v?: string | number | null) {
+  const text = String(v ?? "").trim();
+  return text || "—";
 }
 
 function formatDate(v?: string | null) {
@@ -59,7 +79,7 @@ function InfoCard({ label, value }: { label: string; value: string }) {
   );
 }
 
-async function getVerify(registryId: string): Promise<VerifyData | null> {
+async function getVerify(registryId: string): Promise<VerifyApiResponse | null> {
   const baseUrl =
     process.env.NEXT_PUBLIC_BASE_URL ||
     process.env.NEXT_PUBLIC_SITE_URL ||
@@ -82,6 +102,30 @@ export default async function VerifyPage({
 
   if (!data) return notFound();
 
+  const record = data.record ?? {};
+  const proof = data.proof ?? {};
+
+  const entityName = safe(record.entityName);
+  const decisionStatus = safe(record.decisionStatus);
+  const certification = [safe(record.certifiedTier), safe(record.certifiedBand)]
+    .filter((v) => v !== "—")
+    .join(" ")
+    .trim() || "—";
+  const certifiedAt = formatDate(record.certifiedAt);
+  const validFrom = formatDate(record.validFrom);
+  const validTo = formatDate(record.validTo);
+
+  const registryId = safe(data.registryId || record.registryId || params.registryId);
+  const signedAt = formatDateTime(proof.signedAt || data.signedAt);
+  const verificationKeyUrl = safe(proof.verificationKeyUrl || data.verificationKeyUrl);
+  const signature = safe(proof.signature || data.signature);
+  const signedPayload =
+    safe(proof.messageString || data.signedMessageString) !== "—"
+      ? safe(proof.messageString || data.signedMessageString)
+      : proof.message
+        ? JSON.stringify(proof.message, null, 2)
+        : "—";
+
   return (
     <main className="mx-auto max-w-[1180px] px-6 pb-16 pt-14">
       <div className="space-y-8">
@@ -93,15 +137,15 @@ export default async function VerifyPage({
 
             <span
               className={`inline-flex rounded-full px-3 py-1 text-[11px] font-semibold ring-1 ${pillTone(
-                safe(data.decisionStatus)
+                decisionStatus
               )}`}
             >
-              {safe(data.decisionStatus)}
+              {decisionStatus}
             </span>
           </div>
 
           <h1 className="mt-4 text-[42px] font-semibold tracking-tight text-black">
-            {safe(data.entityName)}
+            {entityName}
           </h1>
 
           <div className="mt-4 max-w-4xl text-base leading-7 text-black/70">
@@ -111,13 +155,10 @@ export default async function VerifyPage({
           </div>
 
           <div className="mt-6 grid gap-4 md:grid-cols-4">
-            <InfoCard
-              label="Certification"
-              value={`${safe(data.certifiedTier)} ${safe(data.certifiedBand)}`.trim()}
-            />
-            <InfoCard label="Certified" value={formatDate(data.certifiedAt)} />
-            <InfoCard label="Valid From" value={formatDate(data.validFrom)} />
-            <InfoCard label="Valid To" value={formatDate(data.validTo)} />
+            <InfoCard label="Certification" value={certification} />
+            <InfoCard label="Certified" value={certifiedAt} />
+            <InfoCard label="Valid From" value={validFrom} />
+            <InfoCard label="Valid To" value={validTo} />
           </div>
 
           <div className="mt-6 flex flex-wrap gap-3">
@@ -152,10 +193,10 @@ export default async function VerifyPage({
           </div>
 
           <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-            <InfoCard label="Registry ID" value={safe(data.registryId)} />
-            <InfoCard label="Signed At" value={formatDateTime(data.signedAt)} />
-            <InfoCard label="Verification Key" value={safe(data.verificationKeyUrl)} />
-            <InfoCard label="Signature" value={safe(data.signature)} />
+            <InfoCard label="Registry ID" value={registryId} />
+            <InfoCard label="Signed At" value={signedAt} />
+            <InfoCard label="Verification Key" value={verificationKeyUrl} />
+            <InfoCard label="Signature" value={signature} />
           </div>
         </section>
 
@@ -175,7 +216,7 @@ export default async function VerifyPage({
 
           <div className="mt-6 rounded-2xl border border-black/10 bg-neutral-50 p-4 text-sm text-black/75">
             <pre className="overflow-x-auto whitespace-pre-wrap break-words">
-              {safe(data.signedMessageString)}
+              {signedPayload}
             </pre>
           </div>
         </section>
