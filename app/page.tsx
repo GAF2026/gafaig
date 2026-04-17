@@ -88,7 +88,7 @@ export default async function HomePage() {
         <PublicPageHero
           eyebrow="GLOBAL AUTHORITY FOR AI GOVERNANCE"
           title="Proof that human oversight in AI systems is real, functioning, and independently verifiable."
-          description="GAFAIG is the Global Authority for AI Governance. It verifies whether meaningful human oversight exists across an organization’s AI operations and publishes public certification records that can be independently verified."
+          description="GAFAIG is the Global Authority for AI Governance. It verifies that meaningful human oversight is actually functioning across an organization’s AI operations and publishes public certification records that can be independently verified."
           secondaryDescription="GAFAIG combines a private verification engine with a public trust layer. Certified outcomes are published as signed records that can be independently verified and used across external platforms."
           actions={
             <>
