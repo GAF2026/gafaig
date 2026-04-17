@@ -63,20 +63,19 @@ function MetricCell({
   );
 }
 
-function buildHref(
-  base: string,
-  params: Record<string, string | undefined>,
-  overrides: Record<string, string | undefined> = {}
-) {
-  const search = new URLSearchParams();
-
-  for (const [key, value] of Object.entries({ ...params, ...overrides })) {
-    const normalized = String(value ?? "").trim();
-    if (normalized) search.set(key, normalized);
-  }
-
-  const query = search.toString();
-  return query ? `${base}?${query}` : base;
+function FilterChip({
+  label,
+  value,
+}: {
+  label: string;
+  value: string;
+}) {
+  return (
+    <span className="inline-flex items-center justify-center rounded-full border border-black/10 bg-neutral-50 px-3 py-1 text-sm font-medium text-black/70">
+      <span className="mr-2 text-black/40">{label}</span>
+      <span className="text-black">{value}</span>
+    </span>
+  );
 }
 
 export default async function ExplorerSystemsPage({
@@ -90,7 +89,6 @@ export default async function ExplorerSystemsPage({
   const tier = String(searchParams?.tier ?? "").trim();
   const band = String(searchParams?.band ?? "").trim();
 
-  const page = Math.max(1, Number(searchParams?.page || "1") || 1);
   const pageSize = Math.max(1, Number(searchParams?.pageSize || "200") || 200);
 
   const result = await getRegistryAiSystemsPaginated({ page: 1, pageSize });
@@ -130,7 +128,7 @@ export default async function ExplorerSystemsPage({
   });
 
   const countries = Array.from(
-    new Set(filteredRows.length ? allRows.map((r: any) => filterValue(r.country)).filter(Boolean) : [])
+    new Set(allRows.map((r: any) => filterValue(r.country)).filter(Boolean))
   ).sort((a, b) => a.localeCompare(b));
 
   const organizations = Array.from(
@@ -149,7 +147,13 @@ export default async function ExplorerSystemsPage({
     new Set(allRows.map((r: any) => filterValue(r.certifiedBand)).filter(Boolean))
   ).sort((a, b) => a.localeCompare(b));
 
-  const currentParams = { q, country, organization, tier, band };
+  const activeFilters = [
+    q ? { label: "Search", value: q } : null,
+    country ? { label: "Country", value: country } : null,
+    organization ? { label: "Organization", value: organization } : null,
+    tier ? { label: "Tier", value: tier } : null,
+    band ? { label: "Band", value: band } : null,
+  ].filter(Boolean) as Array<{ label: string; value: string }>;
 
   return (
     <main className="mx-auto max-w-[1180px] space-y-8 px-6 py-10">
@@ -285,10 +289,27 @@ export default async function ExplorerSystemsPage({
                 href="/explorer/systems"
                 className="inline-flex min-h-[42px] items-center justify-center rounded-full border border-black/20 bg-white px-5 text-sm font-semibold text-black transition hover:bg-black hover:text-white"
               >
-                Clear filters
+                Clear all
               </a>
             </div>
           </form>
+
+          {activeFilters.length > 0 ? (
+            <div className="border-t border-black/10 pt-5">
+              <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-black/35">
+                Active filters
+              </div>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {activeFilters.map((filter) => (
+                  <FilterChip
+                    key={`${filter.label}:${filter.value}`}
+                    label={filter.label}
+                    value={filter.value}
+                  />
+                ))}
+              </div>
+            </div>
+          ) : null}
         </div>
       </section>
 
