@@ -4,6 +4,7 @@ export const revalidate = 0;
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createPublicKey, verify as cryptoVerify } from "crypto";
+import PublicButtonLink from "@/app/_components/PublicButtonLink";
 
 type VerifyApiResponse = {
   ok?: boolean;
@@ -49,6 +50,18 @@ type SignatureValidationResult = {
   status: "valid" | "invalid" | "unavailable";
   detail: string;
 };
+
+function getRuntimeBaseUrl() {
+  if (process.env.NODE_ENV === "development") {
+    return "http://localhost:3000";
+  }
+
+  return (
+    process.env.NEXT_PUBLIC_BASE_URL ||
+    process.env.NEXT_PUBLIC_SITE_URL ||
+    "https://www.gafaig.com"
+  );
+}
 
 function safe(v?: string | number | null) {
   const text = String(v ?? "").trim();
@@ -115,11 +128,69 @@ function ActionButton({
   );
 }
 
+function StepCard({
+  number,
+  title,
+  body,
+}: {
+  number: string;
+  title: string;
+  body: string;
+}) {
+  return (
+    <div className="rounded-2xl border border-black/10 p-4">
+      <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/55">
+        {number}
+      </div>
+      <div className="mt-2 text-[16px] font-semibold text-black">{title}</div>
+      <p className="mt-2 text-[14px] leading-[1.7] text-black/72">{body}</p>
+    </div>
+  );
+}
+
+function StatementCard({
+  title,
+  body,
+}: {
+  title: string;
+  body: string;
+}) {
+  return (
+    <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
+      <div className="text-[18px] font-semibold tracking-tight text-black">
+        {title}
+      </div>
+      <p className="mt-3 text-[15px] leading-[1.8] text-black/72">{body}</p>
+    </div>
+  );
+}
+
+function FeatureCard({
+  title,
+  body,
+  href,
+  cta,
+}: {
+  title: string;
+  body: string;
+  href: string;
+  cta: string;
+}) {
+  return (
+    <div className="rounded-2xl border border-black/10 bg-white p-5">
+      <div className="text-[20px] font-semibold text-black">{title}</div>
+      <p className="mt-3 text-[14px] leading-[1.8] text-black/72">{body}</p>
+      <div className="mt-5">
+        <PublicButtonLink href={href} variant="ghost" size="sm">
+          {cta} →
+        </PublicButtonLink>
+      </div>
+    </div>
+  );
+}
+
 async function getVerify(registryId: string): Promise<VerifyApiResponse | null> {
-  const baseUrl =
-    process.env.NEXT_PUBLIC_BASE_URL ||
-    process.env.NEXT_PUBLIC_SITE_URL ||
-    "http://localhost:3000";
+  const baseUrl = getRuntimeBaseUrl();
 
   const res = await fetch(`${baseUrl}/api/verify/${registryId}`, {
     cache: "no-store",
@@ -232,12 +303,14 @@ export default async function VerifyPage({
 }: {
   params: { registryId: string };
 }) {
-  const data = await getVerify(params.registryId);
+  const registryIdParam = decodeURIComponent(params.registryId);
+  const data = await getVerify(registryIdParam);
 
   if (!data) return notFound();
 
   const record = data.record ?? {};
   const proof = data.proof ?? {};
+  const baseUrl = getRuntimeBaseUrl();
 
   const entityName = safe(record.entityName);
   const decisionStatus = safe(record.decisionStatus);
@@ -250,7 +323,7 @@ export default async function VerifyPage({
   const validFrom = formatDate(record.validFrom);
   const validTo = formatDate(record.validTo);
 
-  const registryId = safe(data.registryId || record.registryId || params.registryId);
+  const registryId = safe(data.registryId || record.registryId || registryIdParam);
   const signedAt = formatDateTime(proof.signedAt || data.signedAt);
   const verificationKeyUrl = safe(proof.verificationKeyUrl || data.verificationKeyUrl);
   const signature = safe(proof.signature || data.signature);
@@ -276,11 +349,16 @@ export default async function VerifyPage({
   const algorithm = safe(keyData.algorithm || proof.alg || null);
   const keyId = safe(keyData.keyId || proof.kid || null);
 
+  const registryUrl = `${baseUrl}/registry/${encodeURIComponent(registryId)}`;
+  const widgetUrl = `${baseUrl}/widget-preview/${encodeURIComponent(registryId)}`;
+  const demoUrl = `${baseUrl}/demo`;
+  const verifyJsonUrl = `${baseUrl}/api/verify/${encodeURIComponent(registryId)}`;
+
   return (
-    <main className="mx-auto max-w-[1180px] px-6 pb-16 pt-14">
+    <main className="mx-auto max-w-[1180px] px-6 py-10">
       <div className="space-y-8">
         <section className="rounded-3xl border border-black/10 bg-white p-8">
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <span className="inline-flex rounded-full bg-emerald-50 px-3 py-1 text-[11px] font-semibold text-emerald-700 ring-1 ring-emerald-200">
               Verified
             </span>
@@ -299,9 +377,10 @@ export default async function VerifyPage({
           </h1>
 
           <div className="mt-4 max-w-4xl text-base leading-7 text-black/70">
-            This page verifies the public GAFAIG trust record for this registry
-            entry. It shows the public certification window and the signing
-            surface used for trust verification.
+            This page is the public proof surface for a GAFAIG record. It shows
+            the certification window, the signature validation result, and the
+            trust details needed to independently review the record outside the
+            originating organization’s platform.
           </div>
 
           <div className="mt-6 grid gap-4 md:grid-cols-4">
@@ -312,22 +391,26 @@ export default async function VerifyPage({
           </div>
 
           <div className="mt-6 flex flex-wrap gap-3">
-            <Link
-              href={`/registry/${params.registryId}`}
-              className="inline-flex min-h-[42px] items-center justify-center rounded-full border border-black/20 bg-white px-5 text-sm font-semibold text-black transition hover:bg-black hover:text-white"
+            <PublicButtonLink
+              href={`/registry/${encodeURIComponent(registryId)}`}
+              variant="primary"
             >
-              View Registry Record
-            </Link>
+              Open Registry Record
+            </PublicButtonLink>
 
-            <Link
-              href="/explorer"
-              className="inline-flex min-h-[42px] items-center justify-center rounded-full border border-black/20 bg-white px-5 text-sm font-semibold text-black transition hover:bg-black hover:text-white"
+            <PublicButtonLink
+              href={`/widget-preview/${encodeURIComponent(registryId)}`}
+              variant="secondary"
             >
-              Back to Explorer
-            </Link>
+              View Widget
+            </PublicButtonLink>
+
+            <PublicButtonLink href="/demo" variant="secondary">
+              See Full Demo
+            </PublicButtonLink>
 
             <a
-              href={`/api/verify/${params.registryId}`}
+              href={`/api/verify/${encodeURIComponent(registryId)}`}
               target="_blank"
               rel="noreferrer"
               className="inline-flex min-h-[42px] items-center justify-center rounded-full border border-black/20 bg-white px-5 text-sm font-semibold text-black transition hover:bg-black hover:text-white"
@@ -368,7 +451,7 @@ export default async function VerifyPage({
             </div>
 
             <p className="mt-4 text-sm text-black/60">
-              This record can be independently verified using the public key,
+              This record can be independently reviewed using the public key,
               signature, and signed payload surfaced below.
             </p>
 
@@ -378,6 +461,46 @@ export default async function VerifyPage({
               <ActionButton label="Copy Public Key URL" copyValue={verificationKeyUrl} />
               <ActionButton label="Copy Raw Verification JSON" copyValue={rawVerifyJson} />
             </div>
+          </div>
+        </section>
+
+        <section className="rounded-3xl border border-black/10 bg-white p-8">
+          <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
+            TRUST FLOW
+          </div>
+
+          <h2 className="mt-4 max-w-[860px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
+            How this proof connects to the wider GAFAIG trust surface
+          </h2>
+
+          <p className="mt-5 max-w-[980px] text-[16px] leading-[1.85] text-black/75">
+            This page is one part of the full GAFAIG proof sequence. A record
+            appears in the public registry, is verified through signed proof,
+            exposes its machine-readable payload, and can then travel outside
+            the platform through a portable widget.
+          </p>
+
+          <div className="mt-8 grid gap-4 md:grid-cols-4">
+            <StepCard
+              number="1"
+              title="Registry Record"
+              body="The public certification record establishes the trust outcome."
+            />
+            <StepCard
+              number="2"
+              title="Verify Page"
+              body="This page validates the signed proof behind that record."
+            />
+            <StepCard
+              number="3"
+              title="Signed JSON"
+              body="The machine-readable payload makes the trust record portable."
+            />
+            <StepCard
+              number="4"
+              title="External Widget"
+              body="The same trust signal can appear outside GAFAIG."
+            />
           </div>
         </section>
 
@@ -410,6 +533,54 @@ export default async function VerifyPage({
         </section>
 
         <section className="rounded-3xl border border-black/10 bg-white p-8">
+          <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
+            USE THIS PROOF
+          </div>
+
+          <h2 className="mt-4 max-w-[860px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
+            This verification can be used outside GAFAIG
+          </h2>
+
+          <div className="mt-7 grid gap-4 md:grid-cols-2">
+            <StatementCard
+              title="For people"
+              body="The registry page and this verify page provide a readable public trust surface for customers, regulators, partners, and the public."
+            />
+            <StatementCard
+              title="For systems"
+              body="The raw verification JSON, signature, and public key allow external systems to inspect and consume the same trust result."
+            />
+          </div>
+
+          <div className="mt-6 grid gap-4 md:grid-cols-4">
+            <FeatureCard
+              title="Registry record"
+              body="Open the public certification record that this proof supports."
+              href={`/registry/${encodeURIComponent(registryId)}`}
+              cta="Open record"
+            />
+            <FeatureCard
+              title="Widget preview"
+              body="See how the same trust signal appears on an external site."
+              href={`/widget-preview/${encodeURIComponent(registryId)}`}
+              cta="View widget"
+            />
+            <FeatureCard
+              title="Verify JSON"
+              body="Open the machine-readable proof returned by the verification endpoint."
+              href={`/api/verify/${encodeURIComponent(registryId)}`}
+              cta="Open JSON"
+            />
+            <FeatureCard
+              title="Demo flow"
+              body="See how this page fits into the full GAFAIG proof walkthrough."
+              href="/demo"
+              cta="Open demo"
+            />
+          </div>
+        </section>
+
+        <section className="rounded-3xl border border-black/10 bg-white p-8">
           <div className="space-y-4">
             <div className="text-xs font-semibold uppercase tracking-[0.24em] text-black/40">
               Signed payload
@@ -430,18 +601,37 @@ export default async function VerifyPage({
           </div>
         </section>
 
+        <section className="rounded-3xl border border-black/10 bg-white p-8">
+          <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
+            RELATED URLS
+          </div>
+
+          <h2 className="mt-4 max-w-[860px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
+            Connected trust surfaces for this record
+          </h2>
+
+          <div className="mt-6 grid gap-4 md:grid-cols-2">
+            <InfoCard label="Registry Page" value={registryUrl} />
+            <InfoCard label="Widget Preview" value={widgetUrl} />
+            <InfoCard label="Verify JSON" value={verifyJsonUrl} />
+            <InfoCard label="Demo Page" value={demoUrl} />
+          </div>
+        </section>
+
         <script
           dangerouslySetInnerHTML={{
             __html: `
               (() => {
-                const buttons = Array.from(document.querySelectorAll('.gafaig-copy-button'));
-                const copyText = async (text) => {
+                const copyButtons = Array.from(document.querySelectorAll('.gafaig-copy-button'));
+
+                async function copyText(text) {
                   try {
                     if (navigator.clipboard && window.isSecureContext) {
                       await navigator.clipboard.writeText(text);
                       return true;
                     }
                   } catch (_) {}
+
                   try {
                     const textarea = document.createElement('textarea');
                     textarea.value = text;
@@ -456,9 +646,9 @@ export default async function VerifyPage({
                   } catch (_) {
                     return false;
                   }
-                };
+                }
 
-                buttons.forEach((button) => {
+                copyButtons.forEach((button) => {
                   button.addEventListener('click', async () => {
                     const original = button.textContent || 'Copy';
                     const text = button.getAttribute('data-copy-text') || '';
