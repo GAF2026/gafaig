@@ -1,20 +1,36 @@
 import Link from "next/link";
-import type { ReactNode } from "react";
-
-type Variant = "primary" | "secondary" | "ghost" | "link";
-type Size = "sm" | "md";
+import type { ComponentProps, ReactNode } from "react";
 
 type PublicButtonLinkProps = {
   href: string;
   children: ReactNode;
-  variant?: Variant;
-  size?: Size;
+  variant?: "primary" | "secondary" | "ghost" | "link";
+  size?: "sm" | "md";
   className?: string;
-};
+} & Omit<ComponentProps<typeof Link>, "href" | "className">;
 
-function cx(...values: Array<string | undefined | false>) {
+function cn(...values: Array<string | false | null | undefined>) {
   return values.filter(Boolean).join(" ");
 }
+
+const sizeClasses: Record<NonNullable<PublicButtonLinkProps["size"]>, string> = {
+  sm: "min-h-[36px] px-4 text-sm",
+  md: "min-h-[42px] px-5 text-sm",
+};
+
+const variantClasses: Record<
+  NonNullable<PublicButtonLinkProps["variant"]>,
+  string
+> = {
+  primary:
+    "bg-black text-white border border-black hover:bg-black/90",
+  secondary:
+    "bg-white text-black border border-black/20 hover:bg-black hover:text-white",
+  ghost:
+    "bg-transparent text-black hover:bg-black/[0.04]",
+  link:
+    "bg-transparent text-black underline underline-offset-4 hover:text-black/70",
+};
 
 export default function PublicButtonLink({
   href,
@@ -22,28 +38,20 @@ export default function PublicButtonLink({
   variant = "secondary",
   size = "md",
   className,
+  ...rest
 }: PublicButtonLinkProps) {
-  const base =
-    "inline-flex items-center justify-center rounded-full font-semibold whitespace-nowrap transition focus:outline-none";
-
-  const sizeClass =
-    size === "sm"
-      ? "h-[40px] px-4 text-sm"
-      : "h-[44px] px-5 text-sm";
-
-  const variantClass =
-    variant === "primary"
-      ? "border border-black bg-black text-white hover:bg-black/90"
-      : variant === "ghost"
-      ? "border border-transparent bg-transparent text-black hover:bg-black/[0.04]"
-      : variant === "link"
-      ? "border border-transparent bg-transparent text-black underline underline-offset-4 hover:text-black/70"
-      : "border border-black text-black hover:bg-black/[0.04]";
+  const isLinkVariant = variant === "link";
 
   return (
     <Link
       href={href}
-      className={cx(base, sizeClass, variantClass, className)}
+      className={cn(
+        "inline-flex items-center justify-center rounded-full font-semibold transition whitespace-nowrap",
+        !isLinkVariant && sizeClasses[size],
+        variantClasses[variant],
+        className
+      )}
+      {...rest}
     >
       {children}
     </Link>
