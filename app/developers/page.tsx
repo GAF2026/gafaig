@@ -9,7 +9,8 @@ const DEMO_REGISTRY_ID = "GAFAIG-00000001";
 export default function DevelopersPage() {
   const verifyEndpoint = `/api/verify/${DEMO_REGISTRY_ID}`;
   const publicKeyEndpoint = "/api/.well-known/gafaig-public-key";
-  const widgetScript = '<script src="https://www.gafaig.com/widget/gafaig-widget.js"></script>';
+  const widgetScript =
+    '<script src="https://www.gafaig.com/widget/gafaig-widget.js"></script>';
   const widgetMarkup = `<div data-gafaig-id="${DEMO_REGISTRY_ID}"></div>`;
   const verifyHelperScript =
     '<script src="https://www.gafaig.com/widget/gafaig-verify.js"></script>';
@@ -73,7 +74,7 @@ export default function DevelopersPage() {
           </div>
         </section>
 
-        <section className="grid gap-4 lg:grid-cols-[1.05fr_0.95fr]">
+        <section className="grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
           <section className="rounded-3xl border border-black/10 bg-white p-8">
             <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
               QUICKSTART
@@ -83,26 +84,33 @@ export default function DevelopersPage() {
               The core trust flow
             </h2>
 
-            <div className="mt-8 grid gap-4 md:grid-cols-4">
-              <StepCard
+            <p className="mt-4 max-w-[860px] text-[15px] leading-[1.85] text-black/72">
+              GAFAIG trust works as a sequence. Start with a published registry
+              ID, retrieve signed proof, fetch the published verification key,
+              and validate the result or surface it through a widget.
+            </p>
+
+            <div className="mt-8 grid gap-4 xl:grid-cols-4">
+              <PipelineStep
                 number="1"
                 title="Resolve record"
                 body="Start from a published GAFAIG registry ID."
               />
-              <StepCard
+              <PipelineStep
                 number="2"
                 title="Fetch proof"
-                body="Call the verify endpoint to retrieve the public proof payload."
+                body="Retrieve signed proof from the verify endpoint."
               />
-              <StepCard
+              <PipelineStep
                 number="3"
                 title="Fetch key"
                 body="Retrieve the public verification key from the published key endpoint."
               />
-              <StepCard
+              <PipelineStep
                 number="4"
                 title="Validate"
                 body="Validate the signature or surface the result through the widget."
+                isLast
               />
             </div>
           </section>
@@ -371,24 +379,36 @@ function DeveloperCard({
   );
 }
 
-function StepCard({
+function PipelineStep({
   number,
   title,
   body,
+  isLast = false,
 }: {
   number: string;
   title: string;
   body: string;
+  isLast?: boolean;
 }) {
   return (
-    <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
-      <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-black/45">
-        {number}
+    <div className="relative">
+      <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5 h-full">
+        <div className="text-[28px] font-semibold leading-none tracking-tight text-black/30">
+          {number}
+        </div>
+        <div className="mt-4 text-[18px] font-semibold tracking-tight text-black">
+          {title}
+        </div>
+        <p className="mt-3 text-[15px] leading-[1.8] text-black/70">{body}</p>
       </div>
-      <div className="mt-3 text-[18px] font-semibold tracking-tight text-black">
-        {title}
-      </div>
-      <p className="mt-2 text-sm leading-7 text-black/68">{body}</p>
+
+      {!isLast ? (
+        <div className="pointer-events-none absolute -right-[10px] top-1/2 hidden -translate-y-1/2 xl:flex items-center justify-center">
+          <div className="flex h-8 w-8 items-center justify-center rounded-full border border-black/10 bg-white text-black/40">
+            →
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }
