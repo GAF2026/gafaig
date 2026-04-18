@@ -186,6 +186,47 @@ export default function DemoPage() {
           </div>
         </section>
 
+        <section className="rounded-3xl border border-black/10 bg-black p-8 text-white">
+          <div className="text-[12px] font-semibold uppercase tracking-[0.22em] text-white/55">
+            NEXT STEP
+          </div>
+
+          <h2 className="mt-3 max-w-[860px] text-[32px] font-semibold leading-[1.18] tracking-tight text-white md:text-[38px]">
+            Ready to create a verified record?
+          </h2>
+
+          <p className="mt-4 max-w-[860px] text-[16px] leading-[1.85] text-white/80">
+            You’ve seen how a GAFAIG record appears in the registry, how it is
+            verified through signed proof, how it can be inspected through the
+            public API, and how it can appear outside the platform through a
+            widget. This is the outcome of the GAFAIG verification process.
+          </p>
+
+          <p className="mt-4 max-w-[860px] text-[15px] leading-[1.85] text-white/75">
+            If your organization operates AI systems and needs independently
+            verifiable proof that human oversight is functioning, you can begin
+            the GAFAIG verification intake process now.
+          </p>
+
+          <div className="mt-6 flex flex-wrap gap-3">
+            <PublicButtonLink
+              href="/apply"
+              variant="primary"
+              className="bg-white text-black hover:bg-white/90"
+            >
+              Begin GAFAIG verification intake
+            </PublicButtonLink>
+
+            <PublicButtonLink
+              href="/framework"
+              variant="secondary"
+              className="border-white text-white hover:bg-white/10"
+            >
+              Review Framework
+            </PublicButtonLink>
+          </div>
+        </section>
+
         <section className="rounded-3xl border border-black/10 bg-black/[0.03] p-8">
           <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
             THE RESULT

@@ -385,6 +385,41 @@ export default async function RegistryPage({
           </div>
         )}
       </section>
+
+      <section className="rounded-3xl border border-black/10 bg-black p-8 text-white">
+        <div className="text-[12px] font-semibold uppercase tracking-[0.22em] text-white/55">
+          APPLY FOR VERIFICATION
+        </div>
+
+        <h2 className="mt-3 max-w-[860px] text-[32px] font-semibold leading-[1.18] tracking-tight text-white md:text-[38px]">
+          Want your organization listed here?
+        </h2>
+
+        <p className="mt-4 max-w-[860px] text-[16px] leading-[1.85] text-white/80">
+          GAFAIG certification produces a publicly verifiable record like the
+          ones above. If your organization operates AI systems and needs
+          independent proof that human oversight is functioning, you can begin
+          the GAFAIG verification intake process now.
+        </p>
+
+        <div className="mt-6 flex flex-wrap gap-3">
+          <PublicButtonLink
+            href="/apply"
+            variant="primary"
+            className="bg-white text-black hover:bg-white/90"
+          >
+            Apply for verification
+          </PublicButtonLink>
+
+          <PublicButtonLink
+            href="/demo"
+            variant="secondary"
+            className="border-white text-white hover:bg-white/10"
+          >
+            Start with the Demo
+          </PublicButtonLink>
+        </div>
+      </section>
     </main>
   );
 }
