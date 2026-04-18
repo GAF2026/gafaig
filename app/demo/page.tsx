@@ -11,20 +11,24 @@ export default function DemoPage() {
       <div className="space-y-8">
         <PublicPageHero
           eyebrow="DEMO"
-          title="See how AI governance becomes verifiable"
-          description="GAFAIG turns AI governance from a private claim into a public, independently verifiable trust record. This demo walks through the exact sequence from certification record to signed proof to portable trust signal."
-          secondaryDescription="This page shows how a real GAFAIG record can be reviewed, verified, and trusted outside an organization’s platform."
+          title="See how AI governance becomes independently verifiable"
+          description="GAFAIG turns AI governance from a private claim into a public, independently verifiable trust record. This demo follows the exact sequence from certified record to signed proof to portable trust surface."
+          secondaryDescription="This page uses one real GAFAIG record to show how certification is published, verified, and surfaced outside an organization’s platform."
           actions={
             <>
               <PublicButtonLink
                 href={`/registry/${DEMO_REGISTRY_ID}`}
-                variant="dark"
+                variant="primary"
               >
                 Start Demo
               </PublicButtonLink>
 
-              <PublicButtonLink href="/registry" variant="outline-dark">
-                Browse Public Records
+              <PublicButtonLink href="/verify" variant="secondary">
+                Verify a Record
+              </PublicButtonLink>
+
+              <PublicButtonLink href="/developers" variant="secondary">
+                Open Developers
               </PublicButtonLink>
             </>
           }
@@ -53,7 +57,7 @@ export default function DemoPage() {
             />
             <StatementCard
               title="What GAFAIG adds"
-              body="A public certification record, signed proof, and verification surface that can be independently reviewed."
+              body="An independently verifiable public trust record backed by signed proof, a verification surface, and portable trust signals."
             />
           </div>
         </section>
@@ -64,7 +68,7 @@ export default function DemoPage() {
           </div>
 
           <h2 className="mt-4 max-w-[860px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
-            Follow one record from public listing to signed proof
+            Follow one record from certification to proof
           </h2>
 
           <p className="mt-5 max-w-[960px] text-[16px] leading-[1.85] text-black/75">
@@ -76,23 +80,23 @@ export default function DemoPage() {
           <div className="mt-8 grid gap-4 md:grid-cols-4">
             <StepCard
               number="1"
-              title="Open the registry record"
-              body="Start with the public certification record that represents the organization’s trust outcome."
+              title="Resolve registry record"
+              body="Locate the certified record in the public registry."
             />
             <StepCard
               number="2"
-              title="Open the verify page"
-              body="See the same record through the verification surface, including signature status and public-key references."
+              title="Fetch verification proof"
+              body="Retrieve the signed verification payload from the API."
             />
             <StepCard
               number="3"
-              title="Inspect the raw JSON"
-              body="View the machine-readable verification payload returned directly from the public API."
+              title="Validate signature"
+              body="Confirm the record using the public verification key."
             />
             <StepCard
               number="4"
-              title="See the external widget"
-              body="Confirm that the trust signal can travel outside GAFAIG through a portable, embeddable widget."
+              title="Render trust surface"
+              body="Display the verified result through a widget or UI."
             />
           </div>
         </section>
@@ -100,16 +104,16 @@ export default function DemoPage() {
         <section className="grid gap-4 md:grid-cols-2">
           <DemoCard
             eyebrow="STEP 1"
-            title="Open the certified public record"
-            body="This is the public registry record. It shows the certification outcome, trust status, and record metadata. This is where a person first encounters the GAFAIG trust record."
+            title="Resolve the certified registry record"
+            body="Start with the public trust record. This is the published certification outcome that external parties can review by registry ID."
             href={`/registry/${DEMO_REGISTRY_ID}`}
             cta="Open Registry Record"
           />
 
           <DemoCard
             eyebrow="STEP 2"
-            title="Verify the trust record"
-            body="The verify page shows the same record through the public verification surface. This is where signed proof, validation status, and public-key trust begin to matter."
+            title="Fetch the verification proof"
+            body="Open the verify page to inspect the proof layer behind the certification record, including trust state, key references, and signature validation."
             href={`/verify/${DEMO_REGISTRY_ID}`}
             cta="Open Verify Page"
           />
@@ -118,16 +122,16 @@ export default function DemoPage() {
         <section className="grid gap-4 md:grid-cols-2">
           <DemoCard
             eyebrow="STEP 3"
-            title="View the machine-readable proof"
-            body="The verification endpoint returns structured JSON that can be consumed by external systems. This is what makes the trust record portable, inspectable, and automation-ready."
+            title="Inspect the signed payload"
+            body="The verification endpoint exposes the machine-readable proof directly. This is what allows external systems to validate the record instead of relying on a visual page alone."
             href={`/api/verify/${DEMO_REGISTRY_ID}`}
             cta="Open Verify JSON"
           />
 
           <DemoCard
             eyebrow="STEP 4"
-            title="See the external trust widget"
-            body="The widget preview shows how GAFAIG trust can appear outside the platform. This is the strongest expression of GAFAIG as infrastructure, not just a website."
+            title="Render the external trust surface"
+            body="The widget preview shows how the same verified trust result can appear outside GAFAIG through a portable, embeddable interface."
             href={`/widget-preview/${DEMO_REGISTRY_ID}`}
             cta="Open Widget Preview"
           />
@@ -139,14 +143,14 @@ export default function DemoPage() {
           </div>
 
           <h2 className="mt-4 max-w-[860px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
-            GAFAIG is more than a registry page
+            GAFAIG is a trust system, not just a registry page
           </h2>
 
           <div className="mt-7 grid gap-4 md:grid-cols-2">
-            <BulletCard text="The registry page proves that a public certification record exists." />
-            <BulletCard text="The verify page proves that the record is backed by signed proof." />
-            <BulletCard text="The verify JSON proves that the trust record is machine-readable and portable." />
-            <BulletCard text="The widget proves that trust can travel outside the GAFAIG website." />
+            <BulletCard text="The registry record proves that a public certification outcome exists." />
+            <BulletCard text="The verify page proves that the public trust record is backed by signed proof." />
+            <BulletCard text="The signed JSON proves that the trust result is machine-readable and portable." />
+            <BulletCard text="The widget proves that the same verified result can travel outside GAFAIG." />
           </div>
 
           <div className="mt-6 rounded-2xl border border-black/10 bg-black/[0.02] p-5">
@@ -154,9 +158,9 @@ export default function DemoPage() {
               The key distinction
             </div>
             <p className="mt-3 text-[15px] leading-[1.85] text-black/75">
-              GAFAIG does not ask people to trust a claim. It provides a public
-              record, a verification surface, and signed proof so the result can
-              be checked independently.
+              GAFAIG does not ask the public to trust an internal claim. It
+              publishes an independently verifiable public trust record backed by
+              signed proof and external validation surfaces.
             </p>
           </div>
         </section>
@@ -167,21 +171,21 @@ export default function DemoPage() {
           </div>
 
           <h2 className="mt-4 max-w-[860px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
-            The trust signals that matter
+            The signals that confirm public proof
           </h2>
 
           <div className="mt-7 grid gap-4 md:grid-cols-3">
             <FeatureCard
-              title="Certification status"
-              body="Check whether the record is presented as a finalized public trust outcome."
+              title="Public trust record"
+              body="Confirm that the record is published in the registry and tied to a real registry ID."
             />
             <FeatureCard
-              title="Signature validation"
-              body="Confirm that the signed payload validates against the published verification key."
+              title="Signed verification proof"
+              body="Confirm that the verification surface exposes a signed payload and public key reference."
             />
             <FeatureCard
-              title="Portable trust surface"
-              body="Confirm that the same trust result appears in the registry, verification endpoint, and widget."
+              title="Portable trust outcome"
+              body="Confirm that the same result appears in the registry, API, verify page, and widget."
             />
           </div>
         </section>
@@ -213,10 +217,7 @@ export default function DemoPage() {
               Begin GAFAIG verification intake
             </PublicButtonLink>
 
-            <PublicButtonLink
-              href="/framework"
-              variant="outline-light"
-            >
+            <PublicButtonLink href="/framework" variant="outline-light">
               Review Framework
             </PublicButtonLink>
           </div>
@@ -234,29 +235,30 @@ export default function DemoPage() {
           <p className="mt-5 max-w-[980px] text-[16px] leading-[1.9] text-black/80">
             This is the core idea behind GAFAIG. Instead of asking the public to
             trust internal claims about oversight, GAFAIG publishes a record that
-            can be reviewed, verified, and used across external environments.
+            can be reviewed, verified, validated, and used across external
+            environments.
           </p>
 
           <p className="mt-4 max-w-[980px] text-[15px] leading-[1.85] text-black/75">
-            The demo is intentionally simple: open the record, verify the proof,
-            inspect the payload, and see how the trust signal works outside the
-            platform. That sequence is the product.
+            The demo is intentionally simple: resolve the registry record, fetch
+            the proof, validate the signature, and render the verified trust
+            surface. That sequence is the product.
           </p>
 
           <div className="mt-6 flex flex-wrap gap-3">
             <PublicButtonLink
               href={`/registry/${DEMO_REGISTRY_ID}`}
-              variant="dark"
+              variant="primary"
             >
               Restart Demo
             </PublicButtonLink>
 
-            <PublicButtonLink href="/framework" variant="outline-dark">
-              Read the Framework
+            <PublicButtonLink href="/verify" variant="secondary">
+              Open Verify
             </PublicButtonLink>
 
-            <PublicButtonLink href="/mission" variant="outline-dark">
-              Read the Mission
+            <PublicButtonLink href="/developers" variant="secondary">
+              Open Developers
             </PublicButtonLink>
           </div>
         </section>
