@@ -1,3 +1,4 @@
+import Link from "next/link";
 import PublicPageHero from "../_components/PublicPageHero";
 import PublicButtonLink from "../_components/PublicButtonLink";
 
@@ -209,13 +210,12 @@ export default function DemoPage() {
           </p>
 
           <div className="mt-6 flex flex-wrap gap-3">
-            <PublicButtonLink
+            <Link
               href="/apply"
-              variant="primary"
-              className="bg-white text-black hover:bg-white/90"
+              className="inline-flex min-h-[42px] items-center justify-center rounded-full bg-white px-5 text-sm font-semibold text-black transition hover:bg-white/90"
             >
               Begin GAFAIG verification intake
-            </PublicButtonLink>
+            </Link>
 
             <PublicButtonLink
               href="/framework"

@@ -96,7 +96,8 @@ export default async function RegistryPage({
       />
 
       <div className="max-w-3xl text-[15px] leading-7 text-black/70">
-        This record represents a verified outcome of GAFAIG’s independent review process.
+        This record represents a verified outcome of GAFAIG’s independent review
+        process.
       </div>
 
       <section className="rounded-3xl border border-black/10 bg-white p-8">
@@ -403,13 +404,12 @@ export default async function RegistryPage({
         </p>
 
         <div className="mt-6 flex flex-wrap gap-3">
-          <PublicButtonLink
+          <Link
             href="/apply"
-            variant="primary"
-            className="bg-white text-black hover:bg-white/90"
+            className="inline-flex min-h-[42px] items-center justify-center rounded-full bg-white px-5 text-sm font-semibold text-black transition hover:bg-white/90"
           >
             Apply for verification
-          </PublicButtonLink>
+          </Link>
 
           <PublicButtonLink
             href="/demo"
