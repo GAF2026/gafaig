@@ -5,7 +5,7 @@ import PublicPageHero from "@/app/_components/PublicPageHero";
 import PublicButtonLink from "@/app/_components/PublicButtonLink";
 import nacl from "tweetnacl";
 
-const EXAMPLE_ID = "GAFAIG-4cf088b9796f492f934acf69615de934";
+const EXAMPLE_ID = "GAFAIG-00000001";
 
 type VerifyApiResponse = {
   ok: boolean;
