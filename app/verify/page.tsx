@@ -97,12 +97,29 @@ function formatDate(value?: string | null) {
   });
 }
 
+function formatDateShort(value?: string | null) {
+  if (!value) return "—";
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return value;
+  return d.toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
+}
+
 function prettyJson(value: unknown) {
   try {
     return JSON.stringify(value, null, 2);
   } catch {
     return String(value);
   }
+}
+
+function truncateMiddle(value: string, start = 20, end = 14) {
+  if (!value) return "—";
+  if (value.length <= start + end + 3) return value;
+  return `${value.slice(0, start)}...${value.slice(-end)}`;
 }
 
 function getTrustState(
@@ -129,6 +146,41 @@ function getTrustState(
   return {
     label: "Pending",
     description: "Not finalized",
+  };
+}
+
+function getProofStateLabel(
+  endpointVerified: boolean,
+  signatureVerified: boolean
+) {
+  if (endpointVerified && signatureVerified) {
+    return {
+      title: "Proof valid",
+      body: "The public record resolved successfully and the disclosed signature validates against the published key.",
+      tone: "success" as const,
+    };
+  }
+
+  if (!endpointVerified && signatureVerified) {
+    return {
+      title: "Signature valid, endpoint not verified",
+      body: "The signature validates, but the endpoint response did not confirm verified status.",
+      tone: "warning" as const,
+    };
+  }
+
+  if (endpointVerified && !signatureVerified) {
+    return {
+      title: "Endpoint verified, signature invalid",
+      body: "The public record resolved, but the signature did not validate against the published key.",
+      tone: "danger" as const,
+    };
+  }
+
+  return {
+    title: "Proof not verified",
+    body: "Neither the endpoint response nor the client-side signature validation confirmed the record.",
+    tone: "danger" as const,
   };
 }
 
@@ -166,6 +218,87 @@ function ProofCard({
         {title}
       </div>
       <p className="mt-3 text-[15px] leading-[1.8] text-black/72">{body}</p>
+    </div>
+  );
+}
+
+function ProofMetricCard({
+  label,
+  value,
+  body,
+}: {
+  label: string;
+  value: string;
+  body: string;
+}) {
+  return (
+    <div className="rounded-2xl border border-black/10 bg-[#fcfcfb] p-5">
+      <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-black/45">
+        {label}
+      </div>
+      <div className="mt-3 text-[18px] font-semibold tracking-tight text-black">
+        {value}
+      </div>
+      <p className="mt-2 text-[14px] leading-7 text-black/68">{body}</p>
+    </div>
+  );
+}
+
+function DetailCard({
+  label,
+  value,
+}: {
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className="rounded-3xl border border-black/10 bg-[#fcfcfb] p-5">
+      <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-black/45">
+        {label}
+      </div>
+      <div className="mt-3 break-all text-[14px] font-medium text-black/85">
+        {value}
+      </div>
+    </div>
+  );
+}
+
+function ProofStateBanner({
+  title,
+  body,
+  tone,
+}: {
+  title: string;
+  body: string;
+  tone: "success" | "warning" | "danger";
+}) {
+  const toneClasses =
+    tone === "success"
+      ? "border-emerald-200 bg-emerald-50"
+      : tone === "warning"
+      ? "border-amber-200 bg-amber-50"
+      : "border-red-200 bg-red-50";
+
+  const titleClasses =
+    tone === "success"
+      ? "text-emerald-800"
+      : tone === "warning"
+      ? "text-amber-800"
+      : "text-red-800";
+
+  const bodyClasses =
+    tone === "success"
+      ? "text-emerald-700"
+      : tone === "warning"
+      ? "text-amber-700"
+      : "text-red-700";
+
+  return (
+    <div className={cn("rounded-2xl border p-5", toneClasses)}>
+      <div className={cn("text-[18px] font-semibold tracking-tight", titleClasses)}>
+        {title}
+      </div>
+      <p className={cn("mt-2 text-[14px] leading-7", bodyClasses)}>{body}</p>
     </div>
   );
 }
@@ -292,6 +425,10 @@ export default function VerifyPage() {
   const proof = result?.proof;
   const record = result?.record;
   const trust = getTrustState(record?.certifiedAt, record?.decisionStatus);
+  const proofState =
+    state.status === "success"
+      ? getProofStateLabel(state.endpointVerified, state.signatureVerified)
+      : null;
 
   return (
     <main className="mx-auto max-w-[1180px] px-6 py-10">
@@ -507,39 +644,24 @@ export default function VerifyPage() {
           </div>
         </section>
 
-        {state.status === "success" && result && proof && record ? (
+        {state.status === "success" && result && proof && record && proofState ? (
           <>
             <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
-              <div className="text-[12px] font-semibold uppercase tracking-[0.22em] text-black/55">
-                Trust state
-              </div>
-
-              <h2 className="mt-3 text-[28px] font-semibold text-black">
-                {trust.label}
-              </h2>
-
-              <p className="mt-3 text-[15px] leading-[1.8] text-black/70">
-                {trust.label === "Certified"
-                  ? "This record is a certified public trust record in the GAFAIG registry of record."
-                  : trust.label === "Approved"
-                  ? "This record has been evaluated and approved, but has not been finalized as a certified public registry record."
-                  : "This record is not yet finalized."}
-              </p>
-            </section>
-
-            <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
               <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
-                <div>
+                <div className="max-w-3xl">
                   <div className="text-[12px] font-semibold uppercase tracking-[0.22em] text-black/55">
-                    Verification result
+                    Proof integrity
                   </div>
+
                   <h2 className="mt-3 text-[34px] font-semibold leading-[1.1] tracking-[-0.02em] text-black">
-                    Independent signature validation
+                    Cryptographic trust dashboard
                   </h2>
-                  <p className="mt-4 max-w-3xl text-[16px] leading-8 text-black/70">
-                    This result combines the server-side GAFAIG verification
+
+                  <p className="mt-4 text-[16px] leading-8 text-black/70">
+                    This panel combines the server-side GAFAIG verification
                     response with independent client-side Ed25519 signature
-                    validation using <span className="font-semibold">tweetnacl</span>.
+                    validation. It is the clearest public proof surface for the
+                    record currently under review.
                   </p>
                 </div>
 
@@ -563,76 +685,133 @@ export default function VerifyPage() {
                 </div>
               </div>
 
-              <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-                <div className="rounded-3xl border border-black/10 bg-[#fcfcfb] p-5">
-                  <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-black/45">
-                    Registry ID
-                  </div>
-                  <div className="mt-3 break-all text-[14px] font-medium text-black/85">
-                    {record.registryId ?? "—"}
-                  </div>
-                </div>
-
-                <div className="rounded-3xl border border-black/10 bg-[#fcfcfb] p-5">
-                  <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-black/45">
-                    Entity
-                  </div>
-                  <div className="mt-3 text-[14px] font-medium text-black/85">
-                    {record.entityName ?? "—"}
-                  </div>
-                </div>
-
-                <div className="rounded-3xl border border-black/10 bg-[#fcfcfb] p-5">
-                  <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-black/45">
-                    Decision
-                  </div>
-                  <div className="mt-3 text-[14px] font-medium text-black/85">
-                    {record.decisionStatus ?? "—"}
-                  </div>
-                </div>
-
-                <div className="rounded-3xl border border-black/10 bg-[#fcfcfb] p-5">
-                  <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-black/45">
-                    Trust State
-                  </div>
-                  <div className="mt-3 text-[14px] font-medium text-black/85">
-                    {trust.label}
-                  </div>
-                </div>
+              <div className="mt-8">
+                <ProofStateBanner
+                  title={proofState.title}
+                  body={proofState.body}
+                  tone={proofState.tone}
+                />
               </div>
+
+              <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                <ProofMetricCard
+                  label="Trust state"
+                  value={trust.label}
+                  body={
+                    trust.label === "Certified"
+                      ? "Published and trusted in the public registry of record."
+                      : trust.label === "Approved"
+                      ? "Evaluated and approved, but not yet finalized as a certified public record."
+                      : "Not yet finalized as a public trust record."
+                  }
+                />
+                <ProofMetricCard
+                  label="Entity"
+                  value={record.entityName ?? "—"}
+                  body="The organization associated with the public trust record."
+                />
+                <ProofMetricCard
+                  label="Signed at"
+                  value={formatDateShort(proof.signedAt)}
+                  body="Timestamp attached to the current signed proof payload."
+                />
+                <ProofMetricCard
+                  label="Key ID"
+                  value={proof.kid ?? "—"}
+                  body="Published key identifier used to validate the signed proof."
+                />
+              </div>
+            </section>
+
+            <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
+              <div className="text-[12px] font-semibold uppercase tracking-[0.22em] text-black/55">
+                Verification summary
+              </div>
+
+              <h2 className="mt-3 text-[34px] font-semibold leading-[1.1] tracking-[-0.02em] text-black">
+                Human-readable proof status
+              </h2>
+
+              <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                <DetailCard
+                  label="Registry ID"
+                  value={record.registryId ?? "—"}
+                />
+                <DetailCard
+                  label="Decision"
+                  value={record.decisionStatus ?? "—"}
+                />
+                <DetailCard
+                  label="Certification status"
+                  value={record.certificationStatus ?? trust.label}
+                />
+                <DetailCard
+                  label="Country"
+                  value={record.country ?? "—"}
+                />
+              </div>
+
+              <div className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                <DetailCard
+                  label="Certified at"
+                  value={formatDate(record.certifiedAt)}
+                />
+                <DetailCard
+                  label="Valid from"
+                  value={formatDate(record.validFrom)}
+                />
+                <DetailCard
+                  label="Valid to"
+                  value={formatDate(record.validTo)}
+                />
+                <DetailCard
+                  label="Algorithm"
+                  value={proof.alg ?? "—"}
+                />
+              </div>
+            </section>
+
+            <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
+              <div className="text-[12px] font-semibold uppercase tracking-[0.22em] text-black/55">
+                Proof materials
+              </div>
+
+              <h2 className="mt-3 text-[34px] font-semibold leading-[1.1] tracking-[-0.02em] text-black">
+                The exact proof being verified
+              </h2>
+
+              <p className="mt-4 max-w-3xl text-[16px] leading-8 text-black/70">
+                These are the exact public materials used to validate the trust
+                result. External parties can inspect them directly, validate the
+                message string, and confirm that the signature matches the
+                published key.
+              </p>
 
               <div className="mt-8 grid gap-4 md:grid-cols-2">
-                <div className="rounded-3xl border border-black/10 bg-[#fcfcfb] p-5">
-                  <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-black/45">
-                    Verification key URL
-                  </div>
-                  <div className="mt-3 break-all rounded-2xl border border-black/8 bg-white px-4 py-3 text-[13px] text-black/75">
-                    {proof.verificationKeyUrl ?? "—"}
-                  </div>
-                </div>
+                <DetailCard
+                  label="Verification key URL"
+                  value={proof.verificationKeyUrl ?? "—"}
+                />
+                <DetailCard
+                  label="Public key"
+                  value={truncateMiddle(state.publicKeyBase64, 28, 18)}
+                />
+              </div>
 
-                <div className="rounded-3xl border border-black/10 bg-[#fcfcfb] p-5">
-                  <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-black/45">
-                    Signed at
-                  </div>
-                  <div className="mt-3 rounded-2xl border border-black/8 bg-white px-4 py-3 text-[13px] text-black/75">
-                    {formatDate(proof.signedAt)}
-                  </div>
-                </div>
+              <div className="mt-4 grid gap-4 md:grid-cols-2">
+                <DetailCard
+                  label="Signature"
+                  value={truncateMiddle(proof.signature ?? "", 28, 18)}
+                />
+                <DetailCard
+                  label="Message string"
+                  value={truncateMiddle(proof.messageString ?? "", 28, 18)}
+                />
               </div>
 
               <div className="mt-4 rounded-3xl border border-black/10 bg-[#fcfcfb] p-5">
                 <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-black/45">
-                  Signature
-                </div>
-                <div className="mt-3 break-all rounded-2xl border border-black/8 bg-white px-4 py-3 font-mono text-[12px] leading-6 text-black/75">
-                  {proof.signature ?? "—"}
-                </div>
-              </div>
-
-              <div className="mt-4 rounded-3xl border border-black/10 bg-[#fcfcfb] p-5">
-                <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-black/45">
-                  Signed message string
+                  Full signed message string
                 </div>
                 <pre className="mt-3 overflow-x-auto rounded-2xl border border-black/8 bg-white p-4 text-[12px] leading-6 text-black/75">
                   {proof.messageString ?? "—"}
@@ -641,7 +820,7 @@ export default function VerifyPage() {
 
               <div className="mt-4 rounded-3xl border border-black/10 bg-[#fcfcfb] p-5">
                 <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-black/45">
-                  Signed message object
+                  Full signed message object
                 </div>
                 <pre className="mt-3 overflow-x-auto rounded-2xl border border-black/8 bg-white p-4 text-[12px] leading-6 text-black/75">
                   {prettyJson(proof.message)}
