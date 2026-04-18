@@ -16,13 +16,13 @@ export default function ApplyPage() {
           secondaryDescription="The public registry is not the application system. Intake, evidence review, findings, deterministic scoring, and certification decisions occur inside the private GAFAIG verification engine. Only public certification outcomes and trust surfaces are published."
           actions={
             <>
-              <PublicButtonLink href="/demo" variant="primary">
+              <PublicButtonLink href="/demo" variant="dark">
                 Start with the Demo
               </PublicButtonLink>
-              <PublicButtonLink href="/framework" variant="secondary">
+              <PublicButtonLink href="/framework" variant="outline-dark">
                 Review the Framework
               </PublicButtonLink>
-              <PublicButtonLink href="/registry" variant="secondary">
+              <PublicButtonLink href="/registry" variant="outline-dark">
                 View Public Records
               </PublicButtonLink>
             </>
@@ -331,27 +331,15 @@ export default function ApplyPage() {
           </p>
 
           <div className="mt-6 flex flex-wrap gap-3">
-            <PublicButtonLink
-              href="/demo"
-              variant="secondary"
-              className="border-white text-white hover:bg-white/10"
-            >
+            <PublicButtonLink href="/demo" variant="outline-light">
               Start with the Demo
             </PublicButtonLink>
 
-            <PublicButtonLink
-              href="/framework"
-              variant="secondary"
-              className="border-white text-white hover:bg-white/10"
-            >
+            <PublicButtonLink href="/framework" variant="outline-light">
               Review Framework
             </PublicButtonLink>
 
-            <PublicButtonLink
-              href="/mission"
-              variant="secondary"
-              className="border-white text-white hover:bg-white/10"
-            >
+            <PublicButtonLink href="/mission" variant="outline-light">
               Read Mission
             </PublicButtonLink>
           </div>

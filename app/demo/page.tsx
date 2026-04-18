@@ -1,4 +1,3 @@
-import Link from "next/link";
 import PublicPageHero from "../_components/PublicPageHero";
 import PublicButtonLink from "../_components/PublicButtonLink";
 
@@ -19,12 +18,12 @@ export default function DemoPage() {
             <>
               <PublicButtonLink
                 href={`/registry/${DEMO_REGISTRY_ID}`}
-                variant="primary"
+                variant="dark"
               >
                 Start Demo
               </PublicButtonLink>
 
-              <PublicButtonLink href="/registry" variant="secondary">
+              <PublicButtonLink href="/registry" variant="outline-dark">
                 Browse Public Records
               </PublicButtonLink>
             </>
@@ -210,17 +209,13 @@ export default function DemoPage() {
           </p>
 
           <div className="mt-6 flex flex-wrap gap-3">
-            <Link
-              href="/apply"
-              className="inline-flex min-h-[42px] items-center justify-center rounded-full bg-white px-5 text-sm font-semibold text-black transition hover:bg-white/90"
-            >
+            <PublicButtonLink href="/apply" variant="light">
               Begin GAFAIG verification intake
-            </Link>
+            </PublicButtonLink>
 
             <PublicButtonLink
               href="/framework"
-              variant="secondary"
-              className="border-white text-white hover:bg-white/10"
+              variant="outline-light"
             >
               Review Framework
             </PublicButtonLink>
@@ -251,16 +246,16 @@ export default function DemoPage() {
           <div className="mt-6 flex flex-wrap gap-3">
             <PublicButtonLink
               href={`/registry/${DEMO_REGISTRY_ID}`}
-              variant="primary"
+              variant="dark"
             >
               Restart Demo
             </PublicButtonLink>
 
-            <PublicButtonLink href="/framework" variant="secondary">
+            <PublicButtonLink href="/framework" variant="outline-dark">
               Read the Framework
             </PublicButtonLink>
 
-            <PublicButtonLink href="/mission" variant="secondary">
+            <PublicButtonLink href="/mission" variant="outline-dark">
               Read the Mission
             </PublicButtonLink>
           </div>

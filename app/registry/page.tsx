@@ -85,10 +85,10 @@ export default async function RegistryPage({
         description="Browse certified public trust records by organization, jurisdiction, and registry identifier."
         actions={
           <>
-            <PublicButtonLink href="/explorer" variant="primary">
+            <PublicButtonLink href="/explorer" variant="dark">
               Open Explorer
             </PublicButtonLink>
-            <PublicButtonLink href="/verify" variant="secondary">
+            <PublicButtonLink href="/verify" variant="outline-dark">
               Verify a record
             </PublicButtonLink>
           </>
@@ -96,8 +96,7 @@ export default async function RegistryPage({
       />
 
       <div className="max-w-3xl text-[15px] leading-7 text-black/70">
-        This record represents a verified outcome of GAFAIG’s independent review
-        process.
+        This record represents a verified outcome of GAFAIG’s independent review process.
       </div>
 
       <section className="rounded-3xl border border-black/10 bg-white p-8">
@@ -404,18 +403,11 @@ export default async function RegistryPage({
         </p>
 
         <div className="mt-6 flex flex-wrap gap-3">
-          <Link
-            href="/apply"
-            className="inline-flex min-h-[42px] items-center justify-center rounded-full bg-white px-5 text-sm font-semibold text-black transition hover:bg-white/90"
-          >
+          <PublicButtonLink href="/apply" variant="light">
             Apply for verification
-          </Link>
+          </PublicButtonLink>
 
-          <PublicButtonLink
-            href="/demo"
-            variant="secondary"
-            className="border-white text-white hover:bg-white/10"
-          >
+          <PublicButtonLink href="/demo" variant="outline-light">
             Start with the Demo
           </PublicButtonLink>
         </div>
