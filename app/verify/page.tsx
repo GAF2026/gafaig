@@ -153,6 +153,23 @@ function VerificationBadge({
   );
 }
 
+function ProofCard({
+  title,
+  body,
+}: {
+  title: string;
+  body: string;
+}) {
+  return (
+    <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
+      <div className="text-[18px] font-semibold tracking-tight text-black">
+        {title}
+      </div>
+      <p className="mt-3 text-[15px] leading-[1.8] text-black/72">{body}</p>
+    </div>
+  );
+}
+
 async function fetchJson<T>(url: string): Promise<T> {
   const res = await fetch(url, { cache: "no-store" });
   const text = await res.text();
@@ -177,7 +194,9 @@ async function fetchJson<T>(url: string): Promise<T> {
 
 export default function VerifyPage() {
   const [registryId, setRegistryId] = useState(EXAMPLE_ID);
-  const [state, setState] = useState<ClientVerificationState>({ status: "idle" });
+  const [state, setState] = useState<ClientVerificationState>({
+    status: "idle",
+  });
 
   const verifyEndpointUrl = useMemo(() => {
     const id = registryId.trim();
@@ -275,7 +294,7 @@ export default function VerifyPage() {
   const trust = getTrustState(record?.certifiedAt, record?.decisionStatus);
 
   return (
-    <main className="mx-auto max-w-[1180px] px-6 pb-16 pt-14">
+    <main className="mx-auto max-w-[1180px] px-6 py-10">
       <div className="space-y-8">
         <PublicPageHero
           eyebrow="Public verification"
@@ -286,46 +305,86 @@ export default function VerifyPage() {
             <>
               <PublicButtonLink
                 href={`/registry/${EXAMPLE_ID}`}
-                variant="secondary"
+                variant="outline-dark"
               >
                 View example record
               </PublicButtonLink>
-              <PublicButtonLink href="/registry" variant="secondary">
+              <PublicButtonLink href="/registry" variant="outline-dark">
                 Open registry
               </PublicButtonLink>
-              <PublicButtonLink href="/developers" variant="secondary">
+              <PublicButtonLink href="/developers" variant="outline-dark">
                 Developer docs
               </PublicButtonLink>
             </>
           }
         />
 
-        <div className="max-w-3xl text-[15px] leading-7 text-black/70">
-          This is the independent proof layer behind the certification record.
-        </div>
+        <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
+          <div className="max-w-3xl text-[15px] leading-7 text-black/65">
+            This is the independent proof layer behind the certification record.
+          </div>
+
+          <div className="mt-8 text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
+            WHAT THIS PAGE PROVES
+          </div>
+
+          <h2 className="mt-4 max-w-[860px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
+            Independent verification of the public trust record
+          </h2>
+
+          <p className="mt-5 max-w-[980px] text-[16px] leading-[1.85] text-black/75">
+            This page proves that the certification record exists, that the
+            public proof is consistent with the registry, that the disclosed
+            payload is signed, and that the result can be independently
+            verified outside GAFAIG.
+          </p>
+
+          <div className="mt-7 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            <ProofCard
+              title="Record integrity"
+              body="The public proof resolves against the registry record that represents the trust outcome."
+            />
+            <ProofCard
+              title="Signed proof"
+              body="The disclosed payload is cryptographically signed and surfaced with its verification key reference."
+            />
+            <ProofCard
+              title="Independent verification"
+              body="External parties can validate the record without access to private reviewer materials or internal evidence."
+            />
+            <ProofCard
+              title="Portable trust"
+              body="The same result can be verified across registry, API, and widget trust surfaces."
+            />
+          </div>
+        </section>
 
         <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
           <div className="max-w-[980px] space-y-3 text-[15px] leading-[1.8] text-black/65">
             <p>
-              GAFAIG verification distinguishes between evaluated records and publicly trusted records.
+              GAFAIG verification distinguishes between evaluated records and
+              publicly trusted records.
             </p>
 
             <div className="rounded-2xl border border-black/10 bg-black/[0.03] p-5">
               <div className="grid gap-3 text-[15px] leading-[1.8] text-black/72">
                 <div>
                   <span className="font-semibold text-black">Approved</span>{" "}
-                  means the record has completed the GAFAIG evaluation process and received a governance decision.
+                  means the record has completed the GAFAIG evaluation process
+                  and received a governance decision.
                 </div>
 
                 <div>
                   <span className="font-semibold text-black">Certified</span>{" "}
-                  means the evaluated outcome has been finalized and published as a trusted public record in the registry of record.
+                  means the evaluated outcome has been finalized and published
+                  as a trusted public record in the registry of record.
                 </div>
               </div>
             </div>
 
             <p className="text-black/60">
-              Verification confirms record integrity and proof validity. Trust state determines whether the record is publicly certified.
+              Verification confirms record integrity and proof validity. Trust
+              state determines whether the record is publicly certified.
             </p>
           </div>
         </section>
@@ -475,7 +534,7 @@ export default function VerifyPage() {
                     Verification result
                   </div>
                   <h2 className="mt-3 text-[34px] font-semibold leading-[1.1] tracking-[-0.02em] text-black">
-                    Signature validation
+                    Independent signature validation
                   </h2>
                   <p className="mt-4 max-w-3xl text-[16px] leading-8 text-black/70">
                     This result combines the server-side GAFAIG verification
@@ -634,14 +693,17 @@ export default function VerifyPage() {
               </div>
 
               <div className="mt-8 flex flex-wrap gap-3">
-                <PublicButtonLink href={verifyEndpointUrl} variant="secondary">
+                <PublicButtonLink
+                  href={verifyEndpointUrl}
+                  variant="outline-dark"
+                >
                   Open verify endpoint
                 </PublicButtonLink>
 
                 {proof.verificationKeyUrl ? (
                   <PublicButtonLink
                     href={proof.verificationKeyUrl}
-                    variant="secondary"
+                    variant="outline-dark"
                   >
                     Open public key
                   </PublicButtonLink>
@@ -650,7 +712,7 @@ export default function VerifyPage() {
                 {record.registryId ? (
                   <PublicButtonLink
                     href={`/registry/${encodeURIComponent(record.registryId)}`}
-                    variant="secondary"
+                    variant="outline-dark"
                   >
                     Open registry record
                   </PublicButtonLink>
