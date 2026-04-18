@@ -214,7 +214,7 @@ export default function AdminApplicationsPage() {
             <div className="flex flex-wrap gap-3">
               <PublicButtonLink
                 href="/admin/participants"
-                variant="secondary"
+                variant="outline-dark"
                 size="sm"
               >
                 View participants
