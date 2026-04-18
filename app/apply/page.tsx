@@ -64,8 +64,8 @@ export default function ApplyPage() {
                 body="A formal GAFAIG certification decision supported by structured review, findings, and deterministic scoring."
               />
               <ChecklistCard
-                title="Public registry record"
-                body="A canonical public trust record that can be reviewed by third parties after certification and publication."
+                title="Public trust record"
+                body="A canonical public trust record that can be reviewed and independently verified after certification and publication."
               />
               <ChecklistCard
                 title="Independent verification endpoint"
@@ -76,6 +76,37 @@ export default function ApplyPage() {
                 body="Widget, badge, and API trust surfaces that allow your certified outcome to travel across the web."
               />
             </div>
+          </div>
+        </section>
+
+        <section className="rounded-3xl border border-black/10 bg-white p-8">
+          <SectionEyebrow>What happens next</SectionEyebrow>
+          <h2 className="mt-4 max-w-[860px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
+            From application to certified public record
+          </h2>
+
+          <p className="mt-4 max-w-[920px] text-[16px] leading-[1.85] text-black/72">
+            GAFAIG does not treat this as a generic contact form. Submitting an
+            application initiates a structured verification workflow that can
+            lead to a published, independently verifiable public trust record.
+          </p>
+
+          <div className="mt-8 grid gap-4 md:grid-cols-3">
+            <PathCard
+              number="1"
+              title="Application received"
+              body="Your submission is recorded and assigned a verification case."
+            />
+            <PathCard
+              number="2"
+              title="Verification process"
+              body="GAFAIG evaluates governance, evidence, and human oversight controls."
+            />
+            <PathCard
+              number="3"
+              title="Public trust record"
+              body="Certified outcomes are published as independently verifiable public records."
+            />
           </div>
         </section>
 
@@ -98,6 +129,12 @@ export default function ApplyPage() {
             state.
           </p>
 
+          <div className="mt-6 flex flex-wrap gap-3 text-[12px] text-black/60">
+            <span>• Structured verification process</span>
+            <span>• Independent evaluation</span>
+            <span>• Public trust record upon certification</span>
+          </div>
+
           <div className="mt-6 rounded-2xl border border-black/10 bg-black/[0.02] p-5">
             <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/55">
               Before you submit
@@ -106,49 +143,14 @@ export default function ApplyPage() {
               Takes about 2 minutes to begin. Full verification happens after
               intake.
             </p>
+            <p className="mt-2 text-[13px] leading-6 text-black/60">
+              This submission initiates a GAFAIG verification case. No
+              certification is granted without full evaluation.
+            </p>
           </div>
 
-          <ApplyForm />
-        </section>
-
-        <section className="rounded-3xl border border-black/10 bg-white p-8">
-          <SectionEyebrow>What happens after submission</SectionEyebrow>
-          <h2 className="mt-4 max-w-[860px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
-            From intake to certification to public proof
-          </h2>
-
-          <p className="mt-4 max-w-[920px] text-[16px] leading-[1.9] text-black/72">
-            GAFAIG operates through a controlled verification workflow. Public
-            publication happens only after the private review process produces a
-            formal certification outcome.
-          </p>
-
-          <div className="mt-8 grid gap-4 md:grid-cols-5">
-            <PathCard
-              number="1"
-              title="Intake"
-              body="Your organization enters the private GAFAIG verification process."
-            />
-            <PathCard
-              number="2"
-              title="Evidence review"
-              body="Governance materials and oversight artifacts are assessed."
-            />
-            <PathCard
-              number="3"
-              title="Findings + scoring"
-              body="Inputs are translated into deterministic review outputs."
-            />
-            <PathCard
-              number="4"
-              title="Decision"
-              body="GAFAIG records a formal certification decision."
-            />
-            <PathCard
-              number="5"
-              title="Publication"
-              body="Certified outcomes are published as public trust records."
-            />
+          <div className="mt-8">
+            <ApplyForm />
           </div>
         </section>
 
@@ -199,7 +201,7 @@ export default function ApplyPage() {
               <BoundaryCard
                 title="Published trust surfaces"
                 points={[
-                  "Canonical registry record",
+                  "Canonical public trust record",
                   "Signed verification proof",
                   "Public verification endpoint",
                   "Badge, widget, and portable trust signals",
