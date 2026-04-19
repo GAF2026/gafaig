@@ -88,8 +88,8 @@ export default async function HomePage() {
         <PublicPageHero
           eyebrow="GLOBAL AUTHORITY FOR AI GOVERNANCE"
           title="Proof that human oversight in AI systems is real, functioning, and independently verifiable."
-          description="GAFAIG is the Global Authority for AI Governance. It verifies that meaningful human oversight is actually functioning across an organization’s AI operations and publishes public certification records that can be independently verified."
-          secondaryDescription="GAFAIG combines a private verification engine with a public trust layer. Certified outcomes are published as signed records that can be independently verified and used across external platforms."
+          description="GAFAIG is the Global Authority for AI Governance. It proves that meaningful human oversight is functioning across an organization’s AI operations and publishes independently verifiable public trust records."
+          secondaryDescription="GAFAIG combines a private verification engine with a public trust layer. Certified outcomes are published as independently verifiable public trust records backed by signed proof and used across external platforms."
           actions={
             <>
               <PublicButtonLink href="/demo" variant="primary">
@@ -115,7 +115,7 @@ export default async function HomePage() {
           <PillarCard
             eyebrow="Pillar 1"
             title="Private Verification Engine"
-            body="Organizations move through a structured review process where evidence, findings, governance controls, and human oversight materials are assessed in a controlled environment."
+            body="Organizations move through a structured verification process where evidence, findings, governance controls, and human oversight materials are assessed in a controlled environment."
             points={[
               "Private review workflow",
               "Structured evidence and findings process",
@@ -141,7 +141,7 @@ export default async function HomePage() {
           <PillarCard
             eyebrow="Pillar 3"
             title="Global Trust Surface"
-            body="GAFAIG makes AI governance visible through public registry pages, verification endpoints, and portable trust surfaces that can travel across the web."
+            body="GAFAIG proves human oversight in AI systems through public registry pages, verification endpoints, and portable trust surfaces that can travel across the web."
             points={[
               "Organizations and AI systems",
               "Country-level public visibility",
@@ -164,8 +164,8 @@ export default async function HomePage() {
           <p className="mt-5 max-w-[980px] text-[16px] leading-[1.9] text-black/75">
             As AI systems move into real-world use, governance cannot remain a
             policy statement or a private internal claim. Organizations need a
-            system that proves human oversight is real, functioning, and
-            externally verifiable. GAFAIG provides that proof layer.
+            system that proves human oversight in AI systems is real, functioning,
+            and externally verifiable. GAFAIG provides that proof layer.
           </p>
 
           <div className="mt-7 grid gap-4 md:grid-cols-2">
@@ -190,9 +190,9 @@ export default async function HomePage() {
           </h2>
 
           <p className="mt-5 max-w-[960px] text-[16px] leading-[1.85] text-black/75">
-            The GAFAIG demo walks through the exact steps used to verify AI
-            governance. Start with a certified record, open the verification
-            surface, inspect the signed payload, and see how the trust signal
+            The GAFAIG demo proves the exact steps used to verify human oversight
+            in AI systems. Start with a certified record, open the verification
+            surface, inspect the signed proof, and see how the trust signal
             works outside the platform.
           </p>
 
@@ -213,14 +213,14 @@ export default async function HomePage() {
           </div>
 
           <h2 className="mt-4 max-w-[860px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
-            The four steps that make AI governance independently verifiable
+            The four steps that make human oversight in AI systems independently verifiable
           </h2>
 
           <p className="mt-5 max-w-[980px] text-[16px] leading-[1.85] text-black/75">
-            GAFAIG converts governance into a public, verifiable signal. A
-            certified record is published, validated through signed proof,
-            exposed as a machine-readable payload, and made portable through
-            external trust surfaces.
+            GAFAIG converts human oversight in AI systems into an independently
+            verifiable public trust signal. A certified record is published,
+            validated through signed proof, exposed as a machine-readable payload,
+            and made portable through external trust surfaces.
           </p>
 
           <div className="mt-8 grid gap-4 md:grid-cols-4">

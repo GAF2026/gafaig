@@ -96,16 +96,16 @@ export default async function RegistryPage({
               Open Explorer
             </PublicButtonLink>
             <PublicButtonLink href="/verify" variant="outline-dark">
-              Verify a record
+              Verify a Record
             </PublicButtonLink>
           </>
         }
       />
 
       <div className="max-w-3xl text-[15px] leading-7 text-black/70">
-        Each entry in the Registry of Record represents a published GAFAIG trust
-        outcome that can be reviewed, verified, and validated outside the
-        originating organization’s platform.
+        Each entry in the Registry of Record represents a published GAFAIG public
+        trust record that can be independently verified outside the originating
+        organization’s platform.
       </div>
 
       <section className="rounded-3xl border border-black/10 bg-white p-8">
@@ -117,8 +117,8 @@ export default async function RegistryPage({
             The registry is the public index of certified trust records
           </h2>
           <p className="text-base leading-7 text-black/70">
-            The Registry of Record displays certified public trust records
-            issued through the GAFAIG verification engine. It is narrower than
+            The Registry of Record proves certified public trust records issued
+            through the GAFAIG verification process. It is narrower than
             Explorer. Explorer can surface the broader public trust footprint,
             while the Registry of Record is reserved for verification outcomes
             that have been finalized, published, and independently verifiable.
@@ -129,7 +129,7 @@ export default async function RegistryPage({
               <div className="text-sm font-semibold text-black">Approved</div>
               <p className="mt-2 text-sm leading-6 text-black/65">
                 Approved means a record has completed the full GAFAIG
-                evaluation process, including findings, evidence review, and
+                verification process, including findings, evidence review, and
                 governance scoring, but has not yet been finalized as a public
                 certified trust record.
               </p>
@@ -411,8 +411,8 @@ export default async function RegistryPage({
         <p className="mt-4 max-w-[860px] text-[16px] leading-[1.85] text-white/80">
           GAFAIG certification produces an independently verifiable public trust
           record like the ones above. If your organization operates AI systems
-          and needs external proof that human oversight is functioning, you can
-          begin the GAFAIG verification intake process now.
+          and needs independently verifiable proof that human oversight is
+          functioning, you can begin the GAFAIG verification process now.
         </p>
 
         <div className="mt-6 flex flex-wrap gap-3">

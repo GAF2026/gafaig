@@ -11,8 +11,8 @@ export default function DemoPage() {
       <div className="space-y-8">
         <PublicPageHero
           eyebrow="DEMO"
-          title="See how AI governance becomes independently verifiable"
-          description="GAFAIG turns AI governance from a private claim into a public, independently verifiable trust record. This demo follows the exact sequence from certified record to signed proof to portable trust surface."
+          title="See how human oversight in AI systems becomes independently verifiable"
+          description="GAFAIG converts human oversight in AI systems from a private claim into an independently verifiable public trust record. This demo proves the exact sequence from certified record to signed proof to portable trust surface."
           secondaryDescription="This page uses one real GAFAIG record to show how certification is published, verified, and surfaced outside an organization’s platform."
           actions={
             <>
@@ -40,7 +40,7 @@ export default function DemoPage() {
           </div>
 
           <h2 className="mt-4 max-w-[860px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
-            Most AI governance is still a claim
+            Most human oversight in AI systems is still a claim
           </h2>
 
           <p className="mt-5 max-w-[960px] text-[16px] leading-[1.85] text-black/75">
@@ -56,7 +56,7 @@ export default function DemoPage() {
               body="A policy statement, internal documentation, or self-declared claim that oversight is in place."
             />
             <StatementCard
-              title="What GAFAIG adds"
+              title="What GAFAIG proves"
               body="An independently verifiable public trust record backed by signed proof, a verification surface, and portable trust signals."
             />
           </div>
@@ -72,9 +72,9 @@ export default function DemoPage() {
           </h2>
 
           <p className="mt-5 max-w-[960px] text-[16px] leading-[1.85] text-black/75">
-            This walkthrough uses a live GAFAIG record to show how trust moves
-            through the public surface. Each step reflects a real part of the
-            platform that is already built and publicly accessible.
+            This walkthrough uses a live GAFAIG record to prove how trust moves
+            through the public surface. Each step proves a real part of the
+            verification process that is already built and publicly accessible.
           </p>
 
           <div className="mt-8 grid gap-4 md:grid-cols-4">
@@ -122,8 +122,8 @@ export default function DemoPage() {
         <section className="grid gap-4 md:grid-cols-2">
           <DemoCard
             eyebrow="STEP 3"
-            title="Inspect the signed payload"
-            body="The verification endpoint exposes the machine-readable proof directly. This is what allows external systems to validate the record instead of relying on a visual page alone."
+            title="Inspect the signed proof payload"
+            body="The verification endpoint exposes the machine-readable proof directly. This is what allows external systems to independently verify the record instead of relying on a visual page alone."
             href={`/api/verify/${DEMO_REGISTRY_ID}`}
             cta="Open Verify JSON"
           />
@@ -131,7 +131,7 @@ export default function DemoPage() {
           <DemoCard
             eyebrow="STEP 4"
             title="Render the external trust surface"
-            body="The widget preview shows how the same verified trust result can appear outside GAFAIG through a portable, embeddable interface."
+            body="The widget preview proves how the same verified trust result can appear outside GAFAIG through a portable, embeddable interface."
             href={`/widget-preview/${DEMO_REGISTRY_ID}`}
             cta="Open Widget Preview"
           />
@@ -181,7 +181,7 @@ export default function DemoPage() {
             />
             <FeatureCard
               title="Signed verification proof"
-              body="Confirm that the verification surface exposes a signed payload and public key reference."
+              body="Confirm that the verification surface exposes signed proof and a public key reference."
             />
             <FeatureCard
               title="Portable trust outcome"
@@ -209,7 +209,7 @@ export default function DemoPage() {
           <p className="mt-4 max-w-[860px] text-[15px] leading-[1.85] text-white/75">
             If your organization operates AI systems and needs independently
             verifiable proof that human oversight is functioning, you can begin
-            the GAFAIG verification intake process now.
+            the GAFAIG verification process now.
           </p>
 
           <div className="mt-6 flex flex-wrap gap-3">
