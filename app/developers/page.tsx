@@ -22,7 +22,7 @@ export default function DevelopersPage() {
           eyebrow="DEVELOPERS"
           title="Integrate GAFAIG proof into your own systems"
           description="GAFAIG is not only a public registry. It is a proof layer that developers can verify, display, and distribute across websites, products, and internal systems."
-          secondaryDescription="Use the verification endpoint, public key endpoint, signed proof payload, and widget surfaces to validate that a published GAFAIG certification record is real, current, and independently verifiable."
+          secondaryDescription="Use the verification endpoint, public key endpoint, signed proof payload, and widget surfaces to validate that a published GAFAIG public trust record is real, current, and independently verifiable."
           actions={
             <>
               <PublicButtonLink href="/demo" variant="dark">
@@ -199,9 +199,9 @@ export default function DevelopersPage() {
 
             <p className="mt-4 text-[15px] leading-[1.85] text-black/75">
               The verify endpoint is the canonical public proof surface. It
-              returns the registry record together with proof metadata such as
-              algorithm, key ID, signature, signed timestamp, verification key
-              URL, and the deterministic signed message.
+              returns the public trust record together with proof metadata such
+              as algorithm, key ID, signature, signed timestamp, verification
+              key URL, and the deterministic signed message.
             </p>
 
             <CodeBlock
@@ -260,8 +260,8 @@ Response fields include:
 
           <p className="mt-5 max-w-[980px] text-[16px] leading-[1.85] text-black/75">
             The widget is the fastest way to display a live GAFAIG trust result
-            on an external website. It uses the published record and proof
-            surfaces rather than creating a new trust decision.
+            on an external website. It uses the published public trust record
+            and signed proof surfaces rather than creating a new trust decision.
           </p>
 
           <div className="mt-7 grid gap-4 lg:grid-cols-2">
@@ -299,7 +299,7 @@ Response fields include:
 
           <p className="mt-4 max-w-[860px] text-[16px] leading-[1.85] text-white/80">
             GAFAIG allows organizations, products, marketplaces, and third-party
-            systems to prove that a published certification record is real and
+            systems to prove that a published public trust record is real and
             current. The trust result can be verified through API calls,
             validated through signed proof, or displayed directly through a
             widget surface.
@@ -312,7 +312,7 @@ Response fields include:
             />
             <DarkCard
               title="Internal validation"
-              body="Verify public proof in your own systems when trust status affects workflows, approvals, or procurement."
+              body="Verify signed proof in your own systems when trust status affects workflows, approvals, or procurement."
             />
             <DarkCard
               title="External display"
@@ -339,13 +339,13 @@ Response fields include:
             />
             <LinkCard
               title="Verify"
-              body="Inspect the proof surface."
+              body="Inspect the signed proof surface."
               href={`/verify/${DEMO_REGISTRY_ID}`}
               cta="Open verify"
             />
             <LinkCard
               title="JSON"
-              body="Read the machine-usable proof."
+              body="Read the machine-usable signed proof."
               href={verifyEndpoint}
               cta="Open endpoint"
             />

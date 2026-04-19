@@ -12,7 +12,7 @@ export default function ApplyPage() {
         <PublicPageHero
           eyebrow="APPLY"
           title="Apply for independent verification of human oversight in AI"
-          description="GAFAIG certification is for organizations that want credible, third-party proof that meaningful human oversight is actually functioning across their AI operations. Verification is performed inside a controlled private review environment and, if certified, published as a verifiable public trust record."
+          description="GAFAIG certification is for organizations that want credible, third-party proof that meaningful human oversight is actually functioning across their AI operations. Verification is performed inside a controlled private review environment and, if certified, published as an independently verifiable public trust record."
           secondaryDescription="The public registry is not the application system. Intake, evidence review, findings, deterministic scoring, and certification decisions occur inside the private GAFAIG verification engine. Only public certification outcomes and trust surfaces are published."
           actions={
             <>
@@ -47,7 +47,7 @@ export default function ApplyPage() {
               />
               <AudienceCard
                 title="Companies preparing for scrutiny"
-                body="Apply if customers, regulators, partners, investors, or the public may need proof that human oversight in AI systems is functioning."
+                body="Apply if customers, regulators, partners, investors, or the public may need independently verifiable proof that human oversight in AI systems is functioning."
               />
             </div>
           </div>
@@ -105,7 +105,7 @@ export default function ApplyPage() {
             <PathCard
               number="3"
               title="Public trust record"
-              body="Certified outcomes are published as independently verifiable public records."
+              body="Certified outcomes are published as independently verifiable public trust records."
             />
           </div>
         </section>
@@ -117,10 +117,10 @@ export default function ApplyPage() {
           </h2>
 
           <p className="mt-4 max-w-[900px] text-[16px] leading-[1.85] text-black/72">
-            Submit your organization details to enter the GAFAIG intake process.
-            This creates an intake record for private review and routes your
-            application into the verification workflow. Applying does not place
-            your organization in the public registry.
+            Submit your organization details to begin the GAFAIG verification
+            process. This creates an intake record for private review and routes
+            your application into the verification workflow. Applying does not
+            place your organization in the public registry.
           </p>
 
           <p className="mt-4 max-w-[900px] text-[15px] leading-[1.85] text-black/68">
@@ -262,7 +262,7 @@ export default function ApplyPage() {
             <InfoCard
               label="Registry"
               value="Public record"
-              body="A canonical trust record is published to GAFAIG."
+              body="A canonical public trust record is published to GAFAIG."
             />
             <InfoCard
               label="Verification"
@@ -289,7 +289,7 @@ export default function ApplyPage() {
           </h2>
 
           <p className="mt-4 max-w-[860px] text-[16px] leading-[1.85] text-black/70">
-            GAFAIG’s live demo and public trust surfaces show the exact kind of
+            GAFAIG’s live demo and public trust surfaces prove the exact kind of
             outcome the certification process produces. Start there, then review
             the framework and trust interfaces before entering the verification
             workflow.

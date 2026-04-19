@@ -156,7 +156,7 @@ function getProofStateLabel(
   if (endpointVerified && signatureVerified) {
     return {
       title: "Proof valid",
-      body: "The public record resolved successfully and the disclosed signature validates against the published key.",
+      body: "The public trust record resolved successfully and the disclosed signature validates against the published key.",
       tone: "success" as const,
     };
   }
@@ -172,7 +172,7 @@ function getProofStateLabel(
   if (endpointVerified && !signatureVerified) {
     return {
       title: "Endpoint verified, signature invalid",
-      body: "The public record resolved, but the signature did not validate against the published key.",
+      body: "The public trust record resolved, but the signature did not validate against the published key.",
       tone: "danger" as const,
     };
   }
@@ -295,7 +295,12 @@ function ProofStateBanner({
 
   return (
     <div className={cn("rounded-2xl border p-5", toneClasses)}>
-      <div className={cn("text-[18px] font-semibold tracking-tight", titleClasses)}>
+      <div
+        className={cn(
+          "text-[18px] font-semibold tracking-tight",
+          titleClasses
+        )}
+      >
         {title}
       </div>
       <p className={cn("mt-2 text-[14px] leading-7", bodyClasses)}>{body}</p>
@@ -436,7 +441,7 @@ export default function VerifyPage() {
         <PublicPageHero
           eyebrow="Public verification"
           title="Verify a GAFAIG record"
-          description="Confirm whether a GAFAIG record is valid by registry ID. Verification checks the live record, proof payload, signature, and trust state."
+          description="Confirm whether a GAFAIG public trust record is valid by registry ID. Verification checks the live record, signed proof, signature, and trust state."
           secondaryDescription="Records may be Approved (evaluated) or Certified (trusted and published). Verification confirms cryptographic integrity and alignment with the public registry, without exposing private evidence."
           actions={
             <>
@@ -470,16 +475,15 @@ export default function VerifyPage() {
           </h2>
 
           <p className="mt-5 max-w-[980px] text-[16px] leading-[1.85] text-black/75">
-            This page proves that the certification record exists, that the
-            public proof is consistent with the registry, that the disclosed
-            payload is signed, and that the result can be independently
-            verified outside GAFAIG.
+            This page proves that the public trust record is valid, that the
+            disclosed signed proof is consistent with the registry, and that the
+            result can be independently verified outside GAFAIG.
           </p>
 
           <div className="mt-7 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
             <ProofCard
               title="Record integrity"
-              body="The public proof resolves against the registry record that represents the trust outcome."
+              body="The signed proof resolves against the public trust record that represents the certified outcome."
             />
             <ProofCard
               title="Signed proof"
@@ -507,21 +511,22 @@ export default function VerifyPage() {
               <div className="grid gap-3 text-[15px] leading-[1.8] text-black/72">
                 <div>
                   <span className="font-semibold text-black">Approved</span>{" "}
-                  means the record has completed the GAFAIG evaluation process
+                  means the record has completed the GAFAIG verification process
                   and received a governance decision.
                 </div>
 
                 <div>
                   <span className="font-semibold text-black">Certified</span>{" "}
                   means the evaluated outcome has been finalized and published
-                  as a trusted public record in the registry of record.
+                  as an independently verifiable public trust record in the
+                  Registry of Record.
                 </div>
               </div>
             </div>
 
             <p className="text-black/60">
-              Verification confirms record integrity and proof validity. Trust
-              state determines whether the record is publicly certified.
+              Verification confirms record integrity and signed proof validity.
+              Trust state determines whether the record is publicly certified.
             </p>
           </div>
         </section>
@@ -536,8 +541,8 @@ export default function VerifyPage() {
           </h2>
 
           <p className="mt-3 max-w-3xl text-[16px] leading-8 text-black/70">
-            Enter a GAFAIG registry ID to retrieve the public verification record
-            and signed proof payload.
+            Enter a GAFAIG registry ID to retrieve the public trust record and
+            signed proof payload.
           </p>
 
           <div className="mt-6 flex flex-col gap-3 lg:flex-row">
@@ -595,11 +600,11 @@ export default function VerifyPage() {
           </h2>
 
           <p className="mt-4 max-w-3xl text-[16px] leading-8 text-white/72">
-            GAFAIG verification confirms that a public registry record exists,
-            that it is currently surfaced through the canonical registry views,
-            and that its proof payload is signed for independent verification.
-            The public layer does not disclose private reviewer materials,
-            internal evidence, or assessment workflow details.
+            GAFAIG verification confirms that a public trust record exists, that
+            it is currently surfaced through the canonical registry views, and
+            that its signed proof is valid for independent verification. The
+            public layer does not disclose private reviewer materials, internal
+            evidence, or assessment workflow details.
           </p>
 
           <div className="mt-8 grid gap-4 md:grid-cols-3">
@@ -608,11 +613,11 @@ export default function VerifyPage() {
                 Step 1
               </div>
               <div className="mt-3 text-[20px] font-semibold">
-                Resolve public record
+                Resolve public trust record
               </div>
               <p className="mt-3 text-[14px] leading-7 text-white/68">
-                The verification endpoint resolves the registry record from the
-                canonical public registry view in Snowflake.
+                The verification endpoint resolves the public trust record from
+                the canonical public registry view in Snowflake.
               </p>
             </div>
 
@@ -621,11 +626,11 @@ export default function VerifyPage() {
                 Step 2
               </div>
               <div className="mt-3 text-[20px] font-semibold">
-                Construct proof message
+                Construct signed proof
               </div>
               <p className="mt-3 text-[14px] leading-7 text-white/68">
-                GAFAIG creates a deterministic public proof payload from the
-                disclosed trust record.
+                GAFAIG creates a deterministic public signed proof payload from
+                the disclosed trust record.
               </p>
             </div>
 
@@ -699,9 +704,9 @@ export default function VerifyPage() {
                   value={trust.label}
                   body={
                     trust.label === "Certified"
-                      ? "Published and trusted in the public registry of record."
+                      ? "Published and trusted in the Registry of Record."
                       : trust.label === "Approved"
-                      ? "Evaluated and approved, but not yet finalized as a certified public record."
+                      ? "Evaluated and approved, but not yet finalized as a certified public trust record."
                       : "Not yet finalized as a public trust record."
                   }
                 />
@@ -745,10 +750,7 @@ export default function VerifyPage() {
                   label="Certification status"
                   value={record.certificationStatus ?? trust.label}
                 />
-                <DetailCard
-                  label="Country"
-                  value={record.country ?? "—"}
-                />
+                <DetailCard label="Country" value={record.country ?? "—"} />
               </div>
 
               <div className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
@@ -764,10 +766,7 @@ export default function VerifyPage() {
                   label="Valid to"
                   value={formatDate(record.validTo)}
                 />
-                <DetailCard
-                  label="Algorithm"
-                  value={proof.alg ?? "—"}
-                />
+                <DetailCard label="Algorithm" value={proof.alg ?? "—"} />
               </div>
             </section>
 
@@ -777,7 +776,7 @@ export default function VerifyPage() {
               </div>
 
               <h2 className="mt-3 text-[34px] font-semibold leading-[1.1] tracking-[-0.02em] text-black">
-                The exact proof being verified
+                The exact signed proof being verified
               </h2>
 
               <p className="mt-4 max-w-3xl text-[16px] leading-8 text-black/70">
