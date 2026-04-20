@@ -14,7 +14,7 @@
     window.location.origin ||
     "https://www.gafaig.com";
 
-  var STYLE_ID = "gafaig-widget-styles-v4";
+  var STYLE_ID = "gafaig-widget-styles-v5";
 
   function injectStyles() {
     if (document.getElementById(STYLE_ID)) return;
@@ -327,9 +327,8 @@
   function resolveTrustState(record) {
     if (!record) return "Pending";
 
-    if (record.certifiedAt && String(record.certifiedAt).trim()) {
-      return "Certified";
-    }
+    var status = String(record.certificationStatus || "").trim().toUpperCase();
+    if (status === "CERTIFIED") return "Certified";
 
     if (
       record.decisionStatus &&
@@ -348,6 +347,19 @@
     return "Unavailable";
   }
 
+  function metric(label, value) {
+    return (
+      '<div class="gafaig-widget-metric">' +
+      '<div class="gafaig-widget-metric-label">' +
+      esc(label) +
+      "</div>" +
+      '<div class="gafaig-widget-metric-value">' +
+      esc(value) +
+      "</div>" +
+      "</div>"
+    );
+  }
+
   function renderError(el, registryId, message) {
     var recordUrl = ORIGIN + "/registry/" + encodeURIComponent(registryId);
 
@@ -360,9 +372,13 @@
       '<span class="gafaig-widget-chip gafaig-widget-chip-neutral">GAFAIG</span>' +
       "</div>" +
       '<h3 class="gafaig-widget-title">GAFAIG verification unavailable</h3>' +
-      '<p class="gafaig-widget-copy">' + esc(message || "Failed to fetch") + "</p>" +
+      '<p class="gafaig-widget-copy">' +
+      esc(message || "Failed to fetch") +
+      "</p>" +
       '<div class="gafaig-widget-actions">' +
-      '<a class="gafaig-widget-btn gafaig-widget-btn-secondary" href="' + recordUrl + '" target="_blank" rel="noopener noreferrer">Open GAFAIG record</a>' +
+      '<a class="gafaig-widget-btn gafaig-widget-btn-secondary" href="' +
+      recordUrl +
+      '" target="_blank" rel="noopener noreferrer">Open GAFAIG record</a>' +
       "</div>" +
       "</div>";
   }
@@ -377,26 +393,20 @@
     var record = verifyData && verifyData.record ? verifyData.record : null;
     var proof = verifyData && verifyData.proof ? verifyData.proof : null;
 
-    var entityName = safeText(
-      record && record.entityName,
-      row && row.entityName
-    );
-    var country = safeText(
-      record && record.country,
-      row && row.country
-    );
-    var tier = safeText(
-      record && record.certifiedTier,
-      row && row.certifiedTier
-    );
-    var band = safeText(
-      record && record.certifiedBand,
-      row && row.certifiedBand
-    );
-    var decision = safeText(
-      record && record.decisionStatus,
-      row && row.decisionStatus
-    );
+    var entityName = safeText(record && record.entityName);
+    var country = safeText(record && record.country);
+    var tier = safeText(record && record.certifiedTier);
+    var band = safeText(record && record.certifiedBand);
+    var decision = safeText(record && record.decisionStatus);
+
+    if (!record && row) {
+      entityName = safeText(row.entityName);
+      country = safeText(row.country);
+      tier = safeText(row.certifiedTier);
+      band = safeText(row.certifiedBand);
+      decision = safeText(row.decisionStatus);
+    }
+
     var status = resolveTrustState(record || row);
     var validation = resolveVerificationState(verifyData);
     var validTo = formatDate(
@@ -430,12 +440,24 @@
       '<div class="gafaig-widget-topline"></div>' +
       '<div class="gafaig-widget-eyebrow">GAFAIG Trust Widget</div>' +
       '<div class="gafaig-widget-chip-row">' +
-      '<span class="gafaig-widget-chip ' + statusChipClass + '">' + esc(status) + "</span>" +
-      '<span class="gafaig-widget-chip ' + validationChipClass + '">' + esc(validation) + "</span>" +
-      '<span class="gafaig-widget-chip gafaig-widget-chip-approved">' + esc(decision) + "</span>" +
+      '<span class="gafaig-widget-chip ' +
+      statusChipClass +
+      '">' +
+      esc(status) +
+      "</span>" +
+      '<span class="gafaig-widget-chip ' +
+      validationChipClass +
+      '">' +
+      esc(validation) +
+      "</span>" +
+      '<span class="gafaig-widget-chip gafaig-widget-chip-approved">' +
+      esc(decision) +
+      "</span>" +
       "</div>" +
-      '<h3 class="gafaig-widget-title">' + esc(entityName) + "</h3>" +
-      '<p class="gafaig-widget-copy">Public trust record independently verifiable through GAFAIG.</p>' +
+      '<h3 class="gafaig-widget-title">' +
+      esc(entityName) +
+      "</h3>" +
+      '<p class="gafaig-widget-copy">Public trust record verified via signed GAFAIG registry record and cryptographic proof.</p>' +
       '<div class="gafaig-widget-trust-panel">' +
       '<div class="gafaig-widget-trust-header">' +
       '<div class="gafaig-widget-trust-title">Public trust summary</div>' +
@@ -446,7 +468,8 @@
       "</div>" +
       "</div>" +
       '<div class="gafaig-widget-trust-copy">' +
-      esc(entityName) + " is listed in the GAFAIG registry with a public verification record and independently resolvable trust surface." +
+      esc(entityName) +
+      " is listed in the GAFAIG registry with signed verification data and independently resolvable cryptographic proof." +
       "</div>" +
       "</div>" +
       '<div class="gafaig-widget-grid">' +
@@ -456,33 +479,33 @@
       metric("Certified", certifiedAt) +
       metric("Decision", decision) +
       metric("Valid To", validTo) +
+      metric("Country", country) +
+      metric("Signature", proof ? "Valid (Ed25519)" : "Unavailable") +
+      metric("Key ID", proof && proof.kid ? proof.kid : "—") +
       "</div>" +
       '<div class="gafaig-widget-id">' +
       '<div class="gafaig-widget-metric-label">Registry ID</div>' +
-      '<div class="gafaig-widget-metric-value">' + esc(registryId) + "</div>" +
+      '<div class="gafaig-widget-metric-value">' +
+      esc(registryId) +
+      "</div>" +
       "</div>" +
       '<div class="gafaig-widget-actions">' +
-      '<a class="gafaig-widget-btn gafaig-widget-btn-primary" href="' + recordUrl + '" target="_blank" rel="noopener noreferrer">Open record</a>' +
-      '<a class="gafaig-widget-btn gafaig-widget-btn-secondary" href="' + verifyPageUrl + '" target="_blank" rel="noopener noreferrer">Open verify page</a>' +
-      '<a class="gafaig-widget-btn gafaig-widget-btn-secondary" href="' + verifyApiUrl + '" target="_blank" rel="noopener noreferrer">Verify JSON</a>' +
+      '<a class="gafaig-widget-btn gafaig-widget-btn-primary" href="' +
+      recordUrl +
+      '" target="_blank" rel="noopener noreferrer">Open record</a>' +
+      '<a class="gafaig-widget-btn gafaig-widget-btn-secondary" href="' +
+      verifyPageUrl +
+      '" target="_blank" rel="noopener noreferrer">Open verify page</a>' +
+      '<a class="gafaig-widget-btn gafaig-widget-btn-secondary" href="' +
+      verifyApiUrl +
+      '" target="_blank" rel="noopener noreferrer">Verify JSON</a>' +
       "</div>" +
       '<div class="gafaig-widget-footer">' +
-      'Verified via GAFAIG public trust infrastructure · <a href="' + verifyPageUrl + '" target="_blank" rel="noopener noreferrer">View verification details</a>' +
+      'Verified via GAFAIG public trust infrastructure · <a href="' +
+      verifyApiUrl +
+      '" target="_blank" rel="noopener noreferrer">View signed verification JSON</a>' +
       "</div>" +
       "</div>";
-
-    function metric(label, value) {
-      return (
-        '<div class="gafaig-widget-metric">' +
-        '<div class="gafaig-widget-metric-label">' +
-        esc(label) +
-        "</div>" +
-        '<div class="gafaig-widget-metric-value">' +
-        esc(value) +
-        "</div>" +
-        "</div>"
-      );
-    }
   }
 
   async function fetchJson(url) {
@@ -523,7 +546,13 @@
         fetchJson(verifyUrl),
       ]);
 
-      renderWidget(el, registryId, results[0], results[1]);
+      var verify = results[1];
+
+      if (!verify || verify.ok !== true || verify.verified !== true) {
+        throw new Error("Verification failed");
+      }
+
+      renderWidget(el, registryId, results[0], verify);
     } catch (error) {
       var message =
         error && typeof error.message === "string"

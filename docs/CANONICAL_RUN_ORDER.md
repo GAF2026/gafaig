@@ -1,366 +1,296 @@
-# CANONICAL_RUN_ORDER.md — Last Updated: 2026-04-19
+# GAFAIG_CANONICAL_RUN_ORDER.md
+Last Updated: 2026-04-20
 
-## PURPOSE
+# PURPOSE
+This document defines the exact deterministic execution order of all GAFAIG Snowflake files and procedures. This is the ONLY valid run sequence. Do not reorder. Do not skip. Do not parallelize.
 
-This document defines the exact canonical execution order for rebuilding and running the GAFAIG system in Snowflake.
-
-It ensures:
-- Deterministic system initialization
-- Correct dependency sequencing
-- Zero schema drift
-- Full pipeline integrity
-
-This is the ONLY valid execution order.
-
-Any deviation is a system violation.
+Snowflake is the source of truth.
+All computation must occur in Snowflake.
+All downstream systems (API/UI/Widget) are read-only projections.
 
 ---
 
-## CORE PRINCIPLE
+# GLOBAL EXECUTION RULES
 
-Execution must follow strict dependency order:
+1. Always run in ACCOUNTADMIN (or appropriate elevated role for setup)
+2. Always USE:
+   USE ROLE ACCOUNTADMIN;
+   USE WAREHOUSE GAFAIG_WH;
+   USE DATABASE GAFAIG_DB;
+   USE SCHEMA CORE;
 
-Tables → Views → Procedures → Seed → Pipeline Execution → Validation
-
-No step may be skipped.  
-No step may be reordered.  
-No partial execution allowed when performing a full rebuild.
-
----
-
-## EXECUTION MODES
-
-GAFAIG supports two execution modes:
-
-### 1. FULL REBUILD MODE (PRIMARY)
-
-Used for:
-- Initial system setup
-- Full system reset
-- End-to-end validation
-
-This mode executes ALL files in canonical order.
+3. Never modify table contracts outside their canonical files
+4. Never introduce derived logic in API/UI
+5. Registry is append-only
+6. IDs must be deterministic and stable
+7. All joins must use TRIM(UPPER(...)) normalization
+8. All scoring must originate from Snowflake views only
 
 ---
 
-### 2. INCREMENTAL MODE (ADVANCED)
+# CANONICAL EXECUTION ORDER
 
-Used for:
-- Targeted updates
-- Minor fixes
-
-Rules:
-- Only allowed after FULL REBUILD has been validated
-- Must not break pipeline integrity
-- Must not skip dependencies
-
----
-
-## FULL REBUILD ORDER (CANONICAL)
-
-### STEP 0 — ENVIRONMENT SETUP
-
-Run:
-
+## 00 — ENVIRONMENT SETUP
 00_CORE_SETUP.sql
 
-Purpose:
-- Set role
-- Set warehouse
-- Set database
-- Set schema
+## 01 — REBUILD ENVIRONMENT (OPTIONAL RESET)
+01_REBUILD_ENVIRONMENT.sql
 
 ---
 
-### STEP 1 — APPLICATION LAYER
+## 10 — CORE TABLES (FOUNDATION LAYER)
 
-Run:
-
-11_TABLES_APPLICATIONS.sql
-
-Purpose:
-- Create CORE.APPLICATIONS
-- Establish ingestion layer
-
----
-
-### STEP 2 — PARTICIPANTS (ENTITY LAYER)
-
-Run:
-
-12_TABLES_PARTICIPANTS.sql
-
-Purpose:
-- Create CORE.PARTICIPANTS
-- Normalize entity/participant data
-- Ensure deterministic PARTICIPANT_ID
-
-Important:
-- If Snowflake DDL/DML conflict occurs, run backfill updates separately
+10_TABLES_SUBMISSIONS.sql  
+11_TABLES_APPLICATIONS.sql  
+12_TABLES_PARTICIPANTS.sql  ⚠️ MUST BE VERIFIED (previous error encountered)
+13_TABLES_VERIFICATION_CASES.sql  
+14_TABLES_VERIFICATION_FINDINGS.sql  
+14_TABLES_VERIFICATION_EVIDENCE.sql  
+14_TABLES_VERIFICATION_FINDING_EVIDENCE.sql  
+15_TABLES_EVENTS.sql        ⚠️ MUST BE VERIFIED (previous error encountered)
+16_TABLES_CASE_SCORES.sql  
+17_TABLES_DECISIONS.sql  
+18_TABLES_REGISTRY_SNAPSHOTS.sql  
+19_TABLES_REGISTRY_AI_SYSTEMS.sql  
 
 ---
 
-### STEP 3 — REGISTRY AI SYSTEMS
+## 20 — VIEWS (CANONICAL READ LAYER)
 
-Run:
+20_VIEWS_VERIFICATION_CASE_DETAIL.sql  
 
-14_TABLES_REGISTRY_AI_SYSTEMS.sql
+21_VIEWS_PUBLIC_REGISTRY.sql  
+   - Defines CORE.V_REGISTRY_PUBLIC
 
-Purpose:
-- Create CORE.REGISTRY_AI_SYSTEMS
-- Define system-level registry records
+22_VIEWS_REGISTRY_AI_SYSTEMS.sql  
+   - Defines CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC
+
+22_VIEWS_EXPLORER.sql  
+   - Defines CORE.V_REGISTRY_PUBLIC_SEARCH
 
 ---
 
-### STEP 4 — EVENTS (COMPATIBILITY LAYER)
+## 23 — CORE PROCEDURES (PIPELINE ENGINE)
 
-Run:
+23_SP_CREATE_CASE_FROM_APPLICATION.sql  
+   - APPLICATION → CASE
 
-15_TABLES_EVENTS.sql
+24_SP_SCORE_CASE_ENTERPRISE.sql  
+   - CASE → SCORE
 
-Purpose:
-- Create CORE.EVENTS
-- Mirror CORE.VERIFICATION_EVENTS for compatibility
+25_PROCEDURES_APPROVAL.sql  
+   - CORE.APPROVE_CASE_V1  
+   - CORE.UNAPPROVE_CASE_V1  
+
+---
+
+## REGISTRY PUBLISH (CRITICAL TRUST TRANSITION)
+
+GAFAIG - CORE.REGISTRY_PUBLISH.sql  
+   - Defines CORE.SP_PUBLISH_CASE_TO_REGISTRY_V3
+
+This is the ONLY procedure allowed to:
+   CASE → REGISTRY_SNAPSHOTS → REGISTRY_ID
 
 Rules:
-- Must NOT replace VERIFICATION_EVENTS
-- Must remain aligned to canonical workflow
+- Must reuse existing REGISTRY_ID if already published
+- Must insert immutable snapshot
+- Must not overwrite prior records
+- Must align REGISTRY_AI_SYSTEMS with REGISTRY_ID
 
 ---
 
-### STEP 5 — SCORING SNAPSHOTS
+## LATEST APPROVED VIEW (CRITICAL)
 
-Run:
+CREATE OR REPLACE VIEW CORE.V_REGISTRY_LATEST_APPROVED
 
-16_TABLES_CASE_SCORE_SNAPSHOTS.sql
+Source:
+- CORE.REGISTRY_SNAPSHOTS
+- LEFT JOIN CORE.VERIFICATION_CASES
 
-Purpose:
-- Create CORE.CASE_SCORE_SNAPSHOTS
-- Store deterministic scoring outputs
+Rules:
+- One row per CASE_ID
+- ROW_NUMBER partition by CASE_ID
+- ORDER BY CREATED_AT DESC
+- Must expose:
 
----
+  REGISTRY_ID  
+  APPLICATION_ID  
+  CASE_ID  
+  ENTITY_NAME  
+  ENTITY_TYPE  
+  COUNTRY  
+  DECISION_STATUS  
+  CERTIFICATION_STATUS  
+  CERTIFIED_SCORE  
+  CERTIFIED_TIER  
+  CERTIFIED_BAND  
+  CERTIFIED_AT  
+  VALID_FROM  
+  VALID_TO  
 
-### STEP 6 — DECISION LAYER
-
-Run:
-
-17_TABLES_DECISIONS.sql
-
-Purpose:
-- Create CORE.DECISIONS
-- Store approval/rejection outcomes
-
----
-
-### STEP 7 — REGISTRY ENTITIES
-
-Run:
-
-18_TABLES_REGISTRY_ENTITIES.sql
-
-Purpose:
-- Define registry entity relationships
-- Support registry-level joins
-
----
-
-### STEP 8 — PUBLIC REGISTRY VIEWS
-
-Run:
-
-21_VIEWS_PUBLIC_REGISTRY.sql
-
-Purpose:
-- Create V_REGISTRY_PUBLIC
-- Create V_REGISTRY_LATEST_APPROVED
-- Define public registry contract
+This view is the SINGLE SOURCE for:
+- /api/registry
+- /api/verify
+- badge system
+- widget system
 
 ---
 
-### STEP 9 — AI SYSTEMS PUBLIC VIEW
-
-Run:
-
-22_VIEWS_REGISTRY_AI_SYSTEMS_PUBLIC.sql
-
-Purpose:
-- Create V_REGISTRY_AI_SYSTEMS_PUBLIC
-- Join systems to registry records
-
----
-
-### STEP 10 — PROCEDURES
-
-Run:
-
-25_PROCEDURES_APPROVAL.sql
-
-Purpose:
-- Create SP_CREATE_CASE_FROM_APPLICATION
-- Create SP_SCORE_CASE_ENTERPRISE
-- Create SP_PUBLISH_CASE_TO_REGISTRY_V3
-
----
-
-### STEP 11 — SEED DATA
-
-Run:
+## 30 — SEED (DETERMINISTIC DATA)
 
 GAFAIG - CANONICAL_DEMO_SEED_MASTER.sql
 
-Purpose:
-- Populate APPLICATIONS
-- Populate CASES
-- Populate FINDINGS
-- Populate EVIDENCE
-- Populate EVENTS
-- Populate SYSTEMS
+Rules:
+- Single source of seed truth
+- No temporary seed files allowed
+- Must produce:
+
+  APPLICATION  
+  CASE  
+  FINDINGS  
+  EVIDENCE  
+  LINKS  
+  EVENTS  
+
+---
+
+## END-TO-END PIPELINE (MANDATORY ORDER)
+
+1. INSERT INTO CORE.APPLICATIONS  
+2. CALL CORE.SP_CREATE_CASE_FROM_APPLICATION  
+3. CALL CORE.SP_SCORE_CASE_ENTERPRISE  
+4. CALL CORE.APPROVE_CASE_V1  
+5. CALL CORE.SP_PUBLISH_CASE_TO_REGISTRY_V3  
+
+Verification queries:
+
+SELECT * FROM CORE.V_GOVERNANCE_SCORE_CASE WHERE CASE_ID = '<CASE_ID>';
+
+SELECT * FROM CORE.REGISTRY_SNAPSHOTS WHERE CASE_ID = '<CASE_ID>';
+
+SELECT * FROM CORE.V_REGISTRY_LATEST_APPROVED WHERE CASE_ID = '<CASE_ID>';
+
+SELECT * FROM CORE.V_REGISTRY_PUBLIC WHERE CASE_ID = '<CASE_ID>';
+
+---
+
+# TRUST SURFACE LAYER (API CONTRACT)
+
+## VERIFY ENDPOINT
+/api/verify/[registryId]
+
+Source:
+- CORE.V_REGISTRY_LATEST_APPROVED
 
 Rules:
-- Only seed file allowed
-- Must be deterministic
-- Must not use manual inserts
+- No computation
+- No mutation
+- Deterministic message construction
+- ISO 8601 timestamps ONLY
+- Must return:
+
+  record  
+  proof  
+
+Proof must include:
+- alg (Ed25519)
+- kid
+- signature
+- signedAt (ISO)
+- verificationKeyUrl
+- message
+- messageString
 
 ---
 
-## PIPELINE EXECUTION ORDER
+## PUBLIC KEY ENDPOINT
+/api/.well-known/gafaig-public-key
 
-After seed is complete:
-
-### STEP 12 — CREATE CASES (IF NEEDED)
-
-Run:
-
-CALL CORE.SP_CREATE_CASE_FROM_APPLICATION('<APPLICATION_ID>');
-
----
-
-### STEP 13 — RUN SCORING
-
-Run:
-
-CALL CORE.SP_SCORE_CASE_ENTERPRISE('<CASE_ID>');
+Must expose:
+- kty: OKP
+- crv: Ed25519
+- alg: EdDSA
+- kid
+- publicKeyPem
+- publicKeyBase64
 
 ---
 
-### STEP 14 — ISSUE DECISION
+## REGISTRY ENDPOINT
+/api/registry
 
-Decision is inserted into:
+Source:
+- CORE.V_REGISTRY_PUBLIC
 
-CORE.DECISIONS
-
-Must include:
-- DECISION_STATUS
-- VALID_FROM
-- VALID_TO
-
----
-
-### STEP 15 — PUBLISH TO REGISTRY
-
-Run:
-
-CALL CORE.SP_PUBLISH_CASE_TO_REGISTRY_V3('<CASE_ID>');
+Rules:
+- Projection only
+- No derived logic
 
 ---
 
-## VALIDATION CHECKS
+## CRYPTO RULES
 
-After full pipeline execution, run:
-
-### APPLICATION → CASE
-
-SELECT COUNT(*) FROM CORE.APPLICATIONS;
-SELECT COUNT(*) FROM CORE.VERIFICATION_CASES;
-
----
-
-### CASE → FINDINGS
-
-SELECT COUNT(*) FROM CORE.VERIFICATION_FINDINGS;
+- Algorithm: Ed25519
+- Signing occurs ONLY server-side
+- Private key NEVER exposed
+- Public key must be independently accessible
+- Signature must validate against messageString EXACTLY
 
 ---
 
-### FINDINGS → EVIDENCE
+# NON-NEGOTIABLE RULES
 
-SELECT COUNT(*) FROM CORE.VERIFICATION_EVIDENCE;
+DO NOT:
+- Recompute scores outside Snowflake
+- Generate registry data in API
+- Mutate registry snapshots
+- Introduce non-deterministic IDs
+- Add UI-side business logic
 
----
-
-### EVENTS
-
-SELECT COUNT(*) FROM CORE.VERIFICATION_EVENTS;
-
----
-
-### SCORING
-
-SELECT COUNT(*) FROM CORE.CASE_SCORE_SNAPSHOTS;
-
----
-
-### DECISIONS
-
-SELECT COUNT(*) FROM CORE.DECISIONS;
+ALWAYS:
+- Use Snowflake as source of truth
+- Use append-only registry
+- Use deterministic normalization
+- Use canonical run order
 
 ---
 
-### REGISTRY
+# CURRENT SYSTEM STATE (AS OF 2026-04-20)
 
-SELECT COUNT(*) FROM CORE.REGISTRY_SNAPSHOTS;
-SELECT COUNT(*) FROM CORE.V_REGISTRY_PUBLIC;
-
----
-
-## SUCCESS CRITERIA
-
-System is valid when:
-
-- All tables exist
-- All views return expected data
-- No null critical fields
-- All joins resolve correctly
-- Scores exist for approved cases
-- Decisions exist for scored cases
-- Registry snapshots exist for approved cases
-- Public views reflect certified records
+✔ Full pipeline operational  
+✔ Scoring engine operational  
+✔ Approval procedures operational  
+✔ Registry publishing operational  
+✔ REGISTRY_ID deterministic  
+✔ V_REGISTRY_LATEST_APPROVED aligned  
+✔ API /registry working  
+✔ API /verify working  
+✔ Ed25519 signing implemented  
+✔ Public key endpoint deployed  
+✔ ISO timestamp compliance enforced  
+✔ External verification now possible  
 
 ---
 
-## FAILURE CONDITIONS
+# NEXT PHASE
 
-System is invalid if:
+Proceed to:
 
-- Any step is skipped
-- Tables are missing
-- Views return empty unexpectedly
-- IDs are non-deterministic
-- Registry snapshot missing
-- Signature cannot be generated
+BADGE + WIDGET TRUST SURFACE
 
----
-
-## NON-NEGOTIABLE RULES
-
-- Must follow exact order
-- Must not run archive/legacy files
-- Must not mix canonical and non-canonical files
-- Must not manually alter data outside procedures
-- Must not skip validation
+Goals:
+- Deterministic badge endpoint
+- External embeddable widget
+- Third-party verification capability
+- Zero drift between registry, verify, badge, widget
 
 ---
 
-## ENFORCEMENT
+# FINAL PRINCIPLE
 
-This document defines the canonical execution order for GAFAIG.
+GAFAIG is not an application.
 
-Any deviation:
-- breaks pipeline integrity
-- breaks determinism
-- invalidates system trust
+GAFAIG is a deterministic, cryptographically verifiable registry protocol.
 
-All execution must follow this sequence exactly.
-
----
-
-END OF FILE
+Everything must reinforce that.
