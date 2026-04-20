@@ -1,5 +1,5 @@
 # GAFAIG_ACTIVE_FILE_MAP.md  
-Last Updated: 2026-04-16
+Last Updated: 2026-04-19
 
 ---
 
@@ -16,7 +16,8 @@ Canonical flow:
 APPLICATION → CASE → FINDINGS → EVIDENCE → EVENTS → SCORING → DECISION → REGISTRY SNAPSHOT → PUBLIC VIEWS → API → UI
 
 Snowflake is the single source of truth.  
-No computation is allowed in API or UI layers.
+No computation is allowed in API or UI layers.  
+No derived trust logic is allowed outside Snowflake.
 
 ---
 
@@ -35,6 +36,17 @@ CORE
 ### APPLICATION LAYER
 - CORE.APPLICATIONS
 
+### PARTICIPANT / ENTITY LAYER (CANONICAL + COMPATIBILITY)
+- CORE.PARTICIPANTS
+
+Purpose:
+- Canonical participant/entity surface
+- Bridges application, case, and registry identity
+- Deterministic PARTICIPANT_ID generation
+- Supports registry enrichment and public display
+
+---
+
 ### VERIFICATION LAYER
 - CORE.VERIFICATION_CASES
 - CORE.VERIFICATION_FINDINGS
@@ -42,13 +54,43 @@ CORE
 - CORE.VERIFICATION_FINDING_EVIDENCE
 - CORE.VERIFICATION_EVENTS
 
+Purpose:
+- Core private verification workflow
+- All workflow state originates here
+- EVENTS table is authoritative (not CORE.EVENTS)
+
+---
+
+### EVENTS COMPATIBILITY LAYER
+- CORE.EVENTS
+
+Purpose:
+- Compatibility audit/event table
+- Mirrors VERIFICATION_EVENTS
+- Used for legacy compatibility + diagnostics
+- MUST NOT replace VERIFICATION_EVENTS
+
+---
+
 ### SCORING + DECISION
 - CORE.CASE_SCORE_SNAPSHOTS
 - CORE.DECISIONS
 
+Purpose:
+- Deterministic scoring (single source: V_GOVERNANCE_SCORE_CASE)
+- Immutable scoring snapshots
+- Decision issuance layer
+
+---
+
 ### REGISTRY (APPEND-ONLY)
 - CORE.REGISTRY_SNAPSHOTS
 - CORE.REGISTRY_AI_SYSTEMS
+
+Purpose:
+- Immutable public certification records
+- Append-only architecture
+- Registry IDs must be deterministic and persistent
 
 ---
 
@@ -68,6 +110,11 @@ CORE
 ### SCORING
 - CORE.V_GOVERNANCE_SCORE_CASE
 
+Rules:
+- Views are projections only
+- No logic duplication allowed
+- No recomputation outside Snowflake
+
 ---
 
 ## CORE PROCEDURES
@@ -75,6 +122,11 @@ CORE
 - CORE.SP_CREATE_CASE_FROM_APPLICATION
 - CORE.SP_SCORE_CASE_ENTERPRISE
 - CORE.SP_PUBLISH_CASE_TO_REGISTRY_V3
+
+Purpose:
+- Enforce canonical pipeline transitions
+- Guarantee deterministic outputs
+- Prevent UI/API mutation
 
 ---
 
@@ -92,7 +144,29 @@ This file seeds:
 - EVENTS
 - SYSTEMS
 
-No secondary seed files allowed.
+Rules:
+- No secondary seed files allowed
+- No legacy seed files allowed
+- All test data must originate here
+
+---
+
+## CANONICAL BUILD / REBUILD FILES
+
+- 01_REBUILD_ENVIRONMENT_CANONICAL.sql (FULL SYSTEM RESET)
+- 00_CORE_SETUP.sql (environment bootstrap)
+- 11_TABLES_APPLICATIONS.sql
+- 12_TABLES_PARTICIPANTS.sql (FIXED — deterministic + no ambiguity)
+- 14_TABLES_REGISTRY_AI_SYSTEMS.sql
+- 15_TABLES_EVENTS.sql (CANONICAL — FIXED alias ambiguity)
+- 16_TABLES_CASE_SCORE_SNAPSHOTS.sql
+- 17_TABLES_DECISIONS.sql
+- 18_TABLES_REGISTRY_ENTITIES.sql
+
+Rules:
+- Rebuild requires FULL execution (not partial)
+- Order matters
+- No mixing canonical and archive files
 
 ---
 
@@ -113,6 +187,11 @@ No secondary seed files allowed.
 
 ### BADGE
 - app/api/badge/[registryId]/route.ts
+
+Rules:
+- APIs must ONLY query Snowflake views
+- No business logic allowed
+- No transformations allowed beyond formatting
 
 ---
 
@@ -143,12 +222,17 @@ Functions:
 - getRegistryAiSystemsByRegistryId()
 - getRelatedRegistryAiSystems()
 
+Rules:
+- Queries must map 1:1 to views
+- No derived fields
+- No scoring logic
+
 ---
 
 ## UI PAGES (PUBLIC)
 
-### CORE MARKETING PAGES (CANONICAL LAYOUT)
-- app/page.tsx (Home)
+### CORE MARKETING PAGES
+- app/page.tsx
 - app/mission/page.tsx
 - app/framework/page.tsx
 
@@ -166,6 +250,7 @@ Functions:
 
 ### VERIFY
 - app/verify/page.tsx
+- app/verify/[registryId]/page.tsx
 
 ### WIDGET
 - app/widget-preview/[registryId]/page.tsx
@@ -174,65 +259,52 @@ Functions:
 
 ## SHARED UI COMPONENTS (CRITICAL)
 
-### LAYOUT SYSTEM (MANDATORY)
+### LAYOUT SYSTEM
 - app/_components/PublicPageHero.tsx
-
-Controls:
-- Page width (max-w-[1180px])
-- Heading scale
-- Paragraph scale
-- Spacing rhythm
-- Hero container styling
 
 ### BUTTON SYSTEM
 - app/_components/PublicButtonLink.tsx
 
-Variants:
-- primary
-- secondary
-- ghost
+Rules:
+- These are mandatory
+- No alternatives allowed
 
 ---
 
 ## LAYOUT RULES (NON-NEGOTIABLE)
 
-ALL pages must:
-
+All pages must:
 - Use PublicPageHero
-- Use max-w-[1180px] container
-- Use px-6 horizontal padding
-- Use consistent spacing (space-y-8)
-- Use border-black/10 (NOT custom borders)
-- Use rounded-3xl containers
-- Use bg-white surfaces
+- Use max-w-[1180px]
+- Use px-6
+- Use space-y-8
+- Use rounded-3xl
+- Use border-black/10
+- Use bg-white
 
-NO custom layout systems allowed.
+No deviations allowed.
 
 ---
 
 ## TRUST SURFACE DEFINITIONS
 
 ### EXPLORER
-- Broad surface
-- Includes:
-  - Approved systems
-  - Certified systems
+- Broad discovery surface
+- Includes approved + certified
 - NOT authoritative
 
 ### REGISTRY
-- Narrow surface
-- Includes:
-  - Certified records only
-- Authoritative public record
+- Certified only
+- Authoritative record
 
 ---
 
 ## DATA CONTRACT RULES
 
-- All scores come from V_GOVERNANCE_SCORE_CASE
-- Registry data must come from REGISTRY_SNAPSHOTS
-- Public APIs must use views only
-- No derived trust logic in UI
+- Scores ONLY from V_GOVERNANCE_SCORE_CASE
+- Registry ONLY from REGISTRY_SNAPSHOTS
+- APIs ONLY from views
+- No UI logic
 
 ---
 
@@ -240,48 +312,65 @@ NO custom layout systems allowed.
 
 ### PRIMARY FOCUS
 
-1. Explorer + Registry alignment
-2. Seed data correctness
-3. Trust surface clarity
-4. Layout standardization
+1. Multi-case real data seed expansion  
+2. Full pipeline validation  
+3. Trust distribution (verify + badge + widget)  
+4. Explorer + Registry alignment  
+5. Layout standardization  
+
+---
+
+## PIPELINE STATUS
+
+APPLICATION → CASE → COMPLETE  
+CASE → FINDINGS → COMPLETE  
+FINDINGS → EVIDENCE → COMPLETE  
+EVIDENCE → EVENTS → COMPLETE  
+EVENTS → SCORING → READY  
+SCORING → DECISION → READY  
+DECISION → REGISTRY → READY  
+REGISTRY → API/UI → OPERATIONAL  
 
 ---
 
 ## KNOWN ISSUES (IN PROGRESS)
 
-- Explorer summary pills must reflect:
-  - total systems (public surface)
-  - certified subset
-  - approved subset
-  - distinct countries
-
-- Registry page must match:
-  - PublicPageHero layout
-  - Explorer spacing system
-
-- Explorer page must maintain:
-  - navigation pills (Organizations / Countries / Systems)
-  - correct trust badge rendering
+- Explorer summary accuracy  
+- Registry layout alignment  
+- Multi-case seed coverage  
+- ID determinism validation across all tables  
+- Removal of legacy file interference  
 
 ---
 
 ## NEXT EXECUTION STEPS
 
-1. Lock Explorer summary logic
-2. Validate seed data consistency
-3. Align all explorer subpages
-4. Align registry detail pages
-5. Finalize trust surface UX
+1. Run full canonical rebuild (01_REBUILD_ENVIRONMENT_CANONICAL.sql)  
+2. Run canonical seed  
+3. Run scoring  
+4. Run decision  
+5. Run publish  
+6. Validate API  
+7. Validate verify endpoint  
 
 ---
 
 ## DO NOT BREAK
 
-- Snowflake is the source of truth
-- No UI-derived scoring
-- No duplicate seed files
-- No layout deviations from PublicPageHero
-- No renaming of canonical fields without updating ALL layers
+- Snowflake = source of truth  
+- No UI scoring  
+- No duplicate seeds  
+- No layout drift  
+- No breaking pipeline order  
+- No mutation of registry snapshots  
+- No non-deterministic IDs  
+
+---
+
+## ENFORCEMENT
+
+This document is the active system map for GAFAIG.  
+Any deviation must be corrected immediately.
 
 ---
 

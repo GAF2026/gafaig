@@ -9,9 +9,6 @@ export type RegistryRecord = {
   entityType: string | null;
   country: string | null;
 
-  verificationType: string | null;
-  modelVersion: string | null;
-
   decisionStatus: string | null;
   certificationStatus: string | null;
   certifiedScore: string | null;
@@ -22,10 +19,7 @@ export type RegistryRecord = {
   validFrom: string | null;
   validTo: string | null;
 
-  publishedAt: string | null;
-  approvedAt: string | null;
   renewalStatus: string | null;
-  lifecycleStatus: string | null;
 };
 
 export type RegistryFilterOptions = {
@@ -67,23 +61,17 @@ function mapRegistryRecord(r: any): RegistryRecord {
     entityType: r.ENTITY_TYPE ?? null,
     country: r.COUNTRY ?? null,
 
-    verificationType: r.VERIFICATION_TYPE ?? null,
-    modelVersion: r.MODEL_VERSION ?? null,
-
     decisionStatus: r.DECISION_STATUS ?? null,
     certificationStatus: r.CERTIFICATION_STATUS ?? null,
-    certifiedScore: r.CERTIFIED_SCORE ?? null,
+    certifiedScore: r.CERTIFIED_SCORE != null ? String(r.CERTIFIED_SCORE) : null,
     certifiedTier: r.CERTIFIED_TIER ?? null,
     certifiedBand: r.CERTIFIED_BAND ?? null,
 
-    certifiedAt: r.CERTIFIED_AT ?? null,
-    validFrom: r.VALID_FROM ?? null,
-    validTo: r.VALID_TO ?? null,
+    certifiedAt: r.CERTIFIED_AT ? String(r.CERTIFIED_AT) : null,
+    validFrom: r.VALID_FROM ? String(r.VALID_FROM) : null,
+    validTo: r.VALID_TO ? String(r.VALID_TO) : null,
 
-    publishedAt: r.PUBLISHED_AT ?? null,
-    approvedAt: r.APPROVED_AT ?? null,
     renewalStatus: r.RENEWAL_STATUS ?? null,
-    lifecycleStatus: r.LIFECYCLE_STATUS ?? null,
   };
 }
 
@@ -96,20 +84,15 @@ function baseRegistrySelectSql(): string {
       ENTITY_NAME,
       ENTITY_TYPE,
       COUNTRY,
-      VERIFICATION_TYPE,
-      MODEL_VERSION,
       DECISION_STATUS,
       CERTIFICATION_STATUS,
-      TO_VARCHAR(CERTIFIED_SCORE) AS CERTIFIED_SCORE,
+      CERTIFIED_SCORE,
       CERTIFIED_TIER,
       CERTIFIED_BAND,
-      TO_VARCHAR(CERTIFIED_AT) AS CERTIFIED_AT,
-      TO_VARCHAR(VALID_FROM) AS VALID_FROM,
-      TO_VARCHAR(VALID_TO) AS VALID_TO,
-      TO_VARCHAR(PUBLISHED_AT) AS PUBLISHED_AT,
-      TO_VARCHAR(APPROVED_AT) AS APPROVED_AT,
-      RENEWAL_STATUS,
-      LIFECYCLE_STATUS
+      CERTIFIED_AT,
+      VALID_FROM,
+      VALID_TO,
+      RENEWAL_STATUS
     FROM CORE.V_REGISTRY_PUBLIC
   `;
 }
@@ -120,17 +103,13 @@ export async function getRegistryRecords(limit = 200): Promise<RegistryRecord[]>
   const rows = await sfQuery<any>(`
     ${baseRegistrySelectSql()}
     ORDER BY
-      COALESCE(CERTIFIED_AT, TO_TIMESTAMP_NTZ('1970-01-01')) DESC,
+      CERTIFIED_AT DESC NULLS LAST,
       ENTITY_NAME ASC,
       REGISTRY_ID ASC
     LIMIT ${safeLimit}
   `);
 
   return rows.map(mapRegistryRecord);
-}
-
-export async function getRegistryList(limit = 200): Promise<RegistryRecord[]> {
-  return getRegistryRecords(limit);
 }
 
 export async function getRegistryByRegistryId(
@@ -148,12 +127,6 @@ export async function getRegistryByRegistryId(
   `);
 
   return rows.length ? mapRegistryRecord(rows[0]) : null;
-}
-
-export async function getRegistryRecordByRegistryId(
-  registryId: string
-): Promise<RegistryRecord | null> {
-  return getRegistryByRegistryId(registryId);
 }
 
 export async function getRegistryFilterOptions(): Promise<RegistryFilterOptions> {
@@ -205,8 +178,6 @@ export async function searchRegistryRecords(
         OR UPPER(COALESCE(CASE_ID, '')) LIKE UPPER('%${escaped}%')
         OR UPPER(COALESCE(APPLICATION_ID, '')) LIKE UPPER('%${escaped}%')
         OR UPPER(COALESCE(COUNTRY, '')) LIKE UPPER('%${escaped}%')
-        OR UPPER(COALESCE(CERTIFIED_TIER, '')) LIKE UPPER('%${escaped}%')
-        OR UPPER(COALESCE(CERTIFIED_BAND, '')) LIKE UPPER('%${escaped}%')
       )
     `);
   }
@@ -261,7 +232,7 @@ export async function searchRegistryRecords(
     ${baseRegistrySelectSql()}
     ${whereSql}
     ORDER BY
-      COALESCE(CERTIFIED_AT, TO_TIMESTAMP_NTZ('1970-01-01')) DESC,
+      CERTIFIED_AT DESC NULLS LAST,
       ENTITY_NAME ASC,
       REGISTRY_ID ASC
     LIMIT ${limit}

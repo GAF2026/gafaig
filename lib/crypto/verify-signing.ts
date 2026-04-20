@@ -35,6 +35,10 @@ export function signMessage(message: string) {
   return signature.toString("base64");
 }
 
+export function signVerificationPayload(message: string) {
+  return signMessage(message);
+}
+
 export function verifyMessageSignature(message: string, signatureB64: string) {
   const publicKey = createPublicKey(getPublicKeyPem());
   return verify(
@@ -43,4 +47,8 @@ export function verifyMessageSignature(message: string, signatureB64: string) {
     publicKey,
     Buffer.from(signatureB64, "base64")
   );
-  }
+}
+
+export function verifyVerificationPayload(message: string, signatureB64: string) {
+  return verifyMessageSignature(message, signatureB64);
+}

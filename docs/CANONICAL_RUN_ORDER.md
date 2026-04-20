@@ -1,308 +1,365 @@
-# CANONICAL_RUN_ORDER.md
-Last Updated: 2026-04-16
-
----
+# CANONICAL_RUN_ORDER.md — Last Updated: 2026-04-19
 
 ## PURPOSE
 
-This document defines the canonical execution order for all GAFAIG Snowflake SQL files.
+This document defines the exact canonical execution order for rebuilding and running the GAFAIG system in Snowflake.
 
 It ensures:
-- Deterministic system behavior
-- Proper dependency resolution
-- Correct pipeline execution
-- Elimination of data drift
+- Deterministic system initialization
+- Correct dependency sequencing
+- Zero schema drift
+- Full pipeline integrity
 
-This run order is mandatory.
+This is the ONLY valid execution order.
+
+Any deviation is a system violation.
 
 ---
 
 ## CORE PRINCIPLE
 
-The GAFAIG system must be executed in strict sequence.
+Execution must follow strict dependency order:
 
-No file may be run out of order.
+Tables → Views → Procedures → Seed → Pipeline Execution → Validation
 
-Snowflake must be rebuilt and executed deterministically from base → tables → views → procedures → seed → scoring → decision → publish.
-
----
-
-## FULL CANONICAL PIPELINE
-
-APPLICATION
-→ CASE
-→ FINDINGS
-→ EVIDENCE
-→ EVENTS
-→ SCORING
-→ DECISION
-→ REGISTRY SNAPSHOT
-→ PUBLIC VIEWS
+No step may be skipped.  
+No step may be reordered.  
+No partial execution allowed when performing a full rebuild.
 
 ---
 
-## STEP 0 — ENVIRONMENT RESET
+## EXECUTION MODES
+
+GAFAIG supports two execution modes:
+
+### 1. FULL REBUILD MODE (PRIMARY)
+
+Used for:
+- Initial system setup
+- Full system reset
+- End-to-end validation
+
+This mode executes ALL files in canonical order.
+
+---
+
+### 2. INCREMENTAL MODE (ADVANCED)
+
+Used for:
+- Targeted updates
+- Minor fixes
+
+Rules:
+- Only allowed after FULL REBUILD has been validated
+- Must not break pipeline integrity
+- Must not skip dependencies
+
+---
+
+## FULL REBUILD ORDER (CANONICAL)
+
+### STEP 0 — ENVIRONMENT SETUP
 
 Run:
 
-01_REBUILD_ENVIRONMENT_CANONICAL.sql
+00_CORE_SETUP.sql
 
 Purpose:
-- Reset schema
-- Clear prior data
-- Ensure deterministic state
+- Set role
+- Set warehouse
+- Set database
+- Set schema
 
 ---
 
-## STEP 1 — CORE TABLES
+### STEP 1 — APPLICATION LAYER
 
-Run ALL table files in this order:
+Run:
 
 11_TABLES_APPLICATIONS.sql
-13_TABLES_FINDINGS.sql
-14_TABLES_EVIDENCE.sql
-16_TABLES_CASE_SCORE_SNAPSHOTS.sql
-17_TABLES_DECISIONS.sql
-18_TABLES_REGISTRY_ENTITIES.sql
-REGISTRY_AI_SYSTEMS.sql
 
-Rules:
-- Do not skip
-- Do not reorder
-- Must match live schema
+Purpose:
+- Create CORE.APPLICATIONS
+- Establish ingestion layer
 
 ---
 
-## STEP 2 — CORE VIEWS (FOUNDATION)
+### STEP 2 — PARTICIPANTS (ENTITY LAYER)
+
+Run:
+
+12_TABLES_PARTICIPANTS.sql
+
+Purpose:
+- Create CORE.PARTICIPANTS
+- Normalize entity/participant data
+- Ensure deterministic PARTICIPANT_ID
+
+Important:
+- If Snowflake DDL/DML conflict occurs, run backfill updates separately
+
+---
+
+### STEP 3 — REGISTRY AI SYSTEMS
+
+Run:
+
+14_TABLES_REGISTRY_AI_SYSTEMS.sql
+
+Purpose:
+- Create CORE.REGISTRY_AI_SYSTEMS
+- Define system-level registry records
+
+---
+
+### STEP 4 — EVENTS (COMPATIBILITY LAYER)
+
+Run:
+
+15_TABLES_EVENTS.sql
+
+Purpose:
+- Create CORE.EVENTS
+- Mirror CORE.VERIFICATION_EVENTS for compatibility
+
+Rules:
+- Must NOT replace VERIFICATION_EVENTS
+- Must remain aligned to canonical workflow
+
+---
+
+### STEP 5 — SCORING SNAPSHOTS
+
+Run:
+
+16_TABLES_CASE_SCORE_SNAPSHOTS.sql
+
+Purpose:
+- Create CORE.CASE_SCORE_SNAPSHOTS
+- Store deterministic scoring outputs
+
+---
+
+### STEP 6 — DECISION LAYER
+
+Run:
+
+17_TABLES_DECISIONS.sql
+
+Purpose:
+- Create CORE.DECISIONS
+- Store approval/rejection outcomes
+
+---
+
+### STEP 7 — REGISTRY ENTITIES
+
+Run:
+
+18_TABLES_REGISTRY_ENTITIES.sql
+
+Purpose:
+- Define registry entity relationships
+- Support registry-level joins
+
+---
+
+### STEP 8 — PUBLIC REGISTRY VIEWS
 
 Run:
 
 21_VIEWS_PUBLIC_REGISTRY.sql
 
 Purpose:
-- Define V_REGISTRY_LATEST_APPROVED
-- Define V_REGISTRY_PUBLIC
-
-CRITICAL:
-- Must correctly separate Approved vs Certified
-- Must define correct lifecycle and certification semantics
+- Create V_REGISTRY_PUBLIC
+- Create V_REGISTRY_LATEST_APPROVED
+- Define public registry contract
 
 ---
 
-## STEP 3 — AI SYSTEMS VIEW
+### STEP 9 — AI SYSTEMS PUBLIC VIEW
 
 Run:
 
 22_VIEWS_REGISTRY_AI_SYSTEMS_PUBLIC.sql
 
 Purpose:
-- Build public AI systems surface
-- Join REGISTRY_AI_SYSTEMS → V_REGISTRY_PUBLIC
-
-Rules:
-- No fabricated fields
-- No scoring logic
+- Create V_REGISTRY_AI_SYSTEMS_PUBLIC
+- Join systems to registry records
 
 ---
 
-## STEP 4 — EXPLORER STATS
+### STEP 10 — PROCEDURES
 
 Run:
 
-22_VIEWS_EXPLORER_STATS.sql
+25_PROCEDURES_APPROVAL.sql
 
 Purpose:
-- Aggregate:
-  - total records
-  - certified
-  - approved
-  - countries
-  - tiers
-  - bands
-
-CRITICAL:
-- Must align with actual public data
-- Must not double count
-- Must not misclassify trust states
+- Create SP_CREATE_CASE_FROM_APPLICATION
+- Create SP_SCORE_CASE_ENTERPRISE
+- Create SP_PUBLISH_CASE_TO_REGISTRY_V3
 
 ---
 
-## STEP 5 — SCORE BREAKDOWN (PUBLIC)
+### STEP 11 — SEED DATA
 
 Run:
 
-GAFAIG - SCORE_BREAKDOWN_PUBLIC.sql
+GAFAIG - CANONICAL_DEMO_SEED_MASTER.sql
 
 Purpose:
-- Build:
-  - V_SCORE_BREAKDOWN_PUBLIC
-  - V_SCORE_DIMENSIONS_PUBLIC
-
-Rules:
-- Must use Snowflake scoring outputs only
-- No recomputation
-
----
-
-## STEP 6 — PROCEDURES
-
-Run:
-
-23_SP_CREATE_CASE_FROM_APPLICATION.sql
-24_SP_SCORE_CASE_ENTERPRISE.sql
-APPROVE_CASE_V1.sql
-CORE.REGISTRY_PUBLISH.sql
-
-Purpose:
-- Enable full pipeline execution
-
----
-
-## STEP 7 — SEED DATA
-
-Run:
-
-GAFAIG - FINAL_CANONICAL_MULTI_SEED.sql
-
-Purpose:
-- Seed full dataset across:
-  - Applications
-  - Cases
-  - Findings
-  - Evidence
-  - Events
-  - Systems
+- Populate APPLICATIONS
+- Populate CASES
+- Populate FINDINGS
+- Populate EVIDENCE
+- Populate EVENTS
+- Populate SYSTEMS
 
 Rules:
 - Only seed file allowed
-- Must follow full pipeline structure
+- Must be deterministic
+- Must not use manual inserts
 
 ---
 
-## STEP 8 — SCORING
+## PIPELINE EXECUTION ORDER
+
+After seed is complete:
+
+### STEP 12 — CREATE CASES (IF NEEDED)
 
 Run:
 
-CALL CORE.SP_SCORE_CASE_ENTERPRISE(<CASE_ID>);
-
-OR batch scoring procedure if implemented.
-
-Purpose:
-- Generate score snapshots
-
-Validation:
-- Rows must be inserted into CASE_SCORE_SNAPSHOTS_V2
-- If 0 rows inserted → FAILURE
+CALL CORE.SP_CREATE_CASE_FROM_APPLICATION('<APPLICATION_ID>');
 
 ---
 
-## STEP 9 — DECISION
+### STEP 13 — RUN SCORING
 
 Run:
 
-CALL CORE.APPROVE_CASE_V1(<CASE_ID>);
-
-Purpose:
-- Generate decision outcome
-
-Rules:
-- Must follow scoring
-- Must not be manually inserted
+CALL CORE.SP_SCORE_CASE_ENTERPRISE('<CASE_ID>');
 
 ---
 
-## STEP 10 — REGISTRY PUBLISH
+### STEP 14 — ISSUE DECISION
+
+Decision is inserted into:
+
+CORE.DECISIONS
+
+Must include:
+- DECISION_STATUS
+- VALID_FROM
+- VALID_TO
+
+---
+
+### STEP 15 — PUBLISH TO REGISTRY
 
 Run:
 
-CALL CORE.SP_PUBLISH_CASE_TO_REGISTRY_V3(<CASE_ID>);
-
-Purpose:
-- Insert into REGISTRY_SNAPSHOTS
-- Create public trust record
-
-Rules:
-- Must enforce approval → certification gating
-- Must reuse registryId
-- Must not duplicate records
+CALL CORE.SP_PUBLISH_CASE_TO_REGISTRY_V3('<CASE_ID>');
 
 ---
 
-## STEP 11 — VALIDATION
+## VALIDATION CHECKS
 
-Run:
+After full pipeline execution, run:
 
-SELECT * FROM CORE.V_REGISTRY_PUBLIC;
-SELECT * FROM CORE.V_REGISTRY_LATEST_APPROVED;
+### APPLICATION → CASE
 
-SELECT
-  DECISION_STATUS,
-  CERTIFICATION_STATUS,
-  COUNT(*) AS RECORDS
-FROM CORE.V_REGISTRY_PUBLIC
-GROUP BY 1,2;
-
-SELECT * FROM CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC;
-
-SELECT * FROM CORE.V_REGISTRY_STATS_GLOBAL;
-SELECT * FROM CORE.V_REGISTRY_STATS_BY_COUNTRY;
+SELECT COUNT(*) FROM CORE.APPLICATIONS;
+SELECT COUNT(*) FROM CORE.VERIFICATION_CASES;
 
 ---
 
-## VALIDATION REQUIREMENTS
+### CASE → FINDINGS
 
-System is valid only if:
+SELECT COUNT(*) FROM CORE.VERIFICATION_FINDINGS;
 
-- Certified records appear correctly
-- Approved records do NOT appear as certified
-- Counts match seed expectations
-- No duplicate registry entries
-- Lifecycle fields are correct
-- Explorer stats align with actual data
+---
+
+### FINDINGS → EVIDENCE
+
+SELECT COUNT(*) FROM CORE.VERIFICATION_EVIDENCE;
+
+---
+
+### EVENTS
+
+SELECT COUNT(*) FROM CORE.VERIFICATION_EVENTS;
+
+---
+
+### SCORING
+
+SELECT COUNT(*) FROM CORE.CASE_SCORE_SNAPSHOTS;
+
+---
+
+### DECISIONS
+
+SELECT COUNT(*) FROM CORE.DECISIONS;
+
+---
+
+### REGISTRY
+
+SELECT COUNT(*) FROM CORE.REGISTRY_SNAPSHOTS;
+SELECT COUNT(*) FROM CORE.V_REGISTRY_PUBLIC;
+
+---
+
+## SUCCESS CRITERIA
+
+System is valid when:
+
+- All tables exist
+- All views return expected data
+- No null critical fields
+- All joins resolve correctly
+- Scores exist for approved cases
+- Decisions exist for scored cases
+- Registry snapshots exist for approved cases
+- Public views reflect certified records
 
 ---
 
 ## FAILURE CONDITIONS
 
-STOP if:
+System is invalid if:
 
-- V_GOVERNANCE_SCORE_CASE returns no rows
-- CASE_SCORE_SNAPSHOTS_V2 is empty
-- REGISTRY_SNAPSHOTS has no new entries
-- V_REGISTRY_PUBLIC misclassifies records
-- Counts do not match expectations
-
-Fix root cause before proceeding.
-
----
-
-## CRITICAL RULES
-
-- Never skip steps
-- Never manually insert into downstream tables
-- Never patch UI to hide backend issues
-- Always validate after each major stage
+- Any step is skipped
+- Tables are missing
+- Views return empty unexpectedly
+- IDs are non-deterministic
+- Registry snapshot missing
+- Signature cannot be generated
 
 ---
 
-## CURRENT PRIORITY (APRIL 2026)
+## NON-NEGOTIABLE RULES
 
-1. Fix 21_VIEWS_PUBLIC_REGISTRY.sql
-2. Fix 22_VIEWS_EXPLORER_STATS.sql
-3. Validate seed integrity
-4. Restore deterministic pipeline
-5. Align UI after Snowflake is correct
+- Must follow exact order
+- Must not run archive/legacy files
+- Must not mix canonical and non-canonical files
+- Must not manually alter data outside procedures
+- Must not skip validation
 
 ---
 
-## FINAL RULE
+## ENFORCEMENT
 
-If run order is broken:
-- Data becomes inconsistent
-- Trust surface becomes invalid
-- System loses determinism
+This document defines the canonical execution order for GAFAIG.
 
-Always follow this exact sequence.
+Any deviation:
+- breaks pipeline integrity
+- breaks determinism
+- invalidates system trust
+
+All execution must follow this sequence exactly.
 
 ---
 

@@ -1,7 +1,4 @@
-# GAFAIG_VS_CODE_File_Tree.md
-Last Updated: 2026-04-16
-
----
+# GAFAIG_VS_CODE_File_Tree.md — Last Updated: 2026-04-19
 
 ## PURPOSE
 
@@ -9,39 +6,62 @@ This document defines the canonical VS Code file structure for the GAFAIG platfo
 
 It ensures:
 - Clean separation of concerns
-- Deterministic architecture alignment with Snowflake
-- Zero file drift
+- Deterministic alignment with Snowflake (source of truth)
+- Zero architectural drift
 - Consistent developer workflow
+- Strict enforcement of UI/API/DB boundaries
 
-This file is the source of truth for the application structure.
+This document is a **control surface**, not a reference note.
+
+---
+
+## CORE ARCHITECTURE PRINCIPLE
+
+GAFAIG is a deterministic system.
+
+Data flow is strictly:
+
+Snowflake → Views → Query Layer → API → UI
+
+NOT:
+- UI → API → Logic
+- API → Computation
+- UI → Derived state
+
+No logic is allowed outside Snowflake.
 
 ---
 
 ## ROOT PROJECT STRUCTURE
 
 gafaig/
-├── app/
-├── components/
-├── lib/
-├── docs/
-├── public/
-├── styles/
-├── .env.local
-├── next.config.js
-├── package.json
-├── tsconfig.json
+├── app/                     # Next.js App Router (UI + API)
+├── components/              # Feature-level UI components
+├── lib/                     # Query + Snowflake + crypto logic
+├── docs/                    # Canonical system documentation
+├── public/                  # Static assets
+├── styles/                  # Global styling
+├── .env.local               # Environment variables
+├── next.config.js           # Next.js config
+├── package.json             # Dependencies
+├── tsconfig.json            # TypeScript config
 
 ---
 
 ## APP DIRECTORY (NEXT.JS APP ROUTER)
 
 app/
-├── layout.tsx
-├── page.tsx
+├── layout.tsx               # Root layout
+├── page.tsx                 # Homepage
+
+Rules:
+- All routing is App Router based
+- No legacy pages router allowed
+- Layout system must remain consistent
 
 ---
 
-## CORE PUBLIC PAGES
+## CORE PUBLIC PAGES (CANONICAL UI SURFACE)
 
 app/
 ├── page.tsx                         # Homepage
@@ -49,6 +69,9 @@ app/
 │   └── page.tsx
 ├── framework/
 │   └── page.tsx
+
+### EXPLORER
+
 ├── explorer/
 │   ├── page.tsx
 │   ├── organizations/
@@ -57,6 +80,9 @@ app/
 │   │   └── page.tsx
 │   └── systems/
 │       └── page.tsx
+
+### REGISTRY
+
 ├── registry/
 │   ├── page.tsx
 │   ├── [registryId]/
@@ -65,21 +91,47 @@ app/
 │   │   ├── page.tsx
 │   │   └── [systemId]/
 │   │       └── page.tsx
+
+### VERIFY
+
 ├── verify/
+│   ├── page.tsx
+│   └── [registryId]/
+│       └── page.tsx
+
+### APPLY (NEW — INTAKE ENTRY POINT)
+
+├── apply/
 │   └── page.tsx
+
+Purpose:
+- Entry into APPLICATION → CASE pipeline
+- Must write to CORE.APPLICATIONS (not local storage)
+
+### DEVELOPERS
+
 ├── developers/
 │   └── page.tsx
+
+### WIDGET PREVIEW
+
 ├── widget-preview/
 │   └── [registryId]/
 │       └── page.tsx
 
 ---
 
-## API ROUTES
+## API ROUTES (STRICTLY READ-ONLY TRUST SURFACE)
 
 app/api/
+
+### EXPLORER
+
 ├── explorer/
 │   └── route.ts
+
+### REGISTRY
+
 ├── registry/
 │   ├── route.ts
 │   ├── search/
@@ -88,91 +140,129 @@ app/api/
 │   │   ├── route.ts
 │   │   └── ai-systems/
 │   │       └── route.ts
+
+### VERIFY (CRITICAL TRUST ENDPOINT)
+
 ├── verify/
 │   └── [registryId]/
 │       └── route.ts
+
+Responsibilities:
+- Return canonical registry record
+- Return signed proof (Ed25519)
+
+### BADGE
+
 ├── badge/
 │   └── [registryId]/
 │       └── route.ts
+
+### PUBLIC KEY
+
 ├── .well-known/
 │   └── gafaig-public-key/
 │       └── route.ts
 
 ---
 
-## SHARED UI COMPONENTS
+## SHARED UI COMPONENTS (MANDATORY SYSTEM)
 
 app/_components/
-├── PublicPageHero.tsx              # Canonical layout system
-├── PublicButtonLink.tsx            # Button system
+
+├── PublicPageHero.tsx              # Layout + hero system
+├── PublicButtonLink.tsx            # Button system (primary/secondary/ghost)
 ├── PublicButton.tsx
 ├── SiteHeader.tsx
 ├── SiteNav.tsx
+
+Rules:
+- These define UI system
+- Must not be bypassed
+- No custom alternatives allowed
 
 ---
 
 ## FEATURE COMPONENTS
 
 components/
+
+### REGISTRY
+
 ├── registry/
 │   ├── RegistryVerificationPanel.tsx
 │   ├── RegistryHeader.tsx
 │   ├── RegistryMetaGrid.tsx
 │   └── RegistryActions.tsx
+
+### EXPLORER
+
 ├── explorer/
 │   ├── ExplorerCard.tsx
 │   ├── ExplorerStats.tsx
 │   └── ExplorerFilters.tsx
+
+### UI PRIMITIVES
+
 ├── ui/
 │   ├── Badge.tsx
 │   ├── Card.tsx
 │   ├── MetricCard.tsx
 │   └── Pill.tsx
 
+Rules:
+- No business logic in components
+- Components are presentation-only
+
 ---
 
-## QUERY LAYER (CRITICAL)
+## QUERY LAYER (CRITICAL — NO LOGIC ZONE)
 
 lib/queries/
+
 ├── explorer.ts
 ├── registry.ts
 ├── registry-ai-systems.ts
 
 Responsibilities:
-- Fetch data from Snowflake
-- No business logic
-- No trust-state computation
-- Must reflect Snowflake views exactly
+- Query Snowflake views only
+- No transformations beyond formatting
+- No scoring logic
+- No derived fields
 
 ---
 
-## SNOWFLAKE CONNECTION
+## SNOWFLAKE CONNECTION LAYER
 
 lib/
-├── snowflake.ts                    # sfQuery + connection layer
+
+├── snowflake.ts
 
 Responsibilities:
-- Secure connection to Snowflake
+- Connection management
 - Query execution
-- No transformation logic
+- No business logic
+- No caching derived values
 
 ---
 
-## CRYPTO / TRUST
+## CRYPTO / TRUST LAYER
 
 lib/crypto/
+
 ├── verify-signing.ts
 
 Responsibilities:
-- Signing payloads (Ed25519)
-- Generating proof objects
-- Key ID management
+- Ed25519 signing
+- Proof generation
+- Key ID (kid) management
+- Deterministic payload construction
 
 ---
 
-## DOCUMENTATION
+## DOCUMENTATION (SYSTEM CONTROL FILES)
 
 docs/
+
 ├── MASTER_STATE.md
 ├── CURRENT_FOCUS.md
 ├── ENGINEERING_RULES.md
@@ -183,12 +273,25 @@ docs/
 ├── VERIFIED_DEFINITION.md
 ├── VERSIONING.md
 ├── VERIFICATION_SIGNATURE_CONTRACT.md
+├── CANONICAL_DATA_CONTRACTS.md
+├── CANONICAL_DIMENSION_SYSTEM.md
+├── REGISTRY_ID_RESOLUTION.md
+├── ENVIRONMENT_PARITY_RULES.md
+├── FAILURE_MODES.md
+├── TEST_CASES.md
+├── DO_NOT_BREAK.md
+
+Rules:
+- Docs define system behavior
+- Docs must match Snowflake reality
+- Docs are part of production system
 
 ---
 
 ## PUBLIC ASSETS
 
 public/
+
 ├── images/
 ├── icons/
 ├── badges/
@@ -198,7 +301,12 @@ public/
 ## STYLES
 
 styles/
+
 ├── globals.css
+
+Rules:
+- No page-specific style systems
+- Must follow PAGE_LAYOUT_SYSTEM.md
 
 ---
 
@@ -208,18 +316,19 @@ styles/
 
 Must include:
 - Snowflake credentials
-- Signing key
+- Signing key (Ed25519)
 - NEXT_PUBLIC_BASE_URL
 
 ---
 
-## ARCHITECTURE RULES
+## ARCHITECTURE RULES (NON-NEGOTIABLE)
 
 - Snowflake is the source of truth
 - UI must not compute trust logic
 - API must not compute trust logic
 - Views are projections only
 - Queries must map directly to Snowflake views
+- No duplication of scoring logic
 
 ---
 
@@ -232,7 +341,7 @@ All pages must:
 - Use space-y-8 spacing
 - Use rounded-3xl containers
 - Use border-black/10
-- Use bg-white
+- Use bg-white surfaces
 
 No custom layout systems allowed.
 
@@ -242,17 +351,19 @@ No custom layout systems allowed.
 
 API → Query Layer → Snowflake Views → Snowflake Tables
 
-NO reverse computation.
+No reverse flow.  
+No mutation outside Snowflake.
 
 ---
 
 ## CURRENT ACTIVE WORK
 
-- Snowflake canonicalization
-- Registry contract correction
-- Explorer stats alignment
-- Seed system consolidation
-- UI alignment to data truth
+- Multi-case real data seed expansion
+- Full pipeline validation
+- Trust distribution (verify + badge + widget)
+- Explorer + Registry alignment
+- UI layout standardization
+- Elimination of legacy conflicts
 
 ---
 
@@ -263,6 +374,18 @@ NO reverse computation.
 - Snowflake → API → UI flow
 - Component reuse system
 - Layout system (PublicPageHero)
+- Deterministic ID generation
+- Canonical pipeline order
+
+---
+
+## ENFORCEMENT
+
+This document is the canonical VS Code structure for GAFAIG.
+
+Any deviation must be corrected before deployment.
+
+No exceptions.
 
 ---
 

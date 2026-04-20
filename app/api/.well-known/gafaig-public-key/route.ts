@@ -1,5 +1,9 @@
 import { NextResponse } from "next/server";
-import { getPublicKeyPem, getSigningKeyId, GAFAIG_VERIFY_ALG } from "@/lib/crypto/verify-signing";
+import {
+  getPublicKeyPem,
+  getSigningKeyId,
+  GAFAIG_VERIFY_ALG,
+} from "@/lib/crypto/verify-signing";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -39,13 +43,14 @@ export async function GET() {
     return NextResponse.json(
       {
         ok: true,
+        kid,
+        alg: GAFAIG_VERIFY_ALG,
+        publicKey: publicKeyPem,
+        publicKeyPem,
+        publicKeyBase64,
         kty: "OKP",
         crv: "Ed25519",
         use: "sig",
-        alg: "EdDSA",
-        kid,
-        publicKeyPem,
-        publicKeyBase64,
       },
       {
         status: 200,
@@ -64,6 +69,7 @@ export async function GET() {
       {
         status: 500,
         headers: {
+          ...getCorsHeaders(),
           "Cache-Control": "no-store",
         },
       }

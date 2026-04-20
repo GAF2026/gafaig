@@ -1,107 +1,33 @@
-import { createPrivateKey, sign as cryptoSign } from "crypto";
 import { NextResponse } from "next/server";
 import { sfQuery } from "@/lib/snowflake";
+import {
+  signVerificationPayload,
+  getSigningKeyId,
+  GAFAIG_VERIFY_ALG,
+} from "@/lib/crypto/verify-signing";
+import type { VerifyApiResponse } from "@/types/registry";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
-
-type VerifyRow = {
-  REGISTRY_ID: string;
-  APPLICATION_ID: string | null;
-  CASE_ID: string | null;
-  ENTITY_NAME: string | null;
-  ENTITY_TYPE: string | null;
-  COUNTRY: string | null;
-  CERTIFIED_SCORE: number | null;
-  CERTIFIED_TIER: string | null;
-  CERTIFIED_BAND: string | null;
-  DECISION_STATUS: string | null;
-  VALID_FROM: string | null;
-  VALID_TO: string | null;
-  CERTIFIED_AT: string | null;
-};
-
-type ProofMessage = {
-  registryId: string;
-  entityName: string | null;
-  entityType: string | null;
-  country: string | null;
-  applicationId: string | null;
-  caseId: string | null;
-  decisionStatus: string | null;
-  certifiedScore: number | null;
-  certifiedTier: string | null;
-  certifiedBand: string | null;
-  certifiedAt: string | null;
-  validFrom: string | null;
-  validTo: string | null;
-  signedAt: string;
-};
-
-function asIso(value: string | null | undefined): string | null {
-  if (!value) return null;
-  const d = new Date(value);
-  if (Number.isNaN(d.getTime())) return value;
-  return d.toISOString();
-}
-
-function stableStringify(value: unknown): string {
-  if (value === null || typeof value !== "object") {
-    return JSON.stringify(value);
-  }
-
-  if (Array.isArray(value)) {
-    return `[${value.map((item) => stableStringify(item)).join(",")}]`;
-  }
-
-  const entries = Object.entries(value as Record<string, unknown>)
-    .sort(([a], [b]) => a.localeCompare(b))
-    .map(([key, val]) => `${JSON.stringify(key)}:${stableStringify(val)}`);
-
-  return `{${entries.join(",")}}`;
-}
-
-function getPrivateKeyPem(): string {
-  const raw = process.env.GAFAIG_SIGNING_PRIVATE_KEY_PEM;
-
-  if (!raw) {
-    throw new Error("Missing GAFAIG_SIGNING_PRIVATE_KEY_PEM");
-  }
-
-  return raw.replace(/\\n/g, "\n").trim();
-}
-
-function signProofMessage(messageString: string): string {
-  const privateKey = createPrivateKey({
-    key: getPrivateKeyPem(),
-    format: "pem",
-  });
-
-  const signature = cryptoSign(
-    null,
-    Buffer.from(messageString, "utf8"),
-    privateKey
-  );
-
-  return signature.toString("base64");
-}
 
 function getCorsHeaders(): HeadersInit {
   return {
     "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Methods": "GET, OPTIONS",
     "Access-Control-Allow-Headers": "Content-Type",
-    "Access-Control-Max-Age": "86400",
     "Cache-Control": "no-store",
   };
 }
 
-function json(body: unknown, status = 200) {
-  return NextResponse.json(body, {
-    status,
-    headers: getCorsHeaders(),
-  });
+function escapeSqlString(value: string): string {
+  return String(value).replace(/'/g, "''");
+}
+
+function toIsoString(value: unknown): string | null {
+  if (!value) return null;
+  const date = new Date(String(value));
+  return Number.isNaN(date.getTime()) ? null : date.toISOString();
 }
 
 export async function OPTIONS() {
@@ -112,110 +38,128 @@ export async function OPTIONS() {
 }
 
 export async function GET(
-  req: Request,
-  { params }: { params: { registryId: string } }
+  _req: Request,
+  context: { params: { registryId: string } }
 ) {
-  const registryIdRaw = String(params.registryId || "").trim();
-
-  if (!registryIdRaw) {
-    return json({ ok: false, error: "Missing registryId" }, 400);
-  }
-
   try {
-    const rows = await sfQuery<VerifyRow>(
-      `
-      SELECT *
-      FROM V_REGISTRY_PUBLIC
-      WHERE UPPER(REGISTRY_ID) = UPPER(?)
-      LIMIT 1
-      `,
-      [registryIdRaw]
-    );
+    const registryId = String(context.params.registryId ?? "").trim();
 
-    const row = rows[0];
-
-    if (!row) {
-      return json({ ok: false, error: "Registry record not found" }, 404);
+    if (!registryId) {
+      return NextResponse.json(
+        {
+          ok: false,
+          verified: false,
+          error: "Missing registryId",
+        } satisfies VerifyApiResponse,
+        {
+          status: 400,
+          headers: getCorsHeaders(),
+        }
+      );
     }
 
-    const certifiedAt = asIso(row.CERTIFIED_AT);
-    const validFrom = asIso(row.VALID_FROM);
-    const validTo = asIso(row.VALID_TO);
-    const decisionStatus = row.DECISION_STATUS ?? null;
+    const rows = await sfQuery<any>(`
+      SELECT
+        REGISTRY_ID,
+        APPLICATION_ID,
+        CASE_ID,
+        ENTITY_NAME,
+        ENTITY_TYPE,
+        COUNTRY,
+        CERTIFICATION_STATUS,
+        CERTIFIED_SCORE,
+        CERTIFIED_TIER,
+        CERTIFIED_BAND,
+        DECISION_STATUS,
+        VALID_FROM,
+        VALID_TO,
+        CERTIFIED_AT
+      FROM CORE.V_REGISTRY_PUBLIC
+      WHERE UPPER(TRIM(REGISTRY_ID)) = UPPER(TRIM('${escapeSqlString(registryId)}'))
+      LIMIT 1
+    `);
 
-    // ✅ Canonical trust state
-    const certificationStatus = certifiedAt
-      ? "Certified"
-      : decisionStatus === "APPROVED"
-      ? "Approved"
-      : "Pending";
+    if (!rows.length) {
+      return NextResponse.json(
+        {
+          ok: false,
+          verified: false,
+          registryId,
+          error: "Registry record not found",
+        } satisfies VerifyApiResponse,
+        {
+          status: 404,
+          headers: getCorsHeaders(),
+        }
+      );
+    }
 
-    const signedAt = new Date().toISOString();
+    const r = rows[0];
 
-    const proofMessage: ProofMessage = {
-      registryId: row.REGISTRY_ID,
-      entityName: row.ENTITY_NAME,
-      entityType: row.ENTITY_TYPE,
-      country: row.COUNTRY,
-      applicationId: row.APPLICATION_ID,
-      caseId: row.CASE_ID,
-      decisionStatus,
-      certifiedScore: row.CERTIFIED_SCORE,
-      certifiedTier: row.CERTIFIED_TIER,
-      certifiedBand: row.CERTIFIED_BAND,
-      certifiedAt,
-      validFrom,
-      validTo,
-      signedAt,
+    const record = {
+      registryId: r.REGISTRY_ID,
+      applicationId: r.APPLICATION_ID ?? null,
+      caseId: r.CASE_ID ?? null,
+      entityName: r.ENTITY_NAME ?? null,
+      entityType: r.ENTITY_TYPE ?? null,
+      country: r.COUNTRY ?? null,
+      certificationStatus: r.CERTIFICATION_STATUS ?? null,
+      certifiedScore: r.CERTIFIED_SCORE ?? null,
+      certifiedTier: r.CERTIFIED_TIER ?? null,
+      certifiedBand: r.CERTIFIED_BAND ?? null,
+      decisionStatus: r.DECISION_STATUS ?? null,
+      validFrom: toIsoString(r.VALID_FROM),
+      validTo: toIsoString(r.VALID_TO),
+      certifiedAt: toIsoString(r.CERTIFIED_AT),
     };
 
-    const messageString = stableStringify(proofMessage);
-    const signature = signProofMessage(messageString);
+    const message = {
+      registryId: record.registryId,
+      entityName: record.entityName,
+      certificationStatus: record.certificationStatus,
+      certifiedScore: record.certifiedScore,
+      certifiedTier: record.certifiedTier,
+      certifiedBand: record.certifiedBand,
+      certifiedAt: record.certifiedAt,
+    };
 
-    const kid =
-      process.env.GAFAIG_SIGNING_KEY_ID || "gafaig-ed25519-2026-01";
+    const messageString = JSON.stringify(message);
+    const signature = signVerificationPayload(messageString);
 
-    const baseUrl =
-      process.env.NEXT_PUBLIC_BASE_URL || "https://www.gafaig.com";
-
-    return json({
+    const response: VerifyApiResponse = {
       ok: true,
-      verified: true, // ✅ cryptographic layer always returns signed truth
-      registryId: row.REGISTRY_ID,
-      record: {
-        registryId: row.REGISTRY_ID,
-        entityName: row.ENTITY_NAME,
-        entityType: row.ENTITY_TYPE,
-        country: row.COUNTRY,
-        applicationId: row.APPLICATION_ID,
-        caseId: row.CASE_ID,
-        certificationStatus,
-        certifiedScore: row.CERTIFIED_SCORE,
-        certifiedTier: row.CERTIFIED_TIER,
-        certifiedBand: row.CERTIFIED_BAND,
-        decisionStatus,
-        certifiedAt,
-        validFrom,
-        validTo,
-      },
+      verified: true,
+      registryId: record.registryId,
+      record,
       proof: {
-        alg: "Ed25519",
-        kid,
+        alg: GAFAIG_VERIFY_ALG,
+        kid: getSigningKeyId(),
         signature,
-        signedAt,
-        verificationKeyUrl: `${baseUrl}/api/.well-known/gafaig-public-key`,
-        message: proofMessage,
+        signedAt: new Date().toISOString(),
+        verificationKeyUrl: "/api/.well-known/gafaig-public-key",
+        message,
         messageString,
       },
+    };
+
+    return NextResponse.json(response, {
+      status: 200,
+      headers: getCorsHeaders(),
     });
   } catch (error) {
-    return json(
+    return NextResponse.json(
       {
         ok: false,
+        verified: false,
         error:
-          error instanceof Error ? error.message : "Verification error",
-      },
-      500
+          error instanceof Error
+            ? error.message
+            : "Verification endpoint failed",
+      } satisfies VerifyApiResponse,
+      {
+        status: 500,
+        headers: getCorsHeaders(),
+      }
     );
   }
 }
