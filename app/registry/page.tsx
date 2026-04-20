@@ -3,7 +3,7 @@ import PublicPageHero from "../_components/PublicPageHero";
 import PublicButtonLink from "../_components/PublicButtonLink";
 import {
   getRegistryFilterOptions,
-  getRegistryList,
+  getRegistryRecords,
   searchRegistryRecords,
 } from "@/lib/queries/registry";
 
@@ -72,7 +72,7 @@ export default async function RegistryPage({
           band,
           limit: 500,
         })
-      : getRegistryList(500),
+      : getRegistryRecords(500),
     getRegistryFilterOptions(),
   ]);
 
