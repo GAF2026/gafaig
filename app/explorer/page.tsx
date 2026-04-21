@@ -288,14 +288,14 @@ export default async function ExplorerPage() {
 
             <div className="mt-5 flex flex-wrap gap-2">
               {organizations.map((item) => (
-                <Link
-                  key={item.name}
-                  href={`/registry?organization=${encodeURIComponent(item.name)}`}
-                  className="inline-flex rounded-full border border-black/10 bg-[#fafaf8] px-3 py-2 text-[13px] text-black/70 transition hover:border-black hover:text-black"
-                >
-                  {item.name}
-                </Link>
-              ))}
+  <Link
+    key={item.entityName}
+    href={`/registry/organization=${encodeURIComponent(item.entityName)}`}
+    className="inline-flex items-center rounded-full border border-black/10 bg-[#fafafa] px-3 py-2 text-[13px] text-black/80 hover:bg-black/[0.04]"
+  >
+    {item.entityName}
+  </Link>
+))}
             </div>
           </div>
 
