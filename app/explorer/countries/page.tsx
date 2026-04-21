@@ -2,155 +2,128 @@ import PublicPageHero from "@/app/_components/PublicPageHero";
 import PublicButtonLink from "@/app/_components/PublicButtonLink";
 import { getExplorerCountries } from "@/lib/queries/explorer";
 
-export const revalidate = 300;
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 export default async function ExplorerCountriesPage() {
-  const rows = await getExplorerCountries(200);
+  const rows = await getExplorerCountries(250);
 
   return (
-    <main className="mx-auto max-w-[1180px] px-6 pb-16 pt-14">
-      <div className="space-y-8">
-        <PublicPageHero
-          eyebrow="EXPLORER"
-          title="Countries"
-          description="Public country-level visibility across the GAFAIG trust surface."
-          secondaryDescription="This explorer surface includes both evaluated (Approved) and publicly trusted (Certified) records across countries, showing how GAFAIG’s public trust layer is distributed by geography, organizations, registry records, and visible AI systems."
-          actions={
-            <>
-              <PublicButtonLink href="/registry" variant="primary">
-                View Registry
-              </PublicButtonLink>
+    <main className="bg-[#f5f7fb] text-[#111111]">
+      <PublicPageHero
+        eyebrow="Country explorer"
+        title="Browse certified public trust records by country"
+        description="This page summarizes countries represented in the current GAFAIG public trust surface using Snowflake-backed explorer data."
+        actions={
+          <>
+            <PublicButtonLink href="/explorer" variant="primary">
+              Back to Explorer
+            </PublicButtonLink>
+            <PublicButtonLink href="/registry" variant="secondary">
+              Open Registry
+            </PublicButtonLink>
+          </>
+        }
+      />
 
-              <PublicButtonLink href="/explorer" variant="secondary">
-                Back to Explorer
-              </PublicButtonLink>
-
-              <PublicButtonLink
-                href="/explorer/organizations"
-                variant="secondary"
-              >
-                Organizations
-              </PublicButtonLink>
-
-              <PublicButtonLink href="/explorer/systems" variant="secondary">
-                Systems
-              </PublicButtonLink>
-            </>
-          }
-        />
-
-        <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
-          <div className="max-w-[980px] space-y-3 text-[15px] leading-[1.8] text-black/65">
-            <p>
-              Explorer distinguishes between evaluated country presence and publicly trusted country presence.
-            </p>
-
-            <div className="rounded-2xl border border-black/10 bg-black/[0.03] p-5">
-              <div className="grid gap-3 text-[15px] leading-[1.8] text-black/72">
-                <div>
-                  <span className="font-semibold text-black">Approved</span>{" "}
-                  means a country may contain organizations or systems that have completed the GAFAIG evaluation process and received governance decisions, even if those records are not yet published as certified public records.
-                </div>
-
-                <div>
-                  <span className="font-semibold text-black">Certified</span>{" "}
-                  means a country contains finalized, published GAFAIG trust records that appear in the registry of record.
-                </div>
-              </div>
+      <section className="mx-auto flex w-full max-w-[1180px] flex-col gap-6 px-6 pb-16 pt-2 md:px-8">
+        <div className="grid gap-4 md:grid-cols-3">
+          <article className="rounded-[28px] border border-black/10 bg-white p-6 shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
+            <div className="text-[11px] font-semibold uppercase tracking-[0.28em] text-black/45">
+              Countries
             </div>
+            <div className="mt-3 text-4xl font-semibold tracking-[-0.04em] text-black">
+              {rows.length}
+            </div>
+          </article>
 
-            <p className="text-black/60">
-              This countries view may include both Approved and Certified records. The Registry of Record shows Certified records only.
-            </p>
-          </div>
-        </section>
+          <article className="rounded-[28px] border border-black/10 bg-white p-6 shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
+            <div className="text-[11px] font-semibold uppercase tracking-[0.28em] text-black/45">
+              Organizations represented
+            </div>
+            <div className="mt-3 text-4xl font-semibold tracking-[-0.04em] text-black">
+              {rows.reduce((sum, row) => sum + row.organizations, 0)}
+            </div>
+          </article>
 
-        <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
-          <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+          <article className="rounded-[28px] border border-black/10 bg-white p-6 shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
+            <div className="text-[11px] font-semibold uppercase tracking-[0.28em] text-black/45">
+              Certified records
+            </div>
+            <div className="mt-3 text-4xl font-semibold tracking-[-0.04em] text-black">
+              {rows.reduce((sum, row) => sum + row.records, 0)}
+            </div>
+          </article>
+        </div>
+
+        <section className="rounded-[32px] border border-black/10 bg-white p-6 shadow-[0_1px_2px_rgba(0,0,0,0.04)] md:p-8">
+          <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
             <div>
-              <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
-                COUNTRY DIRECTORY
+              <div className="text-[11px] font-semibold uppercase tracking-[0.28em] text-black/45">
+                Country table
               </div>
-
-              <h2 className="mt-4 text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
-                Public country coverage in the trust surface
+              <h2 className="mt-2 text-3xl font-semibold tracking-[-0.04em] text-black">
+                Public trust footprint by country
               </h2>
-
-              <p className="mt-3 max-w-[820px] text-[15px] leading-[1.8] text-black/68">
-                Browse country-level representation across the GAFAIG public trust surface.
+              <p className="mt-3 max-w-3xl text-[15px] leading-7 text-black/65">
+                Countries are ordered by the number of currently visible public
+                trust records in the explorer surface.
               </p>
             </div>
 
-            <div>
-              <PublicButtonLink href="/registry" variant="secondary">
-                Open Full Registry
-              </PublicButtonLink>
-            </div>
+            <div className="text-sm text-black/45">{rows.length} shown</div>
           </div>
 
-          <div className="mt-8 overflow-x-auto">
+          <div className="mt-6 overflow-x-auto rounded-[24px] border border-black/10">
             <table className="min-w-full border-collapse">
-              <thead>
-                <tr className="border-b border-black/10 text-left text-[12px] uppercase tracking-[0.16em] text-black/55">
-                  <th className="px-0 py-3">Country</th>
-                  <th className="px-4 py-3">Organizations</th>
-                  <th className="px-4 py-3">Registry Records</th>
-                  <th className="px-4 py-3">Systems</th>
+              <thead className="bg-black/[0.03]">
+                <tr>
+                  <th className="px-4 py-4 text-left text-[11px] font-semibold uppercase tracking-[0.24em] text-black/45">
+                    Country
+                  </th>
+                  <th className="px-4 py-4 text-left text-[11px] font-semibold uppercase tracking-[0.24em] text-black/45">
+                    Organizations
+                  </th>
+                  <th className="px-4 py-4 text-left text-[11px] font-semibold uppercase tracking-[0.24em] text-black/45">
+                    Certified records
+                  </th>
                 </tr>
               </thead>
+
               <tbody>
-                {rows.map((row) => (
-                  <tr
-                    key={row.country ?? "unknown"}
-                    className="border-b border-black/5"
-                  >
-                    <td className="px-0 py-4 font-semibold text-black">
-                      {row.country ?? "Unknown"}
-                    </td>
-
-                    <td className="px-4 py-4 text-sm text-black/75">
-                      {row.organizationCount}
-                    </td>
-
-                    <td className="px-4 py-4 text-sm text-black/75">
-                      {row.registryCount}
-                    </td>
-
-                    <td className="px-4 py-4 text-sm text-black/75">
-                      {row.systemCount}
-                    </td>
-                  </tr>
-                ))}
-
                 {rows.length === 0 ? (
                   <tr>
-                    <td colSpan={4} className="px-0 py-8 text-sm text-black/60">
-                      No countries found.
+                    <td
+                      colSpan={3}
+                      className="px-4 py-10 text-center text-[15px] text-black/55"
+                    >
+                      No countries are currently visible in the public explorer.
                     </td>
                   </tr>
-                ) : null}
+                ) : (
+                  rows.map((row) => (
+                    <tr
+                      key={row.country}
+                      className="border-t border-black/10 bg-white"
+                    >
+                      <td className="px-4 py-4 text-[15px] font-medium text-black">
+                        {row.country}
+                      </td>
+                      <td className="px-4 py-4 text-[15px] text-black/75">
+                        {row.organizations}
+                      </td>
+                      <td className="px-4 py-4 text-[15px] text-black/75">
+                        {row.records}
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>
-
-          <div className="mt-8 flex flex-wrap gap-3 border-t border-black/10 pt-6">
-            <PublicButtonLink href="/explorer" variant="secondary">
-              Explorer
-            </PublicButtonLink>
-
-            <PublicButtonLink
-              href="/explorer/organizations"
-              variant="secondary"
-            >
-              Organizations
-            </PublicButtonLink>
-
-            <PublicButtonLink href="/explorer/systems" variant="secondary">
-              Systems
-            </PublicButtonLink>
-          </div>
         </section>
-      </div>
+      </section>
     </main>
   );
 }
