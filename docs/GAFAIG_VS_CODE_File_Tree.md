@@ -1,4 +1,4 @@
-# GAFAIG_VS_CODE_File_Tree.md — Last Updated: 2026-04-19
+# GAFAIG_VS_CODE_File_Tree.md — Last Updated: 2026-04-21
 
 ## PURPOSE
 
@@ -11,7 +11,7 @@ It ensures:
 - Consistent developer workflow
 - Strict enforcement of UI/API/DB boundaries
 
-This document is a **control surface**, not a reference note.
+This document is a control surface, not a reference note.
 
 ---
 
@@ -28,7 +28,7 @@ NOT:
 - API → Computation
 - UI → Derived state
 
-No logic is allowed outside Snowflake.
+No trust logic is allowed outside Snowflake.
 
 ---
 
@@ -51,134 +51,151 @@ gafaig/
 ## APP DIRECTORY (NEXT.JS APP ROUTER)
 
 app/
-├── layout.tsx               # Root layout
-├── page.tsx                 # Homepage
+├── layout.tsx
+├── page.tsx
 
 Rules:
-- All routing is App Router based
-- No legacy pages router allowed
-- Layout system must remain consistent
+- App Router only
+- No Pages Router
+- Layout consistency required
 
 ---
 
-## CORE PUBLIC PAGES (CANONICAL UI SURFACE)
+## CORE PUBLIC PAGES
 
 app/
-├── page.tsx                         # Homepage
-├── mission/
-│   └── page.tsx
-├── framework/
-│   └── page.tsx
+├── page.tsx
+├── mission/page.tsx
+├── framework/page.tsx
 
-### EXPLORER
+---
 
-├── explorer/
-│   ├── page.tsx
-│   ├── organizations/
-│   │   └── page.tsx
-│   ├── countries/
-│   │   └── page.tsx
-│   └── systems/
-│       └── page.tsx
+## EXPLORER (PUBLIC TRUST SURFACE)
 
-### REGISTRY
+app/explorer/
+├── page.tsx
+├── organizations/page.tsx
+├── countries/page.tsx
+├── systems/page.tsx
 
-├── registry/
-│   ├── page.tsx
-│   ├── [registryId]/
-│   │   └── page.tsx
-│   ├── ai-systems/
-│   │   ├── page.tsx
-│   │   └── [systemId]/
-│   │       └── page.tsx
+Purpose:
+- Aggregate public registry data
+- Must ONLY consume Snowflake public views
 
-### VERIFY
+MANDATORY DATA SOURCES:
+- CORE.V_REGISTRY_PUBLIC
+- CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC
+- CORE.V_EXPLORER_STATS
 
-├── verify/
-│   ├── page.tsx
-│   └── [registryId]/
-│       └── page.tsx
+CRITICAL RULE:
+- NEVER query CORE.REGISTRY_AI_SYSTEMS directly
+- NEVER expose TMP registry IDs
+- ONLY certified/public systems allowed
 
-### APPLY (NEW — INTAKE ENTRY POINT)
+---
 
-├── apply/
-│   └── page.tsx
+## REGISTRY (CANONICAL TRUST SURFACE)
+
+app/registry/
+├── page.tsx
+├── [registryId]/page.tsx
+├── ai-systems/page.tsx
+├── ai-systems/[systemId]/page.tsx
+
+Purpose:
+- Display canonical registry records
+- Must reflect V_REGISTRY_PUBLIC exactly
+
+---
+
+## VERIFY
+
+app/verify/
+├── page.tsx
+├── [registryId]/page.tsx
+
+Purpose:
+- Human + machine verification interface
+
+---
+
+## APPLY (INTAKE ENTRY POINT)
+
+app/apply/
+├── page.tsx
 
 Purpose:
 - Entry into APPLICATION → CASE pipeline
-- Must write to CORE.APPLICATIONS (not local storage)
-
-### DEVELOPERS
-
-├── developers/
-│   └── page.tsx
-
-### WIDGET PREVIEW
-
-├── widget-preview/
-│   └── [registryId]/
-│       └── page.tsx
+- MUST write to CORE.APPLICATIONS
 
 ---
 
-## API ROUTES (STRICTLY READ-ONLY TRUST SURFACE)
+## DEVELOPERS
+
+app/developers/
+├── page.tsx
+
+Purpose:
+- Trust distribution
+- API + widget documentation
+
+---
+
+## WIDGET PREVIEW
+
+app/widget-preview/
+├── [registryId]/page.tsx
+
+Purpose:
+- Validate embed behavior
+
+---
+
+## API ROUTES (READ-ONLY TRUST SURFACE)
 
 app/api/
 
 ### EXPLORER
-
-├── explorer/
-│   └── route.ts
+├── explorer/route.ts
 
 ### REGISTRY
+├── registry/route.ts
+├── registry/search/route.ts
+├── registry/[registryId]/route.ts
+├── registry/[registryId]/ai-systems/route.ts
 
-├── registry/
-│   ├── route.ts
-│   ├── search/
-│   │   └── route.ts
-│   ├── [registryId]/
-│   │   ├── route.ts
-│   │   └── ai-systems/
-│   │       └── route.ts
-
-### VERIFY (CRITICAL TRUST ENDPOINT)
-
-├── verify/
-│   └── [registryId]/
-│       └── route.ts
+### VERIFY
+├── verify/[registryId]/route.ts
 
 Responsibilities:
-- Return canonical registry record
-- Return signed proof (Ed25519)
+- return canonical registry record
+- return signed proof
 
 ### BADGE
-
-├── badge/
-│   └── [registryId]/
-│       └── route.ts
+├── badge/[registryId]/route.ts
 
 ### PUBLIC KEY
+├── .well-known/gafaig-public-key/route.ts
 
-├── .well-known/
-│   └── gafaig-public-key/
-│       └── route.ts
+Rules:
+- no recomputation
+- no derived trust logic
+- strict mapping only
 
 ---
 
-## SHARED UI COMPONENTS (MANDATORY SYSTEM)
+## SHARED UI COMPONENTS
 
 app/_components/
-
-├── PublicPageHero.tsx              # Layout + hero system
-├── PublicButtonLink.tsx            # Button system (primary/secondary/ghost)
+├── PublicPageHero.tsx
+├── PublicButtonLink.tsx
 ├── PublicButton.tsx
 ├── SiteHeader.tsx
 ├── SiteNav.tsx
 
 Rules:
-- These define UI system
-- Must not be bypassed
-- No custom alternatives allowed
+- mandatory usage
+- defines layout system
 
 ---
 
@@ -187,7 +204,6 @@ Rules:
 components/
 
 ### REGISTRY
-
 ├── registry/
 │   ├── RegistryVerificationPanel.tsx
 │   ├── RegistryHeader.tsx
@@ -195,14 +211,12 @@ components/
 │   └── RegistryActions.tsx
 
 ### EXPLORER
-
 ├── explorer/
 │   ├── ExplorerCard.tsx
 │   ├── ExplorerStats.tsx
 │   └── ExplorerFilters.tsx
 
 ### UI PRIMITIVES
-
 ├── ui/
 │   ├── Badge.tsx
 │   ├── Card.tsx
@@ -210,59 +224,71 @@ components/
 │   └── Pill.tsx
 
 Rules:
-- No business logic in components
-- Components are presentation-only
+- presentation only
+- no business logic
 
 ---
 
-## QUERY LAYER (CRITICAL — NO LOGIC ZONE)
+## QUERY LAYER (CRITICAL)
 
 lib/queries/
-
 ├── explorer.ts
 ├── registry.ts
-├── registry-ai-systems.ts
+├── registry-ai-systems.ts (INTERNAL ONLY)
 
-Responsibilities:
-- Query Snowflake views only
-- No transformations beyond formatting
-- No scoring logic
-- No derived fields
+Rules:
+- MUST query Snowflake views only
+- NO direct table access for public surfaces
+
+Allowed:
+- CORE.V_REGISTRY_PUBLIC
+- CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC
+- CORE.V_EXPLORER_STATS
+
+Forbidden:
+- CORE.REGISTRY_AI_SYSTEMS (public UI)
+- workflow tables in explorer/registry
 
 ---
 
-## SNOWFLAKE CONNECTION LAYER
+## SNOWFLAKE CONNECTION
 
 lib/
-
 ├── snowflake.ts
 
-Responsibilities:
-- Connection management
-- Query execution
-- No business logic
-- No caching derived values
+Purpose:
+- connection + query execution
+
+Rules:
+- no logic
+- no transformation beyond execution
 
 ---
 
 ## CRYPTO / TRUST LAYER
 
 lib/crypto/
-
 ├── verify-signing.ts
 
-Responsibilities:
+Purpose:
 - Ed25519 signing
-- Proof generation
-- Key ID (kid) management
-- Deterministic payload construction
+- deterministic proof payloads
 
 ---
 
-## DOCUMENTATION (SYSTEM CONTROL FILES)
+## TYPES / CONTRACTS
+
+types/
+├── registry.ts
+
+Purpose:
+- enforce API ↔ UI consistency
+
+---
+
+## DOCUMENTATION (SYSTEM CONTROL)
 
 docs/
-
 ├── MASTER_STATE.md
 ├── CURRENT_FOCUS.md
 ├── ENGINEERING_RULES.md
@@ -282,16 +308,15 @@ docs/
 ├── DO_NOT_BREAK.md
 
 Rules:
-- Docs define system behavior
-- Docs must match Snowflake reality
-- Docs are part of production system
+- docs define system behavior
+- must match Snowflake reality
 
 ---
 
 ## PUBLIC ASSETS
 
 public/
-
+├── widget/gafaig-widget.js
 ├── images/
 ├── icons/
 ├── badges/
@@ -301,92 +326,67 @@ public/
 ## STYLES
 
 styles/
-
 ├── globals.css
 
 Rules:
-- No page-specific style systems
-- Must follow PAGE_LAYOUT_SYSTEM.md
+- must follow PAGE_LAYOUT_SYSTEM.md
+- no ad hoc styling systems
 
 ---
 
 ## ENVIRONMENT
 
-.env.local
-
-Must include:
+.env.local must include:
 - Snowflake credentials
-- Signing key (Ed25519)
+- signing keys (Ed25519)
 - NEXT_PUBLIC_BASE_URL
 
 ---
 
-## ARCHITECTURE RULES (NON-NEGOTIABLE)
+## CRITICAL SYSTEM RULES
 
-- Snowflake is the source of truth
-- UI must not compute trust logic
-- API must not compute trust logic
-- Views are projections only
-- Queries must map directly to Snowflake views
-- No duplication of scoring logic
-
----
-
-## LAYOUT RULES (MANDATORY)
-
-All pages must:
-- Use PublicPageHero
-- Use max-w-[1180px]
-- Use px-6 padding
-- Use space-y-8 spacing
-- Use rounded-3xl containers
-- Use border-black/10
-- Use bg-white surfaces
-
-No custom layout systems allowed.
+1. Snowflake is source of truth  
+2. UI does not compute trust  
+3. API does not compute trust  
+4. Views are projections only  
+5. Query layer must use views only  
+6. No duplicate scoring logic  
+7. No workflow leakage into public UI  
+8. Explorer systems must use V_REGISTRY_AI_SYSTEMS_PUBLIC only  
 
 ---
 
-## DATA FLOW (APPLICATION SIDE)
+## CURRENT STABLE CHECKPOINT
 
-API → Query Layer → Snowflake Views → Snowflake Tables
+Git Commit:
+3f5a775
 
-No reverse flow.  
-No mutation outside Snowflake.
-
----
-
-## CURRENT ACTIVE WORK
-
-- Multi-case real data seed expansion
-- Full pipeline validation
-- Trust distribution (verify + badge + widget)
-- Explorer + Registry alignment
-- UI layout standardization
-- Elimination of legacy conflicts
+State:
+- registry stable
+- explorer stable
+- API aligned
+- Snowflake aligned
+- public trust surface restored
 
 ---
 
-## DO NOT BREAK
+## ACTIVE FOCUS
 
-- File structure hierarchy
-- Query layer contracts
-- Snowflake → API → UI flow
-- Component reuse system
-- Layout system (PublicPageHero)
-- Deterministic ID generation
-- Canonical pipeline order
+1. enforce systems view usage across explorer
+2. eliminate any remaining raw table usage
+3. maintain strict Snowflake → UI parity
+4. protect public trust surface integrity
 
 ---
 
-## ENFORCEMENT
+## FINAL STATEMENT
 
-This document is the canonical VS Code structure for GAFAIG.
+GAFAIG is now a deterministic governance system where:
 
-Any deviation must be corrected before deployment.
+Snowflake defines truth  
+API transmits truth  
+UI renders truth  
 
-No exceptions.
-
----
+Any deviation from this model is a system violation.
 
 END OF FILE

@@ -1,173 +1,75 @@
 import { NextResponse } from "next/server";
-import { getRegistryByRegistryId } from "@/lib/queries/registry";
-import type { BadgeApiResponse } from "@/types/registry";
+import { sfQuery } from "@/lib/snowflake";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-function getCorsHeaders(): HeadersInit {
-  return {
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Methods": "GET, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type",
-    "Cache-Control": "no-store",
-  };
-}
-
-function absoluteUrl(path: string) {
-  const baseUrl =
-    process.env.NEXT_PUBLIC_BASE_URL?.trim() || "https://www.gafaig.com";
-  return `${baseUrl.replace(/\/+$/, "")}${path.startsWith("/") ? path : `/${path}`}`;
-}
-
-function getBadgeTier(certifiedTier: string | null) {
-  const value = String(certifiedTier ?? "").trim().toLowerCase();
-  if (!value) return "default";
-  if (value.includes("enterprise")) return "certified";
-  if (value.includes("certified")) return "certified";
-  return "default";
-}
-
-function getBadgeImagePath(tier: string) {
-  return tier === "certified"
-    ? "/images/gafaig-badge-tier-1.png"
-    : "/images/gafaig-badge-default.png";
-}
-
-function getBadgeLabel(
-  certifiedTier: string | null,
-  certifiedBand: string | null,
-  certificationStatus: string | null
-) {
-  const tier = String(certifiedTier ?? "").trim();
-  const band = String(certifiedBand ?? "").trim();
-  const status = String(certificationStatus ?? "").trim();
-
-  if (tier && band) return `${tier} · Band ${band}`;
-  if (tier) return tier;
-  if (band) return `Band ${band}`;
-  if (status) return status;
-  return "Certified";
-}
-
-export async function OPTIONS() {
-  return new NextResponse(null, {
-    status: 204,
-    headers: getCorsHeaders(),
-  });
-}
-
 export async function GET(
   _req: Request,
-  { params }: { params: { registryId: string } }
+  context: { params: { registryId: string } }
 ) {
   try {
-    const registryId = String(params.registryId ?? "").trim();
+    const registryId = String(context.params.registryId ?? "").trim();
 
     if (!registryId) {
-      const response: BadgeApiResponse = {
-        ok: false,
-        error: "Missing registryId",
-      };
-
-      return NextResponse.json(response, {
-        status: 400,
-        headers: getCorsHeaders(),
-      });
+      return NextResponse.json(
+        { ok: false, error: "Missing registryId" },
+        { status: 400 }
+      );
     }
 
-    const record = await getRegistryByRegistryId(registryId);
+    const rows = await sfQuery<any>(`
+      SELECT
+        REGISTRY_ID,
+        ENTITY_NAME,
+        CERTIFICATION_STATUS,
+        CERTIFIED_AT
+      FROM CORE.V_REGISTRY_PUBLIC
+      WHERE UPPER(TRIM(REGISTRY_ID)) = UPPER(TRIM('${registryId.replace(/'/g, "''")}'))
+      LIMIT 1
+    `);
 
-    if (!record) {
-      const response: BadgeApiResponse = {
-        ok: false,
-        error: "Registry not found",
-      };
-
-      return NextResponse.json(response, {
-        status: 404,
-        headers: getCorsHeaders(),
-      });
+    if (!rows.length) {
+      return NextResponse.json(
+        { ok: false, error: "Registry record not found" },
+        { status: 404 }
+      );
     }
 
-    const certificationStatus = String(record.certificationStatus ?? "").trim();
-    if (certificationStatus.toLowerCase() !== "certified") {
-      const response: BadgeApiResponse = {
-        ok: false,
-        error: "Badge is available only for certified public trust records",
-      };
+    const r = rows[0];
 
-      return NextResponse.json(response, {
-        status: 409,
-        headers: getCorsHeaders(),
-      });
-    }
+    const isCertified = r.CERTIFICATION_STATUS === "CERTIFIED";
 
-    const tier = getBadgeTier(record.certifiedTier);
-    const imageUrl = getBadgeImagePath(tier);
-
-    const verifyUrl = `/api/verify/${record.registryId}`;
-    const registryUrl = `/registry/${record.registryId}`;
-    const widgetUrl = `/widget-preview/${record.registryId}`;
-
-    const altText = `GAFAIG certification badge for ${record.entityName ?? record.registryId}`;
-
-    const linkedImageHtml = `<a href="${absoluteUrl(
-      registryUrl
-    )}" target="_blank" rel="noopener noreferrer"><img src="${absoluteUrl(
-      imageUrl
-    )}" alt="${altText}" style="height:64px;width:auto" /></a>`;
-
-    const imageHtml = `<img src="${absoluteUrl(
-      imageUrl
-    )}" alt="${altText}" style="height:64px;width:auto" />`;
-
-    const iframeHtml = `<iframe src="${absoluteUrl(
-      widgetUrl
-    )}" title="GAFAIG trust widget for ${
-      record.entityName ?? record.registryId
-    }" width="420" height="220" style="border:0;border-radius:16px;overflow:hidden" loading="lazy"></iframe>`;
-
-    const response: BadgeApiResponse = {
-      ok: true,
-      registryId: record.registryId,
-      entityName: record.entityName,
-      certifiedTier: record.certifiedTier,
-      certifiedBand: record.certifiedBand,
-      certifiedAt: record.certifiedAt,
-      badge: {
-        tier,
-        label: getBadgeLabel(
-          record.certifiedTier,
-          record.certifiedBand,
-          record.certificationStatus ?? null
-        ),
-        imageUrl,
-      },
-      verifyUrl,
-      registryUrl,
-      widgetUrl,
-      embed: {
-        imageHtml,
-        linkedImageHtml,
-        iframeHtml,
-      },
+    const badge = {
+      status: isCertified ? "CERTIFIED" : "NOT_CERTIFIED",
+      label: isCertified ? "GAFAIG Certified" : "Not Certified",
+      imageUrl: isCertified
+        ? "/badges/gafaig-certified.svg"
+        : "/badges/gafaig-not-certified.svg",
     };
 
-    return NextResponse.json(response, {
-      status: 200,
-      headers: getCorsHeaders(),
+    return NextResponse.json({
+      ok: true,
+      registryId: r.REGISTRY_ID,
+      entityName: r.ENTITY_NAME,
+      certificationStatus: r.CERTIFICATION_STATUS,
+      certifiedAt: r.CERTIFIED_AT,
+      badge,
+      verifyUrl: `/verify/${r.REGISTRY_ID}`,
+      registryUrl: `/registry/${r.REGISTRY_ID}`,
+      widgetUrl: `/widget-preview/${r.REGISTRY_ID}`,
     });
   } catch (error) {
-    const response: BadgeApiResponse = {
-      ok: false,
-      error: error instanceof Error ? error.message : "Badge endpoint failed.",
-    };
-
-    return NextResponse.json(response, {
-      status: 500,
-      headers: getCorsHeaders(),
-    });
+    return NextResponse.json(
+      {
+        ok: false,
+        error:
+          error instanceof Error
+            ? error.message
+            : "Badge endpoint failed",
+      },
+      { status: 500 }
+    );
   }
 }

@@ -1,15 +1,16 @@
-# ENGINEERING_RULES.md — Last Updated: 2026-04-19
+# ENGINEERING_RULES.md
+Date: 2026-04-21
 
 ## PURPOSE
 
 This document defines the non-negotiable engineering rules for the GAFAIG platform.
 
 It governs:
-- System architecture
-- Data flow
-- Code boundaries
-- Trust enforcement
-- Development behavior
+- system architecture
+- data flow
+- code boundaries
+- trust enforcement
+- development behavior
 
 This is not guidance.  
 This is a **hard constraint system**.
@@ -24,10 +25,11 @@ GAFAIG is a deterministic system.
 
 All trust originates from Snowflake.
 
-All public outputs must be traceable to:
-Snowflake → Views → API → UI
+All public outputs must follow:
 
-No computation, inference, or mutation of trust data is allowed outside Snowflake.
+Snowflake → Views → Query Layer → API → UI
+
+No computation, inference, mutation, or correction of trust data is allowed outside Snowflake.
 
 ---
 
@@ -38,11 +40,12 @@ Snowflake is the ONLY source of truth.
 Specifically:
 - CORE tables store canonical data
 - Views define public projections
-- Procedures enforce state transitions
+- Procedures enforce lifecycle transitions
 
 Rules:
 - UI must not compute trust data
 - API must not compute trust data
+- Query layer must not compute trust data
 - No duplication of logic outside Snowflake
 
 ---
@@ -64,15 +67,16 @@ Rules:
 All outputs must be deterministic.
 
 Given the same inputs:
-- The same CASE_ID must be generated
-- The same score must be produced
-- The same decision must be issued
-- The same registry output must be returned
+- Same CASE_ID
+- Same score
+- Same decision
+- Same registry output
+- Same signature
 
 Rules:
 - No randomness
-- No non-deterministic IDs
 - No hidden state
+- No environment-dependent behavior
 
 ---
 
@@ -80,37 +84,37 @@ Rules:
 
 All IDs must be deterministic:
 
-- APPLICATION_ID
-- CASE_ID
-- FINDING_ID
-- EVIDENCE_ID
-- EVENT_ID
-- PARTICIPANT_ID
-- REGISTRY_ID (incremental deterministic)
+- APPLICATION_ID  
+- CASE_ID  
+- FINDING_ID  
+- EVIDENCE_ID  
+- EVENT_ID  
+- PARTICIPANT_ID  
+- REGISTRY_ID  
 
 Exception:
 - REGISTRY_SNAPSHOT_ID may use UUID (append-only versioning)
 
 Rules:
 - IDs must be reproducible
-- IDs must not be reassigned
 - IDs must not be mutated
+- IDs must not be reassigned
 
 ---
 
 ## APPEND-ONLY RULE
 
-Registry data is append-only.
+Registry and lifecycle data are append-only.
 
 Rules:
 - CORE.REGISTRY_SNAPSHOTS must never be updated
+- CORE.DECISIONS must not overwrite active rows (must close via VALID_TO)
 - New state = new row
-- Historical data must remain intact
 
 Violations:
-- Updating a snapshot
-- Deleting a snapshot
-- Overwriting registry history
+- Updating snapshots
+- Deleting historical records
+- Overwriting lifecycle history
 
 ---
 
@@ -124,22 +128,37 @@ Rules:
 - No scoring logic in API
 - No scoring logic in UI
 - No derived scoring fields outside Snowflake
-- Score version must be tracked
+- Score must be versioned
 
 ---
 
 ## DECISION RULES
 
-Decisions must be:
+Decisions must:
 
-- Derived from scoring
-- Stored in CORE.DECISIONS
-- Explicitly defined (APPROVED / REJECTED / etc.)
+- originate from scoring outputs
+- be stored in CORE.DECISIONS
+- follow append-only lifecycle model
 
 Rules:
-- No implicit decisions
-- No UI-based decisions
-- No API-based decisions
+- exactly one active decision row (VALID_TO IS NULL)
+- no implicit decisions
+- no UI/API-based decisions
+
+---
+
+## LIFECYCLE RULES
+
+Lifecycle must be derived from:
+
+- CORE.DECISIONS
+- VALID_FROM / VALID_TO
+- CORE.V_CASE_RENEWAL_STATUS
+
+Rules:
+- lifecycle must not be inferred in UI/API
+- expired or revoked records must not appear in public views
+- publishability must be determined in Snowflake only
 
 ---
 
@@ -147,38 +166,94 @@ Rules:
 
 Registry data must:
 
-- Originate from CORE.REGISTRY_SNAPSHOTS
-- Be exposed via V_REGISTRY_PUBLIC
-- Reflect only approved and published cases
+- originate from CORE.REGISTRY_SNAPSHOTS
+- be exposed via CORE.V_REGISTRY_PUBLIC
+- represent only certified, valid records
 
 Rules:
-- No synthetic registry entries
-- No UI filtering logic to simulate certification
-- No API overrides
+- no synthetic registry entries
+- no UI filtering to simulate certification
+- no API overrides
 
 ---
 
-## VIEW RULES
+## PUBLIC VIEW RULES
 
 Views are projections only.
 
 Rules:
-- No business logic duplication
-- No recomputation of scores
-- No mutation of underlying data
-- Must reflect Snowflake tables exactly
+- no recomputation of scores
+- no lifecycle inference outside Snowflake
+- no mutation of data
+- must reflect canonical tables exactly
+
+Critical Views:
+- CORE.V_REGISTRY_PUBLIC
+- CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC
+- CORE.V_EXPLORER_STATS
+
+---
+
+## EXPLORER RULES (CRITICAL)
+
+Explorer must use ONLY public views.
+
+Rules:
+- must query CORE.V_REGISTRY_PUBLIC
+- must query CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC
+- must query CORE.V_EXPLORER_STATS
+
+Forbidden:
+- CORE.REGISTRY_AI_SYSTEMS (direct)
+- workflow tables
+- TMP registry IDs
+
+---
+
+## SYSTEMS SURFACE RULE
+
+`/explorer/systems` must:
+
+- use CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC ONLY
+- display only certified/public systems
+- inherit certification fields from registry
+
+Violations:
+- blank certification due to wrong data source
+- showing non-certified systems
+- mixing workflow and public data
+
+---
+
+## QUERY LAYER RULES
+
+Query layer must:
+
+- map directly to Snowflake views
+- perform no business logic
+- perform no lifecycle logic
+- perform no scoring logic
+
+Allowed:
+- field mapping
+- formatting
+
+Forbidden:
+- filtering trust states
+- deriving certification
+- joining workflow tables for public pages
 
 ---
 
 ## API RULES
 
-API layer is read-only.
+API is read-only trust transport.
 
 Rules:
-- Must query Snowflake views only
-- Must not compute trust data
-- Must not modify responses beyond formatting
-- Must not cache derived trust values
+- must query Snowflake views only
+- must not compute trust logic
+- must not mutate meaning of data
+- must return deterministic outputs
 
 ---
 
@@ -187,10 +262,10 @@ Rules:
 UI is presentation-only.
 
 Rules:
-- Must not compute trust logic
-- Must not derive state
-- Must not override API data
-- Must display Snowflake truth only
+- must not compute trust logic
+- must not derive lifecycle state
+- must not override API data
+- must not hide data inconsistencies
 
 ---
 
@@ -198,12 +273,14 @@ Rules:
 
 All public trust must be signed.
 
+Algorithm:
+- Ed25519
+
 Rules:
-- Use Ed25519
-- Signature must be deterministic
 - messageString must match message exactly
+- signature must be deterministic
 - kid must match public key endpoint
-- No unsigned trust outputs
+- no unsigned certification allowed
 
 ---
 
@@ -211,11 +288,11 @@ Rules:
 
 A record is trusted only if:
 
-1. It is CERTIFIED
-2. It exists in V_REGISTRY_PUBLIC
-3. It is returned via /api/verify/[registryId]
-4. It includes a valid signature
-5. Signature verifies using public key
+1. CERTIFIED
+2. exists in CORE.V_REGISTRY_PUBLIC
+3. returned via /api/verify/[registryId]
+4. includes valid signature
+5. signature verifies independently
 
 Anything less is NOT trusted.
 
@@ -225,33 +302,31 @@ Anything less is NOT trusted.
 
 All critical systems must be versioned:
 
-- Scoring
-- Signature contract
-- Registry snapshots
+- scoring
+- signature contract
+- registry snapshots
 - API contract
 
 Rules:
-- No silent changes
-- No breaking changes without version update
-- Historical data must remain valid
+- no silent changes
+- no breaking changes without version increment
+- historical outputs must remain valid
 
 ---
 
 ## FILE STRUCTURE RULES
 
-- Must follow GAFAIG_VS_CODE_File_Tree.md
-- No ad hoc file placement
-- No duplicate logic across files
-- No mixing canonical and legacy files
+- must follow GAFAIG_VS_CODE_File_Tree.md
+- no duplicate logic across files
+- no mixing canonical and legacy files
 
 ---
 
 ## SEED DATA RULES
 
-- Single source: CANONICAL_DEMO_SEED_MASTER.sql
-- No secondary seed files
-- No manual inserts outside seed
-- All data must be deterministic
+- single source: GAFAIG - FINAL_CANONICAL_MULTI_SEED.sql
+- no manual inserts
+- deterministic dataset only
 
 ---
 
@@ -264,10 +339,6 @@ Files labeled:
 
 Must NOT be used.
 
-Rules:
-- Must not be executed
-- Must not influence system state
-
 ---
 
 ## LAYOUT RULES
@@ -278,25 +349,16 @@ Rules:
 - PublicPageHero required
 - max-w-[1180px] required
 - space-y-8 required
-- No layout drift allowed
-
----
-
-## QUERY LAYER RULES
-
-- Must map directly to Snowflake views
-- No derived fields
-- No transformations beyond formatting
-- No hidden logic
+- no layout drift
 
 ---
 
 ## SECURITY RULES
 
-- Signing keys must be protected
-- Public key must be exposed via API
-- No sensitive data in UI or API
-- No secrets committed to repo
+- private signing key must never leave server
+- public key must be exposed via API
+- no secrets in repo
+- no sensitive data in UI
 
 ---
 
@@ -304,12 +366,12 @@ Rules:
 
 .env.local must include:
 - Snowflake credentials
-- Signing key
+- signing key
 - NEXT_PUBLIC_BASE_URL
 
 Rules:
-- No hardcoded secrets
-- No environment drift between local and production
+- no hardcoded secrets
+- no environment drift
 
 ---
 
@@ -317,30 +379,42 @@ Rules:
 
 System is invalid if:
 
-- Trust logic exists outside Snowflake
+- trust logic exists outside Snowflake
 - IDs are non-deterministic
-- Registry snapshots are mutated
-- Signature is invalid
-- API returns inconsistent data
-- UI diverges from Snowflake truth
+- registry snapshots are mutated
+- lifecycle is misrepresented
+- signature is invalid
+- API diverges from Snowflake
+- UI diverges from API
 
 ---
 
 ## ENFORCEMENT
 
-These rules define the GAFAIG engineering system.
+These rules are:
 
-They are:
-- Mandatory
-- Enforced
-- Non-negotiable
+- mandatory
+- enforced
+- non-negotiable
 
 Any violation:
-- Breaks determinism
-- Breaks trust
-- Breaks system integrity
+- breaks determinism
+- breaks trust
+- invalidates system integrity
 
 Must be corrected immediately.
+
+---
+
+## FINAL RULE
+
+If any layer:
+- computes its own truth
+- overrides Snowflake
+- mixes workflow and public data
+- breaks determinism
+
+The system is invalid.
 
 ---
 

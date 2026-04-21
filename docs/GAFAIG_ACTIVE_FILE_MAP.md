@@ -1,377 +1,290 @@
-# GAFAIG_ACTIVE_FILE_MAP.md  
-Last Updated: 2026-04-19
-
----
-
-## SYSTEM OVERVIEW
-
-GAFAIG (Global Authority for AI Governance) is a deterministic AI governance registry and verification engine.
-
-Architecture is strictly enforced:
-
-PRIVATE LAYER (Snowflake) → PUBLIC LAYER (Views → API → UI)
-
-Canonical flow:
-
-APPLICATION → CASE → FINDINGS → EVIDENCE → EVENTS → SCORING → DECISION → REGISTRY SNAPSHOT → PUBLIC VIEWS → API → UI
-
-Snowflake is the single source of truth.  
-No computation is allowed in API or UI layers.  
-No derived trust logic is allowed outside Snowflake.
-
----
-
-## CORE SNOWFLAKE STRUCTURE
-
-### DATABASE
-GAFAIG_DB
-
-### SCHEMA
-CORE
-
----
-
-## CORE TABLES (PRIVATE ENGINE)
-
-### APPLICATION LAYER
-- CORE.APPLICATIONS
-
-### PARTICIPANT / ENTITY LAYER (CANONICAL + COMPATIBILITY)
-- CORE.PARTICIPANTS
-
-Purpose:
-- Canonical participant/entity surface
-- Bridges application, case, and registry identity
-- Deterministic PARTICIPANT_ID generation
-- Supports registry enrichment and public display
-
----
-
-### VERIFICATION LAYER
-- CORE.VERIFICATION_CASES
-- CORE.VERIFICATION_FINDINGS
-- CORE.VERIFICATION_EVIDENCE
-- CORE.VERIFICATION_FINDING_EVIDENCE
-- CORE.VERIFICATION_EVENTS
-
-Purpose:
-- Core private verification workflow
-- All workflow state originates here
-- EVENTS table is authoritative (not CORE.EVENTS)
-
----
-
-### EVENTS COMPATIBILITY LAYER
-- CORE.EVENTS
-
-Purpose:
-- Compatibility audit/event table
-- Mirrors VERIFICATION_EVENTS
-- Used for legacy compatibility + diagnostics
-- MUST NOT replace VERIFICATION_EVENTS
-
----
-
-### SCORING + DECISION
-- CORE.CASE_SCORE_SNAPSHOTS
-- CORE.DECISIONS
-
-Purpose:
-- Deterministic scoring (single source: V_GOVERNANCE_SCORE_CASE)
-- Immutable scoring snapshots
-- Decision issuance layer
-
----
-
-### REGISTRY (APPEND-ONLY)
-- CORE.REGISTRY_SNAPSHOTS
-- CORE.REGISTRY_AI_SYSTEMS
-
-Purpose:
-- Immutable public certification records
-- Append-only architecture
-- Registry IDs must be deterministic and persistent
-
----
-
-## CORE VIEWS (PUBLIC TRUST LAYER)
-
-### REGISTRY
-- CORE.V_REGISTRY_PUBLIC
-- CORE.V_REGISTRY_LATEST_APPROVED
-- CORE.V_REGISTRY_PUBLIC_SEARCH
-
-### AI SYSTEMS
-- CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC
-
-### VERIFICATION DETAIL
-- CORE.V_VERIFICATION_CASE_DETAIL
-
-### SCORING
-- CORE.V_GOVERNANCE_SCORE_CASE
-
-Rules:
-- Views are projections only
-- No logic duplication allowed
-- No recomputation outside Snowflake
-
----
-
-## CORE PROCEDURES
-
-- CORE.SP_CREATE_CASE_FROM_APPLICATION
-- CORE.SP_SCORE_CASE_ENTERPRISE
-- CORE.SP_PUBLISH_CASE_TO_REGISTRY_V3
-
-Purpose:
-- Enforce canonical pipeline transitions
-- Guarantee deterministic outputs
-- Prevent UI/API mutation
-
----
-
-## CANONICAL SEED FILE
-
-PRIMARY (ONLY ACTIVE SEED FILE):
-
-- GAFAIG - CANONICAL_DEMO_SEED_MASTER.sql
-
-This file seeds:
-- APPLICATIONS
-- CASES
-- FINDINGS
-- EVIDENCE
-- EVENTS
-- SYSTEMS
-
-Rules:
-- No secondary seed files allowed
-- No legacy seed files allowed
-- All test data must originate here
-
----
-
-## CANONICAL BUILD / REBUILD FILES
-
-- 01_REBUILD_ENVIRONMENT_CANONICAL.sql (FULL SYSTEM RESET)
-- 00_CORE_SETUP.sql (environment bootstrap)
-- 11_TABLES_APPLICATIONS.sql
-- 12_TABLES_PARTICIPANTS.sql (FIXED — deterministic + no ambiguity)
-- 14_TABLES_REGISTRY_AI_SYSTEMS.sql
-- 15_TABLES_EVENTS.sql (CANONICAL — FIXED alias ambiguity)
-- 16_TABLES_CASE_SCORE_SNAPSHOTS.sql
-- 17_TABLES_DECISIONS.sql
-- 18_TABLES_REGISTRY_ENTITIES.sql
-
-Rules:
-- Rebuild requires FULL execution (not partial)
-- Order matters
-- No mixing canonical and archive files
-
----
-
-## API LAYER (NEXT.JS)
-
-### REGISTRY
-- app/api/registry/route.ts
-- app/api/registry/search/route.ts
-- app/api/registry/[registryId]/route.ts
-- app/api/registry/[registryId]/ai-systems/route.ts
-
-### EXPLORER
-- app/api/explorer/route.ts
-
-### VERIFICATION
-- app/api/verify/[registryId]/route.ts
-- app/api/.well-known/gafaig-public-key/route.ts
-
-### BADGE
-- app/api/badge/[registryId]/route.ts
-
-Rules:
-- APIs must ONLY query Snowflake views
-- No business logic allowed
-- No transformations allowed beyond formatting
-
----
-
-## QUERY LAYER (CRITICAL)
-
-### EXPLORER
-- lib/queries/explorer.ts
-
-Functions:
-- getExplorerSummary()
-- getRecentRegistryRecords()
-- getExplorerOrganizations()
-- getExplorerCountries()
-- getExplorerSystems()
-
-### REGISTRY
-- lib/queries/registry.ts
-
-Functions:
-- getRegistryList()
-- searchRegistryRecords()
-
-### AI SYSTEMS
-- lib/queries/registry-ai-systems.ts
-
-Functions:
-- getRegistryAiSystemsPaginated()
-- getRegistryAiSystemsByRegistryId()
-- getRelatedRegistryAiSystems()
-
-Rules:
-- Queries must map 1:1 to views
-- No derived fields
-- No scoring logic
-
----
-
-## UI PAGES (PUBLIC)
-
-### CORE MARKETING PAGES
-- app/page.tsx
-- app/mission/page.tsx
-- app/framework/page.tsx
-
-### EXPLORER
-- app/explorer/page.tsx
-- app/explorer/organizations/page.tsx
-- app/explorer/countries/page.tsx
-- app/explorer/systems/page.tsx
-
-### REGISTRY
-- app/registry/page.tsx
-- app/registry/[registryId]/page.tsx
-- app/registry/ai-systems/page.tsx
-- app/registry/ai-systems/[systemId]/page.tsx
-
-### VERIFY
-- app/verify/page.tsx
-- app/verify/[registryId]/page.tsx
-
-### WIDGET
-- app/widget-preview/[registryId]/page.tsx
-
----
-
-## SHARED UI COMPONENTS (CRITICAL)
-
-### LAYOUT SYSTEM
-- app/_components/PublicPageHero.tsx
-
-### BUTTON SYSTEM
-- app/_components/PublicButtonLink.tsx
-
-Rules:
-- These are mandatory
-- No alternatives allowed
-
----
-
-## LAYOUT RULES (NON-NEGOTIABLE)
-
-All pages must:
-- Use PublicPageHero
-- Use max-w-[1180px]
-- Use px-6
-- Use space-y-8
-- Use rounded-3xl
-- Use border-black/10
-- Use bg-white
-
-No deviations allowed.
-
----
-
-## TRUST SURFACE DEFINITIONS
-
-### EXPLORER
-- Broad discovery surface
-- Includes approved + certified
-- NOT authoritative
-
-### REGISTRY
-- Certified only
-- Authoritative record
-
----
-
-## DATA CONTRACT RULES
-
-- Scores ONLY from V_GOVERNANCE_SCORE_CASE
-- Registry ONLY from REGISTRY_SNAPSHOTS
-- APIs ONLY from views
-- No UI logic
-
----
-
-## CURRENT ACTIVE WORK
-
-### PRIMARY FOCUS
-
-1. Multi-case real data seed expansion  
-2. Full pipeline validation  
-3. Trust distribution (verify + badge + widget)  
-4. Explorer + Registry alignment  
-5. Layout standardization  
-
----
-
-## PIPELINE STATUS
-
-APPLICATION → CASE → COMPLETE  
-CASE → FINDINGS → COMPLETE  
-FINDINGS → EVIDENCE → COMPLETE  
-EVIDENCE → EVENTS → COMPLETE  
-EVENTS → SCORING → READY  
-SCORING → DECISION → READY  
-DECISION → REGISTRY → READY  
-REGISTRY → API/UI → OPERATIONAL  
-
----
-
-## KNOWN ISSUES (IN PROGRESS)
-
-- Explorer summary accuracy  
-- Registry layout alignment  
-- Multi-case seed coverage  
-- ID determinism validation across all tables  
-- Removal of legacy file interference  
-
----
-
-## NEXT EXECUTION STEPS
-
-1. Run full canonical rebuild (01_REBUILD_ENVIRONMENT_CANONICAL.sql)  
-2. Run canonical seed  
-3. Run scoring  
-4. Run decision  
-5. Run publish  
-6. Validate API  
-7. Validate verify endpoint  
-
----
-
-## DO NOT BREAK
-
-- Snowflake = source of truth  
-- No UI scoring  
-- No duplicate seeds  
-- No layout drift  
-- No breaking pipeline order  
-- No mutation of registry snapshots  
-- No non-deterministic IDs  
-
----
-
-## ENFORCEMENT
-
-This document is the active system map for GAFAIG.  
-Any deviation must be corrected immediately.
-
----
-
-END OF FILE
+# GAFAIG_ACTIVE_FILE_MAP.md
+Date: 2026-04-21
+
+## Purpose
+
+This file is the active execution map for GAFAIG (Global Authority for AI Governance). It identifies the current canonical files that matter most for system integrity, current production behavior, and next-step execution. It is not a full file tree. It is the active map of files that currently govern the live platform and the current stabilization state.
+
+## Core System Rule
+
+Snowflake is the source of truth.
+
+All governance computation, scoring, approval state, renewal state, publish eligibility, registry publication, and public trust projection must originate in Snowflake. The app, API, and UI are consumers of canonical Snowflake views and procedures. They must not invent or recompute trust logic.
+
+## Current Platform State
+
+The Snowflake-backed public trust surface is now substantially stabilized.
+
+Working and validated:
+- public registry view restored and filtered to approved/current records only
+- explorer stats restored from Snowflake
+- explorer page restored
+- registry page restored
+- explorer organizations restored
+- explorer countries restored
+- API registry route restored
+- API explorer route restored
+- decision lifecycle now supports approve, revoke, re-approve
+- renewal/publishability layer now gates publication correctly
+- revoked records are excluded from the public registry view
+
+Still under active review:
+- explorer systems surface must use only canonical public systems data
+- remaining UI/query alignment must continue to follow Snowflake public views only
+- final registry integrity validation should continue from the current stable checkpoint
+
+## Canonical Snowflake Workflow Chain
+
+The locked execution chain is:
+
+APPLICATION
+→ VERIFICATION_CASES
+→ VERIFICATION_FINDINGS
+→ VERIFICATION_EVIDENCE
+→ VERIFICATION_EVENTS
+→ V_CASE_SCORE_ENTERPRISE / V_GOVERNANCE_SCORE_CASE
+→ CASE_SCORE_SNAPSHOTS
+→ DECISIONS
+→ V_CASE_RENEWAL_STATUS
+→ SP_PUBLISH_CASE_TO_REGISTRY_V3
+→ REGISTRY_SNAPSHOTS
+→ V_REGISTRY_PUBLIC
+→ V_REGISTRY_AI_SYSTEMS_PUBLIC
+→ API
+→ UI
+
+## Active Snowflake Files
+
+### Workflow / Core Tables
+- `11_TABLES_APPLICATIONS.sql`
+- `12_TABLES_PARTICIPANTS.sql`
+- `15_TABLES_EVENTS.sql`
+- `16_TABLES_CASE_SCORE_SNAPSHOTS.sql`
+- `17_TABLES_DECISIONS.sql`
+- `18_TABLES_REGISTRY_ENTITIES.sql`
+
+### Public / Registry Views
+- `21_VIEWS_PUBLIC_REGISTRY.sql`
+- `22_VIEWS_REGISTRY_AI_SYSTEMS_PUBLIC.sql`
+- `22_VIEWS_EXPLORER_STATS.sql`
+- `26_VIEWS_CASE_RENEWAL_STATUS.sql`
+
+### Procedures
+- `23_SP_CREATE_CASE_FROM_APPLICATION.sql`
+- `24_SP_SCORE_CASE_ENTERPRISE.sql`
+- `25_PROCEDURES_APPROVAL.sql`
+- `GAFAIG - CORE.REGISTRY_PUBLISH.sql`
+
+### Canonical Scoring Engine
+- `GAFAIG - Governance Scoring (Enterprise v1.2).sql`
+
+## Snowflake Objects Currently Considered Canonical
+
+### Tables
+- `CORE.APPLICATIONS`
+- `CORE.VERIFICATION_CASES`
+- `CORE.VERIFICATION_FINDINGS`
+- `CORE.VERIFICATION_EVIDENCE`
+- `CORE.VERIFICATION_EVENTS`
+- `CORE.CASE_SCORE_SNAPSHOTS`
+- `CORE.DECISIONS`
+- `CORE.REGISTRY_SNAPSHOTS`
+- `CORE.REGISTRY_AI_SYSTEMS`
+
+### Views
+- `CORE.V_FINDING_RESULT_NORMALIZED`
+- `CORE.V_FINDING_UNMAPPED_CONTROLS`
+- `CORE.V_CASE_FINDING_AGG_ENTERPRISE`
+- `CORE.V_CASE_EVIDENCE_AGG_ENTERPRISE`
+- `CORE.V_CASE_EVENT_AGG_ENTERPRISE`
+- `CORE.V_CASE_SCORE_ENTERPRISE`
+- `CORE.V_GOVERNANCE_SCORE_CASE`
+- `CORE.V_CASE_RENEWAL_STATUS`
+- `CORE.V_REGISTRY_PUBLIC`
+- `CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC`
+- `CORE.V_EXPLORER_STATS`
+- `CORE.V_SCORE_DIMENSIONS_PUBLIC`
+- `CORE.V_PUBLIC_OVERSIGHT_SIGNAL`
+
+### Procedures
+- `CORE.SP_CREATE_CASE_FROM_APPLICATION`
+- `CORE.SP_SCORE_CASE_ENTERPRISE`
+- `CORE.APPROVE_CASE_V1`
+- `CORE.UNAPPROVE_CASE_V1`
+- `CORE.SP_PUBLISH_CASE_TO_REGISTRY_V3`
+
+## Current Snowflake Governance Rules Locked
+
+### Score Source of Truth
+`CORE.V_GOVERNANCE_SCORE_CASE` is the single authoritative source for:
+- final score
+- tier
+- band
+- renewal status
+- validity / publishability propagation into public trust layer
+
+### Decision Lifecycle Rule
+`CORE.DECISIONS` is the canonical lifecycle table.
+
+Current contract:
+- exactly one active decision row per case
+- active row = `VALID_TO IS NULL`
+- historical rows = `VALID_TO IS NOT NULL`
+- latest row governs renewal, validity, and publishability
+
+### Renewal Rule
+`CORE.V_CASE_RENEWAL_STATUS` is the canonical lifecycle interpretation layer.
+
+It determines:
+- `RENEWAL_STATUS`
+- `IS_CURRENTLY_VALID`
+- `IS_PUBLISHABLE`
+
+### Publish Rule
+`CORE.SP_PUBLISH_CASE_TO_REGISTRY_V3` must not gate on workflow status alone. It must gate on canonical lifecycle / publishability state.
+
+### Public Registry Rule
+`CORE.V_REGISTRY_PUBLIC` must surface only:
+- latest registry snapshot per case
+- latest decision row = APPROVED
+- current record is valid/publishable
+- revoked and expired records excluded
+
+### Public Systems Rule
+`CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC` is the canonical public systems surface. Public explorer/system UI must consume this view, not raw workflow tables.
+
+## Active VS Code / App Files
+
+### Registry / Explorer Query Layer
+- `lib/queries/registry.ts`
+- `lib/queries/explorer.ts`
+
+### API Routes
+- `app/api/registry/route.ts`
+- `app/api/explorer/route.ts`
+- `app/api/verify/[registryId]/route.ts`
+- `app/api/.well-known/gafaig-public-key/route.ts`
+- `app/api/badge/[registryId]/route.ts`
+
+### Explorer Pages
+- `app/explorer/page.tsx`
+- `app/explorer/organizations/page.tsx`
+- `app/explorer/countries/page.tsx`
+- `app/explorer/systems/page.tsx`
+
+### Registry Pages
+- `app/registry/page.tsx`
+- `app/registry/[registryId]/page.tsx`
+- `app/registry/ai-systems/page.tsx`
+- `app/registry/ai-systems/[systemId]/page.tsx`
+
+### Shared Contracts / Types
+- `types/registry.ts`
+
+### Trust Surface / Crypto
+- `lib/crypto/verify-signing.ts`
+- `public/widget/gafaig-widget.js`
+
+### Developers / Trust Distribution
+- `app/developers/page.tsx`
+
+## App-Layer Rules Currently Active
+
+### Registry Query Rule
+Registry API and pages must query `CORE.V_REGISTRY_PUBLIC` using the live Snowflake contract. They must not rely on stale uppercase/camelCase assumptions that conflict with the actual view shape.
+
+### Explorer Query Rule
+Explorer pages must consume Snowflake-backed explorer query helpers only. Explorer must not derive public truth from raw workflow tables.
+
+### Systems Explorer Rule
+`/explorer/systems` must use only canonical public systems data. No TMP IDs, pre-public systems, or non-certified workflow rows should appear on the public explorer systems surface.
+
+### UI Trust Rule
+If a field is blank in the public UI, first check Snowflake public views and query mappings. Do not patch trust meaning in UI.
+
+## Recently Stabilized Files
+
+These files were central to the most recent stabilization work and should be treated as hot files:
+
+### Snowflake
+- `16_TABLES_CASE_SCORE_SNAPSHOTS.sql`
+- `24_SP_SCORE_CASE_ENTERPRISE.sql`
+- `25_PROCEDURES_APPROVAL.sql`
+- `26_VIEWS_CASE_RENEWAL_STATUS.sql`
+- `GAFAIG - Governance Scoring (Enterprise v1.2).sql`
+- `GAFAIG - CORE.REGISTRY_PUBLISH.sql`
+- `21_VIEWS_PUBLIC_REGISTRY.sql`
+- `22_VIEWS_EXPLORER_STATS.sql`
+
+### App / API
+- `lib/queries/explorer.ts`
+- `app/api/explorer/route.ts`
+- `app/explorer/page.tsx`
+- `app/explorer/organizations/page.tsx`
+- `app/explorer/countries/page.tsx`
+- `lib/queries/registry.ts`
+- `app/api/registry/route.ts`
+
+## Files to Watch Carefully Next
+
+These are the most likely files to require the next production hardening pass:
+
+### Snowflake
+- `22_VIEWS_REGISTRY_AI_SYSTEMS_PUBLIC.sql`
+- `21_VIEWS_PUBLIC_REGISTRY.sql`
+- `GAFAIG - CORE.REGISTRY_PUBLISH.sql`
+
+### VS Code / App
+- `lib/queries/explorer.ts`
+- `app/explorer/systems/page.tsx`
+- `app/registry/ai-systems/page.tsx`
+- `app/registry/ai-systems/[systemId]/page.tsx`
+- `lib/queries/registry.ts`
+
+## Files That Should Not Be Used as Public Truth Sources
+
+These may exist and may be useful internally, but they are not to be treated as public trust sources for explorer/registry output:
+- raw `CORE.REGISTRY_AI_SYSTEMS`
+- raw workflow status on `CORE.VERIFICATION_CASES` as public publish gate
+- helper or legacy tier/band views separate from `CORE.V_GOVERNANCE_SCORE_CASE`
+- any UI-side derived lifecycle logic
+- any API-side recomputation of approval/renewal/publishability
+
+## Current Stable Production Checkpoint
+
+Git checkpoint:
+- `3f5a775`
+- message: `Stabilize Snowflake-backed registry and explorer public surfaces`
+
+This is the current clean baseline after:
+- registry restoration
+- explorer restoration
+- Snowflake public view stabilization
+- decision/renewal/publish enforcement stabilization
+
+## Current Known Remaining Focus
+
+1. Continue final registry integrity validation
+2. Ensure `/explorer/systems` uses only canonical public systems data
+3. Verify no revoked or non-public systems leak into public explorer systems surface
+4. Verify public view/API/UI parity for counts and record presence
+5. Preserve clean separation:
+   - private workflow layer
+   - public trust layer
+
+## Immediate Next-Step Principle
+
+All remaining fixes must follow this rule:
+
+- fix Snowflake public view or query mapping first
+- then fix API/query contract
+- then fix UI binding
+- never reverse that order
+
+## Final Reminder
+
+GAFAIG is now operating as a Snowflake-governed public trust system. The active file map must remain centered on:
+- deterministic Snowflake lifecycle control
+- append-only registry publication
+- clean public trust projections
+- app/API/UI parity with canonical view contracts

@@ -61,19 +61,19 @@ export async function GET(
     const rows = await sfQuery<any>(`
       SELECT
         REGISTRY_ID,
+        REGISTRY_SNAPSHOT_ID,
         APPLICATION_ID,
         CASE_ID,
         ENTITY_NAME,
         ENTITY_TYPE,
         COUNTRY,
         CERTIFICATION_STATUS,
-        CERTIFIED_SCORE,
-        CERTIFIED_TIER,
-        CERTIFIED_BAND,
-        DECISION_STATUS,
+        CERTIFIED_AT,
         VALID_FROM,
         VALID_TO,
-        CERTIFIED_AT
+        LIFECYCLE_STATUS,
+        RENEWAL_STATUS,
+        PUBLISHED_AT
       FROM CORE.V_REGISTRY_PUBLIC
       WHERE UPPER(TRIM(REGISTRY_ID)) = UPPER(TRIM('${escapeSqlString(registryId)}'))
       LIMIT 1
@@ -98,29 +98,33 @@ export async function GET(
 
     const record = {
       registryId: r.REGISTRY_ID,
+      registrySnapshotId: r.REGISTRY_SNAPSHOT_ID ?? null,
       applicationId: r.APPLICATION_ID ?? null,
       caseId: r.CASE_ID ?? null,
       entityName: r.ENTITY_NAME ?? null,
       entityType: r.ENTITY_TYPE ?? null,
       country: r.COUNTRY ?? null,
       certificationStatus: r.CERTIFICATION_STATUS ?? null,
-      certifiedScore: r.CERTIFIED_SCORE ?? null,
-      certifiedTier: r.CERTIFIED_TIER ?? null,
-      certifiedBand: r.CERTIFIED_BAND ?? null,
-      decisionStatus: r.DECISION_STATUS ?? null,
+      certifiedAt: toIsoString(r.CERTIFIED_AT),
       validFrom: toIsoString(r.VALID_FROM),
       validTo: toIsoString(r.VALID_TO),
-      certifiedAt: toIsoString(r.CERTIFIED_AT),
+      lifecycleStatus: r.LIFECYCLE_STATUS ?? null,
+      renewalStatus: r.RENEWAL_STATUS ?? null,
+      publishedAt: toIsoString(r.PUBLISHED_AT),
     };
 
     const message = {
       registryId: record.registryId,
       entityName: record.entityName,
+      entityType: record.entityType,
+      country: record.country,
       certificationStatus: record.certificationStatus,
-      certifiedScore: record.certifiedScore,
-      certifiedTier: record.certifiedTier,
-      certifiedBand: record.certifiedBand,
       certifiedAt: record.certifiedAt,
+      validFrom: record.validFrom,
+      validTo: record.validTo,
+      lifecycleStatus: record.lifecycleStatus,
+      renewalStatus: record.renewalStatus,
+      publishedAt: record.publishedAt,
     };
 
     const messageString = JSON.stringify(message);

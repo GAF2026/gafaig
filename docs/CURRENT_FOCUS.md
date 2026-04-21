@@ -1,15 +1,16 @@
-# CURRENT_FOCUS.md — Last Updated: 2026-04-19
+# CURRENT_FOCUS.md
+Date: 2026-04-21
 
 ## PURPOSE
 
 This document defines the current execution focus for GAFAIG.
 
 It acts as:
-- The active control surface for system development
-- The alignment layer between Snowflake, API, and UI
-- The enforcement mechanism for priorities and sequencing
+- the active control surface for development
+- the alignment layer across Snowflake, API, and UI
+- the enforcement mechanism for execution order and priorities
 
-Only items listed here are considered active work.
+Only items listed here are active work.
 
 Everything else is deferred.
 
@@ -29,192 +30,185 @@ No UI/API logic may replace Snowflake logic.
 
 ## CURRENT PRIMARY OBJECTIVE
 
-Stabilize and validate the **full multi-case deterministic pipeline** and ensure **public trust distribution is production-ready**.
+**Complete registry integrity validation and enforce full Snowflake → API → UI parity across the public trust surface.**
 
-This includes:
-- Multi-case seed expansion
-- Full pipeline validation (end-to-end)
-- Registry integrity enforcement
-- Public trust surface validation (verify + badge + widget)
-- UI alignment with Snowflake truth
+The system has moved from:
+BUILD → CANONICALIZATION → STABILIZATION
+
+Now in:
+**VALIDATION + ENFORCEMENT PHASE**
 
 ---
 
 ## ACTIVE WORKSTREAMS
 
-### 1. MULTI-CASE REAL DATA SEED (EXPANSION)
+### 1. REGISTRY INTEGRITY VALIDATION
 
 Status: ACTIVE
 
 Objectives:
-- Expand from single-case to multi-case dataset
-- Target: 26 deterministic cases
-- Include:
-  - Multiple organizations
-  - Multiple countries
-  - Varied tiers (Tier 1–3)
-  - Varied bands (A–D)
-  - Mixed lifecycle states (Active, Expiring, Expired)
+- ensure registry reflects ONLY certified, valid records
+- verify lifecycle enforcement is correct
+- ensure no revoked or expired records appear
 
-Requirements:
-- All data must originate from canonical seed file
-- Deterministic IDs required across all tables
-- No manual inserts outside seed file
+Validation Criteria:
+- one row per case in V_REGISTRY_PUBLIC
+- latest decision row only (VALID_TO IS NULL)
+- DECISION_STATUS = 'APPROVED'
+- VALID_FROM / VALID_TO respected
+- CERTIFICATION_STATUS = 'Certified'
 
-Output:
-- GAFAIG - CANONICAL_DEMO_SEED_MASTER.sql fully populated
+Validation Queries:
+- record count parity (Snowflake vs API vs UI)
+- duplicate registryId detection
+- invalid lifecycle exposure detection
 
 ---
 
-### 2. FULL PIPELINE VALIDATION
+### 2. EXPLORER SURFACE ENFORCEMENT
 
 Status: ACTIVE
 
 Objectives:
-Validate complete flow:
+- ensure Explorer uses ONLY Snowflake public views
+- eliminate any workflow data leakage
+- enforce consistent aggregation
+
+Required Views:
+- CORE.V_REGISTRY_PUBLIC
+- CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC
+- CORE.V_EXPLORER_STATS
+
+Critical Rules:
+- NO use of CORE.REGISTRY_AI_SYSTEMS directly
+- NO TMP registry IDs in UI
+- ONLY certified/public systems exposed
+
+---
+
+### 3. SYSTEMS SURFACE CORRECTION
+
+Status: ACTIVE
+
+Objectives:
+- ensure `/explorer/systems` uses ONLY:
+  CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC
+
+Requirements:
+- all systems must have REGISTRY_ID
+- all systems must inherit certification fields
+- no blank certification fields due to data mismatch
+- no pre-public workflow systems exposed
+
+Success Criteria:
+- all systems displayed are certified
+- all fields populated from Snowflake view
+- no UI fallback logic required
+
+---
+
+### 4. API CONTRACT PARITY
+
+Status: ACTIVE
+
+Objectives:
+- ensure API responses match Snowflake views exactly
+- eliminate field mismatches
+- ensure deterministic outputs
+
+Endpoints in Scope:
+- /api/registry
+- /api/registry/search
+- /api/explorer
+- /api/verify/[registryId]
+
+Rules:
+- no transformation of trust logic
+- no derived fields
+- strict mapping only
+
+---
+
+### 5. SIGNATURE VERIFICATION VALIDATION
+
+Status: ACTIVE
+
+Objectives:
+- validate cryptographic trust layer
+
+Validation Targets:
+- /api/verify/[registryId]
+- /api/.well-known/gafaig-public-key
+- /api/badge/[registryId]
+- widget integration
+
+Requirements:
+- messageString matches message exactly
+- signature verifies using Ed25519
+- kid matches public key
+- payload is deterministic
+
+Success Criteria:
+- independent third-party verification succeeds
+
+---
+
+### 6. SNOWFLAKE → UI PARITY VALIDATION
+
+Status: ACTIVE
+
+Objectives:
+- ensure UI reflects Snowflake exactly
+
+Pages in Scope:
+- /registry
+- /registry/[registryId]
+- /explorer
+- /explorer/organizations
+- /explorer/countries
+- /explorer/systems
+
+Checks:
+- counts match Snowflake
+- fields match Snowflake
+- no missing or derived data
+- no UI-side corrections
+
+---
+
+### 7. DETERMINISTIC PIPELINE VALIDATION
+
+Status: ACTIVE
+
+Objectives:
+validate full pipeline reproducibility:
 
 APPLICATION → CASE → FINDINGS → EVIDENCE → EVENTS → SCORING → DECISION → REGISTRY
 
-Validation Criteria:
-- Each stage produces expected rows
-- No orphan records
-- All joins resolve correctly
-- Deterministic IDs maintained
-- No null critical fields
-
-Validation Queries:
-- Case counts vs application counts
-- Findings linked to cases
-- Evidence linked to findings
-- Events present per case
-- Score exists per approved case
-- Decision exists per scored case
-- Registry snapshot exists per approved case
+Requirements:
+- deterministic IDs
+- no orphan records
+- complete linkage across all stages
+- consistent outputs on rebuild
 
 ---
 
-### 3. SCORING → DECISION → REGISTRY FLOW
+### 8. PUBLIC TRUST SURFACE HARDENING
 
 Status: ACTIVE
 
 Objectives:
-- Execute scoring using CORE.SP_SCORE_CASE_ENTERPRISE
-- Generate CASE_SCORE_SNAPSHOTS
-- Issue decisions in CORE.DECISIONS
-- Publish via CORE.SP_PUBLISH_CASE_TO_REGISTRY_V3
+- finalize external trust distribution
+
+Components:
+- verify endpoint
+- badge endpoint
+- widget script
 
 Requirements:
-- Score must originate from V_GOVERNANCE_SCORE_CASE
-- Decision must reflect score output
-- Registry must reuse REGISTRY_ID when applicable
-- Append-only snapshot behavior enforced
-
----
-
-### 4. TRUST DISTRIBUTION (PUBLIC SURFACE)
-
-Status: ACTIVE
-
-Objectives:
-Validate external trust layer:
-
-- /api/verify/[registryId]
-- /api/badge/[registryId]
-- Widget embedding (/widget/gafaig-widget.js)
-- Public key endpoint
-
-Requirements:
-- Signed proof must be valid (Ed25519)
-- messageString must match message exactly
-- signature must verify with public key
-- verificationKeyUrl must resolve correctly
-
-Success Criteria:
-- Third-party system can independently verify certification
-
----
-
-### 5. REGISTRY + EXPLORER ALIGNMENT
-
-Status: ACTIVE
-
-Objectives:
-- Ensure Registry displays ONLY certified records
-- Ensure Explorer displays broader dataset (approved + certified)
-- Align all metrics with Snowflake views
-
-Key Views:
-- V_REGISTRY_PUBLIC
-- V_REGISTRY_LATEST_APPROVED
-- V_REGISTRY_AI_SYSTEMS_PUBLIC
-
-Requirements:
-- No UI filtering logic
-- No API-derived logic
-- All aggregation must come from Snowflake
-
----
-
-### 6. UI LAYOUT STANDARDIZATION
-
-Status: ACTIVE
-
-Objectives:
-- Enforce PAGE_LAYOUT_SYSTEM.md across all pages
-- Eliminate layout drift
-- Ensure all pages match Registry / Explorer design
-
-Requirements:
-- PublicPageHero must be used everywhere
-- max-w-[1180px] enforced
-- space-y-8 spacing enforced
-- No custom layout systems
-
-Pages in scope:
-- Home
-- Mission
-- Framework
-- Registry
-- Explorer
-- Verify
-- Developers
-- Apply
-
----
-
-### 7. LEGACY FILE ELIMINATION
-
-Status: ACTIVE
-
-Objectives:
-- Remove all archive/legacy SQL dependencies
-- Ensure only canonical files are used
-
-Rules:
-- No file with "Archive", "Legacy", or "Backup" in name may be executed
-- All rebuilds must use canonical file sequence
-- Seed must be single source
-
----
-
-### 8. DETERMINISTIC ID ENFORCEMENT
-
-Status: ACTIVE
-
-Objectives:
-Ensure all IDs are deterministic:
-
-- APPLICATION_ID
-- CASE_ID
-- FINDING_ID
-- EVIDENCE_ID
-- EVENT_ID
-- REGISTRY_ID
-- PARTICIPANT_ID
-
-Requirements:
-- No UUID randomness except where explicitly allowed (snapshot IDs)
-- All IDs must be reproducible from input data
+- all rely on signed proof
+- no unsigned trust allowed
+- all outputs reproducible
 
 ---
 
@@ -224,58 +218,60 @@ APPLICATION → CASE: COMPLETE
 CASE → FINDINGS: COMPLETE  
 FINDINGS → EVIDENCE: COMPLETE  
 EVIDENCE → EVENTS: COMPLETE  
-EVENTS → SCORING: READY  
-SCORING → DECISION: READY  
-DECISION → REGISTRY: READY  
-REGISTRY → API/UI: OPERATIONAL  
+EVENTS → SCORING: COMPLETE  
+SCORING → DECISION: COMPLETE  
+DECISION → REGISTRY: COMPLETE  
+REGISTRY → PUBLIC VIEWS: STABLE  
+PUBLIC VIEWS → API: STABLE  
+API → UI: STABLE  
 
-System is now in **final validation + expansion phase**
+System is in **final validation phase**
 
 ---
 
-## BLOCKERS (RESOLVED)
+## BLOCKERS
 
-- Snowflake DDL/DML ambiguity issues → resolved
-- Participants table normalization → resolved
-- Events table ambiguity → resolved
-- Missing canonical events file → resolved
-- Registry publish procedure alignment → resolved
+NONE CRITICAL
+
+All prior blockers have been resolved:
+- registry view misalignment
+- explorer stats mismatch
+- decision lifecycle ambiguity
+- publish pipeline inconsistencies
+- signature contract gaps
 
 ---
 
 ## REMAINING RISKS
 
-- Explorer metrics mismatch (counts vs registry)
-- Incomplete multi-case seed coverage
-- Potential ID inconsistency across seed expansions
-- UI pages not fully aligned to layout system
+- accidental use of non-public tables in query layer
+- drift between Snowflake views and API mapping
+- UI fallback logic masking data issues
+- future schema changes breaking parity
 
 ---
 
 ## NEXT EXECUTION STEPS
 
-1. Complete multi-case seed (26 cases)
-2. Run full rebuild (01_REBUILD_ENVIRONMENT_CANONICAL.sql)
-3. Execute seed file
-4. Run scoring procedure
-5. Run decision issuance
-6. Run registry publish procedure
-7. Validate public views
-8. Validate API endpoints
-9. Validate verify + badge + widget
-10. Confirm full pipeline integrity
+1. validate V_REGISTRY_PUBLIC against UI
+2. validate V_REGISTRY_AI_SYSTEMS_PUBLIC usage
+3. confirm explorer systems correctness
+4. validate all API endpoints
+5. validate signature verification end-to-end
+6. confirm full Snowflake → UI parity
+7. lock system as production baseline
 
 ---
 
 ## NON-NEGOTIABLE RULES
 
 - Snowflake is the source of truth
-- No UI/API logic for scoring or trust
-- No skipping pipeline steps
-- No manual data mutation
-- No non-deterministic IDs
-- No legacy file usage
-- No layout drift
+- no UI/API trust logic
+- no skipping pipeline steps
+- no direct table usage in public surfaces
+- no non-deterministic outputs
+- no unsigned certification
+- no lifecycle violations
 
 ---
 
@@ -284,10 +280,24 @@ System is now in **final validation + expansion phase**
 This document defines the active execution state of GAFAIG.
 
 If a task is not listed here:
-- It is not active
-- It must not be worked on
+- it is not active
+- it must not be worked on
 
 All development must align with CURRENT_FOCUS.md.
+
+---
+
+## FINAL STATEMENT
+
+GAFAIG is now a deterministic system approaching full production readiness.
+
+The focus is no longer building.
+
+The focus is ensuring:
+- correctness
+- consistency
+- reproducibility
+- trust integrity
 
 ---
 

@@ -33,13 +33,13 @@ function toRegistryRow(row: {
   entityName: string | null;
   entityType: string | null;
   country: string | null;
-  certifiedScore: string | null;
-  certifiedTier: string | null;
-  certifiedBand: string | null;
-  decisionStatus: string | null;
+  certificationStatus: string | null;
+  certifiedAt: string | null;
   validFrom: string | null;
   validTo: string | null;
-  certifiedAt: string | null;
+  lifecycleStatus: string | null;
+  renewalStatus: string | null;
+  publishedAt: string | null;
 }): RegistryRow {
   return {
     registryId: row.registryId,
@@ -48,13 +48,13 @@ function toRegistryRow(row: {
     entityName: row.entityName,
     entityType: row.entityType,
     country: row.country,
-    certifiedScore: row.certifiedScore,
-    certifiedTier: row.certifiedTier,
-    certifiedBand: row.certifiedBand,
-    decisionStatus: row.decisionStatus,
+    certificationStatus: row.certificationStatus,
+    certifiedAt: row.certifiedAt,
     validFrom: row.validFrom,
     validTo: row.validTo,
-    certifiedAt: row.certifiedAt,
+    lifecycleStatus: row.lifecycleStatus,
+    renewalStatus: row.renewalStatus,
+    publishedAt: row.publishedAt,
   };
 }
 

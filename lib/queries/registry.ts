@@ -2,241 +2,168 @@ import { sfQuery } from "@/lib/snowflake";
 
 export type RegistryRecord = {
   registryId: string;
-  caseId: string | null;
   applicationId: string | null;
-
-  entityName: string;
+  caseId: string | null;
+  entityName: string | null;
   entityType: string | null;
   country: string | null;
-
-  decisionStatus: string | null;
   certificationStatus: string | null;
-  certifiedScore: string | null;
-  certifiedTier: string | null;
-  certifiedBand: string | null;
-
   certifiedAt: string | null;
   validFrom: string | null;
   validTo: string | null;
-
+  lifecycleStatus: string | null;
   renewalStatus: string | null;
+  publishedAt: string | null;
 };
 
 export type RegistryFilterOptions = {
   countries: string[];
-  organizations: string[];
-  tiers: string[];
-  bands: string[];
+  entityTypes: string[];
+  statuses: string[];
 };
 
-type SearchRegistryArgs = {
+type SearchRegistryParams = {
   q?: string;
   country?: string;
-  organization?: string;
-  tier?: string;
-  band?: string;
   registryId?: string;
   caseId?: string;
   applicationId?: string;
   limit?: number;
 };
 
-function safePositiveInt(value: number | undefined, fallback: number): number {
-  return Number.isFinite(value) && Number(value) > 0
-    ? Math.floor(Number(value))
-    : fallback;
-}
-
-function escapeSqlString(value: string): string {
+function esc(value: string): string {
   return String(value).replace(/'/g, "''");
 }
 
-function mapRegistryRecord(r: any): RegistryRecord {
-  return {
-    registryId: r.REGISTRY_ID,
-    caseId: r.CASE_ID ?? null,
-    applicationId: r.APPLICATION_ID ?? null,
-
-    entityName: r.ENTITY_NAME,
-    entityType: r.ENTITY_TYPE ?? null,
-    country: r.COUNTRY ?? null,
-
-    decisionStatus: r.DECISION_STATUS ?? null,
-    certificationStatus: r.CERTIFICATION_STATUS ?? null,
-    certifiedScore: r.CERTIFIED_SCORE != null ? String(r.CERTIFIED_SCORE) : null,
-    certifiedTier: r.CERTIFIED_TIER ?? null,
-    certifiedBand: r.CERTIFIED_BAND ?? null,
-
-    certifiedAt: r.CERTIFIED_AT ? String(r.CERTIFIED_AT) : null,
-    validFrom: r.VALID_FROM ? String(r.VALID_FROM) : null,
-    validTo: r.VALID_TO ? String(r.VALID_TO) : null,
-
-    renewalStatus: r.RENEWAL_STATUS ?? null,
-  };
+function toLimit(value?: number): number {
+  const n = Number(value ?? 50);
+  if (!Number.isFinite(n)) return 50;
+  return Math.min(Math.max(Math.trunc(n), 1), 500);
 }
 
-function baseRegistrySelectSql(): string {
-  return `
-    SELECT
-      REGISTRY_ID,
-      CASE_ID,
-      APPLICATION_ID,
-      ENTITY_NAME,
-      ENTITY_TYPE,
-      COUNTRY,
-      DECISION_STATUS,
-      CERTIFICATION_STATUS,
-      CERTIFIED_SCORE,
-      CERTIFIED_TIER,
-      CERTIFIED_BAND,
-      CERTIFIED_AT,
-      VALID_FROM,
-      VALID_TO,
-      RENEWAL_STATUS
-    FROM CORE.V_REGISTRY_PUBLIC
-  `;
-}
+const BASE_SELECT = `
+  SELECT
+    REGISTRY_ID           AS "registryId",
+    APPLICATION_ID        AS "applicationId",
+    CASE_ID               AS "caseId",
+    ENTITY_NAME           AS "entityName",
+    ENTITY_TYPE           AS "entityType",
+    COUNTRY               AS "country",
+    CERTIFICATION_STATUS  AS "certificationStatus",
+    CERTIFIED_AT          AS "certifiedAt",
+    VALID_FROM            AS "validFrom",
+    VALID_TO              AS "validTo",
+    LIFECYCLE_STATUS      AS "lifecycleStatus",
+    RENEWAL_STATUS        AS "renewalStatus",
+    PUBLISHED_AT          AS "publishedAt"
+  FROM CORE.V_REGISTRY_PUBLIC
+`;
 
-export async function getRegistryRecords(limit = 200): Promise<RegistryRecord[]> {
-  const safeLimit = safePositiveInt(limit, 200);
+export async function getRegistryRecords(limit = 50): Promise<RegistryRecord[]> {
+  const safeLimit = toLimit(limit);
 
-  const rows = await sfQuery<any>(`
-    ${baseRegistrySelectSql()}
-    ORDER BY
-      CERTIFIED_AT DESC NULLS LAST,
-      ENTITY_NAME ASC,
-      REGISTRY_ID ASC
+  return sfQuery<RegistryRecord>(`
+    ${BASE_SELECT}
+    ORDER BY PUBLISHED_AT DESC, REGISTRY_ID ASC
     LIMIT ${safeLimit}
   `);
-
-  return rows.map(mapRegistryRecord);
-}
-
-export async function getRegistryByRegistryId(
-  registryId: string
-): Promise<RegistryRecord | null> {
-  const normalizedRegistryId = String(registryId ?? "").trim();
-  if (!normalizedRegistryId) return null;
-
-  const rows = await sfQuery<any>(`
-    ${baseRegistrySelectSql()}
-    WHERE UPPER(TRIM(REGISTRY_ID)) = UPPER(TRIM('${escapeSqlString(
-      normalizedRegistryId
-    )}'))
-    LIMIT 1
-  `);
-
-  return rows.length ? mapRegistryRecord(rows[0]) : null;
-}
-
-export async function getRegistryFilterOptions(): Promise<RegistryFilterOptions> {
-  const rows = await getRegistryRecords(500);
-
-  const dedupeSort = (values: Array<string | null | undefined>) =>
-    Array.from(
-      new Set(
-        values
-          .map((v) => String(v ?? "").trim())
-          .filter(Boolean)
-      )
-    ).sort((a, b) => a.localeCompare(b));
-
-  return {
-    countries: dedupeSort(rows.map((r) => r.country)),
-    organizations: dedupeSort(rows.map((r) => r.entityName)),
-    tiers: dedupeSort(rows.map((r) => r.certifiedTier)),
-    bands: dedupeSort(rows.map((r) => r.certifiedBand)),
-  };
 }
 
 export async function searchRegistryRecords(
-  args: string | SearchRegistryArgs
+  params: SearchRegistryParams = {}
 ): Promise<RegistryRecord[]> {
-  if (typeof args === "string") {
-    const q = String(args ?? "").trim();
-    return searchRegistryRecords({ q });
+  const safeLimit = toLimit(params.limit);
+
+  const where: string[] = [];
+
+  if (params.registryId?.trim()) {
+    where.push(`UPPER(REGISTRY_ID) = UPPER('${esc(params.registryId.trim())}')`);
   }
 
-  const q = String(args.q ?? "").trim();
-  const country = String(args.country ?? "").trim();
-  const organization = String(args.organization ?? "").trim();
-  const tier = String(args.tier ?? "").trim();
-  const band = String(args.band ?? "").trim();
-  const registryId = String(args.registryId ?? "").trim();
-  const caseId = String(args.caseId ?? "").trim();
-  const applicationId = String(args.applicationId ?? "").trim();
-  const limit = safePositiveInt(args.limit, 200);
+  if (params.caseId?.trim()) {
+    where.push(`UPPER(CASE_ID) = UPPER('${esc(params.caseId.trim())}')`);
+  }
 
-  const whereClauses: string[] = [];
+  if (params.applicationId?.trim()) {
+    where.push(
+      `UPPER(APPLICATION_ID) = UPPER('${esc(params.applicationId.trim())}')`
+    );
+  }
 
-  if (q) {
-    const escaped = escapeSqlString(q);
-    whereClauses.push(`
+  if (params.country?.trim()) {
+    where.push(`UPPER(COUNTRY) = UPPER('${esc(params.country.trim())}')`);
+  }
+
+  if (params.q?.trim()) {
+    const q = esc(params.q.trim());
+    where.push(`
       (
-        UPPER(COALESCE(ENTITY_NAME, '')) LIKE UPPER('%${escaped}%')
-        OR UPPER(COALESCE(REGISTRY_ID, '')) LIKE UPPER('%${escaped}%')
-        OR UPPER(COALESCE(CASE_ID, '')) LIKE UPPER('%${escaped}%')
-        OR UPPER(COALESCE(APPLICATION_ID, '')) LIKE UPPER('%${escaped}%')
-        OR UPPER(COALESCE(COUNTRY, '')) LIKE UPPER('%${escaped}%')
+        UPPER(COALESCE(REGISTRY_ID, '')) LIKE UPPER('%${q}%')
+        OR UPPER(COALESCE(APPLICATION_ID, '')) LIKE UPPER('%${q}%')
+        OR UPPER(COALESCE(CASE_ID, '')) LIKE UPPER('%${q}%')
+        OR UPPER(COALESCE(ENTITY_NAME, '')) LIKE UPPER('%${q}%')
+        OR UPPER(COALESCE(ENTITY_TYPE, '')) LIKE UPPER('%${q}%')
+        OR UPPER(COALESCE(COUNTRY, '')) LIKE UPPER('%${q}%')
+        OR UPPER(COALESCE(CERTIFICATION_STATUS, '')) LIKE UPPER('%${q}%')
       )
     `);
   }
 
-  if (country) {
-    whereClauses.push(
-      `UPPER(TRIM(COUNTRY)) = UPPER(TRIM('${escapeSqlString(country)}'))`
-    );
-  }
+  const whereSql = where.length ? `WHERE ${where.join("\n      AND ")}` : "";
 
-  if (organization) {
-    whereClauses.push(
-      `UPPER(TRIM(ENTITY_NAME)) = UPPER(TRIM('${escapeSqlString(organization)}'))`
-    );
-  }
-
-  if (tier) {
-    whereClauses.push(
-      `UPPER(TRIM(CERTIFIED_TIER)) = UPPER(TRIM('${escapeSqlString(tier)}'))`
-    );
-  }
-
-  if (band) {
-    whereClauses.push(
-      `UPPER(TRIM(CERTIFIED_BAND)) = UPPER(TRIM('${escapeSqlString(band)}'))`
-    );
-  }
-
-  if (registryId) {
-    whereClauses.push(
-      `UPPER(TRIM(REGISTRY_ID)) = UPPER(TRIM('${escapeSqlString(registryId)}'))`
-    );
-  }
-
-  if (caseId) {
-    whereClauses.push(
-      `UPPER(TRIM(CASE_ID)) = UPPER(TRIM('${escapeSqlString(caseId)}'))`
-    );
-  }
-
-  if (applicationId) {
-    whereClauses.push(
-      `UPPER(TRIM(APPLICATION_ID)) = UPPER(TRIM('${escapeSqlString(applicationId)}'))`
-    );
-  }
-
-  const whereSql = whereClauses.length
-    ? `WHERE ${whereClauses.join(" AND ")}`
-    : "";
-
-  const rows = await sfQuery<any>(`
-    ${baseRegistrySelectSql()}
+  return sfQuery<RegistryRecord>(`
+    ${BASE_SELECT}
     ${whereSql}
-    ORDER BY
-      CERTIFIED_AT DESC NULLS LAST,
-      ENTITY_NAME ASC,
-      REGISTRY_ID ASC
-    LIMIT ${limit}
+    ORDER BY PUBLISHED_AT DESC, REGISTRY_ID ASC
+    LIMIT ${safeLimit}
+  `);
+}
+
+export async function getRegistryRecordById(
+  registryId: string
+): Promise<RegistryRecord | null> {
+  const value = registryId.trim();
+  if (!value) return null;
+
+  const rows = await sfQuery<RegistryRecord>(`
+    ${BASE_SELECT}
+    WHERE UPPER(REGISTRY_ID) = UPPER('${esc(value)}')
+    ORDER BY PUBLISHED_AT DESC, REGISTRY_ID ASC
+    LIMIT 1
   `);
 
-  return rows.map(mapRegistryRecord);
+  return rows[0] ?? null;
+}
+
+export async function getRegistryFilterOptions(): Promise<RegistryFilterOptions> {
+  const rows = await sfQuery<{
+    country: string | null;
+    entityType: string | null;
+    certificationStatus: string | null;
+  }>(`
+    SELECT DISTINCT
+      COUNTRY              AS "country",
+      ENTITY_TYPE          AS "entityType",
+      CERTIFICATION_STATUS AS "certificationStatus"
+    FROM CORE.V_REGISTRY_PUBLIC
+    ORDER BY 1, 2, 3
+  `);
+
+  const countries = new Set<string>();
+  const entityTypes = new Set<string>();
+  const statuses = new Set<string>();
+
+  for (const row of rows) {
+    if (row.country?.trim()) countries.add(row.country.trim());
+    if (row.entityType?.trim()) entityTypes.add(row.entityType.trim());
+    if (row.certificationStatus?.trim()) {
+      statuses.add(row.certificationStatus.trim());
+    }
+  }
+
+  return {
+    countries: Array.from(countries).sort((a, b) => a.localeCompare(b)),
+    entityTypes: Array.from(entityTypes).sort((a, b) => a.localeCompare(b)),
+    statuses: Array.from(statuses).sort((a, b) => a.localeCompare(b)),
+  };
 }

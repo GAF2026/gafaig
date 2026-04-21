@@ -1,25 +1,29 @@
-# VERIFIED_DEFINITION.md — Last Updated: 2026-04-19
+# VERIFIED_DEFINITION.md — Last Updated: 2026-04-21
 
 ## PURPOSE
 
 This document defines what it means for an AI system, organization, or registry record to be considered "Verified" within the GAFAIG platform.
 
 It establishes:
-- The difference between Verified, Approved, and Certified
-- The minimum requirements for each state
-- The exact conditions under which a record can be trusted
-- The enforcement boundaries across Snowflake, API, and UI
+- The distinction between VERIFIED, APPROVED, and CERTIFIED
+- The required conditions for each state
+- The deterministic enforcement model across Snowflake, API, and UI
+- The exact boundary of public trust
 
-This definition is a **core trust contract** and must be consistently enforced across all system layers.
+This definition is a core trust contract and must be enforced consistently across all system layers.
 
 ---
 
 ## CORE PRINCIPLE
 
-Verification in GAFAIG is **state-based, deterministic, and evidence-backed**.
+Verification in GAFAIG is deterministic, state-based, and evidence-backed.
 
-A record is not considered verified based on UI display or API response alone.  
-A record is only verified if it satisfies all underlying Snowflake conditions and workflow requirements.
+A record is not considered verified based on UI display or API response.
+
+A record is verified ONLY if:
+- all required Snowflake conditions are satisfied
+- the full workflow chain is complete
+- all linked data is structurally valid
 
 ---
 
@@ -27,165 +31,176 @@ A record is only verified if it satisfies all underlying Snowflake conditions an
 
 GAFAIG defines three primary trust states:
 
-1. VERIFIED (process-level validation)
-2. APPROVED (decision-level validation)
-3. CERTIFIED (public registry validation)
+1. VERIFIED (workflow completeness)
+2. APPROVED (governance decision)
+3. CERTIFIED (public trust)
 
-These states are strictly ordered and cannot be skipped.
+These states are strictly sequential and cannot be skipped.
 
 ---
 
 ## VERIFIED (DEFINITION)
 
-A record is considered VERIFIED when:
+A record is VERIFIED when:
 
-1. A canonical verification case exists in CORE.VERIFICATION_CASES
-2. The case has progressed through the workflow:
+1. A canonical case exists in CORE.VERIFICATION_CASES
+2. The workflow chain is complete:
    CASE → FINDINGS → EVIDENCE → EVENTS
-3. Findings exist and are associated with the case
+3. Findings exist and are linked to the case
 4. Evidence exists and is linked to findings
 5. Events exist and reflect workflow execution
 6. No structural gaps exist in the verification chain
-7. Data integrity is maintained across all linked tables
+7. All relationships are valid and deterministic
 
 A VERIFIED record represents:
-- Completed data intake
-- Completed verification workflow execution
-- Structural completeness of verification data
+- complete data intake
+- complete verification workflow
+- structural data integrity
 
 A VERIFIED record does NOT imply:
-- Approval
-- Certification
-- Public trust status
+- approval
+- certification
+- public trust
 
 ---
 
 ## APPROVED (DEFINITION)
 
-A record is considered APPROVED when:
+A record is APPROVED when:
 
 1. The record is VERIFIED
 2. Scoring has been executed via CORE.SP_SCORE_CASE_ENTERPRISE
 3. A score exists in CORE.CASE_SCORE_SNAPSHOTS
-4. A decision has been issued in CORE.DECISIONS
-5. DECISION_STATUS = 'APPROVED'
-6. VALID_FROM and VALID_TO are defined
+4. A decision exists in CORE.DECISIONS
+5. The active decision row satisfies:
+   - DECISION_STATUS = 'APPROVED'
+   - VALID_TO IS NULL
 
 An APPROVED record represents:
-- Completion of verification workflow
-- Completion of scoring
-- Formal governance decision issued
+- completed verification
+- completed scoring
+- formal governance decision
 
 An APPROVED record does NOT imply:
-- Public registry inclusion
-- External trust distribution
+- registry publication
+- external trust
 
 ---
 
 ## CERTIFIED (DEFINITION)
 
-A record is considered CERTIFIED when:
+A record is CERTIFIED when:
 
 1. The record is APPROVED
-2. It has been published via CORE.SP_PUBLISH_CASE_TO_REGISTRY_V3
-3. A record exists in CORE.REGISTRY_SNAPSHOTS
-4. REGISTRY_ID has been assigned
-5. PUBLISHED_AT is not null
-6. The record appears in CORE.V_REGISTRY_PUBLIC
-7. Certification status resolves to "Certified"
+2. It is currently valid (not expired)
+3. It is publishable according to lifecycle rules
+4. It has been published via CORE.SP_PUBLISH_CASE_TO_REGISTRY_V3
+5. A registry snapshot exists in CORE.REGISTRY_SNAPSHOTS
+6. A REGISTRY_ID has been assigned
+7. The record appears in CORE.V_REGISTRY_PUBLIC
+8. CERTIFICATION_STATUS resolves to "Certified"
 
 A CERTIFIED record represents:
-- Public trust status
-- Registry inclusion
-- External verifiability
+- public trust status
+- registry inclusion
+- eligibility for cryptographic verification
 
-Only CERTIFIED records are considered:
-- Authoritative
-- Publicly trusted
-- Eligible for verification proof signing
+Only CERTIFIED records are:
+- authoritative
+- publicly trusted
+- externally verifiable
 
 ---
 
-## VERIFICATION VS CERTIFICATION
+## VERIFIED VS APPROVED VS CERTIFIED
 
 VERIFIED:
-- Internal state
-- Workflow completeness
-- Not exposed publicly as trust
+- internal workflow state
+- data completeness
+- not publicly trusted
+
+APPROVED:
+- governance decision issued
+- lifecycle initiated
+- still internal
 
 CERTIFIED:
-- External state
-- Registry-backed
-- Cryptographically verifiable
-- Exposed via API and UI
+- published to registry
+- publicly visible
+- cryptographically verifiable
+
+Trust exists ONLY at the CERTIFIED level.
 
 ---
 
-## DATA REQUIREMENTS FOR VERIFIED STATE
+## DATA REQUIREMENTS — VERIFIED
 
 A record must satisfy:
 
-### CASE REQUIREMENTS
-- Valid CASE_ID
-- Linked to APPLICATION_ID
-- Present in CORE.VERIFICATION_CASES
+### CASE
+- valid CASE_ID
+- linked to APPLICATION_ID
+- present in CORE.VERIFICATION_CASES
 
-### FINDINGS REQUIREMENTS
-- At least one finding exists
-- Findings linked to CASE_ID
-- Stored in CORE.VERIFICATION_FINDINGS
+### FINDINGS
+- at least one finding
+- linked to CASE_ID
+- stored in CORE.VERIFICATION_FINDINGS
 
-### EVIDENCE REQUIREMENTS
-- Evidence records exist
-- Linked via CORE.VERIFICATION_FINDING_EVIDENCE
-- Evidence stored in CORE.VERIFICATION_EVIDENCE
+### EVIDENCE
+- evidence exists
+- linked via CORE.VERIFICATION_FINDING_EVIDENCE
+- stored in CORE.VERIFICATION_EVIDENCE
 
-### EVENTS REQUIREMENTS
-- Events exist reflecting workflow
-- Stored in CORE.VERIFICATION_EVENTS
-- Represent progression of case lifecycle
+### EVENTS
+- workflow events exist
+- stored in CORE.VERIFICATION_EVENTS
+- reflect progression of verification
 
-### INTEGRITY REQUIREMENTS
-- No orphan records
-- No missing joins
-- All IDs deterministic and consistent
+### INTEGRITY
+- no orphan records
+- no missing joins
+- deterministic IDs
+- consistent relationships
 
 ---
 
-## DATA REQUIREMENTS FOR APPROVED STATE
+## DATA REQUIREMENTS — APPROVED
 
 In addition to VERIFIED:
 
-- Score exists in CORE.CASE_SCORE_SNAPSHOTS
-- Score derived from V_GOVERNANCE_SCORE_CASE
-- Decision exists in CORE.DECISIONS
-- DECISION_STATUS = 'APPROVED'
-- VALID_FROM and VALID_TO defined
+- score exists in CORE.CASE_SCORE_SNAPSHOTS
+- score derived from CORE.V_GOVERNANCE_SCORE_CASE
+- decision exists in CORE.DECISIONS
+- active decision row:
+  - DECISION_STATUS = 'APPROVED'
+  - VALID_TO IS NULL
 
 ---
 
-## DATA REQUIREMENTS FOR CERTIFIED STATE
+## DATA REQUIREMENTS — CERTIFIED
 
 In addition to APPROVED:
 
-- Registry snapshot exists
-- Stored in CORE.REGISTRY_SNAPSHOTS
+- registry snapshot exists
+- stored in CORE.REGISTRY_SNAPSHOTS
 - REGISTRY_ID assigned
 - PUBLISHED_AT populated
-- Record appears in CORE.V_REGISTRY_PUBLIC
+- record appears in CORE.V_REGISTRY_PUBLIC
 - CERTIFICATION_STATUS = 'Certified'
+- record is currently valid (lifecycle enforced)
 
 ---
 
 ## PUBLIC TRUST REQUIREMENTS
 
-A record is publicly trusted only when:
+A record is publicly trusted ONLY when:
 
 1. It is CERTIFIED
 2. It is returned via /api/verify/[registryId]
 3. It includes a valid cryptographic signature
-4. Signature verifies using public key
-5. Message matches signed payload exactly
+4. The signature verifies using the GAFAIG public key
+5. The message matches the signed payload exactly
 
 Anything less is NOT trusted.
 
@@ -202,11 +217,13 @@ Derived states include:
 - Expired
 - Expiring Soon
 - Renewal Required
+- Revoked
 
-Lifecycle states are derived from:
+Lifecycle is determined by:
+- CORE.DECISIONS (active row)
 - VALID_FROM
 - VALID_TO
-- DECISION_STATUS
+- CORE.V_CASE_RENEWAL_STATUS
 
 ---
 
@@ -214,34 +231,39 @@ Lifecycle states are derived from:
 
 A record is invalid if:
 
-- Missing case
-- Missing findings
-- Missing evidence
-- Missing events
-- Missing score (for approved/certified)
-- Missing decision
-- Missing registry snapshot (for certified)
-- Invalid signature (for public trust)
+- missing case
+- missing findings
+- missing evidence
+- missing events
+- missing score (for approved/certified)
+- missing decision
+- no active decision row
+- expired or revoked but still exposed
+- missing registry snapshot (for certified)
+- invalid signature (for public trust)
 
 ---
 
 ## SYSTEM ENFORCEMENT
 
 Snowflake:
-- Enforces structural validity
-- Stores all canonical data
+- enforces structure and lifecycle
+- stores all canonical data
 
 Procedures:
-- Enforce transitions between states
+- enforce state transitions
+- prevent invalid transitions
 
 Views:
-- Expose only valid projections
+- expose only valid states
+- filter invalid or non-public data
 
 API:
-- Exposes only certified records for trust
+- exposes only certified records for trust
 
 UI:
-- Displays state without modifying logic
+- renders state
+- does not compute trust
 
 ---
 
@@ -249,11 +271,11 @@ UI:
 
 - VERIFIED must precede APPROVED
 - APPROVED must precede CERTIFIED
-- No skipping states
-- No manual overrides outside procedures
-- No UI/API state mutation
-- No certification without registry snapshot
-- No trust without signature
+- no skipping states
+- no UI/API state mutation
+- no certification without registry snapshot
+- no trust without signature
+- no public exposure of non-certified records
 
 ---
 
@@ -263,7 +285,7 @@ Verified = Data integrity
 Approved = Governance decision  
 Certified = Public trust  
 
-Trust only exists at the CERTIFIED level.
+Only CERTIFIED records are trusted externally.
 
 ---
 
@@ -272,7 +294,7 @@ Trust only exists at the CERTIFIED level.
 This document defines the canonical meaning of verification in GAFAIG.
 
 Any deviation:
-- breaks trust model
+- breaks the trust model
 - invalidates registry integrity
 - must be corrected immediately
 

@@ -1,43 +1,38 @@
-# VERSIONING.md — Last Updated: 2026-04-19
+# VERSIONING.md — Last Updated: 2026-04-21
 
 ## PURPOSE
 
 This document defines the canonical versioning system for GAFAIG.
 
 It governs:
-- How system components evolve over time
-- How data, scoring, and registry states are versioned
-- How backward compatibility is preserved
-- How deterministic reproducibility is maintained
+- how system components evolve over time
+- how scoring, lifecycle, and registry states are versioned
+- how reproducibility and auditability are preserved
+- how backward compatibility is maintained across all layers
 
-Versioning in GAFAIG is not cosmetic. It is a **core integrity mechanism**.
+Versioning in GAFAIG is a core integrity mechanism and must never be treated as optional.
 
 ---
 
 ## CORE PRINCIPLE
 
-All critical outputs in GAFAIG must be versioned.
+All critical outputs in GAFAIG must be versioned and reproducible.
 
 This includes:
-- Scoring logic
-- Registry snapshots
-- Verification workflows
-- Public API contracts
-- Cryptographic signature payloads
+- scoring outputs
+- registry snapshots
+- decision lifecycle states
+- verification workflows
+- API contracts
+- cryptographic signatures
 
-Versioning ensures:
-- Determinism
-- Reproducibility
-- Auditability
-- Historical integrity
-
-No system component is allowed to change silently.
+No system behavior may change silently.
 
 ---
 
-## VERSIONING TIERS
+## VERSIONING LAYERS
 
-GAFAIG uses structured versioning across five layers:
+GAFAIG enforces versioning across five layers:
 
 1. SCORING VERSION
 2. WORKFLOW VERSION
@@ -45,32 +40,33 @@ GAFAIG uses structured versioning across five layers:
 4. API CONTRACT VERSION
 5. SIGNATURE CONTRACT VERSION
 
-Each layer is independently versioned but must remain compatible.
+Each layer is independently versioned but must remain compatible with all others.
 
 ---
 
-## SCORING VERSION
+## 1. SCORING VERSION
 
 Source:
 - CORE.V_GOVERNANCE_SCORE_CASE
 - CORE.SP_SCORE_CASE_ENTERPRISE
 
-Versioning Method:
-- Explicit version string (e.g., "v1.0", "v1.2")
+Method:
+- explicit version string (e.g., "v1.0", "v1.2")
 
 Requirements:
-- Every score must be associated with a scoring version
-- Stored in CASE_SCORE_SNAPSHOTS
-- Changes to scoring logic MUST increment version
+- every score must include a scoring version
+- stored in CORE.CASE_SCORE_SNAPSHOTS
+- scoring version must be persisted with each snapshot
 
 Rules:
-- No retroactive score modification
-- Old scores must remain reproducible
-- New versions must not overwrite old results
+- no retroactive score modification
+- no overwriting prior results
+- new scoring logic requires version increment
+- old scoring versions must remain reproducible
 
 ---
 
-## WORKFLOW VERSION
+## 2. WORKFLOW VERSION
 
 Source:
 - CORE.VERIFICATION_CASES
@@ -78,35 +74,35 @@ Source:
 - CORE.VERIFICATION_FINDINGS
 - CORE.VERIFICATION_EVIDENCE
 
-Purpose:
-- Defines structure of verification process
+Method:
+- implicit versioning via schema + procedure alignment
 
-Versioning Method:
-- Implicit structural versioning (schema + procedure alignment)
+Purpose:
+- defines structure and rules of verification workflow
 
 Requirements:
-- Workflow changes must be documented
-- Schema changes must not break historical data
-- Backward compatibility must be preserved
+- workflow changes must be documented
+- schema must remain backward compatible
+- procedures must respect historical data
 
 Rules:
-- No destructive schema changes
-- No orphaned workflow states
-- All transitions must remain valid
+- no destructive schema changes
+- no orphaned workflow states
+- no invalid transitions
 
 ---
 
-## REGISTRY SNAPSHOT VERSION
+## 3. REGISTRY SNAPSHOT VERSION
 
 Source:
 - CORE.REGISTRY_SNAPSHOTS
 
 Purpose:
-- Immutable record of certification state at a specific time
+- immutable representation of certification state at a point in time
 
-Versioning Method:
-- Append-only records
-- Each snapshot represents a version
+Method:
+- append-only snapshots
+- each snapshot is a version
 
 Key Fields:
 - REGISTRY_ID
@@ -115,43 +111,45 @@ Key Fields:
 - PUBLISHED_AT
 
 Rules:
-- Snapshots must never be updated
-- New state = new snapshot
-- Historical snapshots must remain queryable
+- snapshots are immutable
+- new state requires new snapshot
+- no updates to existing snapshots
+- historical snapshots must remain queryable
 
 ---
 
-## API CONTRACT VERSION
+## 4. API CONTRACT VERSION
 
 Source:
 - app/api/* routes
 
 Purpose:
-- Defines structure of data returned to external consumers
+- defines external data contract
 
-Versioning Method:
-- Implicit versioning via contract stability
-- Explicit versioning if breaking changes occur
+Method:
+- implicit versioning (current)
+- explicit versioning required for breaking changes (future /v1/)
 
 Rules:
-- No breaking changes without version increment
-- Field names must remain stable
-- Deprecated fields must be phased out gradually
+- no breaking changes without version increment
+- field names must remain stable
+- deprecated fields must be phased out gradually
+- API must reflect Snowflake truth exactly
 
 ---
 
-## SIGNATURE CONTRACT VERSION
+## 5. SIGNATURE CONTRACT VERSION
 
 Source:
 - lib/crypto/verify-signing.ts
 - VERIFICATION_SIGNATURE_CONTRACT.md
 
 Purpose:
-- Defines how payloads are signed and verified
+- defines cryptographic verification layer
 
-Versioning Method:
-- Versioned via key ID (kid)
-- Versioned via message structure
+Method:
+- versioned via key ID (kid)
+- versioned via message structure
 
 Key Fields:
 - alg
@@ -161,30 +159,31 @@ Key Fields:
 - signature
 
 Rules:
-- Signature format must not change silently
-- Any change to message structure requires version update
-- Old signatures must remain verifiable
+- any change to message structure requires version update
+- signature must remain reproducible
+- historical signatures must remain verifiable
+- messageString must remain deterministic
 
 ---
 
-## KEY VERSION IDENTIFIERS
+## KEY IDENTIFIER VERSIONING
 
 ### KID (Key ID)
 
 Format:
-- gafaig-ed25519-YYYY-MM
+gafaig-ed25519-YYYY-MM
 
 Example:
-- gafaig-ed25519-2026-01
+gafaig-ed25519-2026-01
 
 Purpose:
-- Identifies signing key version
-- Enables key rotation without breaking verification
+- identifies signing key version
+- enables key rotation
 
 Rules:
-- Must be included in every proof
-- Must match public key endpoint
-- Must not be reused incorrectly
+- must be included in every proof
+- must map to public key endpoint
+- must never be reused incorrectly
 
 ---
 
@@ -192,11 +191,24 @@ Rules:
 
 When a version changes:
 
-1. Scoring change → update scoring version
-2. Signature change → update kid
-3. API change → update contract or version route
-4. Workflow change → update schema + docs
-5. Registry change → create new snapshot
+Scoring change:
+- increment scoring version
+- generate new score snapshots
+
+Workflow change:
+- update schema + procedures
+- ensure backward compatibility
+
+Registry change:
+- create new snapshot
+- never mutate existing snapshot
+
+Signature change:
+- update kid
+- ensure verification compatibility
+
+API change:
+- introduce versioned route if breaking
 
 All downstream systems must reflect version changes.
 
@@ -206,14 +218,16 @@ All downstream systems must reflect version changes.
 
 GAFAIG must support:
 
-- Historical registry snapshots
-- Historical signatures
-- Historical scoring outputs
+- historical registry snapshots
+- historical scoring outputs
+- historical signatures
+- historical API consumers
 
 Rules:
-- Old data must remain verifiable
-- Old signatures must remain valid
-- Old API responses must remain interpretable
+- old data must remain verifiable
+- old signatures must remain valid
+- old snapshots must remain accessible
+- no breaking historical interpretation
 
 ---
 
@@ -222,26 +236,28 @@ Rules:
 Given:
 - CASE_ID
 - SCORING_VERSION
-- WORKFLOW_STATE
+- SNAPSHOT_ID
 
 The system must always reproduce:
-- Same score
-- Same tier/band
-- Same decision outcome
+- identical score
+- identical tier and band
+- identical decision outcome
+- identical registry snapshot
 
-No randomness allowed.
+No randomness is allowed anywhere in the system.
 
 ---
 
 ## VERSION FAILURE MODES
 
-System is invalid if:
+The system is invalid if:
 
-- Score changes without version increment
-- Snapshot is overwritten instead of appended
-- Signature structure changes without new kid
-- API returns inconsistent fields
-- Historical data cannot be reproduced
+- scoring changes without version increment
+- snapshots are overwritten
+- signature structure changes without new kid
+- API returns inconsistent contract
+- historical data cannot be reproduced
+- registry record differs from original snapshot
 
 ---
 
@@ -249,34 +265,42 @@ System is invalid if:
 
 Once published:
 
-- Registry snapshot is immutable
-- Signature is immutable
-- Score is immutable
+- registry snapshot is immutable
+- score snapshot is immutable
+- signature is immutable
+- decision history is append-only
 
-New version requires:
-- New snapshot
-- New signature
-- New evaluation cycle
+Any change requires:
+- new scoring execution
+- new decision row
+- new registry snapshot
+- new signature
 
 ---
 
-## CURRENT VERSION STATE (2026-04-19)
+## CURRENT VERSION STATE (2026-04-21)
 
 Scoring:
-- Active: v1.0 (enterprise scoring)
+- active: v1.2 (enterprise scoring)
 
 Workflow:
-- Canonical case-first workflow active
+- case-first canonical workflow active
 
 Registry:
-- Append-only snapshot system active
+- append-only snapshot system active
+- latest-approved projection enforced
 
 API:
-- Stable contract (no version prefix yet)
+- stable contract
+- no version prefix yet
 
 Signature:
 - Ed25519
-- kid format: gafaig-ed25519-2026-01
+- kid: gafaig-ed25519-2026-01
+
+Explorer:
+- fully aligned to public views
+- no workflow leakage allowed
 
 ---
 
@@ -284,26 +308,28 @@ Signature:
 
 Planned:
 
-- Explicit API versioning (/v1/)
-- Multiple scoring models (enterprise, regulatory, sector-specific)
-- Key rotation schedule
-- Versioned verification workflows
+- explicit API versioning (/v1/)
+- multi-model scoring (enterprise, regulatory, sector)
+- automated key rotation
+- versioned workflow schemas
+- versioned verification standards
 
 ---
 
 ## NON-NEGOTIABLE RULES
 
-- No silent changes
-- No mutable snapshots
-- No breaking API changes without versioning
-- No signature changes without key update
-- No scoring changes without version increment
+- no silent changes
+- no mutable snapshots
+- no breaking API changes without versioning
+- no signature changes without key update
+- no scoring changes without version increment
+- no lifecycle logic outside Snowflake
 
 ---
 
 ## ENFORCEMENT
 
-Versioning is a core integrity system in GAFAIG.
+Versioning is a core integrity mechanism.
 
 Any violation:
 - breaks reproducibility
@@ -311,6 +337,20 @@ Any violation:
 - invalidates registry integrity
 
 All changes must follow this contract.
+
+---
+
+## FINAL STATEMENT
+
+GAFAIG guarantees trust through:
+
+- deterministic Snowflake computation
+- immutable snapshots
+- versioned scoring
+- versioned signatures
+- reproducible outputs
+
+Versioning is how GAFAIG preserves truth over time.
 
 ---
 

@@ -18,22 +18,62 @@ type SearchParams = {
   band?: string;
 };
 
-function formatDate(value: string | null | undefined) {
+type RegistryPageRow = {
+  registryId: string;
+  applicationId?: string | null;
+  caseId?: string | null;
+  entityName?: string | null;
+  entityType?: string | null;
+  country?: string | null;
+  certificationStatus?: string | null;
+  certifiedTier?: string | null;
+  certifiedBand?: string | null;
+  certifiedAt?: string | null;
+  validFrom?: string | null;
+  validTo?: string | null;
+  lifecycleStatus?: string | null;
+  renewalStatus?: string | null;
+  publishedAt?: string | null;
+};
+
+type FilterOptions = {
+  countries: string[];
+  organizations: string[];
+  tiers: string[];
+  bands: string[];
+};
+
+function clean(value: string | null | undefined): string {
+  return String(value ?? "").trim();
+}
+
+function formatDate(value: string | null | undefined): string {
   if (!value) return "—";
   const parsed = new Date(value);
-  if (Number.isNaN(parsed.getTime())) return value;
+  if (Number.isNaN(parsed.getTime())) return String(value);
   return parsed.toLocaleDateString("en-US");
 }
 
-function getCertificationLabel(row: any) {
-  if (row.certificationLevel) return String(row.certificationLevel);
-  if (row.certifiedTier && row.certifiedBand) {
-    return `${row.certifiedTier} · ${row.certifiedBand}`;
-  }
-  if (row.certifiedTier) return String(row.certifiedTier);
-  if (row.certifiedBand) return `Band ${row.certifiedBand}`;
-  if (row.certificationStatus) return String(row.certificationStatus);
-  return "Certified";
+function formatLabel(value: string | null | undefined): string {
+  const cleaned = clean(value);
+  return cleaned || "—";
+}
+
+function getStatusLabel(row: RegistryPageRow): string {
+  const certificationStatus = clean(row.certificationStatus);
+  return certificationStatus || "Certified";
+}
+
+function getCertificationLabel(row: RegistryPageRow): string {
+  const tier = clean(row.certifiedTier);
+  const band = clean(row.certifiedBand);
+
+  if (tier && band) return `${tier} · ${band}`;
+  if (tier) return tier;
+  if (band) return `Band ${band}`;
+
+  const certificationStatus = clean(row.certificationStatus);
+  return certificationStatus || "Certified";
 }
 
 function FilterChip({
@@ -51,19 +91,158 @@ function FilterChip({
   );
 }
 
+function EmptyState() {
+  return (
+    <div className="rounded-3xl border border-dashed border-black/10 bg-neutral-50 px-6 py-14 text-center">
+      <div className="text-lg font-semibold text-black">No registry records found</div>
+      <p className="mt-2 text-sm leading-6 text-black/60">
+        Try changing or clearing your filters to see more certified public records.
+      </p>
+      <div className="mt-6">
+        <PublicButtonLink href="/registry" variant="outline-dark">
+          Clear all filters
+        </PublicButtonLink>
+      </div>
+    </div>
+  );
+}
+
+function RegistryCard({ row }: { row: RegistryPageRow }) {
+  return (
+    <article className="rounded-3xl border border-black/10 bg-white p-6 shadow-sm shadow-black/[0.03]">
+      <div className="flex flex-col gap-5">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div className="space-y-3">
+            <div className="inline-flex rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-sm font-semibold text-emerald-700">
+              {getStatusLabel(row)}
+            </div>
+
+            <div>
+              <h2 className="text-3xl font-semibold tracking-tight text-black">
+                {formatLabel(row.entityName)}
+              </h2>
+              <p className="mt-2 text-base text-black/60">
+                {formatLabel(row.entityType)} · {formatLabel(row.country)}
+              </p>
+            </div>
+          </div>
+
+          <div className="min-w-[220px] rounded-2xl border border-black/10 bg-neutral-50 p-4">
+            <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-black/35">
+              Registry ID
+            </div>
+            <div className="mt-2 break-all text-sm font-semibold text-black">
+              {row.registryId}
+            </div>
+          </div>
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-4">
+          <div className="rounded-2xl border border-black/10 bg-neutral-50 p-4">
+            <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-black/35">
+              Certification
+            </div>
+            <div className="mt-2 text-base font-semibold text-black">
+              {getCertificationLabel(row)}
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-black/10 bg-neutral-50 p-4">
+            <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-black/35">
+              Certified
+            </div>
+            <div className="mt-2 text-base font-semibold text-black">
+              {formatDate(row.certifiedAt)}
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-black/10 bg-neutral-50 p-4">
+            <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-black/35">
+              Valid From
+            </div>
+            <div className="mt-2 text-base font-semibold text-black">
+              {formatDate(row.validFrom)}
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-black/10 bg-neutral-50 p-4">
+            <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-black/35">
+              Valid To
+            </div>
+            <div className="mt-2 text-base font-semibold text-black">
+              {formatDate(row.validTo)}
+            </div>
+          </div>
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-3">
+          <div className="rounded-2xl border border-black/10 bg-white p-4">
+            <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-black/35">
+              Application ID
+            </div>
+            <div className="mt-2 text-sm font-semibold text-black">
+              {formatLabel(row.applicationId)}
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-black/10 bg-white p-4">
+            <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-black/35">
+              Case ID
+            </div>
+            <div className="mt-2 text-sm font-semibold text-black">
+              {formatLabel(row.caseId)}
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-black/10 bg-white p-4">
+            <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-black/35">
+              Published
+            </div>
+            <div className="mt-2 text-sm font-semibold text-black">
+              {formatDate(row.publishedAt)}
+            </div>
+          </div>
+        </div>
+
+        <div className="flex flex-wrap gap-3 pt-1">
+          <PublicButtonLink href={`/registry/${row.registryId}`} variant="dark">
+            Open record
+          </PublicButtonLink>
+          <PublicButtonLink href={`/verify/${row.registryId}`} variant="outline-dark">
+            Verify record
+          </PublicButtonLink>
+          <PublicButtonLink
+            href={`/api/verify/${row.registryId}`}
+            variant="outline-dark"
+          >
+            View JSON proof
+          </PublicButtonLink>
+        </div>
+      </div>
+    </article>
+  );
+}
+
 export default async function RegistryPage({
   searchParams,
 }: {
   searchParams?: SearchParams;
 }) {
-  const q = String(searchParams?.q ?? "").trim();
-  const country = String(searchParams?.country ?? "").trim();
-  const organization = String(searchParams?.organization ?? "").trim();
-  const tier = String(searchParams?.tier ?? "").trim();
-  const band = String(searchParams?.band ?? "").trim();
+  const q = clean(searchParams?.q);
+  const country = clean(searchParams?.country);
+  const organization = clean(searchParams?.organization);
+  const tier = clean(searchParams?.tier);
+  const band = clean(searchParams?.band);
 
-  const [rows, options] = await Promise.all([
-    q || country || organization || tier || band
+  const hasFilters =
+    q.length > 0 ||
+    country.length > 0 ||
+    organization.length > 0 ||
+    tier.length > 0 ||
+    band.length > 0;
+
+  const [rows, rawOptions] = await Promise.all([
+    hasFilters
       ? searchRegistryRecords({
           q,
           country,
@@ -75,6 +254,15 @@ export default async function RegistryPage({
       : getRegistryRecords(500),
     getRegistryFilterOptions(),
   ]);
+
+  const options: FilterOptions = {
+    countries: Array.isArray(rawOptions?.countries) ? rawOptions.countries : [],
+    organizations: Array.isArray(rawOptions?.organizations)
+      ? rawOptions.organizations
+      : [],
+    tiers: Array.isArray(rawOptions?.tiers) ? rawOptions.tiers : [],
+    bands: Array.isArray(rawOptions?.bands) ? rawOptions.bands : [],
+  };
 
   const activeFilters = [
     q ? { label: "Search", value: q } : null,
@@ -89,7 +277,7 @@ export default async function RegistryPage({
       <PublicPageHero
         eyebrow="Registry of Record"
         title="Browse the GAFAIG public registry"
-        description="Browse independently verifiable public trust records by organization, jurisdiction, and registry identifier."
+        description="Browse independently verifiable public certification records by organization, jurisdiction, and registry identifier."
         actions={
           <>
             <PublicButtonLink href="/explorer" variant="dark">
@@ -104,8 +292,8 @@ export default async function RegistryPage({
 
       <div className="max-w-3xl text-[15px] leading-7 text-black/70">
         Each entry in the Registry of Record represents a published GAFAIG public
-        trust record that can be independently verified outside the originating
-        organization’s platform.
+        certification record that can be independently verified outside the
+        originating organization’s platform.
       </div>
 
       <section className="rounded-3xl border border-black/10 bg-white p-8">
@@ -114,36 +302,14 @@ export default async function RegistryPage({
             How to read the registry
           </div>
           <h2 className="text-3xl font-semibold tracking-tight text-black">
-            The registry is the public index of certified trust records
+            The registry is the public index of certified records
           </h2>
           <p className="text-base leading-7 text-black/70">
-            The Registry of Record proves certified public trust records issued
-            through the GAFAIG verification process. It is narrower than
-            Explorer. Explorer can surface the broader public trust footprint,
-            while the Registry of Record is reserved for verification outcomes
-            that have been finalized, published, and independently verifiable.
+            The Registry of Record is reserved for public certification records
+            that have already been finalized and published. Internal workflow
+            approval remains upstream. The public registry only exposes the
+            certified trust surface.
           </p>
-
-          <div className="grid gap-4 md:grid-cols-2">
-            <div className="rounded-2xl border border-black/10 bg-neutral-50 p-5">
-              <div className="text-sm font-semibold text-black">Approved</div>
-              <p className="mt-2 text-sm leading-6 text-black/65">
-                Approved means a record has completed the full GAFAIG
-                verification process, including findings, evidence review, and
-                governance scoring, but has not yet been finalized as a public
-                certified trust record.
-              </p>
-            </div>
-
-            <div className="rounded-2xl border border-black/10 bg-neutral-50 p-5">
-              <div className="text-sm font-semibold text-black">Certified</div>
-              <p className="mt-2 text-sm leading-6 text-black/65">
-                Certified means the evaluated outcome has been finalized,
-                assigned certification metadata, and published as an
-                independently verifiable public trust record in the registry.
-              </p>
-            </div>
-          </div>
         </div>
       </section>
 
@@ -154,14 +320,11 @@ export default async function RegistryPage({
               Filter registry records
             </div>
             <h2 className="mt-3 text-3xl font-semibold tracking-tight text-black">
-              Narrow the public trust record index
+              Narrow the certified public record index
             </h2>
           </div>
 
-          <form
-            className="grid gap-4 md:grid-cols-2 xl:grid-cols-5"
-            method="GET"
-          >
+          <form className="grid gap-4 md:grid-cols-2 xl:grid-cols-5" method="GET">
             <div>
               <label className="text-[11px] font-semibold uppercase tracking-[0.18em] text-black/35">
                 Search
@@ -253,177 +416,51 @@ export default async function RegistryPage({
               >
                 Apply filters
               </button>
-              <a
+
+              <Link
                 href="/registry"
                 className="inline-flex min-h-[42px] items-center justify-center rounded-full border border-black/20 bg-white px-5 text-sm font-semibold text-black transition hover:bg-black hover:text-white"
               >
                 Clear all
-              </a>
+              </Link>
             </div>
           </form>
 
           {activeFilters.length > 0 ? (
-            <div className="border-t border-black/10 pt-5">
-              <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-black/35">
-                Active filters
-              </div>
-              <div className="mt-3 flex flex-wrap gap-2">
-                {activeFilters.map((filter) => (
-                  <FilterChip
-                    key={`${filter.label}:${filter.value}`}
-                    label={filter.label}
-                    value={filter.value}
-                  />
-                ))}
-              </div>
+            <div className="flex flex-wrap gap-2 pt-1">
+              {activeFilters.map((filter) => (
+                <FilterChip
+                  key={`${filter.label}-${filter.value}`}
+                  label={filter.label}
+                  value={filter.value}
+                />
+              ))}
             </div>
           ) : null}
         </div>
       </section>
 
-      <section className="rounded-3xl border border-black/10 bg-white p-8">
-        <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-          <div className="max-w-4xl space-y-4">
+      <section className="space-y-5">
+        <div className="flex flex-wrap items-end justify-between gap-4">
+          <div>
             <div className="text-xs font-semibold uppercase tracking-[0.24em] text-black/40">
-              Certified public records
+              Certified records
             </div>
-            <h2 className="text-3xl font-semibold tracking-tight text-black">
-              Registry directory
+            <h2 className="mt-3 text-3xl font-semibold tracking-tight text-black">
+              {rows.length} public {rows.length === 1 ? "record" : "records"}
             </h2>
-            <p className="text-base leading-7 text-black/70">
-              Browse independently verifiable public trust records by
-              organization, jurisdiction, and registry identifier.
-            </p>
-          </div>
-
-          <div className="text-sm text-black/45">
-            {rows.length} certified records
           </div>
         </div>
 
         {rows.length === 0 ? (
-          <div className="mt-6 rounded-2xl border border-black/10 bg-neutral-50 p-6 text-sm text-black/65">
-            No registry records matched the current filters. Clear filters or
-            broaden the search terms.
-          </div>
+          <EmptyState />
         ) : (
-          <div className="mt-6 space-y-4">
-            {rows.map((row: any) => {
-              const certificationStatus = String(
-                row.certificationStatus || ""
-              ).trim();
-              const decisionStatus = String(row.decisionStatus || "").trim();
-
-              return (
-                <article
-                  key={row.registryId}
-                  className="rounded-2xl border border-black/10 bg-white p-5"
-                >
-                  <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-                    <div className="space-y-3">
-                      <div className="flex flex-wrap gap-2">
-                        {certificationStatus ? (
-                          <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700">
-                            {certificationStatus}
-                          </span>
-                        ) : null}
-
-                        {decisionStatus ? (
-                          <span className="rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold uppercase text-blue-700">
-                            {decisionStatus}
-                          </span>
-                        ) : null}
-                      </div>
-
-                      <div>
-                        <div className="text-2xl font-semibold tracking-tight text-black">
-                          {row.entityName || row.registryId}
-                        </div>
-                        <div className="mt-1 text-sm text-black/50">
-                          {(row.country || "Unknown") +
-                            " · " +
-                            (row.registryId || "—")}
-                        </div>
-                      </div>
-                    </div>
-
-                    <Link
-                      href={`/registry/${row.registryId}`}
-                      className="inline-flex min-h-[42px] shrink-0 items-center justify-center rounded-full border border-black/20 bg-white px-5 text-sm font-semibold text-black transition hover:bg-black hover:text-white"
-                    >
-                      View Public Trust Record
-                    </Link>
-                  </div>
-
-                  <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-                    <div className="rounded-2xl border border-black/10 bg-neutral-50 p-4">
-                      <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-black/35">
-                        Certification
-                      </div>
-                      <div className="mt-2 text-sm font-medium text-black">
-                        {getCertificationLabel(row)}
-                      </div>
-                    </div>
-
-                    <div className="rounded-2xl border border-black/10 bg-neutral-50 p-4">
-                      <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-black/35">
-                        Certified
-                      </div>
-                      <div className="mt-2 text-sm font-medium text-black">
-                        {formatDate(row.certifiedAt)}
-                      </div>
-                    </div>
-
-                    <div className="rounded-2xl border border-black/10 bg-neutral-50 p-4">
-                      <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-black/35">
-                        Valid from
-                      </div>
-                      <div className="mt-2 text-sm font-medium text-black">
-                        {formatDate(row.validFrom)}
-                      </div>
-                    </div>
-
-                    <div className="rounded-2xl border border-black/10 bg-neutral-50 p-4">
-                      <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-black/35">
-                        Valid to
-                      </div>
-                      <div className="mt-2 text-sm font-medium text-black">
-                        {formatDate(row.validTo)}
-                      </div>
-                    </div>
-                  </div>
-                </article>
-              );
-            })}
+          <div className="grid gap-6">
+            {(rows as RegistryPageRow[]).map((row) => (
+              <RegistryCard key={row.registryId} row={row} />
+            ))}
           </div>
         )}
-      </section>
-
-      <section className="rounded-3xl border border-black/10 bg-black p-8 text-white">
-        <div className="text-[12px] font-semibold uppercase tracking-[0.22em] text-white/55">
-          APPLY FOR VERIFICATION
-        </div>
-
-        <h2 className="mt-3 max-w-[860px] text-[32px] font-semibold leading-[1.18] tracking-tight text-white md:text-[38px]">
-          Want your organization listed here?
-        </h2>
-
-        <p className="mt-4 max-w-[860px] text-[16px] leading-[1.85] text-white/80">
-          GAFAIG certification produces an independently verifiable public trust
-          record like the ones above. If your organization operates AI systems
-          and needs independently verifiable proof that human oversight is
-          functioning, you can begin the GAFAIG verification process now.
-        </p>
-
-        <div className="mt-6 flex flex-wrap gap-3">
-          <PublicButtonLink href="/apply" variant="light">
-            Apply for verification
-          </PublicButtonLink>
-
-          <PublicButtonLink href="/demo" variant="outline-light">
-            Start with the Demo
-          </PublicButtonLink>
-        </div>
       </section>
     </main>
   );
