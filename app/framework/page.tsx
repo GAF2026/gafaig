@@ -1,6 +1,39 @@
+import PublicButtonLink from "../_components/PublicButtonLink";
 import PublicPageHero from "../_components/PublicPageHero";
 
 export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
+function Step({
+  number,
+  title,
+  body,
+}: {
+  number: string;
+  title: string;
+  body: string;
+}) {
+  return (
+    <article className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
+      <div className="text-[12px] font-semibold uppercase tracking-[0.24em] text-black/40">
+        Step {number}
+      </div>
+      <h3 className="mt-3 text-[18px] font-semibold tracking-tight text-black">
+        {title}
+      </h3>
+      <p className="mt-3 text-[14px] leading-7 text-black/70">{body}</p>
+    </article>
+  );
+}
+
+function BulletCard({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="flex gap-3 rounded-2xl border border-black/10 bg-white p-4">
+      <div className="mt-1 h-2.5 w-2.5 shrink-0 rounded-full bg-black" />
+      <div className="text-[15px] leading-7 text-black/75">{children}</div>
+    </div>
+  );
+}
 
 export default function FrameworkPage() {
   return (
@@ -67,38 +100,40 @@ export default function FrameworkPage() {
             <Step
               number="5"
               title="Public Certification"
-              body="Approved outcomes can be finalized and published as independently verifiable public trust records."
+              body="Certification outcomes are finalized and published as independently verifiable public trust records."
             />
           </div>
         </section>
 
         <section className="rounded-3xl border border-black/10 bg-white p-8">
           <h2 className="text-[26px] font-semibold tracking-tight text-black">
-            Approved vs Certified
+            What certification means
           </h2>
 
           <p className="mt-4 text-[15px] leading-7 text-black/75">
-            GAFAIG distinguishes between completion of the evaluation process and
-            final public certification. This separation makes it clear when a
-            review has been completed and when a record has been finalized as a
-            trusted public outcome.
+            GAFAIG certification is the public outcome of a completed structured
+            verification process. It indicates that the organization’s oversight
+            posture was evaluated through GAFAIG and finalized as a verifiable
+            trust record.
           </p>
 
-          <div className="mt-6 grid gap-6 md:grid-cols-2">
-            <StatusCard
-              title="Approved"
-              body="Approved means the organization has completed the GAFAIG evaluation process and received a governance decision. Oversight has been assessed, but the record may still be in transition, finalization, or publication workflow."
-            />
-            <StatusCard
-              title="Certified"
-              body="Certified means the evaluation outcome has been finalized and published as a public, independently verifiable trust record. This is the record state intended to function as a portable public trust signal."
-            />
+          <div className="mt-6 grid gap-4 md:grid-cols-2">
+            <BulletCard>
+              Certification is not self-attestation or a policy statement alone.
+            </BulletCard>
+            <BulletCard>
+              Certification means the oversight posture was evaluated through a
+              structured framework.
+            </BulletCard>
+            <BulletCard>
+              Certification means the outcome was finalized into a public trust
+              record.
+            </BulletCard>
+            <BulletCard>
+              Certification means external parties can independently verify the
+              published outcome.
+            </BulletCard>
           </div>
-
-          <p className="mt-6 text-[15px] leading-7 text-black/75">
-            In practice, Approved reflects evaluation completion. Certified
-            reflects finalized public trust publication.
-          </p>
         </section>
 
         <section className="rounded-3xl border border-black/10 bg-white p-8">
@@ -106,112 +141,105 @@ export default function FrameworkPage() {
             Private verification, public trust
           </h2>
 
-          <div className="mt-6 grid gap-6 md:grid-cols-2">
-            <StatementCard
-              title="Private verification engine"
-              body="Evidence, findings, and oversight materials are evaluated in a controlled environment. This protects sensitive organizational information while allowing rigorous review."
-            />
-            <StatementCard
-              title="Public trust layer"
-              body="Certification outcomes are published as registry records, verification endpoints, signed payloads, and portable trust signals that can be independently validated."
-            />
-          </div>
-
-          <p className="mt-6 text-[15px] leading-7 text-black/75">
-            This two-layer approach allows GAFAIG to provide transparency and
-            trust without exposing proprietary, confidential, or sensitive review
-            materials.
+          <p className="mt-4 text-[15px] leading-7 text-black/75">
+            GAFAIG separates internal verification workflow from public
+            certification exposure. This allows rigorous review without exposing
+            private evidence while still publishing a clear, verifiable public
+            result.
           </p>
+
+          <div className="mt-6 grid gap-4 md:grid-cols-2">
+            <article className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
+              <h3 className="text-[18px] font-semibold tracking-tight text-black">
+                Private verification engine
+              </h3>
+              <p className="mt-3 text-[14px] leading-7 text-black/70">
+                Applications, evidence, findings, events, and scoring are
+                reviewed and finalized in the private GAFAIG verification layer.
+                This is where meaningful human oversight is assessed through
+                controlled workflow.
+              </p>
+            </article>
+
+            <article className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
+              <h3 className="text-[18px] font-semibold tracking-tight text-black">
+                Public trust layer
+              </h3>
+              <p className="mt-3 text-[14px] leading-7 text-black/70">
+                The public layer exposes only the finalized certification
+                outcome. It allows outside parties to verify that certification
+                exists without exposing reviewer notes, internal materials, or
+                private evidence.
+              </p>
+            </article>
+          </div>
         </section>
 
         <section className="rounded-3xl border border-black/10 bg-white p-8">
           <h2 className="text-[26px] font-semibold tracking-tight text-black">
-            Public trust infrastructure
+            Certification becomes public trust infrastructure
           </h2>
 
           <p className="mt-4 text-[15px] leading-7 text-black/75">
-            GAFAIG extends beyond a registry page. It provides public trust
-            infrastructure that allows certification outcomes to be verified
-            through multiple public surfaces.
+            GAFAIG is not only a review framework. It is also a public trust
+            infrastructure layer. Once certification is finalized, the outcome
+            can be surfaced through registry records, verification endpoints,
+            signed proof, and public trust interfaces that others can inspect.
           </p>
 
           <div className="mt-6 grid gap-4 md:grid-cols-2">
-            <BulletCard text="Registry records and AI system detail pages" />
-            <BulletCard text="Verification endpoints with signed payloads" />
-            <BulletCard text="Public key infrastructure for signature validation" />
-            <BulletCard text="Embeddable widgets, badges, and external trust surfaces" />
+            <article className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
+              <h3 className="text-[18px] font-semibold tracking-tight text-black">
+                Registry records
+              </h3>
+              <p className="mt-3 text-[14px] leading-7 text-black/70">
+                Each certified outcome can be published into the GAFAIG public
+                registry as a durable public certification record.
+              </p>
+            </article>
+
+            <article className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
+              <h3 className="text-[18px] font-semibold tracking-tight text-black">
+                Verification endpoints
+              </h3>
+              <p className="mt-3 text-[14px] leading-7 text-black/70">
+                The public verification surface allows external parties to
+                confirm a certification outcome by registry identifier.
+              </p>
+            </article>
+
+            <article className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
+              <h3 className="text-[18px] font-semibold tracking-tight text-black">
+                Signed proof
+              </h3>
+              <p className="mt-3 text-[14px] leading-7 text-black/70">
+                GAFAIG supports signed verification payloads so the public trust
+                record can be checked as a cryptographically backed result.
+              </p>
+            </article>
+
+            <article className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
+              <h3 className="text-[18px] font-semibold tracking-tight text-black">
+                Public trust surface
+              </h3>
+              <p className="mt-3 text-[14px] leading-7 text-black/70">
+                Certification can be distributed through registry pages, verify
+                pages, signed JSON, and external trust surfaces without exposing
+                internal verification materials.
+              </p>
+            </article>
           </div>
 
-          <p className="mt-6 text-[15px] leading-7 text-black/75">
-            These components ensure that GAFAIG certification is not confined to
-            a single website. Trust can be independently verified wherever the
-            record appears.
-          </p>
+          <div className="mt-6 flex flex-wrap gap-3">
+            <PublicButtonLink href="/registry" variant="primary">
+              View Public Records
+            </PublicButtonLink>
+            <PublicButtonLink href="/verify" variant="secondary">
+              Verify a Record
+            </PublicButtonLink>
+          </div>
         </section>
       </div>
     </main>
-  );
-}
-
-function Step({
-  number,
-  title,
-  body,
-}: {
-  number: string;
-  title: string;
-  body: string;
-}) {
-  return (
-    <div className="rounded-2xl border border-black/10 p-4">
-      <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/55">
-        {number}
-      </div>
-      <div className="mt-2 text-[16px] font-semibold text-black">{title}</div>
-      <p className="mt-2 text-[14px] leading-[1.7] text-black/72">{body}</p>
-    </div>
-  );
-}
-
-function StatusCard({
-  title,
-  body,
-}: {
-  title: string;
-  body: string;
-}) {
-  return (
-    <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
-      <div className="text-[18px] font-semibold tracking-tight text-black">
-        {title}
-      </div>
-      <p className="mt-3 text-[15px] leading-[1.8] text-black/72">{body}</p>
-    </div>
-  );
-}
-
-function StatementCard({
-  title,
-  body,
-}: {
-  title: string;
-  body: string;
-}) {
-  return (
-    <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
-      <div className="text-[18px] font-semibold tracking-tight text-black">
-        {title}
-      </div>
-      <p className="mt-3 text-[15px] leading-[1.8] text-black/72">{body}</p>
-    </div>
-  );
-}
-
-function BulletCard({ text }: { text: string }) {
-  return (
-    <div className="flex gap-3 rounded-2xl border border-black/10 bg-white p-4">
-      <span className="mt-[8px] h-1.5 w-1.5 shrink-0 rounded-full bg-black" />
-      <span className="text-[14px] leading-6 text-black/75">{text}</span>
-    </div>
   );
 }
