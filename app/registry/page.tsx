@@ -84,7 +84,7 @@ function FilterChip({
   value: string;
 }) {
   return (
-    <span className="inline-flex items-center justify-center rounded-full border border-black/10 bg-neutral-50 px-3 py-1 text-sm font-medium text-black/70">
+    <span className="inline-flex items-center justify-center rounded-full border border-black/10 bg-black/[0.02] px-3 py-1 text-sm font-medium text-black/70">
       <span className="mr-2 text-black/40">{label}</span>
       <span className="text-black">{value}</span>
     </span>
@@ -93,13 +93,13 @@ function FilterChip({
 
 function EmptyState() {
   return (
-    <div className="rounded-3xl border border-dashed border-black/10 bg-neutral-50 px-6 py-14 text-center">
+    <div className="rounded-3xl border border-dashed border-black/10 bg-black/[0.02] px-6 py-14 text-center">
       <div className="text-lg font-semibold text-black">No registry records found</div>
       <p className="mt-2 text-sm leading-6 text-black/60">
         Try changing or clearing your filters to see more certified public records.
       </p>
       <div className="mt-6">
-        <PublicButtonLink href="/registry" variant="outline-dark">
+        <PublicButtonLink href="/registry" variant="secondary">
           Clear all filters
         </PublicButtonLink>
       </div>
@@ -109,7 +109,7 @@ function EmptyState() {
 
 function RegistryCard({ row }: { row: RegistryPageRow }) {
   return (
-    <article className="rounded-3xl border border-black/10 bg-white p-6 shadow-sm shadow-black/[0.03]">
+    <article className="rounded-3xl border border-black/10 bg-white p-6">
       <div className="flex flex-col gap-5">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="space-y-3">
@@ -118,102 +118,102 @@ function RegistryCard({ row }: { row: RegistryPageRow }) {
             </div>
 
             <div>
-              <h2 className="text-3xl font-semibold tracking-tight text-black">
+              <h2 className="text-[26px] font-semibold tracking-tight text-black">
                 {formatLabel(row.entityName)}
               </h2>
-              <p className="mt-2 text-base text-black/60">
+              <p className="mt-2 text-[14px] text-black/70">
                 {formatLabel(row.entityType)} · {formatLabel(row.country)}
               </p>
             </div>
           </div>
 
-          <div className="min-w-[220px] rounded-2xl border border-black/10 bg-neutral-50 p-4">
-            <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-black/35">
+          <div className="min-w-[220px] rounded-2xl border border-black/10 bg-black/[0.02] p-5">
+            <div className="text-[12px] font-semibold uppercase tracking-[0.24em] text-black/40">
               Registry ID
             </div>
-            <div className="mt-2 break-all text-sm font-semibold text-black">
+            <div className="mt-3 break-all text-[15px] leading-7 text-black">
               {row.registryId}
             </div>
           </div>
         </div>
 
         <div className="grid gap-4 md:grid-cols-4">
-          <div className="rounded-2xl border border-black/10 bg-neutral-50 p-4">
-            <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-black/35">
+          <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
+            <div className="text-[12px] font-semibold uppercase tracking-[0.24em] text-black/40">
               Certification
             </div>
-            <div className="mt-2 text-base font-semibold text-black">
+            <div className="mt-3 text-[15px] leading-7 text-black">
               {getCertificationLabel(row)}
             </div>
           </div>
 
-          <div className="rounded-2xl border border-black/10 bg-neutral-50 p-4">
-            <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-black/35">
+          <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
+            <div className="text-[12px] font-semibold uppercase tracking-[0.24em] text-black/40">
               Certified
             </div>
-            <div className="mt-2 text-base font-semibold text-black">
+            <div className="mt-3 text-[15px] leading-7 text-black">
               {formatDate(row.certifiedAt)}
             </div>
           </div>
 
-          <div className="rounded-2xl border border-black/10 bg-neutral-50 p-4">
-            <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-black/35">
+          <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
+            <div className="text-[12px] font-semibold uppercase tracking-[0.24em] text-black/40">
               Valid From
             </div>
-            <div className="mt-2 text-base font-semibold text-black">
+            <div className="mt-3 text-[15px] leading-7 text-black">
               {formatDate(row.validFrom)}
             </div>
           </div>
 
-          <div className="rounded-2xl border border-black/10 bg-neutral-50 p-4">
-            <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-black/35">
+          <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
+            <div className="text-[12px] font-semibold uppercase tracking-[0.24em] text-black/40">
               Valid To
             </div>
-            <div className="mt-2 text-base font-semibold text-black">
+            <div className="mt-3 text-[15px] leading-7 text-black">
               {formatDate(row.validTo)}
             </div>
           </div>
         </div>
 
         <div className="grid gap-4 md:grid-cols-3">
-          <div className="rounded-2xl border border-black/10 bg-white p-4">
-            <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-black/35">
+          <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
+            <div className="text-[12px] font-semibold uppercase tracking-[0.24em] text-black/40">
               Application ID
             </div>
-            <div className="mt-2 text-sm font-semibold text-black">
+            <div className="mt-3 text-[15px] leading-7 text-black">
               {formatLabel(row.applicationId)}
             </div>
           </div>
 
-          <div className="rounded-2xl border border-black/10 bg-white p-4">
-            <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-black/35">
+          <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
+            <div className="text-[12px] font-semibold uppercase tracking-[0.24em] text-black/40">
               Case ID
             </div>
-            <div className="mt-2 text-sm font-semibold text-black">
+            <div className="mt-3 text-[15px] leading-7 text-black">
               {formatLabel(row.caseId)}
             </div>
           </div>
 
-          <div className="rounded-2xl border border-black/10 bg-white p-4">
-            <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-black/35">
+          <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
+            <div className="text-[12px] font-semibold uppercase tracking-[0.24em] text-black/40">
               Published
             </div>
-            <div className="mt-2 text-sm font-semibold text-black">
+            <div className="mt-3 text-[15px] leading-7 text-black">
               {formatDate(row.publishedAt)}
             </div>
           </div>
         </div>
 
         <div className="flex flex-wrap gap-3 pt-1">
-          <PublicButtonLink href={`/registry/${row.registryId}`} variant="dark">
+          <PublicButtonLink href={`/registry/${row.registryId}`} variant="primary">
             Open record
           </PublicButtonLink>
-          <PublicButtonLink href={`/verify/${row.registryId}`} variant="outline-dark">
+          <PublicButtonLink href={`/verify/${row.registryId}`} variant="secondary">
             Verify record
           </PublicButtonLink>
           <PublicButtonLink
             href={`/api/verify/${row.registryId}`}
-            variant="outline-dark"
+            variant="secondary"
           >
             View JSON proof
           </PublicButtonLink>
@@ -273,195 +273,198 @@ export default async function RegistryPage({
   ].filter(Boolean) as Array<{ label: string; value: string }>;
 
   return (
-    <main className="mx-auto max-w-[1180px] space-y-8 px-6 py-10">
-      <PublicPageHero
-        eyebrow="Registry of Record"
-        title="Browse the GAFAIG public registry"
-        description="Browse independently verifiable public certification records by organization, jurisdiction, and registry identifier."
-        actions={
-          <>
-            <PublicButtonLink href="/explorer" variant="dark">
-              Open Explorer
-            </PublicButtonLink>
-            <PublicButtonLink href="/verify" variant="outline-dark">
-              Verify a Record
-            </PublicButtonLink>
-          </>
-        }
-      />
+    <main className="mx-auto max-w-[1180px] px-6 py-10">
+      <div className="space-y-8">
+        <PublicPageHero
+          eyebrow="Registry of Record"
+          title="Browse the GAFAIG public registry"
+          description="Browse independently verifiable public certification records by organization, jurisdiction, and registry identifier."
+          actions={
+            <>
+              <PublicButtonLink href="/explorer" variant="primary">
+                Open Explorer
+              </PublicButtonLink>
+              <PublicButtonLink href="/verify" variant="secondary">
+                Verify a Record
+              </PublicButtonLink>
+            </>
+          }
+        />
 
-      <div className="max-w-3xl text-[15px] leading-7 text-black/70">
-        Each entry in the Registry of Record represents a published GAFAIG public
-        certification record that can be independently verified outside the
-        originating organization’s platform.
-      </div>
-
-      <section className="rounded-3xl border border-black/10 bg-white p-8">
-        <div className="max-w-4xl space-y-4">
-          <div className="text-xs font-semibold uppercase tracking-[0.24em] text-black/40">
-            How to read the registry
-          </div>
-          <h2 className="text-3xl font-semibold tracking-tight text-black">
-            The registry is the public index of certified records
-          </h2>
-          <p className="text-base leading-7 text-black/70">
-            The Registry of Record is reserved for public certification records
-            that have already been finalized and published. Internal workflow
-            approval remains upstream. The public registry only exposes the
-            certified trust surface.
-          </p>
-        </div>
-      </section>
-
-      <section className="rounded-3xl border border-black/10 bg-white p-8">
-        <div className="space-y-5">
-          <div>
+        <section className="rounded-3xl border border-black/10 bg-white p-8">
+          <div className="max-w-4xl space-y-4">
             <div className="text-xs font-semibold uppercase tracking-[0.24em] text-black/40">
-              Filter registry records
+              How to read the registry
             </div>
-            <h2 className="mt-3 text-3xl font-semibold tracking-tight text-black">
-              Narrow the certified public record index
+            <h2 className="text-[32px] md:text-[38px] font-semibold tracking-tight text-black">
+              The registry is the public index of certified records
             </h2>
+            <p className="text-[15px] leading-7 text-black/75">
+              Each entry in the Registry of Record represents a published GAFAIG
+              public certification record that can be independently verified
+              outside the originating organization’s platform.
+            </p>
+            <p className="text-[15px] leading-7 text-black/75">
+              The Registry of Record is reserved for public certification records
+              that have already been finalized and published. Internal workflow
+              approval remains upstream. The public registry only exposes the
+              certified trust surface.
+            </p>
           </div>
+        </section>
 
-          <form className="grid gap-4 md:grid-cols-2 xl:grid-cols-5" method="GET">
+        <section className="rounded-3xl border border-black/10 bg-white p-8">
+          <div className="space-y-5">
             <div>
-              <label className="text-[11px] font-semibold uppercase tracking-[0.18em] text-black/35">
-                Search
-              </label>
-              <input
-                name="q"
-                defaultValue={q}
-                className="mt-2 w-full rounded-2xl border border-black/10 bg-neutral-50 px-4 py-3 text-sm text-black outline-none"
-                placeholder="Entity, country, registry ID"
-              />
+              <div className="text-xs font-semibold uppercase tracking-[0.24em] text-black/40">
+                Filter registry records
+              </div>
+              <h2 className="mt-3 text-[32px] md:text-[38px] font-semibold tracking-tight text-black">
+                Narrow the certified public record index
+              </h2>
             </div>
 
-            <div>
-              <label className="text-[11px] font-semibold uppercase tracking-[0.18em] text-black/35">
-                Country
-              </label>
-              <select
-                name="country"
-                defaultValue={country}
-                className="mt-2 w-full rounded-2xl border border-black/10 bg-neutral-50 px-4 py-3 text-sm text-black outline-none"
-              >
-                <option value="">All countries</option>
-                {options.countries.map((value) => (
-                  <option key={value} value={value}>
-                    {value}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="text-[11px] font-semibold uppercase tracking-[0.18em] text-black/35">
-                Organization
-              </label>
-              <select
-                name="organization"
-                defaultValue={organization}
-                className="mt-2 w-full rounded-2xl border border-black/10 bg-neutral-50 px-4 py-3 text-sm text-black outline-none"
-              >
-                <option value="">All organizations</option>
-                {options.organizations.map((value) => (
-                  <option key={value} value={value}>
-                    {value}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="text-[11px] font-semibold uppercase tracking-[0.18em] text-black/35">
-                Tier
-              </label>
-              <select
-                name="tier"
-                defaultValue={tier}
-                className="mt-2 w-full rounded-2xl border border-black/10 bg-neutral-50 px-4 py-3 text-sm text-black outline-none"
-              >
-                <option value="">All tiers</option>
-                {options.tiers.map((value) => (
-                  <option key={value} value={value}>
-                    {value}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="text-[11px] font-semibold uppercase tracking-[0.18em] text-black/35">
-                Band
-              </label>
-              <select
-                name="band"
-                defaultValue={band}
-                className="mt-2 w-full rounded-2xl border border-black/10 bg-neutral-50 px-4 py-3 text-sm text-black outline-none"
-              >
-                <option value="">All bands</option>
-                {options.bands.map((value) => (
-                  <option key={value} value={value}>
-                    {value}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="flex flex-wrap items-end gap-3 xl:col-span-5">
-              <button
-                type="submit"
-                className="inline-flex min-h-[42px] items-center justify-center rounded-full border border-black/20 bg-white px-5 text-sm font-semibold text-black transition hover:bg-black hover:text-white"
-              >
-                Apply filters
-              </button>
-
-              <Link
-                href="/registry"
-                className="inline-flex min-h-[42px] items-center justify-center rounded-full border border-black/20 bg-white px-5 text-sm font-semibold text-black transition hover:bg-black hover:text-white"
-              >
-                Clear all
-              </Link>
-            </div>
-          </form>
-
-          {activeFilters.length > 0 ? (
-            <div className="flex flex-wrap gap-2 pt-1">
-              {activeFilters.map((filter) => (
-                <FilterChip
-                  key={`${filter.label}-${filter.value}`}
-                  label={filter.label}
-                  value={filter.value}
+            <form className="grid gap-4 md:grid-cols-2 xl:grid-cols-5" method="GET">
+              <div>
+                <label className="text-[11px] font-semibold uppercase tracking-[0.18em] text-black/35">
+                  Search
+                </label>
+                <input
+                  name="q"
+                  defaultValue={q}
+                  className="mt-2 w-full rounded-2xl border border-black/10 bg-black/[0.02] px-4 py-3 text-sm text-black outline-none"
+                  placeholder="Entity, country, registry ID"
                 />
-              ))}
-            </div>
-          ) : null}
-        </div>
-      </section>
+              </div>
 
-      <section className="space-y-5">
-        <div className="flex flex-wrap items-end justify-between gap-4">
-          <div>
-            <div className="text-xs font-semibold uppercase tracking-[0.24em] text-black/40">
-              Certified records
-            </div>
-            <h2 className="mt-3 text-3xl font-semibold tracking-tight text-black">
-              {rows.length} public {rows.length === 1 ? "record" : "records"}
-            </h2>
-          </div>
-        </div>
+              <div>
+                <label className="text-[11px] font-semibold uppercase tracking-[0.18em] text-black/35">
+                  Country
+                </label>
+                <select
+                  name="country"
+                  defaultValue={country}
+                  className="mt-2 w-full rounded-2xl border border-black/10 bg-black/[0.02] px-4 py-3 text-sm text-black outline-none"
+                >
+                  <option value="">All countries</option>
+                  {options.countries.map((value) => (
+                    <option key={value} value={value}>
+                      {value}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
-        {rows.length === 0 ? (
-          <EmptyState />
-        ) : (
-          <div className="grid gap-6">
-            {(rows as RegistryPageRow[]).map((row) => (
-              <RegistryCard key={row.registryId} row={row} />
-            ))}
+              <div>
+                <label className="text-[11px] font-semibold uppercase tracking-[0.18em] text-black/35">
+                  Organization
+                </label>
+                <select
+                  name="organization"
+                  defaultValue={organization}
+                  className="mt-2 w-full rounded-2xl border border-black/10 bg-black/[0.02] px-4 py-3 text-sm text-black outline-none"
+                >
+                  <option value="">All organizations</option>
+                  {options.organizations.map((value) => (
+                    <option key={value} value={value}>
+                      {value}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="text-[11px] font-semibold uppercase tracking-[0.18em] text-black/35">
+                  Tier
+                </label>
+                <select
+                  name="tier"
+                  defaultValue={tier}
+                  className="mt-2 w-full rounded-2xl border border-black/10 bg-black/[0.02] px-4 py-3 text-sm text-black outline-none"
+                >
+                  <option value="">All tiers</option>
+                  {options.tiers.map((value) => (
+                    <option key={value} value={value}>
+                      {value}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="text-[11px] font-semibold uppercase tracking-[0.18em] text-black/35">
+                  Band
+                </label>
+                <select
+                  name="band"
+                  defaultValue={band}
+                  className="mt-2 w-full rounded-2xl border border-black/10 bg-black/[0.02] px-4 py-3 text-sm text-black outline-none"
+                >
+                  <option value="">All bands</option>
+                  {options.bands.map((value) => (
+                    <option key={value} value={value}>
+                      {value}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="flex flex-wrap items-end gap-3 xl:col-span-5">
+                <button
+                  type="submit"
+                  className="inline-flex min-h-[42px] items-center justify-center rounded-full border border-black/20 bg-white px-5 text-sm font-semibold text-black transition hover:bg-black hover:text-white"
+                >
+                  Apply filters
+                </button>
+
+                <Link
+                  href="/registry"
+                  className="inline-flex min-h-[42px] items-center justify-center rounded-full border border-black/20 bg-white px-5 text-sm font-semibold text-black transition hover:bg-black hover:text-white"
+                >
+                  Clear all
+                </Link>
+              </div>
+            </form>
+
+            {activeFilters.length > 0 ? (
+              <div className="flex flex-wrap gap-2 pt-1">
+                {activeFilters.map((filter) => (
+                  <FilterChip
+                    key={`${filter.label}-${filter.value}`}
+                    label={filter.label}
+                    value={filter.value}
+                  />
+                ))}
+              </div>
+            ) : null}
           </div>
-        )}
-      </section>
+        </section>
+
+        <section className="rounded-3xl border border-black/10 bg-white p-8">
+          <div className="space-y-5">
+            <div className="flex flex-wrap items-end justify-between gap-4">
+              <div>
+                <div className="text-xs font-semibold uppercase tracking-[0.24em] text-black/40">
+                  Certified records
+                </div>
+                <h2 className="mt-3 text-[32px] md:text-[38px] font-semibold tracking-tight text-black">
+                  {rows.length} public {rows.length === 1 ? "record" : "records"}
+                </h2>
+              </div>
+            </div>
+
+            {rows.length === 0 ? (
+              <EmptyState />
+            ) : (
+              <div className="grid gap-6">
+                {(rows as RegistryPageRow[]).map((row) => (
+                  <RegistryCard key={row.registryId} row={row} />
+                ))}
+              </div>
+            )}
+          </div>
+        </section>
+      </div>
     </main>
   );
 }

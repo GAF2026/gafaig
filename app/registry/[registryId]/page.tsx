@@ -1,15 +1,47 @@
+import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import PublicButtonLink from "@/app/_components/PublicButtonLink";
 import PublicPageHero from "@/app/_components/PublicPageHero";
-import {
-  getRegistryRecordById,
-  type RegistryRecord,
-} from "@/lib/queries/registry";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-function formatDate(value: string | null): string {
+type RegistryApiRow = {
+  registryId: string;
+  applicationId?: string | null;
+  caseId?: string | null;
+  entityName?: string | null;
+  entityType?: string | null;
+  country?: string | null;
+  certificationStatus?: string | null;
+  certifiedTier?: string | null;
+  certifiedBand?: string | null;
+  certifiedAt?: string | null;
+  validFrom?: string | null;
+  validTo?: string | null;
+  lifecycleStatus?: string | null;
+  renewalStatus?: string | null;
+  publishedAt?: string | null;
+};
+
+type RegistryApiResponse = {
+  ok: boolean;
+  rows: RegistryApiRow[];
+};
+
+function buildBaseUrl(): string {
+  const h = headers();
+  const protocol = h.get("x-forwarded-proto") ?? "http";
+  const host = h.get("x-forwarded-host") ?? h.get("host");
+  return host ? `${protocol}://${host}` : "http://localhost:3000";
+}
+
+function formatLabel(value?: string | null): string {
+  const normalized = String(value ?? "").trim();
+  return normalized || "—";
+}
+
+function formatDate(value?: string | null): string {
   if (!value) return "—";
 
   const date = new Date(value);
@@ -22,16 +54,7 @@ function formatDate(value: string | null): string {
   }).format(date);
 }
 
-function formatLabel(value: string | null): string {
-  const normalized = String(value ?? "").trim();
-  return normalized || "—";
-}
-
-function getStatusText(record: RegistryRecord): string {
-  return formatLabel(record.certificationStatus);
-}
-
-function getStatusBadgeClasses(status: string | null): string {
+function statusPillClass(status?: string | null): string {
   const normalized = String(status ?? "").trim().toUpperCase();
 
   if (normalized === "CERTIFIED") {
@@ -58,12 +81,12 @@ function MetricCard({
 }) {
   return (
     <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
-      <div className="text-[12px] font-semibold uppercase tracking-[0.24em] text-black/40">
+      <p className="text-[12px] font-semibold uppercase tracking-[0.24em] text-black/40">
         {label}
-      </div>
-      <div className="mt-3 text-[16px] font-semibold tracking-tight text-black">
+      </p>
+      <p className="mt-3 text-[18px] font-medium tracking-tight text-black">
         {value}
-      </div>
+      </p>
     </div>
   );
 }
@@ -77,14 +100,29 @@ function DetailCard({
 }) {
   return (
     <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
-      <div className="text-[12px] font-semibold uppercase tracking-[0.24em] text-black/40">
+      <p className="text-[12px] font-semibold uppercase tracking-[0.24em] text-black/40">
         {label}
-      </div>
-      <div className="mt-3 text-[16px] font-semibold tracking-tight text-black">
+      </p>
+      <p className="mt-3 break-words text-[18px] font-medium tracking-tight text-black">
         {value}
-      </div>
+      </p>
     </div>
   );
+}
+
+async function getRegistryRecord(registryId: string): Promise<RegistryApiRow | null> {
+  const baseUrl = buildBaseUrl();
+  const response = await fetch(
+    `${baseUrl}/api/registry?registryId=${encodeURIComponent(registryId)}`,
+    { cache: "no-store" }
+  );
+
+  if (!response.ok) {
+    return null;
+  }
+
+  const data = (await response.json()) as RegistryApiResponse;
+  return data.rows?.[0] ?? null;
 }
 
 export default async function RegistryRecordPage({
@@ -93,20 +131,16 @@ export default async function RegistryRecordPage({
   params: { registryId: string };
 }) {
   const registryId = String(params.registryId ?? "").trim();
-
-  if (!registryId) {
-    notFound();
-  }
-
-  const record = await getRegistryRecordById(registryId);
+  const record = await getRegistryRecord(registryId);
 
   if (!record) {
     notFound();
   }
 
-  const verifyUrl = `/api/verify/${record.registryId}`;
-  const registryUrl = `/registry/${record.registryId}`;
-  const widgetUrl = `/widget-preview/${record.registryId}`;
+  const verifyHref = `/verify/${record.registryId}`;
+  const verifyJsonHref = `/api/verify/${record.registryId}`;
+  const widgetHref = `/widget-preview/${record.registryId}`;
+  const registryHref = `/registry/${record.registryId}`;
 
   return (
     <main className="mx-auto max-w-[1180px] px-6 py-10">
@@ -119,44 +153,44 @@ export default async function RegistryRecordPage({
 
         <section className="rounded-3xl border border-black/10 bg-white p-8">
           <div
-            className={`inline-flex rounded-full border px-5 py-2 text-[15px] font-semibold ${getStatusBadgeClasses(
+            className={`inline-flex rounded-full border px-4 py-2 text-[14px] font-semibold ${statusPillClass(
               record.certificationStatus
             )}`}
           >
-            {getStatusText(record)}
+            {formatLabel(record.certificationStatus)}
           </div>
 
-          <h1 className="mt-6 text-[32px] font-semibold tracking-tight text-black md:text-[38px]">
+          <h2 className="mt-5 text-[32px] md:text-[38px] font-semibold tracking-tight text-black">
             {formatLabel(record.entityName)}
-          </h1>
+          </h2>
 
           <p className="mt-4 text-[15px] leading-7 text-black/75">
             {formatLabel(record.entityType)} · {formatLabel(record.country)}
           </p>
 
-          <div className="mt-8 grid gap-4 md:grid-cols-3">
+          <div className="mt-6 grid gap-4 md:grid-cols-3">
             <MetricCard label="Certified" value={formatDate(record.certifiedAt)} />
             <MetricCard label="Valid From" value={formatDate(record.validFrom)} />
             <MetricCard label="Valid To" value={formatDate(record.validTo)} />
           </div>
 
           <div className="mt-6 flex flex-wrap gap-3">
-            <PublicButtonLink href={verifyUrl} variant="primary">
+            <PublicButtonLink href={verifyHref} variant="primary">
               Verify this Record
             </PublicButtonLink>
-            <PublicButtonLink href={verifyUrl} variant="secondary">
+            <PublicButtonLink href={verifyJsonHref} variant="secondary">
               View JSON Proof
             </PublicButtonLink>
-            <PublicButtonLink href={widgetUrl} variant="secondary">
+            <PublicButtonLink href={widgetHref} variant="secondary">
               View Widget
             </PublicButtonLink>
           </div>
         </section>
 
         <section className="rounded-3xl border border-black/10 bg-white p-8">
-          <h2 className="text-[26px] font-semibold tracking-tight text-black">
+          <h3 className="text-[26px] font-semibold tracking-tight text-black">
             Record details
-          </h2>
+          </h3>
 
           <div className="mt-6 grid gap-4 md:grid-cols-3">
             <DetailCard label="Registry ID" value={formatLabel(record.registryId)} />
@@ -181,26 +215,23 @@ export default async function RegistryRecordPage({
               label="Renewal Status"
               value={formatLabel(record.renewalStatus)}
             />
-            <DetailCard
-              label="Published At"
-              value={formatDate(record.publishedAt)}
-            />
+            <DetailCard label="Published At" value={formatDate(record.publishedAt)} />
           </div>
         </section>
 
         <section className="rounded-3xl border border-black/10 bg-white p-8">
-          <h2 className="text-[26px] font-semibold tracking-tight text-black">
+          <h3 className="text-[26px] font-semibold tracking-tight text-black">
             Trust surface
-          </h2>
+          </h3>
 
           <div className="mt-6 grid gap-4 md:grid-cols-3">
-            <DetailCard label="Verification Endpoint" value={verifyUrl} />
-            <DetailCard label="Registry Page" value={registryUrl} />
-            <DetailCard label="Widget Preview" value={widgetUrl} />
+            <DetailCard label="Verification Endpoint" value={verifyJsonHref} />
+            <DetailCard label="Registry Page" value={registryHref} />
+            <DetailCard label="Widget Preview" value={widgetHref} />
           </div>
 
           <div className="mt-6 flex flex-wrap gap-3">
-            <PublicButtonLink href={verifyUrl} variant="secondary">
+            <PublicButtonLink href={verifyJsonHref} variant="secondary">
               Open verification JSON
             </PublicButtonLink>
             <PublicButtonLink href="/registry" variant="secondary">
