@@ -3,6 +3,8 @@
 import { useEffect, useMemo, useState } from "react";
 import AdminNav from "../_components/AdminNav";
 import AdminPageHeader from "../_components/AdminPageHeader";
+import PublicButton from "../../_components/PublicButton";
+import PublicButtonLink from "../../_components/PublicButtonLink";
 
 type ParticipantRow = {
   participantId: string;
@@ -63,6 +65,7 @@ export default function AdminParticipantsPage() {
 
   const [creating, setCreating] = useState(false);
   const [createError, setCreateError] = useState("");
+
   const [newName, setNewName] = useState("");
   const [newType, setNewType] = useState("company");
   const [newJurisdiction, setNewJurisdiction] = useState("");
@@ -112,13 +115,7 @@ export default function AdminParticipantsPage() {
 
   useEffect(() => {
     load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [query]);
-
-  useEffect(() => {
-    if (page > totalPages) setPage(totalPages);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [totalPages]);
 
   async function createParticipant() {
     setCreating(true);
@@ -135,14 +132,14 @@ export default function AdminParticipantsPage() {
           country: newCountry || null,
           website: newWebsite || null,
           designationLevel: newDesignation || null,
-          verificationStatus: newVerification || "unverified",
+          verificationStatus: newVerification,
         }),
       });
 
       const json = await res.json();
 
       if (!res.ok || !json?.ok) {
-        throw new Error(json?.error || `Failed to create participant (${res.status})`);
+        throw new Error(json?.error || `Failed to create participant`);
       }
 
       setNewName("");
@@ -151,6 +148,7 @@ export default function AdminParticipantsPage() {
       setNewWebsite("");
       setNewDesignation("");
       setNewVerification("unverified");
+
       setPage(1);
       await load();
     } catch (e: any) {
@@ -171,301 +169,166 @@ export default function AdminParticipantsPage() {
     <div>
       <AdminNav />
 
-      <main className="mx-auto max-w-[1100px] px-6 pt-14 pb-16">
+      <main className="mx-auto max-w-[1180px] px-6 py-10">
         <AdminPageHeader
           title="Participants"
-          description="Manage organizations and institutions that appear in the private verification workflow and public registry."
+          description="Manage organizations and institutions used in verification workflow and registry publishing."
           meta={loading ? "Loading…" : `Showing ${rows.length} of ${total}`}
         />
 
-        <section className="rounded-2xl border border-black/10 p-5">
-          <h2 className="text-[16px] font-semibold text-black">Create participant</h2>
+        {/* CREATE */}
+        <section className="mt-8 rounded-3xl border border-black/10 bg-white p-8">
+          <h2 className="text-[22px] font-semibold text-black">
+            Create participant
+          </h2>
 
-          <p className="mt-2 max-w-[860px] text-[14px] leading-[1.7] text-black/65">
-            Add a participant record to support registry publishing and verification workflow testing.
-          </p>
-
-          {createError ? (
-            <div className="mt-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-3">
-              <div className="text-[14px] font-semibold text-red-700">Error</div>
-              <div className="mt-1 text-[14px] text-black/80">{createError}</div>
+          {createError && (
+            <div className="mt-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+              {createError}
             </div>
-          ) : null}
+          )}
 
-          <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-5">
-            <div>
-              <div className="mb-2 text-[12px] font-semibold uppercase tracking-[0.12em] text-black/60">
-                Name *
-              </div>
-              <input
-                value={newName}
-                onChange={(e) => setNewName(e.target.value)}
-                placeholder="e.g., OpenAI / City of Newark"
-                className="w-full rounded-xl border border-black/15 px-4 py-3 text-[14px] text-black placeholder:text-black/40 focus:outline-none focus:ring-2 focus:ring-black/10"
-              />
-            </div>
+          <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+            <input
+              value={newName}
+              onChange={(e) => setNewName(e.target.value)}
+              placeholder="Name"
+              className="rounded-xl border border-black/15 px-4 py-3 text-sm"
+            />
 
-            <div>
-              <div className="mb-2 text-[12px] font-semibold uppercase tracking-[0.12em] text-black/60">
-                Participant type *
-              </div>
-              <select
-                value={newType}
-                onChange={(e) => setNewType(e.target.value)}
-                className="w-full rounded-xl border border-black/15 px-4 py-3 text-[14px] text-black focus:outline-none focus:ring-2 focus:ring-black/10"
-              >
-                {TYPE_OPTIONS.filter((v) => v !== "all").map((option) => (
-                  <option key={option} value={option}>
-                    {prettify(option)}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <div className="mb-2 text-[12px] font-semibold uppercase tracking-[0.12em] text-black/60">
-                Jurisdiction level
-              </div>
-              <input
-                value={newJurisdiction}
-                onChange={(e) => setNewJurisdiction(e.target.value)}
-                placeholder="country / state / city / agency"
-                className="w-full rounded-xl border border-black/15 px-4 py-3 text-[14px] text-black placeholder:text-black/40 focus:outline-none focus:ring-2 focus:ring-black/10"
-              />
-            </div>
-
-            <div>
-              <div className="mb-2 text-[12px] font-semibold uppercase tracking-[0.12em] text-black/60">
-                Country
-              </div>
-              <input
-                value={newCountry}
-                onChange={(e) => setNewCountry(e.target.value)}
-                placeholder="e.g., United States"
-                className="w-full rounded-xl border border-black/15 px-4 py-3 text-[14px] text-black placeholder:text-black/40 focus:outline-none focus:ring-2 focus:ring-black/10"
-              />
-            </div>
-
-            <div>
-              <div className="mb-2 text-[12px] font-semibold uppercase tracking-[0.12em] text-black/60">
-                Website
-              </div>
-              <input
-                value={newWebsite}
-                onChange={(e) => setNewWebsite(e.target.value)}
-                placeholder="https://..."
-                className="w-full rounded-xl border border-black/15 px-4 py-3 text-[14px] text-black placeholder:text-black/40 focus:outline-none focus:ring-2 focus:ring-black/10"
-              />
-            </div>
-
-            <div>
-              <div className="mb-2 text-[12px] font-semibold uppercase tracking-[0.12em] text-black/60">
-                Designation level
-              </div>
-              <select
-                value={newDesignation}
-                onChange={(e) => setNewDesignation(e.target.value)}
-                className="w-full rounded-xl border border-black/15 px-4 py-3 text-[14px] text-black focus:outline-none focus:ring-2 focus:ring-black/10"
-              >
-                {DESIGNATION_PRESETS.map((d) => (
-                  <option key={d.value} value={d.value}>
-                    {d.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <div className="mb-2 text-[12px] font-semibold uppercase tracking-[0.12em] text-black/60">
-                Verification status
-              </div>
-              <select
-                value={newVerification}
-                onChange={(e) => setNewVerification(e.target.value)}
-                className="w-full rounded-xl border border-black/15 px-4 py-3 text-[14px] text-black focus:outline-none focus:ring-2 focus:ring-black/10"
-              >
-                {VERIFICATION_OPTIONS.filter((v) => v !== "all").map((option) => (
-                  <option key={option} value={option}>
-                    {prettify(option)}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          <div className="mt-5">
-            <button
-              onClick={() => createParticipant()}
-              disabled={creating || newName.trim().length === 0}
-              className="inline-flex items-center justify-center rounded-xl bg-black px-5 py-3 text-[14px] font-semibold text-white hover:bg-black/90 disabled:opacity-60"
+            <select
+              value={newType}
+              onChange={(e) => setNewType(e.target.value)}
+              className="rounded-xl border border-black/15 px-4 py-3 text-sm"
             >
+              {TYPE_OPTIONS.filter((v) => v !== "all").map((t) => (
+                <option key={t}>{prettify(t)}</option>
+              ))}
+            </select>
+
+            <input
+              value={newCountry}
+              onChange={(e) => setNewCountry(e.target.value)}
+              placeholder="Country"
+              className="rounded-xl border border-black/15 px-4 py-3 text-sm"
+            />
+
+            <input
+              value={newWebsite}
+              onChange={(e) => setNewWebsite(e.target.value)}
+              placeholder="Website"
+              className="rounded-xl border border-black/15 px-4 py-3 text-sm"
+            />
+
+            <select
+              value={newVerification}
+              onChange={(e) => setNewVerification(e.target.value)}
+              className="rounded-xl border border-black/15 px-4 py-3 text-sm"
+            >
+              {VERIFICATION_OPTIONS.filter((v) => v !== "all").map((v) => (
+                <option key={v}>{prettify(v)}</option>
+              ))}
+            </select>
+          </div>
+
+          <div className="mt-6">
+            <PublicButton onClick={createParticipant} disabled={creating}>
               {creating ? "Creating…" : "Create participant"}
-            </button>
+            </PublicButton>
           </div>
         </section>
 
-        <section className="mt-10 border-t border-black/10 pt-8">
-          <div className="flex flex-wrap items-end gap-5">
-            <div>
-              <div className="mb-2 text-[12px] font-semibold uppercase tracking-[0.12em] text-black/60">
-                Search
-              </div>
-              <input
-                value={search}
-                onChange={(e) => {
-                  setPage(1);
-                  setSearch(e.target.value);
-                }}
-                placeholder="Search name, country, website, slug, designation…"
-                className="w-[360px] max-w-full rounded-xl border border-black/15 px-4 py-3 text-[14px] text-black placeholder:text-black/40 focus:outline-none focus:ring-2 focus:ring-black/10"
-              />
-            </div>
+        {/* FILTERS */}
+        <section className="mt-10">
+          <div className="flex flex-wrap gap-4 items-end">
+            <input
+              value={search}
+              onChange={(e) => {
+                setPage(1);
+                setSearch(e.target.value);
+              }}
+              placeholder="Search..."
+              className="rounded-xl border border-black/15 px-4 py-3 text-sm"
+            />
 
-            <div>
-              <div className="mb-2 text-[12px] font-semibold uppercase tracking-[0.12em] text-black/60">
-                Verification
-              </div>
-              <select
-                value={verificationStatus}
-                onChange={(e) => {
-                  setPage(1);
-                  setVerificationStatus(e.target.value);
-                }}
-                className="w-[170px] rounded-xl border borderblack/15 px-4 py-3 text-[14px] text-black focus:outline-none focus:ring-2 focus:ring-black/10"
-              >
-                {VERIFICATION_OPTIONS.map((option) => (
-                  <option key={option} value={option}>
-                    {option === "all" ? "All verification" : prettify(option)}
-                  </option>
-                ))}
-              </select>
-            </div>
+            <select
+              value={verificationStatus}
+              onChange={(e) => setVerificationStatus(e.target.value)}
+              className="rounded-xl border border-black/15 px-4 py-3 text-sm"
+            >
+              {VERIFICATION_OPTIONS.map((v) => (
+                <option key={v}>{prettify(v)}</option>
+              ))}
+            </select>
 
-            <div>
-              <div className="mb-2 text-[12px] font-semibold uppercase tracking-[0.12em] text-black/60">
-                Type
-              </div>
-              <select
-                value={participantType}
-                onChange={(e) => {
-                  setPage(1);
-                  setParticipantType(e.target.value);
-                }}
-                className="w-[150px] rounded-xl border border-black/15 px-4 py-3 text-[14px] text-black focus:outline-none focus:ring-2 focus:ring-black/10"
-              >
-                {TYPE_OPTIONS.map((option) => (
-                  <option key={option} value={option}>
-                    {option === "all" ? "All types" : prettify(option)}
-                  </option>
-                ))}
-              </select>
-            </div>
+            <select
+              value={participantType}
+              onChange={(e) => setParticipantType(e.target.value)}
+              className="rounded-xl border border-black/15 px-4 py-3 text-sm"
+            >
+              {TYPE_OPTIONS.map((t) => (
+                <option key={t}>{prettify(t)}</option>
+              ))}
+            </select>
 
-            <div className="ml-auto flex flex-wrap gap-3">
-              <button
-                onClick={clearFilters}
-                className="inline-flex items-center justify-center rounded-xl border border-black/15 px-4 py-3 text-[14px] font-semibold hover:bg-black/[0.04]"
-              >
+            <div className="ml-auto flex gap-3">
+              <PublicButton variant="secondary" onClick={clearFilters}>
                 Clear
-              </button>
-
-              <button
-                onClick={() => load()}
-                disabled={loading}
-                className="inline-flex items-center justify-center rounded-xl border border-black/15 px-4 py-3 text-[14px] font-semibold hover:bg-black/[0.04] disabled:opacity-60"
-              >
-                {loading ? "Refreshing…" : "Refresh"}
-              </button>
+              </PublicButton>
+              <PublicButton variant="secondary" onClick={load}>
+                Refresh
+              </PublicButton>
             </div>
-          </div>
-
-          <div className="mt-4 text-[16px] leading-[1.7] text-black/65">
-            {loading ? "Loading…" : `Showing ${rows.length} of ${total} — click a row to edit`}
           </div>
         </section>
 
-        {error ? (
-          <div className="mt-6 rounded-2xl border border-red-200 bg-red-50 px-4 py-3">
-            <div className="text-[14px] font-semibold text-red-700">Error</div>
-            <div className="mt-1 text-[14px] text-black/80">{error}</div>
-          </div>
-        ) : null}
+        {/* TABLE */}
+        <section className="mt-8 rounded-3xl border border-black/10 bg-white p-6">
+          <table className="w-full text-sm">
+            <thead className="text-left text-black/60">
+              <tr>
+                <th>Name</th>
+                <th>Type</th>
+                <th>Status</th>
+                <th>Country</th>
+                <th>Updated</th>
+              </tr>
+            </thead>
 
-        <section className="mt-8 overflow-hidden rounded-2xl border border-black/10 bg-white">
-          <div className="overflow-x-auto">
-            <table className="min-w-[980px] w-full text-[14px]">
-              <thead className="bg-black/[0.03] text-left text-black">
-                <tr>
-                  {["Name", "Type", "Verification", "Designation", "Country", "Slug", "Updated"].map((h) => (
-                    <th key={h} className="px-4 py-4 font-semibold">
-                      {h}
-                    </th>
-                  ))}
+            <tbody>
+              {rows.map((r) => (
+                <tr
+                  key={r.participantId}
+                  className="cursor-pointer border-t hover:bg-black/[0.02]"
+                  onClick={() =>
+                    (window.location.href = `/admin/participants/${r.participantId}`)
+                  }
+                >
+                  <td className="py-3 font-semibold">{r.name}</td>
+                  <td>{prettify(r.participantType)}</td>
+                  <td>{prettify(r.verificationStatus)}</td>
+                  <td>{r.country}</td>
+                  <td>{r.updatedAt}</td>
                 </tr>
-              </thead>
+              ))}
+            </tbody>
+          </table>
 
-              <tbody>
-                {rows.map((r) => (
-                  <tr
-                    key={r.participantId}
-                    onClick={() =>
-                      (window.location.href = `/admin/participants/${encodeURIComponent(r.participantId)}`)
-                    }
-                    className="cursor-pointer border-t border-black/5 hover:bg-black/[0.02]"
-                    title="Click to edit"
-                  >
-                    <td className="px-4 py-4">
-                      <span className="font-semibold underline underline-offset-2">
-                        {r.name ?? "—"}
-                      </span>
-                    </td>
-                    <td className="px-4 py-4 text-black/75">{prettify(r.participantType)}</td>
-                    <td className="px-4 py-4">
-                      <span className="inline-flex items-center rounded-full border border-black/10 px-3 py-1 text-[12px] font-semibold text-black/80 bg-black/[0.02]">
-                        {prettify(r.verificationStatus)}
-                      </span>
-                    </td>
-                    <td className="px-4 py-4 text-black/75">{prettify(r.designationLevel)}</td>
-                    <td className="px-4 py-4 text-black/75">{r.country ?? "—"}</td>
-                    <td className="px-4 py-4 text-black/65">{r.profileSlug ?? "—"}</td>
-                    <td className="px-4 py-4 whitespace-nowrap text-black/65">
-                      {r.updatedAt ? new Date(r.updatedAt).toLocaleString() : "—"}
-                    </td>
-                  </tr>
-                ))}
-
-                {!loading && rows.length === 0 ? (
-                  <tr>
-                    <td colSpan={7} className="px-4 py-8 text-black/60">
-                      No participants found. Create one above to test.
-                    </td>
-                  </tr>
-                ) : null}
-              </tbody>
-            </table>
-          </div>
-
-          <div className="flex items-center justify-between gap-4 border-t border-black/10 px-4 py-4">
-            <div className="text-[14px] text-black/65">
-              Page {page} of {totalPages}
-            </div>
-
-            <div className="flex items-center gap-3">
-              <button
+          <div className="mt-6 flex justify-between">
+            <div>Page {page} of {totalPages}</div>
+            <div className="flex gap-2">
+              <PublicButton
+                variant="secondary"
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
-                disabled={page <= 1}
-                className="inline-flex items-center justify-center rounded-xl border border-black/15 px-4 py-2 text-[14px] font-semibold disabled:opacity-40"
               >
                 Prev
-              </button>
-
-              <button
+              </PublicButton>
+              <PublicButton
+                variant="secondary"
                 onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                disabled={page >= totalPages}
-                className="inline-flex items-center justify-center rounded-xl border border-black/15 px-4 py-2 text-[14px] font-semibold disabled:opacity-40"
               >
                 Next
-              </button>
+              </PublicButton>
             </div>
           </div>
         </section>

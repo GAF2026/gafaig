@@ -73,6 +73,40 @@ async function getScore(caseId: string): Promise<ScoreResp | null> {
   return (await res.json().catch(() => null)) as ScoreResp | null;
 }
 
+function MetricCard({
+  label,
+  value,
+}: {
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
+      <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/55">
+        {label}
+      </div>
+      <div className="mt-3 text-[18px] font-semibold text-black">{value}</div>
+    </div>
+  );
+}
+
+function SurfaceCard({
+  label,
+  value,
+}: {
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
+      <div className="text-[12px] uppercase tracking-[0.12em] text-black/60">
+        {label}
+      </div>
+      <div className="mt-3 text-[14px] font-semibold text-black">{value}</div>
+    </div>
+  );
+}
+
 export default async function CasePublishPage({
   params,
 }: {
@@ -87,10 +121,10 @@ export default async function CasePublishPage({
   const publishAllowed = ok && isApproved;
 
   return (
-    <div className="min-h-screen bg-white text-black">
+    <div>
       <AdminNav />
 
-      <main className="mx-auto max-w-[1100px] space-y-8 px-6 pb-16 pt-14">
+      <main className="mx-auto max-w-[1100px] space-y-8 px-6 py-10">
         <AdminPageHeader
           title={`Publish — ${caseId}`}
           description="Approve this verification case and write the canonical public registry snapshot."
@@ -127,59 +161,28 @@ export default async function CasePublishPage({
         <CaseTabs caseId={caseId} />
 
         {!ok ? (
-          <section className="rounded-2xl border border-black/10 p-5">
+          <section className="rounded-3xl border border-black/10 bg-white p-8">
             <div className="text-[16px] font-semibold text-black">
               Publish unavailable
             </div>
-            <p className="mt-2 text-[14px] leading-[1.7] text-black/70">
+            <p className="mt-2 text-[14px] leading-7 text-black/70">
               {data?.error || "Unable to load the score required for publish."}
             </p>
           </section>
         ) : (
           <>
             <section className="grid gap-4 md:grid-cols-4">
-              <div className="rounded-2xl border border-black/10 p-4">
-                <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/60">
-                  Score
-                </div>
-                <div className="mt-3 text-[30px] font-semibold leading-none text-black">
-                  {data.score}
-                </div>
-              </div>
-
-              <div className="rounded-2xl border border-black/10 p-4">
-                <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/60">
-                  Tier
-                </div>
-                <div className="mt-3 text-[18px] font-semibold text-black">
-                  {data.tier}
-                </div>
-              </div>
-
-              <div className="rounded-2xl border border-black/10 p-4">
-                <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/60">
-                  Band
-                </div>
-                <div className="mt-3 text-[18px] font-semibold text-black">
-                  {data.band}
-                </div>
-              </div>
-
-              <div className="rounded-2xl border border-black/10 p-4">
-                <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/60">
-                  Status
-                </div>
-                <div className="mt-3 text-[18px] font-semibold text-black">
-                  {data.caseStatus ?? "—"}
-                </div>
-              </div>
+              <MetricCard label="Score" value={String(data.score)} />
+              <MetricCard label="Tier" value={data.tier} />
+              <MetricCard label="Band" value={data.band} />
+              <MetricCard label="Status" value={data.caseStatus ?? "—"} />
             </section>
 
-            <section className="rounded-2xl border border-black/10 p-5">
-              <h2 className="text-[16px] font-semibold text-black">
+            <section className="rounded-3xl border border-black/10 bg-white p-8">
+              <h2 className="text-[26px] font-semibold tracking-tight text-black">
                 Publish workflow
               </h2>
-              <p className="mt-2 max-w-[900px] text-[14px] leading-[1.7] text-black/70">
+              <p className="mt-3 max-w-[900px] text-[15px] leading-7 text-black/70">
                 Publishing writes the canonical public registry snapshot for this
                 approved case and exposes the result through the live public
                 registry trust surfaces. After publish, verify the result on the
@@ -196,38 +199,21 @@ export default async function CasePublishPage({
                 </div>
               )}
 
-              <section className="mt-5 rounded-2xl border border-black/10 p-5">
+              <section className="mt-5 rounded-2xl border border-black/10 bg-black/[0.02] p-5">
                 <h3 className="text-[16px] font-semibold text-black">
                   Registry status
                 </h3>
 
-                <div className="mt-3 grid gap-4 md:grid-cols-3">
-                  <div className="rounded-xl border border-black/10 p-4">
-                    <div className="text-[12px] uppercase tracking-[0.12em] text-black/60">
-                      Published
-                    </div>
-                    <div className="mt-2 text-[16px] font-semibold text-black">
-                      {isApproved ? "Not Published" : "Not Ready"}
-                    </div>
-                  </div>
-
-                  <div className="rounded-xl border border-black/10 p-4">
-                    <div className="text-[12px] uppercase tracking-[0.12em] text-black/60">
-                      Registry ID
-                    </div>
-                    <div className="mt-2 text-[14px] font-mono text-black/75">
-                      Will appear after publish
-                    </div>
-                  </div>
-
-                  <div className="rounded-xl border border-black/10 p-4">
-                    <div className="text-[12px] uppercase tracking-[0.12em] text-black/60">
-                      Snapshot
-                    </div>
-                    <div className="mt-2 text-[14px] text-black/75">
-                      Not created
-                    </div>
-                  </div>
+                <div className="mt-4 grid gap-4 md:grid-cols-3">
+                  <SurfaceCard
+                    label="Published"
+                    value={isApproved ? "Not Published" : "Not Ready"}
+                  />
+                  <SurfaceCard
+                    label="Registry ID"
+                    value="Will appear after publish"
+                  />
+                  <SurfaceCard label="Snapshot" value="Not created" />
                 </div>
               </section>
 
@@ -242,69 +228,44 @@ export default async function CasePublishPage({
                     snowflakeEnv={data.snowflakeEnv ?? null}
                   />
                 ) : (
-                  <div className="rounded-xl border border-black/10 p-4 text-[14px] text-black/60">
+                  <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-4 text-[14px] text-black/60">
                     Publish is locked until the case is approved.
                   </div>
                 )}
               </div>
             </section>
 
-            <section className="rounded-2xl border border-black/10 p-5">
-              <h2 className="text-[16px] font-semibold text-black">
+            <section className="rounded-3xl border border-black/10 bg-white p-8">
+              <h2 className="text-[26px] font-semibold tracking-tight text-black">
                 Next trust surfaces
               </h2>
-              <p className="mt-2 text-[14px] leading-[1.7] text-black/70">
+              <p className="mt-3 text-[15px] leading-7 text-black/70">
                 Once publish succeeds, validate the certification across the
                 canonical public trust surfaces.
               </p>
 
-              <div className="mt-4 grid gap-4 md:grid-cols-4">
-                <div className="rounded-xl border border-black/10 p-4">
-                  <div className="text-[12px] uppercase tracking-[0.12em] text-black/60">
-                    Public registry list
-                  </div>
-                  <div className="mt-2 text-[14px] font-semibold text-black">
-                    /registry
-                  </div>
-                </div>
-
-                <div className="rounded-xl border border-black/10 p-4">
-                  <div className="text-[12px] uppercase tracking-[0.12em] text-black/60">
-                    Verification endpoint
-                  </div>
-                  <div className="mt-2 text-[14px] font-semibold text-black">
-                    /api/verify/[registryId]
-                  </div>
-                </div>
-
-                <div className="rounded-xl border border-black/10 p-4">
-                  <div className="text-[12px] uppercase tracking-[0.12em] text-black/60">
-                    Public record page
-                  </div>
-                  <div className="mt-2 text-[14px] font-semibold text-black">
-                    /registry/[registryId]
-                  </div>
-                </div>
-
-                <div className="rounded-xl border border-black/10 p-4">
-                  <div className="text-[12px] uppercase tracking-[0.12em] text-black/60">
-                    Badge endpoint
-                  </div>
-                  <div className="mt-2 text-[14px] font-semibold text-black">
-                    /badge/[registryId]
-                  </div>
-                </div>
+              <div className="mt-6 grid gap-4 md:grid-cols-4">
+                <SurfaceCard label="Public registry list" value="/registry" />
+                <SurfaceCard
+                  label="Verification endpoint"
+                  value="/api/verify/[registryId]"
+                />
+                <SurfaceCard
+                  label="Public record page"
+                  value="/registry/[registryId]"
+                />
+                <SurfaceCard label="Badge endpoint" value="/badge/[registryId]" />
               </div>
             </section>
 
-            <section className="rounded-2xl border border-black/10 p-5">
-              <h2 className="text-[16px] font-semibold text-black">
+            <section className="rounded-3xl border border-black/10 bg-white p-8">
+              <h2 className="text-[26px] font-semibold tracking-tight text-black">
                 After publish
               </h2>
-              <div className="mt-3 grid gap-4 md:grid-cols-3">
+              <div className="mt-4 grid gap-4 md:grid-cols-3">
                 <Link
                   href="/registry"
-                  className="rounded-2xl border border-black/10 p-4 hover:bg-black/[0.03]"
+                  className="rounded-2xl border border-black/10 bg-white p-4 hover:bg-black/[0.03]"
                 >
                   <div className="text-[14px] font-semibold text-black">
                     Open public registry
@@ -314,7 +275,7 @@ export default async function CasePublishPage({
                   </div>
                 </Link>
 
-                <div className="rounded-2xl border border-black/10 p-4">
+                <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-4">
                   <div className="text-[14px] font-semibold text-black">
                     Verify the record
                   </div>
@@ -324,7 +285,7 @@ export default async function CasePublishPage({
                   </div>
                 </div>
 
-                <div className="rounded-2xl border border-black/10 p-4">
+                <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-4">
                   <div className="text-[14px] font-semibold text-black">
                     Check badge + public record
                   </div>

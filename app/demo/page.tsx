@@ -43,7 +43,7 @@ export default function DemoPage() {
             Most human oversight in AI systems is still a claim
           </h2>
 
-          <p className="mt-5 max-w-[960px] text-[16px] leading-[1.85] text-black/75">
+          <p className="mt-5 max-w-[960px] text-[15px] leading-7 text-black/75">
             Organizations can say they have human oversight, internal controls,
             and responsible AI policies. But for customers, regulators, and the
             public, there is usually no consistent way to verify whether that
@@ -71,7 +71,7 @@ export default function DemoPage() {
             Follow one record from certification to proof
           </h2>
 
-          <p className="mt-5 max-w-[960px] text-[16px] leading-[1.85] text-black/75">
+          <p className="mt-5 max-w-[960px] text-[15px] leading-7 text-black/75">
             This walkthrough uses a live GAFAIG record to prove how trust moves
             through the public surface. Each step proves a real part of the
             verification process that is already built and publicly accessible.
@@ -157,7 +157,7 @@ export default function DemoPage() {
             <div className="text-[18px] font-semibold tracking-tight text-black">
               The key distinction
             </div>
-            <p className="mt-3 text-[15px] leading-[1.85] text-black/75">
+            <p className="mt-3 text-[15px] leading-7 text-black/75">
               GAFAIG does not ask the public to trust an internal claim. It
               publishes an independently verifiable public trust record backed by
               signed proof and external validation surfaces.
@@ -190,40 +190,40 @@ export default function DemoPage() {
           </div>
         </section>
 
-        <section className="rounded-3xl border border-black/10 bg-black p-8 text-white">
-          <div className="text-[12px] font-semibold uppercase tracking-[0.22em] text-white/55">
+        <section className="rounded-3xl border border-black/10 bg-white p-8">
+          <div className="text-[12px] font-semibold uppercase tracking-[0.22em] text-black/55">
             NEXT STEP
           </div>
 
-          <h2 className="mt-3 max-w-[860px] text-[32px] font-semibold leading-[1.18] tracking-tight text-white md:text-[38px]">
+          <h2 className="mt-3 max-w-[860px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
             Ready to create a verified record?
           </h2>
 
-          <p className="mt-4 max-w-[860px] text-[16px] leading-[1.85] text-white/80">
+          <p className="mt-4 max-w-[860px] text-[15px] leading-7 text-black/75">
             You’ve seen how a GAFAIG record appears in the registry, how it is
             verified through signed proof, how it can be inspected through the
             public API, and how it can appear outside the platform through a
             widget. This is the outcome of the GAFAIG verification process.
           </p>
 
-          <p className="mt-4 max-w-[860px] text-[15px] leading-[1.85] text-white/75">
+          <p className="mt-4 max-w-[860px] text-[15px] leading-7 text-black/75">
             If your organization operates AI systems and needs independently
             verifiable proof that human oversight is functioning, you can begin
             the GAFAIG verification process now.
           </p>
 
           <div className="mt-6 flex flex-wrap gap-3">
-            <PublicButtonLink href="/apply" variant="light">
+            <PublicButtonLink href="/apply" variant="primary">
               Begin GAFAIG verification intake
             </PublicButtonLink>
 
-            <PublicButtonLink href="/framework" variant="outline-light">
+            <PublicButtonLink href="/framework" variant="secondary">
               Review Framework
             </PublicButtonLink>
           </div>
         </section>
 
-        <section className="rounded-3xl border border-black/10 bg-black/[0.03] p-8">
+        <section className="rounded-3xl border border-black/10 bg-white p-8">
           <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
             THE RESULT
           </div>
@@ -232,14 +232,14 @@ export default function DemoPage() {
             From governance claims to public proof
           </h2>
 
-          <p className="mt-5 max-w-[980px] text-[16px] leading-[1.9] text-black/80">
+          <p className="mt-5 max-w-[980px] text-[15px] leading-7 text-black/75">
             This is the core idea behind GAFAIG. Instead of asking the public to
             trust internal claims about oversight, GAFAIG publishes a record that
             can be reviewed, verified, validated, and used across external
             environments.
           </p>
 
-          <p className="mt-4 max-w-[980px] text-[15px] leading-[1.85] text-black/75">
+          <p className="mt-4 max-w-[980px] text-[15px] leading-7 text-black/75">
             The demo is intentionally simple: resolve the registry record, fetch
             the proof, validate the signature, and render the verified trust
             surface. That sequence is the product.
@@ -277,12 +277,14 @@ function StepCard({
   body: string;
 }) {
   return (
-    <div className="rounded-2xl border border-black/10 p-4">
+    <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
       <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/55">
         {number}
       </div>
-      <div className="mt-2 text-[16px] font-semibold text-black">{title}</div>
-      <p className="mt-2 text-[14px] leading-[1.7] text-black/72">{body}</p>
+      <div className="mt-3 text-[18px] font-semibold tracking-tight text-black">
+        {title}
+      </div>
+      <p className="mt-3 text-[14px] leading-7 text-black/70">{body}</p>
     </div>
   );
 }
@@ -310,7 +312,7 @@ function DemoCard({
         {title}
       </h2>
 
-      <p className="mt-4 text-[15px] leading-[1.8] text-black/72">{body}</p>
+      <p className="mt-4 text-[15px] leading-7 text-black/75">{body}</p>
 
       <div className="mt-6">
         <PublicButtonLink href={href} variant="ghost" size="sm">
@@ -325,7 +327,7 @@ function BulletCard({ text }: { text: string }) {
   return (
     <div className="flex gap-3 rounded-2xl border border-black/10 bg-white p-4">
       <span className="mt-[8px] h-1.5 w-1.5 shrink-0 rounded-full bg-black" />
-      <span className="text-[14px] leading-6 text-black/75">{text}</span>
+      <span className="text-[15px] leading-7 text-black/75">{text}</span>
     </div>
   );
 }
@@ -342,7 +344,7 @@ function StatementCard({
       <div className="text-[18px] font-semibold tracking-tight text-black">
         {title}
       </div>
-      <p className="mt-3 text-[15px] leading-[1.8] text-black/72">{body}</p>
+      <p className="mt-3 text-[15px] leading-7 text-black/75">{body}</p>
     </div>
   );
 }
@@ -356,8 +358,10 @@ function FeatureCard({
 }) {
   return (
     <div className="rounded-2xl border border-black/10 bg-white p-5">
-      <div className="text-[20px] font-semibold text-black">{title}</div>
-      <p className="mt-3 text-[14px] leading-[1.8] text-black/72">{body}</p>
+      <div className="text-[18px] font-semibold tracking-tight text-black">
+        {title}
+      </div>
+      <p className="mt-3 text-[15px] leading-7 text-black/75">{body}</p>
     </div>
   );
 }

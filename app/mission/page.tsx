@@ -38,7 +38,7 @@ export default function MissionPage() {
             A shift from claims to proof
           </h2>
 
-          <div className="mt-6 grid gap-6 md:grid-cols-2">
+          <div className="mt-6 grid gap-4 md:grid-cols-2">
             <StatementCard
               title="Before GAFAIG"
               body="Organizations describe governance through internal policies, frameworks, or disclosures. Oversight is asserted, but not independently verified."
@@ -84,12 +84,12 @@ export default function MissionPage() {
           </div>
         </section>
 
-        <section className="rounded-3xl border border-black/10 bg-black/[0.03] p-8">
+        <section className="rounded-3xl border border-black/10 bg-white p-8">
           <h2 className="text-[26px] font-semibold tracking-tight text-black">
             The GAFAIG mission
           </h2>
 
-          <p className="mt-4 text-[16px] leading-8 text-black/80">
+          <p className="mt-4 text-[16px] leading-7 text-black/75">
             Our mission is to make human oversight in AI systems visible,
             measurable, and verifiable.
           </p>
@@ -115,10 +115,10 @@ export default function MissionPage() {
 function Pillar({ title, text }: { title: string; text: string }) {
   return (
     <div className="rounded-3xl border border-black/10 bg-white p-6">
-      <h3 className="text-[22px] font-semibold tracking-tight text-black">
+      <h3 className="text-[18px] font-semibold tracking-tight text-black">
         {title}
       </h3>
-      <p className="mt-3 text-[15px] leading-7 text-black/72">{text}</p>
+      <p className="mt-3 text-[15px] leading-7 text-black/75">{text}</p>
     </div>
   );
 }
@@ -135,7 +135,7 @@ function StatementCard({
       <div className="text-[18px] font-semibold tracking-tight text-black">
         {title}
       </div>
-      <p className="mt-3 text-[15px] leading-[1.8] text-black/72">{body}</p>
+      <p className="mt-3 text-[15px] leading-7 text-black/75">{body}</p>
     </div>
   );
 }
@@ -144,7 +144,7 @@ function BulletCard({ text }: { text: string }) {
   return (
     <div className="flex gap-3 rounded-2xl border border-black/10 bg-white p-4">
       <span className="mt-[8px] h-1.5 w-1.5 shrink-0 rounded-full bg-black" />
-      <span className="text-[14px] leading-6 text-black/75">{text}</span>
+      <span className="text-[15px] leading-7 text-black/75">{text}</span>
     </div>
   );
 }

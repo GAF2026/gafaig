@@ -157,11 +157,11 @@ export default async function HomePage() {
             WHY GAFAIG EXISTS
           </div>
 
-          <h2 className="mt-4 max-w-[860px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
+          <h2 className="mt-4 text-[32px] font-semibold tracking-tight text-black md:text-[38px] max-w-[860px]">
             Human oversight should be visible, reviewable, and provable
           </h2>
 
-          <p className="mt-5 max-w-[980px] text-[16px] leading-[1.9] text-black/75">
+          <p className="mt-5 max-w-[980px] text-[15px] leading-7 text-black/75">
             As AI systems move into real-world use, governance cannot remain a
             policy statement or a private internal claim. Organizations need a
             system that proves human oversight in AI systems is real, functioning,
@@ -185,11 +185,11 @@ export default async function HomePage() {
             SEE HOW IT WORKS
           </div>
 
-          <h2 className="mt-4 max-w-[860px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
+          <h2 className="mt-4 text-[32px] font-semibold tracking-tight text-black md:text-[38px] max-w-[860px]">
             Follow a real GAFAIG record from certification to proof
           </h2>
 
-          <p className="mt-5 max-w-[960px] text-[16px] leading-[1.85] text-black/75">
+          <p className="mt-5 max-w-[960px] text-[15px] leading-7 text-black/75">
             The GAFAIG demo proves the exact steps used to verify human oversight
             in AI systems. Start with a certified record, open the verification
             surface, inspect the signed proof, and see how the trust signal
@@ -212,11 +212,11 @@ export default async function HomePage() {
             PROOF PREVIEW
           </div>
 
-          <h2 className="mt-4 max-w-[860px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
+          <h2 className="mt-4 text-[32px] font-semibold tracking-tight text-black md:text-[38px] max-w-[860px]">
             The four steps that make human oversight in AI systems independently verifiable
           </h2>
 
-          <p className="mt-5 max-w-[980px] text-[16px] leading-[1.85] text-black/75">
+          <p className="mt-5 max-w-[980px] text-[15px] leading-7 text-black/75">
             GAFAIG converts human oversight in AI systems into an independently
             verifiable public trust signal. A certified record is published,
             validated through signed proof, exposed as a machine-readable payload,
@@ -266,17 +266,17 @@ export default async function HomePage() {
                 LIVE TRUST SIGNALS
               </div>
 
-              <h2 className="mt-4 max-w-[860px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
+              <h2 className="mt-4 text-[32px] font-semibold tracking-tight text-black md:text-[38px] max-w-[860px]">
                 Current public GAFAIG footprint
               </h2>
 
-              <p className="mt-4 max-w-[760px] text-[15px] leading-[1.85] text-black/72">
+              <p className="mt-4 max-w-[760px] text-[14px] text-black/70">
                 These counters are derived from GAFAIG&apos;s live public
                 registry and explorer surfaces.
               </p>
             </div>
 
-            <div className="text-[13px] text-black/50">Public metrics</div>
+            <div className="text-[14px] text-black/70">Public metrics</div>
           </div>
 
           <div className="mt-7 grid gap-4 md:grid-cols-3">
@@ -307,7 +307,7 @@ function MetricCard({
   value: string;
 }) {
   return (
-    <div className="rounded-2xl border border-black/10 bg-white p-5">
+    <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
       <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/55">
         {label}
       </div>
@@ -343,9 +343,9 @@ function PillarCard({
         {title}
       </h2>
 
-      <p className="mt-4 text-[15px] leading-[1.8] text-black/72">{body}</p>
+      <p className="mt-4 text-[15px] leading-7 text-black/75">{body}</p>
 
-      <ul className="mt-5 space-y-3 text-[14px] leading-[1.7] text-black/72">
+      <ul className="mt-5 space-y-3 text-[14px] leading-7 text-black/70">
         {points.map((item) => (
           <li key={item} className="flex gap-3">
             <span className="mt-[8px] h-1.5 w-1.5 shrink-0 rounded-full bg-black" />
@@ -375,7 +375,7 @@ function StatementCard({
       <div className="text-[18px] font-semibold tracking-tight text-black">
         {title}
       </div>
-      <p className="mt-3 text-[15px] leading-[1.8] text-black/72">{body}</p>
+      <p className="mt-3 text-[15px] leading-7 text-black/75">{body}</p>
     </div>
   );
 }
@@ -390,12 +390,12 @@ function StepCard({
   body: string;
 }) {
   return (
-    <div className="rounded-2xl border border-black/10 p-4">
+    <div className="rounded-2xl border border-black/10 bg-white p-4">
       <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/55">
         {number}
       </div>
       <div className="mt-2 text-[16px] font-semibold text-black">{title}</div>
-      <p className="mt-2 text-[14px] leading-[1.7] text-black/72">{body}</p>
+      <p className="mt-2 text-[14px] leading-7 text-black/70">{body}</p>
     </div>
   );
 }

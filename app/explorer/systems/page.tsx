@@ -69,11 +69,11 @@ function SystemCard({ row }: { row: ExplorerSystemRow }) {
           </p>
         </div>
 
-        <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5 min-w-[220px]">
+        <div className="min-w-[220px] rounded-2xl border border-black/10 bg-black/[0.02] p-5">
           <p className="text-[12px] font-semibold uppercase tracking-[0.24em] text-black/40">
             Registry ID
           </p>
-          <p className="mt-3 text-[18px] font-medium leading-8 text-black break-all">
+          <p className="mt-3 break-all text-[18px] font-medium leading-8 text-black">
             {formatLabel(row.registryId)}
           </p>
         </div>
@@ -193,32 +193,34 @@ export default async function ExplorerSystemsPage() {
           }
         />
 
-        <section className="grid gap-4 md:grid-cols-3">
-          <div className="rounded-3xl border border-black/10 bg-white p-8">
-            <p className="text-[13px] font-semibold uppercase tracking-[0.28em] text-black/45">
-              Systems
-            </p>
-            <p className="mt-4 text-[54px] font-semibold leading-none tracking-[-0.04em] text-black">
-              {numberFormat(rows.length)}
-            </p>
-          </div>
+        <section className="rounded-3xl border border-black/10 bg-white p-8">
+          <div className="grid gap-4 md:grid-cols-3">
+            <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
+              <p className="text-[12px] font-semibold uppercase tracking-[0.24em] text-black/40">
+                Systems
+              </p>
+              <p className="mt-3 text-[32px] md:text-[38px] font-semibold tracking-tight text-black">
+                {numberFormat(rows.length)}
+              </p>
+            </div>
 
-          <div className="rounded-3xl border border-black/10 bg-white p-8">
-            <p className="text-[13px] font-semibold uppercase tracking-[0.28em] text-black/45">
-              Public Records
-            </p>
-            <p className="mt-4 text-[54px] font-semibold leading-none tracking-[-0.04em] text-black">
-              {numberFormat(stats.publicRecords)}
-            </p>
-          </div>
+            <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
+              <p className="text-[12px] font-semibold uppercase tracking-[0.24em] text-black/40">
+                Public Records
+              </p>
+              <p className="mt-3 text-[32px] md:text-[38px] font-semibold tracking-tight text-black">
+                {numberFormat(stats.publicRecords)}
+              </p>
+            </div>
 
-          <div className="rounded-3xl border border-black/10 bg-white p-8">
-            <p className="text-[13px] font-semibold uppercase tracking-[0.28em] text-black/45">
-              Organizations
-            </p>
-            <p className="mt-4 text-[54px] font-semibold leading-none tracking-[-0.04em] text-black">
-              {numberFormat(stats.organizations)}
-            </p>
+            <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
+              <p className="text-[12px] font-semibold uppercase tracking-[0.24em] text-black/40">
+                Organizations
+              </p>
+              <p className="mt-3 text-[32px] md:text-[38px] font-semibold tracking-tight text-black">
+                {numberFormat(stats.organizations)}
+              </p>
+            </div>
           </div>
         </section>
 

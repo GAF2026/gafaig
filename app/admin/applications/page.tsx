@@ -200,7 +200,7 @@ export default function AdminApplicationsPage() {
     <div>
       <AdminNav />
 
-      <main className="mx-auto max-w-[1240px] px-6 pb-16 pt-14">
+      <main className="mx-auto max-w-[1240px] px-6 py-10">
         <AdminPageHeader
           eyebrow="PRIVATE VERIFICATION WORKFLOW"
           title="Application intake"
@@ -214,7 +214,7 @@ export default function AdminApplicationsPage() {
             <div className="flex flex-wrap gap-3">
               <PublicButtonLink
                 href="/admin/participants"
-                variant="outline-dark"
+                variant="secondary"
                 size="sm"
               >
                 View participants
@@ -240,7 +240,7 @@ export default function AdminApplicationsPage() {
           <MetricCard label="Pending / received" value={String(pendingCount)} />
         </section>
 
-        <section className="mt-10 rounded-3xl border border-black/10 bg-white p-8 md:p-10">
+        <section className="mt-10 rounded-3xl border border-black/10 bg-white p-8">
           <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
             FILTERS
           </div>
@@ -249,7 +249,7 @@ export default function AdminApplicationsPage() {
             Search and refine intake workflow records
           </h2>
 
-          <p className="mt-5 max-w-[920px] text-[15px] leading-[1.85] text-black/70">
+          <p className="mt-5 max-w-[920px] text-[15px] leading-7 text-black/70">
             Search by organization, request ID, or email, and filter by workflow
             status to review private intake records more efficiently.
           </p>
@@ -339,7 +339,7 @@ export default function AdminApplicationsPage() {
           </div>
         </section>
 
-        <section className="mt-10 rounded-3xl border border-black/10 bg-white p-8 md:p-10">
+        <section className="mt-10 rounded-3xl border border-black/10 bg-white p-8">
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div>
               <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
@@ -348,7 +348,7 @@ export default function AdminApplicationsPage() {
               <h2 className="mt-4 max-w-[760px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
                 Snowflake-backed intake workflow
               </h2>
-              <p className="mt-4 max-w-[880px] text-[14px] leading-[1.8] text-black/72">
+              <p className="mt-4 max-w-[880px] text-[14px] leading-7 text-black/72">
                 Each row represents an intake record inside the private
                 verification layer. Opening a request leads deeper into the
                 controlled reviewer workflow.
@@ -496,7 +496,7 @@ function MetricCard({
   value: string;
 }) {
   return (
-    <div className="rounded-2xl border border-black/10 bg-white p-5">
+    <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
       <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/55">
         {label}
       </div>
@@ -515,11 +515,11 @@ function NoteCard({
   body: string;
 }) {
   return (
-    <div className="rounded-2xl border border-black/10 bg-white p-5">
+    <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
       <div className="text-[18px] font-semibold tracking-tight text-black">
         {title}
       </div>
-      <p className="mt-3 text-[14px] leading-[1.8] text-black/70">{body}</p>
+      <p className="mt-3 text-[14px] leading-7 text-black/70">{body}</p>
     </div>
   );
 }

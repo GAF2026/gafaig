@@ -217,7 +217,7 @@ function ProofCard({
       <div className="text-[18px] font-semibold tracking-tight text-black">
         {title}
       </div>
-      <p className="mt-3 text-[15px] leading-[1.8] text-black/72">{body}</p>
+      <p className="mt-3 text-[15px] leading-7 text-black/75">{body}</p>
     </div>
   );
 }
@@ -232,14 +232,14 @@ function ProofMetricCard({
   body: string;
 }) {
   return (
-    <div className="rounded-2xl border border-black/10 bg-[#fcfcfb] p-5">
+    <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
       <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-black/45">
         {label}
       </div>
       <div className="mt-3 text-[18px] font-semibold tracking-tight text-black">
         {value}
       </div>
-      <p className="mt-2 text-[14px] leading-7 text-black/68">{body}</p>
+      <p className="mt-2 text-[14px] leading-7 text-black/70">{body}</p>
     </div>
   );
 }
@@ -252,7 +252,7 @@ function DetailCard({
   value: string;
 }) {
   return (
-    <div className="rounded-3xl border border-black/10 bg-[#fcfcfb] p-5">
+    <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
       <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-black/45">
         {label}
       </div>
@@ -447,22 +447,22 @@ export default function VerifyPage() {
             <>
               <PublicButtonLink
                 href={`/registry/${EXAMPLE_ID}`}
-                variant="outline-dark"
+                variant="secondary"
               >
                 View example record
               </PublicButtonLink>
-              <PublicButtonLink href="/registry" variant="outline-dark">
+              <PublicButtonLink href="/registry" variant="secondary">
                 Open registry
               </PublicButtonLink>
-              <PublicButtonLink href="/developers" variant="outline-dark">
+              <PublicButtonLink href="/developers" variant="secondary">
                 Developer docs
               </PublicButtonLink>
             </>
           }
         />
 
-        <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
-          <div className="max-w-3xl text-[15px] leading-7 text-black/65">
+        <section className="rounded-3xl border border-black/10 bg-white p-8">
+          <div className="max-w-3xl text-[15px] leading-7 text-black/75">
             This is the independent proof layer behind the certification record.
           </div>
 
@@ -474,7 +474,7 @@ export default function VerifyPage() {
             Independent verification of the public trust record
           </h2>
 
-          <p className="mt-5 max-w-[980px] text-[16px] leading-[1.85] text-black/75">
+          <p className="mt-5 max-w-[980px] text-[15px] leading-7 text-black/75">
             This page proves that the public trust record is valid, that the
             disclosed signed proof is consistent with the registry, and that the
             result can be independently verified outside GAFAIG.
@@ -500,15 +500,15 @@ export default function VerifyPage() {
           </div>
         </section>
 
-        <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
-          <div className="max-w-[980px] space-y-3 text-[15px] leading-[1.8] text-black/65">
+        <section className="rounded-3xl border border-black/10 bg-white p-8">
+          <div className="max-w-[980px] space-y-3 text-[15px] leading-7 text-black/75">
             <p>
               GAFAIG verification distinguishes between evaluated records and
               publicly trusted records.
             </p>
 
-            <div className="rounded-2xl border border-black/10 bg-black/[0.03] p-5">
-              <div className="grid gap-3 text-[15px] leading-[1.8] text-black/72">
+            <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
+              <div className="grid gap-3 text-[15px] leading-7 text-black/75">
                 <div>
                   <span className="font-semibold text-black">Approved</span>{" "}
                   means the record has completed the GAFAIG verification process
@@ -524,23 +524,23 @@ export default function VerifyPage() {
               </div>
             </div>
 
-            <p className="text-black/60">
+            <p className="text-black/70">
               Verification confirms record integrity and signed proof validity.
               Trust state determines whether the record is publicly certified.
             </p>
           </div>
         </section>
 
-        <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
+        <section className="rounded-3xl border border-black/10 bg-white p-8">
           <div className="text-[12px] font-semibold uppercase tracking-[0.22em] text-black/55">
             Live verification
           </div>
 
-          <h2 className="mt-3 text-[34px] font-semibold leading-[1.1] tracking-[-0.02em] text-black">
+          <h2 className="mt-3 text-[32px] md:text-[38px] font-semibold tracking-tight text-black">
             Verify by registry ID
           </h2>
 
-          <p className="mt-3 max-w-3xl text-[16px] leading-8 text-black/70">
+          <p className="mt-3 max-w-3xl text-[15px] leading-7 text-black/75">
             Enter a GAFAIG registry ID to retrieve the public trust record and
             signed proof payload.
           </p>
@@ -590,16 +590,16 @@ export default function VerifyPage() {
           ) : null}
         </section>
 
-        <section className="rounded-3xl bg-black p-8 text-white md:p-10">
+        <section className="rounded-3xl border border-black/10 bg-black p-8 text-white">
           <div className="text-[12px] font-semibold uppercase tracking-[0.22em] text-white/55">
             How verification works
           </div>
 
-          <h2 className="mt-3 text-[34px] font-semibold leading-[1.1] tracking-[-0.02em] text-white">
+          <h2 className="mt-3 text-[32px] md:text-[38px] font-semibold tracking-tight text-white">
             Public trust without private evidence disclosure
           </h2>
 
-          <p className="mt-4 max-w-3xl text-[16px] leading-8 text-white/72">
+          <p className="mt-4 max-w-3xl text-[15px] leading-7 text-white/72">
             GAFAIG verification confirms that a public trust record exists, that
             it is currently surfaced through the canonical registry views, and
             that its signed proof is valid for independent verification. The
@@ -612,7 +612,7 @@ export default function VerifyPage() {
               <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/45">
                 Step 1
               </div>
-              <div className="mt-3 text-[20px] font-semibold">
+              <div className="mt-3 text-[20px] font-semibold text-white">
                 Resolve public trust record
               </div>
               <p className="mt-3 text-[14px] leading-7 text-white/68">
@@ -625,7 +625,7 @@ export default function VerifyPage() {
               <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/45">
                 Step 2
               </div>
-              <div className="mt-3 text-[20px] font-semibold">
+              <div className="mt-3 text-[20px] font-semibold text-white">
                 Construct signed proof
               </div>
               <p className="mt-3 text-[14px] leading-7 text-white/68">
@@ -638,7 +638,7 @@ export default function VerifyPage() {
               <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/45">
                 Step 3
               </div>
-              <div className="mt-3 text-[20px] font-semibold">
+              <div className="mt-3 text-[20px] font-semibold text-white">
                 Verify signature externally
               </div>
               <p className="mt-3 text-[14px] leading-7 text-white/68">
@@ -651,18 +651,18 @@ export default function VerifyPage() {
 
         {state.status === "success" && result && proof && record && proofState ? (
           <>
-            <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
+            <section className="rounded-3xl border border-black/10 bg-white p-8">
               <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
                 <div className="max-w-3xl">
                   <div className="text-[12px] font-semibold uppercase tracking-[0.22em] text-black/55">
                     Proof integrity
                   </div>
 
-                  <h2 className="mt-3 text-[34px] font-semibold leading-[1.1] tracking-[-0.02em] text-black">
+                  <h2 className="mt-3 text-[32px] md:text-[38px] font-semibold tracking-tight text-black">
                     Cryptographic trust dashboard
                   </h2>
 
-                  <p className="mt-4 text-[16px] leading-8 text-black/70">
+                  <p className="mt-4 text-[15px] leading-7 text-black/75">
                     This panel combines the server-side GAFAIG verification
                     response with independent client-side Ed25519 signature
                     validation. It is the clearest public proof surface for the
@@ -728,12 +728,12 @@ export default function VerifyPage() {
               </div>
             </section>
 
-            <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
+            <section className="rounded-3xl border border-black/10 bg-white p-8">
               <div className="text-[12px] font-semibold uppercase tracking-[0.22em] text-black/55">
                 Verification summary
               </div>
 
-              <h2 className="mt-3 text-[34px] font-semibold leading-[1.1] tracking-[-0.02em] text-black">
+              <h2 className="mt-3 text-[32px] md:text-[38px] font-semibold tracking-tight text-black">
                 Human-readable proof status
               </h2>
 
@@ -770,16 +770,16 @@ export default function VerifyPage() {
               </div>
             </section>
 
-            <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
+            <section className="rounded-3xl border border-black/10 bg-white p-8">
               <div className="text-[12px] font-semibold uppercase tracking-[0.22em] text-black/55">
                 Proof materials
               </div>
 
-              <h2 className="mt-3 text-[34px] font-semibold leading-[1.1] tracking-[-0.02em] text-black">
+              <h2 className="mt-3 text-[32px] md:text-[38px] font-semibold tracking-tight text-black">
                 The exact signed proof being verified
               </h2>
 
-              <p className="mt-4 max-w-3xl text-[16px] leading-8 text-black/70">
+              <p className="mt-4 max-w-3xl text-[15px] leading-7 text-black/75">
                 These are the exact public materials used to validate the trust
                 result. External parties can inspect them directly, validate the
                 message string, and confirm that the signature matches the
@@ -808,36 +808,36 @@ export default function VerifyPage() {
                 />
               </div>
 
-              <div className="mt-4 rounded-3xl border border-black/10 bg-[#fcfcfb] p-5">
+              <div className="mt-4 rounded-2xl border border-black/10 bg-black/[0.02] p-5">
                 <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-black/45">
                   Full signed message string
                 </div>
-                <pre className="mt-3 overflow-x-auto rounded-2xl border border-black/8 bg-white p-4 text-[12px] leading-6 text-black/75">
+                <pre className="mt-3 overflow-x-auto rounded-2xl border border-black/10 bg-white p-4 text-[12px] leading-6 text-black/75">
                   {proof.messageString ?? "—"}
                 </pre>
               </div>
 
-              <div className="mt-4 rounded-3xl border border-black/10 bg-[#fcfcfb] p-5">
+              <div className="mt-4 rounded-2xl border border-black/10 bg-black/[0.02] p-5">
                 <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-black/45">
                   Full signed message object
                 </div>
-                <pre className="mt-3 overflow-x-auto rounded-2xl border border-black/8 bg-white p-4 text-[12px] leading-6 text-black/75">
+                <pre className="mt-3 overflow-x-auto rounded-2xl border border-black/10 bg-white p-4 text-[12px] leading-6 text-black/75">
                   {prettyJson(proof.message)}
                 </pre>
               </div>
             </section>
 
-            <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
+            <section className="rounded-3xl border border-black/10 bg-white p-8">
               <div className="text-[12px] font-semibold uppercase tracking-[0.22em] text-black/55">
                 External validation
               </div>
 
-              <h2 className="mt-3 text-[34px] font-semibold leading-[1.1] tracking-[-0.02em] text-black">
+              <h2 className="mt-3 text-[32px] md:text-[38px] font-semibold tracking-tight text-black">
                 Independent verification flow
               </h2>
 
               <div className="mt-6 grid gap-4 md:grid-cols-2">
-                <div className="rounded-3xl border border-black/10 bg-[#fcfcfb] p-6">
+                <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
                   <div className="text-[18px] font-semibold text-black">
                     What was checked
                   </div>
@@ -849,7 +849,7 @@ export default function VerifyPage() {
                   </ul>
                 </div>
 
-                <div className="rounded-3xl border border-black/10 bg-[#fcfcfb] p-6">
+                <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
                   <div className="text-[18px] font-semibold text-black">
                     Technical details
                   </div>
@@ -873,7 +873,7 @@ export default function VerifyPage() {
               <div className="mt-8 flex flex-wrap gap-3">
                 <PublicButtonLink
                   href={verifyEndpointUrl}
-                  variant="outline-dark"
+                  variant="secondary"
                 >
                   Open verify endpoint
                 </PublicButtonLink>
@@ -881,7 +881,7 @@ export default function VerifyPage() {
                 {proof.verificationKeyUrl ? (
                   <PublicButtonLink
                     href={proof.verificationKeyUrl}
-                    variant="outline-dark"
+                    variant="secondary"
                   >
                     Open public key
                   </PublicButtonLink>
@@ -890,7 +890,7 @@ export default function VerifyPage() {
                 {record.registryId ? (
                   <PublicButtonLink
                     href={`/registry/${encodeURIComponent(record.registryId)}`}
-                    variant="outline-dark"
+                    variant="secondary"
                   >
                     Open registry record
                   </PublicButtonLink>

@@ -85,7 +85,7 @@ function CopySnippetButton({
 
 function MetricCard({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-2xl border border-black/10 bg-white p-5">
+    <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
       <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/55">
         {label}
       </div>
@@ -123,12 +123,12 @@ function StepCard({
   body: string;
 }) {
   return (
-    <div className="rounded-2xl border border-black/10 p-4">
+    <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
       <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/55">
         {number}
       </div>
-      <div className="mt-2 text-[16px] font-semibold text-black">{title}</div>
-      <p className="mt-2 text-[14px] leading-[1.7] text-black/72">{body}</p>
+      <div className="mt-3 text-[16px] font-semibold text-black">{title}</div>
+      <p className="mt-3 text-[14px] leading-[1.7] text-black/72">{body}</p>
     </div>
   );
 }

@@ -5,6 +5,8 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import AdminNav from "../../_components/AdminNav";
 import AdminPageHeader from "../../_components/AdminPageHeader";
+import PublicButton from "../../../_components/PublicButton";
+import PublicButtonLink from "../../../_components/PublicButtonLink";
 
 type DecisionRow = {
   decisionId?: string | null;
@@ -99,6 +101,28 @@ function pillClass(value?: string | null) {
   return "bg-gray-50 text-gray-800 border-gray-200";
 }
 
+function MetricCard({
+  label,
+  value,
+  body,
+}: {
+  label: string;
+  value: string;
+  body: string;
+}) {
+  return (
+    <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
+      <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/55">
+        {label}
+      </div>
+      <div className="mt-3 text-[32px] font-semibold leading-none tracking-tight text-black">
+        {value}
+      </div>
+      <div className="mt-3 text-[14px] leading-7 text-black/65">{body}</div>
+    </div>
+  );
+}
+
 export default function CaseOverviewPage() {
   const params = useParams();
   const caseIdParam = params?.caseId;
@@ -186,39 +210,41 @@ export default function CaseOverviewPage() {
     <div>
       <AdminNav />
 
-      <main className="mx-auto max-w-[1100px] px-6 pb-16 pt-14">
+      <main className="mx-auto max-w-[1100px] px-6 py-10">
         <AdminPageHeader
           title={`Case ${caseId}`}
           description="Case overview for the private verification workflow. Use this page to move into evidence, findings, scoring, decision, and publish actions."
           meta={loading ? "Loading…" : `Status: ${statusLabel}`}
           actions={
             <div className="flex flex-wrap gap-3">
-              <button
+              <PublicButton
                 onClick={load}
-                className="inline-flex items-center justify-center rounded-xl border border-black/15 px-4 py-2 text-[14px] font-semibold hover:bg-black/[0.04]"
+                variant="secondary"
+                size="sm"
               >
                 {loading ? "Loading…" : "Refresh"}
-              </button>
+              </PublicButton>
 
-              <Link
+              <PublicButtonLink
                 href="/admin/verification"
-                className="inline-flex items-center justify-center rounded-xl border border-black/15 px-4 py-2 text-[14px] font-semibold hover:bg-black/[0.04]"
+                variant="secondary"
+                size="sm"
               >
                 Back to verification
-              </Link>
+              </PublicButtonLink>
             </div>
           }
         />
 
         <section className="mb-8 flex flex-wrap items-center gap-3 text-[14px] text-black/60">
-          <Link href="/admin/verification" className="underline">
+          <PublicButtonLink href="/admin/verification" variant="ghost" size="sm">
             Verification
-          </Link>
+          </PublicButtonLink>
           <span>•</span>
           <span className="text-black/80">{caseId}</span>
         </section>
 
-        <section className="mb-8 rounded-2xl border border-black/10 p-5">
+        <section className="mb-8 rounded-3xl border border-black/10 bg-white p-8">
           <div className="flex flex-wrap items-center gap-3">
             <span
               className={cx(
@@ -293,7 +319,7 @@ export default function CaseOverviewPage() {
         <section className="grid gap-4 md:grid-cols-5">
           <Link
             href={`/admin/verification/${encodeURIComponent(caseId)}/evidence`}
-            className="rounded-2xl border border-black/10 p-5 hover:bg-black/[0.02]"
+            className="rounded-2xl border border-black/10 bg-white p-5 hover:bg-black/[0.02]"
           >
             <div className="text-[12px] font-semibold uppercase tracking-[0.12em] text-black/55">
               Evidence
@@ -301,14 +327,14 @@ export default function CaseOverviewPage() {
             <div className="mt-3 text-[44px] font-semibold leading-none text-black">
               {loading ? "—" : evidenceCount}
             </div>
-            <div className="mt-3 text-[14px] leading-[1.7] text-black/65">
+            <div className="mt-3 text-[14px] leading-7 text-black/65">
               Add evidence, manage artifacts, and connect support to the case record.
             </div>
           </Link>
 
           <Link
             href={`/admin/verification/${encodeURIComponent(caseId)}/findings`}
-            className="rounded-2xl border border-black/10 p-5 hover:bg-black/[0.02]"
+            className="rounded-2xl border border-black/10 bg-white p-5 hover:bg-black/[0.02]"
           >
             <div className="text-[12px] font-semibold uppercase tracking-[0.12em] text-black/55">
               Findings
@@ -316,14 +342,14 @@ export default function CaseOverviewPage() {
             <div className="mt-3 text-[44px] font-semibold leading-none text-black">
               {loading ? "—" : findingsCount}
             </div>
-            <div className="mt-3 text-[14px] leading-[1.7] text-black/65">
+            <div className="mt-3 text-[14px] leading-7 text-black/65">
               Review controls, document evaluations, and capture governance conclusions.
             </div>
           </Link>
 
           <Link
             href={`/admin/verification/${encodeURIComponent(caseId)}/score`}
-            className="rounded-2xl border border-black/10 p-5 hover:bg-black/[0.02]"
+            className="rounded-2xl border border-black/10 bg-white p-5 hover:bg-black/[0.02]"
           >
             <div className="text-[12px] font-semibold uppercase tracking-[0.12em] text-black/55">
               Score
@@ -331,14 +357,14 @@ export default function CaseOverviewPage() {
             <div className="mt-3 text-[32px] font-semibold leading-none text-black">
               {score && score.ok ? score.score : "—"}
             </div>
-            <div className="mt-3 text-[14px] leading-[1.7] text-black/65">
+            <div className="mt-3 text-[14px] leading-7 text-black/65">
               Review canonical enterprise scoring, subscores, and governance output.
             </div>
           </Link>
 
           <Link
             href={`/admin/verification/${encodeURIComponent(caseId)}/decisions`}
-            className="rounded-2xl border border-black/10 p-5 hover:bg-black/[0.02]"
+            className="rounded-2xl border border-black/10 bg-white p-5 hover:bg-black/[0.02]"
           >
             <div className="text-[12px] font-semibold uppercase tracking-[0.12em] text-black/55">
               Decision
@@ -346,14 +372,14 @@ export default function CaseOverviewPage() {
             <div className="mt-3 text-[32px] font-semibold leading-none text-black">
               {decision?.decision ? prettify(decision.decision) : "—"}
             </div>
-            <div className="mt-3 text-[14px] leading-[1.7] text-black/65">
+            <div className="mt-3 text-[14px] leading-7 text-black/65">
               Approve, reject, suspend, or continue review with a recorded decision trail.
             </div>
           </Link>
 
           <Link
             href={`/admin/verification/${encodeURIComponent(caseId)}/publish`}
-            className="rounded-2xl border border-black/10 p-5 hover:bg-black/[0.02]"
+            className="rounded-2xl border border-black/10 bg-white p-5 hover:bg-black/[0.02]"
           >
             <div className="text-[12px] font-semibold uppercase tracking-[0.12em] text-black/55">
               Publish
@@ -361,16 +387,18 @@ export default function CaseOverviewPage() {
             <div className="mt-3 text-[32px] font-semibold leading-none text-black">
               {score && score.ok ? score.band : "—"}
             </div>
-            <div className="mt-3 text-[14px] leading-[1.7] text-black/65">
+            <div className="mt-3 text-[14px] leading-7 text-black/65">
               Publish the approved case to the public registry and AI systems surfaces.
             </div>
           </Link>
         </section>
 
-        <section className="mt-10 rounded-2xl border border-black/10 p-5">
-          <h2 className="text-[16px] font-semibold text-black">What to do next</h2>
+        <section className="mt-10 rounded-3xl border border-black/10 bg-white p-8">
+          <h2 className="text-[26px] font-semibold tracking-tight text-black">
+            What to do next
+          </h2>
 
-          <ul className="mt-4 list-disc space-y-2 pl-5 text-[14px] leading-[1.7] text-black/70">
+          <ul className="mt-4 list-disc space-y-2 pl-5 text-[14px] leading-7 text-black/70">
             <li>
               Open <span className="font-semibold text-black">Evidence</span> to add documents, URLs, and supporting artifacts.
             </li>

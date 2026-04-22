@@ -1,5 +1,6 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
+import PublicButtonLink from "@/app/_components/PublicButtonLink";
+import PublicPageHero from "@/app/_components/PublicPageHero";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -44,22 +45,24 @@ function pillTone(value: string) {
 
 function InfoCard({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-2xl border border-black/10 bg-neutral-50 p-4">
-      <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-black/50">
+    <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
+      <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-black/45">
         {label}
       </div>
-      <div className="mt-2 text-[15px] font-semibold text-black">
-        {value}
-      </div>
+      <div className="mt-3 text-[15px] font-semibold text-black">{value}</div>
     </div>
   );
 }
 
 async function getSystem(systemId: string): Promise<System | null> {
-  const res = await fetch(
-    `${process.env.NEXT_PUBLIC_BASE_URL}/api/systems/${systemId}`,
-    { cache: "no-store" }
-  );
+  const baseUrl =
+    process.env.NEXT_PUBLIC_BASE_URL ||
+    process.env.NEXT_PUBLIC_SITE_URL ||
+    "http://localhost:3000";
+
+  const res = await fetch(`${baseUrl}/api/systems/${systemId}`, {
+    cache: "no-store",
+  });
 
   if (!res.ok) return null;
   return res.json();
@@ -75,13 +78,16 @@ export default async function SystemDetailPage({
   if (!system) return notFound();
 
   return (
-    <main className="mx-auto max-w-[1180px] px-6 pb-16 pt-14">
+    <main className="mx-auto max-w-[1180px] px-6 py-10">
       <div className="space-y-8">
+        <PublicPageHero
+          eyebrow="AI System"
+          title="Public AI system detail"
+          description="This page surfaces the public detail view for an AI system associated with a GAFAIG-certified registry record."
+        />
 
-        {/* HERO */}
         <section className="rounded-3xl border border-black/10 bg-white p-8">
-
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <span className="inline-flex rounded-full bg-emerald-50 px-3 py-1 text-[11px] font-semibold text-emerald-700 ring-1 ring-emerald-200">
               Certified
             </span>
@@ -95,50 +101,57 @@ export default async function SystemDetailPage({
             </span>
           </div>
 
-          <h1 className="mt-4 text-[42px] font-semibold tracking-tight text-black">
+          <h1 className="mt-4 text-[32px] font-semibold tracking-tight text-black md:text-[38px]">
             {safe(system.SYSTEM_NAME)}
           </h1>
 
           <div className="mt-6 grid gap-4 md:grid-cols-4">
-            <InfoCard label="Organization" value={safe(system.DEVELOPER_ORGANIZATION)} />
+            <InfoCard
+              label="Organization"
+              value={safe(system.DEVELOPER_ORGANIZATION)}
+            />
             <InfoCard label="System Type" value={safe(system.SYSTEM_TYPE)} />
-            <InfoCard label="Deployment" value={safe(system.DEPLOYMENT_STATUS)} />
+            <InfoCard
+              label="Deployment"
+              value={safe(system.DEPLOYMENT_STATUS)}
+            />
             <InfoCard label="Country" value={safe(system.COUNTRY)} />
           </div>
 
-          <div className="mt-6 flex gap-3">
-            <Link
+          <div className="mt-6 flex flex-wrap gap-3">
+            <PublicButtonLink
               href={`/registry/${system.REGISTRY_ID}`}
-              className="inline-flex rounded-full border border-black/20 px-5 py-2 text-sm font-semibold"
+              variant="primary"
             >
               View Certified Record
-            </Link>
+            </PublicButtonLink>
 
-            <Link
-              href="/explorer/systems"
-              className="inline-flex rounded-full border border-black/20 px-5 py-2 text-sm font-semibold"
-            >
+            <PublicButtonLink href="/explorer/systems" variant="secondary">
               Back to systems
-            </Link>
+            </PublicButtonLink>
           </div>
         </section>
 
-        {/* DETAILS */}
         <section className="rounded-3xl border border-black/10 bg-white p-8">
-          <h2 className="text-[22px] font-semibold">
+          <h2 className="text-[26px] font-semibold tracking-tight text-black">
             System details
           </h2>
 
-          <div className="mt-5 grid gap-4 md:grid-cols-3">
+          <div className="mt-6 grid gap-4 md:grid-cols-3">
             <InfoCard label="Intended Use" value={safe(system.INTENDED_USE)} />
-            <InfoCard label="Oversight Level" value={safe(system.OVERSIGHT_LEVEL)} />
-            <InfoCard label="Lifecycle" value={safe(system.LIFECYCLE_STATUS)} />
+            <InfoCard
+              label="Oversight Level"
+              value={safe(system.OVERSIGHT_LEVEL)}
+            />
+            <InfoCard
+              label="Lifecycle"
+              value={safe(system.LIFECYCLE_STATUS)}
+            />
             <InfoCard label="Certified" value={formatDate(system.CERTIFIED_AT)} />
             <InfoCard label="Tier" value={safe(system.CERTIFIED_TIER)} />
             <InfoCard label="Band" value={safe(system.CERTIFIED_BAND)} />
           </div>
         </section>
-
       </div>
     </main>
   );

@@ -1,7 +1,6 @@
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createPublicKey, verify as cryptoVerify } from "crypto";
 import PublicButtonLink from "@/app/_components/PublicButtonLink";
@@ -99,11 +98,11 @@ function validationTone(status: SignatureValidationResult["status"]) {
 
 function InfoCard({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-2xl border border-black/10 bg-neutral-50 p-4">
-      <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-black/50">
+    <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
+      <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-black/45">
         {label}
       </div>
-      <div className="mt-2 break-words text-[15px] font-semibold text-black">
+      <div className="mt-3 break-words text-[15px] font-semibold text-black">
         {value}
       </div>
     </div>
@@ -138,12 +137,14 @@ function StepCard({
   body: string;
 }) {
   return (
-    <div className="rounded-2xl border border-black/10 p-4">
+    <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
       <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/55">
         {number}
       </div>
-      <div className="mt-2 text-[16px] font-semibold text-black">{title}</div>
-      <p className="mt-2 text-[14px] leading-[1.7] text-black/72">{body}</p>
+      <div className="mt-3 text-[18px] font-semibold tracking-tight text-black">
+        {title}
+      </div>
+      <p className="mt-3 text-[14px] leading-7 text-black/70">{body}</p>
     </div>
   );
 }
@@ -160,7 +161,7 @@ function StatementCard({
       <div className="text-[18px] font-semibold tracking-tight text-black">
         {title}
       </div>
-      <p className="mt-3 text-[15px] leading-[1.8] text-black/72">{body}</p>
+      <p className="mt-3 text-[15px] leading-7 text-black/75">{body}</p>
     </div>
   );
 }
@@ -177,9 +178,9 @@ function FeatureCard({
   cta: string;
 }) {
   return (
-    <div className="rounded-2xl border border-black/10 bg-white p-5">
-      <div className="text-[20px] font-semibold text-black">{title}</div>
-      <p className="mt-3 text-[14px] leading-[1.8] text-black/72">{body}</p>
+    <div className="rounded-2xl border border-black/10 bg-white p-4">
+      <div className="text-[18px] font-semibold tracking-tight text-black">{title}</div>
+      <p className="mt-3 text-[15px] leading-7 text-black/75">{body}</p>
       <div className="mt-5">
         <PublicButtonLink href={href} variant="ghost" size="sm">
           {cta} →
@@ -376,7 +377,7 @@ export default async function VerifyPage({
             {entityName}
           </h1>
 
-          <div className="mt-4 max-w-4xl text-base leading-7 text-black/70">
+          <div className="mt-4 max-w-4xl text-[15px] leading-7 text-black/75">
             This page is the public proof surface for a GAFAIG record. It shows
             the certification window, the signature validation result, and the
             trust details needed to independently review the record outside the
@@ -425,16 +426,16 @@ export default async function VerifyPage({
             <div className="text-xs font-semibold uppercase tracking-[0.24em] text-black/40">
               Signature validation
             </div>
-            <h2 className="text-3xl font-semibold tracking-tight text-black">
+            <h2 className="text-[32px] md:text-[38px] font-semibold tracking-tight text-black">
               Cryptographic validation status
             </h2>
-            <p className="max-w-3xl text-base leading-7 text-black/70">
+            <p className="max-w-3xl text-[15px] leading-7 text-black/75">
               GAFAIG validates the returned signed payload against the published
               verification key for this record.
             </p>
           </div>
 
-          <div className="mt-6 rounded-2xl border border-black/10 bg-neutral-50 p-5">
+          <div className="mt-6 rounded-2xl border border-black/10 bg-black/[0.02] p-5">
             <div className="flex flex-wrap items-center gap-3">
               <span
                 className={`inline-flex rounded-full px-3 py-1 text-[11px] font-semibold ring-1 ${validationTone(
@@ -473,7 +474,7 @@ export default async function VerifyPage({
             How this proof connects to the wider GAFAIG trust surface
           </h2>
 
-          <p className="mt-5 max-w-[980px] text-[16px] leading-[1.85] text-black/75">
+          <p className="mt-5 max-w-[980px] text-[15px] leading-7 text-black/75">
             This page is one part of the full GAFAIG proof sequence. A record
             appears in the public registry, is verified through signed proof,
             exposes its machine-readable payload, and can then travel outside
@@ -501,34 +502,6 @@ export default async function VerifyPage({
               title="External Widget"
               body="The same trust signal can appear outside GAFAIG."
             />
-          </div>
-        </section>
-
-        <section className="rounded-3xl border border-black/10 bg-white p-8">
-          <div className="space-y-4">
-            <div className="text-xs font-semibold uppercase tracking-[0.24em] text-black/40">
-              Trust verification
-            </div>
-            <h2 className="text-3xl font-semibold tracking-tight text-black">
-              Verification details
-            </h2>
-            <p className="max-w-3xl text-base leading-7 text-black/70">
-              These fields identify the public record, signing time, key
-              reference, algorithm, and signature surface used to verify the
-              trust payload.
-            </p>
-          </div>
-
-          <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-            <InfoCard label="Registry ID" value={registryId} />
-            <InfoCard label="Signed At" value={signedAt} />
-            <InfoCard label="Verification Key" value={verificationKeyUrl} />
-            <InfoCard label="Signature" value={signature} />
-          </div>
-
-          <div className="mt-4 grid gap-4 md:grid-cols-2">
-            <InfoCard label="Algorithm" value={algorithm} />
-            <InfoCard label="Key ID" value={keyId} />
           </div>
         </section>
 
@@ -583,18 +556,46 @@ export default async function VerifyPage({
         <section className="rounded-3xl border border-black/10 bg-white p-8">
           <div className="space-y-4">
             <div className="text-xs font-semibold uppercase tracking-[0.24em] text-black/40">
+              Trust verification
+            </div>
+            <h2 className="text-[32px] md:text-[38px] font-semibold tracking-tight text-black">
+              Verification details
+            </h2>
+            <p className="max-w-3xl text-[15px] leading-7 text-black/75">
+              These fields identify the public record, signing time, key
+              reference, algorithm, and signature surface used to verify the
+              trust payload.
+            </p>
+          </div>
+
+          <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            <InfoCard label="Registry ID" value={registryId} />
+            <InfoCard label="Signed At" value={signedAt} />
+            <InfoCard label="Verification Key" value={verificationKeyUrl} />
+            <InfoCard label="Signature" value={signature} />
+          </div>
+
+          <div className="mt-4 grid gap-4 md:grid-cols-2">
+            <InfoCard label="Algorithm" value={algorithm} />
+            <InfoCard label="Key ID" value={keyId} />
+          </div>
+        </section>
+
+        <section className="rounded-3xl border border-black/10 bg-white p-8">
+          <div className="space-y-4">
+            <div className="text-xs font-semibold uppercase tracking-[0.24em] text-black/40">
               Signed payload
             </div>
-            <h2 className="text-3xl font-semibold tracking-tight text-black">
+            <h2 className="text-[32px] md:text-[38px] font-semibold tracking-tight text-black">
               Public signed message
             </h2>
-            <p className="max-w-3xl text-base leading-7 text-black/70">
+            <p className="max-w-3xl text-[15px] leading-7 text-black/75">
               This is the public payload returned by the verification surface.
               It is intended for trust inspection and signature validation.
             </p>
           </div>
 
-          <div className="mt-6 rounded-2xl border border-black/10 bg-neutral-50 p-4 text-sm text-black/75">
+          <div className="mt-6 rounded-2xl border border-black/10 bg-black/[0.02] p-5 text-sm text-black/75">
             <pre className="overflow-x-auto whitespace-pre-wrap break-words">
               {signedPayload}
             </pre>

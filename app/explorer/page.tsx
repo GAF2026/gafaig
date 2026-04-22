@@ -74,7 +74,7 @@ export default async function ExplorerPage() {
 
           <div className="mt-8 grid gap-4 md:grid-cols-2">
             <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
-              <h3 className="text-[26px] font-semibold tracking-tight text-black">
+              <h3 className="text-[18px] font-semibold tracking-tight text-black">
                 Certified
               </h3>
               <p className="mt-3 text-[15px] leading-7 text-black/75">
@@ -85,7 +85,7 @@ export default async function ExplorerPage() {
             </div>
 
             <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
-              <h3 className="text-[26px] font-semibold tracking-tight text-black">
+              <h3 className="text-[18px] font-semibold tracking-tight text-black">
                 Explorer visibility
               </h3>
               <p className="mt-3 text-[15px] leading-7 text-black/75">
@@ -97,7 +97,7 @@ export default async function ExplorerPage() {
         </section>
 
         <section className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
-          <div className="rounded-3xl border border-black/10 bg-white p-8">
+          <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
             <div className="text-xs font-semibold uppercase tracking-[0.24em] text-black/40">
               Public Records
             </div>
@@ -106,7 +106,7 @@ export default async function ExplorerPage() {
             </div>
           </div>
 
-          <div className="rounded-3xl border border-black/10 bg-white p-8">
+          <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
             <div className="text-xs font-semibold uppercase tracking-[0.24em] text-black/40">
               Certified
             </div>
@@ -115,7 +115,7 @@ export default async function ExplorerPage() {
             </div>
           </div>
 
-          <div className="rounded-3xl border border-black/10 bg-white p-8">
+          <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
             <div className="text-xs font-semibold uppercase tracking-[0.24em] text-black/40">
               Organizations
             </div>
@@ -124,7 +124,7 @@ export default async function ExplorerPage() {
             </div>
           </div>
 
-          <div className="rounded-3xl border border-black/10 bg-white p-8">
+          <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
             <div className="text-xs font-semibold uppercase tracking-[0.24em] text-black/40">
               Countries
             </div>
@@ -133,7 +133,7 @@ export default async function ExplorerPage() {
             </div>
           </div>
 
-          <div className="rounded-3xl border border-black/10 bg-white p-8">
+          <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
             <div className="text-xs font-semibold uppercase tracking-[0.24em] text-black/40">
               Systems
             </div>

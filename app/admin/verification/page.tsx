@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import AdminNav from "../_components/AdminNav";
 import AdminPageHeader from "../_components/AdminPageHeader";
+import PublicButton from "../../_components/PublicButton";
 
 type VerificationCaseRow = {
   caseId: string;
@@ -214,24 +215,25 @@ export default function AdminVerificationPage() {
     <div>
       <AdminNav />
 
-      <main className="mx-auto max-w-[1100px] px-6 pt-14 pb-16">
+      <main className="mx-auto max-w-[1100px] px-6 py-10">
         <AdminPageHeader
           title="Verification"
           description="Track verification cases for submissions and registry participants across the private review workflow."
           meta={loading ? "Loading…" : showingText}
           actions={
-            <button
+            <PublicButton
               type="button"
               onClick={onRefresh}
               disabled={loading}
-              className="inline-flex items-center justify-center rounded-xl border border-black/15 px-4 py-2 text-[14px] font-semibold hover:bg-black/[0.04] disabled:opacity-60"
+              variant="secondary"
+              size="sm"
             >
               {loading ? "Loading…" : "Refresh"}
-            </button>
+            </PublicButton>
           }
         />
 
-        <section className="mt-6 border-t border-black/10 pt-8">
+        <section className="mt-8 rounded-3xl border border-black/10 bg-white p-8">
           <div className="flex flex-wrap items-end gap-5">
             <div>
               <div className="mb-2 text-[12px] font-semibold uppercase tracking-[0.12em] text-black/60">
@@ -284,21 +286,21 @@ export default function AdminVerificationPage() {
             </div>
 
             <div className="ml-auto flex flex-wrap gap-3">
-              <button
+              <PublicButton
                 type="button"
                 onClick={onClear}
-                className="inline-flex items-center justify-center rounded-xl border border-black/15 px-4 py-3 text-[14px] font-semibold hover:bg-black/[0.04]"
+                variant="secondary"
               >
                 Clear
-              </button>
+              </PublicButton>
 
-              <button
+              <PublicButton
                 type="button"
                 onClick={onApply}
-                className="inline-flex items-center justify-center rounded-xl bg-black px-5 py-3 text-[14px] font-semibold text-white hover:bg-black/90"
+                variant="primary"
               >
                 Apply
-              </button>
+              </PublicButton>
             </div>
           </div>
         </section>
@@ -310,7 +312,7 @@ export default function AdminVerificationPage() {
           </div>
         ) : null}
 
-        <section className="mt-8 overflow-hidden rounded-2xl border border-black/10 bg-white">
+        <section className="mt-8 overflow-hidden rounded-3xl border border-black/10 bg-white">
           <div className="overflow-x-auto">
             <table className="min-w-[980px] w-full text-[14px]">
               <thead className="bg-black/[0.03] text-left text-black">
@@ -347,14 +349,16 @@ export default function AdminVerificationPage() {
                               {truncateMiddle(r.caseId)}
                             </a>
 
-                            <button
-                              className="inline-flex items-center justify-center rounded-xl border border-black/15 px-3 py-1 text-[12px] font-semibold hover:bg-black/[0.04]"
+                            <PublicButton
+                              className="px-3 py-1"
                               onClick={() => copyText(r.caseId)}
                               title="Copy Case ID"
                               type="button"
+                              variant="secondary"
+                              size="sm"
                             >
                               Copy
-                            </button>
+                            </PublicButton>
                           </div>
                         </td>
 
@@ -382,25 +386,27 @@ export default function AdminVerificationPage() {
           </div>
 
           <div className="flex items-center justify-end gap-3 border-t border-black/10 px-4 py-4">
-            <button
-              className="inline-flex items-center justify-center rounded-xl border border-black/15 px-4 py-2 text-[14px] font-semibold disabled:opacity-40"
+            <PublicButton
               onClick={() => setPage((p) => Math.max(1, p - 1))}
               disabled={page <= 1 || loading}
               type="button"
+              variant="secondary"
+              size="sm"
             >
               Prev
-            </button>
+            </PublicButton>
 
             <div className="text-[14px] font-medium text-black/75">Page {page}</div>
 
-            <button
-              className="inline-flex items-center justify-center rounded-xl border border-black/15 px-4 py-2 text-[14px] font-semibold disabled:opacity-40"
+            <PublicButton
               onClick={() => setPage((p) => p + 1)}
               disabled={loading || rows.length < pageSize}
               type="button"
+              variant="secondary"
+              size="sm"
             >
               Next
-            </button>
+            </PublicButton>
           </div>
         </section>
 

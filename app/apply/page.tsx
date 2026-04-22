@@ -16,13 +16,13 @@ export default function ApplyPage() {
           secondaryDescription="The public registry is not the application system. Intake, evidence review, findings, deterministic scoring, and certification decisions occur inside the private GAFAIG verification engine. Only public certification outcomes and trust surfaces are published."
           actions={
             <>
-              <PublicButtonLink href="/demo" variant="dark">
+              <PublicButtonLink href="/demo" variant="primary">
                 Start with the Demo
               </PublicButtonLink>
-              <PublicButtonLink href="/framework" variant="outline-dark">
+              <PublicButtonLink href="/framework" variant="secondary">
                 Review the Framework
               </PublicButtonLink>
-              <PublicButtonLink href="/registry" variant="outline-dark">
+              <PublicButtonLink href="/registry" variant="secondary">
                 View Public Records
               </PublicButtonLink>
             </>
@@ -85,7 +85,7 @@ export default function ApplyPage() {
             From application to certified public record
           </h2>
 
-          <p className="mt-4 max-w-[920px] text-[16px] leading-[1.85] text-black/72">
+          <p className="mt-4 max-w-[920px] text-[15px] leading-7 text-black/75">
             GAFAIG does not treat this as a generic contact form. Submitting an
             application initiates a structured verification workflow that can
             lead to a published, independently verifiable public trust record.
@@ -116,14 +116,14 @@ export default function ApplyPage() {
             Start your private verification intake
           </h2>
 
-          <p className="mt-4 max-w-[900px] text-[16px] leading-[1.85] text-black/72">
+          <p className="mt-4 max-w-[900px] text-[15px] leading-7 text-black/75">
             Submit your organization details to begin the GAFAIG verification
             process. This creates an intake record for private review and routes
             your application into the verification workflow. Applying does not
             place your organization in the public registry.
           </p>
 
-          <p className="mt-4 max-w-[900px] text-[15px] leading-[1.85] text-black/68">
+          <p className="mt-4 max-w-[900px] text-[15px] leading-7 text-black/68">
             You do not need complete documentation to begin. GAFAIG intake is
             designed to structure the verification process from your current
             state.
@@ -211,16 +211,16 @@ export default function ApplyPage() {
           </div>
         </section>
 
-        <section className="rounded-3xl border border-black/10 bg-black p-8 text-white">
-          <div className="text-[12px] font-semibold uppercase tracking-[0.22em] text-white/55">
+        <section className="rounded-3xl border border-black/10 bg-white p-8">
+          <div className="text-[12px] font-semibold uppercase tracking-[0.22em] text-black/55">
             What you receive
           </div>
 
-          <h2 className="mt-3 max-w-[860px] text-[32px] font-semibold leading-[1.18] tracking-tight text-white md:text-[38px]">
+          <h2 className="mt-3 max-w-[860px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
             Certification becomes a public proof layer
           </h2>
 
-          <p className="mt-4 max-w-[860px] text-[16px] leading-[1.85] text-white/78">
+          <p className="mt-4 max-w-[860px] text-[15px] leading-7 text-black/75">
             Organizations that complete the GAFAIG verification process receive
             more than an internal review outcome. They receive a public
             certification record, signed verification proof, portable trust
@@ -229,22 +229,22 @@ export default function ApplyPage() {
           </p>
 
           <div className="mt-8 grid gap-4 md:grid-cols-4">
-            <DarkMetricCard
+            <InfoCard
               label="Public record"
               value="Registry entry"
               body="Canonical published certification record."
             />
-            <DarkMetricCard
+            <InfoCard
               label="Signed proof"
               value="Ed25519"
               body="Independent cryptographic verification."
             />
-            <DarkMetricCard
+            <InfoCard
               label="Trust surfaces"
               value="Badge · Widget"
               body="Portable certification display across the web."
             />
-            <DarkMetricCard
+            <InfoCard
               label="API verification"
               value="/api/verify"
               body="Programmatic validation of certification state."
@@ -288,7 +288,7 @@ export default function ApplyPage() {
             Start with the current GAFAIG experience
           </h2>
 
-          <p className="mt-4 max-w-[860px] text-[16px] leading-[1.85] text-black/70">
+          <p className="mt-4 max-w-[860px] text-[15px] leading-7 text-black/70">
             GAFAIG’s live demo and public trust surfaces prove the exact kind of
             outcome the certification process produces. Start there, then review
             the framework and trust interfaces before entering the verification
@@ -317,31 +317,31 @@ export default function ApplyPage() {
           </div>
         </section>
 
-        <section className="rounded-3xl bg-black p-8 text-white">
-          <div className="text-[12px] font-semibold uppercase tracking-[0.22em] text-white/55">
+        <section className="rounded-3xl border border-black/10 bg-white p-8">
+          <div className="text-[12px] font-semibold uppercase tracking-[0.22em] text-black/55">
             Next step
           </div>
 
-          <h2 className="mt-3 max-w-[860px] text-[32px] font-semibold leading-[1.18] tracking-tight text-white md:text-[38px]">
+          <h2 className="mt-3 max-w-[860px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
             Begin the GAFAIG certification journey
           </h2>
 
-          <p className="mt-4 max-w-[760px] text-[16px] leading-[1.85] text-white/80">
+          <p className="mt-4 max-w-[760px] text-[15px] leading-7 text-black/75">
             Start by reviewing the mission, framework, and live trust surfaces.
             Then enter the private verification intake process to begin formal
             GAFAIG review.
           </p>
 
           <div className="mt-6 flex flex-wrap gap-3">
-            <PublicButtonLink href="/demo" variant="outline-light">
+            <PublicButtonLink href="/demo" variant="secondary">
               Start with the Demo
             </PublicButtonLink>
 
-            <PublicButtonLink href="/framework" variant="outline-light">
+            <PublicButtonLink href="/framework" variant="secondary">
               Review Framework
             </PublicButtonLink>
 
-            <PublicButtonLink href="/mission" variant="outline-light">
+            <PublicButtonLink href="/mission" variant="secondary">
               Read Mission
             </PublicButtonLink>
           </div>
@@ -359,28 +359,6 @@ function SectionEyebrow({ children }: { children: React.ReactNode }) {
   );
 }
 
-function DarkMetricCard({
-  label,
-  value,
-  body,
-}: {
-  label: string;
-  value: string;
-  body: string;
-}) {
-  return (
-    <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
-      <div className="text-[11px] font-semibold uppercase tracking-[0.24em] text-white/50">
-        {label}
-      </div>
-      <div className="mt-3 break-words text-[20px] font-semibold tracking-tight text-white">
-        {value}
-      </div>
-      <p className="mt-3 text-sm leading-7 text-white/70">{body}</p>
-    </div>
-  );
-}
-
 function AudienceCard({
   title,
   body,
@@ -393,7 +371,7 @@ function AudienceCard({
       <div className="text-[20px] font-semibold tracking-tight text-black">
         {title}
       </div>
-      <p className="mt-3 text-[15px] leading-[1.8] text-black/70">{body}</p>
+      <p className="mt-3 text-[15px] leading-7 text-black/70">{body}</p>
     </div>
   );
 }
@@ -410,7 +388,7 @@ function ChecklistCard({
       <div className="text-[18px] font-semibold tracking-tight text-black">
         {title}
       </div>
-      <p className="mt-2 text-[15px] leading-[1.75] text-black/70">{body}</p>
+      <p className="mt-2 text-[15px] leading-7 text-black/70">{body}</p>
     </div>
   );
 }
@@ -499,7 +477,7 @@ function FeatureCard({
       <div className="text-[22px] font-semibold tracking-tight text-black">
         {title}
       </div>
-      <p className="mt-3 text-[15px] leading-[1.8] text-black/70">{body}</p>
+      <p className="mt-3 text-[15px] leading-7 text-black/70">{body}</p>
       <div className="mt-5">
         <PublicButtonLink href={href} variant="ghost" size="sm">
           {cta} →

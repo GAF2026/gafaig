@@ -25,13 +25,13 @@ export default function DevelopersPage() {
           secondaryDescription="Use the verification endpoint, public key endpoint, signed proof payload, and widget surfaces to validate that a published GAFAIG public trust record is real, current, and independently verifiable."
           actions={
             <>
-              <PublicButtonLink href="/demo" variant="dark">
+              <PublicButtonLink href="/demo" variant="primary">
                 Start with the Demo
               </PublicButtonLink>
-              <PublicButtonLink href="/verify" variant="outline-dark">
+              <PublicButtonLink href="/verify" variant="secondary">
                 Open Verify
               </PublicButtonLink>
-              <PublicButtonLink href="/registry" variant="outline-dark">
+              <PublicButtonLink href="/registry" variant="secondary">
                 Browse Registry
               </PublicButtonLink>
             </>
@@ -47,7 +47,7 @@ export default function DevelopersPage() {
             A portable trust infrastructure, not just a page
           </h2>
 
-          <p className="mt-5 max-w-[960px] text-[16px] leading-[1.85] text-black/75">
+          <p className="mt-5 max-w-[960px] text-[15px] leading-7 text-black/75">
             GAFAIG lets external systems do more than link to a certification
             page. Developers can retrieve signed proof, validate public trust
             records, fetch the verification key, and surface the same trust
@@ -84,7 +84,7 @@ export default function DevelopersPage() {
               The core trust flow
             </h2>
 
-            <p className="mt-4 max-w-[860px] text-[15px] leading-[1.85] text-black/72">
+            <p className="mt-4 max-w-[860px] text-[15px] leading-7 text-black/75">
               GAFAIG trust works as a sequence. Start with a published registry
               ID, retrieve signed proof, fetch the published verification key,
               and validate the result or surface it through a widget.
@@ -136,21 +136,21 @@ export default function DevelopersPage() {
             <div className="mt-6 flex flex-wrap gap-3">
               <PublicButtonLink
                 href={`/registry/${DEMO_REGISTRY_ID}`}
-                variant="outline-dark"
+                variant="secondary"
                 size="sm"
               >
                 Open record
               </PublicButtonLink>
               <PublicButtonLink
                 href={`/verify/${DEMO_REGISTRY_ID}`}
-                variant="outline-dark"
+                variant="secondary"
                 size="sm"
               >
                 Verify record
               </PublicButtonLink>
               <PublicButtonLink
                 href={`/widget-preview/${DEMO_REGISTRY_ID}`}
-                variant="outline-dark"
+                variant="secondary"
                 size="sm"
               >
                 Open widget
@@ -197,7 +197,7 @@ export default function DevelopersPage() {
               Retrieve signed proof
             </h2>
 
-            <p className="mt-4 text-[15px] leading-[1.85] text-black/75">
+            <p className="mt-4 text-[15px] leading-7 text-black/75">
               The verify endpoint is the canonical public proof surface. It
               returns the public trust record together with proof metadata such
               as algorithm, key ID, signature, signed timestamp, verification
@@ -228,7 +228,7 @@ Response fields include:
               Retrieve the verification key
             </h2>
 
-            <p className="mt-4 text-[15px] leading-[1.85] text-black/75">
+            <p className="mt-4 text-[15px] leading-7 text-black/75">
               External verifiers fetch the published public key and validate the
               signature against the signed message string returned by the verify
               endpoint. This is what makes GAFAIG independently verifiable
@@ -258,7 +258,7 @@ Response fields include:
             Surface trust outside GAFAIG
           </h2>
 
-          <p className="mt-5 max-w-[980px] text-[16px] leading-[1.85] text-black/75">
+          <p className="mt-5 max-w-[980px] text-[15px] leading-7 text-black/75">
             The widget is the fastest way to display a live GAFAIG trust result
             on an external website. It uses the published public trust record
             and signed proof surfaces rather than creating a new trust decision.
@@ -288,16 +288,16 @@ Response fields include:
           </div>
         </section>
 
-        <section className="rounded-3xl border border-black/10 bg-black p-8 text-white">
-          <div className="text-[12px] font-semibold uppercase tracking-[0.22em] text-white/55">
+        <section className="rounded-3xl border border-black/10 bg-white p-8">
+          <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
             WHAT THIS ENABLES
           </div>
 
-          <h2 className="mt-3 max-w-[860px] text-[32px] font-semibold leading-[1.18] tracking-tight text-white md:text-[38px]">
+          <h2 className="mt-3 max-w-[860px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
             Build verifiable trust into your own interfaces
           </h2>
 
-          <p className="mt-4 max-w-[860px] text-[16px] leading-[1.85] text-white/80">
+          <p className="mt-4 max-w-[860px] text-[15px] leading-7 text-black/75">
             GAFAIG allows organizations, products, marketplaces, and third-party
             systems to prove that a published public trust record is real and
             current. The trust result can be verified through API calls,
@@ -306,15 +306,15 @@ Response fields include:
           </p>
 
           <div className="mt-8 grid gap-4 md:grid-cols-3">
-            <DarkCard
+            <SurfaceCard
               title="Platform integrations"
               body="Attach a GAFAIG trust result to product listings, enterprise profiles, or public organization pages."
             />
-            <DarkCard
+            <SurfaceCard
               title="Internal validation"
               body="Verify signed proof in your own systems when trust status affects workflows, approvals, or procurement."
             />
-            <DarkCard
+            <SurfaceCard
               title="External display"
               body="Use the widget and verification helper to surface trust without moving users off your platform."
             />
@@ -374,7 +374,7 @@ function DeveloperCard({
       <div className="text-[18px] font-semibold tracking-tight text-black">
         {title}
       </div>
-      <p className="mt-3 text-[15px] leading-[1.8] text-black/72">{body}</p>
+      <p className="mt-3 text-[15px] leading-7 text-black/75">{body}</p>
     </div>
   );
 }
@@ -392,14 +392,14 @@ function PipelineStep({
 }) {
   return (
     <div className="relative">
-      <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5 h-full">
+      <div className="h-full rounded-2xl border border-black/10 bg-black/[0.02] p-5">
         <div className="text-[28px] font-semibold leading-none tracking-tight text-black/30">
           {number}
         </div>
         <div className="mt-4 text-[18px] font-semibold tracking-tight text-black">
           {title}
         </div>
-        <p className="mt-3 text-[15px] leading-[1.8] text-black/70">{body}</p>
+        <p className="mt-3 text-[15px] leading-7 text-black/70">{body}</p>
       </div>
 
       {!isLast ? (
@@ -423,27 +423,27 @@ function EndpointCard({
   body: string;
 }) {
   return (
-    <div className="rounded-2xl border border-black/10 bg-white p-5">
+    <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
       <div className="text-[18px] font-semibold tracking-tight text-black">
         {title}
       </div>
-      <div className="mt-3 break-all rounded-2xl border border-black/10 bg-black/[0.03] px-4 py-3 font-mono text-[12px] leading-6 text-black/80">
+      <div className="mt-3 break-all rounded-2xl border border-black/10 bg-white p-4 font-mono text-[12px] leading-6 text-black/80">
         {path}
       </div>
-      <p className="mt-3 text-[15px] leading-[1.8] text-black/72">{body}</p>
+      <p className="mt-3 text-[15px] leading-7 text-black/75">{body}</p>
     </div>
   );
 }
 
 function CodeBlock({ code }: { code: string }) {
   return (
-    <pre className="mt-3 overflow-x-auto whitespace-pre-wrap break-words rounded-2xl border border-black/10 bg-black/[0.03] p-5 text-[13px] leading-[1.8] text-black/85">
+    <pre className="mt-3 overflow-x-auto whitespace-pre-wrap break-words rounded-2xl border border-black/10 bg-black/[0.02] p-5 text-[13px] leading-7 text-black/85">
       <code>{code}</code>
     </pre>
   );
 }
 
-function DarkCard({
+function SurfaceCard({
   title,
   body,
 }: {
@@ -451,11 +451,11 @@ function DarkCard({
   body: string;
 }) {
   return (
-    <div className="rounded-2xl border border-white/10 bg-white/[0.05] p-5">
-      <div className="text-[18px] font-semibold tracking-tight text-white">
+    <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
+      <div className="text-[18px] font-semibold tracking-tight text-black">
         {title}
       </div>
-      <p className="mt-3 text-[15px] leading-[1.8] text-white/72">{body}</p>
+      <p className="mt-3 text-[15px] leading-7 text-black/75">{body}</p>
     </div>
   );
 }
@@ -472,11 +472,11 @@ function LinkCard({
   cta: string;
 }) {
   return (
-    <div className="rounded-2xl border border-black/10 bg-white p-6">
-      <div className="text-[22px] font-semibold tracking-tight text-black">
+    <div className="rounded-2xl border border-black/10 bg-white p-4">
+      <div className="text-[18px] font-semibold tracking-tight text-black">
         {title}
       </div>
-      <p className="mt-3 text-[15px] leading-[1.8] text-black/70">{body}</p>
+      <p className="mt-3 text-[15px] leading-7 text-black/75">{body}</p>
       <div className="mt-5">
         <PublicButtonLink href={href} variant="ghost" size="sm">
           {cta} →
