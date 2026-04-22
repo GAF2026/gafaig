@@ -52,6 +52,7 @@ export type ExplorerStats = {
   certified: number;
   organizations: number;
   countries: number;
+  systems: number;
 };
 
 export type ExplorerRecordRow = {
@@ -116,20 +117,26 @@ export type ExplorerSystemRow = {
 };
 
 export async function getExplorerStats(): Promise<ExplorerStats> {
-  const rows = await sfQuery<SnowflakeRow>(`
-    SELECT
-      REGISTRY_ID,
-      ENTITY_NAME,
-      COUNTRY,
-      CERTIFICATION_STATUS
-    FROM CORE.V_REGISTRY_PUBLIC
-  `);
+  const [registryRows, systemRows] = await Promise.all([
+    sfQuery<SnowflakeRow>(`
+      SELECT
+        REGISTRY_ID,
+        ENTITY_NAME,
+        COUNTRY,
+        CERTIFICATION_STATUS
+      FROM CORE.V_REGISTRY_PUBLIC
+    `),
+    sfQuery<SnowflakeRow>(`
+      SELECT COUNT(*) AS SYSTEMS
+      FROM CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC
+    `),
+  ]);
 
   const organizationSet = new Set<string>();
   const countrySet = new Set<string>();
   let certified = 0;
 
-  for (const row of rows) {
+  for (const row of registryRows) {
     const entityName = toNullableString(row.ENTITY_NAME);
     const country = toNullableString(row.COUNTRY);
     const certificationStatus = toStringValue(row.CERTIFICATION_STATUS, "");
@@ -140,10 +147,11 @@ export async function getExplorerStats(): Promise<ExplorerStats> {
   }
 
   return {
-    publicRecords: rows.length,
+    publicRecords: registryRows.length,
     certified,
     organizations: organizationSet.size,
     countries: countrySet.size,
+    systems: toNumberValue(systemRows[0]?.SYSTEMS),
   };
 }
 

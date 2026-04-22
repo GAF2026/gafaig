@@ -39,7 +39,6 @@ export default async function ExplorerPage() {
           eyebrow="Public Trust Surface"
           title="Explore the public GAFAIG trust surface"
           description="Explorer shows the broader public governance footprint across organizations, countries, and publicly surfaced records in the GAFAIG network."
-          secondaryDescription="Public registry visibility includes only certified and published records."
           actions={
             <>
               <PublicButtonLink href="/registry" variant="secondary">
@@ -98,7 +97,7 @@ export default async function ExplorerPage() {
         </section>
 
         <section className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
-          <div className="rounded-3xl border border-black/10 bg-white p-6">
+          <div className="rounded-3xl border border-black/10 bg-white p-8">
             <div className="text-xs font-semibold uppercase tracking-[0.24em] text-black/40">
               Public Records
             </div>
@@ -107,16 +106,16 @@ export default async function ExplorerPage() {
             </div>
           </div>
 
-          <div className="rounded-3xl border border-black/10 bg-white p-6">
+          <div className="rounded-3xl border border-black/10 bg-white p-8">
             <div className="text-xs font-semibold uppercase tracking-[0.24em] text-black/40">
               Certified
             </div>
             <div className="mt-4 text-[40px] font-semibold tracking-tight text-black">
-              {formatNumber(stats.certifiedRecords)}
+              {formatNumber(stats.certified)}
             </div>
           </div>
 
-          <div className="rounded-3xl border border-black/10 bg-white p-6">
+          <div className="rounded-3xl border border-black/10 bg-white p-8">
             <div className="text-xs font-semibold uppercase tracking-[0.24em] text-black/40">
               Organizations
             </div>
@@ -125,7 +124,7 @@ export default async function ExplorerPage() {
             </div>
           </div>
 
-          <div className="rounded-3xl border border-black/10 bg-white p-6">
+          <div className="rounded-3xl border border-black/10 bg-white p-8">
             <div className="text-xs font-semibold uppercase tracking-[0.24em] text-black/40">
               Countries
             </div>
@@ -134,7 +133,7 @@ export default async function ExplorerPage() {
             </div>
           </div>
 
-          <div className="rounded-3xl border border-black/10 bg-white p-6">
+          <div className="rounded-3xl border border-black/10 bg-white p-8">
             <div className="text-xs font-semibold uppercase tracking-[0.24em] text-black/40">
               Systems
             </div>

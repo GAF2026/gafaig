@@ -234,26 +234,47 @@ export default async function RegistryPage({
   const tier = clean(searchParams?.tier);
   const band = clean(searchParams?.band);
 
-  const hasFilters =
-    q.length > 0 ||
-    country.length > 0 ||
+  const hasServerFilters = q.length > 0 || country.length > 0;
+  const hasAnyFilters =
+    hasServerFilters ||
     organization.length > 0 ||
     tier.length > 0 ||
     band.length > 0;
 
-  const [rows, rawOptions] = await Promise.all([
-    hasFilters
+  const [baseRows, rawOptionsUnknown] = await Promise.all([
+    hasServerFilters
       ? searchRegistryRecords({
           q,
           country,
-          organization,
-          tier,
-          band,
+          registryId: "",
+          caseId: "",
+          applicationId: "",
           limit: 500,
         })
       : getRegistryRecords(500),
     getRegistryFilterOptions(),
   ]);
+
+  const rawOptions = rawOptionsUnknown as {
+    countries?: string[];
+    organizations?: string[];
+    tiers?: string[];
+    bands?: string[];
+  };
+
+  const rows = (baseRows as RegistryPageRow[]).filter((row) => {
+    const matchesOrganization =
+      !organization ||
+      clean(row.entityName).toLowerCase() === organization.toLowerCase();
+
+    const matchesTier =
+      !tier || clean(row.certifiedTier).toLowerCase() === tier.toLowerCase();
+
+    const matchesBand =
+      !band || clean(row.certifiedBand).toLowerCase() === band.toLowerCase();
+
+    return matchesOrganization && matchesTier && matchesBand;
+  });
 
   const options: FilterOptions = {
     countries: Array.isArray(rawOptions?.countries) ? rawOptions.countries : [],
@@ -453,11 +474,13 @@ export default async function RegistryPage({
               </div>
             </div>
 
-            {rows.length === 0 ? (
+            {!hasAnyFilters && rows.length === 0 ? (
+              <EmptyState />
+            ) : rows.length === 0 ? (
               <EmptyState />
             ) : (
               <div className="grid gap-6">
-                {(rows as RegistryPageRow[]).map((row) => (
+                {rows.map((row) => (
                   <RegistryCard key={row.registryId} row={row} />
                 ))}
               </div>

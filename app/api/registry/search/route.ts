@@ -10,35 +10,27 @@ function clean(value: string | null): string {
   return String(value ?? "").trim();
 }
 
-function toRegistryRow(row: {
-  registryId: string;
-  applicationId: string | null;
-  caseId: string | null;
-  entityName: string | null;
-  entityType: string | null;
-  country: string | null;
-  certifiedScore: string | null;
-  certifiedTier: string | null;
-  certifiedBand: string | null;
-  decisionStatus: string | null;
-  validFrom: string | null;
-  validTo: string | null;
-  certifiedAt: string | null;
-}): RegistryRow {
+function toRegistryRow(row: any): RegistryRow {
   return {
     registryId: row.registryId,
-    applicationId: row.applicationId,
-    caseId: row.caseId,
-    entityName: row.entityName,
-    entityType: row.entityType,
-    country: row.country,
-    certifiedScore: row.certifiedScore,
-    certifiedTier: row.certifiedTier,
-    certifiedBand: row.certifiedBand,
-    decisionStatus: row.decisionStatus,
-    validFrom: row.validFrom,
-    validTo: row.validTo,
-    certifiedAt: row.certifiedAt,
+    applicationId: row.applicationId ?? null,
+    caseId: row.caseId ?? null,
+    entityName: row.entityName ?? null,
+    entityType: row.entityType ?? null,
+    country: row.country ?? null,
+    certifiedScore:
+      row.certifiedScore === null ||
+      row.certifiedScore === undefined ||
+      row.certifiedScore === ""
+        ? null
+        : Number(row.certifiedScore),
+    certifiedTier: row.certifiedTier ?? null,
+    certifiedBand: row.certifiedBand ?? null,
+    decisionStatus:
+      row.decisionStatus ?? row.certificationStatus ?? null,
+    validFrom: row.validFrom ?? null,
+    validTo: row.validTo ?? null,
+    certifiedAt: row.certifiedAt ?? null,
   };
 }
 
@@ -66,7 +58,7 @@ export async function GET(req: Request) {
 
     const response: RegistryApiResponse = {
       ok: true,
-      rows: rows.map(toRegistryRow),
+      rows: rows.map((row) => toRegistryRow(row)),
       total: rows.length,
       limit,
       filters: {

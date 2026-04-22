@@ -5,9 +5,21 @@ type Props = {
   system: RegistryAiSystemRow;
 };
 
-function yesNo(value: boolean | null | undefined): string {
+function yesNo(value: string | boolean | null | undefined): string {
   if (value === true) return "Yes";
   if (value === false) return "No";
+  if (value == null) return "—";
+
+  const normalized = String(value).trim().toLowerCase();
+
+  if (normalized === "true" || normalized === "yes" || normalized === "1") {
+    return "Yes";
+  }
+
+  if (normalized === "false" || normalized === "no" || normalized === "0") {
+    return "No";
+  }
+
   return "—";
 }
 

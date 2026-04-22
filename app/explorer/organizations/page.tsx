@@ -6,17 +6,6 @@ function numberFormat(value: number): string {
   return new Intl.NumberFormat("en-US").format(value);
 }
 
-function formatDate(value: string | null): string {
-  if (!value) return "—";
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return value;
-  return new Intl.DateTimeFormat("en-US", {
-    month: "numeric",
-    day: "numeric",
-    year: "numeric",
-  }).format(date);
-}
-
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
@@ -81,25 +70,23 @@ export default async function ExplorerOrganizationsPage() {
           </div>
 
           <div className="mt-6 overflow-hidden rounded-2xl border border-black/10 bg-white">
-            <div className="grid grid-cols-[minmax(0,1.8fr)_minmax(0,1fr)_minmax(0,0.8fr)_minmax(0,0.8fr)_minmax(0,1fr)] gap-0 border-b border-black/10 bg-black/[0.02] px-6 py-4 text-[12px] font-semibold uppercase tracking-[0.24em] text-black/40">
+            <div className="grid grid-cols-[minmax(0,1.8fr)_minmax(0,1fr)_minmax(0,0.8fr)_minmax(0,0.8fr)] gap-0 border-b border-black/10 bg-black/[0.02] px-6 py-4 text-[12px] font-semibold uppercase tracking-[0.24em] text-black/40">
               <div>Organization</div>
               <div>Country</div>
               <div>Records</div>
               <div>Systems</div>
-              <div>Latest Certified</div>
             </div>
 
             <div className="divide-y divide-black/10">
               {rows.map((row) => (
                 <div
-                  key={row.entityName}
-                  className="grid grid-cols-[minmax(0,1.8fr)_minmax(0,1fr)_minmax(0,0.8fr)_minmax(0,0.8fr)_minmax(0,1fr)] gap-0 px-6 py-5 text-[15px] leading-7 text-black/75"
+                  key={`${row.organization}-${row.country ?? "none"}`}
+                  className="grid grid-cols-[minmax(0,1.8fr)_minmax(0,1fr)_minmax(0,0.8fr)_minmax(0,0.8fr)] gap-0 px-6 py-5 text-[15px] leading-7 text-black/75"
                 >
-                  <div className="font-semibold text-black">{row.entityName}</div>
-                  <div>{row.country ?? "—"}</div>
+                  <div className="font-semibold text-black">{row.organization}</div>
+                  <div>{row.country}</div>
                   <div>{numberFormat(row.publicRecords)}</div>
                   <div>{numberFormat(row.systems)}</div>
-                  <div>{formatDate(row.latestCertifiedAt)}</div>
                 </div>
               ))}
             </div>

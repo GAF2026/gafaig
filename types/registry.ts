@@ -1,22 +1,17 @@
 export type RegistryRow = {
   registryId: string;
-  registrySnapshotId?: string | null;
   applicationId: string | null;
   caseId: string | null;
-
   entityName: string | null;
   entityType: string | null;
   country: string | null;
-
-  certificationStatus: string | null;
-  certifiedAt: string | null;
-
+  certifiedScore: number | null;
+  certifiedTier: string | null;
+  certifiedBand: string | null;
+  decisionStatus: string | null;
   validFrom: string | null;
   validTo: string | null;
-
-  lifecycleStatus?: string | null;
-  renewalStatus?: string | null;
-  publishedAt?: string | null;
+  certifiedAt: string | null;
 };
 
 export type RegistryApiResponse =
@@ -40,9 +35,7 @@ export type RegistryAiSystemRow = {
   systemId: string | null;
   applicationId: string | null;
   caseId: string | null;
-
   entityName: string | null;
-  entityType: string | null;
   country: string | null;
 
   systemName: string | null;
@@ -56,19 +49,30 @@ export type RegistryAiSystemRow = {
   developerOrganization: string | null;
   trainingDataCategory: string | null;
   oversightModel: string | null;
-  humanReviewRequired: boolean | null;
+  humanReviewRequired: boolean | string | null;
   evaluationProtocol: string | null;
   auditFrequency: string | null;
 
+  decisionStatus: string | null;
   certificationStatus: string | null;
+  certifiedScore: number | string | null;
+  certifiedTier: string | null;
+  certifiedBand: string | null;
   certifiedAt: string | null;
   validFrom: string | null;
   validTo: string | null;
-  lifecycleStatus: string | null;
   renewalStatus: string | null;
 
-  publicSummary: string | null;
-  displayOrder: number | null;
+  verificationType?: string | null;
+  modelVersion?: string | null;
+  score?: number | string | null;
+  approvedAt?: string | null;
+  publishedAt?: string | null;
+  registryStatus?: string | null;
+  publicSummary?: string | null;
+  displayOrder?: number | null;
+  createdAt?: string | null;
+  updatedAt?: string | null;
 };
 
 export type RegistryAiSystemsApiResponse =
@@ -84,10 +88,11 @@ export type BadgeApiResponse =
       ok: true;
       registryId: string;
       entityName: string | null;
-      certificationStatus: string | null;
+      certifiedTier: string | null;
+      certifiedBand: string | null;
       certifiedAt: string | null;
       badge: {
-        status: string;
+        tier: string;
         label: string;
         imageUrl: string;
       };
@@ -112,19 +117,19 @@ export type VerifyApiResponse =
       verified: boolean;
       record?: {
         registryId: string;
-        registrySnapshotId?: string | null;
         applicationId: string | null;
         caseId: string | null;
         entityName: string | null;
         entityType: string | null;
         country: string | null;
         certificationStatus: string | null;
-        certifiedAt: string | null;
+        certifiedScore?: number | string | null;
+        certifiedTier: string | null;
+        certifiedBand: string | null;
+        decisionStatus: string | null;
         validFrom: string | null;
         validTo: string | null;
-        lifecycleStatus: string | null;
-        renewalStatus: string | null;
-        publishedAt: string | null;
+        certifiedAt: string | null;
       };
       proof?: {
         alg: string;
