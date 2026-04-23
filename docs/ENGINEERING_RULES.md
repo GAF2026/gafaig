@@ -1,424 +1,315 @@
 # ENGINEERING_RULES.md
-Date: 2026-04-22
-
-## PURPOSE
-
-This document defines the non-negotiable engineering rules for the GAFAIG platform.
-
-It governs:
-- system architecture
-- data flow
-- code boundaries
-- trust enforcement
-- development behavior
-
-This is not guidance.  
-This is a hard constraint system.
-
-Any violation must be corrected immediately.
+Last Updated: 2026-04-23
 
 ---
 
-## CORE PRINCIPLE
+## 🔴 CORE SYSTEM PRINCIPLE (NON-NEGOTIABLE)
 
-GAFAIG is a deterministic system.
+GAFAIG is a deterministic AI governance registry.
 
-All trust originates from Snowflake.
+- Snowflake is the ONLY source of truth
+- All computation happens in Snowflake
+- API and UI are projection layers ONLY
+- No business logic outside Snowflake
+- No recomputation outside Snowflake
 
-All public outputs must follow:
-
-Snowflake → Views → Query Layer → API → UI
-
-No computation, inference, mutation, or correction of trust data is allowed outside Snowflake.
-
----
-
-## SOURCE OF TRUTH
-
-Snowflake is the ONLY source of truth.
-
-Specifically:
-- CORE tables store canonical data
-- Views define public projections
-- Procedures enforce lifecycle transitions
-
-Rules:
-- UI must not compute trust data
-- API must not compute trust data
-- Query layer must not compute trust data
-- No duplication of logic outside Snowflake
+Violation of any of the above = system corruption
 
 ---
 
-## CANONICAL DATA FLOW (LOCKED)
+## 🔴 BROKEN FILE PRIORITY (MANDATORY FIRST STEP)
+
+Before ANY system work or rebuild:
+
+Fix Snowflake run-order failures:
+
+- 12_TABLES_PARTICIPANTS.sql
+- 15_TABLES_EVENTS.sql
+
+Reason:
+
+- These break canonical run order
+- They block deterministic rebuilds
+- They can silently corrupt downstream workflow tables
+
+👉 This is NOT optional. This is step zero.
+
+---
+
+## 🔑 ID PARITY RULE (CRITICAL)
+
+All IDs MUST be:
+
+- Generated in Snowflake ONLY
+- NEVER generated in API or UI
+- Passed through unchanged across all layers
+
+Applies to:
+
+- APPLICATION_ID
+- CASE_ID
+- REGISTRY_ID
+- FINDING_ID
+- EVIDENCE_ID
+- EVENT_ID
+- REGISTRY_SNAPSHOT_ID
+
+Violation = system corruption
+
+---
+
+## 🧱 CANONICAL DATA FLOW (LOCKED)
 
 APPLICATION → CASE → FINDINGS → EVIDENCE → EVENTS → SCORING → DECISION → REGISTRY SNAPSHOT → PUBLIC VIEWS → API → UI
 
 Rules:
-- No skipping steps
-- No reordering steps
-- No alternate flows
-- Each stage must be complete before the next
+
+- Flow is append-only
+- No back-editing of historical states
+- Snapshots are immutable once published
+- Every downstream layer must reflect upstream truth
 
 ---
 
-## DETERMINISM REQUIREMENT
+## 🧮 SCORING RULE (STRICT)
 
-All outputs must be deterministic.
+- Scoring is defined ONLY in:
+  - V_GOVERNANCE_SCORE_CASE
 
-Given the same inputs:
-- Same CASE_ID
-- Same score
-- Same decision
-- Same registry output
-- Same signature
+- Tier and Band are derived ONLY in Snowflake
 
-Rules:
-- No randomness
-- No hidden state
-- No environment-dependent behavior
+NOT ALLOWED:
+
+- API scoring logic
+- UI scoring logic
+- Widget scoring logic
 
 ---
 
-## ID GENERATION RULES
+## 🔒 PUBLIC vs PRIVATE DATA CONTRACT (PHASE 4 LOCK)
 
-All IDs must be deterministic:
+### ✅ PUBLIC (ALLOWED SURFACE)
 
-- APPLICATION_ID  
-- CASE_ID  
-- FINDING_ID  
-- EVIDENCE_ID  
-- EVENT_ID  
-- PARTICIPANT_ID  
-- REGISTRY_ID  
+These fields define the FULL public contract:
 
-Exception:
-- REGISTRY_SNAPSHOT_ID may use UUID (append-only versioning)
-
-Rules:
-- IDs must be reproducible
-- IDs must not be mutated
-- IDs must not be reassigned
-
----
-
-## APPEND-ONLY RULE
-
-Registry and lifecycle data are append-only.
-
-Rules:
-- CORE.REGISTRY_SNAPSHOTS must never be updated
-- CORE.DECISIONS must not overwrite active rows (must close via VALID_TO)
-- New state = new row
-
-Violations:
-- Updating snapshots
-- Deleting historical records
-- Overwriting lifecycle history
+- REGISTRY_ID
+- APPLICATION_ID
+- CASE_ID
+- ENTITY_NAME
+- ENTITY_TYPE
+- COUNTRY
+- CERTIFICATION_STATUS
+- CERTIFIED_AT
+- VALID_FROM
+- VALID_TO
+- PUBLISHED_AT
+- LIFECYCLE_STATUS
+- RENEWAL_STATUS
 
 ---
 
-## SCORING RULES
+### ❌ PRIVATE (STRICTLY FORBIDDEN IN PUBLIC SURFACE)
 
-All scoring must originate from:
+- DECISION_STATUS
+- SCORE
+- TIER
+- BAND
+- ANY SCORING BREAKDOWN
+- ANY INTERNAL WORKFLOW STATE
 
-CORE.V_GOVERNANCE_SCORE_CASE
+These MUST NEVER appear in:
 
-Rules:
-- No scoring logic in API
-- No scoring logic in UI
-- No derived scoring fields outside Snowflake
-- Score must be versioned
+- V_REGISTRY_PUBLIC
+- API responses
+- UI components
+- Widgets
+- Verify payloads
 
----
-
-## DECISION RULES
-
-Decisions must:
-
-- originate from scoring outputs
-- be stored in CORE.DECISIONS
-- follow append-only lifecycle model
-
-Rules:
-- exactly one active decision row (VALID_TO IS NULL)
-- no implicit decisions
-- no UI/API-based decisions
+Violation = breach of trust model
 
 ---
 
-## LIFECYCLE RULES
+## 🧭 SEMANTIC DEFINITIONS (LOCKED)
 
-Lifecycle must be derived from:
+- Approved = internal workflow state (PRIVATE)
+- Certified = public trust outcome (PUBLIC)
+- Verified = cryptographic validation (TRUST LAYER)
 
-- CORE.DECISIONS
-- VALID_FROM / VALID_TO
-- CORE.V_CASE_RENEWAL_STATUS
-
-Rules:
-- lifecycle must not be inferred in UI/API
-- expired or revoked records must not appear in public views
-- publishability must be determined in Snowflake only
+These MUST NOT be mixed or reinterpreted
 
 ---
 
-## REGISTRY RULES
+## 🌐 TRUST SURFACE RULE (CRITICAL)
 
-Registry data must:
+The ONLY trust authority:
 
-- originate from CORE.REGISTRY_SNAPSHOTS
-- be exposed via CORE.V_REGISTRY_PUBLIC
-- represent only certified, valid records
+- /api/verify/[registryId]
 
-Rules:
-- no synthetic registry entries
-- no UI filtering to simulate certification
-- no API overrides
+ALL systems must depend on it:
 
----
+- UI
+- Widgets
+- Badges
+- External consumers
 
-## PUBLIC VIEW RULES
-
-Views are projections only.
-
-Rules:
-- no recomputation of scores
-- no lifecycle inference outside Snowflake
-- no mutation of data
-- must reflect canonical tables exactly
-
-Critical Views:
-- CORE.V_REGISTRY_PUBLIC
-- CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC
-- CORE.V_EXPLORER_STATS
+No independent trust computation allowed
 
 ---
 
-## EXPLORER RULES (CRITICAL)
-
-Explorer must use ONLY public views.
-
-Rules:
-- must query CORE.V_REGISTRY_PUBLIC
-- must query CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC
-- must query CORE.V_EXPLORER_STATS
-
-Forbidden:
-- CORE.REGISTRY_AI_SYSTEMS (direct)
-- workflow tables
-- TMP registry IDs
-
----
-
-## SYSTEMS SURFACE RULE
-
-/explorer/systems and /registry/ai-systems must:
-
-- use CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC ONLY
-- display only certified/public systems
-- inherit certification fields from registry
-
-Violations:
-- blank certification due to wrong data source
-- showing non-certified systems
-- mixing workflow and public data
-
----
-
-## QUERY LAYER RULES
-
-Query layer must:
-
-- map directly to Snowflake views
-- perform no business logic
-- perform no lifecycle logic
-- perform no scoring logic
-
-Allowed:
-- field mapping
-- formatting
-
-Forbidden:
-- filtering trust states
-- deriving certification
-- joining workflow tables for public pages
-
----
-
-## API RULES
-
-API is read-only trust transport.
-
-Rules:
-- must query Snowflake views only
-- must not compute trust logic
-- must not mutate meaning of data
-- must return deterministic outputs
-
----
-
-## UI RULES
-
-UI is presentation-only.
-
-Rules:
-- must not compute trust logic
-- must not derive lifecycle state
-- must not override API data
-- must not hide data inconsistencies
-
----
-
-## SIGNATURE RULES
-
-All public trust must be signed.
+## 🔐 SIGNATURE CONTRACT (LOCKED)
 
 Algorithm:
+
 - Ed25519
 
-Rules:
-- messageString must match message exactly
-- signature must be deterministic
-- kid must match public key endpoint
-- no unsigned certification allowed
-- signed message must be minimal and deterministic
+Payload Rules:
+
+- Deterministic JSON
+- Stable ordering
+- No hidden fields
+
+Message Structure:
+
+{
+  registryId,
+  entityName,
+  certificationStatus,
+  certifiedAt,
+  validFrom,
+  validTo
+}
+
+Output:
+
+- signature
+- signedAt
+- kid
+- verificationKeyUrl
 
 ---
 
-## PUBLIC TRUST RULE
+## 🌍 WIDGET RULES
 
-A record is trusted only if:
+Widgets are:
 
-1. CERTIFIED
-2. exists in CORE.V_REGISTRY_PUBLIC
-3. returned via /api/verify/[registryId]
-4. includes valid signature
-5. signature verifies independently
+- Read-only
+- Stateless
+- Trust consumers
 
-Anything less is NOT trusted.
+Widgets MUST:
 
----
+- Fetch from /api/verify
+- Render public data
+- Display proof state
 
-## VERSIONING RULES
+Widgets MUST NOT:
 
-All critical systems must be versioned:
-
-- scoring
-- signature contract
-- registry snapshots
-- API contract
-
-Rules:
-- no silent changes
-- no breaking changes without version increment
-- historical outputs must remain valid
+- Compute trust
+- Infer certification
+- Modify payload
 
 ---
 
-## FILE STRUCTURE RULES
+## 🧾 REGISTRY VIEW RULES
 
-- must follow GAFAIG_VS_CODE_File_Tree.md
-- no duplicate logic across files
-- no mixing canonical and legacy files
+### V_REGISTRY_PUBLIC
 
----
+Must:
 
-## SEED DATA RULES
+- Represent latest approved snapshot per case
+- Only include PUBLIC fields
+- Be deterministic
 
-- single source: GAFAIG - FINAL_CANONICAL_MULTI_SEED.sql
-- no manual inserts
-- deterministic dataset only
+Must NOT:
 
----
-
-## LEGACY FILE RULE
-
-Files labeled:
-- Archive
-- Legacy
-- Backup
-
-Must NOT be used.
+- Join private scoring data
+- Expose decision workflow internals
 
 ---
 
-## LAYOUT RULES
+## 🧪 VALIDATION REQUIREMENT
 
-Must follow PAGE_LAYOUT_SYSTEM.md.
+Every certified record MUST match across:
 
-Rules:
-- PublicPageHero required
-- max-w-[1180px] required
-- space-y-8 required
-- no layout drift
-- all public pages must align visually and structurally
+- Snowflake
+- API
+- UI
+- Widget
 
----
+Fields that must match:
 
-## SECURITY RULES
+- REGISTRY_ID
+- CERTIFIED_AT
+- VALID_FROM
+- VALID_TO
+- SIGNED PAYLOAD
 
-- private signing key must never leave server
-- public key must be exposed via API
-- no secrets in repo
-- no sensitive data in UI
-
----
-
-## ENVIRONMENT RULES
-
-.env.local must include:
-- Snowflake credentials
-- signing key
-- NEXT_PUBLIC_BASE_URL
-
-Rules:
-- no hardcoded secrets
-- no environment drift
+Mismatch = system failure
 
 ---
 
-## FAILURE CONDITIONS
+## 🧱 APPEND-ONLY RULE
 
-System is invalid if:
-
-- trust logic exists outside Snowflake
-- IDs are non-deterministic
-- registry snapshots are mutated
-- lifecycle is misrepresented
-- signature is invalid
-- API diverges from Snowflake
-- UI diverges from API
-- explorer leaks workflow data
-- systems surface uses non-public sources
+- No updates to historical records
+- No overwrites
+- New states = new rows
 
 ---
 
-## ENFORCEMENT
+## ⚙️ ENVIRONMENT PARITY RULE
 
-These rules are:
-
-- mandatory
-- enforced
-- non-negotiable
-
-Any violation:
-- breaks determinism
-- breaks trust
-- invalidates system integrity
-
-Must be corrected immediately.
+- Local = Vercel = Snowflake
+- No environment-specific logic
+- No fallback computation
 
 ---
 
-## FINAL RULE
+## 🚫 FORBIDDEN ACTIONS
 
-If any layer:
-- computes its own truth
-- overrides Snowflake
-- mixes workflow and public data
-- breaks determinism
+DO NOT:
 
-The system is invalid.
+- Re-architect the system
+- Move logic out of Snowflake
+- Create alternate data sources
+- Generate IDs outside Snowflake
+- Expose private workflow data
+- Recompute scores outside scoring engine
+- Build trust logic in UI/API
+
+---
+
+## 🧭 SYSTEM OWNERSHIP MODEL
+
+- Snowflake = Authority
+- API = Transport
+- UI = Presentation
+- Verify = Trust
+- Widget = Distribution
+
+---
+
+## 🔐 FINAL RULE
+
+If any change introduces:
+
+- Non-determinism
+- Duplicate logic
+- Data inconsistency
+- Trust ambiguity
+
+👉 Reject the change
+
+---
+
+## ✅ PHASE 4 STATUS
+
+- Public contract enforced
+- Private boundary locked
+- Verify endpoint authoritative
+- Widget and badge aligned
+- Trust surface complete
+
+System state: STABLE + DETERMINISTIC
 
 ---
 

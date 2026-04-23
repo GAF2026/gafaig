@@ -42,8 +42,8 @@ export default function FrameworkPage() {
         <PublicPageHero
           eyebrow="FRAMEWORK"
           title="How GAFAIG works"
-          description="GAFAIG transforms AI governance into a structured, verifiable process. It evaluates whether meaningful human oversight exists and publishes certification outcomes as independently verifiable public records."
-          secondaryDescription="The platform operates as a two-layer system: a private verification engine that reviews oversight evidence, and a public trust layer that publishes certification results without exposing sensitive internal materials."
+          description="GAFAIG transforms AI governance into a structured verification process. It evaluates whether meaningful human oversight is functioning and publishes certification outcomes as independently verifiable public trust records."
+          secondaryDescription="The system separates a private verification engine from a public trust layer. Governance is reviewed internally, while only the certification outcome is exposed and validated through GAFAIG’s verification endpoint."
         />
 
         <section className="rounded-3xl border border-black/10 bg-white p-8">
@@ -59,9 +59,8 @@ export default function FrameworkPage() {
           </p>
 
           <p className="mt-4 text-[15px] leading-7 text-black/75">
-            The result is not a report or a claim. It is a certification outcome
-            that can be independently verified through public trust
-            infrastructure.
+            The output is not a report or a claim. It is a certified outcome that
+            can be independently verified through a signed verification payload.
           </p>
         </section>
 
@@ -72,11 +71,11 @@ export default function FrameworkPage() {
 
           <p className="mt-4 text-[15px] leading-7 text-black/75">
             Every organization moves through a consistent, structured process.
-            This allows certification outcomes to be comparable, repeatable, and
+            This ensures certification outcomes are repeatable, comparable, and
             grounded in actual oversight evidence rather than self-attestation.
           </p>
 
-          <div className="mt-8 grid gap-4 md:grid-cols-5">
+          <div className="mt-8 grid gap-4 md:grid-cols-6">
             <Step
               number="1"
               title="Application"
@@ -85,22 +84,27 @@ export default function FrameworkPage() {
             <Step
               number="2"
               title="Evidence Review"
-              body="Documentation, controls, governance materials, and oversight mechanisms are submitted and evaluated."
+              body="Governance materials, controls, and oversight mechanisms are submitted and evaluated."
             />
             <Step
               number="3"
               title="Findings"
-              body="Structured findings are created to assess how oversight is implemented and where important gaps remain."
+              body="Structured findings assess how oversight is implemented and where gaps exist."
             />
             <Step
               number="4"
               title="Scoring & Decision"
-              body="A deterministic evaluation path produces a governance outcome based on the reviewed record."
+              body="A deterministic process produces a governance outcome based on the reviewed record."
             />
             <Step
               number="5"
               title="Public Certification"
-              body="Certification outcomes are finalized and published as independently verifiable public trust records."
+              body="The certification outcome is published as a public trust record without exposing private materials."
+            />
+            <Step
+              number="6"
+              title="Verification"
+              body="A signed verification payload is generated and exposed through /api/verify, enabling independent validation."
             />
           </div>
         </section>
@@ -111,27 +115,23 @@ export default function FrameworkPage() {
           </h2>
 
           <p className="mt-4 text-[15px] leading-7 text-black/75">
-            GAFAIG certification is the public outcome of a completed structured
-            verification process. It indicates that the organization’s oversight
-            posture was evaluated through GAFAIG and finalized as a verifiable
-            trust record.
+            GAFAIG certification is the public outcome of a completed verification
+            process. It indicates that oversight was evaluated and finalized into
+            a record that can be independently verified.
           </p>
 
           <div className="mt-6 grid gap-4 md:grid-cols-2">
             <BulletCard>
-              Certification is not self-attestation or a policy statement alone.
+              Certification is not self-attestation or a policy statement.
             </BulletCard>
             <BulletCard>
-              Certification means the oversight posture was evaluated through a
-              structured framework.
+              Certification reflects a structured, completed verification process.
             </BulletCard>
             <BulletCard>
-              Certification means the outcome was finalized into a public trust
-              record.
+              Certification results in a public trust record.
             </BulletCard>
             <BulletCard>
-              Certification means external parties can independently verify the
-              published outcome.
+              Certification can be independently verified using signed proof.
             </BulletCard>
           </div>
         </section>
@@ -142,10 +142,9 @@ export default function FrameworkPage() {
           </h2>
 
           <p className="mt-4 text-[15px] leading-7 text-black/75">
-            GAFAIG separates internal verification workflow from public
-            certification exposure. This allows rigorous review without exposing
-            private evidence while still publishing a clear, verifiable public
-            result.
+            GAFAIG separates internal verification from public trust. This allows
+            rigorous evaluation without exposing private evidence while still
+            producing a clear, verifiable public outcome.
           </p>
 
           <div className="mt-6 grid gap-4 md:grid-cols-2">
@@ -154,10 +153,8 @@ export default function FrameworkPage() {
                 Private verification engine
               </div>
               <p className="mt-3 text-[14px] leading-7 text-black/70">
-                Applications, evidence, findings, events, and scoring are
-                reviewed and finalized in the private GAFAIG verification layer.
-                This is where meaningful human oversight is assessed through
-                controlled workflow.
+                Applications, evidence, findings, events, and scoring are processed
+                within a controlled environment where oversight is evaluated.
               </p>
             </article>
 
@@ -166,10 +163,8 @@ export default function FrameworkPage() {
                 Public trust layer
               </div>
               <p className="mt-3 text-[14px] leading-7 text-black/70">
-                The public layer exposes only the finalized certification
-                outcome. It allows outside parties to verify that certification
-                exists without exposing reviewer notes, internal materials, or
-                private evidence.
+                Only the certification outcome is exposed publicly. External parties
+                can verify the result without accessing internal materials.
               </p>
             </article>
           </div>
@@ -177,57 +172,29 @@ export default function FrameworkPage() {
 
         <section className="rounded-3xl border border-black/10 bg-white p-8">
           <h2 className="text-[26px] font-semibold tracking-tight text-black">
-            Certification becomes public trust infrastructure
+            Certification becomes verifiable trust
           </h2>
 
           <p className="mt-4 text-[15px] leading-7 text-black/75">
-            GAFAIG is not only a review framework. It is also a public trust
-            infrastructure layer. Once certification is finalized, the outcome
-            can be surfaced through registry records, verification endpoints,
-            signed proof, and public trust interfaces that others can inspect.
+            GAFAIG is both a verification system and a trust distribution layer.
+            Once certification is finalized, the outcome becomes a signed,
+            independently verifiable record that can be validated outside the
+            platform.
           </p>
 
           <div className="mt-6 grid gap-4 md:grid-cols-2">
-            <article className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
-              <div className="text-[18px] font-semibold tracking-tight text-black">
-                Registry records
-              </div>
-              <p className="mt-3 text-[14px] leading-7 text-black/70">
-                Each certified outcome can be published into the GAFAIG public
-                registry as a durable public certification record.
-              </p>
-            </article>
-
-            <article className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
-              <div className="text-[18px] font-semibold tracking-tight text-black">
-                Verification endpoints
-              </div>
-              <p className="mt-3 text-[14px] leading-7 text-black/70">
-                The public verification surface allows external parties to
-                confirm a certification outcome by registry identifier.
-              </p>
-            </article>
-
-            <article className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
-              <div className="text-[18px] font-semibold tracking-tight text-black">
-                Signed proof
-              </div>
-              <p className="mt-3 text-[14px] leading-7 text-black/70">
-                GAFAIG supports signed verification payloads so the public trust
-                record can be checked as a cryptographically backed result.
-              </p>
-            </article>
-
-            <article className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
-              <div className="text-[18px] font-semibold tracking-tight text-black">
-                Public trust surface
-              </div>
-              <p className="mt-3 text-[14px] leading-7 text-black/70">
-                Certification can be distributed through registry pages, verify
-                pages, signed JSON, and external trust surfaces without exposing
-                internal verification materials.
-              </p>
-            </article>
+            <BulletCard>
+              Registry records provide a durable public certification reference.
+            </BulletCard>
+            <BulletCard>
+              The verify endpoint exposes a signed payload for independent validation.
+            </BulletCard>
+            <BulletCard>
+              Signed proof enables cryptographic verification of certification.
+            </BulletCard>
+            <BulletCard>
+              Trust can be distributed across APIs, widgets, badges, and external platforms.
+            </BulletCard>
           </div>
 
           <div className="mt-6 flex flex-wrap gap-3">
