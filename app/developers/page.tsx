@@ -1,3 +1,4 @@
+import Script from "next/script";
 import PublicButtonLink from "../_components/PublicButtonLink";
 import PublicPageHero from "../_components/PublicPageHero";
 
@@ -215,6 +216,8 @@ const proofShapeExample = `{
 export default function DevelopersPage() {
   return (
     <main className="mx-auto max-w-[1180px] px-6 py-10">
+      <Script src="/sdk/gafaig.js" strategy="afterInteractive" />
+
       <div className="space-y-8">
         <PublicPageHero
           eyebrow="DEVELOPERS"
