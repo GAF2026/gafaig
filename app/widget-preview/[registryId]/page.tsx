@@ -17,9 +17,6 @@ type VerifyApiResponse = {
     applicationId?: string | null;
     caseId?: string | null;
     certificationStatus?: string | null;
-    certifiedTier?: string | null;
-    certifiedBand?: string | null;
-    decisionStatus?: string | null;
     certifiedAt?: string | null;
     validFrom?: string | null;
     validTo?: string | null;
@@ -196,12 +193,7 @@ export default async function WidgetPreviewPage({
     ? "Verified"
     : String(record.certifiedAt ?? "").trim()
       ? "Certified"
-      : "Approved";
-
-  const tierBand =
-    [valueOrDash(record.certifiedTier), valueOrDash(record.certifiedBand)]
-      .filter((v) => v !== "—")
-      .join(" · ") || "—";
+      : "Not Certified";
 
   const widgetSnippet = `<script src="${productionBaseUrl}/widget/gafaig-widget.js"></script>
 <div data-gafaig-id="${registryId}"></div>`;
@@ -290,7 +282,7 @@ export default async function WidgetPreviewPage({
         <section className="grid gap-4 md:grid-cols-4">
           <MetricCard label="Entity" value={entityName} />
           <MetricCard label="Trust State" value={trustState} />
-          <MetricCard label="Tier / Band" value={tierBand} />
+          <MetricCard label="Certified At" value={valueOrDash(record.certifiedAt)} />
           <MetricCard label="Valid To" value={valueOrDash(record.validTo)} />
         </section>
 

@@ -88,22 +88,16 @@ export type BadgeApiResponse =
       ok: true;
       registryId: string;
       entityName: string | null;
-      certifiedTier: string | null;
-      certifiedBand: string | null;
+      certificationStatus: string | null;
       certifiedAt: string | null;
       badge: {
-        tier: string;
+        status: string;
         label: string;
         imageUrl: string;
       };
       verifyUrl: string;
       registryUrl: string;
       widgetUrl: string;
-      embed: {
-        imageHtml: string;
-        linkedImageHtml: string;
-        iframeHtml: string;
-      };
     }
   | {
       ok: false;

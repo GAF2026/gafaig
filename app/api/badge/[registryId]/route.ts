@@ -5,6 +5,16 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
+function escapeSqlString(value: string): string {
+  return String(value).replace(/'/g, "''");
+}
+
+function toIsoString(value: unknown): string | null {
+  if (!value) return null;
+  const date = new Date(String(value));
+  return Number.isNaN(date.getTime()) ? null : date.toISOString();
+}
+
 export async function GET(
   _req: Request,
   context: { params: { registryId: string } }
@@ -26,7 +36,7 @@ export async function GET(
         CERTIFICATION_STATUS,
         CERTIFIED_AT
       FROM CORE.V_REGISTRY_PUBLIC
-      WHERE UPPER(TRIM(REGISTRY_ID)) = UPPER(TRIM('${registryId.replace(/'/g, "''")}'))
+      WHERE UPPER(TRIM(REGISTRY_ID)) = UPPER(TRIM('${escapeSqlString(registryId)}'))
       LIMIT 1
     `);
 
@@ -39,7 +49,8 @@ export async function GET(
 
     const r = rows[0];
 
-    const isCertified = r.CERTIFICATION_STATUS === "CERTIFIED";
+    const certificationStatus = String(r.CERTIFICATION_STATUS ?? "").trim().toUpperCase();
+    const isCertified = certificationStatus === "CERTIFIED";
 
     const badge = {
       status: isCertified ? "CERTIFIED" : "NOT_CERTIFIED",
@@ -52,9 +63,9 @@ export async function GET(
     return NextResponse.json({
       ok: true,
       registryId: r.REGISTRY_ID,
-      entityName: r.ENTITY_NAME,
-      certificationStatus: r.CERTIFICATION_STATUS,
-      certifiedAt: r.CERTIFIED_AT,
+      entityName: r.ENTITY_NAME ?? null,
+      certificationStatus: r.CERTIFICATION_STATUS ?? null,
+      certifiedAt: toIsoString(r.CERTIFIED_AT),
       badge,
       verifyUrl: `/verify/${r.REGISTRY_ID}`,
       registryUrl: `/registry/${r.REGISTRY_ID}`,
