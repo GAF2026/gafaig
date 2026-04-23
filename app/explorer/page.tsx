@@ -62,7 +62,7 @@ export default async function ExplorerPage() {
             <div className="text-xs font-semibold uppercase tracking-[0.24em] text-black/40">
               How to read Explorer
             </div>
-            <h2 className="text-[32px] md:text-[38px] font-semibold tracking-tight text-black">
+            <h2 className="text-[26px] font-semibold tracking-tight text-black">
               Certified and published records appear in the public trust surface
             </h2>
             <p className="text-[15px] leading-7 text-black/75">
@@ -149,7 +149,7 @@ export default async function ExplorerPage() {
               <div className="text-xs font-semibold uppercase tracking-[0.24em] text-black/40">
                 Latest Public Records
               </div>
-              <h2 className="mt-3 text-[32px] md:text-[38px] font-semibold tracking-tight text-black">
+              <h2 className="mt-3 text-[26px] font-semibold tracking-tight text-black">
                 Public records currently visible in Explorer
               </h2>
               <p className="mt-4 text-[15px] leading-7 text-black/75">

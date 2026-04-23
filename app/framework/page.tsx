@@ -18,9 +18,9 @@ function Step({
       <div className="text-[12px] font-semibold uppercase tracking-[0.24em] text-black/40">
         Step {number}
       </div>
-      <h3 className="mt-3 text-[18px] font-semibold tracking-tight text-black">
+      <div className="mt-3 text-[18px] font-semibold tracking-tight text-black">
         {title}
-      </h3>
+      </div>
       <p className="mt-3 text-[14px] leading-7 text-black/70">{body}</p>
     </article>
   );
@@ -150,9 +150,9 @@ export default function FrameworkPage() {
 
           <div className="mt-6 grid gap-4 md:grid-cols-2">
             <article className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
-              <h3 className="text-[18px] font-semibold tracking-tight text-black">
+              <div className="text-[18px] font-semibold tracking-tight text-black">
                 Private verification engine
-              </h3>
+              </div>
               <p className="mt-3 text-[14px] leading-7 text-black/70">
                 Applications, evidence, findings, events, and scoring are
                 reviewed and finalized in the private GAFAIG verification layer.
@@ -162,9 +162,9 @@ export default function FrameworkPage() {
             </article>
 
             <article className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
-              <h3 className="text-[18px] font-semibold tracking-tight text-black">
+              <div className="text-[18px] font-semibold tracking-tight text-black">
                 Public trust layer
-              </h3>
+              </div>
               <p className="mt-3 text-[14px] leading-7 text-black/70">
                 The public layer exposes only the finalized certification
                 outcome. It allows outside parties to verify that certification
@@ -189,9 +189,9 @@ export default function FrameworkPage() {
 
           <div className="mt-6 grid gap-4 md:grid-cols-2">
             <article className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
-              <h3 className="text-[18px] font-semibold tracking-tight text-black">
+              <div className="text-[18px] font-semibold tracking-tight text-black">
                 Registry records
-              </h3>
+              </div>
               <p className="mt-3 text-[14px] leading-7 text-black/70">
                 Each certified outcome can be published into the GAFAIG public
                 registry as a durable public certification record.
@@ -199,9 +199,9 @@ export default function FrameworkPage() {
             </article>
 
             <article className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
-              <h3 className="text-[18px] font-semibold tracking-tight text-black">
+              <div className="text-[18px] font-semibold tracking-tight text-black">
                 Verification endpoints
-              </h3>
+              </div>
               <p className="mt-3 text-[14px] leading-7 text-black/70">
                 The public verification surface allows external parties to
                 confirm a certification outcome by registry identifier.
@@ -209,9 +209,9 @@ export default function FrameworkPage() {
             </article>
 
             <article className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
-              <h3 className="text-[18px] font-semibold tracking-tight text-black">
+              <div className="text-[18px] font-semibold tracking-tight text-black">
                 Signed proof
-              </h3>
+              </div>
               <p className="mt-3 text-[14px] leading-7 text-black/70">
                 GAFAIG supports signed verification payloads so the public trust
                 record can be checked as a cryptographically backed result.
@@ -219,9 +219,9 @@ export default function FrameworkPage() {
             </article>
 
             <article className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
-              <h3 className="text-[18px] font-semibold tracking-tight text-black">
+              <div className="text-[18px] font-semibold tracking-tight text-black">
                 Public trust surface
-              </h3>
+              </div>
               <p className="mt-3 text-[14px] leading-7 text-black/70">
                 Certification can be distributed through registry pages, verify
                 pages, signed JSON, and external trust surfaces without exposing

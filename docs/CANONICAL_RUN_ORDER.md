@@ -1,5 +1,5 @@
 # CANONICAL_RUN_ORDER.md
-Date: 2026-04-21
+Date: 2026-04-22
 
 # PURPOSE
 
@@ -20,6 +20,7 @@ All downstream systems (API/UI/Widget) are read-only projections.
 # GLOBAL EXECUTION RULES
 
 1. Always run in ACCOUNTADMIN (or appropriate elevated role)
+
 2. Always execute:
 
 USE ROLE ACCOUNTADMIN;  
@@ -27,12 +28,26 @@ USE WAREHOUSE GAFAIG_WH;
 USE DATABASE GAFAIG_DB;  
 USE SCHEMA CORE;
 
-3. Never modify table contracts outside canonical files
-4. Never introduce derived logic in API/UI
-5. Registry is append-only
-6. IDs must be deterministic and stable
-7. All joins must use TRIM(UPPER(...)) normalization
-8. All scoring must originate from Snowflake views only
+3. Never modify table contracts outside canonical files  
+4. Never introduce derived logic in API/UI  
+5. Registry is append-only  
+6. IDs must be deterministic and stable  
+7. All joins must use TRIM(UPPER(...)) normalization  
+8. All scoring must originate from Snowflake views only  
+
+---
+
+# CRITICAL PRE-RUN CHECKS (UPDATED)
+
+Before running full rebuild:
+
+- 12_TABLES_PARTICIPANTS.sql must compile without errors  
+- 15_TABLES_EVENTS.sql must compile without errors  
+
+If either fails:
+STOP execution and fix schema before proceeding.
+
+These two files previously caused canonical run breaks and must be validated first.
 
 ---
 
@@ -44,13 +59,14 @@ USE SCHEMA CORE;
 
 ---
 
-## 01 — FULL RESET (OPTIONAL)
+## 01 — FULL RESET (OPTIONAL BUT RECOMMENDED)
 
 01_REBUILD_ENVIRONMENT_CANONICAL.sql
 
 Purpose:
 - clean rebuild of entire system
-- used for deterministic validation
+- required for deterministic validation
+- ensures no residual state
 
 ---
 
@@ -73,12 +89,16 @@ Rules:
 - all tables must compile clean
 - no missing columns
 - no schema drift allowed
+- no implicit column assumptions
 
 ---
 
 ## 20 — CORE VIEWS (READ LAYER)
 
 20_VIEWS_VERIFICATION_CASE_DETAIL.sql  
+
+26_VIEWS_CASE_RENEWAL_STATUS.sql  
+- defines CORE.V_CASE_RENEWAL_STATUS  
 
 21_VIEWS_PUBLIC_REGISTRY.sql  
 - defines CORE.V_REGISTRY_PUBLIC  
@@ -90,14 +110,12 @@ Rules:
 22_VIEWS_EXPLORER_STATS.sql  
 - defines CORE.V_EXPLORER_STATS  
 
-26_VIEWS_CASE_RENEWAL_STATUS.sql  
-- defines CORE.V_CASE_RENEWAL_STATUS  
-
 Rules:
 - views are projections only
 - no recomputation
 - no mutation
-- must enforce lifecycle and certification rules
+- lifecycle enforcement must occur here
+- certification filtering must occur here
 
 ---
 
@@ -116,23 +134,7 @@ Rules:
 Rules:
 - procedures must enforce deterministic transitions
 - no partial state transitions allowed
-
----
-
-## REGISTRY PUBLISH (CRITICAL)
-
-GAFAIG - CORE.REGISTRY_PUBLISH.sql  
-- defines CORE.SP_PUBLISH_CASE_TO_REGISTRY_V3  
-
-Purpose:
-- CASE → REGISTRY_SNAPSHOTS → REGISTRY_ID  
-
-Rules:
-- must reuse REGISTRY_ID if already exists
-- must insert append-only snapshot
-- must not overwrite prior records
-- must align REGISTRY_AI_SYSTEMS with REGISTRY_ID
-- must use scoring + lifecycle state only
+- no implicit assumptions about upstream state
 
 ---
 
@@ -146,6 +148,27 @@ Defines:
 Rules:
 - single source of score, tier, band
 - no duplicate scoring logic anywhere else
+- must be executed AFTER tables and BEFORE seed scoring
+
+---
+
+## REGISTRY PUBLISH (CRITICAL)
+
+GAFAIG - CORE.REGISTRY_PUBLISH.sql  
+
+Defines:
+- CORE.SP_PUBLISH_CASE_TO_REGISTRY_V3  
+
+Purpose:
+- CASE → REGISTRY_SNAPSHOTS → REGISTRY_ID  
+
+Rules:
+- must reuse REGISTRY_ID if already exists
+- must insert append-only snapshot
+- must not overwrite prior records
+- must align REGISTRY_AI_SYSTEMS with REGISTRY_ID
+- must use scoring + lifecycle state only
+- must NOT rely on UI/API flags
 
 ---
 
@@ -156,7 +179,7 @@ GAFAIG - FINAL_CANONICAL_MULTI_SEED.sql
 Rules:
 - single source of seed truth
 - no auxiliary seed files allowed
-- must generate:
+- must generate complete pipeline:
 
 APPLICATION  
 CASE  
@@ -167,7 +190,7 @@ EVENTS
 
 ---
 
-## END-TO-END PIPELINE EXECUTION
+# END-TO-END PIPELINE EXECUTION
 
 MANDATORY ORDER:
 
@@ -179,7 +202,7 @@ MANDATORY ORDER:
 
 ---
 
-## VALIDATION QUERIES
+# VALIDATION QUERIES
 
 SELECT * FROM CORE.V_GOVERNANCE_SCORE_CASE WHERE CASE_ID = '<CASE_ID>';
 
@@ -192,6 +215,8 @@ SELECT * FROM CORE.REGISTRY_SNAPSHOTS WHERE CASE_ID = '<CASE_ID>';
 SELECT * FROM CORE.V_REGISTRY_PUBLIC WHERE CASE_ID = '<CASE_ID>';
 
 SELECT * FROM CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC WHERE CASE_ID = '<CASE_ID>';
+
+SELECT * FROM CORE.V_EXPLORER_STATS;
 
 ---
 
@@ -285,7 +310,7 @@ ALWAYS:
 
 ---
 
-# CURRENT SYSTEM STATE (AS OF 2026-04-21)
+# CURRENT SYSTEM STATE (AS OF 2026-04-22)
 
 ✔ full pipeline operational  
 ✔ scoring engine stable (v1.2)  
@@ -300,6 +325,7 @@ ALWAYS:
 ✔ Ed25519 signing validated  
 ✔ public key endpoint operational  
 ✔ Snowflake → API → UI parity achieved  
+✔ Phase 1 UI alignment complete  
 
 ---
 
@@ -308,11 +334,11 @@ ALWAYS:
 SYSTEM HARDENING + TRUST DISTRIBUTION
 
 Goals:
-- registry integrity validation
-- explorer systems enforcement
-- widget + badge production rollout
-- third-party verification enablement
-- zero drift across all layers
+- registry integrity validation  
+- explorer systems enforcement  
+- widget + badge production rollout  
+- third-party verification enablement  
+- zero drift across all layers  
 
 ---
 

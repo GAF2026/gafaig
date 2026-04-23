@@ -1,4 +1,5 @@
-# GAFAIG_VS_CODE_File_Tree.md — Last Updated: 2026-04-21
+# GAFAIG_VS_CODE_File_Tree.md
+Last Updated: 2026-04-22
 
 ## PURPOSE
 
@@ -41,6 +42,7 @@ gafaig/
 ├── docs/                    # Canonical system documentation
 ├── public/                  # Static assets
 ├── styles/                  # Global styling
+├── types/                   # TypeScript contracts
 ├── .env.local               # Environment variables
 ├── next.config.js           # Next.js config
 ├── package.json             # Dependencies
@@ -57,16 +59,18 @@ app/
 Rules:
 - App Router only
 - No Pages Router
-- Layout consistency required
+- Layout consistency enforced via PAGE_LAYOUT_SYSTEM.md
 
 ---
 
-## CORE PUBLIC PAGES
+## CORE PUBLIC PAGES (PHASE 1 ALIGNED)
 
 app/
 ├── page.tsx
 ├── mission/page.tsx
 ├── framework/page.tsx
+├── demo/page.tsx
+├── developers/page.tsx
 
 ---
 
@@ -80,14 +84,13 @@ app/explorer/
 
 Purpose:
 - Aggregate public registry data
-- Must ONLY consume Snowflake public views
 
 MANDATORY DATA SOURCES:
 - CORE.V_REGISTRY_PUBLIC
 - CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC
 - CORE.V_EXPLORER_STATS
 
-CRITICAL RULE:
+CRITICAL RULES:
 - NEVER query CORE.REGISTRY_AI_SYSTEMS directly
 - NEVER expose TMP registry IDs
 - ONLY certified/public systems allowed
@@ -104,7 +107,9 @@ app/registry/
 
 Purpose:
 - Display canonical registry records
-- Must reflect V_REGISTRY_PUBLIC exactly
+
+RULE:
+- Must reflect CORE.V_REGISTRY_PUBLIC exactly
 
 ---
 
@@ -116,6 +121,7 @@ app/verify/
 
 Purpose:
 - Human + machine verification interface
+- Must align with signed proof output
 
 ---
 
@@ -126,6 +132,8 @@ app/apply/
 
 Purpose:
 - Entry into APPLICATION → CASE pipeline
+
+RULE:
 - MUST write to CORE.APPLICATIONS
 
 ---
@@ -136,8 +144,8 @@ app/developers/
 ├── page.tsx
 
 Purpose:
-- Trust distribution
 - API + widget documentation
+- Trust distribution surface
 
 ---
 
@@ -148,6 +156,27 @@ app/widget-preview/
 
 Purpose:
 - Validate embed behavior
+- Demonstrate trust portability
+
+---
+
+## ADMIN (PRIVATE VERIFICATION LAYER)
+
+app/admin/
+├── login/page.tsx
+├── applications/page.tsx
+├── participants/page.tsx
+├── verification/page.tsx
+├── verification/[caseId]/page.tsx
+├── verification/[caseId]/findings/page.tsx
+├── verification/[caseId]/score/page.tsx
+├── verification/[caseId]/publish/page.tsx
+
+Purpose:
+- Manage internal workflow only
+
+RULE:
+- NEVER expose admin data publicly
 
 ---
 
@@ -177,14 +206,14 @@ Responsibilities:
 ### PUBLIC KEY
 ├── .well-known/gafaig-public-key/route.ts
 
-Rules:
+RULES:
 - no recomputation
 - no derived trust logic
 - strict mapping only
 
 ---
 
-## SHARED UI COMPONENTS
+## SHARED UI COMPONENTS (CANONICAL)
 
 app/_components/
 ├── PublicPageHero.tsx
@@ -194,8 +223,8 @@ app/_components/
 ├── SiteNav.tsx
 
 Rules:
-- mandatory usage
-- defines layout system
+- REQUIRED usage across all public pages
+- Defines layout, typography, spacing
 
 ---
 
@@ -223,9 +252,9 @@ components/
 │   ├── MetricCard.tsx
 │   └── Pill.tsx
 
-Rules:
+RULE:
 - presentation only
-- no business logic
+- NO business logic
 
 ---
 
@@ -236,16 +265,15 @@ lib/queries/
 ├── registry.ts
 ├── registry-ai-systems.ts (INTERNAL ONLY)
 
-Rules:
+RULES:
 - MUST query Snowflake views only
-- NO direct table access for public surfaces
 
-Allowed:
+ALLOWED:
 - CORE.V_REGISTRY_PUBLIC
 - CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC
 - CORE.V_EXPLORER_STATS
 
-Forbidden:
+FORBIDDEN:
 - CORE.REGISTRY_AI_SYSTEMS (public UI)
 - workflow tables in explorer/registry
 
@@ -259,9 +287,9 @@ lib/
 Purpose:
 - connection + query execution
 
-Rules:
-- no logic
-- no transformation beyond execution
+RULE:
+- no transformation logic
+- no derived computation
 
 ---
 
@@ -296,6 +324,8 @@ docs/
 ├── GAFAIG_SNOWFLAKE_SQL_FILE_SUMMARY.md
 ├── GAFAIG_VS_CODE_File_Tree.md
 ├── PAGE_LAYOUT_SYSTEM.md
+├── PUBLIC_PAGE_TEMPLATE_MAP.md
+├── PUBLIC_PAGE_AUDIT.md
 ├── VERIFIED_DEFINITION.md
 ├── VERSIONING.md
 ├── VERIFICATION_SIGNATURE_CONTRACT.md
@@ -307,7 +337,7 @@ docs/
 ├── TEST_CASES.md
 ├── DO_NOT_BREAK.md
 
-Rules:
+RULE:
 - docs define system behavior
 - must match Snowflake reality
 
@@ -317,6 +347,7 @@ Rules:
 
 public/
 ├── widget/gafaig-widget.js
+├── widget/gafaig-verify.js
 ├── images/
 ├── icons/
 ├── badges/
@@ -328,9 +359,9 @@ public/
 styles/
 ├── globals.css
 
-Rules:
+RULE:
 - must follow PAGE_LAYOUT_SYSTEM.md
-- no ad hoc styling systems
+- no ad hoc styling
 
 ---
 
@@ -358,35 +389,33 @@ Rules:
 
 ## CURRENT STABLE CHECKPOINT
 
-Git Commit:
-3f5a775
-
 State:
-- registry stable
-- explorer stable
+- Phase 1 UI alignment COMPLETE
+- Registry stable
+- Explorer stable
+- Verify stable
+- Widget system aligned
+- Admin shell aligned
 - API aligned
 - Snowflake aligned
-- public trust surface restored
 
 ---
 
 ## ACTIVE FOCUS
 
-1. enforce systems view usage across explorer
-2. eliminate any remaining raw table usage
-3. maintain strict Snowflake → UI parity
-4. protect public trust surface integrity
+1. Final registry integrity validation  
+2. Enforce systems view purity  
+3. Prevent revoked record leakage  
+4. Maintain strict Snowflake → API → UI flow  
 
 ---
 
 ## FINAL STATEMENT
 
-GAFAIG is now a deterministic governance system where:
+GAFAIG is a deterministic governance system where:
 
 Snowflake defines truth  
 API transmits truth  
 UI renders truth  
 
 Any deviation from this model is a system violation.
-
-END OF FILE

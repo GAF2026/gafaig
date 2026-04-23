@@ -470,7 +470,7 @@ export default function VerifyPage() {
             WHAT THIS PAGE PROVES
           </div>
 
-          <h2 className="mt-4 max-w-[860px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
+          <h2 className="mt-4 max-w-[860px] text-[26px] font-semibold tracking-tight text-black">
             Independent verification of the public trust record
           </h2>
 
@@ -536,7 +536,7 @@ export default function VerifyPage() {
             Live verification
           </div>
 
-          <h2 className="mt-3 text-[32px] md:text-[38px] font-semibold tracking-tight text-black">
+          <h2 className="mt-3 text-[26px] font-semibold tracking-tight text-black">
             Verify by registry ID
           </h2>
 
@@ -595,7 +595,7 @@ export default function VerifyPage() {
             How verification works
           </div>
 
-          <h2 className="mt-3 text-[32px] md:text-[38px] font-semibold tracking-tight text-white">
+          <h2 className="mt-3 text-[26px] font-semibold tracking-tight text-white">
             Public trust without private evidence disclosure
           </h2>
 
@@ -658,7 +658,7 @@ export default function VerifyPage() {
                     Proof integrity
                   </div>
 
-                  <h2 className="mt-3 text-[32px] md:text-[38px] font-semibold tracking-tight text-black">
+                  <h2 className="mt-3 text-[26px] font-semibold tracking-tight text-black">
                     Cryptographic trust dashboard
                   </h2>
 
@@ -733,7 +733,7 @@ export default function VerifyPage() {
                 Verification summary
               </div>
 
-              <h2 className="mt-3 text-[32px] md:text-[38px] font-semibold tracking-tight text-black">
+              <h2 className="mt-3 text-[26px] font-semibold tracking-tight text-black">
                 Human-readable proof status
               </h2>
 
@@ -775,7 +775,7 @@ export default function VerifyPage() {
                 Proof materials
               </div>
 
-              <h2 className="mt-3 text-[32px] md:text-[38px] font-semibold tracking-tight text-black">
+              <h2 className="mt-3 text-[26px] font-semibold tracking-tight text-black">
                 The exact signed proof being verified
               </h2>
 
@@ -832,7 +832,7 @@ export default function VerifyPage() {
                 External validation
               </div>
 
-              <h2 className="mt-3 text-[32px] md:text-[38px] font-semibold tracking-tight text-black">
+              <h2 className="mt-3 text-[26px] font-semibold tracking-tight text-black">
                 Independent verification flow
               </h2>
 

@@ -245,7 +245,7 @@ export default function AdminApplicationsPage() {
             FILTERS
           </div>
 
-          <h2 className="mt-4 max-w-[760px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
+          <h2 className="mt-4 max-w-[760px] text-[26px] font-semibold tracking-tight text-black">
             Search and refine intake workflow records
           </h2>
 
@@ -345,7 +345,7 @@ export default function AdminApplicationsPage() {
               <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
                 APPLICATION RECORDS
               </div>
-              <h2 className="mt-4 max-w-[760px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
+              <h2 className="mt-4 max-w-[760px] text-[26px] font-semibold tracking-tight text-black">
                 Snowflake-backed intake workflow
               </h2>
               <p className="mt-4 max-w-[880px] text-[14px] leading-7 text-black/72">
@@ -500,7 +500,7 @@ function MetricCard({
       <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/55">
         {label}
       </div>
-      <div className="mt-3 text-[32px] font-semibold leading-none tracking-tight text-black">
+      <div className="mt-3 text-[26px] font-semibold tracking-tight text-black">
         {value}
       </div>
     </div>

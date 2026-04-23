@@ -40,7 +40,7 @@ export default async function ExplorerCountriesPage() {
               <div className="text-[12px] font-semibold uppercase tracking-[0.24em] text-black/40">
                 Countries
               </div>
-              <div className="mt-3 text-[32px] md:text-[38px] font-semibold tracking-tight text-black">
+              <div className="mt-3 text-[26px] font-semibold tracking-tight text-black">
                 {numberFormat(stats.countries)}
               </div>
             </div>
@@ -49,7 +49,7 @@ export default async function ExplorerCountriesPage() {
               <div className="text-[12px] font-semibold uppercase tracking-[0.24em] text-black/40">
                 Organizations
               </div>
-              <div className="mt-3 text-[32px] md:text-[38px] font-semibold tracking-tight text-black">
+              <div className="mt-3 text-[26px] font-semibold tracking-tight text-black">
                 {numberFormat(stats.organizations)}
               </div>
             </div>

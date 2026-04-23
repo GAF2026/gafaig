@@ -1,5 +1,5 @@
 # GAFAIG_SNOWFLAKE_SQL_FILE_SUMMARY.md
-Last Updated: 2026-04-21
+Last Updated: 2026-04-22
 
 ---
 
@@ -63,16 +63,17 @@ APPLICATION
 Purpose:
 - deterministic environment setup
 - schema + role initialization
+- full reset capability for reproducibility
 
 ---
 
 ### TABLES
 
 - 11_TABLES_APPLICATIONS.sql  
-- 12_TABLES_PARTICIPANTS.sql  
+- 12_TABLES_PARTICIPANTS.sql  ⚠️ (previous errors — must be validated before rebuild)
 - 13_TABLES_FINDINGS.sql  
 - 14_TABLES_EVIDENCE.sql  
-- 15_TABLES_EVENTS.sql  
+- 15_TABLES_EVENTS.sql  ⚠️ (previous errors — must be validated before rebuild)
 - 16_TABLES_CASE_SCORE_SNAPSHOTS.sql  
 - 17_TABLES_DECISIONS.sql  
 - 18_TABLES_REGISTRY_ENTITIES.sql  
@@ -80,11 +81,12 @@ Purpose:
 
 Purpose:
 - canonical storage layer
-- must match production schema exactly
+- must exactly match production schema
+- supports append-only lifecycle behavior
 
 ---
 
-### SCORING ENGINE
+### SCORING ENGINE (PRIMARY)
 
 - GAFAIG - Governance Scoring (Enterprise v1.2).sql  
 
@@ -96,10 +98,11 @@ Purpose:
 
 Outputs:
 - FINAL_SCORE  
-- TIER  
-- BAND  
+- CERTIFIED_TIER  
+- CERTIFIED_BAND  
 - MODEL_VERSION  
 - RENEWAL_STATUS  
+- VALIDITY SIGNALS  
 
 RULE:
 No duplicate scoring logic anywhere else.
@@ -108,12 +111,16 @@ No duplicate scoring logic anywhere else.
 
 ### SCORING SUPPORT VIEWS
 
-- V_CASE_SCORE_ENTERPRISE  
-- V_FINDING_RESULT_NORMALIZED  
-- V_FINDING_UNMAPPED_CONTROLS  
+- CORE.V_CASE_SCORE_ENTERPRISE  
+- CORE.V_FINDING_RESULT_NORMALIZED  
+- CORE.V_FINDING_UNMAPPED_CONTROLS  
+- CORE.V_CASE_FINDING_AGG_ENTERPRISE  
+- CORE.V_CASE_EVIDENCE_AGG_ENTERPRISE  
+- CORE.V_CASE_EVENT_AGG_ENTERPRISE  
 
 Purpose:
-- feed canonical scoring engine
+- normalize workflow inputs
+- feed scoring engine deterministically
 
 ---
 
@@ -127,6 +134,7 @@ Purpose:
 
 Purpose:
 - deterministic workflow transitions
+- enforce lifecycle correctness
 
 ---
 
@@ -140,8 +148,11 @@ Creates:
 Purpose:
 - governs:
   - renewal status
-  - validity
+  - lifecycle validity
   - publishability
+
+Rule:
+- lifecycle must be derived from decisions, not workflow state
 
 ---
 
@@ -160,16 +171,17 @@ Status:
 - STABILIZED
 
 Responsibilities:
-- expose only public certified registry records
+- expose ONLY certified public registry records
 - enforce:
-  - latest decision
-  - approved only
-  - valid lifecycle
-  - no revoked/expired leakage
+  - latest decision row
+  - approved status only
+  - valid lifecycle (renewal aware)
+  - no revoked records
+  - no expired records
 
 THIS FILE CONTROLS:
 - registry UI
-- explorer trust surface
+- explorer pages
 - API outputs
 
 ---
@@ -183,18 +195,24 @@ Creates:
 
 Status:
 - ACTIVE
-- STRUCTURALLY CORRECT
+- MUST BE STRICTLY ENFORCED
 
 Responsibilities:
-- one row per public system
+- one row per PUBLIC AI system
 - join:
   - REGISTRY_AI_SYSTEMS
   - V_REGISTRY_PUBLIC
 
 Rules:
-- ONLY public systems allowed
-- MUST inherit certification fields from registry
-- MUST NOT expose workflow-only systems (TMP IDs)
+- ONLY systems tied to public registry records
+- MUST inherit:
+  - certification status
+  - tier
+  - band
+- MUST NOT expose:
+  - TMP systems
+  - workflow-only systems
+  - non-certified systems
 
 ---
 
@@ -216,13 +234,14 @@ Responsibilities:
   - organizations
   - countries
 
-Rule:
-- must match registry truth exactly
+Rules:
+- must match V_REGISTRY_PUBLIC exactly
 - must not double count
+- must not derive from workflow tables
 
 ---
 
-### 4. SCORE BREAKDOWN PUBLIC
+### 4. SCORE TRANSPARENCY LAYER
 
 - GAFAIG - SCORE_BREAKDOWN_PUBLIC.sql  
 
@@ -231,11 +250,12 @@ Creates:
 - CORE.V_SCORE_DIMENSIONS_PUBLIC  
 
 Purpose:
-- expose scoring transparency layer
+- expose scoring transparency
 
-Rule:
-- no recomputation
-- snapshot-derived only
+Rules:
+- derived from snapshots only
+- no recomputation allowed
+- consistent with scoring engine output
 
 ---
 
@@ -254,11 +274,13 @@ Purpose:
   - events
   - scores
   - decisions
-  - registry records
+  - registry snapshots
   - AI systems
 
-Rule:
+Rules:
 - ONLY seed file allowed
+- must produce reproducible state
+- must not introduce randomness
 
 ---
 
@@ -267,24 +289,28 @@ Rule:
 - CANONICAL_DEMO_SEED_MASTER.sql  
 - FINAL_CANONICAL_CASE_0001_SEED.sql  
 - SAFE_MULTI_CASE_EXPANSION V2.sql  
-- Demo dataset files  
+- all demo/test seed files  
 
 Reason:
-- cause drift
+- introduce drift
 - break determinism
+- create conflicting data states
 
 ---
 
 ## EXECUTION ORDER (MANDATORY)
 
 1. 01_REBUILD_ENVIRONMENT_CANONICAL.sql  
-2. TABLES  
-3. VIEWS  
-4. PROCEDURES  
-5. FINAL_CANONICAL_MULTI_SEED.sql  
-6. SP_SCORE_CASE_ENTERPRISE  
-7. APPROVE_CASE_V1  
-8. SP_PUBLISH_CASE_TO_REGISTRY_V3  
+2. TABLES (11 → 18)  
+3. SCORING SUPPORT VIEWS  
+4. SCORING ENGINE  
+5. LIFECYCLE VIEW (26)  
+6. PUBLIC VIEWS (21, 22)  
+7. PROCEDURES  
+8. FINAL_CANONICAL_MULTI_SEED.sql  
+9. CALL SP_SCORE_CASE_ENTERPRISE  
+10. CALL APPROVE_CASE_V1  
+11. CALL SP_PUBLISH_CASE_TO_REGISTRY_V3  
 
 ---
 
@@ -301,3 +327,17 @@ FROM CORE.V_REGISTRY_PUBLIC
 GROUP BY 1;
 
 SELECT * FROM CORE.V_EXPLORER_STATS;
+
+SELECT
+  CASE_ID,
+  FINAL_SCORE,
+  CERTIFIED_TIER,
+  CERTIFIED_BAND
+FROM CORE.V_GOVERNANCE_SCORE_CASE;
+
+SELECT
+  CASE_ID,
+  RENEWAL_STATUS,
+  IS_CURRENTLY_VALID,
+  IS_PUBLISHABLE
+FROM CORE.V_CASE_RENEWAL_STATUS;

@@ -115,7 +115,7 @@ function MetricCard({
       <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/55">
         {label}
       </div>
-      <div className="mt-3 text-[32px] font-semibold leading-none tracking-tight text-black">
+      <div className="mt-3 text-[26px] font-semibold tracking-tight text-black">
         {value}
       </div>
       <div className="mt-3 text-[14px] leading-7 text-black/65">{body}</div>

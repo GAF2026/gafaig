@@ -347,7 +347,7 @@ export default function CaseDecisionsPage() {
         </section>
 
         <section className="rounded-2xl border border-black/10 p-5">
-          <h2 className="text-[16px] font-semibold text-black">Latest decision</h2>
+          <h2 className="text-[26px] font-semibold tracking-tight text-black">Latest decision</h2>
 
           {!decisionRow ? (
             <div className="mt-4 rounded-xl border border-dashed border-black/15 px-4 py-4 text-[14px] text-black/65">
@@ -394,7 +394,7 @@ export default function CaseDecisionsPage() {
         </section>
 
         <section className="rounded-2xl border border-black/10 p-5">
-          <h2 className="text-[16px] font-semibold text-black">Record decision</h2>
+          <h2 className="text-[26px] font-semibold tracking-tight text-black">Record decision</h2>
           <p className="mt-2 max-w-[860px] text-[14px] leading-[1.7] text-black/70">
             This writes the canonical decision record for the case and invokes the
             approval lifecycle procedure used by GAFAIG before registry publish.

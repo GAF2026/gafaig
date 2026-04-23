@@ -162,7 +162,7 @@ export default async function CasePublishPage({
 
         {!ok ? (
           <section className="rounded-3xl border border-black/10 bg-white p-8">
-            <div className="text-[16px] font-semibold text-black">
+            <div className="text-[26px] font-semibold tracking-tight text-black">
               Publish unavailable
             </div>
             <p className="mt-2 text-[14px] leading-7 text-black/70">
@@ -200,7 +200,7 @@ export default async function CasePublishPage({
               )}
 
               <section className="mt-5 rounded-2xl border border-black/10 bg-black/[0.02] p-5">
-                <h3 className="text-[16px] font-semibold text-black">
+                <h3 className="text-[26px] font-semibold tracking-tight text-black">
                   Registry status
                 </h3>
 

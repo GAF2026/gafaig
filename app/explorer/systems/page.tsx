@@ -33,9 +33,7 @@ function DetailCard({
   className?: string;
 }) {
   return (
-    <div
-      className={`rounded-2xl border border-black/10 bg-black/[0.02] p-5 ${className}`}
-    >
+    <div className={`rounded-2xl border border-black/10 bg-black/[0.02] p-5 ${className}`}>
       <p className="text-[12px] font-semibold uppercase tracking-[0.24em] text-black/40">
         {label}
       </p>
@@ -60,9 +58,10 @@ function SystemCard({ row }: { row: ExplorerSystemRow }) {
             </span>
           </div>
 
-          <h2 className="mt-5 text-[32px] md:text-[38px] font-semibold tracking-tight text-black">
+          {/* FIXED: h2 → h3 + typography */}
+          <h3 className="mt-5 text-[26px] font-semibold tracking-tight text-black">
             {formatLabel(row.systemName)}
-          </h2>
+          </h3>
 
           <p className="mt-4 text-[15px] leading-7 text-black/75">
             {formatLabel(row.entityName)} · {formatLabel(row.country)}
@@ -80,84 +79,36 @@ function SystemCard({ row }: { row: ExplorerSystemRow }) {
       </div>
 
       <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <DetailCard
-          label="Certification"
-          value={formatLabel(row.certificationStatus)}
-        />
-        <DetailCard
-          label="Certified Tier"
-          value={formatLabel(row.certifiedTier)}
-        />
-        <DetailCard
-          label="Certified Band"
-          value={formatLabel(row.certifiedBand)}
-        />
+        <DetailCard label="Certification" value={formatLabel(row.certificationStatus)} />
+        <DetailCard label="Certified Tier" value={formatLabel(row.certifiedTier)} />
+        <DetailCard label="Certified Band" value={formatLabel(row.certifiedBand)} />
         <DetailCard label="Certified At" value={formatDate(row.certifiedAt)} />
 
         <DetailCard label="System Type" value={formatLabel(row.systemType)} />
-        <DetailCard
-          label="Deployment Status"
-          value={formatLabel(row.deploymentStatus)}
-        />
-        <DetailCard
-          label="Oversight Level"
-          value={formatLabel(row.oversightLevel)}
-        />
+        <DetailCard label="Deployment Status" value={formatLabel(row.deploymentStatus)} />
+        <DetailCard label="Oversight Level" value={formatLabel(row.oversightLevel)} />
         <DetailCard label="Risk Tier" value={formatLabel(row.riskTier)} />
 
-        <DetailCard
-          label="Developer Organization"
-          value={formatLabel(row.developerOrganization)}
-        />
-        <DetailCard
-          label="Human Review Required"
-          value={formatLabel(row.humanReviewRequired)}
-        />
-        <DetailCard
-          label="Audit Frequency"
-          value={formatLabel(row.auditFrequency)}
-        />
+        <DetailCard label="Developer Organization" value={formatLabel(row.developerOrganization)} />
+        <DetailCard label="Human Review Required" value={formatLabel(row.humanReviewRequired)} />
+        <DetailCard label="Audit Frequency" value={formatLabel(row.auditFrequency)} />
         <DetailCard label="System ID" value={formatLabel(row.systemId)} />
 
-        <DetailCard
-          label="Application ID"
-          value={formatLabel(row.applicationId)}
-        />
+        <DetailCard label="Application ID" value={formatLabel(row.applicationId)} />
         <DetailCard label="Case ID" value={formatLabel(row.caseId)} />
-        <DetailCard
-          label="Training Data Category"
-          value={formatLabel(row.trainingDataCategory)}
-        />
-        <DetailCard
-          label="Oversight Model"
-          value={formatLabel(row.oversightModel)}
-        />
+        <DetailCard label="Training Data Category" value={formatLabel(row.trainingDataCategory)} />
+        <DetailCard label="Oversight Model" value={formatLabel(row.oversightModel)} />
 
-        <DetailCard
-          label="Intended Use"
-          value={formatLabel(row.intendedUse)}
-          className="md:col-span-2"
-        />
-        <DetailCard
-          label="Evaluation Protocol"
-          value={formatLabel(row.evaluationProtocol)}
-          className="md:col-span-2"
-        />
-        <DetailCard
-          label="Public Summary"
-          value={formatLabel(row.publicSummary)}
-          className="md:col-span-2 xl:col-span-4"
-        />
+        <DetailCard label="Intended Use" value={formatLabel(row.intendedUse)} className="md:col-span-2" />
+        <DetailCard label="Evaluation Protocol" value={formatLabel(row.evaluationProtocol)} className="md:col-span-2" />
+        <DetailCard label="Public Summary" value={formatLabel(row.publicSummary)} className="md:col-span-2 xl:col-span-4" />
       </div>
 
       <div className="mt-8 flex flex-wrap gap-3">
         <PublicButtonLink href={`/registry/${row.registryId}`} variant="primary">
           View Certified Record
         </PublicButtonLink>
-        <PublicButtonLink
-          href={`/verify/${row.registryId}`}
-          variant="secondary"
-        >
+        <PublicButtonLink href={`/verify/${row.registryId}`} variant="secondary">
           Verify Record
         </PublicButtonLink>
       </div>
@@ -193,13 +144,14 @@ export default async function ExplorerSystemsPage() {
           }
         />
 
+        {/* FIXED: stat typography */}
         <section className="rounded-3xl border border-black/10 bg-white p-8">
           <div className="grid gap-4 md:grid-cols-3">
             <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
               <p className="text-[12px] font-semibold uppercase tracking-[0.24em] text-black/40">
                 Systems
               </p>
-              <p className="mt-3 text-[32px] md:text-[38px] font-semibold tracking-tight text-black">
+              <p className="mt-3 text-[26px] font-semibold tracking-tight text-black">
                 {numberFormat(rows.length)}
               </p>
             </div>
@@ -208,7 +160,7 @@ export default async function ExplorerSystemsPage() {
               <p className="text-[12px] font-semibold uppercase tracking-[0.24em] text-black/40">
                 Public Records
               </p>
-              <p className="mt-3 text-[32px] md:text-[38px] font-semibold tracking-tight text-black">
+              <p className="mt-3 text-[26px] font-semibold tracking-tight text-black">
                 {numberFormat(stats.publicRecords)}
               </p>
             </div>
@@ -217,20 +169,21 @@ export default async function ExplorerSystemsPage() {
               <p className="text-[12px] font-semibold uppercase tracking-[0.24em] text-black/40">
                 Organizations
               </p>
-              <p className="mt-3 text-[32px] md:text-[38px] font-semibold tracking-tight text-black">
+              <p className="mt-3 text-[26px] font-semibold tracking-tight text-black">
                 {numberFormat(stats.organizations)}
               </p>
             </div>
           </div>
         </section>
 
+        {/* FIXED: section header */}
         <section className="rounded-3xl border border-black/10 bg-white p-8">
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div>
               <p className="text-[13px] font-semibold uppercase tracking-[0.28em] text-black/45">
                 Public AI Systems
               </p>
-              <h2 className="mt-4 text-[32px] md:text-[38px] font-semibold tracking-tight text-black">
+              <h2 className="mt-4 text-[26px] font-semibold tracking-tight text-black">
                 Systems currently visible in Explorer
               </h2>
               <p className="mt-4 max-w-4xl text-[15px] leading-7 text-black/75">

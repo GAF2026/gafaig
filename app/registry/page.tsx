@@ -317,7 +317,7 @@ export default async function RegistryPage({
             <div className="text-xs font-semibold uppercase tracking-[0.24em] text-black/40">
               How to read the registry
             </div>
-            <h2 className="text-[32px] md:text-[38px] font-semibold tracking-tight text-black">
+            <h2 className="text-[26px] font-semibold tracking-tight text-black">
               The registry is the public index of certified records
             </h2>
             <p className="text-[15px] leading-7 text-black/75">
@@ -340,7 +340,7 @@ export default async function RegistryPage({
               <div className="text-xs font-semibold uppercase tracking-[0.24em] text-black/40">
                 Filter registry records
               </div>
-              <h2 className="mt-3 text-[32px] md:text-[38px] font-semibold tracking-tight text-black">
+              <h2 className="mt-3 text-[26px] font-semibold tracking-tight text-black">
                 Narrow the certified public record index
               </h2>
             </div>
@@ -468,7 +468,7 @@ export default async function RegistryPage({
                 <div className="text-xs font-semibold uppercase tracking-[0.24em] text-black/40">
                   Certified records
                 </div>
-                <h2 className="mt-3 text-[32px] md:text-[38px] font-semibold tracking-tight text-black">
+                <h2 className="mt-3 text-[26px] font-semibold tracking-tight text-black">
                   {rows.length} public {rows.length === 1 ? "record" : "records"}
                 </h2>
               </div>

@@ -1,5 +1,5 @@
 # ENGINEERING_RULES.md
-Date: 2026-04-21
+Date: 2026-04-22
 
 ## PURPOSE
 
@@ -13,7 +13,7 @@ It governs:
 - development behavior
 
 This is not guidance.  
-This is a **hard constraint system**.
+This is a hard constraint system.
 
 Any violation must be corrected immediately.
 
@@ -50,7 +50,7 @@ Rules:
 
 ---
 
-## CANONICAL DATA FLOW
+## CANONICAL DATA FLOW (LOCKED)
 
 APPLICATION → CASE → FINDINGS → EVIDENCE → EVENTS → SCORING → DECISION → REGISTRY SNAPSHOT → PUBLIC VIEWS → API → UI
 
@@ -212,7 +212,7 @@ Forbidden:
 
 ## SYSTEMS SURFACE RULE
 
-`/explorer/systems` must:
+/explorer/systems and /registry/ai-systems must:
 
 - use CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC ONLY
 - display only certified/public systems
@@ -281,6 +281,7 @@ Rules:
 - signature must be deterministic
 - kid must match public key endpoint
 - no unsigned certification allowed
+- signed message must be minimal and deterministic
 
 ---
 
@@ -350,6 +351,7 @@ Rules:
 - max-w-[1180px] required
 - space-y-8 required
 - no layout drift
+- all public pages must align visually and structurally
 
 ---
 
@@ -386,6 +388,8 @@ System is invalid if:
 - signature is invalid
 - API diverges from Snowflake
 - UI diverges from API
+- explorer leaks workflow data
+- systems surface uses non-public sources
 
 ---
 

@@ -263,7 +263,7 @@ export default async function WidgetPreviewPage({
             WHAT THIS PAGE SHOWS
           </div>
 
-          <h2 className="mt-4 max-w-[860px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
+          <h2 className="mt-4 max-w-[860px] text-[26px] font-semibold tracking-tight text-black">
             A public trust signal that can appear anywhere
           </h2>
 
@@ -299,7 +299,7 @@ export default async function WidgetPreviewPage({
             THE WIDGET FLOW
           </div>
 
-          <h2 className="mt-4 max-w-[860px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
+          <h2 className="mt-4 max-w-[860px] text-[26px] font-semibold tracking-tight text-black">
             How external trust is delivered
           </h2>
 
@@ -412,7 +412,7 @@ export default async function WidgetPreviewPage({
             MODAL EXPERIENCE
           </div>
 
-          <h2 className="mt-4 max-w-[860px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
+          <h2 className="mt-4 max-w-[860px] text-[26px] font-semibold tracking-tight text-black">
             Open verification without leaving the page
           </h2>
 
@@ -439,7 +439,7 @@ export default async function WidgetPreviewPage({
             WHAT THIS ADDS TO THE DEMO
           </div>
 
-          <h2 className="mt-4 max-w-[860px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
+          <h2 className="mt-4 max-w-[860px] text-[26px] font-semibold tracking-tight text-black">
             The proof does not stop at the verify page
           </h2>
 
@@ -468,7 +468,7 @@ export default async function WidgetPreviewPage({
             RELATED LINKS
           </div>
 
-          <h2 className="mt-4 max-w-[860px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
+          <h2 className="mt-4 max-w-[860px] text-[26px] font-semibold tracking-tight text-black">
             Open each connected trust surface
           </h2>
 

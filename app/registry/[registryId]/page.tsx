@@ -43,7 +43,6 @@ function formatLabel(value?: string | null): string {
 
 function formatDate(value?: string | null): string {
   if (!value) return "—";
-
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return value;
 
@@ -60,11 +59,9 @@ function statusPillClass(status?: string | null): string {
   if (normalized === "CERTIFIED") {
     return "border-emerald-300 bg-emerald-50 text-emerald-700";
   }
-
   if (normalized === "PENDING") {
     return "border-amber-300 bg-amber-50 text-amber-700";
   }
-
   if (normalized === "REVOKED" || normalized === "EXPIRED") {
     return "border-red-300 bg-red-50 text-red-700";
   }
@@ -72,13 +69,7 @@ function statusPillClass(status?: string | null): string {
   return "border-black/10 bg-black/[0.02] text-black/70";
 }
 
-function MetricCard({
-  label,
-  value,
-}: {
-  label: string;
-  value: string;
-}) {
+function MetricCard({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
       <p className="text-[12px] font-semibold uppercase tracking-[0.24em] text-black/40">
@@ -91,13 +82,7 @@ function MetricCard({
   );
 }
 
-function DetailCard({
-  label,
-  value,
-}: {
-  label: string;
-  value: string;
-}) {
+function DetailCard({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
       <p className="text-[12px] font-semibold uppercase tracking-[0.24em] text-black/40">
@@ -117,9 +102,7 @@ async function getRegistryRecord(registryId: string): Promise<RegistryApiRow | n
     { cache: "no-store" }
   );
 
-  if (!response.ok) {
-    return null;
-  }
+  if (!response.ok) return null;
 
   const data = (await response.json()) as RegistryApiResponse;
   return data.rows?.[0] ?? null;
@@ -133,9 +116,7 @@ export default async function RegistryRecordPage({
   const registryId = String(params.registryId ?? "").trim();
   const record = await getRegistryRecord(registryId);
 
-  if (!record) {
-    notFound();
-  }
+  if (!record) notFound();
 
   const verifyHref = `/verify/${record.registryId}`;
   const verifyJsonHref = `/api/verify/${record.registryId}`;
@@ -145,84 +126,65 @@ export default async function RegistryRecordPage({
   return (
     <main className="mx-auto max-w-[1180px] px-6 py-10">
       <div className="space-y-8">
+
         <PublicPageHero
           eyebrow="Registry"
-          title="Public certification record"
-          description="This page exposes the public certification outcome for a GAFAIG-certified organization without exposing internal verification materials."
+          title={formatLabel(record.entityName)}
+          description={`${formatLabel(record.entityType)} · ${formatLabel(record.country)}`}
         />
 
         <section className="rounded-3xl border border-black/10 bg-white p-8">
-          <div
-            className={`inline-flex rounded-full border px-4 py-2 text-[14px] font-semibold ${statusPillClass(
-              record.certificationStatus
-            )}`}
-          >
-            {formatLabel(record.certificationStatus)}
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div
+              className={`inline-flex rounded-full border px-4 py-2 text-[14px] font-semibold ${statusPillClass(
+                record.certificationStatus
+              )}`}
+            >
+              {formatLabel(record.certificationStatus)}
+            </div>
+
+            <div className="flex flex-wrap gap-3">
+              <PublicButtonLink href={verifyHref} variant="primary">
+                Verify Record
+              </PublicButtonLink>
+              <PublicButtonLink href={verifyJsonHref} variant="secondary">
+                JSON Proof
+              </PublicButtonLink>
+              <PublicButtonLink href={widgetHref} variant="secondary">
+                Widget
+              </PublicButtonLink>
+            </div>
           </div>
-
-          <h2 className="mt-5 text-[32px] md:text-[38px] font-semibold tracking-tight text-black">
-            {formatLabel(record.entityName)}
-          </h2>
-
-          <p className="mt-4 text-[15px] leading-7 text-black/75">
-            {formatLabel(record.entityType)} · {formatLabel(record.country)}
-          </p>
 
           <div className="mt-6 grid gap-4 md:grid-cols-3">
             <MetricCard label="Certified" value={formatDate(record.certifiedAt)} />
             <MetricCard label="Valid From" value={formatDate(record.validFrom)} />
             <MetricCard label="Valid To" value={formatDate(record.validTo)} />
           </div>
-
-          <div className="mt-6 flex flex-wrap gap-3">
-            <PublicButtonLink href={verifyHref} variant="primary">
-              Verify this Record
-            </PublicButtonLink>
-            <PublicButtonLink href={verifyJsonHref} variant="secondary">
-              View JSON Proof
-            </PublicButtonLink>
-            <PublicButtonLink href={widgetHref} variant="secondary">
-              View Widget
-            </PublicButtonLink>
-          </div>
         </section>
 
         <section className="rounded-3xl border border-black/10 bg-white p-8">
-          <h3 className="text-[26px] font-semibold tracking-tight text-black">
+          <h2 className="text-[26px] font-semibold tracking-tight text-black">
             Record details
-          </h3>
+          </h2>
 
           <div className="mt-6 grid gap-4 md:grid-cols-3">
             <DetailCard label="Registry ID" value={formatLabel(record.registryId)} />
             <DetailCard label="Entity Type" value={formatLabel(record.entityType)} />
             <DetailCard label="Country" value={formatLabel(record.country)} />
-
-            <DetailCard
-              label="Application ID"
-              value={formatLabel(record.applicationId)}
-            />
+            <DetailCard label="Application ID" value={formatLabel(record.applicationId)} />
             <DetailCard label="Case ID" value={formatLabel(record.caseId)} />
-            <DetailCard
-              label="Certification Status"
-              value={formatLabel(record.certificationStatus)}
-            />
-
-            <DetailCard
-              label="Lifecycle Status"
-              value={formatLabel(record.lifecycleStatus)}
-            />
-            <DetailCard
-              label="Renewal Status"
-              value={formatLabel(record.renewalStatus)}
-            />
+            <DetailCard label="Certification Status" value={formatLabel(record.certificationStatus)} />
+            <DetailCard label="Lifecycle Status" value={formatLabel(record.lifecycleStatus)} />
+            <DetailCard label="Renewal Status" value={formatLabel(record.renewalStatus)} />
             <DetailCard label="Published At" value={formatDate(record.publishedAt)} />
           </div>
         </section>
 
         <section className="rounded-3xl border border-black/10 bg-white p-8">
-          <h3 className="text-[26px] font-semibold tracking-tight text-black">
+          <h2 className="text-[26px] font-semibold tracking-tight text-black">
             Trust surface
-          </h3>
+          </h2>
 
           <div className="mt-6 grid gap-4 md:grid-cols-3">
             <DetailCard label="Verification Endpoint" value={verifyJsonHref} />
@@ -239,6 +201,7 @@ export default async function RegistryRecordPage({
             </PublicButtonLink>
           </div>
         </section>
+
       </div>
     </main>
   );

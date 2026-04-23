@@ -234,7 +234,20 @@ export default function AdminVerificationPage() {
         />
 
         <section className="mt-8 rounded-3xl border border-black/10 bg-white p-8">
-          <div className="flex flex-wrap items-end gap-5">
+          <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
+            FILTERS
+          </div>
+
+          <h2 className="mt-4 text-[26px] font-semibold tracking-tight text-black">
+            Filter verification cases
+          </h2>
+
+          <p className="mt-4 max-w-[860px] text-[14px] leading-7 text-black/70">
+            Narrow the case list by entity, case ID, status, or verification type to
+            move through the private review workflow more efficiently.
+          </p>
+
+          <div className="mt-6 flex flex-wrap items-end gap-5">
             <div>
               <div className="mb-2 text-[12px] font-semibold uppercase tracking-[0.12em] text-black/60">
                 Search

@@ -82,7 +82,7 @@ export default async function SystemDetailPage({
       <div className="space-y-8">
         <PublicPageHero
           eyebrow="AI System"
-          title="Public AI system detail"
+          title={safe(system.SYSTEM_NAME)}
           description="This page surfaces the public detail view for an AI system associated with a GAFAIG-certified registry record."
         />
 
@@ -101,9 +101,9 @@ export default async function SystemDetailPage({
             </span>
           </div>
 
-          <h1 className="mt-4 text-[32px] font-semibold tracking-tight text-black md:text-[38px]">
-            {safe(system.SYSTEM_NAME)}
-          </h1>
+          <p className="mt-4 text-[15px] leading-7 text-black/75">
+            {safe(system.DEVELOPER_ORGANIZATION)} · {safe(system.SYSTEM_TYPE)} · {safe(system.COUNTRY)}
+          </p>
 
           <div className="mt-6 grid gap-4 md:grid-cols-4">
             <InfoCard

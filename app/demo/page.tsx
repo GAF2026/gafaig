@@ -39,7 +39,7 @@ export default function DemoPage() {
             WHY THIS MATTERS
           </div>
 
-          <h2 className="mt-4 max-w-[860px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
+          <h2 className="mt-4 max-w-[860px] text-[26px] font-semibold tracking-tight text-black">
             Most human oversight in AI systems is still a claim
           </h2>
 
@@ -67,7 +67,7 @@ export default function DemoPage() {
             THE DEMO WALKTHROUGH
           </div>
 
-          <h2 className="mt-4 max-w-[860px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
+          <h2 className="mt-4 max-w-[860px] text-[26px] font-semibold tracking-tight text-black">
             Follow one record from certification to proof
           </h2>
 
@@ -142,7 +142,7 @@ export default function DemoPage() {
             WHAT EACH STEP PROVES
           </div>
 
-          <h2 className="mt-4 max-w-[860px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
+          <h2 className="mt-4 max-w-[860px] text-[26px] font-semibold tracking-tight text-black">
             GAFAIG is a trust system, not just a registry page
           </h2>
 
@@ -170,7 +170,7 @@ export default function DemoPage() {
             WHAT TO LOOK FOR
           </div>
 
-          <h2 className="mt-4 max-w-[860px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
+          <h2 className="mt-4 max-w-[860px] text-[26px] font-semibold tracking-tight text-black">
             The signals that confirm public proof
           </h2>
 
@@ -195,7 +195,7 @@ export default function DemoPage() {
             NEXT STEP
           </div>
 
-          <h2 className="mt-3 max-w-[860px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
+          <h2 className="mt-3 max-w-[860px] text-[26px] font-semibold tracking-tight text-black">
             Ready to create a verified record?
           </h2>
 
@@ -228,7 +228,7 @@ export default function DemoPage() {
             THE RESULT
           </div>
 
-          <h2 className="mt-4 max-w-[860px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
+          <h2 className="mt-4 max-w-[860px] text-[26px] font-semibold tracking-tight text-black">
             From governance claims to public proof
           </h2>
 

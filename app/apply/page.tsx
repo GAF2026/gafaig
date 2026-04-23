@@ -32,7 +32,7 @@ export default function ApplyPage() {
         <section className="grid gap-4 lg:grid-cols-2">
           <div className="rounded-3xl border border-black/10 bg-white p-8">
             <SectionEyebrow>Who should apply</SectionEyebrow>
-            <h2 className="mt-4 max-w-[760px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
+            <h2 className="mt-4 max-w-[760px] text-[26px] font-semibold tracking-tight text-black">
               Teams that need credible external proof
             </h2>
 
@@ -54,7 +54,7 @@ export default function ApplyPage() {
 
           <div className="rounded-3xl border border-black/10 bg-white p-8">
             <SectionEyebrow>What you receive</SectionEyebrow>
-            <h2 className="mt-4 max-w-[760px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
+            <h2 className="mt-4 max-w-[760px] text-[26px] font-semibold tracking-tight text-black">
               A public proof layer, not just an internal review
             </h2>
 
@@ -81,7 +81,7 @@ export default function ApplyPage() {
 
         <section className="rounded-3xl border border-black/10 bg-white p-8">
           <SectionEyebrow>What happens next</SectionEyebrow>
-          <h2 className="mt-4 max-w-[860px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
+          <h2 className="mt-4 max-w-[860px] text-[26px] font-semibold tracking-tight text-black">
             From application to certified public record
           </h2>
 
@@ -112,7 +112,7 @@ export default function ApplyPage() {
 
         <section className="rounded-3xl border border-black/10 bg-white p-8">
           <SectionEyebrow>Submit application</SectionEyebrow>
-          <h2 className="mt-4 max-w-[860px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
+          <h2 className="mt-4 max-w-[860px] text-[26px] font-semibold tracking-tight text-black">
             Start your private verification intake
           </h2>
 
@@ -157,7 +157,7 @@ export default function ApplyPage() {
         <section className="grid gap-4 lg:grid-cols-2">
           <div className="rounded-3xl border border-black/10 bg-white p-8">
             <SectionEyebrow>Application readiness</SectionEyebrow>
-            <h2 className="mt-4 max-w-[760px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
+            <h2 className="mt-4 max-w-[760px] text-[26px] font-semibold tracking-tight text-black">
               What GAFAIG evaluates
             </h2>
 
@@ -183,7 +183,7 @@ export default function ApplyPage() {
 
           <div className="rounded-3xl border border-black/10 bg-white p-8">
             <SectionEyebrow>Public vs private</SectionEyebrow>
-            <h2 className="mt-4 max-w-[760px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
+            <h2 className="mt-4 max-w-[760px] text-[26px] font-semibold tracking-tight text-black">
               What stays private and what becomes public
             </h2>
 
@@ -216,7 +216,7 @@ export default function ApplyPage() {
             What you receive
           </div>
 
-          <h2 className="mt-3 max-w-[860px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
+          <h2 className="mt-3 max-w-[860px] text-[26px] font-semibold tracking-tight text-black">
             Certification becomes a public proof layer
           </h2>
 
@@ -254,7 +254,7 @@ export default function ApplyPage() {
 
         <section className="rounded-3xl border border-black/10 bg-white p-8">
           <SectionEyebrow>What happens after certification</SectionEyebrow>
-          <h2 className="mt-4 max-w-[860px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
+          <h2 className="mt-4 max-w-[860px] text-[26px] font-semibold tracking-tight text-black">
             Your outcome is externally verifiable
           </h2>
 
@@ -284,7 +284,7 @@ export default function ApplyPage() {
 
         <section className="rounded-3xl border border-black/10 bg-white p-8">
           <SectionEyebrow>How to begin</SectionEyebrow>
-          <h2 className="mt-4 max-w-[860px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
+          <h2 className="mt-4 max-w-[860px] text-[26px] font-semibold tracking-tight text-black">
             Start with the current GAFAIG experience
           </h2>
 
@@ -322,7 +322,7 @@ export default function ApplyPage() {
             Next step
           </div>
 
-          <h2 className="mt-3 max-w-[860px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
+          <h2 className="mt-3 max-w-[860px] text-[26px] font-semibold tracking-tight text-black">
             Begin the GAFAIG certification journey
           </h2>
 

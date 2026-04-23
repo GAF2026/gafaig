@@ -43,7 +43,7 @@ export default function DevelopersPage() {
             WHAT DEVELOPERS GET
           </div>
 
-          <h2 className="mt-4 max-w-[860px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
+          <h2 className="mt-4 max-w-[860px] text-[26px] font-semibold tracking-tight text-black">
             A portable trust infrastructure, not just a page
           </h2>
 
@@ -80,7 +80,7 @@ export default function DevelopersPage() {
               QUICKSTART
             </div>
 
-            <h2 className="mt-4 max-w-[860px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
+            <h2 className="mt-4 max-w-[860px] text-[26px] font-semibold tracking-tight text-black">
               The core trust flow
             </h2>
 
@@ -164,7 +164,7 @@ export default function DevelopersPage() {
             ENDPOINTS
           </div>
 
-          <h2 className="mt-4 max-w-[860px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
+          <h2 className="mt-4 max-w-[860px] text-[26px] font-semibold tracking-tight text-black">
             Core public surfaces
           </h2>
 
@@ -254,7 +254,7 @@ Response fields include:
             WIDGET INTEGRATION
           </div>
 
-          <h2 className="mt-4 max-w-[860px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
+          <h2 className="mt-4 max-w-[860px] text-[26px] font-semibold tracking-tight text-black">
             Surface trust outside GAFAIG
           </h2>
 
@@ -293,7 +293,7 @@ Response fields include:
             WHAT THIS ENABLES
           </div>
 
-          <h2 className="mt-3 max-w-[860px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
+          <h2 className="mt-3 max-w-[860px] text-[26px] font-semibold tracking-tight text-black">
             Build verifiable trust into your own interfaces
           </h2>
 
@@ -326,7 +326,7 @@ Response fields include:
             RELATED SURFACES
           </div>
 
-          <h2 className="mt-4 max-w-[860px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
+          <h2 className="mt-4 max-w-[860px] text-[26px] font-semibold tracking-tight text-black">
             Explore the public trust flow
           </h2>
 

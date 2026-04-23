@@ -370,7 +370,7 @@ export default function FindingsPage({ params }: { params: { caseId: string } })
     <div>
       <AdminNav />
 
-      <main className="mx-auto max-w-[1100px] px-6 pt-14 pb-16">
+      <main className="mx-auto max-w-[1100px] px-6 py-10">
         <AdminPageHeader
           title={`Findings — ${caseId}`}
           description="Record control evaluations, inspect linked evidence, and move the case toward decision."
@@ -433,9 +433,9 @@ export default function FindingsPage({ params }: { params: { caseId: string } })
           </div>
         </details>
 
-        <section className="mt-6 rounded-2xl border border-black/10 bg-white p-6">
+        <section className="mt-6 rounded-3xl border border-black/10 bg-white p-8">
           <div className="mb-4">
-            <div className="text-[16px] font-semibold text-black">Add finding</div>
+            <div className="text-[26px] font-semibold tracking-tight text-black">Add finding</div>
             <div className="mt-1 text-[14px] text-black/60">
               Record an evaluation result for a control, such as HG-1.2.
             </div>
@@ -522,9 +522,9 @@ export default function FindingsPage({ params }: { params: { caseId: string } })
           </div>
         </section>
 
-        <section className="mt-6 rounded-2xl border border-black/10 bg-white p-6">
+        <section className="mt-6 rounded-3xl border border-black/10 bg-white p-8">
           <div className="mb-4">
-            <div className="text-[16px] font-semibold text-black">
+            <div className="text-[26px] font-semibold tracking-tight text-black">
               Findings ({rows.length})
             </div>
             <div className="mt-1 text-[14px] text-black/60">

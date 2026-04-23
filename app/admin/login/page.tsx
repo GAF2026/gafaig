@@ -89,7 +89,7 @@ export default function AdminLoginPage() {
               EVALUATOR ACCESS
             </div>
 
-            <h2 className="mt-4 text-[32px] md:text-[38px] font-semibold tracking-tight text-black">
+            <h2 className="mt-4 text-[26px] font-semibold tracking-tight text-black">
               Enter the private review environment
             </h2>
 
@@ -181,7 +181,7 @@ export default function AdminLoginPage() {
               WHY THIS MATTERS
             </div>
 
-            <h2 className="mt-4 text-[28px] font-semibold tracking-tight text-black">
+            <h2 className="mt-4 text-[26px] font-semibold tracking-tight text-black">
               Proof of the private layer
             </h2>
 

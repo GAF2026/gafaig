@@ -157,7 +157,7 @@ export default async function HomePage() {
             WHY GAFAIG EXISTS
           </div>
 
-          <h2 className="mt-4 text-[32px] font-semibold tracking-tight text-black md:text-[38px] max-w-[860px]">
+          <h2 className="mt-4 text-[26px] font-semibold tracking-tight text-black max-w-[860px]">
             Human oversight should be visible, reviewable, and provable
           </h2>
 
@@ -185,7 +185,7 @@ export default async function HomePage() {
             SEE HOW IT WORKS
           </div>
 
-          <h2 className="mt-4 text-[32px] font-semibold tracking-tight text-black md:text-[38px] max-w-[860px]">
+          <h2 className="mt-4 text-[26px] font-semibold tracking-tight text-black max-w-[860px]">
             Follow a real GAFAIG record from certification to proof
           </h2>
 
@@ -212,7 +212,7 @@ export default async function HomePage() {
             PROOF PREVIEW
           </div>
 
-          <h2 className="mt-4 text-[32px] font-semibold tracking-tight text-black md:text-[38px] max-w-[860px]">
+          <h2 className="mt-4 text-[26px] font-semibold tracking-tight text-black max-w-[860px]">
             The four steps that make human oversight in AI systems independently verifiable
           </h2>
 
@@ -266,7 +266,7 @@ export default async function HomePage() {
                 LIVE TRUST SIGNALS
               </div>
 
-              <h2 className="mt-4 text-[32px] font-semibold tracking-tight text-black md:text-[38px] max-w-[860px]">
+              <h2 className="mt-4 text-[26px] font-semibold tracking-tight text-black max-w-[860px]">
                 Current public GAFAIG footprint
               </h2>
 

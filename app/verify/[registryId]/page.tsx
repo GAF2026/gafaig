@@ -426,7 +426,7 @@ export default async function VerifyPage({
             <div className="text-xs font-semibold uppercase tracking-[0.24em] text-black/40">
               Signature validation
             </div>
-            <h2 className="text-[32px] md:text-[38px] font-semibold tracking-tight text-black">
+            <h2 className="text-[26px] font-semibold tracking-tight text-black">
               Cryptographic validation status
             </h2>
             <p className="max-w-3xl text-[15px] leading-7 text-black/75">
@@ -470,7 +470,7 @@ export default async function VerifyPage({
             TRUST FLOW
           </div>
 
-          <h2 className="mt-4 max-w-[860px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
+          <h2 className="mt-4 max-w-[860px] text-[26px] font-semibold tracking-tight text-black">
             How this proof connects to the wider GAFAIG trust surface
           </h2>
 
@@ -510,7 +510,7 @@ export default async function VerifyPage({
             USE THIS PROOF
           </div>
 
-          <h2 className="mt-4 max-w-[860px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
+          <h2 className="mt-4 max-w-[860px] text-[26px] font-semibold tracking-tight text-black">
             This verification can be used outside GAFAIG
           </h2>
 
@@ -558,7 +558,7 @@ export default async function VerifyPage({
             <div className="text-xs font-semibold uppercase tracking-[0.24em] text-black/40">
               Trust verification
             </div>
-            <h2 className="text-[32px] md:text-[38px] font-semibold tracking-tight text-black">
+            <h2 className="text-[26px] font-semibold tracking-tight text-black">
               Verification details
             </h2>
             <p className="max-w-3xl text-[15px] leading-7 text-black/75">
@@ -586,7 +586,7 @@ export default async function VerifyPage({
             <div className="text-xs font-semibold uppercase tracking-[0.24em] text-black/40">
               Signed payload
             </div>
-            <h2 className="text-[32px] md:text-[38px] font-semibold tracking-tight text-black">
+            <h2 className="text-[26px] font-semibold tracking-tight text-black">
               Public signed message
             </h2>
             <p className="max-w-3xl text-[15px] leading-7 text-black/75">
@@ -607,7 +607,7 @@ export default async function VerifyPage({
             RELATED URLS
           </div>
 
-          <h2 className="mt-4 max-w-[860px] text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
+          <h2 className="mt-4 max-w-[860px] text-[26px] font-semibold tracking-tight text-black">
             Connected trust surfaces for this record
           </h2>
 

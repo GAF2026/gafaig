@@ -115,9 +115,9 @@ export default function MissionPage() {
 function Pillar({ title, text }: { title: string; text: string }) {
   return (
     <div className="rounded-3xl border border-black/10 bg-white p-6">
-      <h3 className="text-[18px] font-semibold tracking-tight text-black">
+      <div className="text-[18px] font-semibold tracking-tight text-black">
         {title}
-      </h3>
+      </div>
       <p className="mt-3 text-[15px] leading-7 text-black/75">{text}</p>
     </div>
   );

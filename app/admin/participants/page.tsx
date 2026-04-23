@@ -178,7 +178,7 @@ export default function AdminParticipantsPage() {
 
         {/* CREATE */}
         <section className="mt-8 rounded-3xl border border-black/10 bg-white p-8">
-          <h2 className="text-[22px] font-semibold text-black">
+          <h2 className="text-[26px] font-semibold tracking-tight text-black">
             Create participant
           </h2>
 
@@ -239,8 +239,20 @@ export default function AdminParticipantsPage() {
         </section>
 
         {/* FILTERS */}
-        <section className="mt-10">
-          <div className="flex flex-wrap gap-4 items-end">
+        <section className="mt-10 rounded-3xl border border-black/10 bg-white p-8">
+          <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
+            FILTERS
+          </div>
+
+          <h2 className="mt-4 text-[26px] font-semibold tracking-tight text-black">
+            Filter participants
+          </h2>
+
+          <p className="mt-4 text-[14px] text-black/70">
+            Narrow down participant records by search, verification status, or participant type.
+          </p>
+
+          <div className="mt-6 flex flex-wrap gap-4 items-end">
             <input
               value={search}
               onChange={(e) => {
