@@ -66,6 +66,38 @@ export default function FrameworkPage() {
 
         <section className="rounded-3xl border border-black/10 bg-white p-8">
           <h2 className="text-[26px] font-semibold tracking-tight text-black">
+            Execution model
+          </h2>
+
+          <p className="mt-4 text-[15px] leading-7 text-black/75">
+            GAFAIG runs as a deterministic governance engine with Snowflake as the
+            system of execution. Governance records are processed privately,
+            certification outcomes are snapshotted into the registry, and only the
+            public trust contract is exposed through views, APIs, and verification
+            surfaces.
+          </p>
+
+          <div className="mt-6 grid gap-4 md:grid-cols-2">
+            <BulletCard>
+              All governance scoring and decision outputs execute in Snowflake.
+            </BulletCard>
+            <BulletCard>
+              Public records are derived from immutable registry snapshots rather
+              than recomputed in downstream layers.
+            </BulletCard>
+            <BulletCard>
+              API and UI layers do not perform governance computation; they project
+              and distribute already-determined public outputs.
+            </BulletCard>
+            <BulletCard>
+              Verification results are reproducible from source data, registry
+              snapshots, and signed public proof.
+            </BulletCard>
+          </div>
+        </section>
+
+        <section className="rounded-3xl border border-black/10 bg-white p-8">
+          <h2 className="text-[26px] font-semibold tracking-tight text-black">
             The GAFAIG verification pipeline
           </h2>
 
@@ -153,8 +185,9 @@ export default function FrameworkPage() {
                 Private verification engine
               </div>
               <p className="mt-3 text-[14px] leading-7 text-black/70">
-                Applications, evidence, findings, events, and scoring are processed
-                within a controlled environment where oversight is evaluated.
+                Applications, evidence, findings, events, and scoring are
+                processed within a controlled environment where oversight is
+                evaluated.
               </p>
             </article>
 
@@ -163,8 +196,9 @@ export default function FrameworkPage() {
                 Public trust layer
               </div>
               <p className="mt-3 text-[14px] leading-7 text-black/70">
-                Only the certification outcome is exposed publicly. External parties
-                can verify the result without accessing internal materials.
+                Only the certification outcome is exposed publicly. External
+                parties can verify the result without accessing internal
+                materials.
               </p>
             </article>
           </div>
@@ -187,13 +221,15 @@ export default function FrameworkPage() {
               Registry records provide a durable public certification reference.
             </BulletCard>
             <BulletCard>
-              The verify endpoint exposes a signed payload for independent validation.
+              The verify endpoint exposes a signed payload for independent
+              validation.
             </BulletCard>
             <BulletCard>
               Signed proof enables cryptographic verification of certification.
             </BulletCard>
             <BulletCard>
-              Trust can be distributed across APIs, widgets, badges, and external platforms.
+              Trust can be distributed across APIs, widgets, badges, and
+              external platforms.
             </BulletCard>
           </div>
 

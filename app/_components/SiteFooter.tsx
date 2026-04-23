@@ -17,7 +17,9 @@ export default function SiteFooter() {
       }}
     >
       <span>Release: dev</span>
-      <span>Governance engine powered by Snowflake Cortex</span>
+      <span>
+        Governance engine executed on Snowflake (deterministic scoring, registry snapshots, and public views)
+      </span>
     </div>
   );
 }
