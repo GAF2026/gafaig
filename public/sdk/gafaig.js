@@ -1,11 +1,12 @@
 (function () {
-  var VERSION = "0.1.0";
+  var VERSION = "1.1.0";
 
   function normalizeBaseUrl(baseUrl) {
     var raw =
       typeof baseUrl === "string" && baseUrl.trim()
         ? baseUrl.trim()
         : "https://www.gafaig.com";
+
     return raw.replace(/\/+$/, "");
   }
 
@@ -15,10 +16,34 @@
 
   function assertRegistryId(registryId) {
     var value = String(registryId || "").trim();
+
     if (!value) {
       throw new Error("GAFAIG SDK: registryId is required");
     }
+
     return value;
+  }
+
+  function resolveElement(target) {
+    if (!target) {
+      throw new Error("GAFAIG SDK: target is required");
+    }
+
+    if (typeof target === "string") {
+      var el = document.querySelector(target);
+
+      if (!el) {
+        throw new Error('GAFAIG SDK: target selector not found: "' + target + '"');
+      }
+
+      return el;
+    }
+
+    if (target instanceof HTMLElement) {
+      return target;
+    }
+
+    throw new Error("GAFAIG SDK: target must be a selector or HTMLElement");
   }
 
   async function fetchJson(url) {
@@ -36,7 +61,7 @@
 
     try {
       data = text ? JSON.parse(text) : {};
-    } catch (error) {
+    } catch (_error) {
       throw new Error("GAFAIG SDK: invalid JSON response");
     }
 
@@ -45,29 +70,53 @@
         data && typeof data.error === "string"
           ? data.error
           : "Request failed with status " + res.status;
+
       throw new Error("GAFAIG SDK: " + message);
     }
 
     return data;
   }
 
+  function escapeHtml(value) {
+    return String(value == null ? "" : value)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+  }
+
   function buildVerifyUrl(registryId, options) {
-    var baseUrl = resolveBaseUrl(options);
-    return baseUrl + "/api/verify/" + encodeURIComponent(registryId);
+    return resolveBaseUrl(options) + "/api/verify/" + encodeURIComponent(registryId);
+  }
+
+  function buildBadgeUrl(registryId, options) {
+    return resolveBaseUrl(options) + "/api/badge/" + encodeURIComponent(registryId);
   }
 
   function buildPublicKeyUrl(options) {
-    var baseUrl = resolveBaseUrl(options);
-    return baseUrl + "/api/.well-known/gafaig-public-key";
+    return resolveBaseUrl(options) + "/api/.well-known/gafaig-public-key";
+  }
+
+  function buildWidgetScriptUrl(options) {
+    return resolveBaseUrl(options) + "/widget/gafaig-widget.js";
+  }
+
+  function buildVerifyScriptUrl(options) {
+    return resolveBaseUrl(options) + "/widget/gafaig-verify.js";
   }
 
   async function verify(registryId, options) {
     var id = assertRegistryId(registryId);
-    var url = buildVerifyUrl(id, options);
-    return fetchJson(url);
+    return fetchJson(buildVerifyUrl(id, options));
   }
 
-  function getPublicKey(options) {
+  async function getBadge(registryId, options) {
+    var id = assertRegistryId(registryId);
+    return fetchJson(buildBadgeUrl(id, options));
+  }
+
+  async function getPublicKey(options) {
     return fetchJson(buildPublicKeyUrl(options));
   }
 
@@ -81,14 +130,22 @@
           return;
         }
 
-        existing.addEventListener("load", function handleLoad() {
-          existing.setAttribute("data-gafaig-loaded", "true");
-          resolve();
-        });
+        existing.addEventListener(
+          "load",
+          function () {
+            existing.setAttribute("data-gafaig-loaded", "true");
+            resolve();
+          },
+          { once: true }
+        );
 
-        existing.addEventListener("error", function handleError() {
-          reject(new Error("GAFAIG SDK: failed to load script " + src));
-        });
+        existing.addEventListener(
+          "error",
+          function () {
+            reject(new Error("GAFAIG SDK: failed to load script " + src));
+          },
+          { once: true }
+        );
 
         return;
       }
@@ -110,40 +167,20 @@
     });
   }
 
-  function resolveElement(target) {
-    if (!target) {
-      throw new Error("GAFAIG SDK: target is required");
-    }
-
-    if (typeof target === "string") {
-      var el = document.querySelector(target);
-      if (!el) {
-        throw new Error('GAFAIG SDK: target selector not found: "' + target + '"');
-      }
-      return el;
-    }
-
-    if (target instanceof HTMLElement) {
-      return target;
-    }
-
-    throw new Error("GAFAIG SDK: target must be a selector or HTMLElement");
-  }
-
   async function render(target, config) {
     var cfg = config || {};
     var registryId = assertRegistryId(cfg.registryId);
     var el = resolveElement(target);
-    var baseUrl = resolveBaseUrl(cfg);
-    var widgetScriptUrl = baseUrl + "/widget/gafaig-widget.js";
 
     el.setAttribute("data-gafaig-id", registryId);
 
     if (cfg.mode && String(cfg.mode).trim()) {
       el.setAttribute("data-mode", String(cfg.mode).trim());
+    } else {
+      el.removeAttribute("data-mode");
     }
 
-    await loadScript(widgetScriptUrl);
+    await loadScript(buildWidgetScriptUrl(cfg));
 
     if (
       window.GAFAIGWidget &&
@@ -160,11 +197,9 @@
     var id = assertRegistryId(registryId);
     var cfg = options || {};
     var baseUrl = resolveBaseUrl(cfg);
-    var widgetScriptUrl = baseUrl + "/widget/gafaig-widget.js";
-    var verifyScriptUrl = baseUrl + "/widget/gafaig-verify.js";
 
-    await loadScript(widgetScriptUrl);
-    await loadScript(verifyScriptUrl);
+    await loadScript(buildWidgetScriptUrl(cfg));
+    await loadScript(buildVerifyScriptUrl(cfg));
 
     if (typeof window.verifyGAFAIG === "function") {
       return window.verifyGAFAIG(id, { baseUrl: baseUrl });
@@ -173,36 +208,197 @@
     throw new Error("GAFAIG SDK: verify modal runtime not available after load");
   }
 
+  async function badge(target, config) {
+    var cfg = config || {};
+    var registryId = assertRegistryId(cfg.registryId);
+    var el = resolveElement(target);
+    var data = await getBadge(registryId, cfg);
+
+    if (!data || data.ok !== true) {
+      throw new Error("GAFAIG SDK: invalid badge response");
+    }
+
+    var badgeLabel =
+      data.badge && typeof data.badge.label === "string"
+        ? data.badge.label
+        : "GAFAIG Certified";
+
+    var imageUrl =
+      data.badge && typeof data.badge.imageUrl === "string"
+        ? data.badge.imageUrl
+        : "";
+
+    var verifyUrl =
+      typeof data.verifyUrl === "string" && data.verifyUrl
+        ? data.verifyUrl
+        : "/verify/" + encodeURIComponent(registryId);
+
+    var baseUrl = resolveBaseUrl(cfg);
+
+    var resolvedVerifyUrl =
+      verifyUrl.indexOf("http://") === 0 || verifyUrl.indexOf("https://") === 0
+        ? verifyUrl
+        : baseUrl + verifyUrl;
+
+    if (imageUrl) {
+      var resolvedImageUrl =
+        imageUrl.indexOf("http://") === 0 || imageUrl.indexOf("https://") === 0
+          ? imageUrl
+          : baseUrl + imageUrl;
+
+      el.innerHTML =
+        '<a href="' +
+        resolvedVerifyUrl +
+        '" target="_blank" rel="noopener noreferrer" aria-label="' +
+        escapeHtml(badgeLabel) +
+        '">' +
+        '<img src="' +
+        resolvedImageUrl +
+        '" alt="' +
+        escapeHtml(badgeLabel) +
+        '" style="max-width:100%;height:auto;display:block;" />' +
+        "</a>";
+
+      return el;
+    }
+
+    el.innerHTML =
+      '<a href="' +
+      resolvedVerifyUrl +
+      '" target="_blank" rel="noopener noreferrer" style="' +
+      [
+        "display:inline-flex",
+        "align-items:center",
+        "justify-content:center",
+        "min-height:40px",
+        "padding:0 14px",
+        "border-radius:9999px",
+        "border:1px solid rgba(0,0,0,0.12)",
+        "background:#ffffff",
+        "color:#111111",
+        "text-decoration:none",
+        "font-family:Inter,Arial,sans-serif",
+        "font-size:12px",
+        "font-weight:700",
+        "letter-spacing:0.01em",
+      ].join(";") +
+      '">' +
+      escapeHtml(badgeLabel) +
+      "</a>";
+
+    return el;
+  }
+
   function getVerifyUrl(registryId, options) {
     var id = assertRegistryId(registryId);
     return buildVerifyUrl(id, options);
   }
 
+  function getBadgeUrl(registryId, options) {
+    var id = assertRegistryId(registryId);
+    return buildBadgeUrl(id, options);
+  }
+
   function getRegistryUrl(registryId, options) {
     var id = assertRegistryId(registryId);
-    var baseUrl = resolveBaseUrl(options);
-    return baseUrl + "/registry/" + encodeURIComponent(id);
+    return resolveBaseUrl(options) + "/registry/" + encodeURIComponent(id);
   }
 
   function getVerifyPageUrl(registryId, options) {
     var id = assertRegistryId(registryId);
-    var baseUrl = resolveBaseUrl(options);
-    return baseUrl + "/verify/" + encodeURIComponent(id);
+    return resolveBaseUrl(options) + "/verify/" + encodeURIComponent(id);
   }
 
   function getWidgetPreviewUrl(registryId, options) {
     var id = assertRegistryId(registryId);
-    var baseUrl = resolveBaseUrl(options);
-    return baseUrl + "/widget-preview/" + encodeURIComponent(id);
+    return resolveBaseUrl(options) + "/widget-preview/" + encodeURIComponent(id);
+  }
+
+  function scan(options) {
+    var cfg = options || {};
+
+    var widgetNodes = document.querySelectorAll("[data-gafaig-widget]");
+    widgetNodes.forEach(function (node) {
+      if (!(node instanceof HTMLElement)) return;
+      if (node.getAttribute("data-gafaig-initialized") === "true") return;
+
+      var registryId = node.getAttribute("data-gafaig-widget");
+      var mode = node.getAttribute("data-mode") || "";
+
+      if (!registryId) return;
+
+      node.setAttribute("data-gafaig-initialized", "true");
+
+      render(node, {
+        registryId: registryId,
+        mode: mode,
+        baseUrl: cfg.baseUrl,
+      }).catch(function (error) {
+        console.error(error);
+      });
+    });
+
+    var badgeNodes = document.querySelectorAll("[data-gafaig-badge]");
+    badgeNodes.forEach(function (node) {
+      if (!(node instanceof HTMLElement)) return;
+      if (node.getAttribute("data-gafaig-badge-initialized") === "true") return;
+
+      var registryId = node.getAttribute("data-gafaig-badge");
+
+      if (!registryId) return;
+
+      node.setAttribute("data-gafaig-badge-initialized", "true");
+
+      badge(node, {
+        registryId: registryId,
+        baseUrl: cfg.baseUrl,
+      }).catch(function (error) {
+        console.error(error);
+      });
+    });
+
+    var modalNodes = document.querySelectorAll("[data-gafaig-open-verify]");
+    modalNodes.forEach(function (node) {
+      if (!(node instanceof HTMLElement)) return;
+      if (node.getAttribute("data-gafaig-modal-bound") === "true") return;
+
+      var registryId = node.getAttribute("data-gafaig-open-verify");
+
+      if (!registryId) return;
+
+      node.setAttribute("data-gafaig-modal-bound", "true");
+
+      node.addEventListener("click", function () {
+        openVerify(registryId, {
+          baseUrl: cfg.baseUrl,
+        }).catch(function (error) {
+          console.error(error);
+        });
+      });
+    });
+  }
+
+  function autoInit(options) {
+    scan(options || {});
+  }
+
+  function init(options) {
+    scan(options || {});
   }
 
   var api = {
     version: VERSION,
     verify: verify,
+    getBadge: getBadge,
     getPublicKey: getPublicKey,
     render: render,
+    badge: badge,
     openVerify: openVerify,
+    scan: scan,
+    autoInit: autoInit,
+    init: init,
     getVerifyUrl: getVerifyUrl,
+    getBadgeUrl: getBadgeUrl,
     getRegistryUrl: getRegistryUrl,
     getVerifyPageUrl: getVerifyPageUrl,
     getWidgetPreviewUrl: getWidgetPreviewUrl,
@@ -210,4 +406,16 @@
 
   window.gafaig = api;
   window.GAFAIGSDK = api;
+
+  if (document.readyState === "loading") {
+    document.addEventListener(
+      "DOMContentLoaded",
+      function () {
+        scan({});
+      },
+      { once: true }
+    );
+  } else {
+    scan({});
+  }
 })();
