@@ -14,7 +14,7 @@
     window.location.origin ||
     "https://www.gafaig.com";
 
-  var STYLE_ID = "gafaig-widget-styles-v6";
+  var STYLE_ID = "gafaig-widget-styles-v7";
 
   function injectStyles() {
     if (document.getElementById(STYLE_ID)) return;
@@ -92,13 +92,13 @@
         white-space: nowrap;
       }
 
-      .gafaig-widget-chip-verified {
+      .gafaig-widget-chip-certified {
         background: #e9f8ef;
         color: #138a52;
         border-color: #9fe0bb;
       }
 
-      .gafaig-widget-chip-approved {
+      .gafaig-widget-chip-verified {
         background: #eef4ff;
         color: #2457d6;
         border-color: #c9d9ff;
@@ -319,15 +319,6 @@
     });
   }
 
-  function fmtTierBand(tier, band) {
-    var t = String(tier || "").trim();
-    var b = String(band || "").trim();
-    if (t && b) return t + " · " + b;
-    if (t) return t;
-    if (b) return b;
-    return "—";
-  }
-
   function safeText() {
     for (var i = 0; i < arguments.length; i += 1) {
       var s = String(arguments[i] || "").trim();
@@ -337,19 +328,16 @@
   }
 
   function resolveTrustState(record) {
-    if (!record) return "Pending";
+    if (!record) return "Not Certified";
 
     var status = String(record.certificationStatus || "").trim().toUpperCase();
     if (status === "CERTIFIED") return "Certified";
 
-    if (
-      record.decisionStatus &&
-      String(record.decisionStatus).trim().toUpperCase() === "APPROVED"
-    ) {
-      return "Approved";
+    if (record.certifiedAt && String(record.certifiedAt).trim()) {
+      return "Certified";
     }
 
-    return "Pending";
+    return "Not Certified";
   }
 
   function resolveVerificationState(verifyData) {
@@ -408,10 +396,6 @@
     var integrity = resolveIntegrityState(verifyData);
     var verifyPageUrl = ORIGIN + "/verify/" + encodeURIComponent(registryId);
     var entityName = safeText(record && record.entityName, registryId);
-    var tierBand = fmtTierBand(
-      record && record.certifiedTier,
-      record && record.certifiedBand
-    );
 
     el.className = "gafaig-widget-root";
     el.innerHTML =
@@ -419,7 +403,7 @@
       '<div class="gafaig-widget-topline"></div>' +
       '<div class="gafaig-widget-eyebrow">GAFAIG Trust Badge</div>' +
       '<div class="gafaig-widget-chip-row">' +
-      '<span class="gafaig-widget-chip gafaig-widget-chip-verified">' +
+      '<span class="gafaig-widget-chip gafaig-widget-chip-certified">' +
       esc(status) +
       "</span>" +
       '<span class="gafaig-widget-chip gafaig-widget-chip-verified">' +
@@ -432,9 +416,7 @@
       '<h3 class="gafaig-widget-title">' +
       esc(entityName) +
       "</h3>" +
-      '<p class="gafaig-widget-copy">' +
-      esc(tierBand) +
-      "</p>" +
+      '<p class="gafaig-widget-copy">Portable public trust signal backed by signed GAFAIG verification proof.</p>' +
       '<div class="gafaig-widget-actions">' +
       '<a class="gafaig-widget-btn gafaig-widget-btn-primary" href="' +
       verifyPageUrl +
@@ -443,39 +425,17 @@
       "</div>";
   }
 
-  function renderWidget(el, registryId, registryData, verifyData) {
-    var row =
-      registryData && Array.isArray(registryData.rows)
-        ? registryData.rows[0] || null
-        : registryData && registryData.row
-          ? registryData.row
-          : null;
+  function renderWidget(el, registryId, verifyData) {
     var record = verifyData && verifyData.record ? verifyData.record : null;
     var proof = verifyData && verifyData.proof ? verifyData.proof : null;
 
-    var entityName = safeText(record && record.entityName);
+    var entityName = safeText(record && record.entityName, registryId);
     var country = safeText(record && record.country);
-    var tier = safeText(record && record.certifiedTier);
-    var band = safeText(record && record.certifiedBand);
-    var decision = safeText(record && record.decisionStatus);
-
-    if (!record && row) {
-      entityName = safeText(row.entityName);
-      country = safeText(row.country);
-      tier = safeText(row.certifiedTier);
-      band = safeText(row.certifiedBand);
-      decision = safeText(row.decisionStatus);
-    }
-
-    var status = resolveTrustState(record || row);
+    var status = resolveTrustState(record);
     var validation = resolveVerificationState(verifyData);
     var integrity = resolveIntegrityState(verifyData);
-    var validTo = formatDate(
-      (record && record.validTo) || (row && row.validTo) || null
-    );
-    var certifiedAt = formatDate(
-      (record && record.certifiedAt) || (row && row.certifiedAt) || null
-    );
+    var validTo = formatDate((record && record.validTo) || null);
+    var certifiedAt = formatDate((record && record.certifiedAt) || null);
 
     var verifyPageUrl = ORIGIN + "/verify/" + encodeURIComponent(registryId);
     var verifyApiUrl = ORIGIN + "/api/verify/" + encodeURIComponent(registryId);
@@ -483,10 +443,8 @@
 
     var statusChipClass =
       status === "Certified"
-        ? "gafaig-widget-chip-verified"
-        : status === "Approved"
-          ? "gafaig-widget-chip-approved"
-          : "gafaig-widget-chip-neutral";
+        ? "gafaig-widget-chip-certified"
+        : "gafaig-widget-chip-neutral";
 
     var validationChipClass =
       validation === "Signature Valid"
@@ -521,14 +479,11 @@
       '">' +
       esc(integrity) +
       "</span>" +
-      '<span class="gafaig-widget-chip gafaig-widget-chip-approved">' +
-      esc(decision) +
-      "</span>" +
       "</div>" +
       '<h3 class="gafaig-widget-title">' +
       esc(entityName) +
       "</h3>" +
-      '<p class="gafaig-widget-copy">Public trust record verified via signed GAFAIG registry record and cryptographic proof.</p>' +
+      '<p class="gafaig-widget-copy">Public trust record verified via signed GAFAIG registry proof and independently resolvable verification materials.</p>' +
       '<div class="gafaig-widget-trust-panel">' +
       '<div class="gafaig-widget-trust-header">' +
       '<div class="gafaig-widget-trust-title">Public trust summary</div>' +
@@ -547,9 +502,7 @@
       metric("Status", status) +
       metric("Validation", validation) +
       metric("Integrity", integrity) +
-      metric("Tier / Band", fmtTierBand(tier === "—" ? "" : tier, band === "—" ? "" : band)) +
       metric("Certified", certifiedAt) +
-      metric("Decision", decision) +
       metric("Valid To", validTo) +
       metric("Country", country) +
       metric("Signature", proof ? "Valid (Ed25519)" : "Unavailable") +
@@ -605,21 +558,12 @@
     injectStyles();
 
     try {
-      var registryUrl =
-        ORIGIN +
-        "/api/registry?registryId=" +
-        encodeURIComponent(registryId);
       var verifyUrl =
         ORIGIN +
         "/api/verify/" +
         encodeURIComponent(registryId);
 
-      var results = await Promise.all([
-        fetchJson(registryUrl),
-        fetchJson(verifyUrl),
-      ]);
-
-      var verify = results[1];
+      var verify = await fetchJson(verifyUrl);
 
       if (!verify || verify.ok !== true || verify.verified !== true) {
         renderError(el, registryId, "Verification unavailable");
@@ -631,7 +575,7 @@
         return;
       }
 
-      renderWidget(el, registryId, results[0], verify);
+      renderWidget(el, registryId, verify);
     } catch (error) {
       var message =
         error && typeof error.message === "string"
