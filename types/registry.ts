@@ -5,13 +5,13 @@ export type RegistryRow = {
   entityName: string | null;
   entityType: string | null;
   country: string | null;
-  certifiedScore: number | null;
-  certifiedTier: string | null;
-  certifiedBand: string | null;
-  decisionStatus: string | null;
+  certificationStatus: string | null;
   validFrom: string | null;
   validTo: string | null;
   certifiedAt: string | null;
+  lifecycleStatus: string | null;
+  renewalStatus: string | null;
+  publishedAt: string | null;
 };
 
 export type RegistryApiResponse =
@@ -123,10 +123,6 @@ export type VerifyApiResponse =
         entityType: string | null;
         country: string | null;
         certificationStatus: string | null;
-        certifiedScore?: number | string | null;
-        certifiedTier: string | null;
-        certifiedBand: string | null;
-        decisionStatus: string | null;
         validFrom: string | null;
         validTo: string | null;
         certifiedAt: string | null;

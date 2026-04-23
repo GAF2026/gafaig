@@ -18,19 +18,13 @@ function toRegistryRow(row: any): RegistryRow {
     entityName: row.entityName ?? null,
     entityType: row.entityType ?? null,
     country: row.country ?? null,
-    certifiedScore:
-      row.certifiedScore === null ||
-      row.certifiedScore === undefined ||
-      row.certifiedScore === ""
-        ? null
-        : Number(row.certifiedScore),
-    certifiedTier: row.certifiedTier ?? null,
-    certifiedBand: row.certifiedBand ?? null,
-    decisionStatus:
-      row.decisionStatus ?? row.certificationStatus ?? null,
+    certificationStatus: row.certificationStatus ?? null,
     validFrom: row.validFrom ?? null,
     validTo: row.validTo ?? null,
     certifiedAt: row.certifiedAt ?? null,
+    lifecycleStatus: row.lifecycleStatus ?? null,
+    renewalStatus: row.renewalStatus ?? null,
+    publishedAt: row.publishedAt ?? null,
   };
 }
 

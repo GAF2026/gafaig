@@ -23,34 +23,34 @@ export default function RegistryCertificationSummary({
               Status
             </div>
             <div className="mt-2">
-              <StatusChip>{row.decisionStatus}</StatusChip>
+              <StatusChip>{row.certificationStatus}</StatusChip>
             </div>
           </div>
 
           <div>
             <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/60">
-              Score
+              Lifecycle
             </div>
             <div className="mt-2 text-[16px] font-semibold text-black">
-              {row.certifiedScore ?? "—"}
+              {row.lifecycleStatus ?? "—"}
             </div>
           </div>
 
           <div>
             <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/60">
-              Tier
+              Renewal
             </div>
             <div className="mt-2 text-[16px] font-semibold text-black">
-              {row.certifiedTier ?? "—"}
+              {row.renewalStatus ?? "—"}
             </div>
           </div>
 
           <div>
             <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/60">
-              Band
+              Published
             </div>
             <div className="mt-2 text-[16px] font-semibold text-black">
-              {row.certifiedBand ?? "—"}
+              {formatDate(row.publishedAt)}
             </div>
           </div>
         </div>

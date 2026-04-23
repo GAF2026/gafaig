@@ -17,17 +17,13 @@ function toRegistryRow(row: {
   entityName: string | null;
   entityType: string | null;
   country: string | null;
-  certificationStatus?: string | null;
+  certificationStatus: string | null;
   certifiedAt: string | null;
   validFrom: string | null;
   validTo: string | null;
-  lifecycleStatus?: string | null;
-  renewalStatus?: string | null;
-  publishedAt?: string | null;
-  certifiedScore?: string | number | null;
-  certifiedTier?: string | null;
-  certifiedBand?: string | null;
-  decisionStatus?: string | null;
+  lifecycleStatus: string | null;
+  renewalStatus: string | null;
+  publishedAt: string | null;
 }): RegistryRow {
   return {
     registryId: row.registryId,
@@ -36,18 +32,13 @@ function toRegistryRow(row: {
     entityName: row.entityName,
     entityType: row.entityType,
     country: row.country,
-    certifiedScore:
-      row.certifiedScore === null ||
-      row.certifiedScore === undefined ||
-      row.certifiedScore === ""
-        ? null
-        : Number(row.certifiedScore),
-    certifiedTier: row.certifiedTier ?? null,
-    certifiedBand: row.certifiedBand ?? null,
-    decisionStatus: row.decisionStatus ?? row.certificationStatus ?? null,
+    certificationStatus: row.certificationStatus,
     validFrom: row.validFrom,
     validTo: row.validTo,
     certifiedAt: row.certifiedAt,
+    lifecycleStatus: row.lifecycleStatus,
+    renewalStatus: row.renewalStatus,
+    publishedAt: row.publishedAt,
   };
 }
 

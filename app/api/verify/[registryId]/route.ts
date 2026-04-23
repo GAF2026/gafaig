@@ -60,26 +60,22 @@ export async function GET(
 
     const rows = await sfQuery<any>(`
       SELECT
-        reg.REGISTRY_ID,
-        reg.REGISTRY_SNAPSHOT_ID,
-        reg.APPLICATION_ID,
-        reg.CASE_ID,
-        reg.ENTITY_NAME,
-        reg.ENTITY_TYPE,
-        reg.COUNTRY,
-        reg.CERTIFICATION_STATUS,
-        score.TIER AS CERTIFIED_TIER,
-        score.BAND AS CERTIFIED_BAND,
-        reg.CERTIFIED_AT,
-        reg.VALID_FROM,
-        reg.VALID_TO,
-        reg.LIFECYCLE_STATUS,
-        reg.RENEWAL_STATUS,
-        reg.PUBLISHED_AT
-      FROM CORE.V_REGISTRY_PUBLIC reg
-      LEFT JOIN CORE.V_GOVERNANCE_SCORE_CASE score
-        ON score.CASE_ID = reg.CASE_ID
-      WHERE UPPER(TRIM(reg.REGISTRY_ID)) = UPPER(TRIM('${escapeSqlString(registryId)}'))
+        REGISTRY_ID,
+        REGISTRY_SNAPSHOT_ID,
+        APPLICATION_ID,
+        CASE_ID,
+        ENTITY_NAME,
+        ENTITY_TYPE,
+        COUNTRY,
+        CERTIFICATION_STATUS,
+        CERTIFIED_AT,
+        VALID_FROM,
+        VALID_TO,
+        LIFECYCLE_STATUS,
+        RENEWAL_STATUS,
+        PUBLISHED_AT
+      FROM CORE.V_REGISTRY_PUBLIC
+      WHERE UPPER(TRIM(REGISTRY_ID)) = UPPER(TRIM('${escapeSqlString(registryId)}'))
       LIMIT 1
     `);
 
@@ -109,9 +105,6 @@ export async function GET(
       entityType: r.ENTITY_TYPE ?? null,
       country: r.COUNTRY ?? null,
       certificationStatus: r.CERTIFICATION_STATUS ?? null,
-      certifiedTier: r.CERTIFIED_TIER ?? null,
-      certifiedBand: r.CERTIFIED_BAND ?? null,
-      decisionStatus: r.CERTIFICATION_STATUS ?? null,
       certifiedAt: toIsoString(r.CERTIFIED_AT),
       validFrom: toIsoString(r.VALID_FROM),
       validTo: toIsoString(r.VALID_TO),
@@ -124,9 +117,6 @@ export async function GET(
       registryId: record.registryId,
       entityName: record.entityName,
       certificationStatus: record.certificationStatus,
-      certifiedTier: record.certifiedTier,
-      certifiedBand: record.certifiedBand,
-      decisionStatus: record.decisionStatus,
       certifiedAt: record.certifiedAt,
       validFrom: record.validFrom,
       validTo: record.validTo,
@@ -147,9 +137,6 @@ export async function GET(
         entityType: record.entityType,
         country: record.country,
         certificationStatus: record.certificationStatus,
-        certifiedTier: record.certifiedTier,
-        certifiedBand: record.certifiedBand,
-        decisionStatus: record.decisionStatus,
         validFrom: record.validFrom,
         validTo: record.validTo,
         certifiedAt: record.certifiedAt,
