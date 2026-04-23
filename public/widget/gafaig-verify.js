@@ -1,5 +1,5 @@
 (function () {
-  var VERSION = "1.2.0";
+  var VERSION = "1.3.0";
 
   function escapeHtml(value) {
     return String(value == null ? "" : value)
@@ -8,6 +8,20 @@
       .replace(/>/g, "&gt;")
       .replace(/"/g, "&quot;")
       .replace(/'/g, "&#39;");
+  }
+
+  function formatDate(value) {
+    if (!value) return "—";
+    var d = new Date(value);
+    if (Number.isNaN(d.getTime())) return String(value);
+    return d.toLocaleString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+      second: "2-digit"
+    });
   }
 
   function buildModal(data, registryId, options) {
@@ -53,9 +67,10 @@
     ].join(";");
 
     var verified = !!(data && data.verified);
-    var decision = record.decisionStatus || "—";
-    var tierBand =
-      ((record.certifiedTier || "—") + " · " + (record.certifiedBand || "—")).replace(/^— · —$/, "—");
+    var certificationStatus =
+      record && record.certificationStatus
+        ? String(record.certificationStatus)
+        : "—";
 
     panel.innerHTML =
       '<div style="display:flex;justify-content:space-between;gap:16px;align-items:flex-start;">' +
@@ -91,6 +106,9 @@
       ';font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;">' +
       (verified ? "Signature Valid" : "Signature Invalid") +
       "</span>" +
+      '<span style="display:inline-flex;align-items:center;justify-content:center;height:30px;padding:0 12px;border-radius:9999px;border:1px solid #9fe0bb;background:#e9f8ef;color:#138a52;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;">' +
+      escapeHtml(certificationStatus) +
+      "</span>" +
       (proof.alg
         ? '<span style="display:inline-flex;align-items:center;justify-content:center;height:30px;padding:0 12px;border-radius:9999px;border:1px solid #d4d4d8;background:#ffffff;color:#111827;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;">' +
           escapeHtml(proof.alg) +
@@ -98,10 +116,10 @@
         : "") +
       "</div>" +
       '<div style="margin-top:18px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;">' +
-      metric("Decision", decision) +
-      metric("Tier / Band", tierBand) +
-      metric("Valid To", record.validTo || "—") +
-      metric("Signed At", proof.signedAt || "—") +
+      metric("Certification Status", certificationStatus) +
+      metric("Certified At", formatDate(record.certifiedAt || "—")) +
+      metric("Valid To", formatDate(record.validTo || "—")) +
+      metric("Signed At", formatDate(proof.signedAt || "—")) +
       "</div>" +
       '<div style="margin-top:18px;border:1px solid #e5e7eb;border-radius:16px;padding:14px;background:#fafafa;">' +
       '<div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#6b7280;">Verification key URL</div>' +
