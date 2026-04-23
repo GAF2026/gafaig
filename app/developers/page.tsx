@@ -1,487 +1,374 @@
-import PublicPageHero from "../_components/PublicPageHero";
 import PublicButtonLink from "../_components/PublicButtonLink";
+import PublicPageHero from "../_components/PublicPageHero";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-const DEMO_REGISTRY_ID = "GAFAIG-00000001";
+function SectionHeading({
+  eyebrow,
+  title,
+  body,
+}: {
+  eyebrow: string;
+  title: string;
+  body?: string;
+}) {
+  return (
+    <div>
+      <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
+        {eyebrow}
+      </div>
+      <h2 className="mt-4 max-w-[860px] text-[26px] font-semibold tracking-tight text-black">
+        {title}
+      </h2>
+      {body ? (
+        <p className="mt-5 max-w-[980px] text-[15px] leading-7 text-black/75">
+          {body}
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
+function StepCard({
+  number,
+  title,
+  body,
+}: {
+  number: string;
+  title: string;
+  body: string;
+}) {
+  return (
+    <article className="rounded-2xl border border-black/10 bg-white p-5">
+      <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/55">
+        Step {number}
+      </div>
+      <div className="mt-3 text-[18px] font-semibold tracking-tight text-black">
+        {title}
+      </div>
+      <p className="mt-3 text-[14px] leading-7 text-black/72">{body}</p>
+    </article>
+  );
+}
+
+function StatementCard({
+  title,
+  body,
+}: {
+  title: string;
+  body: string;
+}) {
+  return (
+    <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
+      <div className="text-[18px] font-semibold tracking-tight text-black">
+        {title}
+      </div>
+      <p className="mt-3 text-[15px] leading-7 text-black/75">{body}</p>
+    </div>
+  );
+}
+
+function BulletCard({ text }: { text: string }) {
+  return (
+    <div className="flex gap-3 rounded-2xl border border-black/10 bg-white p-4">
+      <span className="mt-[8px] h-1.5 w-1.5 shrink-0 rounded-full bg-black" />
+      <span className="text-[15px] leading-7 text-black/75">{text}</span>
+    </div>
+  );
+}
+
+function CodeCard({
+  title,
+  language,
+  code,
+}: {
+  title: string;
+  language: string;
+  code: string;
+}) {
+  return (
+    <section className="rounded-3xl border border-black/10 bg-white p-6">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <div className="text-[16px] font-semibold tracking-tight text-black">
+            {title}
+          </div>
+          <div className="mt-1 text-[12px] font-semibold uppercase tracking-[0.16em] text-black/45">
+            {language}
+          </div>
+        </div>
+      </div>
+
+      <pre className="mt-5 overflow-x-auto rounded-2xl border border-black/10 bg-black/[0.03] p-5 text-[13px] leading-[1.8] text-black/85">
+        <code>{code}</code>
+      </pre>
+    </section>
+  );
+}
+
+function MetricCard({
+  label,
+  value,
+  body,
+}: {
+  label: string;
+  value: string;
+  body: string;
+}) {
+  return (
+    <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
+      <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/55">
+        {label}
+      </div>
+      <div className="mt-3 text-[22px] font-semibold tracking-tight text-black">
+        {value}
+      </div>
+      <p className="mt-3 text-[14px] leading-7 text-black/72">{body}</p>
+    </div>
+  );
+}
+
+const curlExample = `curl https://www.gafaig.com/api/verify/GAFAIG-00363095`;
+
+const jsExample = `const response = await fetch(
+  "https://www.gafaig.com/api/verify/GAFAIG-00363095",
+  { cache: "no-store" }
+);
+
+const data = await response.json();
+
+console.log(data.record);
+console.log(data.proof.messageString);
+console.log(data.proof.signature);`;
+
+const widgetExample = `<script src="https://www.gafaig.com/widget/gafaig-widget.js"></script>
+<div data-gafaig-id="GAFAIG-00363095"></div>`;
+
+const modalExample = `<script src="https://www.gafaig.com/widget/gafaig-widget.js"></script>
+<script src="https://www.gafaig.com/widget/gafaig-verify.js"></script>
+
+<button onclick="verifyGAFAIG('GAFAIG-00363095', { baseUrl: 'https://www.gafaig.com' })">
+  Verify this GAFAIG record
+</button>`;
+
+const proofShapeExample = `{
+  "ok": true,
+  "verified": true,
+  "registryId": "GAFAIG-00363095",
+  "record": {
+    "registryId": "GAFAIG-00363095",
+    "applicationId": "APP-DEMO-0001",
+    "caseId": "CASE-0001",
+    "entityName": "OpenAI Enterprise Demo Org",
+    "entityType": "company",
+    "country": "United States",
+    "certificationStatus": "CERTIFIED",
+    "certifiedAt": "2026-04-21T12:37:57.000Z",
+    "validFrom": "2026-04-15T00:00:00.000Z",
+    "validTo": "2027-04-15T10:20:24.000Z"
+  },
+  "proof": {
+    "alg": "Ed25519",
+    "kid": "gafaig-ed25519-2026-01",
+    "signature": "<base64-signature>",
+    "signedAt": "<iso-timestamp>",
+    "verificationKeyUrl": "https://www.gafaig.com/api/.well-known/gafaig-public-key",
+    "message": {
+      "registryId": "GAFAIG-00363095",
+      "entityName": "OpenAI Enterprise Demo Org",
+      "certificationStatus": "CERTIFIED",
+      "certifiedAt": "2026-04-21T12:37:57.000Z"
+    },
+    "messageString": "{\\"registryId\\":\\"GAFAIG-00363095\\",...}"
+  }
+}`;
 
 export default function DevelopersPage() {
-  const verifyEndpoint = `/api/verify/${DEMO_REGISTRY_ID}`;
-  const publicKeyEndpoint = "/api/.well-known/gafaig-public-key";
-  const widgetScript =
-    '<script src="https://www.gafaig.com/widget/gafaig-widget.js"></script>';
-  const widgetMarkup = `<div data-gafaig-id="${DEMO_REGISTRY_ID}"></div>`;
-  const verifyHelperScript =
-    '<script src="https://www.gafaig.com/widget/gafaig-verify.js"></script>';
-
   return (
     <main className="mx-auto max-w-[1180px] px-6 py-10">
       <div className="space-y-8">
         <PublicPageHero
           eyebrow="DEVELOPERS"
-          title="Integrate GAFAIG proof into your own systems"
-          description="GAFAIG is not only a public registry. It is a proof layer that developers can verify, display, and distribute across websites, products, and internal systems."
-          secondaryDescription="Use the verification endpoint, public key endpoint, signed proof payload, and widget surfaces to validate that a published GAFAIG public trust record is real, current, and independently verifiable."
+          title="Verify a GAFAIG record in minutes."
+          description="GAFAIG provides a verification-first trust surface for AI governance. Fetch a certified public record, inspect its signed proof, and validate it independently."
+          secondaryDescription="The public layer exposes certification outcomes only. Internal governance records remain private. Trust is derived from the verification endpoint, signed payload, and public key."
           actions={
             <>
-              <PublicButtonLink href="/demo" variant="primary">
-                Start with the Demo
-              </PublicButtonLink>
-              <PublicButtonLink href="/verify" variant="secondary">
+              <PublicButtonLink href="/verify" variant="primary">
                 Open Verify
               </PublicButtonLink>
               <PublicButtonLink href="/registry" variant="secondary">
                 Browse Registry
+              </PublicButtonLink>
+              <PublicButtonLink
+                href="/widget-preview/GAFAIG-00363095"
+                variant="secondary"
+              >
+                View Widget Preview
               </PublicButtonLink>
             </>
           }
         />
 
         <section className="rounded-3xl border border-black/10 bg-white p-8">
-          <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
-            WHAT DEVELOPERS GET
-          </div>
-
-          <h2 className="mt-4 max-w-[860px] text-[26px] font-semibold tracking-tight text-black">
-            A portable trust infrastructure, not just a page
-          </h2>
-
-          <p className="mt-5 max-w-[960px] text-[15px] leading-7 text-black/75">
-            GAFAIG lets external systems do more than link to a certification
-            page. Developers can retrieve signed proof, validate public trust
-            records, fetch the verification key, and surface the same trust
-            outcome through a widget or a direct integration.
-          </p>
-
-          <div className="mt-7 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-            <DeveloperCard
-              title="Verify endpoint"
-              body="Retrieve the public trust record together with the signed proof payload."
-            />
-            <DeveloperCard
-              title="Public key endpoint"
-              body="Fetch the published verification key used to validate signed proof."
-            />
-            <DeveloperCard
-              title="Widget surface"
-              body="Display a live GAFAIG trust result on an external website."
-            />
-            <DeveloperCard
-              title="Proof portability"
-              body="Use the same trust outcome across registry, API, verify page, and widget."
-            />
-          </div>
-        </section>
-
-        <section className="grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
-          <section className="rounded-3xl border border-black/10 bg-white p-8">
-            <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
-              QUICKSTART
-            </div>
-
-            <h2 className="mt-4 max-w-[860px] text-[26px] font-semibold tracking-tight text-black">
-              The core trust flow
-            </h2>
-
-            <p className="mt-4 max-w-[860px] text-[15px] leading-7 text-black/75">
-              GAFAIG trust works as a sequence. Start with a published registry
-              ID, retrieve signed proof, fetch the published verification key,
-              and validate the result or surface it through a widget.
-            </p>
-
-            <div className="mt-8 grid gap-4 xl:grid-cols-4">
-              <PipelineStep
-                number="1"
-                title="Resolve record"
-                body="Start from a published GAFAIG registry ID."
-              />
-              <PipelineStep
-                number="2"
-                title="Fetch proof"
-                body="Retrieve signed proof from the verify endpoint."
-              />
-              <PipelineStep
-                number="3"
-                title="Fetch key"
-                body="Retrieve the public verification key from the published key endpoint."
-              />
-              <PipelineStep
-                number="4"
-                title="Validate"
-                body="Validate the signature or surface the result through the widget."
-                isLast
-              />
-            </div>
-          </section>
-
-          <section className="rounded-3xl border border-black/10 bg-white p-8">
-            <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
-              EXAMPLE RECORD
-            </div>
-
-            <h2 className="mt-4 text-[26px] font-semibold tracking-tight text-black">
-              Demo registry ID
-            </h2>
-
-            <div className="mt-5 rounded-2xl border border-black/10 bg-black/[0.02] p-5">
-              <div className="text-[12px] font-semibold uppercase tracking-[0.18em] text-black/50">
-                Registry ID
-              </div>
-              <div className="mt-3 break-all font-mono text-[14px] text-black/80">
-                {DEMO_REGISTRY_ID}
-              </div>
-            </div>
-
-            <div className="mt-6 flex flex-wrap gap-3">
-              <PublicButtonLink
-                href={`/registry/${DEMO_REGISTRY_ID}`}
-                variant="secondary"
-                size="sm"
-              >
-                Open record
-              </PublicButtonLink>
-              <PublicButtonLink
-                href={`/verify/${DEMO_REGISTRY_ID}`}
-                variant="secondary"
-                size="sm"
-              >
-                Verify record
-              </PublicButtonLink>
-              <PublicButtonLink
-                href={`/widget-preview/${DEMO_REGISTRY_ID}`}
-                variant="secondary"
-                size="sm"
-              >
-                Open widget
-              </PublicButtonLink>
-            </div>
-          </section>
-        </section>
-
-        <section className="rounded-3xl border border-black/10 bg-white p-8">
-          <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
-            ENDPOINTS
-          </div>
-
-          <h2 className="mt-4 max-w-[860px] text-[26px] font-semibold tracking-tight text-black">
-            Core public surfaces
-          </h2>
-
-          <div className="mt-7 grid gap-4 md:grid-cols-3">
-            <EndpointCard
-              title="Verify endpoint"
-              path={verifyEndpoint}
-              body="Returns the public trust record plus the signed proof payload for the specified registry ID."
-            />
-            <EndpointCard
-              title="Public key endpoint"
-              path={publicKeyEndpoint}
-              body="Returns the published public verification key that external systems use to validate signed proof."
-            />
-            <EndpointCard
-              title="Widget preview"
-              path={`/widget-preview/${DEMO_REGISTRY_ID}`}
-              body="Shows how the same trust result can appear outside GAFAIG through a portable widget."
-            />
-          </div>
-        </section>
-
-        <section className="grid gap-4 lg:grid-cols-2">
-          <section className="rounded-3xl border border-black/10 bg-white p-8">
-            <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
-              VERIFY ENDPOINT
-            </div>
-
-            <h2 className="mt-4 text-[26px] font-semibold tracking-tight text-black">
-              Retrieve signed proof
-            </h2>
-
-            <p className="mt-4 text-[15px] leading-7 text-black/75">
-              The verify endpoint is the canonical public proof surface. It
-              returns the public trust record together with proof metadata such
-              as algorithm, key ID, signature, signed timestamp, verification
-              key URL, and the deterministic signed message.
-            </p>
-
-            <CodeBlock
-              code={`GET ${verifyEndpoint}
-
-Response fields include:
-- record
-- proof.alg
-- proof.kid
-- proof.signature
-- proof.signedAt
-- proof.verificationKeyUrl
-- proof.message
-- proof.messageString`}
-            />
-          </section>
-
-          <section className="rounded-3xl border border-black/10 bg-white p-8">
-            <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
-              PUBLIC KEY ENDPOINT
-            </div>
-
-            <h2 className="mt-4 text-[26px] font-semibold tracking-tight text-black">
-              Retrieve the verification key
-            </h2>
-
-            <p className="mt-4 text-[15px] leading-7 text-black/75">
-              External verifiers fetch the published public key and validate the
-              signature against the signed message string returned by the verify
-              endpoint. This is what makes GAFAIG independently verifiable
-              outside the platform.
-            </p>
-
-            <CodeBlock
-              code={`GET ${publicKeyEndpoint}
-
-Response fields include:
-- kid
-- kty
-- crv
-- alg
-- publicKeyPem
-- publicKeyBase64`}
-            />
-          </section>
-        </section>
-
-        <section className="rounded-3xl border border-black/10 bg-white p-8">
-          <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
-            WIDGET INTEGRATION
-          </div>
-
-          <h2 className="mt-4 max-w-[860px] text-[26px] font-semibold tracking-tight text-black">
-            Surface trust outside GAFAIG
-          </h2>
-
-          <p className="mt-5 max-w-[980px] text-[15px] leading-7 text-black/75">
-            The widget is the fastest way to display a live GAFAIG trust result
-            on an external website. It uses the published public trust record
-            and signed proof surfaces rather than creating a new trust decision.
-          </p>
-
-          <div className="mt-7 grid gap-4 lg:grid-cols-2">
-            <div>
-              <div className="text-sm font-semibold text-black">
-                Widget script
-              </div>
-              <CodeBlock code={widgetScript} />
-            </div>
-
-            <div>
-              <div className="text-sm font-semibold text-black">
-                Widget markup
-              </div>
-              <CodeBlock code={widgetMarkup} />
-            </div>
-          </div>
-
-          <div className="mt-6">
-            <div className="text-sm font-semibold text-black">
-              Optional verification helper
-            </div>
-            <CodeBlock code={verifyHelperScript} />
-          </div>
-        </section>
-
-        <section className="rounded-3xl border border-black/10 bg-white p-8">
-          <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
-            WHAT THIS ENABLES
-          </div>
-
-          <h2 className="mt-3 max-w-[860px] text-[26px] font-semibold tracking-tight text-black">
-            Build verifiable trust into your own interfaces
-          </h2>
-
-          <p className="mt-4 max-w-[860px] text-[15px] leading-7 text-black/75">
-            GAFAIG allows organizations, products, marketplaces, and third-party
-            systems to prove that a published public trust record is real and
-            current. The trust result can be verified through API calls,
-            validated through signed proof, or displayed directly through a
-            widget surface.
-          </p>
+          <SectionHeading
+            eyebrow="START HERE"
+            title="How GAFAIG verification works"
+            body="GAFAIG separates internal governance review from external trust. Developers interact only with the public trust layer: the verification endpoint, the signed proof payload, and the public key used to validate the result."
+          />
 
           <div className="mt-8 grid gap-4 md:grid-cols-3">
-            <SurfaceCard
-              title="Platform integrations"
-              body="Attach a GAFAIG trust result to product listings, enterprise profiles, or public organization pages."
+            <StepCard
+              number="1"
+              title="Fetch a certified record"
+              body="Request a registry record from the verify endpoint by REGISTRY_ID. This returns the public record and its signed proof."
             />
-            <SurfaceCard
-              title="Internal validation"
-              body="Verify signed proof in your own systems when trust status affects workflows, approvals, or procurement."
+            <StepCard
+              number="2"
+              title="Inspect the signed payload"
+              body="Use the proof object to read the canonical message, messageString, signature, key ID, and verification key URL."
             />
-            <SurfaceCard
-              title="External display"
-              body="Use the widget and verification helper to surface trust without moving users off your platform."
+            <StepCard
+              number="3"
+              title="Validate independently"
+              body="Verify the signature with the published Ed25519 public key. No private GAFAIG infrastructure is required."
+            />
+          </div>
+        </section>
+
+        <section className="grid gap-4 md:grid-cols-3">
+          <MetricCard
+            label="Trust Source"
+            value="/api/verify"
+            body="The verification endpoint is the only trust authority in the public GAFAIG surface."
+          />
+          <MetricCard
+            label="Signature Algorithm"
+            value="Ed25519"
+            body="Every public proof is signed with Ed25519 and can be validated with standard libraries."
+          />
+          <MetricCard
+            label="Public Key"
+            value="/api/.well-known/gafaig-public-key"
+            body="The key endpoint exposes the public key material needed for independent verification."
+          />
+        </section>
+
+        <section className="rounded-3xl border border-black/10 bg-white p-8">
+          <SectionHeading
+            eyebrow="PUBLIC CONTRACT"
+            title="What the public layer exposes"
+            body="GAFAIG exposes only the certification outcome and verification proof. Internal scoring, workflow, decision, and review materials are not part of the public contract."
+          />
+
+          <div className="mt-6 grid gap-4 md:grid-cols-2">
+            <StatementCard
+              title="Public fields"
+              body="registryId, entityName, entityType, country, certificationStatus, certifiedAt, validFrom, validTo, and the signed proof payload."
+            />
+            <StatementCard
+              title="Private fields"
+              body="decision status, score, tier, band, scoring breakdowns, reviewer materials, and internal workflow state never belong in the public trust layer."
             />
           </div>
         </section>
 
         <section className="rounded-3xl border border-black/10 bg-white p-8">
-          <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
-            RELATED SURFACES
+          <SectionHeading
+            eyebrow="COPY / PASTE"
+            title="Verification examples"
+            body="Start with the verify endpoint. Then add widget or modal verification if you want to surface trust directly inside a product, website, or external workflow."
+          />
+
+          <div className="mt-8 grid gap-6">
+            <CodeCard title="Fetch a verification record" language="cURL" code={curlExample} />
+            <CodeCard title="Read the public proof in JavaScript" language="JavaScript" code={jsExample} />
+            <CodeCard title="Embed the GAFAIG widget" language="HTML" code={widgetExample} />
+            <CodeCard title="Open the verification modal" language="HTML" code={modalExample} />
+          </div>
+        </section>
+
+        <section className="rounded-3xl border border-black/10 bg-white p-8">
+          <SectionHeading
+            eyebrow="PROOF OBJECT"
+            title="The signed payload you verify"
+            body="The record object is for display. The proof object is the trust layer. Signature validation depends on messageString, signature, key ID, and the public key endpoint."
+          />
+
+          <div className="mt-8">
+            <CodeCard
+              title="Example verify response shape"
+              language="JSON"
+              code={proofShapeExample}
+            />
           </div>
 
-          <h2 className="mt-4 max-w-[860px] text-[26px] font-semibold tracking-tight text-black">
-            Explore the public trust flow
-          </h2>
+          <div className="mt-6 grid gap-4 md:grid-cols-2">
+            <BulletCard text="Trust depends on the proof object, not on UI rendering." />
+            <BulletCard text="The signed message is intentionally minimal to reduce drift and attack surface." />
+            <BulletCard text="External systems should treat messageString as the canonical input to signature verification." />
+            <BulletCard text="Widgets and badges are thin consumers of the verify endpoint and should never compute trust independently." />
+          </div>
+        </section>
 
-          <div className="mt-7 grid gap-4 md:grid-cols-4">
-            <LinkCard
+        <section className="rounded-3xl border border-black/10 bg-white p-8">
+          <SectionHeading
+            eyebrow="INTEGRATION PATHS"
+            title="Choose the trust surface you need"
+            body="GAFAIG supports multiple ways to distribute trust depending on your product, audience, and verification needs."
+          />
+
+          <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            <StatementCard
+              title="Verify API"
+              body="Fetch raw record + proof data for custom integrations, audit pipelines, and third-party validation."
+            />
+            <StatementCard
               title="Registry"
-              body="See the public trust record."
-              href={`/registry/${DEMO_REGISTRY_ID}`}
-              cta="Open record"
+              body="Link users to the public certification record for a durable, human-readable trust reference."
             />
-            <LinkCard
-              title="Verify"
-              body="Inspect the signed proof surface."
-              href={`/verify/${DEMO_REGISTRY_ID}`}
-              cta="Open verify"
-            />
-            <LinkCard
-              title="JSON"
-              body="Read the machine-usable signed proof."
-              href={verifyEndpoint}
-              cta="Open endpoint"
-            />
-            <LinkCard
+            <StatementCard
               title="Widget"
-              body="See portable trust in action."
-              href={`/widget-preview/${DEMO_REGISTRY_ID}`}
-              cta="Open widget"
+              body="Render a verified trust surface directly inside external sites or product experiences."
             />
+            <StatementCard
+              title="Modal Verification"
+              body="Allow users to inspect the public proof without leaving the current page."
+            />
+          </div>
+
+          <div className="mt-6 flex flex-wrap gap-3">
+            <PublicButtonLink href="/verify" variant="primary">
+              Test Verify
+            </PublicButtonLink>
+            <PublicButtonLink href="/registry" variant="secondary">
+              Open Registry
+            </PublicButtonLink>
+            <PublicButtonLink
+              href="/widget-preview/GAFAIG-00363095"
+              variant="secondary"
+            >
+              Preview Widget
+            </PublicButtonLink>
+          </div>
+        </section>
+
+        <section className="rounded-3xl border border-black/10 bg-white p-8">
+          <SectionHeading
+            eyebrow="WHY THIS MATTERS"
+            title="Verification without private disclosure"
+            body="GAFAIG is designed so organizations can prove certified governance outcomes without exposing internal evidence, workflows, or reviewer materials. This makes trust portable while preserving confidentiality."
+          />
+
+          <div className="mt-6 grid gap-4 md:grid-cols-2">
+            <BulletCard text="Internal governance review stays in the private verification engine." />
+            <BulletCard text="The public layer exposes only the certified outcome and proof needed to verify it." />
+            <BulletCard text="Trust can be validated outside GAFAIG using the published verification key." />
+            <BulletCard text="The same public trust signal can appear on registry pages, APIs, badges, widgets, and external websites." />
           </div>
         </section>
       </div>
     </main>
-  );
-}
-
-function DeveloperCard({
-  title,
-  body,
-}: {
-  title: string;
-  body: string;
-}) {
-  return (
-    <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
-      <div className="text-[18px] font-semibold tracking-tight text-black">
-        {title}
-      </div>
-      <p className="mt-3 text-[15px] leading-7 text-black/75">{body}</p>
-    </div>
-  );
-}
-
-function PipelineStep({
-  number,
-  title,
-  body,
-  isLast = false,
-}: {
-  number: string;
-  title: string;
-  body: string;
-  isLast?: boolean;
-}) {
-  return (
-    <div className="relative">
-      <div className="h-full rounded-2xl border border-black/10 bg-black/[0.02] p-5">
-        <div className="text-[28px] font-semibold leading-none tracking-tight text-black/30">
-          {number}
-        </div>
-        <div className="mt-4 text-[18px] font-semibold tracking-tight text-black">
-          {title}
-        </div>
-        <p className="mt-3 text-[15px] leading-7 text-black/70">{body}</p>
-      </div>
-
-      {!isLast ? (
-        <div className="pointer-events-none absolute -right-[10px] top-1/2 hidden -translate-y-1/2 xl:flex items-center justify-center">
-          <div className="flex h-8 w-8 items-center justify-center rounded-full border border-black/10 bg-white text-black/40">
-            →
-          </div>
-        </div>
-      ) : null}
-    </div>
-  );
-}
-
-function EndpointCard({
-  title,
-  path,
-  body,
-}: {
-  title: string;
-  path: string;
-  body: string;
-}) {
-  return (
-    <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
-      <div className="text-[18px] font-semibold tracking-tight text-black">
-        {title}
-      </div>
-      <div className="mt-3 break-all rounded-2xl border border-black/10 bg-white p-4 font-mono text-[12px] leading-6 text-black/80">
-        {path}
-      </div>
-      <p className="mt-3 text-[15px] leading-7 text-black/75">{body}</p>
-    </div>
-  );
-}
-
-function CodeBlock({ code }: { code: string }) {
-  return (
-    <pre className="mt-3 overflow-x-auto whitespace-pre-wrap break-words rounded-2xl border border-black/10 bg-black/[0.02] p-5 text-[13px] leading-7 text-black/85">
-      <code>{code}</code>
-    </pre>
-  );
-}
-
-function SurfaceCard({
-  title,
-  body,
-}: {
-  title: string;
-  body: string;
-}) {
-  return (
-    <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
-      <div className="text-[18px] font-semibold tracking-tight text-black">
-        {title}
-      </div>
-      <p className="mt-3 text-[15px] leading-7 text-black/75">{body}</p>
-    </div>
-  );
-}
-
-function LinkCard({
-  title,
-  body,
-  href,
-  cta,
-}: {
-  title: string;
-  body: string;
-  href: string;
-  cta: string;
-}) {
-  return (
-    <div className="rounded-2xl border border-black/10 bg-white p-4">
-      <div className="text-[18px] font-semibold tracking-tight text-black">
-        {title}
-      </div>
-      <p className="mt-3 text-[15px] leading-7 text-black/75">{body}</p>
-      <div className="mt-5">
-        <PublicButtonLink href={href} variant="ghost" size="sm">
-          {cta} →
-        </PublicButtonLink>
-      </div>
-    </div>
   );
 }
