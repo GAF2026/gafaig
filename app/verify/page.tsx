@@ -29,10 +29,6 @@ type VerifyApiResponse = {
     applicationId?: string | null;
     caseId?: string | null;
     certificationStatus?: string | null;
-    certifiedScore?: number | null;
-    certifiedTier?: string | null;
-    certifiedBand?: string | null;
-    decisionStatus?: string | null;
     certifiedAt?: string | null;
     validFrom?: string | null;
     validTo?: string | null;
@@ -123,29 +119,22 @@ function truncateMiddle(value: string, start = 20, end = 14) {
 }
 
 function getTrustState(
-  certifiedAt?: string | null,
-  decisionStatus?: string | null
+  certificationStatus?: string | null,
+  certifiedAt?: string | null
 ) {
-  const isCertified = Boolean(String(certifiedAt ?? "").trim());
-  const decision = String(decisionStatus ?? "").trim().toUpperCase();
+  const certification = String(certificationStatus ?? "").trim().toUpperCase();
+  const hasCertifiedAt = Boolean(String(certifiedAt ?? "").trim());
 
-  if (isCertified) {
+  if (certification === "CERTIFIED" || hasCertifiedAt) {
     return {
       label: "Certified",
-      description: "Trusted + published",
-    };
-  }
-
-  if (decision === "APPROVED") {
-    return {
-      label: "Approved",
-      description: "Evaluated",
+      description: "Publicly trusted + published",
     };
   }
 
   return {
-    label: "Pending",
-    description: "Not finalized",
+    label: "Not publicly certified",
+    description: "No public certification record resolved",
   };
 }
 
@@ -429,7 +418,7 @@ export default function VerifyPage() {
 
   const proof = result?.proof;
   const record = result?.record;
-  const trust = getTrustState(record?.certifiedAt, record?.decisionStatus);
+  const trust = getTrustState(record?.certificationStatus, record?.certifiedAt);
   const proofState =
     state.status === "success"
       ? getProofStateLabel(state.endpointVerified, state.signatureVerified)
@@ -441,8 +430,8 @@ export default function VerifyPage() {
         <PublicPageHero
           eyebrow="Public verification"
           title="Verify a GAFAIG record"
-          description="Confirm whether a GAFAIG public trust record is valid by registry ID. Verification checks the live record, signed proof, signature, and trust state."
-          secondaryDescription="Records may be Approved (evaluated) or Certified (trusted and published). Verification confirms cryptographic integrity and alignment with the public registry, without exposing private evidence."
+          description="Confirm whether a GAFAIG public trust record is valid by registry ID. Verification checks the live record, signed proof, signature, and public trust state."
+          secondaryDescription="This page verifies the public certification record only. It confirms that a certified public trust record has been published, that the disclosed proof is signed correctly, and that the result can be independently validated without exposing private evidence or internal review materials."
           actions={
             <>
               <PublicButtonLink
@@ -463,7 +452,7 @@ export default function VerifyPage() {
 
         <section className="rounded-3xl border border-black/10 bg-white p-8">
           <div className="max-w-3xl text-[15px] leading-7 text-black/75">
-            This is the independent proof layer behind the certification record.
+            This is the independent proof layer behind the certified public trust record.
           </div>
 
           <div className="mt-8 text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
@@ -503,16 +492,16 @@ export default function VerifyPage() {
         <section className="rounded-3xl border border-black/10 bg-white p-8">
           <div className="max-w-[980px] space-y-3 text-[15px] leading-7 text-black/75">
             <p>
-              GAFAIG verification distinguishes between evaluated records and
-              publicly trusted records.
+              GAFAIG verification focuses on the public certification stage rather
+              than internal workflow stages.
             </p>
 
             <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
               <div className="grid gap-3 text-[15px] leading-7 text-black/75">
                 <div>
-                  <span className="font-semibold text-black">Approved</span>{" "}
-                  means the record has completed the GAFAIG verification process
-                  and received a governance decision.
+                  <span className="font-semibold text-black">Verification</span>{" "}
+                  confirms that the public record, signed proof, and published
+                  verification key are consistent with one another.
                 </div>
 
                 <div>
@@ -525,8 +514,9 @@ export default function VerifyPage() {
             </div>
 
             <p className="text-black/70">
-              Verification confirms record integrity and signed proof validity.
-              Trust state determines whether the record is publicly certified.
+              This page does not expose private evidence, scoring, or internal
+              assessment workflow details. It confirms the public certification
+              outcome and the integrity of the disclosed proof materials.
             </p>
           </div>
         </section>
@@ -705,9 +695,7 @@ export default function VerifyPage() {
                   body={
                     trust.label === "Certified"
                       ? "Published and trusted in the Registry of Record."
-                      : trust.label === "Approved"
-                      ? "Evaluated and approved, but not yet finalized as a certified public trust record."
-                      : "Not yet finalized as a public trust record."
+                      : "No certified public trust record was resolved."
                   }
                 />
                 <ProofMetricCard
@@ -743,14 +731,14 @@ export default function VerifyPage() {
                   value={record.registryId ?? "—"}
                 />
                 <DetailCard
-                  label="Decision"
-                  value={record.decisionStatus ?? "—"}
-                />
-                <DetailCard
                   label="Certification status"
                   value={record.certificationStatus ?? trust.label}
                 />
                 <DetailCard label="Country" value={record.country ?? "—"} />
+                <DetailCard
+                  label="Entity type"
+                  value={record.entityType ?? "—"}
+                />
               </div>
 
               <div className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
