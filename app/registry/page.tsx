@@ -14,8 +14,6 @@ type SearchParams = {
   q?: string;
   country?: string;
   organization?: string;
-  tier?: string;
-  band?: string;
 };
 
 type RegistryPageRow = {
@@ -26,8 +24,6 @@ type RegistryPageRow = {
   entityType?: string | null;
   country?: string | null;
   certificationStatus?: string | null;
-  certifiedTier?: string | null;
-  certifiedBand?: string | null;
   certifiedAt?: string | null;
   validFrom?: string | null;
   validTo?: string | null;
@@ -39,8 +35,6 @@ type RegistryPageRow = {
 type FilterOptions = {
   countries: string[];
   organizations: string[];
-  tiers: string[];
-  bands: string[];
 };
 
 function clean(value: string | null | undefined): string {
@@ -65,13 +59,6 @@ function getStatusLabel(row: RegistryPageRow): string {
 }
 
 function getCertificationLabel(row: RegistryPageRow): string {
-  const tier = clean(row.certifiedTier);
-  const band = clean(row.certifiedBand);
-
-  if (tier && band) return `${tier} · ${band}`;
-  if (tier) return tier;
-  if (band) return `Band ${band}`;
-
   const certificationStatus = clean(row.certificationStatus);
   return certificationStatus || "Certified";
 }
@@ -231,15 +218,9 @@ export default async function RegistryPage({
   const q = clean(searchParams?.q);
   const country = clean(searchParams?.country);
   const organization = clean(searchParams?.organization);
-  const tier = clean(searchParams?.tier);
-  const band = clean(searchParams?.band);
 
   const hasServerFilters = q.length > 0 || country.length > 0;
-  const hasAnyFilters =
-    hasServerFilters ||
-    organization.length > 0 ||
-    tier.length > 0 ||
-    band.length > 0;
+  const hasAnyFilters = hasServerFilters || organization.length > 0;
 
   const [baseRows, rawOptionsUnknown] = await Promise.all([
     hasServerFilters
@@ -258,8 +239,6 @@ export default async function RegistryPage({
   const rawOptions = rawOptionsUnknown as {
     countries?: string[];
     organizations?: string[];
-    tiers?: string[];
-    bands?: string[];
   };
 
   const rows = (baseRows as RegistryPageRow[]).filter((row) => {
@@ -267,13 +246,7 @@ export default async function RegistryPage({
       !organization ||
       clean(row.entityName).toLowerCase() === organization.toLowerCase();
 
-    const matchesTier =
-      !tier || clean(row.certifiedTier).toLowerCase() === tier.toLowerCase();
-
-    const matchesBand =
-      !band || clean(row.certifiedBand).toLowerCase() === band.toLowerCase();
-
-    return matchesOrganization && matchesTier && matchesBand;
+    return matchesOrganization;
   });
 
   const options: FilterOptions = {
@@ -281,16 +254,12 @@ export default async function RegistryPage({
     organizations: Array.isArray(rawOptions?.organizations)
       ? rawOptions.organizations
       : [],
-    tiers: Array.isArray(rawOptions?.tiers) ? rawOptions.tiers : [],
-    bands: Array.isArray(rawOptions?.bands) ? rawOptions.bands : [],
   };
 
   const activeFilters = [
     q ? { label: "Search", value: q } : null,
     country ? { label: "Country", value: country } : null,
     organization ? { label: "Organization", value: organization } : null,
-    tier ? { label: "Tier", value: tier } : null,
-    band ? { label: "Band", value: band } : null,
   ].filter(Boolean) as Array<{ label: string; value: string }>;
 
   return (
@@ -300,6 +269,7 @@ export default async function RegistryPage({
           eyebrow="Registry of Record"
           title="Browse the GAFAIG public registry"
           description="Browse independently verifiable public certification records by organization, jurisdiction, and registry identifier."
+          secondaryDescription="Use Registry when you want to inspect a specific certified public trust record. Registry is the canonical record-by-record surface for viewing finalized public certification records and their verification proof."
           actions={
             <>
               <PublicButtonLink href="/explorer" variant="primary">
@@ -326,6 +296,11 @@ export default async function RegistryPage({
               outside the originating organization’s platform.
             </p>
             <p className="text-[15px] leading-7 text-black/75">
+              Use Registry when you want to inspect a specific certified public
+              record. Explorer is the broader discovery surface for browsing the
+              public trust footprint across organizations, countries, and systems.
+            </p>
+            <p className="text-[15px] leading-7 text-black/75">
               The Registry of Record is reserved for public certification records
               that have already been finalized and published. Internal workflow
               approval remains upstream. The public registry only exposes the
@@ -345,7 +320,7 @@ export default async function RegistryPage({
               </h2>
             </div>
 
-            <form className="grid gap-4 md:grid-cols-2 xl:grid-cols-5" method="GET">
+            <form className="grid gap-4 md:grid-cols-2 xl:grid-cols-3" method="GET">
               <div>
                 <label className="text-[11px] font-semibold uppercase tracking-[0.18em] text-black/35">
                   Search
@@ -394,43 +369,7 @@ export default async function RegistryPage({
                 </select>
               </div>
 
-              <div>
-                <label className="text-[11px] font-semibold uppercase tracking-[0.18em] text-black/35">
-                  Tier
-                </label>
-                <select
-                  name="tier"
-                  defaultValue={tier}
-                  className="mt-2 w-full rounded-2xl border border-black/10 bg-black/[0.02] px-4 py-3 text-sm text-black outline-none"
-                >
-                  <option value="">All tiers</option>
-                  {options.tiers.map((value) => (
-                    <option key={value} value={value}>
-                      {value}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="text-[11px] font-semibold uppercase tracking-[0.18em] text-black/35">
-                  Band
-                </label>
-                <select
-                  name="band"
-                  defaultValue={band}
-                  className="mt-2 w-full rounded-2xl border border-black/10 bg-black/[0.02] px-4 py-3 text-sm text-black outline-none"
-                >
-                  <option value="">All bands</option>
-                  {options.bands.map((value) => (
-                    <option key={value} value={value}>
-                      {value}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="flex flex-wrap items-end gap-3 xl:col-span-5">
+              <div className="flex flex-wrap items-end gap-3 xl:col-span-3">
                 <button
                   type="submit"
                   className="inline-flex min-h-[42px] items-center justify-center rounded-full border border-black/20 bg-white px-5 text-sm font-semibold text-black transition hover:bg-black hover:text-white"

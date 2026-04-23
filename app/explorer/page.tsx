@@ -39,6 +39,7 @@ export default async function ExplorerPage() {
           eyebrow="Public Trust Surface"
           title="Explore the public GAFAIG trust surface"
           description="Explorer shows the broader public governance footprint across organizations, countries, and publicly surfaced records in the GAFAIG network."
+          secondaryDescription="Use Explorer when you want to browse the broader public trust surface across organizations, countries, and systems. Registry is the canonical record-by-record surface for inspecting a specific certified public record."
           actions={
             <>
               <PublicButtonLink href="/registry" variant="secondary">
@@ -69,6 +70,12 @@ export default async function ExplorerPage() {
               Explorer is broader than a single Registry of Record detail page, but it
               still follows the public trust policy. Only records that have completed
               publication are shown here.
+            </p>
+            <p className="text-[15px] leading-7 text-black/75">
+              Use Explorer when you want to browse the broader public trust
+              footprint across organizations, countries, and systems. Use
+              Registry when you want to inspect a specific certified public
+              record and its verification surfaces.
             </p>
           </div>
 
@@ -175,11 +182,6 @@ export default async function ExplorerPage() {
                       <span className="inline-flex items-center rounded-full bg-emerald-100 px-4 py-2 text-[14px] font-semibold text-emerald-800">
                         {formatText(record.certificationStatus)}
                       </span>
-                      {record.certifiedBand ? (
-                        <span className="inline-flex items-center rounded-full bg-blue-100 px-4 py-2 text-[14px] font-semibold text-blue-800">
-                          {record.certifiedBand}
-                        </span>
-                      ) : null}
                     </div>
 
                     <div>
