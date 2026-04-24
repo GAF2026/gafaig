@@ -336,6 +336,32 @@ export default function DevelopersPage() {
 
         <section className="rounded-3xl border border-black/10 bg-white p-8">
           <SectionHeading
+            eyebrow="POSITIONING"
+            title="Verification layer for AI governance frameworks"
+            body="GAFAIG operates as a verification layer on top of governance frameworks such as the NIST AI Risk Management Framework. It does not replace governance standards. It verifies that governance processes are functioning and produces independently verifiable public records."
+          />
+
+          <div className="mt-6 grid gap-4 md:grid-cols-2">
+            <StatementCard
+              title="Frameworks"
+              body="Define how AI systems should be governed, mapped, measured, and managed across their lifecycle."
+            />
+            <StatementCard
+              title="GAFAIG"
+              body="Verifies that these governance processes are operational and produces signed proof that can be independently validated."
+            />
+          </div>
+
+          <div className="mt-6 grid gap-4 md:grid-cols-2">
+            <BulletCard text="Verification outputs are generated from deterministic computation in Snowflake." />
+            <BulletCard text="The public API exposes only certified outcomes and signed proof, never internal governance data." />
+            <BulletCard text="External systems can validate certification using the verification endpoint and public key." />
+            <BulletCard text="Trust does not depend on GAFAIG UI; it can be independently verified anywhere." />
+          </div>
+        </section>
+
+        <section className="rounded-3xl border border-black/10 bg-white p-8">
+          <SectionHeading
             eyebrow="SDK"
             title="Load the GAFAIG SDK"
             body="Start by loading the SDK script from the GAFAIG public surface. After that, you can verify a record, render a widget, render a badge, or open the modal without wiring the low-level scripts yourself."

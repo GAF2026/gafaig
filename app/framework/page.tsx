@@ -98,6 +98,57 @@ export default function FrameworkPage() {
 
         <section className="rounded-3xl border border-black/10 bg-white p-8">
           <h2 className="text-[26px] font-semibold tracking-tight text-black">
+            Alignment with AI Risk Management Frameworks
+          </h2>
+
+          <p className="mt-4 text-[15px] leading-7 text-black/75">
+            GAFAIG does not replace governance frameworks such as the NIST AI
+            Risk Management Framework. It provides a verification layer that
+            confirms whether governance processes are actually functioning in
+            practice.
+          </p>
+
+          <p className="mt-4 text-[15px] leading-7 text-black/75">
+            Frameworks define how organizations should govern AI systems across
+            functions such as Govern, Map, Measure, and Manage. GAFAIG verifies
+            that these processes are implemented, operational, and producing real
+            oversight outcomes.
+          </p>
+
+          <div className="mt-6 grid gap-4 md:grid-cols-2">
+            <article className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
+              <div className="text-[16px] font-semibold text-black">
+                Frameworks define
+              </div>
+              <p className="mt-2 text-[14px] leading-7 text-black/70">
+                Organizational policies, system inventories, evaluation methods,
+                and risk management processes.
+              </p>
+            </article>
+
+            <article className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
+              <div className="text-[16px] font-semibold text-black">
+                GAFAIG verifies
+              </div>
+              <p className="mt-2 text-[14px] leading-7 text-black/70">
+                That these governance processes are real, functioning, and
+                independently verifiable through certified records and signed
+                proof.
+              </p>
+            </article>
+          </div>
+
+          <p className="mt-6 text-[15px] leading-7 text-black/75">
+            Certification is issued when organizations show that oversight in AI
+            systems is real, functioning, and independently verifiable. Each
+            certification is represented as a verifiable public record, allowing
+            external parties to confirm governance without accessing private
+            internal materials.
+          </p>
+        </section>
+
+        <section className="rounded-3xl border border-black/10 bg-white p-8">
+          <h2 className="text-[26px] font-semibold tracking-tight text-black">
             The GAFAIG verification pipeline
           </h2>
 

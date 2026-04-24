@@ -18,7 +18,8 @@ export default function SiteFooter() {
     >
       <span>Release: dev</span>
       <span>
-        Governance engine executed on Snowflake (deterministic scoring, registry snapshots, and public views)
+        Governance verification engine executed on Snowflake (deterministic
+        scoring, registry snapshots, and public verification views)
       </span>
     </div>
   );
