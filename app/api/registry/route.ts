@@ -10,25 +10,14 @@ function clean(value: string | null): string {
   return String(value ?? "").trim();
 }
 
-function toRegistryRow(row: {
-  registryId: string;
-  applicationId: string | null;
-  caseId: string | null;
-  entityName: string | null;
-  entityType: string | null;
-  country: string | null;
-  certificationStatus: string | null;
-  certifiedAt: string | null;
-  validFrom: string | null;
-  validTo: string | null;
-  lifecycleStatus: string | null;
-  renewalStatus: string | null;
-  publishedAt: string | null;
-}): RegistryRow {
+function toRegistryRow(row: RegistryRow): RegistryRow {
   return {
+    registrySnapshotId: row.registrySnapshotId,
     registryId: row.registryId,
     applicationId: row.applicationId,
     caseId: row.caseId,
+    recordType: row.recordType,
+    recordName: row.recordName,
     entityName: row.entityName,
     entityType: row.entityType,
     country: row.country,
@@ -37,6 +26,9 @@ function toRegistryRow(row: {
     validTo: row.validTo,
     certifiedAt: row.certifiedAt,
     lifecycleStatus: row.lifecycleStatus,
+    visibilityStatus: row.visibilityStatus,
+    verificationEligible: row.verificationEligible,
+    badgeEligible: row.badgeEligible,
     renewalStatus: row.renewalStatus,
     publishedAt: row.publishedAt,
   };
@@ -81,13 +73,10 @@ export async function GET(req: Request) {
     return NextResponse.json(response, {
       headers: { "Cache-Control": "no-store" },
     });
-  } catch (error) {
+  } catch (_error) {
     const response: RegistryApiResponse = {
       ok: false,
-      error:
-        error instanceof Error
-          ? error.message
-          : "Registry endpoint failed.",
+      error: "Registry endpoint failed.",
     };
 
     return NextResponse.json(response, {

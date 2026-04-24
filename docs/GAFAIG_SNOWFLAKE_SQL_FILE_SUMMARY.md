@@ -1,43 +1,32 @@
 # GAFAIG_SNOWFLAKE_SQL_FILE_SUMMARY.md
-Last Updated: 2026-04-22
-
----
+Last Updated: 2026-04-24
 
 ## PURPOSE
+This file summarizes all active Snowflake SQL files, objects, and execution logic used in GAFAIG (Global Authority for AI Governance). It serves as the canonical reference for Snowflake as the system of truth and execution for the GAFAIG platform.
 
-This document defines the canonical Snowflake SQL file structure for GAFAIG.
-
-It establishes:
-- Active canonical SQL files
-- Execution order
-- Trust-layer view responsibilities
-- Procedure behavior
-- System invariants
-
-This file is the authoritative map of Snowflake as the GAFAIG governance engine.
+GAFAIG is a deterministic governance verification system. All scoring, certification, lifecycle state, and public trust outputs originate in Snowflake and are exposed through controlled public views.
 
 ---
 
-## CORE PRINCIPLE
+## NON-NEGOTIABLE RULES
 
-Snowflake is the single source of truth.
-
-ALL:
-- scoring
-- certification logic
-- lifecycle state
-- registry publication
-- trust classification
-
-must originate from Snowflake.
-
-NO logic is allowed in:
-- API
-- UI
+- Snowflake is the ONLY source of truth
+- No scoring, certification, lifecycle, or eligibility logic exists outside Snowflake
+- API, UI, SDK must NOT compute or override Snowflake outputs
+- All IDs originate in Snowflake:
+  - APPLICATION_ID
+  - CASE_ID
+  - REGISTRY_ID
+  - FINDING_ID
+  - EVIDENCE_ID
+  - EVENT_ID
+  - REGISTRY_SNAPSHOT_ID
+- Published registry snapshots are IMMUTABLE
+- Public views are projection layers only (no heavy logic)
 
 ---
 
-## CANONICAL DATA FLOW
+## CANONICAL EXECUTION FLOW
 
 APPLICATION  
 → CASE  
@@ -47,297 +36,352 @@ APPLICATION
 → SCORING  
 → DECISION  
 → REGISTRY SNAPSHOT  
-→ PUBLIC VIEWS  
-→ API  
-→ UI  
+→ PUBLIC VIEW  
 
 ---
 
-## ACTIVE CANONICAL FILES
+## CRITICAL RUN ORDER FILES (MUST BE STABLE)
 
-### ENVIRONMENT
+🔴 IMMEDIATE PRIORITY
 
-- 00_CORE_SETUP.sql  
-- 01_REBUILD_ENVIRONMENT_CANONICAL.sql  
+- 12_TABLES_PARTICIPANTS.sql  
+- 15_TABLES_EVENTS.sql  
 
-Purpose:
-- deterministic environment setup
-- schema + role initialization
-- full reset capability for reproducibility
+These files:
+- Break canonical run order if incorrect
+- Block deterministic rebuilds
+- Risk silent corruption of downstream tables
 
----
-
-### TABLES
-
-- 11_TABLES_APPLICATIONS.sql  
-- 12_TABLES_PARTICIPANTS.sql  ⚠️ (previous errors — must be validated before rebuild)
-- 13_TABLES_FINDINGS.sql  
-- 14_TABLES_EVIDENCE.sql  
-- 15_TABLES_EVENTS.sql  ⚠️ (previous errors — must be validated before rebuild)
-- 16_TABLES_CASE_SCORE_SNAPSHOTS.sql  
-- 17_TABLES_DECISIONS.sql  
-- 18_TABLES_REGISTRY_ENTITIES.sql  
-- REGISTRY_AI_SYSTEMS.sql  
-
-Purpose:
-- canonical storage layer
-- must exactly match production schema
-- supports append-only lifecycle behavior
+These must be fixed before any full system rebuild.
 
 ---
 
-### SCORING ENGINE (PRIMARY)
+## CORE TABLE CREATION FILES
 
-- GAFAIG - Governance Scoring (Enterprise v1.2).sql  
-
-Creates:
-- CORE.V_GOVERNANCE_SCORE_CASE  
-
-Purpose:
-- single authoritative scoring engine
-
-Outputs:
-- FINAL_SCORE  
-- CERTIFIED_TIER  
-- CERTIFIED_BAND  
-- MODEL_VERSION  
-- RENEWAL_STATUS  
-- VALIDITY SIGNALS  
-
-RULE:
-No duplicate scoring logic anywhere else.
+### APPLICATION LAYER
+- CORE.APPLICATIONS  
+Defines organization-level intake data  
+Includes:
+- APPLICATION_ID
+- ORG_NAME
+- ORG_TYPE
+- COUNTRY
 
 ---
 
-### SCORING SUPPORT VIEWS
-
-- CORE.V_CASE_SCORE_ENTERPRISE  
-- CORE.V_FINDING_RESULT_NORMALIZED  
-- CORE.V_FINDING_UNMAPPED_CONTROLS  
-- CORE.V_CASE_FINDING_AGG_ENTERPRISE  
-- CORE.V_CASE_EVIDENCE_AGG_ENTERPRISE  
-- CORE.V_CASE_EVENT_AGG_ENTERPRISE  
-
-Purpose:
-- normalize workflow inputs
-- feed scoring engine deterministically
+### CASE LAYER
+- CORE.VERIFICATION_CASES  
+Defines each verification case  
+Includes:
+- CASE_ID
+- APPLICATION_ID
+- ENTITY_NAME
 
 ---
 
-### PROCEDURES
-
-- 23_SP_CREATE_CASE_FROM_APPLICATION.sql  
-- 24_SP_SCORE_CASE_ENTERPRISE.sql  
-- APPROVE_CASE_V1.sql  
-- UNAPPROVE_CASE_V1.sql  
-- GAFAIG - CORE.REGISTRY_PUBLISH.sql  
-
-Purpose:
-- deterministic workflow transitions
-- enforce lifecycle correctness
+### FINDINGS LAYER
+- CORE.VERIFICATION_FINDINGS  
+Structured evaluation outputs tied to CASE_ID
 
 ---
 
-### DECISION / LIFECYCLE
+### EVIDENCE LAYER
+- CORE.VERIFICATION_EVIDENCE  
+Stores supporting materials for findings
 
-- 26_VIEWS_CASE_RENEWAL_STATUS.sql  
-
-Creates:
-- CORE.V_CASE_RENEWAL_STATUS  
-
-Purpose:
-- governs:
-  - renewal status
-  - lifecycle validity
-  - publishability
-
-Rule:
-- lifecycle must be derived from decisions, not workflow state
+- CORE.VERIFICATION_FINDING_EVIDENCE  
+Mapping table between findings and evidence
 
 ---
 
-## PUBLIC TRUST LAYER (CRITICAL)
+### EVENTS LAYER
+- CORE.VERIFICATION_EVENTS  
+Tracks actions, timestamps, workflow transitions
 
-### 1. REGISTRY CONTRACT
+---
 
-- 21_VIEWS_PUBLIC_REGISTRY.sql  
+### SCORING LAYER
+- CORE.CASE_SCORE_SNAPSHOTS  
+Stores deterministic scoring outputs per case
 
-Creates:
-- CORE.V_REGISTRY_PUBLIC  
-- CORE.V_REGISTRY_LATEST_APPROVED  
+---
 
-Status:
-- ACTIVE
-- STABILIZED
+### DECISION LAYER
+- CORE.DECISIONS  
+Final governance decisions
+
+Includes:
+- DECISION_STATUS
+- VALID_FROM
+- VALID_TO
+
+---
+
+### REGISTRY LAYER
+- CORE.REGISTRY_SNAPSHOTS  
+Canonical public certification records
+
+Includes:
+- REGISTRY_SNAPSHOT_ID
+- REGISTRY_ID
+- CASE_ID
+- ENTITY_NAME
+- VERIFICATION_TYPE
+- APPROVED_AT
+- PUBLISHED_AT
+- RENEWAL_STATUS
+
+---
+
+### ENTITY TABLES
+- CORE.REGISTRY_ENTITIES  
+- CORE.REGISTRY_AI_SYSTEMS  
+
+Used for structured entity modeling and system-level records
+
+---
+
+## CORE VIEWS
+
+### PRIMARY PUBLIC VIEW
+CORE.V_REGISTRY_PUBLIC
+
+This is the canonical public contract.
+
+Phase 6 update includes:
+
+- REGISTRY_SNAPSHOT_ID
+- REGISTRY_ID
+- CASE_ID
+- APPLICATION_ID
+- RECORD_TYPE
+- RECORD_NAME
+- ENTITY_NAME
+- ENTITY_TYPE
+- COUNTRY
+- CERTIFICATION_STATUS
+- CERTIFIED_AT
+- VALID_FROM
+- VALID_TO
+- PUBLISHED_AT
+- RENEWAL_STATUS
+- LIFECYCLE_STATUS
+- VISIBILITY_STATUS
+- VERIFICATION_ELIGIBLE
+- BADGE_ELIGIBLE
+
+Important:
+- Score, tier, band are NOT exposed
+- Expired records remain visible
+- Lifecycle and eligibility are computed ONLY here
+
+---
+
+### SUPPORTING VIEWS
+
+CORE.V_REGISTRY_LATEST_APPROVED  
+- Latest approved decision per CASE_ID
+
+CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC  
+- Public AI systems surface
+- Must align strictly with V_REGISTRY_PUBLIC
+
+CORE.V_GOVERNANCE_SCORE_CASE  
+- Final scoring output
+- Source of truth for score/tier/band (PRIVATE)
+
+---
+
+## STORED PROCEDURES
+
+### CASE CREATION
+CORE.SP_CREATE_CASE_FROM_APPLICATION  
+- Converts application → case
+
+---
+
+### SCORING
+CORE.SP_SCORE_CASE_ENTERPRISE  
+- Runs deterministic scoring engine
+- Writes to CASE_SCORE_SNAPSHOTS
+
+---
+
+### PUBLISH
+CORE.SP_PUBLISH_CASE_TO_REGISTRY_V3  
+- Creates REGISTRY_SNAPSHOTS
+- Publishes certification record
+
+⚠️ This is the ONLY valid publish path
+
+---
+
+## PHASE 6 RECORD MODEL
+
+New Snowflake-defined fields:
+
+- RECORD_TYPE
+- RECORD_NAME
+- VISIBILITY_STATUS
+- LIFECYCLE_STATUS
+- VERIFICATION_ELIGIBLE
+- BADGE_ELIGIBLE
+
+These fields enable:
+
+- Organization-level certification
+- System-level certification
+- Portfolio modeling
+- Lifecycle-aware trust
+- Badge control
+
+---
+
+## LIFECYCLE LOGIC (SNOWFLAKE ONLY)
+
+LIFECYCLE_STATUS:
+
+- active → VALID_TO > NOW()
+- expired → VALID_TO < NOW()
+- revoked → RENEWAL_STATUS = REVOKED
+
+---
+
+## ELIGIBILITY LOGIC
+
+VERIFICATION_ELIGIBLE:
+
+- TRUE unless revoked
+
+BADGE_ELIGIBLE:
+
+- TRUE only if:
+  - active
+  - not revoked
+
+---
+
+## DATA CONTRACT RULES
+
+Public contract includes:
+
+- identity fields
+- certification fields
+- lifecycle fields
+- eligibility fields
+- signed proof inputs
+
+Public contract excludes:
+
+- score
+- tier
+- band
+- findings
+- evidence
+- internal decisions
+
+---
+
+## SEED FILES
+
+Primary working seed:
+
+- GAFAIG - CANONICAL_DEMO_SEED_MASTER.sql
 
 Responsibilities:
-- expose ONLY certified public registry records
-- enforce:
-  - latest decision row
-  - approved status only
-  - valid lifecycle (renewal aware)
-  - no revoked records
-  - no expired records
 
-THIS FILE CONTROLS:
-- registry UI
-- explorer pages
-- API outputs
+- creates demo applications
+- creates cases
+- inserts findings/evidence/events
+- runs scoring
+- publishes registry records
+
+Must follow canonical flow EXACTLY
 
 ---
 
-### 2. AI SYSTEMS PUBLIC VIEW
+## CANONICAL RUN ORDER
 
-- 22_VIEWS_REGISTRY_AI_SYSTEMS_PUBLIC.sql  
-
-Creates:
-- CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC  
-
-Status:
-- ACTIVE
-- MUST BE STRICTLY ENFORCED
-
-Responsibilities:
-- one row per PUBLIC AI system
-- join:
-  - REGISTRY_AI_SYSTEMS
-  - V_REGISTRY_PUBLIC
-
-Rules:
-- ONLY systems tied to public registry records
-- MUST inherit:
-  - certification status
-  - tier
-  - band
-- MUST NOT expose:
-  - TMP systems
-  - workflow-only systems
-  - non-certified systems
+1. Create tables  
+2. Insert applications  
+3. Create cases  
+4. Insert findings  
+5. Insert evidence  
+6. Link findings/evidence  
+7. Insert events  
+8. Run scoring  
+9. Create decisions  
+10. Publish to registry  
 
 ---
 
-### 3. EXPLORER STATS
+## PUBLIC CONTRACT PRINCIPLE
 
-- 22_VIEWS_EXPLORER_STATS.sql  
+Certification attaches to RECORDS, not organizations broadly.
 
-Creates:
-- CORE.V_EXPLORER_STATS  
+Each registry entry is:
 
-Status:
-- ACTIVE
-- ALIGNED
-
-Responsibilities:
-- aggregate:
-  - public records
-  - certified records
-  - organizations
-  - countries
-
-Rules:
-- must match V_REGISTRY_PUBLIC exactly
-- must not double count
-- must not derive from workflow tables
+- independently verifiable
+- cryptographically signed
+- lifecycle-aware
+- externally consumable
 
 ---
 
-### 4. SCORE TRANSPARENCY LAYER
+## SNOWFLAKE RESPONSIBILITIES
 
-- GAFAIG - SCORE_BREAKDOWN_PUBLIC.sql  
+Snowflake is responsible for:
 
-Creates:
-- CORE.V_SCORE_BREAKDOWN_PUBLIC  
-- CORE.V_SCORE_DIMENSIONS_PUBLIC  
-
-Purpose:
-- expose scoring transparency
-
-Rules:
-- derived from snapshots only
-- no recomputation allowed
-- consistent with scoring engine output
+- governance computation
+- scoring
+- decisioning
+- lifecycle determination
+- eligibility logic
+- registry snapshot creation
+- public contract projection
 
 ---
 
-## CANONICAL SEED
+## API / UI ROLE
 
-### ACTIVE
+API/UI:
 
-- GAFAIG - FINAL_CANONICAL_MULTI_SEED.sql  
-
-Purpose:
-- full deterministic dataset:
-  - applications
-  - cases
-  - findings
-  - evidence
-  - events
-  - scores
-  - decisions
-  - registry snapshots
-  - AI systems
-
-Rules:
-- ONLY seed file allowed
-- must produce reproducible state
-- must not introduce randomness
+- read from V_REGISTRY_PUBLIC
+- return signed payloads
+- never compute trust
+- never mutate data
 
 ---
 
-### ARCHIVED (DO NOT USE)
+## CURRENT SYSTEM STATE
 
-- CANONICAL_DEMO_SEED_MASTER.sql  
-- FINAL_CANONICAL_CASE_0001_SEED.sql  
-- SAFE_MULTI_CASE_EXPANSION V2.sql  
-- all demo/test seed files  
+✔ Snowflake canonical flow established  
+✔ Registry snapshot model active  
+✔ Phase 6 public view updated  
+✔ Lifecycle + eligibility introduced  
+✔ Deterministic scoring enforced  
 
-Reason:
-- introduce drift
-- break determinism
-- create conflicting data states
-
----
-
-## EXECUTION ORDER (MANDATORY)
-
-1. 01_REBUILD_ENVIRONMENT_CANONICAL.sql  
-2. TABLES (11 → 18)  
-3. SCORING SUPPORT VIEWS  
-4. SCORING ENGINE  
-5. LIFECYCLE VIEW (26)  
-6. PUBLIC VIEWS (21, 22)  
-7. PROCEDURES  
-8. FINAL_CANONICAL_MULTI_SEED.sql  
-9. CALL SP_SCORE_CASE_ENTERPRISE  
-10. CALL APPROVE_CASE_V1  
-11. CALL SP_PUBLISH_CASE_TO_REGISTRY_V3  
+🔴 Next step:
+Align VS Code to Snowflake contract:
+- types/registry.ts
+- lib/queries/registry.ts
+- app/api/verify/[registryId]/route.ts
 
 ---
 
-## VALIDATION QUERIES
+## END STATE
 
-```sql
-SELECT * FROM CORE.V_REGISTRY_PUBLIC;
-SELECT * FROM CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC;
+Snowflake acts as:
 
-SELECT
-  CERTIFICATION_STATUS,
-  COUNT(*) AS RECORDS
-FROM CORE.V_REGISTRY_PUBLIC
-GROUP BY 1;
+- deterministic governance engine  
+- certification authority  
+- registry publisher  
+- lifecycle authority  
+- trust source  
 
-SELECT * FROM CORE.V_EXPLORER_STATS;
+GAFAIG becomes:
 
-SELECT
-  CASE_ID,
-  FINAL_SCORE,
-  CERTIFIED_TIER,
-  CERTIFIED_BAND
-FROM CORE.V_GOVERNANCE_SCORE_CASE;
-
-SELECT
-  CASE_ID,
-  RENEWAL_STATUS,
-  IS_CURRENTLY_VALID,
-  IS_PUBLISHABLE
-FROM CORE.V_CASE_RENEWAL_STATUS;
+- a verifiable governance registry  
+- a public trust infrastructure  
+- a certification record system  
+- a Snowflake-native execution platform  

@@ -11,18 +11,24 @@ type VerifyApiResponse = {
   registryId?: string;
   record?: {
     registryId?: string;
-    entityName?: string;
-    entityType?: string;
-    country?: string;
-    applicationId?: string;
-    caseId?: string;
-    decisionStatus?: string;
-    certifiedScore?: number | string;
-    certifiedTier?: string;
-    certifiedBand?: string;
-    certifiedAt?: string;
-    validFrom?: string;
-    validTo?: string;
+    registrySnapshotId?: string | null;
+    applicationId?: string | null;
+    caseId?: string | null;
+    recordType?: string | null;
+    recordName?: string | null;
+    entityName?: string | null;
+    entityType?: string | null;
+    country?: string | null;
+    certificationStatus?: string | null;
+    certifiedAt?: string | null;
+    validFrom?: string | null;
+    validTo?: string | null;
+    publishedAt?: string | null;
+    renewalStatus?: string | null;
+    lifecycleStatus?: string | null;
+    visibilityStatus?: string | null;
+    verificationEligible?: boolean | string | null;
+    badgeEligible?: boolean | string | null;
   } | null;
   proof?: {
     alg?: string;
@@ -62,7 +68,15 @@ function getRuntimeBaseUrl() {
   );
 }
 
-function safe(v?: string | number | null) {
+function resolveUrl(url: string | null | undefined, baseUrl: string): string | null {
+  const raw = String(url ?? "").trim();
+  if (!raw) return null;
+  if (raw.startsWith("http://") || raw.startsWith("https://")) return raw;
+  if (raw.startsWith("/")) return `${baseUrl.replace(/\/+$/, "")}${raw}`;
+  return `${baseUrl.replace(/\/+$/, "")}/${raw}`;
+}
+
+function safe(v?: string | number | boolean | null) {
   const text = String(v ?? "").trim();
   return text || "—";
 }
@@ -85,7 +99,9 @@ function pillTone(value: string) {
   const v = value.toUpperCase();
 
   if (v === "CERTIFIED") return "bg-emerald-50 text-emerald-700 ring-emerald-200";
-  if (v === "APPROVED") return "bg-blue-50 text-blue-700 ring-blue-200";
+  if (v === "ACTIVE") return "bg-emerald-50 text-emerald-700 ring-emerald-200";
+  if (v === "EXPIRED") return "bg-amber-50 text-amber-700 ring-amber-200";
+  if (v === "REVOKED") return "bg-red-50 text-red-700 ring-red-200";
 
   return "bg-slate-100 text-slate-600 ring-slate-200";
 }
@@ -201,8 +217,12 @@ async function getVerify(registryId: string): Promise<VerifyApiResponse | null> 
   return res.json();
 }
 
-async function getVerificationKey(url: string | null | undefined): Promise<KeyFetchResult> {
-  const keyUrl = String(url ?? "").trim();
+async function getVerificationKey(
+  url: string | null | undefined,
+  baseUrl: string
+): Promise<KeyFetchResult> {
+  const keyUrl = resolveUrl(url, baseUrl);
+
   if (!keyUrl) {
     return { pem: null, keyId: null, algorithm: null };
   }
@@ -314,38 +334,42 @@ export default async function VerifyPage({
   const baseUrl = getRuntimeBaseUrl();
 
   const entityName = safe(record.entityName);
-  const decisionStatus = safe(record.decisionStatus);
-  const certification =
-    [safe(record.certifiedTier), safe(record.certifiedBand)]
-      .filter((v) => v !== "—")
-      .join(" ")
-      .trim() || "—";
+  const certificationStatus = safe(record.certificationStatus);
+  const recordType = safe(record.recordType);
+  const recordName = safe(record.recordName);
+  const lifecycleStatus = safe(record.lifecycleStatus);
+  const visibilityStatus = safe(record.visibilityStatus);
+  const verificationEligible = safe(record.verificationEligible);
+  const badgeEligible = safe(record.badgeEligible);
+
   const certifiedAt = formatDate(record.certifiedAt);
   const validFrom = formatDate(record.validFrom);
   const validTo = formatDate(record.validTo);
+  const publishedAt = formatDateTime(record.publishedAt);
 
   const registryId = safe(data.registryId || record.registryId || registryIdParam);
   const signedAt = formatDateTime(proof.signedAt || data.signedAt);
-  const verificationKeyUrl = safe(proof.verificationKeyUrl || data.verificationKeyUrl);
-  const signature = safe(proof.signature || data.signature);
+
+  const rawVerificationKeyUrl = proof.verificationKeyUrl || data.verificationKeyUrl || null;
+  const resolvedVerificationKeyUrl = resolveUrl(rawVerificationKeyUrl, baseUrl);
+  const verificationKeyUrl = safe(resolvedVerificationKeyUrl || rawVerificationKeyUrl);
+
+  const rawSignature = proof.signature || data.signature || null;
+  const signature = safe(rawSignature);
+
+  const rawMessageString = proof.messageString || data.signedMessageString || null;
   const signedPayload =
-    safe(proof.messageString || data.signedMessageString) !== "—"
-      ? safe(proof.messageString || data.signedMessageString)
+    rawMessageString && String(rawMessageString).trim()
+      ? String(rawMessageString)
       : proof.message
         ? JSON.stringify(proof.message, null, 2)
         : "—";
 
   const rawVerifyJson = JSON.stringify(data, null, 2);
 
-  const keyData = await getVerificationKey(
-    proof.verificationKeyUrl || data.verificationKeyUrl || null
-  );
+  const keyData = await getVerificationKey(rawVerificationKeyUrl, baseUrl);
 
-  const validation = validateSignature(
-    proof.messageString || data.signedMessageString || null,
-    proof.signature || data.signature || null,
-    keyData.pem
-  );
+  const validation = validateSignature(rawMessageString, rawSignature, keyData.pem);
 
   const algorithm = safe(keyData.algorithm || proof.alg || null);
   const keyId = safe(keyData.keyId || proof.kid || null);
@@ -366,10 +390,18 @@ export default async function VerifyPage({
 
             <span
               className={`inline-flex rounded-full px-3 py-1 text-[11px] font-semibold ring-1 ${pillTone(
-                decisionStatus
+                certificationStatus
               )}`}
             >
-              {decisionStatus}
+              {certificationStatus}
+            </span>
+
+            <span
+              className={`inline-flex rounded-full px-3 py-1 text-[11px] font-semibold ring-1 ${pillTone(
+                lifecycleStatus
+              )}`}
+            >
+              {lifecycleStatus}
             </span>
           </div>
 
@@ -385,10 +417,17 @@ export default async function VerifyPage({
           </div>
 
           <div className="mt-6 grid gap-4 md:grid-cols-4">
-            <InfoCard label="Certification" value={certification} />
+            <InfoCard label="Certification" value={certificationStatus} />
             <InfoCard label="Certified" value={certifiedAt} />
             <InfoCard label="Valid From" value={validFrom} />
             <InfoCard label="Valid To" value={validTo} />
+          </div>
+
+          <div className="mt-6 grid gap-4 md:grid-cols-4">
+            <InfoCard label="Record Type" value={recordType} />
+            <InfoCard label="Record Name" value={recordName} />
+            <InfoCard label="Visibility" value={visibilityStatus} />
+            <InfoCard label="Published" value={publishedAt} />
           </div>
 
           <div className="mt-6 flex flex-wrap gap-3">
@@ -448,6 +487,13 @@ export default async function VerifyPage({
                     ? "Signature Invalid"
                     : "Validation Unavailable"}
               </span>
+
+              {validation.status === "valid" ? (
+                <span className="inline-flex rounded-full bg-emerald-50 px-3 py-1 text-[11px] font-semibold text-emerald-700 ring-1 ring-emerald-200">
+                  Payload Integrity: Verified
+                </span>
+              ) : null}
+
               <span className="text-sm text-black/70">{validation.detail}</span>
             </div>
 
@@ -578,6 +624,11 @@ export default async function VerifyPage({
           <div className="mt-4 grid gap-4 md:grid-cols-2">
             <InfoCard label="Algorithm" value={algorithm} />
             <InfoCard label="Key ID" value={keyId} />
+          </div>
+
+          <div className="mt-4 grid gap-4 md:grid-cols-2">
+            <InfoCard label="Verification Eligible" value={verificationEligible} />
+            <InfoCard label="Badge Eligible" value={badgeEligible} />
           </div>
         </section>
 

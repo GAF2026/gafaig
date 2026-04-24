@@ -10,11 +10,14 @@ function clean(value: string | null): string {
   return String(value ?? "").trim();
 }
 
-function toRegistryRow(row: any): RegistryRow {
+function toRegistryRow(row: RegistryRow): RegistryRow {
   return {
+    registrySnapshotId: row.registrySnapshotId ?? null,
     registryId: row.registryId,
     applicationId: row.applicationId ?? null,
     caseId: row.caseId ?? null,
+    recordType: row.recordType ?? null,
+    recordName: row.recordName ?? null,
     entityName: row.entityName ?? null,
     entityType: row.entityType ?? null,
     country: row.country ?? null,
@@ -23,6 +26,9 @@ function toRegistryRow(row: any): RegistryRow {
     validTo: row.validTo ?? null,
     certifiedAt: row.certifiedAt ?? null,
     lifecycleStatus: row.lifecycleStatus ?? null,
+    visibilityStatus: row.visibilityStatus ?? null,
+    verificationEligible: row.verificationEligible ?? null,
+    badgeEligible: row.badgeEligible ?? null,
     renewalStatus: row.renewalStatus ?? null,
     publishedAt: row.publishedAt ?? null,
   };
@@ -67,13 +73,10 @@ export async function GET(req: Request) {
     return NextResponse.json(response, {
       headers: { "Cache-Control": "no-store" },
     });
-  } catch (error) {
+  } catch (_error) {
     const response: RegistryApiResponse = {
       ok: false,
-      error:
-        error instanceof Error
-          ? error.message
-          : "Registry search endpoint failed.",
+      error: "Registry search endpoint failed.",
     };
 
     return NextResponse.json(response, {

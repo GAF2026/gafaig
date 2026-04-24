@@ -1,18 +1,45 @@
 import { NextResponse } from "next/server";
-import { sfQuery } from "@/lib/snowflake";
+import { getRegistryRecordById } from "@/lib/queries/registry";
+import type { BadgeApiResponse } from "@/types/registry";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-function escapeSqlString(value: string): string {
-  return String(value).replace(/'/g, "''");
+function getCorsHeaders(): HeadersInit {
+  return {
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Methods": "GET, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type",
+    "Cache-Control": "no-store",
+  };
+}
+
+function getBaseUrl(): string {
+  return (
+    process.env.NEXT_PUBLIC_BASE_URL ||
+    process.env.NEXT_PUBLIC_SITE_URL ||
+    "https://www.gafaig.com"
+  ).replace(/\/+$/, "");
 }
 
 function toIsoString(value: unknown): string | null {
   if (!value) return null;
   const date = new Date(String(value));
   return Number.isNaN(date.getTime()) ? null : date.toISOString();
+}
+
+function isTrue(value: unknown): boolean {
+  if (value === true) return true;
+  const normalized = String(value ?? "").trim().toLowerCase();
+  return normalized === "true" || normalized === "1" || normalized === "yes";
+}
+
+export async function OPTIONS() {
+  return new NextResponse(null, {
+    status: 204,
+    headers: getCorsHeaders(),
+  });
 }
 
 export async function GET(
@@ -24,63 +51,104 @@ export async function GET(
 
     if (!registryId) {
       return NextResponse.json(
-        { ok: false, error: "Missing registryId" },
-        { status: 400 }
+        {
+          ok: false,
+          error: "Missing registryId",
+        } satisfies BadgeApiResponse,
+        {
+          status: 400,
+          headers: getCorsHeaders(),
+        }
       );
     }
 
-    const rows = await sfQuery<any>(`
-      SELECT
-        REGISTRY_ID,
-        ENTITY_NAME,
-        CERTIFICATION_STATUS,
-        CERTIFIED_AT
-      FROM CORE.V_REGISTRY_PUBLIC
-      WHERE UPPER(TRIM(REGISTRY_ID)) = UPPER(TRIM('${escapeSqlString(registryId)}'))
-      LIMIT 1
-    `);
+    const record = await getRegistryRecordById(registryId);
 
-    if (!rows.length) {
+    if (!record) {
       return NextResponse.json(
-        { ok: false, error: "Registry record not found" },
-        { status: 404 }
+        {
+          ok: false,
+          registryId,
+          error: "Registry record not found",
+        } satisfies BadgeApiResponse,
+        {
+          status: 404,
+          headers: getCorsHeaders(),
+        }
       );
     }
 
-    const r = rows[0];
+    const baseUrl = getBaseUrl();
 
-    const certificationStatus = String(r.CERTIFICATION_STATUS ?? "").trim().toUpperCase();
-    const isCertified = certificationStatus === "CERTIFIED";
+    const lifecycleStatus = String(record.lifecycleStatus ?? "")
+      .trim()
+      .toLowerCase();
 
-    const badge = {
-      status: isCertified ? "CERTIFIED" : "NOT_CERTIFIED",
-      label: isCertified ? "GAFAIG Certified" : "Not Certified",
-      imageUrl: isCertified
-        ? "/badges/gafaig-certified.svg"
-        : "/badges/gafaig-not-certified.svg",
+    const badgeEligible = isTrue(record.badgeEligible);
+
+    const badgeStatus =
+      badgeEligible && lifecycleStatus === "active"
+        ? "certified"
+        : lifecycleStatus === "revoked"
+          ? "revoked"
+          : lifecycleStatus === "expired"
+            ? "expired"
+            : "unavailable";
+
+    const badgeLabel =
+      badgeStatus === "certified"
+        ? "GAFAIG Certified"
+        : badgeStatus === "revoked"
+          ? "GAFAIG Certification Revoked"
+          : badgeStatus === "expired"
+            ? "GAFAIG Certification Expired"
+            : "GAFAIG Verification Unavailable";
+
+    const response: BadgeApiResponse = {
+      ok: true,
+      registryId: record.registryId,
+      registrySnapshotId: record.registrySnapshotId,
+      applicationId: record.applicationId,
+      caseId: record.caseId,
+      recordType: record.recordType,
+      recordName: record.recordName,
+      entityName: record.entityName,
+      entityType: record.entityType,
+      country: record.country,
+      certificationStatus: record.certificationStatus,
+      certifiedAt: toIsoString(record.certifiedAt),
+      validFrom: toIsoString(record.validFrom),
+      validTo: toIsoString(record.validTo),
+      lifecycleStatus: record.lifecycleStatus,
+      visibilityStatus: record.visibilityStatus,
+      verificationEligible: record.verificationEligible,
+      badgeEligible: record.badgeEligible,
+      renewalStatus: record.renewalStatus,
+      publishedAt: toIsoString(record.publishedAt),
+      badge: {
+        status: badgeStatus,
+        label: badgeLabel,
+        imageUrl: "",
+      },
+      verifyUrl: `${baseUrl}/verify/${encodeURIComponent(record.registryId)}`,
+      registryUrl: `${baseUrl}/registry/${encodeURIComponent(record.registryId)}`,
+      widgetUrl: `${baseUrl}/widget-preview/${encodeURIComponent(record.registryId)}`,
     };
 
-    return NextResponse.json({
-      ok: true,
-      registryId: r.REGISTRY_ID,
-      entityName: r.ENTITY_NAME ?? null,
-      certificationStatus: r.CERTIFICATION_STATUS ?? null,
-      certifiedAt: toIsoString(r.CERTIFIED_AT),
-      badge,
-      verifyUrl: `/verify/${r.REGISTRY_ID}`,
-      registryUrl: `/registry/${r.REGISTRY_ID}`,
-      widgetUrl: `/widget-preview/${r.REGISTRY_ID}`,
+    return NextResponse.json(response, {
+      status: 200,
+      headers: getCorsHeaders(),
     });
-  } catch (error) {
+  } catch (_error) {
     return NextResponse.json(
       {
         ok: false,
-        error:
-          error instanceof Error
-            ? error.message
-            : "Badge endpoint failed",
-      },
-      { status: 500 }
+        error: "Badge endpoint failed",
+      } satisfies BadgeApiResponse,
+      {
+        status: 500,
+        headers: getCorsHeaders(),
+      }
     );
   }
 }

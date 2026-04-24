@@ -60,10 +60,12 @@ export async function GET(
 
     const rows = await sfQuery<any>(`
       SELECT
-        REGISTRY_ID,
         REGISTRY_SNAPSHOT_ID,
+        REGISTRY_ID,
         APPLICATION_ID,
         CASE_ID,
+        RECORD_TYPE,
+        RECORD_NAME,
         ENTITY_NAME,
         ENTITY_TYPE,
         COUNTRY,
@@ -71,11 +73,15 @@ export async function GET(
         CERTIFIED_AT,
         VALID_FROM,
         VALID_TO,
-        LIFECYCLE_STATUS,
+        PUBLISHED_AT,
         RENEWAL_STATUS,
-        PUBLISHED_AT
+        LIFECYCLE_STATUS,
+        VISIBILITY_STATUS,
+        VERIFICATION_ELIGIBLE,
+        BADGE_ELIGIBLE
       FROM CORE.V_REGISTRY_PUBLIC
       WHERE UPPER(TRIM(REGISTRY_ID)) = UPPER(TRIM('${escapeSqlString(registryId)}'))
+      ORDER BY PUBLISHED_AT DESC, REGISTRY_ID ASC
       LIMIT 1
     `);
 
@@ -101,6 +107,8 @@ export async function GET(
       registrySnapshotId: r.REGISTRY_SNAPSHOT_ID ?? null,
       applicationId: r.APPLICATION_ID ?? null,
       caseId: r.CASE_ID ?? null,
+      recordType: r.RECORD_TYPE ?? null,
+      recordName: r.RECORD_NAME ?? null,
       entityName: r.ENTITY_NAME ?? null,
       entityType: r.ENTITY_TYPE ?? null,
       country: r.COUNTRY ?? null,
@@ -108,9 +116,12 @@ export async function GET(
       certifiedAt: toIsoString(r.CERTIFIED_AT),
       validFrom: toIsoString(r.VALID_FROM),
       validTo: toIsoString(r.VALID_TO),
-      lifecycleStatus: r.LIFECYCLE_STATUS ?? null,
-      renewalStatus: r.RENEWAL_STATUS ?? null,
       publishedAt: toIsoString(r.PUBLISHED_AT),
+      renewalStatus: r.RENEWAL_STATUS ?? null,
+      lifecycleStatus: r.LIFECYCLE_STATUS ?? null,
+      visibilityStatus: r.VISIBILITY_STATUS ?? null,
+      verificationEligible: r.VERIFICATION_ELIGIBLE ?? null,
+      badgeEligible: r.BADGE_ELIGIBLE ?? null,
     };
 
     const message = {
@@ -129,18 +140,7 @@ export async function GET(
       ok: true,
       verified: true,
       registryId: record.registryId,
-      record: {
-        registryId: record.registryId,
-        applicationId: record.applicationId,
-        caseId: record.caseId,
-        entityName: record.entityName,
-        entityType: record.entityType,
-        country: record.country,
-        certificationStatus: record.certificationStatus,
-        validFrom: record.validFrom,
-        validTo: record.validTo,
-        certifiedAt: record.certifiedAt,
-      },
+      record,
       proof: {
         alg: GAFAIG_VERIFY_ALG,
         kid: getSigningKeyId(),
@@ -156,15 +156,12 @@ export async function GET(
       status: 200,
       headers: getCorsHeaders(),
     });
-  } catch (error) {
+  } catch (_error) {
     return NextResponse.json(
       {
         ok: false,
         verified: false,
-        error:
-          error instanceof Error
-            ? error.message
-            : "Verification endpoint failed",
+        error: "Verification endpoint failed",
       } satisfies VerifyApiResponse,
       {
         status: 500,

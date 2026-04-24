@@ -1,7 +1,10 @@
 export type RegistryRow = {
+  registrySnapshotId: string | null;
   registryId: string;
   applicationId: string | null;
   caseId: string | null;
+  recordType: string | null;
+  recordName: string | null;
   entityName: string | null;
   entityType: string | null;
   country: string | null;
@@ -10,6 +13,9 @@ export type RegistryRow = {
   validTo: string | null;
   certifiedAt: string | null;
   lifecycleStatus: string | null;
+  visibilityStatus: string | null;
+  verificationEligible: boolean | string | null;
+  badgeEligible: boolean | string | null;
   renewalStatus: string | null;
   publishedAt: string | null;
 };
@@ -35,6 +41,15 @@ export type RegistryAiSystemRow = {
   systemId: string | null;
   applicationId: string | null;
   caseId: string | null;
+  registrySnapshotId?: string | null;
+
+  recordType?: string | null;
+  recordName?: string | null;
+  lifecycleStatus?: string | null;
+  visibilityStatus?: string | null;
+  verificationEligible?: boolean | string | null;
+  badgeEligible?: boolean | string | null;
+
   entityName: string | null;
   country: string | null;
 
@@ -87,9 +102,24 @@ export type BadgeApiResponse =
   | {
       ok: true;
       registryId: string;
+      registrySnapshotId?: string | null;
+      applicationId?: string | null;
+      caseId?: string | null;
+      recordType?: string | null;
+      recordName?: string | null;
       entityName: string | null;
+      entityType?: string | null;
+      country?: string | null;
       certificationStatus: string | null;
       certifiedAt: string | null;
+      validFrom?: string | null;
+      validTo?: string | null;
+      lifecycleStatus?: string | null;
+      visibilityStatus?: string | null;
+      verificationEligible?: boolean | string | null;
+      badgeEligible?: boolean | string | null;
+      renewalStatus?: string | null;
+      publishedAt?: string | null;
       badge: {
         status: string;
         label: string;
@@ -102,6 +132,7 @@ export type BadgeApiResponse =
   | {
       ok: false;
       error: string;
+      registryId?: string;
     };
 
 export type VerifyApiResponse =
@@ -111,15 +142,24 @@ export type VerifyApiResponse =
       verified: boolean;
       record?: {
         registryId: string;
+        registrySnapshotId: string | null;
         applicationId: string | null;
         caseId: string | null;
+        recordType: string | null;
+        recordName: string | null;
         entityName: string | null;
         entityType: string | null;
         country: string | null;
         certificationStatus: string | null;
+        certifiedAt: string | null;
         validFrom: string | null;
         validTo: string | null;
-        certifiedAt: string | null;
+        publishedAt: string | null;
+        renewalStatus: string | null;
+        lifecycleStatus: string | null;
+        visibilityStatus: string | null;
+        verificationEligible: boolean | string | null;
+        badgeEligible: boolean | string | null;
       };
       proof?: {
         alg: string;

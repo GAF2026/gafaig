@@ -1,5 +1,5 @@
 (function () {
-  var VERSION = "1.1.0";
+  var VERSION = "1.1.1";
 
   function normalizeBaseUrl(baseUrl) {
     var raw =
@@ -104,6 +104,17 @@
 
   function buildVerifyScriptUrl(options) {
     return resolveBaseUrl(options) + "/widget/gafaig-verify.js";
+  }
+
+  function normalizeStatus(value) {
+    return String(value || "").trim().toLowerCase();
+  }
+
+  function fallbackBadgeLabel(status) {
+    if (status === "certified") return "GAFAIG Certified";
+    if (status === "expired") return "GAFAIG Certification Expired";
+    if (status === "revoked") return "GAFAIG Certification Revoked";
+    return "GAFAIG Verification Unavailable";
   }
 
   async function verify(registryId, options) {
@@ -218,10 +229,15 @@
       throw new Error("GAFAIG SDK: invalid badge response");
     }
 
+    var badgeStatus =
+      data.badge && typeof data.badge.status === "string"
+        ? normalizeStatus(data.badge.status)
+        : "unavailable";
+
     var badgeLabel =
-      data.badge && typeof data.badge.label === "string"
+      data.badge && typeof data.badge.label === "string" && data.badge.label
         ? data.badge.label
-        : "GAFAIG Certified";
+        : fallbackBadgeLabel(badgeStatus);
 
     var imageUrl =
       data.badge && typeof data.badge.imageUrl === "string"
@@ -240,6 +256,23 @@
         ? verifyUrl
         : baseUrl + verifyUrl;
 
+    el.setAttribute("data-gafaig-badge-status", badgeStatus);
+
+    if (typeof data.lifecycleStatus === "string") {
+      el.setAttribute("data-gafaig-lifecycle-status", data.lifecycleStatus);
+    }
+
+    if (data.badgeEligible !== undefined && data.badgeEligible !== null) {
+      el.setAttribute("data-gafaig-badge-eligible", String(data.badgeEligible));
+    }
+
+    if (data.verificationEligible !== undefined && data.verificationEligible !== null) {
+      el.setAttribute(
+        "data-gafaig-verification-eligible",
+        String(data.verificationEligible)
+      );
+    }
+
     if (imageUrl) {
       var resolvedImageUrl =
         imageUrl.indexOf("http://") === 0 || imageUrl.indexOf("https://") === 0
@@ -251,6 +284,12 @@
         resolvedVerifyUrl +
         '" target="_blank" rel="noopener noreferrer" aria-label="' +
         escapeHtml(badgeLabel) +
+        '" title="Click to verify this GAFAIG certification" style="' +
+        [
+          "display:inline-block",
+          "cursor:pointer",
+          "transition:opacity 0.2s ease",
+        ].join(";") +
         '">' +
         '<img src="' +
         resolvedImageUrl +
@@ -259,13 +298,24 @@
         '" style="max-width:100%;height:auto;display:block;" />' +
         "</a>";
 
+      var imageAnchor = el.querySelector("a");
+      if (imageAnchor) {
+        imageAnchor.addEventListener("mouseenter", function () {
+          imageAnchor.style.opacity = "0.85";
+        });
+
+        imageAnchor.addEventListener("mouseleave", function () {
+          imageAnchor.style.opacity = "1";
+        });
+      }
+
       return el;
     }
 
     el.innerHTML =
       '<a href="' +
       resolvedVerifyUrl +
-      '" target="_blank" rel="noopener noreferrer" style="' +
+      '" target="_blank" rel="noopener noreferrer" title="Click to verify this GAFAIG certification" style="' +
       [
         "display:inline-flex",
         "align-items:center",
@@ -281,10 +331,28 @@
         "font-size:12px",
         "font-weight:700",
         "letter-spacing:0.01em",
+        "cursor:pointer",
+        "transition:all 0.2s ease",
+        "box-shadow:0 1px 2px rgba(0,0,0,0.06)",
       ].join(";") +
       '">' +
       escapeHtml(badgeLabel) +
       "</a>";
+
+    var textAnchor = el.querySelector("a");
+    if (textAnchor) {
+      textAnchor.addEventListener("mouseenter", function () {
+        textAnchor.style.background = "#f5f5f5";
+        textAnchor.style.borderColor = "rgba(0,0,0,0.22)";
+        textAnchor.style.boxShadow = "0 3px 10px rgba(0,0,0,0.10)";
+      });
+
+      textAnchor.addEventListener("mouseleave", function () {
+        textAnchor.style.background = "#ffffff";
+        textAnchor.style.borderColor = "rgba(0,0,0,0.12)";
+        textAnchor.style.boxShadow = "0 1px 2px rgba(0,0,0,0.06)";
+      });
+    }
 
     return el;
   }

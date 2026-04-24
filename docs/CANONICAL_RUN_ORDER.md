@@ -1,7 +1,7 @@
 # CANONICAL_RUN_ORDER.md
-Date: 2026-04-22
+Last Updated: 2026-04-24
 
-# PURPOSE
+## PURPOSE
 
 This document defines the exact deterministic execution order of all GAFAIG Snowflake files and procedures.
 
@@ -17,7 +17,7 @@ All downstream systems (API/UI/Widget) are read-only projections.
 
 ---
 
-# GLOBAL EXECUTION RULES
+## GLOBAL EXECUTION RULES
 
 1. Always run in ACCOUNTADMIN (or appropriate elevated role)
 
@@ -37,40 +37,46 @@ USE SCHEMA CORE;
 
 ---
 
-# CRITICAL PRE-RUN CHECKS (UPDATED)
+## 🔴 CRITICAL PRE-RUN CHECKS (MANDATORY)
 
-Before running full rebuild:
+Before running ANY rebuild:
 
 - 12_TABLES_PARTICIPANTS.sql must compile without errors  
 - 15_TABLES_EVENTS.sql must compile without errors  
 
 If either fails:
-STOP execution and fix schema before proceeding.
 
-These two files previously caused canonical run breaks and must be validated first.
+STOP. DO NOT PROCEED.
+
+These files:
+- break canonical run order  
+- block deterministic rebuild  
+- can silently corrupt downstream workflow  
+
+This is STEP ZERO.
 
 ---
 
-# CANONICAL EXECUTION ORDER
+## CANONICAL EXECUTION ORDER
 
-## 00 — ENVIRONMENT SETUP
+### 00 — ENVIRONMENT SETUP
 
 00_CORE_SETUP.sql
 
 ---
 
-## 01 — FULL RESET (OPTIONAL BUT RECOMMENDED)
+### 01 — FULL RESET (OPTIONAL BUT RECOMMENDED)
 
 01_REBUILD_ENVIRONMENT_CANONICAL.sql
 
 Purpose:
-- clean rebuild of entire system
-- required for deterministic validation
-- ensures no residual state
+- full deterministic rebuild  
+- eliminates residual state  
+- ensures reproducibility  
 
 ---
 
-## 10 — CORE TABLES (FOUNDATION)
+### 10 — CORE TABLES (FOUNDATION)
 
 10_TABLES_SUBMISSIONS.sql  
 11_TABLES_APPLICATIONS.sql  
@@ -86,59 +92,63 @@ Purpose:
 19_TABLES_REGISTRY_AI_SYSTEMS.sql  
 
 Rules:
-- all tables must compile clean
-- no missing columns
-- no schema drift allowed
-- no implicit column assumptions
+- all tables must compile clean  
+- no missing columns  
+- no schema drift  
+- no assumptions  
 
 ---
 
-## 20 — CORE VIEWS (READ LAYER)
+### 20 — CORE VIEWS (READ LAYER)
 
 20_VIEWS_VERIFICATION_CASE_DETAIL.sql  
 
 26_VIEWS_CASE_RENEWAL_STATUS.sql  
-- defines CORE.V_CASE_RENEWAL_STATUS  
+Defines: CORE.V_CASE_RENEWAL_STATUS  
 
 21_VIEWS_PUBLIC_REGISTRY.sql  
-- defines CORE.V_REGISTRY_PUBLIC  
-- defines CORE.V_REGISTRY_LATEST_APPROVED  
+Defines:
+- CORE.V_REGISTRY_PUBLIC  
+- CORE.V_REGISTRY_LATEST_APPROVED  
 
 22_VIEWS_REGISTRY_AI_SYSTEMS_PUBLIC.sql  
-- defines CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC  
+Defines:
+- CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC  
 
 22_VIEWS_EXPLORER_STATS.sql  
-- defines CORE.V_EXPLORER_STATS  
+Defines:
+- CORE.V_EXPLORER_STATS  
 
 Rules:
-- views are projections only
-- no recomputation
-- no mutation
-- lifecycle enforcement must occur here
-- certification filtering must occur here
+- views are projection only  
+- no recomputation of scoring  
+- no mutation  
+- lifecycle must be enforced here  
+- certification filtering must be enforced here  
 
 ---
 
-## 23 — CORE PROCEDURES (PIPELINE ENGINE)
+### 23 — CORE PROCEDURES (PIPELINE ENGINE)
 
 23_SP_CREATE_CASE_FROM_APPLICATION.sql  
-- APPLICATION → CASE  
+APPLICATION → CASE  
 
 24_SP_SCORE_CASE_ENTERPRISE.sql  
-- CASE → SCORE  
+CASE → SCORE  
 
 25_PROCEDURES_APPROVAL.sql  
+Defines:
 - CORE.APPROVE_CASE_V1  
 - CORE.UNAPPROVE_CASE_V1  
 
 Rules:
-- procedures must enforce deterministic transitions
-- no partial state transitions allowed
-- no implicit assumptions about upstream state
+- deterministic transitions only  
+- no partial state  
+- no implicit assumptions  
 
 ---
 
-## 30 — SCORING ENGINE (AUTHORITATIVE)
+### 30 — SCORING ENGINE (AUTHORITATIVE)
 
 GAFAIG - Governance Scoring (Enterprise v1.2).sql  
 
@@ -146,13 +156,13 @@ Defines:
 - CORE.V_GOVERNANCE_SCORE_CASE  
 
 Rules:
-- single source of score, tier, band
-- no duplicate scoring logic anywhere else
-- must be executed AFTER tables and BEFORE seed scoring
+- single source of score/tier/band  
+- no duplicate scoring logic  
+- must execute AFTER tables and BEFORE publishing  
 
 ---
 
-## REGISTRY PUBLISH (CRITICAL)
+### REGISTRY PUBLISH (CRITICAL)
 
 GAFAIG - CORE.REGISTRY_PUBLISH.sql  
 
@@ -160,26 +170,26 @@ Defines:
 - CORE.SP_PUBLISH_CASE_TO_REGISTRY_V3  
 
 Purpose:
-- CASE → REGISTRY_SNAPSHOTS → REGISTRY_ID  
+CASE → REGISTRY_SNAPSHOTS → REGISTRY_ID  
 
 Rules:
-- must reuse REGISTRY_ID if already exists
-- must insert append-only snapshot
-- must not overwrite prior records
-- must align REGISTRY_AI_SYSTEMS with REGISTRY_ID
-- must use scoring + lifecycle state only
-- must NOT rely on UI/API flags
+- append-only  
+- reuse REGISTRY_ID if exists  
+- never overwrite records  
+- align REGISTRY_AI_SYSTEMS  
+- use Snowflake lifecycle + scoring only  
+- never rely on API/UI  
 
 ---
 
-## 40 — SEED (DETERMINISTIC DATA)
+### 40 — SEED (DETERMINISTIC DATA)
 
 GAFAIG - FINAL_CANONICAL_MULTI_SEED.sql  
 
 Rules:
-- single source of seed truth
-- no auxiliary seed files allowed
-- must generate complete pipeline:
+- single source of seed truth  
+- no auxiliary seed files  
+- must produce full pipeline:  
 
 APPLICATION  
 CASE  
@@ -190,7 +200,7 @@ EVENTS
 
 ---
 
-# END-TO-END PIPELINE EXECUTION
+## END-TO-END PIPELINE EXECUTION
 
 MANDATORY ORDER:
 
@@ -202,7 +212,7 @@ MANDATORY ORDER:
 
 ---
 
-# VALIDATION QUERIES
+## VALIDATION QUERIES
 
 SELECT * FROM CORE.V_GOVERNANCE_SCORE_CASE WHERE CASE_ID = '<CASE_ID>';
 
@@ -220,135 +230,136 @@ SELECT * FROM CORE.V_EXPLORER_STATS;
 
 ---
 
-# TRUST SURFACE LAYER
+## TRUST SURFACE LAYER
 
-## VERIFY ENDPOINT
+### VERIFY ENDPOINT
 
 /api/verify/[registryId]
 
 Source:
-- CORE.V_REGISTRY_PUBLIC
+CORE.V_REGISTRY_PUBLIC  
 
 Rules:
-- no computation
-- no mutation
-- deterministic message construction
-- ISO 8601 timestamps only
+- no computation  
+- no mutation  
+- deterministic message  
+- ISO timestamps  
 
 Must return:
-- record
-- proof
+- record  
+- proof  
 
 ---
 
-## PUBLIC KEY ENDPOINT
+### PUBLIC KEY ENDPOINT
 
-/api/.well-known/gafaig-public-key
+/api/.well-known/gafaig-public-key  
 
 Must expose:
-- kty: OKP
-- crv: Ed25519
-- alg: EdDSA
-- kid
-- publicKeyBase64
+- kty: OKP  
+- crv: Ed25519  
+- alg: EdDSA  
+- kid  
+- publicKey  
 
 ---
 
-## REGISTRY ENDPOINT
+### REGISTRY ENDPOINT
 
-/api/registry
+/api/registry  
 
 Source:
-- CORE.V_REGISTRY_PUBLIC
+CORE.V_REGISTRY_PUBLIC  
 
 Rules:
-- projection only
-- no derived logic
+- projection only  
+- no derived logic  
 
 ---
 
-## EXPLORER ENDPOINT
+### EXPLORER ENDPOINT
 
-/api/explorer
+/api/explorer  
 
 Sources:
-- CORE.V_REGISTRY_PUBLIC
-- CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC
-- CORE.V_EXPLORER_STATS
+- CORE.V_REGISTRY_PUBLIC  
+- CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC  
+- CORE.V_EXPLORER_STATS  
 
 Rules:
-- no workflow data
-- no TMP IDs
-- no derived trust logic
+- no workflow data  
+- no temporary IDs  
+- no derived trust logic  
 
 ---
 
-# CRYPTO RULES
+## CRYPTO RULES
 
 - Algorithm: Ed25519  
-- Signing occurs ONLY server-side  
+- Signing: server-side only  
 - Private key NEVER exposed  
 - Public key must be accessible  
-- Signature must validate against messageString EXACTLY  
+- Signature must match messageString EXACTLY  
 
 ---
 
-# NON-NEGOTIABLE RULES
+## NON-NEGOTIABLE RULES
 
 DO NOT:
-- recompute scores outside Snowflake
-- generate registry data in API
-- mutate registry snapshots
-- introduce non-deterministic IDs
-- expose workflow data in public UI
+- recompute score outside Snowflake  
+- generate registry records in API  
+- mutate registry snapshots  
+- introduce non-deterministic IDs  
+- expose workflow data publicly  
 
 ALWAYS:
-- use Snowflake as source of truth
-- use append-only registry
-- enforce deterministic joins
-- follow canonical run order exactly
+- use Snowflake as source of truth  
+- use append-only registry  
+- enforce deterministic joins  
+- follow this run order EXACTLY  
 
 ---
 
-# CURRENT SYSTEM STATE (AS OF 2026-04-22)
+## CURRENT SYSTEM STATE (AS OF 2026-04-24)
 
-✔ full pipeline operational  
-✔ scoring engine stable (v1.2)  
-✔ decision lifecycle enforced  
-✔ registry publishing deterministic  
+✔ Full pipeline operational  
+✔ Scoring engine stable  
+✔ Decision lifecycle enforced  
+✔ Registry publishing deterministic  
 ✔ REGISTRY_ID reuse enforced  
-✔ V_REGISTRY_PUBLIC aligned  
-✔ V_REGISTRY_AI_SYSTEMS_PUBLIC aligned  
-✔ explorer surface stabilized  
-✔ API /registry operational  
+✔ CORE.V_REGISTRY_PUBLIC Phase 6 updated  
+✔ Lifecycle + eligibility fields introduced  
 ✔ API /verify operational  
 ✔ Ed25519 signing validated  
-✔ public key endpoint operational  
-✔ Snowflake → API → UI parity achieved  
-✔ Phase 1 UI alignment complete  
+✔ Public key endpoint operational  
+✔ SDK operational (v1.1.0)  
+✔ UI aligned  
+
+🔴 Run-order files still critical validation point  
+🔴 VS Code alignment to Phase 6 pending  
 
 ---
 
-# NEXT PHASE
+## NEXT PHASE
 
-SYSTEM HARDENING + TRUST DISTRIBUTION
+SYSTEM HARDENING + RECORD MODEL ALIGNMENT
 
 Goals:
-- registry integrity validation  
-- explorer systems enforcement  
-- widget + badge production rollout  
-- third-party verification enablement  
-- zero drift across all layers  
+- VS Code alignment to Snowflake contract  
+- lifecycle-aware badge system  
+- SDK enforcement of eligibility  
+- explorer/system-level record integrity  
+- external verification scaling  
 
 ---
 
-# FINAL PRINCIPLE
+## FINAL PRINCIPLE
 
 GAFAIG is not an application.
 
 GAFAIG is a deterministic, cryptographically verifiable governance protocol.
 
-All engineering decisions must reinforce this.
+All engineering must reinforce this.
 
 ---
 
