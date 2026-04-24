@@ -1,374 +1,254 @@
 # CURRENT_FOCUS.md
-Date: 2026-04-23
+Last Updated: 2026-04-24
 
 ## PURPOSE
+Defines the exact execution focus for GAFAIG with zero ambiguity.
 
-This document defines the current execution focus for GAFAIG.
-
-It acts as:
-- the active control surface for development
-- the alignment layer across Snowflake, API, UI, and Verify
-- the enforcement mechanism for execution order and priorities
-
-Only items listed here are active work.
-
-Everything else is locked or deferred.
+No theory.
+No re-architecture.
+No drift.
 
 ---
 
-## CORE PRINCIPLE
+## CURRENT SYSTEM POSITION
 
-Execution must follow the canonical pipeline:
+GAFAIG is in **production trust distribution phase**.
 
-APPLICATION → CASE → FINDINGS → EVIDENCE → EVENTS → SCORING → DECISION → REGISTRY SNAPSHOT → PUBLIC VIEWS → API → UI → VERIFY → WIDGET
-
-Rules:
-
-- no step may be skipped  
-- no parallel logic paths  
-- no UI/API logic may replace Snowflake logic  
-- no trust may be computed outside /api/verify  
-
----
-
-## CURRENT PRIMARY OBJECTIVE (PHASE 4)
-
-Lock the GAFAIG system as a deterministic, cryptographically verifiable trust infrastructure.
-
-System phase:
-
-BUILD → CANONICALIZATION → STABILIZATION → VALIDATION → **LOCK**
-
-Current phase:
-**PHASE 4 — TRUST LOCK + ENFORCEMENT**
+✔ Snowflake canonical pipeline complete  
+✔ Registry snapshots working  
+✔ Verification + signature system working  
+✔ Phase 6 record model aligned (Snowflake → API → SDK → UI)  
+✔ Badge API working  
+✔ SDK working externally  
+✔ Verification modal working externally  
+✔ Production endpoints verified  
 
 ---
 
-## ACTIVE WORKSTREAMS
+## 🔴 IMMEDIATE BLOCKER (STILL VALID — DO NOT SKIP)
 
-### 1. TRUST SURFACE LOCK (CRITICAL)
-
-Status: ACTIVE (HIGHEST PRIORITY)
-
-Objectives:
-
-- enforce /api/verify as the ONLY trust authority  
-- eliminate all alternate trust logic paths  
-- ensure all surfaces consume verify output  
-
-Scope:
-
-- /verify  
-- /api/verify/[registryId]  
-- /api/badge/[registryId]  
-- widget system  
-- widget preview  
-
-Rules:
-
-- no trust from /api/registry  
-- no trust from UI  
-- no trust from client-side logic  
-
-Success Criteria:
-
-- identical trust output across:
-  - verify page  
-  - widget  
-  - badge  
-  - API  
-
----
-
-### 2. PUBLIC / PRIVATE BOUNDARY ENFORCEMENT
-
-Status: ACTIVE (CRITICAL)
-
-Objectives:
-
-- enforce strict separation of public vs private data  
-- prevent all leakage of internal workflow data  
-
-PUBLIC (ALLOWED):
-
-- registryId  
-- entityName  
-- entityType  
-- country  
-- certificationStatus  
-- certifiedAt  
-- validFrom  
-- validTo  
-- lifecycleStatus  
-- renewalStatus  
-
-PRIVATE (FORBIDDEN):
-
-- decision_status  
-- score  
-- tier  
-- band  
-- scoring breakdown  
-- workflow states  
-
-Enforcement Targets:
-
-- Snowflake views  
-- API responses  
-- UI components  
-- widgets  
-- verify payload  
-
----
-
-### 3. VERIFY CONTRACT ENFORCEMENT
-
-Status: ACTIVE
-
-Objectives:
-
-- enforce deterministic signature contract  
-- ensure minimal trust payload  
-- prevent payload drift  
-
-Signed Message MUST include ONLY:
-
-- registryId  
-- entityName  
-- certificationStatus  
-- certifiedAt  
-
-Requirements:
-
-- no null values  
-- fixed field order  
-- no additional fields  
-
-Success Criteria:
-
-- signature verifies independently  
-- messageString = message  
-- no variation across environments  
-
----
-
-### 4. WIDGET SYSTEM HARDENING
-
-Status: ACTIVE
-
-Objectives:
-
-- enforce verify-only widget architecture  
-- eliminate registry dependency  
-- ensure portable trust  
+### Fix Snowflake Run Order Failures
 
 Files:
+- 12_TABLES_PARTICIPANTS.sql  
+- 15_TABLES_EVENTS.sql  
 
-- public/widget/gafaig-widget.js  
-- public/widget/gafaig-verify.js  
+Why:
+- Break deterministic rebuilds  
+- Risk silent data corruption  
 
-Rules:
-
-- must call /api/verify  
-- must NOT call /api/registry  
-- must NOT compute trust  
-- must NOT infer certification  
-
-Success Criteria:
-
-- widget renders only verify output  
-- modal uses signed payload only  
-- no private data leakage  
+👉 MUST be fixed before any full rebuild.
 
 ---
 
-### 5. API CONTRACT LOCK
+## 🔑 CRITICAL RULE (LOCKED)
 
-Status: ACTIVE
+### ID PARITY RULE
 
-Objectives:
+All IDs:
+- Generated ONLY in Snowflake  
+- Never generated in API/UI/SDK  
+- Passed through unchanged  
 
-- ensure API is pure Snowflake projection  
-- enforce deterministic outputs  
-
-Endpoints:
-
-- /api/registry  
-- /api/registry/search  
-- /api/explorer  
-- /api/verify/[registryId]  
-- /api/badge/[registryId]  
-
-Rules:
-
-- no trust computation  
-- no synthetic fields  
-- no transformation logic  
+Violation = system corruption.
 
 ---
 
-### 6. SNOWFLAKE → VERIFY PARITY VALIDATION
+## 🎯 PRIMARY EXECUTION TARGET
 
-Status: ACTIVE
-
-Objectives:
-
-- ensure verify payload matches Snowflake exactly  
-
-Checks:
-
-- registryId parity  
-- certifiedAt parity  
-- lifecycle validity  
-- certification status consistency  
-
-Success Criteria:
-
-- identical output across:
-  - Snowflake  
-  - API  
-  - verify  
-  - widget  
+# Phase 8 — Trust Surface Hardening + Production Lock
 
 ---
 
-### 7. END-TO-END DETERMINISTIC VALIDATION
+## EXECUTION PLAN (STRICT ORDER)
 
-Status: ACTIVE
+### STEP 1 — BADGE HARDENING
 
-Pipeline:
+File:
+public/sdk/gafaig.js
 
-APPLICATION  
-→ CASE  
-→ FINDINGS  
-→ EVIDENCE  
-→ EVENTS  
-→ SCORING  
-→ DECISION  
-→ REGISTRY SNAPSHOT  
-→ V_REGISTRY_PUBLIC  
-→ /api/verify  
-→ widget  
-→ modal  
+Objective:
+- Badge must ALWAYS reflect:
+  - lifecycleStatus
+  - badgeEligible
 
-Requirements:
-
-- deterministic IDs  
-- no orphan records  
-- no recomputation  
-- consistent outputs  
+Must:
+- degrade to "Unavailable" if invalid
+- never show Certified incorrectly
 
 ---
 
-### 8. DOCUMENTATION LOCK (FINAL STEP)
+### STEP 2 — MODAL HARDENING
 
-Status: ACTIVE
+File:
+public/widget/gafaig-verify.js
 
-Files:
+Objective:
+- Modal must:
+  - always load verify endpoint
+  - never rely on badge data
+  - fail safely if API fails
 
-- ENGINEERING_RULES.md  
-- VERIFIED_DEFINITION.md  
-- VERIFICATION_SIGNATURE_CONTRACT.md  
-- MASTER_STATE.md  
-- CURRENT_FOCUS.md  
-
-Objectives:
-
-- prevent future system drift  
-- enforce architectural constraints  
-- define trust model permanently  
+Add:
+- loading state
+- error state
+- fallback messaging
 
 ---
 
-## CURRENT SYSTEM STATE
+### STEP 3 — SDK FAILURE HANDLING
 
-APPLICATION → CASE: COMPLETE  
-CASE → FINDINGS: COMPLETE  
-FINDINGS → EVIDENCE: COMPLETE  
-EVIDENCE → EVENTS: COMPLETE  
-EVENTS → SCORING: COMPLETE  
-SCORING → DECISION: COMPLETE  
-DECISION → REGISTRY: COMPLETE  
-REGISTRY → PUBLIC VIEWS: LOCKED  
-PUBLIC VIEWS → API: LOCKED  
-API → UI: LOCKED  
-UI → VERIFY: LOCKED  
-VERIFY → WIDGET: LOCKED  
+File:
+public/sdk/gafaig.js
 
-System is in:
+Objective:
+Handle:
+- network failure
+- invalid JSON
+- missing fields
 
-**PHASE 4 — TRUST LOCK**
+Must:
+- never crash page
+- return safe error object
 
 ---
 
-## BLOCKERS
+### STEP 4 — VERIFY API LOCK
 
-NONE
+File:
+app/api/verify/[registryId]/route.ts
 
----
+Objective:
+- Lock response contract
 
-## REMAINING RISKS
+Must:
+- always return:
+  - record (full Phase 6)
+  - proof
+  - messageString
 
-- future developer drift  
-- accidental reintroduction of private fields  
-- API contract mutation  
-- widget misuse  
-- schema evolution breaking public contract  
-
----
-
-## NEXT EXECUTION STEPS
-
-1. complete documentation lock  
-2. validate verify endpoint externally  
-3. validate widget on third-party site  
-4. confirm public key verification  
-5. finalize production baseline  
+Must NOT:
+- change field names
+- remove fields
 
 ---
 
-## NON-NEGOTIABLE RULES
+### STEP 5 — BADGE API LOCK
 
-- Snowflake is the source of truth  
-- /api/verify is the ONLY trust source  
-- no UI/API trust logic  
-- no private data in public layer  
-- no skipping pipeline steps  
-- no non-deterministic outputs  
-- no unsigned certification  
+File:
+app/api/badge/[registryId]/route.ts
 
----
+Objective:
+- Lock response contract
 
-## ENFORCEMENT
+Must:
+- respect lifecycleStatus
+- respect badgeEligible
 
-If a task is not listed here:
-
-- it is not active  
-- it must not be worked on  
-
-All development must align with CURRENT_FOCUS.md.
+Must NOT:
+- guess status
+- override Snowflake truth
 
 ---
 
-## FINAL STATEMENT
+### STEP 6 — WIDGET FAIL-SAFE UX
 
-GAFAIG is no longer in a build phase.
+File:
+public/widget/gafaig.js (or equivalent)
 
-GAFAIG is now a deterministic trust system.
+Objective:
+- If API fails:
+  show:
+  "Verification unavailable"
 
-The focus is:
-
-- enforcing correctness  
-- preserving determinism  
-- maintaining trust integrity  
-
-Trust must remain:
-
-- minimal  
-- verifiable  
-- portable  
-- immutable  
+NOT:
+- blank state
+- broken UI
 
 ---
 
-END OF FILE
+## 🧠 SYSTEM THINKING (LOCKED)
+
+GAFAIG is:
+
+- a verification system  
+- a registry of certified records  
+- a cryptographic trust layer  
+- a Snowflake execution engine  
+
+---
+
+## 🔐 TRUST MODEL (LOCKED)
+
+Trust comes from:
+
+- Snowflake record  
+- Signed payload  
+- Public key verification  
+
+NOT from:
+
+- UI  
+- SDK  
+- badge  
+- widget  
+
+---
+
+## ⚠️ DO NOT BREAK
+
+- No computation outside Snowflake  
+- No lifecycle logic outside Snowflake  
+- No certification logic outside Snowflake  
+- No ID generation outside Snowflake  
+- Do not modify signed payload structure  
+
+---
+
+## 🧪 TEST (MANDATORY)
+
+Test:
+
+External page:
+- badge loads
+- modal opens
+- SDK returns JSON
+
+Verify page:
+- signature valid
+- payload verified
+
+API:
+- /api/badge/{id}
+- /api/verify/{id}
+
+---
+
+## 🚀 DEPLOY FLOW
+
+git add .
+git commit -m "Phase 8: <description>"
+git push origin main
+
+---
+
+## 📍 CURRENT STATE SUMMARY
+
+✔ System aligned  
+✔ External trust working  
+✔ Production endpoints live  
+
+🎯 NEXT FOCUS:
+
+Harden trust surfaces.
+Lock contracts.
+Eliminate failure modes.
+
+---
+
+FINAL LINE
+
+Do not add features.
+Do not redesign.
+
+Stabilize and lock the system.

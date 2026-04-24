@@ -33,6 +33,20 @@
         font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       }
 
+      .gafaig-widget-loading {
+        width: 100%;
+        max-width: 460px;
+        border: 1px solid rgba(0, 0, 0, 0.10);
+        border-radius: 18px;
+        background: #ffffff;
+        padding: 14px;
+        font-size: 12px;
+        line-height: 1.6;
+        font-weight: 600;
+        color: rgba(11, 11, 12, 0.62);
+        box-shadow: 0 12px 36px rgba(0, 0, 0, 0.05);
+      }
+
       .gafaig-widget-card {
         width: 100%;
         max-width: 460px;
@@ -389,6 +403,12 @@
       "</div>";
   }
 
+  function renderLoading(el) {
+    el.className = "gafaig-widget-root";
+    el.innerHTML =
+      '<div class="gafaig-widget-loading">Loading GAFAIG verification…</div>';
+  }
+
   function renderBadgeWidget(el, registryId, verifyData) {
     var record = verifyData && verifyData.record ? verifyData.record : null;
     var status = resolveTrustState(record);
@@ -505,7 +525,7 @@
       metric("Certified", certifiedAt) +
       metric("Valid To", validTo) +
       metric("Country", country) +
-      metric("Signature", proof ? "Valid (Ed25519)" : "Unavailable") +
+      metric("Signature", proof ? "Available (Ed25519)" : "Unavailable") +
       metric("Key ID", proof && proof.kid ? proof.kid : "—") +
       "</div>" +
       '<div class="gafaig-widget-id">' +
@@ -556,6 +576,7 @@
     if (!registryId) return;
 
     injectStyles();
+    renderLoading(el);
 
     try {
       var verifyUrl =
@@ -565,7 +586,7 @@
 
       var verify = await fetchJson(verifyUrl);
 
-      if (!verify || verify.ok !== true || verify.verified !== true) {
+      if (!verify || verify.ok !== true) {
         renderError(el, registryId, "Verification unavailable");
         return;
       }

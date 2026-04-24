@@ -20,6 +20,14 @@ function getCorsHeaders(): HeadersInit {
   };
 }
 
+function getBaseUrl(): string {
+  return (
+    process.env.NEXT_PUBLIC_BASE_URL ||
+    process.env.NEXT_PUBLIC_SITE_URL ||
+    "https://www.gafaig.com"
+  ).replace(/\/+$/, "");
+}
+
 function escapeSqlString(value: string): string {
   return String(value).replace(/'/g, "''");
 }
@@ -135,6 +143,7 @@ export async function GET(
 
     const messageString = JSON.stringify(message);
     const signature = signVerificationPayload(messageString);
+    const baseUrl = getBaseUrl();
 
     const response: VerifyApiResponse = {
       ok: true,
@@ -146,7 +155,7 @@ export async function GET(
         kid: getSigningKeyId(),
         signature,
         signedAt: new Date().toISOString(),
-        verificationKeyUrl: "/api/.well-known/gafaig-public-key",
+        verificationKeyUrl: `${baseUrl}/api/.well-known/gafaig-public-key`,
         message,
         messageString,
       },
