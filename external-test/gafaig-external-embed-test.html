@@ -54,6 +54,12 @@
         font-size: 13px;
         line-height: 1.6;
       }
+
+      .status {
+        margin-top: 16px;
+        font-size: 13px;
+        color: #555;
+      }
     </style>
   </head>
 
@@ -61,7 +67,10 @@
     <div class="card">
       <h1>GAFAIG External Embed Test</h1>
 
-      <p>This simulates a third-party site using production GAFAIG scripts and APIs.</p>
+      <p>
+        This simulates a third-party site using production GAFAIG scripts and
+        APIs.
+      </p>
 
       <h3>Badge</h3>
       <div data-gafaig-badge="GAFAIG-00363095"></div>
@@ -71,10 +80,16 @@
           Open Verification Modal
         </button>
 
+        <button id="direct-verify-modal" type="button">
+          Direct window.verifyGAFAIG Test
+        </button>
+
         <button id="test-sdk" type="button">
           Test SDK
         </button>
       </div>
+
+      <div class="status" id="load-status">Loading GAFAIG scripts…</div>
 
       <pre id="sdk-result"></pre>
     </div>
@@ -88,6 +103,11 @@
         var REGISTRY_ID = "GAFAIG-00363095";
         var MAX_ATTEMPTS = 50;
         var ATTEMPT_DELAY_MS = 100;
+
+        function setStatus(value) {
+          var statusBox = document.getElementById("load-status");
+          if (statusBox) statusBox.textContent = value;
+        }
 
         function writeResult(value) {
           var resultBox = document.getElementById("sdk-result");
@@ -115,6 +135,7 @@
 
             if (attempts >= MAX_ATTEMPTS) {
               window.clearInterval(timer);
+              setStatus("GAFAIG SDK not loaded.");
               writeResult("GAFAIG SDK not loaded");
             }
           }, ATTEMPT_DELAY_MS);
@@ -124,7 +145,7 @@
           var attempts = 0;
 
           var timer = window.setInterval(function () {
-            if (window.verifyGAFAIG) {
+            if (typeof window.verifyGAFAIG === "function") {
               window.clearInterval(timer);
               callback(window.verifyGAFAIG);
               return;
@@ -134,6 +155,7 @@
 
             if (attempts >= MAX_ATTEMPTS) {
               window.clearInterval(timer);
+              setStatus("GAFAIG verification modal not loaded.");
               writeResult("GAFAIG verification modal not loaded");
             }
           }, ATTEMPT_DELAY_MS);
@@ -141,6 +163,11 @@
 
         window.addEventListener("load", function () {
           waitForGafaig(function (gafaig) {
+            setStatus(
+              "GAFAIG SDK loaded. gafaig.version = " +
+                String(gafaig.version || "unknown")
+            );
+
             gafaig.init({
               baseUrl: BASE_URL
             });
@@ -170,13 +197,56 @@
           });
 
           waitForVerifyModal(function (verifyGAFAIG) {
+            setStatus(
+              "GAFAIG SDK + verification modal loaded. Ready for external verification."
+            );
+
             var modalButton = document.getElementById("open-gafaig-modal");
+            var directButton = document.getElementById("direct-verify-modal");
 
             if (modalButton) {
               modalButton.addEventListener("click", function () {
                 verifyGAFAIG(REGISTRY_ID, {
                   baseUrl: BASE_URL
-                });
+                })
+                  .then(function (result) {
+                    writeResult(result);
+                  })
+                  .catch(function (error) {
+                    writeResult(
+                      error && error.message
+                        ? error.message
+                        : "GAFAIG verification modal failed"
+                    );
+                  });
+              });
+            }
+
+            if (directButton) {
+              directButton.addEventListener("click", function () {
+                if (typeof window.verifyGAFAIG !== "function") {
+                  writeResult("window.verifyGAFAIG is not available");
+                  return;
+                }
+
+                window
+                  .verifyGAFAIG(REGISTRY_ID, {
+                    baseUrl: BASE_URL
+                  })
+                  .then(function (result) {
+                    writeResult({
+                      directCall: "window.verifyGAFAIG",
+                      registryId: REGISTRY_ID,
+                      result: result
+                    });
+                  })
+                  .catch(function (error) {
+                    writeResult(
+                      error && error.message
+                        ? error.message
+                        : "Direct window.verifyGAFAIG call failed"
+                    );
+                  });
               });
             }
           });
