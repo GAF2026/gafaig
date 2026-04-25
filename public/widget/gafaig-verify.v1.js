@@ -1,5 +1,5 @@
 (function () {
-  var VERSION = "1.3.1";
+  var VERSION = "1.3.2";
 
   function escapeHtml(value) {
     return String(value == null ? "" : value)
@@ -31,15 +31,18 @@
 
   function formatDate(value) {
     if (!value) return "—";
+
     var d = new Date(value);
+
     if (Number.isNaN(d.getTime())) return String(value);
+
     return d.toLocaleString("en-US", {
       year: "numeric",
       month: "short",
       day: "numeric",
       hour: "numeric",
       minute: "2-digit",
-      second: "2-digit"
+      second: "2-digit",
     });
   }
 
@@ -50,11 +53,16 @@
   function badgeTone(status) {
     var s = normalizeStatus(status);
 
-    if (s === "certified" || s === "active" || s === "signature valid" || s === "payload verified") {
+    if (
+      s === "certified" ||
+      s === "active" ||
+      s === "signature valid" ||
+      s === "payload verified"
+    ) {
       return {
         border: "#9fe0bb",
         background: "#e9f8ef",
-        color: "#138a52"
+        color: "#138a52",
       };
     }
 
@@ -62,7 +70,7 @@
       return {
         border: "#fde68a",
         background: "#fffbeb",
-        color: "#92400e"
+        color: "#92400e",
       };
     }
 
@@ -70,14 +78,14 @@
       return {
         border: "#fecdd3",
         background: "#fff1f2",
-        color: "#be123c"
+        color: "#be123c",
       };
     }
 
     return {
       border: "#d4d4d8",
       background: "#ffffff",
-      color: "#111827"
+      color: "#111827",
     };
   }
 
@@ -100,7 +108,7 @@
         "font-weight:800",
         "letter-spacing:.08em",
         "text-transform:uppercase",
-        "white-space:nowrap"
+        "white-space:nowrap",
       ].join(";") +
       '">' +
       escapeHtml(label) +
@@ -139,7 +147,7 @@
         "justify-content:center",
         "min-height:44px",
         "font-size:13px",
-        "cursor:pointer"
+        "cursor:pointer",
       ].join(";") +
       '">' +
       escapeHtml(label) +
@@ -164,7 +172,7 @@
         "justify-content:center",
         "min-height:44px",
         "font-size:13px",
-        "cursor:pointer"
+        "cursor:pointer",
       ].join(";") +
       '">' +
       escapeHtml(label) +
@@ -172,20 +180,54 @@
     );
   }
 
+  async function fetchVerifyRecord(registryId, options) {
+    var baseUrl = normalizeBaseUrl(options && options.baseUrl);
+    var url = baseUrl + "/api/verify/" + encodeURIComponent(registryId);
+
+    var response = await fetch(url, {
+      method: "GET",
+      cache: "no-store",
+      credentials: "omit",
+      headers: {
+        Accept: "application/json",
+      },
+    });
+
+    var text = await response.text();
+    var data = text ? JSON.parse(text) : {};
+
+    if (!response.ok) {
+      throw new Error(data && data.error ? data.error : "GAFAIG verification request failed");
+    }
+
+    return data;
+  }
+
   function buildModal(data, registryId, options) {
     var record = (data && data.record) || {};
     var proof = (data && data.proof) || {};
     var baseUrl = normalizeBaseUrl(options && options.baseUrl);
-    var registryUrl = resolveUrl(data && data.registryUrl ? data.registryUrl : "/registry/" + encodeURIComponent(registryId), baseUrl);
-    var verifyPageUrl = resolveUrl(data && data.verifyUrl ? data.verifyUrl : "/verify/" + encodeURIComponent(registryId), baseUrl);
+    var registryUrl = resolveUrl(
+      data && data.registryUrl ? data.registryUrl : "/registry/" + encodeURIComponent(registryId),
+      baseUrl
+    );
+    var verifyPageUrl = resolveUrl(
+      data && data.verifyUrl ? data.verifyUrl : "/verify/" + encodeURIComponent(registryId),
+      baseUrl
+    );
     var verifyJsonUrl = baseUrl + "/api/verify/" + encodeURIComponent(registryId);
-    var keyUrl = resolveUrl(proof.verificationKeyUrl || "/api/.well-known/gafaig-public-key", baseUrl);
+    var keyUrl = resolveUrl(
+      proof.verificationKeyUrl || "/api/.well-known/gafaig-public-key",
+      baseUrl
+    );
 
     var overlay = document.createElement("div");
+
     overlay.setAttribute("data-gafaig-verify-overlay", "true");
     overlay.setAttribute("role", "dialog");
     overlay.setAttribute("aria-modal", "true");
     overlay.setAttribute("aria-label", "GAFAIG verification modal");
+
     overlay.style.cssText = [
       "position:fixed",
       "inset:0",
@@ -195,10 +237,11 @@
       "justify-content:center",
       "padding:24px",
       "z-index:999999",
-      "box-sizing:border-box"
+      "box-sizing:border-box",
     ].join(";");
 
     var panel = document.createElement("div");
+
     panel.style.cssText = [
       "width:100%",
       "max-width:720px",
@@ -211,7 +254,7 @@
       "color:#111827",
       "max-height:calc(100vh - 48px)",
       "overflow:auto",
-      "box-sizing:border-box"
+      "box-sizing:border-box",
     ].join(";");
 
     var verified = !!(data && data.verified);
@@ -220,14 +263,16 @@
     var lifecycleStatus = record.lifecycleStatus || "—";
     var recordType = record.recordType || "—";
     var visibilityStatus = record.visibilityStatus || "—";
-    var verificationEligible = record.verificationEligible == null ? "—" : String(record.verificationEligible);
+    var verificationEligible =
+      record.verificationEligible == null ? "—" : String(record.verificationEligible);
     var badgeEligible = record.badgeEligible == null ? "—" : String(record.badgeEligible);
     var signatureStatus = verified ? "Signature Valid" : "Signature Invalid";
-    var integrityStatus = proof.messageString && proof.signature ? "Payload Verified" : "Payload Unavailable";
+    var integrityStatus =
+      proof.messageString && proof.signature ? "Payload Verified" : "Payload Unavailable";
 
     panel.innerHTML =
       '<div style="display:flex;justify-content:space-between;gap:16px;align-items:flex-start;">' +
-      '<div>' +
+      "<div>" +
       '<div style="font-size:11px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:#6b7280;">GAFAIG Verification</div>' +
       '<div style="margin-top:10px;font-size:30px;font-weight:850;line-height:1.1;letter-spacing:-.03em;color:#111827;">' +
       escapeHtml(entityName) +
@@ -246,7 +291,7 @@
         "cursor:pointer",
         "font-size:20px",
         "font-weight:800",
-        "line-height:1"
+        "line-height:1",
       ].join(";") +
       '">×</button>' +
       "</div>" +
@@ -311,24 +356,9 @@
     overlay.parentNode.removeChild(overlay);
   }
 
-  function ensureCoreSdk() {
-    if (window.gafaig && typeof window.gafaig.verify === "function") {
-      return window.gafaig;
-    }
-
-    if (window.GAFAIGSDK && typeof window.GAFAIGSDK.verify === "function") {
-      return window.GAFAIGSDK;
-    }
-
-    if (window.GAFAIG && typeof window.GAFAIG.verify === "function") {
-      return window.GAFAIG;
-    }
-
-    throw new Error("GAFAIG SDK not loaded");
-  }
-
   async function copyText(text) {
     var value = String(text || "");
+
     if (!value) return false;
 
     try {
@@ -346,8 +376,11 @@
       document.body.appendChild(textarea);
       textarea.focus();
       textarea.select();
+
       var ok = document.execCommand("copy");
+
       document.body.removeChild(textarea);
+
       return ok;
     } catch (_error2) {
       return false;
@@ -355,25 +388,50 @@
   }
 
   async function verifyGAFAIG(registryId, options) {
-    var sdk = ensureCoreSdk();
     var cfg = options || {};
-    var data = await sdk.verify(registryId, cfg);
-    var overlay = buildModal(data, registryId, cfg);
+    var id = String(registryId || "").trim();
+
+    if (!id) {
+      throw new Error("GAFAIG registryId is required");
+    }
+
+    var sdk =
+      window.gafaig ||
+      window.GAFAIG ||
+      window.GAFAIGSDK ||
+      null;
+
+    var data;
+
+    if (sdk && typeof sdk.verify === "function") {
+      data = await sdk.verify(id, cfg);
+    } else {
+      data = await fetchVerifyRecord(id, cfg);
+    }
+
+    var overlay = buildModal(data, id, cfg);
     var priorFocus = document.activeElement;
 
     function handleClick(event) {
       var target = event.target;
 
-      if (target === overlay || target.getAttribute("data-gafaig-close") === "true") {
+      if (
+        target === overlay ||
+        target.getAttribute("data-gafaig-close") === "true"
+      ) {
         close();
         return;
       }
 
-      var copyValue = target.getAttribute && target.getAttribute("data-gafaig-copy");
+      var copyValue =
+        target.getAttribute && target.getAttribute("data-gafaig-copy");
+
       if (copyValue != null) {
         var originalText = target.textContent || "Copy";
+
         copyText(copyValue).then(function (ok) {
           target.textContent = ok ? "Copied" : "Copy failed";
+
           setTimeout(function () {
             target.textContent = originalText;
           }, 1400);
@@ -405,6 +463,7 @@
     document.body.appendChild(overlay);
 
     var closeButton = overlay.querySelector("[data-gafaig-close='true']");
+
     if (closeButton && typeof closeButton.focus === "function") {
       closeButton.focus();
     }
@@ -414,7 +473,7 @@
 
   window.GAFAIG_VERIFY = {
     version: VERSION,
-    open: verifyGAFAIG
+    open: verifyGAFAIG,
   };
 
   window.verifyGAFAIG = verifyGAFAIG;
