@@ -1,4 +1,5 @@
 import LiveEmbedPreview from "./LiveEmbedPreview";
+import RegistryIdTester from "./RegistryIdTester";
 import Script from "next/script";
 import PublicButtonLink from "../_components/PublicButtonLink";
 import PublicPageHero from "../_components/PublicPageHero";
@@ -358,7 +359,11 @@ export default function DevelopersPage() {
             body="Every public proof is signed and can be validated with the public key endpoint."
           />
         </section>
-<LiveEmbedPreview />
+
+        <RegistryIdTester />
+
+        <LiveEmbedPreview />
+
         <section className="rounded-3xl border border-black/10 bg-white p-8">
           <SectionHeading
             eyebrow="INSTALL"
