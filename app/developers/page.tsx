@@ -53,13 +53,7 @@ function StepCard({
   );
 }
 
-function StatementCard({
-  title,
-  body,
-}: {
-  title: string;
-  body: string;
-}) {
+function StatementCard({ title, body }: { title: string; body: string }) {
   return (
     <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
       <div className="text-[18px] font-semibold tracking-tight text-black">
@@ -90,14 +84,12 @@ function CodeCard({
 }) {
   return (
     <section className="rounded-3xl border border-black/10 bg-white p-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <div className="text-[16px] font-semibold tracking-tight text-black">
-            {title}
-          </div>
-          <div className="mt-1 text-[12px] font-semibold uppercase tracking-[0.16em] text-black/45">
-            {language}
-          </div>
+      <div>
+        <div className="text-[16px] font-semibold tracking-tight text-black">
+          {title}
+        </div>
+        <div className="mt-1 text-[12px] font-semibold uppercase tracking-[0.16em] text-black/45">
+          {language}
         </div>
       </div>
 
@@ -130,84 +122,80 @@ function MetricCard({
   );
 }
 
-const sdkInstallExample = `<script src="https://www.gafaig.com/sdk/gafaig.js"></script>`;
+const sdkInstallExample = `<script src="https://www.gafaig.com/sdk/gafaig.v1.js"></script>`;
 
-const sdkVerifyExample = `<script src="https://www.gafaig.com/sdk/gafaig.js"></script>
+const sdkAndModalInstallExample = `<script src="https://www.gafaig.com/sdk/gafaig.v1.js"></script>
+<script src="https://www.gafaig.com/widget/gafaig-verify.v1.js"></script>`;
+
+const dataBadgeExample = `<script src="https://www.gafaig.com/sdk/gafaig.v1.js"></script>
+
+<div data-gafaig-badge="GAFAIG-00363095"></div>`;
+
+const dataWidgetExample = `<script src="https://www.gafaig.com/widget/gafaig-widget.v1.js"></script>
+
+<div data-gafaig-id="GAFAIG-00363095"></div>`;
+
+const dataWidgetModeExample = `<script src="https://www.gafaig.com/widget/gafaig-widget.v1.js"></script>
+
+<div
+  data-gafaig-id="GAFAIG-00363095"
+  data-mode="badge"
+></div>`;
+
+const modalExample = `<script src="https://www.gafaig.com/sdk/gafaig.v1.js"></script>
+<script src="https://www.gafaig.com/widget/gafaig-verify.v1.js"></script>
+
+<button data-gafaig-open-verify="GAFAIG-00363095">
+  Verify this GAFAIG record
+</button>
+
 <script>
-  gafaig.verify("GAFAIG-00363095").then((data) => {
-    console.log(data.record);
-    console.log(data.proof.messageString);
-    console.log(data.proof.signature);
-  });
+  gafaig.init();
 </script>`;
 
-const sdkRenderExample = `<script src="https://www.gafaig.com/sdk/gafaig.js"></script>
-<div id="gafaig-widget-target"></div>
+const manualModalExample = `<script src="https://www.gafaig.com/sdk/gafaig.v1.js"></script>
+<script src="https://www.gafaig.com/widget/gafaig-verify.v1.js"></script>
 
-<script>
-  gafaig.render("#gafaig-widget-target", {
-    registryId: "GAFAIG-00363095"
-  });
-</script>`;
-
-const sdkBadgeExample = `<script src="https://www.gafaig.com/sdk/gafaig.js"></script>
-<div id="gafaig-badge-target"></div>
-
-<script>
-  gafaig.badge("#gafaig-badge-target", {
-    registryId: "GAFAIG-00363095"
-  });
-</script>`;
-
-const sdkModalExample = `<script src="https://www.gafaig.com/sdk/gafaig.js"></script>
-<button id="open-gafaig-verify">Verify this GAFAIG record</button>
+<button id="open-gafaig-verify">
+  Verify this GAFAIG record
+</button>
 
 <script>
   document
     .getElementById("open-gafaig-verify")
     .addEventListener("click", function () {
-      gafaig.openVerify("GAFAIG-00363095");
+      verifyGAFAIG("GAFAIG-00363095", {
+        baseUrl: "https://www.gafaig.com"
+      });
     });
 </script>`;
 
-const sdkUrlExample = `const verifyUrl = gafaig.getVerifyUrl("GAFAIG-00363095");
-const badgeUrl = gafaig.getBadgeUrl("GAFAIG-00363095");
-const registryUrl = gafaig.getRegistryUrl("GAFAIG-00363095");
-const verifyPageUrl = gafaig.getVerifyPageUrl("GAFAIG-00363095");
-const widgetPreviewUrl = gafaig.getWidgetPreviewUrl("GAFAIG-00363095");
+const sdkBadgeExample = `<script src="https://www.gafaig.com/sdk/gafaig.v1.js"></script>
 
-console.log({
-  verifyUrl,
-  badgeUrl,
-  registryUrl,
-  verifyPageUrl,
-  widgetPreviewUrl
-});`;
+<div id="gafaig-badge-target"></div>
 
-const dataWidgetExample = `<script src="https://www.gafaig.com/sdk/gafaig.js"></script>
+<script>
+  gafaig.badge("#gafaig-badge-target", {
+    registryId: "GAFAIG-00363095",
+    baseUrl: "https://www.gafaig.com"
+  });
+</script>`;
 
-<div data-gafaig-widget="GAFAIG-00363095"></div>`;
+const sdkGetBadgeExample = `<script src="https://www.gafaig.com/sdk/gafaig.v1.js"></script>
 
-const dataWidgetModeExample = `<script src="https://www.gafaig.com/sdk/gafaig.js"></script>
+<script>
+  gafaig
+    .getBadge("GAFAIG-00363095", {
+      baseUrl: "https://www.gafaig.com"
+    })
+    .then(console.log);
+</script>`;
 
-<div
-  data-gafaig-widget="GAFAIG-00363095"
-  data-mode="minimal"
-></div>`;
+const curlVerifyExample = `curl https://www.gafaig.com/api/verify/GAFAIG-00363095`;
 
-const dataBadgeExample = `<script src="https://www.gafaig.com/sdk/gafaig.js"></script>
+const curlBadgeExample = `curl https://www.gafaig.com/api/badge/GAFAIG-00363095`;
 
-<div data-gafaig-badge="GAFAIG-00363095"></div>`;
-
-const dataModalExample = `<script src="https://www.gafaig.com/sdk/gafaig.js"></script>
-
-<button data-gafaig-open-verify="GAFAIG-00363095">
-  Verify this GAFAIG record
-</button>`;
-
-const curlExample = `curl https://www.gafaig.com/api/verify/GAFAIG-00363095`;
-
-const jsExample = `const response = await fetch(
+const jsVerifyExample = `const response = await fetch(
   "https://www.gafaig.com/api/verify/GAFAIG-00363095",
   { cache: "no-store" }
 );
@@ -224,15 +212,22 @@ const proofShapeExample = `{
   "registryId": "GAFAIG-00363095",
   "record": {
     "registryId": "GAFAIG-00363095",
+    "registrySnapshotId": "REG-SNAP-...",
     "applicationId": "APP-DEMO-0001",
     "caseId": "CASE-0001",
+    "recordType": "ORGANIZATION",
+    "recordName": "OpenAI Enterprise Demo Org",
     "entityName": "OpenAI Enterprise Demo Org",
     "entityType": "company",
     "country": "United States",
     "certificationStatus": "CERTIFIED",
     "certifiedAt": "2026-04-21T12:37:57.000Z",
     "validFrom": "2026-04-15T00:00:00.000Z",
-    "validTo": "2027-04-15T10:20:24.000Z"
+    "validTo": "2027-04-15T10:20:24.000Z",
+    "lifecycleStatus": "active",
+    "visibilityStatus": "public",
+    "verificationEligible": true,
+    "badgeEligible": true
   },
   "proof": {
     "alg": "Ed25519",
@@ -244,23 +239,47 @@ const proofShapeExample = `{
       "registryId": "GAFAIG-00363095",
       "entityName": "OpenAI Enterprise Demo Org",
       "certificationStatus": "CERTIFIED",
-      "certifiedAt": "2026-04-21T12:37:57.000Z"
+      "certifiedAt": "2026-04-21T12:37:57.000Z",
+      "validFrom": "2026-04-15T00:00:00.000Z",
+      "validTo": "2027-04-15T10:20:24.000Z"
     },
     "messageString": "{\\"registryId\\":\\"GAFAIG-00363095\\",...}"
   }
 }`;
 
+const externalTestExample = `<!DOCTYPE html>
+<html>
+  <body>
+    <h1>GAFAIG External Embed Test</h1>
+
+    <div data-gafaig-badge="GAFAIG-00363095"></div>
+
+    <button data-gafaig-open-verify="GAFAIG-00363095">
+      Open Verification Modal
+    </button>
+
+    <script src="https://www.gafaig.com/sdk/gafaig.v1.js"></script>
+    <script src="https://www.gafaig.com/widget/gafaig-verify.v1.js"></script>
+
+    <script>
+      gafaig.init({
+        baseUrl: "https://www.gafaig.com"
+      });
+    </script>
+  </body>
+</html>`;
+
 export default function DevelopersPage() {
   return (
     <main className="mx-auto max-w-[1180px] px-6 py-10">
-      <Script src="/sdk/gafaig.js" strategy="afterInteractive" />
+      <Script src="/sdk/gafaig.v1.js" strategy="afterInteractive" />
 
       <div className="space-y-8">
         <PublicPageHero
           eyebrow="DEVELOPERS"
           title="Verify a GAFAIG record in minutes."
           description="GAFAIG provides a verification-first trust surface for AI governance. Fetch a certified public record, inspect its signed proof, and validate it independently."
-          secondaryDescription="The public layer exposes certification outcomes only. Internal governance records remain private. Trust is derived from the verification endpoint, signed payload, public key, and SDK."
+          secondaryDescription="The public layer exposes certification outcomes only. Internal governance records remain private. Trust is derived from the verification endpoint, signed payload, public key, SDK, widget, badge, and modal surfaces."
           actions={
             <>
               <PublicButtonLink href="/verify" variant="primary">
@@ -282,36 +301,36 @@ export default function DevelopersPage() {
         <section className="rounded-3xl border border-black/10 bg-white p-8">
           <SectionHeading
             eyebrow="START HERE"
-            title="Use the SDK (recommended)"
-            body="The GAFAIG SDK is the fastest way to fetch a certified record, render a trust widget, render a badge, or open the verification modal. It wraps the public verification layer without introducing any new trust logic."
+            title="Use versioned SDK and widget files"
+            body="Production integrations should use versioned GAFAIG files. Versioned files are stable and intended for third-party use. Latest files may evolve, but versioned files preserve integration stability."
           />
 
           <div className="mt-8 grid gap-4 md:grid-cols-3">
             <StepCard
               number="1"
-              title="Load the SDK"
-              body="Include the GAFAIG SDK on your page. It gives you direct access to verify(), render(), badge(), openVerify(), and auto-init data attributes."
+              title="Load versioned files"
+              body="Use /sdk/gafaig.v1.js and /widget/gafaig-verify.v1.js for stable production integrations."
             />
             <StepCard
               number="2"
-              title="Resolve a certified record"
-              body="Call the verify() function with a REGISTRY_ID to retrieve the public record and signed proof."
+              title="Embed a trust surface"
+              body="Add a badge, widget, or verification modal using a REGISTRY_ID issued by GAFAIG."
             />
             <StepCard
               number="3"
-              title="Render trust surfaces"
-              body="Use the SDK to render widgets, badges, or open the modal, or let the SDK auto-initialize them from HTML attributes."
+              title="Verify independently"
+              body="Use the verification endpoint, signed payload, and public key to validate the public record."
             />
           </div>
 
           <div className="mt-6 grid gap-4 md:grid-cols-2">
             <StatementCard
-              title="What the SDK does"
-              body="Provides a thin wrapper around the GAFAIG verification and badge endpoints. It fetches certified records, renders widgets and badges, and opens verification modals."
+              title="Versioned files"
+              body="Use versioned files for production embeds. These files are designed to remain stable for existing integrations."
             />
             <StatementCard
-              title="What the SDK does NOT do"
-              body="It does not compute trust, scoring, or certification. All trust originates from the GAFAIG verification endpoint, the badge endpoint, and signed proof."
+              title="Latest files"
+              body="The unversioned files remain available as latest builds, but third-party integrations should pin to versioned files."
             />
           </div>
         </section>
@@ -320,131 +339,122 @@ export default function DevelopersPage() {
           <MetricCard
             label="Trust Source"
             value="/api/verify"
-            body="The verification endpoint remains the only trust authority in the public GAFAIG surface."
+            body="The verification endpoint remains the canonical public trust authority."
           />
           <MetricCard
-            label="SDK File"
-            value="/sdk/gafaig.js"
-            body="The SDK is a thin convenience layer on top of the public trust contract."
+            label="Stable SDK"
+            value="/sdk/gafaig.v1.js"
+            body="The versioned SDK is the recommended production integration file."
           />
           <MetricCard
             label="Signature Algorithm"
             value="Ed25519"
-            body="Every public proof is signed with Ed25519 and can be validated with standard libraries."
+            body="Every public proof is signed and can be validated with the public key endpoint."
           />
         </section>
 
         <section className="rounded-3xl border border-black/10 bg-white p-8">
           <SectionHeading
-            eyebrow="POSITIONING"
-            title="Verification layer for AI governance frameworks"
-            body="GAFAIG operates as a verification layer on top of governance frameworks such as the NIST AI Risk Management Framework. It does not replace governance standards. It verifies that governance processes are functioning and produces independently verifiable public records."
+            eyebrow="INSTALL"
+            title="Load the production SDK"
+            body="Start with the versioned SDK. Add the verification modal runtime only if you want inline modal verification."
           />
-
-          <div className="mt-6 grid gap-4 md:grid-cols-2">
-            <StatementCard
-              title="Frameworks"
-              body="Define how AI systems should be governed, mapped, measured, and managed across their lifecycle."
-            />
-            <StatementCard
-              title="GAFAIG"
-              body="Verifies that these governance processes are operational and produces signed proof that can be independently validated."
-            />
-          </div>
-
-          <div className="mt-6 grid gap-4 md:grid-cols-2">
-            <BulletCard text="Verification outputs are generated from deterministic computation in Snowflake." />
-            <BulletCard text="The public API exposes only certified outcomes and signed proof, never internal governance data." />
-            <BulletCard text="External systems can validate certification using the verification endpoint and public key." />
-            <BulletCard text="Trust does not depend on GAFAIG UI; it can be independently verified anywhere." />
-          </div>
-        </section>
-
-        <section className="rounded-3xl border border-black/10 bg-white p-8">
-          <SectionHeading
-            eyebrow="SDK"
-            title="Load the GAFAIG SDK"
-            body="Start by loading the SDK script from the GAFAIG public surface. After that, you can verify a record, render a widget, render a badge, or open the modal without wiring the low-level scripts yourself."
-          />
-
-          <div className="mt-6">
-            <div className="text-[14px] font-semibold uppercase tracking-[0.16em] text-black/55">
-              Fastest integration
-            </div>
-            <p className="mt-2 text-[15px] text-black/75">
-              Paste this and you have a live GAFAIG trust surface on your site.
-            </p>
-          </div>
 
           <div className="mt-8 grid gap-6">
             <CodeCard
-              title="Install the SDK"
+              title="Install stable SDK"
               language="HTML"
               code={sdkInstallExample}
             />
             <CodeCard
-              title="Verify a record with the SDK"
+              title="Install SDK + verification modal"
               language="HTML"
-              code={sdkVerifyExample}
-            />
-            <CodeCard
-              title="Render a widget with the SDK"
-              language="HTML"
-              code={sdkRenderExample}
-            />
-            <CodeCard
-              title="Render a badge with the SDK"
-              language="HTML"
-              code={sdkBadgeExample}
-            />
-            <CodeCard
-              title="Open the verification modal with the SDK"
-              language="HTML"
-              code={sdkModalExample}
-            />
-            <CodeCard
-              title="Build GAFAIG URLs programmatically"
-              language="JavaScript"
-              code={sdkUrlExample}
+              code={sdkAndModalInstallExample}
             />
           </div>
         </section>
 
         <section className="rounded-3xl border border-black/10 bg-white p-8">
           <SectionHeading
-            eyebrow="AUTO-INIT"
-            title="Let the SDK initialize trust surfaces from HTML"
-            body="The SDK can auto-initialize widgets, badges, and verification buttons directly from data attributes. This is the fastest zero-JavaScript path for embedding GAFAIG trust surfaces."
+            eyebrow="BADGE"
+            title="Render a GAFAIG badge"
+            body="The badge is a lightweight trust signal that links to the verification page. It respects lifecycle and badge eligibility from the public badge API."
           />
 
           <div className="mt-8 grid gap-6">
-            <CodeCard
-              title="Auto-render a widget"
-              language="HTML"
-              code={dataWidgetExample}
-            />
-            <CodeCard
-              title="Auto-render a widget with a display mode"
-              language="HTML"
-              code={dataWidgetModeExample}
-            />
             <CodeCard
               title="Auto-render a badge"
               language="HTML"
               code={dataBadgeExample}
             />
             <CodeCard
-              title="Auto-bind a verification modal button"
+              title="Render badge manually"
               language="HTML"
-              code={dataModalExample}
+              code={sdkBadgeExample}
+            />
+            <CodeCard
+              title="Read badge JSON"
+              language="HTML"
+              code={sdkGetBadgeExample}
             />
           </div>
+        </section>
 
-          <div className="mt-6 grid gap-4 md:grid-cols-2">
-            <BulletCard text="data-gafaig-widget renders a GAFAIG trust widget for the supplied REGISTRY_ID." />
-            <BulletCard text="data-mode can be used with data-gafaig-widget to change widget presentation." />
-            <BulletCard text="data-gafaig-badge renders a GAFAIG badge linked to the record’s verify surface." />
-            <BulletCard text="data-gafaig-open-verify binds a click target that opens the GAFAIG verification modal." />
+        <section className="rounded-3xl border border-black/10 bg-white p-8">
+          <SectionHeading
+            eyebrow="WIDGET"
+            title="Render the full trust widget"
+            body="The widget is a richer trust surface. It fetches the verify endpoint, renders record status, signature state, payload integrity, and links to the registry and raw verification JSON."
+          />
+
+          <div className="mt-8 grid gap-6">
+            <CodeCard
+              title="Auto-render full widget"
+              language="HTML"
+              code={dataWidgetExample}
+            />
+            <CodeCard
+              title="Auto-render compact widget"
+              language="HTML"
+              code={dataWidgetModeExample}
+            />
+          </div>
+        </section>
+
+        <section className="rounded-3xl border border-black/10 bg-white p-8">
+          <SectionHeading
+            eyebrow="MODAL"
+            title="Open inline verification modal"
+            body="The verification modal allows third-party sites to show GAFAIG verification details without navigating away from the page."
+          />
+
+          <div className="mt-8 grid gap-6">
+            <CodeCard
+              title="Auto-bind modal button"
+              language="HTML"
+              code={modalExample}
+            />
+            <CodeCard
+              title="Open modal manually"
+              language="HTML"
+              code={manualModalExample}
+            />
+          </div>
+        </section>
+
+        <section className="rounded-3xl border border-black/10 bg-white p-8">
+          <SectionHeading
+            eyebrow="EXTERNAL TEST"
+            title="Test GAFAIG on a third-party page"
+            body="This minimal HTML file simulates an external website using GAFAIG’s versioned SDK and modal runtime."
+          />
+
+          <div className="mt-8">
+            <CodeCard
+              title="Standalone external embed test"
+              language="HTML"
+              code={externalTestExample}
+            />
           </div>
         </section>
 
@@ -452,17 +462,17 @@ export default function DevelopersPage() {
           <SectionHeading
             eyebrow="PUBLIC CONTRACT"
             title="What the public layer exposes"
-            body="GAFAIG exposes only the certification outcome and verification proof. Internal scoring, workflow, decision, and reviewer materials are not part of the public contract."
+            body="GAFAIG exposes only the certification outcome, public record fields, lifecycle and eligibility flags, and verification proof. Internal scoring, workflow, decision, and reviewer materials are not part of the public contract."
           />
 
           <div className="mt-6 grid gap-4 md:grid-cols-2">
             <StatementCard
               title="Public fields"
-              body="registryId, entityName, entityType, country, certificationStatus, certifiedAt, validFrom, validTo, and the signed proof payload."
+              body="registryId, registrySnapshotId, applicationId, caseId, recordType, recordName, entityName, entityType, country, certificationStatus, lifecycleStatus, visibilityStatus, verificationEligible, badgeEligible, validFrom, validTo, certifiedAt, publishedAt, and proof."
             />
             <StatementCard
               title="Private fields"
-              body="decision status, score, tier, band, scoring breakdowns, reviewer materials, and internal workflow state never belong in the public trust layer."
+              body="Score, tier, band, scoring breakdowns, reviewer materials, internal workflow state, raw findings, and evidence do not belong in the public trust layer."
             />
           </div>
         </section>
@@ -470,20 +480,25 @@ export default function DevelopersPage() {
         <section className="rounded-3xl border border-black/10 bg-white p-8">
           <SectionHeading
             eyebrow="RAW API"
-            title="Use the verify endpoint directly (advanced)"
-            body="If you want a lower-level integration, you can call the verify endpoint without the SDK. This is the canonical public trust endpoint behind all GAFAIG trust surfaces."
+            title="Use the verify and badge endpoints directly"
+            body="For advanced integrations, call the public API endpoints directly. The SDK and widget are convenience layers on top of the same public contracts."
           />
 
           <div className="mt-8 grid gap-6">
             <CodeCard
               title="Fetch a verification record"
               language="cURL"
-              code={curlExample}
+              code={curlVerifyExample}
             />
             <CodeCard
-              title="Read the public proof in JavaScript"
+              title="Fetch badge data"
+              language="cURL"
+              code={curlBadgeExample}
+            />
+            <CodeCard
+              title="Read public proof in JavaScript"
               language="JavaScript"
-              code={jsExample}
+              code={jsVerifyExample}
             />
           </div>
         </section>
@@ -492,7 +507,7 @@ export default function DevelopersPage() {
           <SectionHeading
             eyebrow="PROOF OBJECT"
             title="The signed payload you verify"
-            body="The record object is for display. The proof object is the trust layer. Signature validation depends on messageString, signature, key ID, and the public key endpoint."
+            body="The record object is for display. The proof object is the trust layer. Signature validation depends on messageString, signature, key ID, algorithm, and the public key endpoint."
           />
 
           <div className="mt-8">
@@ -504,10 +519,10 @@ export default function DevelopersPage() {
           </div>
 
           <div className="mt-6 grid gap-4 md:grid-cols-2">
-            <BulletCard text="Trust depends on the proof object, not on UI rendering." />
+            <BulletCard text="Trust depends on the proof object, not UI rendering." />
             <BulletCard text="The signed message is intentionally minimal to reduce drift and attack surface." />
             <BulletCard text="External systems should treat messageString as the canonical input to signature verification." />
-            <BulletCard text="The SDK, widgets, badges, and modal bindings are thin consumers of the verify and badge endpoints and never compute trust independently." />
+            <BulletCard text="SDK, widget, badge, and modal bindings are thin consumers of verify and badge endpoints and never compute trust." />
           </div>
         </section>
 
@@ -520,20 +535,20 @@ export default function DevelopersPage() {
 
           <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
             <StatementCard
-              title="SDK"
-              body="Use the GAFAIG SDK for the fastest path to verification, widget rendering, badge rendering, and modal verification."
+              title="Badge"
+              body="A lightweight trust signal for external pages, partner sites, and product footers."
+            />
+            <StatementCard
+              title="Widget"
+              body="A richer public trust panel with record status, signature state, and verification links."
+            />
+            <StatementCard
+              title="Modal"
+              body="Inline verification without sending users away from a third-party page."
             />
             <StatementCard
               title="Verify API"
-              body="Fetch raw record and proof data for custom integrations, audit pipelines, and third-party validation."
-            />
-            <StatementCard
-              title="Registry"
-              body="Link users to the public certification record for a durable, human-readable trust reference."
-            />
-            <StatementCard
-              title="Widget + Badge + Modal"
-              body="Render verified trust surfaces directly inside external sites or product experiences."
+              body="Raw machine-readable record and proof data for custom integrations."
             />
           </div>
 
@@ -562,8 +577,8 @@ export default function DevelopersPage() {
 
           <div className="mt-6 grid gap-4 md:grid-cols-2">
             <BulletCard text="Internal governance review stays in the private verification engine." />
-            <BulletCard text="The public layer exposes only the certified outcome and proof needed to verify it." />
-            <BulletCard text="Trust can be validated outside GAFAIG using the published verification key." />
+            <BulletCard text="The public layer exposes only certified outcomes and proof needed to verify them." />
+            <BulletCard text="Trust can be validated outside GAFAIG using the signed payload and public key." />
             <BulletCard text="The same public trust signal can appear on registry pages, APIs, badges, widgets, SDK integrations, and external websites." />
           </div>
         </section>
