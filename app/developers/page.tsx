@@ -129,6 +129,51 @@ function MetricCard({
   );
 }
 
+function JumpNav() {
+  const links = [
+    ["#api-console", "API Console"],
+    ["#live-preview", "Live Preview"],
+    ["#canonical-rule", "messageString Rule"],
+    ["#install", "Install"],
+    ["#badge", "Badge"],
+    ["#widget", "Widget"],
+    ["#modal", "Modal"],
+    ["#external-test", "External Test"],
+    ["#public-contract", "Public Contract"],
+    ["#raw-api", "Raw API"],
+    ["#proof-object", "Proof Object"],
+    ["#failure-modes", "Failure Modes"],
+    ["#integration-paths", "Integration Paths"],
+  ];
+
+  return (
+    <section className="rounded-3xl border border-black/10 bg-white p-6">
+      <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
+        Page Navigation
+      </div>
+      <h2 className="mt-3 text-[22px] font-semibold tracking-tight text-black">
+        Jump to a developer surface
+      </h2>
+      <p className="mt-3 max-w-[880px] text-[15px] leading-7 text-black/70">
+        This page is intentionally comprehensive. Use these shortcuts to move
+        directly to the live console, install snippets, proof rules, widgets,
+        API contracts, and failure-state guidance.
+      </p>
+      <div className="mt-5 flex flex-wrap gap-2">
+        {links.map(([href, label]) => (
+          <a
+            key={href}
+            href={href}
+            className="inline-flex min-h-[36px] items-center justify-center rounded-full border border-black/15 bg-white px-4 text-[13px] font-semibold text-black transition hover:bg-black hover:text-white"
+          >
+            {label}
+          </a>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 const sdkInstallExample = `<script src="https://www.gafaig.com/sdk/gafaig.v1.js"></script>`;
 
 const sdkAndModalInstallExample = `<script src="https://www.gafaig.com/sdk/gafaig.v1.js"></script>
@@ -197,6 +242,22 @@ const sdkGetBadgeExample = `<script src="https://www.gafaig.com/sdk/gafaig.v1.js
     })
     .then(console.log);
 </script>`;
+
+const versionedFilesExample = `Production-stable versioned files:
+
+https://www.gafaig.com/sdk/gafaig.v1.js
+https://www.gafaig.com/widget/gafaig-widget.v1.js
+https://www.gafaig.com/widget/gafaig-verify.v1.js
+
+Use these for production embeds.`;
+
+const latestAliasExample = `Latest aliases:
+
+https://www.gafaig.com/sdk/gafaig.js
+https://www.gafaig.com/widget/gafaig-widget.js
+https://www.gafaig.com/widget/gafaig-verify.js
+
+These aliases point to the latest build and may change behavior. Use for testing, internal previews, or controlled rollouts only.`;
 
 const curlVerifyExample = `curl https://www.gafaig.com/api/verify/GAFAIG-00363095`;
 
@@ -345,11 +406,13 @@ export default function DevelopersPage() {
           }
         />
 
+        <JumpNav />
+
         <section className="rounded-3xl border border-black/10 bg-white p-8">
           <SectionHeading
             eyebrow="START HERE"
             title="Use versioned SDK and widget files"
-            body="Production integrations should use versioned GAFAIG files. Versioned files are stable and intended for third-party use. Latest files may evolve, but versioned files preserve integration stability."
+            body="Production integrations should use versioned GAFAIG files. Versioned files are pinned production contracts. Latest aliases are convenience entry points that may evolve. Use v1 files for any external customer, partner, or production website."
           />
 
           <div className="mt-8 grid gap-4 md:grid-cols-3">
@@ -372,12 +435,25 @@ export default function DevelopersPage() {
 
           <div className="mt-6 grid gap-4 md:grid-cols-2">
             <StatementCard
-              title="Versioned files are stable"
-              body="Use versioned files for production embeds. v1 files are intended to remain behavior-stable for existing integrations. Bug fixes may be applied, but integrations should not rely on unversioned latest files for production stability."
+              title="Versioned files are stable production contracts"
+              body="Use versioned files for production embeds. v1 files are behavior-stable for existing integrations. Bug fixes may be applied, but external production integrations should pin to v1 until a future version is explicitly released."
             />
             <StatementCard
-              title="Latest files can evolve"
-              body="The unversioned files remain available as latest builds. They may receive newer behavior before a future pinned version is introduced."
+              title="Latest aliases can evolve"
+              body="The unversioned files remain available as latest builds. They may receive newer behavior before a future pinned version is introduced. Do not rely on latest aliases for third-party production stability."
+            />
+          </div>
+
+          <div className="mt-6 grid gap-6">
+            <CodeCard
+              title="Production-stable versioned files"
+              language="TEXT"
+              code={versionedFilesExample}
+            />
+            <CodeCard
+              title="Latest aliases"
+              language="TEXT"
+              code={latestAliasExample}
             />
           </div>
         </section>
@@ -400,11 +476,18 @@ export default function DevelopersPage() {
           />
         </section>
 
-        <RegistryIdTester />
+        <section id="api-console" className="scroll-mt-8">
+          <RegistryIdTester />
+        </section>
 
-        <LiveEmbedPreview />
+        <section id="live-preview" className="scroll-mt-8">
+          <LiveEmbedPreview />
+        </section>
 
-        <section className="rounded-3xl border border-black/10 bg-white p-8">
+        <section
+          id="canonical-rule"
+          className="scroll-mt-8 rounded-3xl border border-black/10 bg-white p-8"
+        >
           <SectionHeading
             eyebrow="CANONICAL VERIFICATION RULE"
             title="Verify the exact messageString. Never reconstruct it."
@@ -431,11 +514,14 @@ export default function DevelopersPage() {
           </div>
         </section>
 
-        <section className="rounded-3xl border border-black/10 bg-white p-8">
+        <section
+          id="install"
+          className="scroll-mt-8 rounded-3xl border border-black/10 bg-white p-8"
+        >
           <SectionHeading
             eyebrow="INSTALL"
             title="Load the production SDK"
-            body="Start with the versioned SDK. Add the verification modal runtime only if you want inline modal verification."
+            body="Start with the versioned SDK. Add the verification modal runtime only if you want inline modal verification. Use versioned v1 files for production. Latest aliases are not recommended for external production embeds."
           />
 
           <div className="mt-8 grid gap-6">
@@ -452,7 +538,10 @@ export default function DevelopersPage() {
           </div>
         </section>
 
-        <section className="rounded-3xl border border-black/10 bg-white p-8">
+        <section
+          id="badge"
+          className="scroll-mt-8 rounded-3xl border border-black/10 bg-white p-8"
+        >
           <SectionHeading
             eyebrow="BADGE"
             title="Render a GAFAIG badge"
@@ -478,7 +567,10 @@ export default function DevelopersPage() {
           </div>
         </section>
 
-        <section className="rounded-3xl border border-black/10 bg-white p-8">
+        <section
+          id="widget"
+          className="scroll-mt-8 rounded-3xl border border-black/10 bg-white p-8"
+        >
           <SectionHeading
             eyebrow="WIDGET"
             title="Render the full trust widget"
@@ -499,7 +591,10 @@ export default function DevelopersPage() {
           </div>
         </section>
 
-        <section className="rounded-3xl border border-black/10 bg-white p-8">
+        <section
+          id="modal"
+          className="scroll-mt-8 rounded-3xl border border-black/10 bg-white p-8"
+        >
           <SectionHeading
             eyebrow="MODAL"
             title="Open inline verification modal"
@@ -520,7 +615,10 @@ export default function DevelopersPage() {
           </div>
         </section>
 
-        <section className="rounded-3xl border border-black/10 bg-white p-8">
+        <section
+          id="external-test"
+          className="scroll-mt-8 rounded-3xl border border-black/10 bg-white p-8"
+        >
           <SectionHeading
             eyebrow="EXTERNAL TEST"
             title="Test GAFAIG on a third-party page"
@@ -536,7 +634,10 @@ export default function DevelopersPage() {
           </div>
         </section>
 
-        <section className="rounded-3xl border border-black/10 bg-white p-8">
+        <section
+          id="public-contract"
+          className="scroll-mt-8 rounded-3xl border border-black/10 bg-white p-8"
+        >
           <SectionHeading
             eyebrow="PUBLIC CONTRACT"
             title="What the public layer exposes"
@@ -555,7 +656,10 @@ export default function DevelopersPage() {
           </div>
         </section>
 
-        <section className="rounded-3xl border border-black/10 bg-white p-8">
+        <section
+          id="raw-api"
+          className="scroll-mt-8 rounded-3xl border border-black/10 bg-white p-8"
+        >
           <SectionHeading
             eyebrow="RAW API"
             title="Use the verify, badge, and public key endpoints directly"
@@ -586,7 +690,10 @@ export default function DevelopersPage() {
           </div>
         </section>
 
-        <section className="rounded-3xl border border-black/10 bg-white p-8">
+        <section
+          id="proof-object"
+          className="scroll-mt-8 rounded-3xl border border-black/10 bg-white p-8"
+        >
           <SectionHeading
             eyebrow="PROOF OBJECT"
             title="The signed payload you verify"
@@ -609,7 +716,10 @@ export default function DevelopersPage() {
           </div>
         </section>
 
-        <section className="rounded-3xl border border-black/10 bg-white p-8">
+        <section
+          id="failure-modes"
+          className="scroll-mt-8 rounded-3xl border border-black/10 bg-white p-8"
+        >
           <SectionHeading
             eyebrow="FAILURE MODES"
             title="Handle invalid and unavailable verification states explicitly"
@@ -632,7 +742,10 @@ export default function DevelopersPage() {
           </div>
         </section>
 
-        <section className="rounded-3xl border border-black/10 bg-white p-8">
+        <section
+          id="integration-paths"
+          className="scroll-mt-8 rounded-3xl border border-black/10 bg-white p-8"
+        >
           <SectionHeading
             eyebrow="INTEGRATION PATHS"
             title="Choose the trust surface you need"
