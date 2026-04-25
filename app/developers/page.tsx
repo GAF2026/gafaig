@@ -202,6 +202,8 @@ const curlVerifyExample = `curl https://www.gafaig.com/api/verify/GAFAIG-0036309
 
 const curlBadgeExample = `curl https://www.gafaig.com/api/badge/GAFAIG-00363095`;
 
+const publicKeyExample = `curl https://www.gafaig.com/api/.well-known/gafaig-public-key`;
+
 const jsVerifyExample = `const response = await fetch(
   "https://www.gafaig.com/api/verify/GAFAIG-00363095",
   { cache: "no-store" }
@@ -209,9 +211,27 @@ const jsVerifyExample = `const response = await fetch(
 
 const data = await response.json();
 
-console.log(data.record);
-console.log(data.proof.messageString);
-console.log(data.proof.signature);`;
+const messageString = data.proof.messageString;
+const signature = data.proof.signature;
+const publicKeyUrl = data.proof.verificationKeyUrl;
+
+console.log(messageString);
+console.log(signature);
+console.log(publicKeyUrl);`;
+
+const independentVerificationRuleExample = `Verification MUST use proof.messageString exactly as returned.
+
+Do not:
+- rebuild messageString from record fields
+- stringify proof.message yourself
+- reorder JSON keys
+- change timestamp formats
+- trim or normalize the payload before verification
+
+Use:
+- proof.messageString
+- proof.signature
+- public key from proof.verificationKeyUrl`;
 
 const proofShapeExample = `{
   "ok": true,
@@ -253,6 +273,26 @@ const proofShapeExample = `{
     "messageString": "{\\"registryId\\":\\"GAFAIG-00363095\\",...}"
   }
 }`;
+
+const failureModesExample = `Failure modes external systems must handle:
+
+1. Missing messageString
+   Treat as invalid. Do not reconstruct the payload.
+
+2. Missing signature
+   Treat as invalid. No cryptographic proof is available.
+
+3. Public key unavailable
+   Treat as verification unavailable.
+
+4. Signature mismatch
+   Treat as invalid. Payload integrity failed.
+
+5. Expired certification
+   Verification may still prove authenticity, but the lifecycle state must be displayed as expired.
+
+6. Revoked certification
+   Verification may still prove authenticity, but the lifecycle state must be displayed as revoked.`;
 
 const externalTestExample = `<!DOCTYPE html>
 <html>
@@ -316,7 +356,7 @@ export default function DevelopersPage() {
             <StepCard
               number="1"
               title="Load versioned files"
-              body="Use /sdk/gafaig.v1.js and /widget/gafaig-verify.v1.js for stable production integrations."
+              body="Use /sdk/gafaig.v1.js, /widget/gafaig-widget.v1.js, and /widget/gafaig-verify.v1.js for stable production integrations."
             />
             <StepCard
               number="2"
@@ -326,18 +366,18 @@ export default function DevelopersPage() {
             <StepCard
               number="3"
               title="Verify independently"
-              body="Use the verification endpoint, signed payload, and public key to validate the public record."
+              body="Use the verification endpoint, exact messageString, signature, and public key to validate the public record."
             />
           </div>
 
           <div className="mt-6 grid gap-4 md:grid-cols-2">
             <StatementCard
-              title="Versioned files"
-              body="Use versioned files for production embeds. These files are designed to remain stable for existing integrations."
+              title="Versioned files are stable"
+              body="Use versioned files for production embeds. v1 files are intended to remain behavior-stable for existing integrations. Bug fixes may be applied, but integrations should not rely on unversioned latest files for production stability."
             />
             <StatementCard
-              title="Latest files"
-              body="The unversioned files remain available as latest builds, but third-party integrations should pin to versioned files."
+              title="Latest files can evolve"
+              body="The unversioned files remain available as latest builds. They may receive newer behavior before a future pinned version is introduced."
             />
           </div>
         </section>
@@ -363,6 +403,33 @@ export default function DevelopersPage() {
         <RegistryIdTester />
 
         <LiveEmbedPreview />
+
+        <section className="rounded-3xl border border-black/10 bg-white p-8">
+          <SectionHeading
+            eyebrow="CANONICAL VERIFICATION RULE"
+            title="Verify the exact messageString. Never reconstruct it."
+            body="The signed payload is proof.messageString. It must be copied and verified exactly as returned by /api/verify. Reconstructing payloads from record fields, proof.message, UI values, or reordered JSON will invalidate verification."
+          />
+
+          <div className="mt-6 grid gap-4 md:grid-cols-2">
+            <StatementCard
+              title="Correct"
+              body="Fetch /api/verify/[registryId], read proof.messageString, read proof.signature, fetch the public key, and verify the exact messageString bytes against the signature."
+            />
+            <StatementCard
+              title="Incorrect"
+              body="Do not rebuild the payload from JSON fields, change timestamp formats, stringify proof.message yourself, reorder keys, or normalize the string before verification."
+            />
+          </div>
+
+          <div className="mt-8">
+            <CodeCard
+              title="Canonical verification rule"
+              language="TEXT"
+              code={independentVerificationRuleExample}
+            />
+          </div>
+        </section>
 
         <section className="rounded-3xl border border-black/10 bg-white p-8">
           <SectionHeading
@@ -491,7 +558,7 @@ export default function DevelopersPage() {
         <section className="rounded-3xl border border-black/10 bg-white p-8">
           <SectionHeading
             eyebrow="RAW API"
-            title="Use the verify and badge endpoints directly"
+            title="Use the verify, badge, and public key endpoints directly"
             body="For advanced integrations, call the public API endpoints directly. The SDK and widget are convenience layers on top of the same public contracts."
           />
 
@@ -505,6 +572,11 @@ export default function DevelopersPage() {
               title="Fetch badge data"
               language="cURL"
               code={curlBadgeExample}
+            />
+            <CodeCard
+              title="Fetch public verification key"
+              language="cURL"
+              code={publicKeyExample}
             />
             <CodeCard
               title="Read public proof in JavaScript"
@@ -531,9 +603,32 @@ export default function DevelopersPage() {
 
           <div className="mt-6 grid gap-4 md:grid-cols-2">
             <BulletCard text="Trust depends on the proof object, not UI rendering." />
-            <BulletCard text="The signed message is intentionally minimal to reduce drift and attack surface." />
-            <BulletCard text="External systems should treat messageString as the canonical input to signature verification." />
+            <BulletCard text="The signed payload is proof.messageString exactly as returned by the API." />
+            <BulletCard text="External systems must treat messageString as the canonical input to signature verification." />
             <BulletCard text="SDK, widget, badge, and modal bindings are thin consumers of verify and badge endpoints and never compute trust." />
+          </div>
+        </section>
+
+        <section className="rounded-3xl border border-black/10 bg-white p-8">
+          <SectionHeading
+            eyebrow="FAILURE MODES"
+            title="Handle invalid and unavailable verification states explicitly"
+            body="A professional trust integration must fail safely. GAFAIG surfaces invalid, unavailable, expired, and revoked states so downstream systems do not mistake UI availability for trust."
+          />
+
+          <div className="mt-8">
+            <CodeCard
+              title="Failure modes"
+              language="TEXT"
+              code={failureModesExample}
+            />
+          </div>
+
+          <div className="mt-6 grid gap-4 md:grid-cols-2">
+            <BulletCard text="Missing messageString means verification is invalid. Do not reconstruct a payload." />
+            <BulletCard text="Missing signature means no cryptographic proof is available." />
+            <BulletCard text="Public key failure means verification is unavailable until the key can be fetched." />
+            <BulletCard text="Expired or revoked records must be displayed according to lifecycleStatus even if the signature proves authenticity." />
           </div>
         </section>
 
@@ -551,7 +646,7 @@ export default function DevelopersPage() {
             />
             <StatementCard
               title="Widget"
-              body="A richer public trust panel with record status, signature state, and verification links."
+              body="A richer public trust panel with record status, signature state, payload integrity, and verification links."
             />
             <StatementCard
               title="Modal"
