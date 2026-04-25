@@ -1,6 +1,7 @@
 import Script from "next/script";
 import PublicButtonLink from "../_components/PublicButtonLink";
 import PublicPageHero from "../_components/PublicPageHero";
+import CopyCodeButton from "./CopyCodeButton";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -84,13 +85,17 @@ function CodeCard({
 }) {
   return (
     <section className="rounded-3xl border border-black/10 bg-white p-6">
-      <div>
-        <div className="text-[16px] font-semibold tracking-tight text-black">
-          {title}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <div className="text-[16px] font-semibold tracking-tight text-black">
+            {title}
+          </div>
+          <div className="mt-1 text-[12px] font-semibold uppercase tracking-[0.16em] text-black/45">
+            {language}
+          </div>
         </div>
-        <div className="mt-1 text-[12px] font-semibold uppercase tracking-[0.16em] text-black/45">
-          {language}
-        </div>
+
+        <CopyCodeButton code={code} />
       </div>
 
       <pre className="mt-5 overflow-x-auto rounded-2xl border border-black/10 bg-black/[0.03] p-5 text-[13px] leading-[1.8] text-black/85">
