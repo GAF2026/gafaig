@@ -14,7 +14,7 @@
     window.location.origin ||
     "https://www.gafaig.com";
 
-  var STYLE_ID = "gafaig-widget-styles-v7";
+  var STYLE_ID = "gafaig-widget-styles-v8";
 
   function injectStyles() {
     if (document.getElementById(STYLE_ID)) return;
@@ -74,6 +74,10 @@
         background: #dc2626;
       }
 
+      .gafaig-widget-topline-warning {
+        background: #f59e0b;
+      }
+
       .gafaig-widget-eyebrow {
         font-size: 10px;
         line-height: 1.2;
@@ -127,6 +131,12 @@
         background: #fff1f2;
         color: #be123c;
         border-color: #fecdd3;
+      }
+
+      .gafaig-widget-chip-warning {
+        background: #fffbeb;
+        color: #92400e;
+        border-color: #fde68a;
       }
 
       .gafaig-widget-chip-integrity {
@@ -187,10 +197,28 @@
         flex: 0 0 auto;
       }
 
+      .gafaig-widget-trust-mark-invalid {
+        background: #fff1f2;
+        border-color: #fecdd3;
+      }
+
+      .gafaig-widget-trust-mark-warning {
+        background: #fffbeb;
+        border-color: #fde68a;
+      }
+
       .gafaig-widget-trust-mark svg {
         width: 20px;
         height: 20px;
         color: #0f9d58;
+      }
+
+      .gafaig-widget-trust-mark-invalid svg {
+        color: #be123c;
+      }
+
+      .gafaig-widget-trust-mark-warning svg {
+        color: #92400e;
       }
 
       .gafaig-widget-trust-copy {
@@ -323,14 +351,7 @@
   }
 
   function formatDate(value) {
-    if (!value) return "—";
-    var d = new Date(value);
-    if (Number.isNaN(d.getTime())) return String(value);
-    return d.toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
+    return value ? String(value) : "—";
   }
 
   function safeText() {
@@ -339,6 +360,24 @@
       if (s) return s;
     }
     return "—";
+  }
+
+  function hasCanonicalMessageString(verifyData) {
+    var proof = verifyData && verifyData.proof ? verifyData.proof : null;
+    return !!(
+      proof &&
+      typeof proof.messageString === "string" &&
+      proof.messageString.trim()
+    );
+  }
+
+  function hasSignature(verifyData) {
+    var proof = verifyData && verifyData.proof ? verifyData.proof : null;
+    return !!(
+      proof &&
+      typeof proof.signature === "string" &&
+      proof.signature.trim()
+    );
   }
 
   function resolveTrustState(record) {
@@ -356,15 +395,62 @@
 
   function resolveVerificationState(verifyData) {
     if (!verifyData) return "Unavailable";
+
+    if (!hasCanonicalMessageString(verifyData)) {
+      return "Signature Invalid";
+    }
+
+    if (!hasSignature(verifyData)) {
+      return "Signature Invalid";
+    }
+
     if (verifyData.verified === true) return "Signature Valid";
     if (verifyData.verified === false) return "Signature Invalid";
+
     return "Unavailable";
   }
 
   function resolveIntegrityState(verifyData) {
     if (!verifyData) return "Unavailable";
-    if (verifyData.ok === true && verifyData.verified === true) return "Payload Verified";
+
+    if (!hasCanonicalMessageString(verifyData)) {
+      return "Payload Invalid";
+    }
+
+    if (!hasSignature(verifyData)) {
+      return "Payload Invalid";
+    }
+
+    if (verifyData.ok === true && verifyData.verified === true) {
+      return "Payload Verified";
+    }
+
+    if (verifyData.ok === false || verifyData.verified === false) {
+      return "Payload Invalid";
+    }
+
     return "Unavailable";
+  }
+
+  function resolveTrustCopy(entityName, validation, integrity) {
+    if (validation === "Signature Valid" && integrity === "Payload Verified") {
+      return (
+        entityName +
+        " is listed in the GAFAIG registry with signed verification data. The canonical messageString is present and the public verification response reports a valid signature."
+      );
+    }
+
+    if (validation === "Signature Invalid" || integrity === "Payload Invalid") {
+      return (
+        entityName +
+        " has an incomplete or invalid public verification proof. External systems must not reconstruct the signed payload from display fields."
+      );
+    }
+
+    return (
+      entityName +
+      " has a public GAFAIG record, but the verification proof is currently unavailable or incomplete."
+    );
   }
 
   function metric(label, value) {
@@ -382,13 +468,14 @@
 
   function renderError(el, registryId, message) {
     var recordUrl = ORIGIN + "/registry/" + encodeURIComponent(registryId);
+    var verifyApiUrl = ORIGIN + "/api/verify/" + encodeURIComponent(registryId);
 
     el.className = "gafaig-widget-root";
     el.innerHTML =
       '<div class="gafaig-widget-card">' +
       '<div class="gafaig-widget-topline gafaig-widget-topline-error"></div>' +
       '<div class="gafaig-widget-chip-row">' +
-      '<span class="gafaig-widget-chip gafaig-widget-chip-neutral">Unavailable</span>' +
+      '<span class="gafaig-widget-chip gafaig-widget-chip-invalid">Unavailable</span>' +
       '<span class="gafaig-widget-chip gafaig-widget-chip-neutral">GAFAIG</span>' +
       "</div>" +
       '<h3 class="gafaig-widget-title">GAFAIG verification unavailable</h3>' +
@@ -399,6 +486,9 @@
       '<a class="gafaig-widget-btn gafaig-widget-btn-secondary" href="' +
       recordUrl +
       '" target="_blank" rel="noopener noreferrer">Open GAFAIG record</a>' +
+      '<a class="gafaig-widget-btn gafaig-widget-btn-secondary" href="' +
+      verifyApiUrl +
+      '" target="_blank" rel="noopener noreferrer">View Raw Verification JSON</a>' +
       "</div>" +
       "</div>";
   }
@@ -415,32 +505,58 @@
     var validation = resolveVerificationState(verifyData);
     var integrity = resolveIntegrityState(verifyData);
     var verifyPageUrl = ORIGIN + "/verify/" + encodeURIComponent(registryId);
+    var verifyApiUrl = ORIGIN + "/api/verify/" + encodeURIComponent(registryId);
     var entityName = safeText(record && record.entityName, registryId);
+
+    var validationChipClass =
+      validation === "Signature Valid"
+        ? "gafaig-widget-chip-verified"
+        : validation === "Signature Invalid"
+          ? "gafaig-widget-chip-invalid"
+          : "gafaig-widget-chip-neutral";
+
+    var integrityChipClass =
+      integrity === "Payload Verified"
+        ? "gafaig-widget-chip-integrity"
+        : integrity === "Payload Invalid"
+          ? "gafaig-widget-chip-invalid"
+          : "gafaig-widget-chip-neutral";
 
     el.className = "gafaig-widget-root";
     el.innerHTML =
       '<div class="gafaig-widget-card gafaig-widget-card-badge">' +
-      '<div class="gafaig-widget-topline"></div>' +
+      '<div class="gafaig-widget-topline' +
+      (validation === "Signature Invalid" || integrity === "Payload Invalid"
+        ? " gafaig-widget-topline-error"
+        : "") +
+      '"></div>' +
       '<div class="gafaig-widget-eyebrow">GAFAIG Trust Badge</div>' +
       '<div class="gafaig-widget-chip-row">' +
       '<span class="gafaig-widget-chip gafaig-widget-chip-certified">' +
       esc(status) +
       "</span>" +
-      '<span class="gafaig-widget-chip gafaig-widget-chip-verified">' +
+      '<span class="gafaig-widget-chip ' +
+      validationChipClass +
+      '">' +
       esc(validation) +
       "</span>" +
-      '<span class="gafaig-widget-chip gafaig-widget-chip-integrity">' +
+      '<span class="gafaig-widget-chip ' +
+      integrityChipClass +
+      '">' +
       esc(integrity) +
       "</span>" +
       "</div>" +
       '<h3 class="gafaig-widget-title">' +
       esc(entityName) +
       "</h3>" +
-      '<p class="gafaig-widget-copy">Portable public trust signal backed by signed GAFAIG verification proof.</p>' +
+      '<p class="gafaig-widget-copy">Portable public trust signal backed by the canonical signed GAFAIG messageString and public verification proof.</p>' +
       '<div class="gafaig-widget-actions">' +
       '<a class="gafaig-widget-btn gafaig-widget-btn-primary" href="' +
       verifyPageUrl +
       '" target="_blank" rel="noopener noreferrer">Open verify page</a>' +
+      '<a class="gafaig-widget-btn gafaig-widget-btn-secondary" href="' +
+      verifyApiUrl +
+      '" target="_blank" rel="noopener noreferrer">View Raw Verification JSON</a>' +
       "</div>" +
       "</div>";
   }
@@ -456,6 +572,14 @@
     var integrity = resolveIntegrityState(verifyData);
     var validTo = formatDate((record && record.validTo) || null);
     var certifiedAt = formatDate((record && record.certifiedAt) || null);
+    var signedAt = formatDate((proof && proof.signedAt) || null);
+    var keyId = proof && proof.kid ? proof.kid : "—";
+    var messageStringState = hasCanonicalMessageString(verifyData)
+      ? "Available"
+      : "Missing";
+    var signatureState = hasSignature(verifyData)
+      ? "Available (Ed25519)"
+      : "Unavailable";
 
     var verifyPageUrl = ORIGIN + "/verify/" + encodeURIComponent(registryId);
     var verifyApiUrl = ORIGIN + "/api/verify/" + encodeURIComponent(registryId);
@@ -476,12 +600,34 @@
     var integrityChipClass =
       integrity === "Payload Verified"
         ? "gafaig-widget-chip-integrity"
-        : "gafaig-widget-chip-neutral";
+        : integrity === "Payload Invalid"
+          ? "gafaig-widget-chip-invalid"
+          : "gafaig-widget-chip-neutral";
+
+    var isFailure =
+      validation === "Signature Invalid" || integrity === "Payload Invalid";
+
+    var isUnavailable =
+      validation === "Unavailable" || integrity === "Unavailable";
+
+    var trustMarkClass = isFailure
+      ? "gafaig-widget-trust-mark gafaig-widget-trust-mark-invalid"
+      : isUnavailable
+        ? "gafaig-widget-trust-mark gafaig-widget-trust-mark-warning"
+        : "gafaig-widget-trust-mark";
+
+    var toplineClass = isFailure
+      ? "gafaig-widget-topline gafaig-widget-topline-error"
+      : isUnavailable
+        ? "gafaig-widget-topline gafaig-widget-topline-warning"
+        : "gafaig-widget-topline";
 
     el.className = "gafaig-widget-root";
     el.innerHTML =
       '<div class="gafaig-widget-card">' +
-      '<div class="gafaig-widget-topline"></div>' +
+      '<div class="' +
+      toplineClass +
+      '"></div>' +
       '<div class="gafaig-widget-eyebrow">GAFAIG Trust Widget</div>' +
       '<div class="gafaig-widget-chip-row">' +
       '<span class="gafaig-widget-chip ' +
@@ -503,19 +649,22 @@
       '<h3 class="gafaig-widget-title">' +
       esc(entityName) +
       "</h3>" +
-      '<p class="gafaig-widget-copy">Public trust record verified via signed GAFAIG registry proof and independently resolvable verification materials.</p>' +
+      '<p class="gafaig-widget-copy">Public trust record verified through the GAFAIG verification endpoint. External systems must verify the exact messageString and must not reconstruct payloads from display fields.</p>' +
       '<div class="gafaig-widget-trust-panel">' +
       '<div class="gafaig-widget-trust-header">' +
       '<div class="gafaig-widget-trust-title">Public trust summary</div>' +
-      '<div class="gafaig-widget-trust-mark" aria-hidden="true">' +
+      '<div class="' +
+      trustMarkClass +
+      '" aria-hidden="true">' +
       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">' +
-      '<path d="M20 6 9 17l-5-5"></path>' +
+      (isFailure
+        ? '<path d="M18 6 6 18"></path><path d="m6 6 12 12"></path>'
+        : '<path d="M20 6 9 17l-5-5"></path>') +
       "</svg>" +
       "</div>" +
       "</div>" +
       '<div class="gafaig-widget-trust-copy">' +
-      esc(entityName) +
-      " is listed in the GAFAIG registry with signed verification data and independently resolvable cryptographic proof." +
+      esc(resolveTrustCopy(entityName, validation, integrity)) +
       "</div>" +
       "</div>" +
       '<div class="gafaig-widget-grid">' +
@@ -525,8 +674,10 @@
       metric("Certified", certifiedAt) +
       metric("Valid To", validTo) +
       metric("Country", country) +
-      metric("Signature", proof ? "Available (Ed25519)" : "Unavailable") +
-      metric("Key ID", proof && proof.kid ? proof.kid : "—") +
+      metric("Signature", signatureState) +
+      metric("Key ID", keyId) +
+      metric("Signed At", signedAt) +
+      metric("messageString", messageStringState) +
       "</div>" +
       '<div class="gafaig-widget-id">' +
       '<div class="gafaig-widget-metric-label">Registry ID</div>' +
@@ -543,7 +694,7 @@
       '" target="_blank" rel="noopener noreferrer">Open verify page</a>' +
       '<a class="gafaig-widget-btn gafaig-widget-btn-secondary" href="' +
       verifyApiUrl +
-      '" target="_blank" rel="noopener noreferrer">Verify JSON</a>' +
+      '" target="_blank" rel="noopener noreferrer">View Raw Verification JSON</a>' +
       "</div>" +
       '<div class="gafaig-widget-footer">' +
       'Verified via GAFAIG public trust infrastructure · <a href="' +
@@ -588,6 +739,16 @@
 
       if (!verify || verify.ok !== true) {
         renderError(el, registryId, "Verification unavailable");
+        return;
+      }
+
+      if (!hasCanonicalMessageString(verify)) {
+        if (mode === "badge") {
+          renderBadgeWidget(el, registryId, verify);
+          return;
+        }
+
+        renderWidget(el, registryId, verify);
         return;
       }
 
