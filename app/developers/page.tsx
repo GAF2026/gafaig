@@ -1,4 +1,3 @@
-import LiveEmbedPreview from "./LiveEmbedPreview";
 import RegistryIdTester from "./RegistryIdTester";
 import Script from "next/script";
 import PublicButtonLink from "../_components/PublicButtonLink";
@@ -173,6 +172,8 @@ function JumpNav() {
     </section>
   );
 }
+
+const DEMO_REGISTRY_ID = "GAFAIG-00363095";
 
 const sdkInstallExample = `<script src="https://www.gafaig.com/sdk/gafaig.v1.js"></script>`;
 
@@ -480,8 +481,119 @@ export default function DevelopersPage() {
           <RegistryIdTester />
         </section>
 
-        <section id="live-preview" className="scroll-mt-8">
-          <LiveEmbedPreview />
+        <section
+          id="live-preview"
+          className="scroll-mt-8 rounded-3xl border border-black/10 bg-black/[0.02] p-8"
+        >
+          <Script src="/widget/gafaig-widget.v1.js" strategy="afterInteractive" />
+
+          <SectionHeading
+            eyebrow="LIVE PREVIEW"
+            title="See the versioned embed working live"
+            body="This preview uses the production-stable versioned widget file. The widget renders the public verification response for the demo GAFAIG registry record and does not compute trust in the browser."
+          />
+
+          <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
+            <div className="rounded-3xl border border-black/10 bg-white p-6">
+              <div className="mb-4 text-sm font-semibold text-black">
+                Live widget
+              </div>
+              <div data-gafaig-id={DEMO_REGISTRY_ID}></div>
+            </div>
+
+            <div className="rounded-3xl border border-black/10 bg-white p-6">
+              <div className="mb-2 text-xs font-semibold uppercase tracking-[0.22em] text-black/40">
+                Trust interpretation
+              </div>
+
+              <h3 className="text-xl font-semibold tracking-[-0.02em] text-black">
+                What this live widget proves
+              </h3>
+
+              <p className="mt-3 text-sm leading-6 text-black/65">
+                The widget is a display layer only. It does not compute trust. It
+                renders the public verification response returned by GAFAIG.
+              </p>
+
+              <div className="mt-5 space-y-3">
+                <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-4">
+                  <div className="text-sm font-semibold text-black">
+                    Certified
+                  </div>
+                  <p className="mt-1 text-sm leading-5 text-black/60">
+                    This record is published and valid in the GAFAIG registry.
+                  </p>
+                </div>
+
+                <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-4">
+                  <div className="text-sm font-semibold text-black">
+                    Signature Valid
+                  </div>
+                  <p className="mt-1 text-sm leading-5 text-black/60">
+                    The cryptographic signature matches the published public key.
+                  </p>
+                </div>
+
+                <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-4">
+                  <div className="text-sm font-semibold text-black">
+                    Payload Verified
+                  </div>
+                  <p className="mt-1 text-sm leading-5 text-black/60">
+                    The signed payload has not been altered before display.
+                  </p>
+                </div>
+
+                <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-4">
+                  <div className="text-sm font-semibold text-black">
+                    messageString available
+                  </div>
+                  <p className="mt-1 text-sm leading-5 text-black/60">
+                    External systems can independently verify the record using the
+                    exact messageString returned by /api/verify.
+                  </p>
+                </div>
+              </div>
+
+              <div className="mt-6 rounded-2xl border border-black/10 p-4">
+                <div className="text-sm font-semibold text-black">
+                  What creates trust
+                </div>
+
+                <ul className="mt-3 space-y-2 text-sm leading-5 text-black/60">
+                  <li>/api/verify returns the canonical record and proof.</li>
+                  <li>proof.messageString is the exact signed payload.</li>
+                  <li>proof.signature is the cryptographic signature.</li>
+                  <li>
+                    /api/.well-known/gafaig-public-key exposes the verification
+                    key.
+                  </li>
+                </ul>
+              </div>
+
+              <p className="text-xs text-black/50 mt-6">
+                Verification MUST use the exact messageString returned by the
+                API. Never reconstruct it.
+              </p>
+
+              <div className="mt-3 flex flex-wrap gap-3">
+                <a
+                  href={`/verify/${DEMO_REGISTRY_ID}`}
+                  className="rounded-full bg-black px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-black/80"
+                >
+                  Open verify page
+                </a>
+
+                <a
+                  href={`/api/verify/${DEMO_REGISTRY_ID}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="rounded-full border border-black/15 px-5 py-2.5 text-sm font-semibold text-black transition hover:border-black"
+                >
+                  View JSON
+                </a>
+              </div>
+            </div>
+          </div>
         </section>
 
         <section
