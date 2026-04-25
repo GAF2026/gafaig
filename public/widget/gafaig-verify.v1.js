@@ -1,5 +1,5 @@
 (function () {
-  var VERSION = "1.3.2";
+  var VERSION = "1.3.3";
 
   function escapeHtml(value) {
     return String(value == null ? "" : value)
@@ -197,7 +197,9 @@
     var data = text ? JSON.parse(text) : {};
 
     if (!response.ok) {
-      throw new Error(data && data.error ? data.error : "GAFAIG verification request failed");
+      throw new Error(
+        data && data.error ? data.error : "GAFAIG verification request failed"
+      );
     }
 
     return data;
@@ -208,11 +210,15 @@
     var proof = (data && data.proof) || {};
     var baseUrl = normalizeBaseUrl(options && options.baseUrl);
     var registryUrl = resolveUrl(
-      data && data.registryUrl ? data.registryUrl : "/registry/" + encodeURIComponent(registryId),
+      data && data.registryUrl
+        ? data.registryUrl
+        : "/registry/" + encodeURIComponent(registryId),
       baseUrl
     );
     var verifyPageUrl = resolveUrl(
-      data && data.verifyUrl ? data.verifyUrl : "/verify/" + encodeURIComponent(registryId),
+      data && data.verifyUrl
+        ? data.verifyUrl
+        : "/verify/" + encodeURIComponent(registryId),
       baseUrl
     );
     var verifyJsonUrl = baseUrl + "/api/verify/" + encodeURIComponent(registryId);
@@ -220,6 +226,13 @@
       proof.verificationKeyUrl || "/api/.well-known/gafaig-public-key",
       baseUrl
     );
+
+    var signedPayloadToCopy =
+      proof && proof.messageString
+        ? proof.messageString
+        : JSON.stringify(record || {}, null, 2);
+
+    var fullVerificationJsonToCopy = JSON.stringify(data || {}, null, 2);
 
     var overlay = document.createElement("div");
 
@@ -264,11 +277,16 @@
     var recordType = record.recordType || "—";
     var visibilityStatus = record.visibilityStatus || "—";
     var verificationEligible =
-      record.verificationEligible == null ? "—" : String(record.verificationEligible);
-    var badgeEligible = record.badgeEligible == null ? "—" : String(record.badgeEligible);
+      record.verificationEligible == null
+        ? "—"
+        : String(record.verificationEligible);
+    var badgeEligible =
+      record.badgeEligible == null ? "—" : String(record.badgeEligible);
     var signatureStatus = verified ? "Signature Valid" : "Signature Invalid";
     var integrityStatus =
-      proof.messageString && proof.signature ? "Payload Verified" : "Payload Unavailable";
+      proof.messageString && proof.signature
+        ? "Payload Verified"
+        : "Payload Unavailable";
 
     panel.innerHTML =
       '<div style="display:flex;justify-content:space-between;gap:16px;align-items:flex-start;">' +
@@ -329,7 +347,7 @@
       "</div>" +
       "</div>" +
       '<div style="margin-top:12px;border:1px solid #e5e7eb;border-radius:16px;padding:14px;background:#fafafa;">' +
-      '<div style="font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#6b7280;">Message string</div>' +
+      '<div style="font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#6b7280;">Canonical signed message string</div>' +
       '<pre style="margin:8px 0 0;white-space:pre-wrap;word-break:break-all;font-size:12px;line-height:1.6;color:#111827;">' +
       escapeHtml(proof.messageString || "—") +
       "</pre>" +
@@ -339,8 +357,9 @@
       linkButton(verifyPageUrl, "Open verify page", false) +
       linkButton(verifyJsonUrl, "Verify JSON", false) +
       linkButton(keyUrl, "Public key", false) +
-      copyButton("Copy signed payload", proof.messageString || "") +
+      copyButton("Copy signed payload", signedPayloadToCopy) +
       copyButton("Copy signature", proof.signature || "") +
+      copyButton("Copy full JSON", fullVerificationJsonToCopy) +
       "</div>" +
       '<div style="margin-top:16px;font-size:12px;line-height:1.6;color:#71717a;">' +
       "Powered by GAFAIG public trust infrastructure. Verification is based on a Snowflake-originated public record and a signed verification payload." +
@@ -395,11 +414,7 @@
       throw new Error("GAFAIG registryId is required");
     }
 
-    var sdk =
-      window.gafaig ||
-      window.GAFAIG ||
-      window.GAFAIGSDK ||
-      null;
+    var sdk = window.gafaig || window.GAFAIG || window.GAFAIGSDK || null;
 
     var data;
 
