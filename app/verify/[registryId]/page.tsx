@@ -100,6 +100,7 @@ function pillTone(value: string) {
 
   if (v === "CERTIFIED") return "bg-emerald-50 text-emerald-700 ring-emerald-200";
   if (v === "ACTIVE") return "bg-emerald-50 text-emerald-700 ring-emerald-200";
+  if (v === "VERIFIED") return "bg-emerald-50 text-emerald-700 ring-emerald-200";
   if (v === "EXPIRED") return "bg-amber-50 text-amber-700 ring-amber-200";
   if (v === "REVOKED") return "bg-red-50 text-red-700 ring-red-200";
 
@@ -125,18 +126,51 @@ function InfoCard({ label, value }: { label: string; value: string }) {
   );
 }
 
+function CodePanel({
+  label,
+  language,
+  value,
+}: {
+  label: string;
+  language: string;
+  value: string;
+}) {
+  return (
+    <div className="rounded-2xl border border-black/10 bg-white p-4">
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <div className="text-[13px] font-semibold text-black">{label}</div>
+          <div className="mt-1 text-[10px] font-semibold uppercase tracking-[0.22em] text-black/35">
+            {language}
+          </div>
+        </div>
+
+        <ActionButton label="Copy" copyValue={value} compact />
+      </div>
+
+      <pre className="mt-4 overflow-x-auto whitespace-pre-wrap break-words rounded-xl border border-black/10 bg-black/[0.03] p-4 text-[12px] leading-6 text-black/75">
+        {value}
+      </pre>
+    </div>
+  );
+}
+
 function ActionButton({
   label,
   copyValue,
+  compact = false,
 }: {
   label: string;
   copyValue: string;
+  compact?: boolean;
 }) {
   return (
     <button
       type="button"
       data-copy-text={copyValue}
-      className="gafaig-copy-button inline-flex min-h-[42px] items-center justify-center rounded-full border border-black/20 bg-white px-5 text-sm font-semibold text-black transition hover:bg-black hover:text-white"
+      className={`gafaig-copy-button inline-flex items-center justify-center rounded-full border border-black/20 bg-white font-semibold text-black transition hover:bg-black hover:text-white ${
+        compact ? "min-h-[34px] px-4 text-xs" : "min-h-[42px] px-5 text-sm"
+      }`}
     >
       {label}
     </button>
@@ -209,7 +243,7 @@ function FeatureCard({
 async function getVerify(registryId: string): Promise<VerifyApiResponse | null> {
   const baseUrl = getRuntimeBaseUrl();
 
-  const res = await fetch(`${baseUrl}/api/verify/${registryId}`, {
+  const res = await fetch(`${baseUrl}/api/verify/${encodeURIComponent(registryId)}`, {
     cache: "no-store",
   });
 
@@ -341,6 +375,8 @@ export default async function VerifyPage({
   const visibilityStatus = safe(record.visibilityStatus);
   const verificationEligible = safe(record.verificationEligible);
   const badgeEligible = safe(record.badgeEligible);
+  const country = safe(record.country);
+  const renewalStatus = safe(record.renewalStatus);
 
   const certifiedAt = formatDate(record.certifiedAt);
   const validFrom = formatDate(record.validFrom);
@@ -348,6 +384,9 @@ export default async function VerifyPage({
   const publishedAt = formatDateTime(record.publishedAt);
 
   const registryId = safe(data.registryId || record.registryId || registryIdParam);
+  const registrySnapshotId = safe(record.registrySnapshotId);
+  const applicationId = safe(record.applicationId);
+  const caseId = safe(record.caseId);
   const signedAt = formatDateTime(proof.signedAt || data.signedAt);
 
   const rawVerificationKeyUrl = proof.verificationKeyUrl || data.verificationKeyUrl || null;
@@ -368,7 +407,6 @@ export default async function VerifyPage({
   const rawVerifyJson = JSON.stringify(data, null, 2);
 
   const keyData = await getVerificationKey(rawVerificationKeyUrl, baseUrl);
-
   const validation = validateSignature(rawMessageString, rawSignature, keyData.pem);
 
   const algorithm = safe(keyData.algorithm || proof.alg || null);
@@ -378,14 +416,21 @@ export default async function VerifyPage({
   const widgetUrl = `${baseUrl}/widget-preview/${encodeURIComponent(registryId)}`;
   const demoUrl = `${baseUrl}/demo`;
   const verifyJsonUrl = `${baseUrl}/api/verify/${encodeURIComponent(registryId)}`;
+  const badgeJsonUrl = `${baseUrl}/api/badge/${encodeURIComponent(registryId)}`;
+  const verifyCurl = `curl ${verifyJsonUrl}`;
+  const badgeCurl = `curl ${badgeJsonUrl}`;
 
   return (
     <main className="mx-auto max-w-[1180px] px-6 py-10">
       <div className="space-y-8">
         <section className="rounded-3xl border border-black/10 bg-white p-8">
           <div className="flex flex-wrap gap-2">
-            <span className="inline-flex rounded-full bg-emerald-50 px-3 py-1 text-[11px] font-semibold text-emerald-700 ring-1 ring-emerald-200">
-              Verified
+            <span
+              className={`inline-flex rounded-full px-3 py-1 text-[11px] font-semibold ring-1 ${pillTone(
+                data.verified ? "VERIFIED" : "UNAVAILABLE"
+              )}`}
+            >
+              {data.verified ? "Verified" : "Verification unavailable"}
             </span>
 
             <span
@@ -403,6 +448,18 @@ export default async function VerifyPage({
             >
               {lifecycleStatus}
             </span>
+
+            <span
+              className={`inline-flex rounded-full px-3 py-1 text-[11px] font-semibold ring-1 ${validationTone(
+                validation.status
+              )}`}
+            >
+              {validation.status === "valid"
+                ? "Signature Valid"
+                : validation.status === "invalid"
+                  ? "Signature Invalid"
+                  : "Signature Unavailable"}
+            </span>
           </div>
 
           <h1 className="mt-4 text-[42px] font-semibold tracking-tight text-black">
@@ -411,9 +468,10 @@ export default async function VerifyPage({
 
           <div className="mt-4 max-w-4xl text-[15px] leading-7 text-black/75">
             This page is the public proof surface for a GAFAIG record. It shows
-            the certification window, the signature validation result, and the
-            trust details needed to independently review the record outside the
-            originating organization’s platform.
+            the certification window, signature validation result, public key
+            reference, signed payload, and machine-readable verification object
+            needed to independently review the record outside the originating
+            organization’s platform.
           </div>
 
           <div className="mt-6 grid gap-4 md:grid-cols-4">
@@ -470,7 +528,9 @@ export default async function VerifyPage({
             </h2>
             <p className="max-w-3xl text-[15px] leading-7 text-black/75">
               GAFAIG validates the returned signed payload against the published
-              verification key for this record.
+              verification key for this record. The signed message is intentionally
+              minimal and deterministic so external systems can independently
+              validate the proof.
             </p>
           </div>
 
@@ -497,17 +557,51 @@ export default async function VerifyPage({
               <span className="text-sm text-black/70">{validation.detail}</span>
             </div>
 
-            <p className="mt-4 text-sm text-black/60">
-              This record can be independently reviewed using the public key,
-              signature, and signed payload surfaced below.
-            </p>
+            <div className="mt-5 grid gap-4 md:grid-cols-4">
+              <InfoCard label="Algorithm" value={algorithm} />
+              <InfoCard label="Key ID" value={keyId} />
+              <InfoCard label="Signed At" value={signedAt} />
+              <InfoCard label="Public Key URL" value={verificationKeyUrl} />
+            </div>
 
-            <div className="mt-4 flex flex-wrap gap-3">
+            <div className="mt-5 flex flex-wrap gap-3">
               <ActionButton label="Copy Signature" copyValue={signature} />
               <ActionButton label="Copy Signed Payload" copyValue={signedPayload} />
               <ActionButton label="Copy Public Key URL" copyValue={verificationKeyUrl} />
+              <ActionButton label="Copy Verification curl" copyValue={verifyCurl} />
               <ActionButton label="Copy Raw Verification JSON" copyValue={rawVerifyJson} />
             </div>
+          </div>
+        </section>
+
+        <section className="rounded-3xl border border-black/10 bg-white p-8">
+          <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
+            RECORD IDENTITY
+          </div>
+
+          <h2 className="mt-4 max-w-[860px] text-[26px] font-semibold tracking-tight text-black">
+            Public record identity
+          </h2>
+
+          <p className="mt-5 max-w-[980px] text-[15px] leading-7 text-black/75">
+            These identifiers connect the public verification response to the
+            Snowflake-issued registry snapshot, application, and verification
+            case. IDs are displayed exactly as returned by the public verification
+            endpoint.
+          </p>
+
+          <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            <InfoCard label="Registry ID" value={registryId} />
+            <InfoCard label="Registry Snapshot ID" value={registrySnapshotId} />
+            <InfoCard label="Application ID" value={applicationId} />
+            <InfoCard label="Case ID" value={caseId} />
+          </div>
+
+          <div className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            <InfoCard label="Entity Type" value={safe(record.entityType)} />
+            <InfoCard label="Country" value={country} />
+            <InfoCard label="Renewal Status" value={renewalStatus} />
+            <InfoCard label="Lifecycle Status" value={lifecycleStatus} />
           </div>
         </section>
 
@@ -524,7 +618,7 @@ export default async function VerifyPage({
             This page is one part of the full GAFAIG proof sequence. A record
             appears in the public registry, is verified through signed proof,
             exposes its machine-readable payload, and can then travel outside
-            the platform through a portable widget.
+            the platform through a portable widget, badge, or external modal.
           </p>
 
           <div className="mt-8 grid gap-4 md:grid-cols-4">
@@ -567,7 +661,7 @@ export default async function VerifyPage({
             />
             <StatementCard
               title="For systems"
-              body="The raw verification JSON, signature, and public key allow external systems to inspect and consume the same trust result."
+              body="The raw verification JSON, signature, message string, and public key allow external systems to inspect and consume the same trust result."
             />
           </div>
 
@@ -609,8 +703,8 @@ export default async function VerifyPage({
             </h2>
             <p className="max-w-3xl text-[15px] leading-7 text-black/75">
               These fields identify the public record, signing time, key
-              reference, algorithm, and signature surface used to verify the
-              trust payload.
+              reference, algorithm, signature surface, and eligibility flags used
+              to verify and display the trust payload.
             </p>
           </div>
 
@@ -621,12 +715,9 @@ export default async function VerifyPage({
             <InfoCard label="Signature" value={signature} />
           </div>
 
-          <div className="mt-4 grid gap-4 md:grid-cols-2">
+          <div className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
             <InfoCard label="Algorithm" value={algorithm} />
             <InfoCard label="Key ID" value={keyId} />
-          </div>
-
-          <div className="mt-4 grid gap-4 md:grid-cols-2">
             <InfoCard label="Verification Eligible" value={verificationEligible} />
             <InfoCard label="Badge Eligible" value={badgeEligible} />
           </div>
@@ -635,21 +726,24 @@ export default async function VerifyPage({
         <section className="rounded-3xl border border-black/10 bg-white p-8">
           <div className="space-y-4">
             <div className="text-xs font-semibold uppercase tracking-[0.24em] text-black/40">
-              Signed payload
+              Developer proof object
             </div>
             <h2 className="text-[26px] font-semibold tracking-tight text-black">
-              Public signed message
+              Copyable verification materials
             </h2>
             <p className="max-w-3xl text-[15px] leading-7 text-black/75">
-              This is the public payload returned by the verification surface.
-              It is intended for trust inspection and signature validation.
+              External systems should treat the signed payload as the canonical
+              input to signature verification. The record object is for display;
+              the proof object is the trust layer.
             </p>
           </div>
 
-          <div className="mt-6 rounded-2xl border border-black/10 bg-black/[0.02] p-5 text-sm text-black/75">
-            <pre className="overflow-x-auto whitespace-pre-wrap break-words">
-              {signedPayload}
-            </pre>
+          <div className="mt-6 grid gap-4">
+            <CodePanel label="Signed payload" language="JSON string" value={signedPayload} />
+            <CodePanel label="Signature" language="Ed25519 signature" value={signature} />
+            <CodePanel label="Verification curl" language="cURL" value={verifyCurl} />
+            <CodePanel label="Badge curl" language="cURL" value={badgeCurl} />
+            <CodePanel label="Full verification response" language="JSON" value={rawVerifyJson} />
           </div>
         </section>
 
@@ -666,6 +760,8 @@ export default async function VerifyPage({
             <InfoCard label="Registry Page" value={registryUrl} />
             <InfoCard label="Widget Preview" value={widgetUrl} />
             <InfoCard label="Verify JSON" value={verifyJsonUrl} />
+            <InfoCard label="Badge JSON" value={badgeJsonUrl} />
+            <InfoCard label="Public Key Endpoint" value={verificationKeyUrl} />
             <InfoCard label="Demo Page" value={demoUrl} />
           </div>
         </section>
