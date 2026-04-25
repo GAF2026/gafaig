@@ -3,6 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <title>GAFAIG External Embed Test</title>
+
     <style>
       body {
         font-family: Inter, Arial, sans-serif;
@@ -10,6 +11,7 @@
         background: #f7f7f7;
         color: #111;
       }
+
       .card {
         max-width: 760px;
         background: #fff;
@@ -17,13 +19,16 @@
         border-radius: 24px;
         padding: 28px;
       }
+
       .row {
         display: flex;
-        flex-wrap: wrap;
         gap: 12px;
         margin-top: 20px;
+        flex-wrap: wrap;
       }
-      button {
+
+      button,
+      a.gafaig-test-link {
         min-height: 44px;
         padding: 0 16px;
         border-radius: 999px;
@@ -31,24 +36,31 @@
         background: #fff;
         font-weight: 700;
         cursor: pointer;
+        color: #111;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
       }
-      #sdk-result {
+
+      pre {
         margin-top: 20px;
         padding: 16px;
         border-radius: 16px;
         border: 1px solid rgba(0, 0, 0, 0.12);
         background: #fafafa;
+        overflow-x: auto;
         white-space: pre-wrap;
-        word-break: break-word;
         font-size: 13px;
         line-height: 1.6;
-        display: none;
       }
     </style>
   </head>
+
   <body>
     <div class="card">
       <h1>GAFAIG External Embed Test</h1>
+
       <p>This simulates a third-party site using production GAFAIG scripts and APIs.</p>
 
       <h3>Badge</h3>
@@ -59,7 +71,7 @@
           Open Verification Modal
         </button>
 
-        <button id="test-gafaig-sdk" type="button">
+        <button id="test-sdk" type="button">
           Test SDK
         </button>
       </div>
@@ -71,46 +83,105 @@
     <script src="https://www.gafaig.com/widget/gafaig-verify.v1.js"></script>
 
     <script>
-      window.addEventListener("load", function () {
-        var baseUrl = "https://www.gafaig.com";
-        var registryId = "GAFAIG-00363095";
-        var resultBox = document.getElementById("sdk-result");
+      (function () {
+        var BASE_URL = "https://www.gafaig.com";
+        var REGISTRY_ID = "GAFAIG-00363095";
+        var MAX_ATTEMPTS = 50;
+        var ATTEMPT_DELAY_MS = 100;
 
-        gafaig.init({
-          baseUrl: baseUrl
-        });
+        function writeResult(value) {
+          var resultBox = document.getElementById("sdk-result");
+          if (!resultBox) return;
 
-        document
-          .getElementById("open-gafaig-modal")
-          .addEventListener("click", function () {
-            verifyGAFAIG(registryId, {
-              baseUrl: baseUrl
-            }).catch(function (error) {
-              resultBox.style.display = "block";
-              resultBox.textContent =
-                error && error.message ? error.message : String(error);
+          if (typeof value === "string") {
+            resultBox.textContent = value;
+            return;
+          }
+
+          resultBox.textContent = JSON.stringify(value, null, 2);
+        }
+
+        function waitForGafaig(callback) {
+          var attempts = 0;
+
+          var timer = window.setInterval(function () {
+            if (window.gafaig) {
+              window.clearInterval(timer);
+              callback(window.gafaig);
+              return;
+            }
+
+            attempts += 1;
+
+            if (attempts >= MAX_ATTEMPTS) {
+              window.clearInterval(timer);
+              writeResult("GAFAIG SDK not loaded");
+            }
+          }, ATTEMPT_DELAY_MS);
+        }
+
+        function waitForVerifyModal(callback) {
+          var attempts = 0;
+
+          var timer = window.setInterval(function () {
+            if (window.verifyGAFAIG) {
+              window.clearInterval(timer);
+              callback(window.verifyGAFAIG);
+              return;
+            }
+
+            attempts += 1;
+
+            if (attempts >= MAX_ATTEMPTS) {
+              window.clearInterval(timer);
+              writeResult("GAFAIG verification modal not loaded");
+            }
+          }, ATTEMPT_DELAY_MS);
+        }
+
+        window.addEventListener("load", function () {
+          waitForGafaig(function (gafaig) {
+            gafaig.init({
+              baseUrl: BASE_URL
             });
-          });
 
-        document
-          .getElementById("test-gafaig-sdk")
-          .addEventListener("click", function () {
-            resultBox.style.display = "block";
-            resultBox.textContent = "Loading SDK badge response...";
+            var sdkButton = document.getElementById("test-sdk");
 
-            gafaig
-              .getBadge(registryId, {
-                baseUrl: baseUrl
-              })
-              .then(function (data) {
-                resultBox.textContent = JSON.stringify(data, null, 2);
-              })
-              .catch(function (error) {
-                resultBox.textContent =
-                  error && error.message ? error.message : String(error);
+            if (sdkButton) {
+              sdkButton.addEventListener("click", function () {
+                writeResult("Loading GAFAIG badge JSON...");
+
+                gafaig
+                  .getBadge(REGISTRY_ID, {
+                    baseUrl: BASE_URL
+                  })
+                  .then(function (result) {
+                    writeResult(result);
+                  })
+                  .catch(function (error) {
+                    writeResult(
+                      error && error.message
+                        ? error.message
+                        : "GAFAIG SDK request failed"
+                    );
+                  });
               });
+            }
           });
-      });
+
+          waitForVerifyModal(function (verifyGAFAIG) {
+            var modalButton = document.getElementById("open-gafaig-modal");
+
+            if (modalButton) {
+              modalButton.addEventListener("click", function () {
+                verifyGAFAIG(REGISTRY_ID, {
+                  baseUrl: BASE_URL
+                });
+              });
+            }
+          });
+        });
+      })();
     </script>
   </body>
 </html>
