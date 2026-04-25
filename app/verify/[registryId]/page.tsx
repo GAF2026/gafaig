@@ -82,17 +82,11 @@ function safe(v?: string | number | boolean | null) {
 }
 
 function formatDate(v?: string | null) {
-  if (!v) return "—";
-  const d = new Date(v);
-  if (Number.isNaN(d.getTime())) return v;
-  return d.toLocaleDateString("en-US");
+  return v || "—";
 }
 
 function formatDateTime(v?: string | null) {
-  if (!v) return "—";
-  const d = new Date(v);
-  if (Number.isNaN(d.getTime())) return v;
-  return d.toLocaleString("en-US");
+  return v || "—";
 }
 
 function pillTone(value: string) {
@@ -103,6 +97,8 @@ function pillTone(value: string) {
   if (v === "VERIFIED") return "bg-emerald-50 text-emerald-700 ring-emerald-200";
   if (v === "EXPIRED") return "bg-amber-50 text-amber-700 ring-amber-200";
   if (v === "REVOKED") return "bg-red-50 text-red-700 ring-red-200";
+  if (v === "INVALID") return "bg-red-50 text-red-700 ring-red-200";
+  if (v === "UNAVAILABLE") return "bg-slate-100 text-slate-600 ring-slate-200";
 
   return "bg-slate-100 text-slate-600 ring-slate-200";
 }
@@ -400,14 +396,19 @@ export default async function VerifyPage({
   const signedPayload =
     rawMessageString && String(rawMessageString).trim()
       ? String(rawMessageString)
-      : proof.message
-        ? JSON.stringify(proof.message, null, 2)
-        : "—";
+      : "UNAVAILABLE: CANONICAL messageString missing";
 
   const rawVerifyJson = JSON.stringify(data, null, 2);
 
   const keyData = await getVerificationKey(rawVerificationKeyUrl, baseUrl);
-  const validation = validateSignature(rawMessageString, rawSignature, keyData.pem);
+  const validation =
+    rawMessageString && String(rawMessageString).trim()
+      ? validateSignature(rawMessageString, rawSignature, keyData.pem)
+      : {
+          status: "invalid" as const,
+          detail:
+            "Canonical messageString missing. Verification cannot be performed. Reconstructed payloads are not valid for signature verification.",
+        };
 
   const algorithm = safe(keyData.algorithm || proof.alg || null);
   const keyId = safe(keyData.keyId || proof.kid || null);
@@ -420,6 +421,13 @@ export default async function VerifyPage({
   const verifyCurl = `curl ${verifyJsonUrl}`;
   const badgeCurl = `curl ${badgeJsonUrl}`;
 
+  const verificationStatusLabel =
+    validation.status === "valid"
+      ? "Verified"
+      : validation.status === "invalid"
+        ? "Invalid"
+        : "Unavailable";
+
   return (
     <main className="mx-auto max-w-[1180px] px-6 py-10">
       <div className="space-y-8">
@@ -427,10 +435,10 @@ export default async function VerifyPage({
           <div className="flex flex-wrap gap-2">
             <span
               className={`inline-flex rounded-full px-3 py-1 text-[11px] font-semibold ring-1 ${pillTone(
-                data.verified ? "VERIFIED" : "UNAVAILABLE"
+                verificationStatusLabel
               )}`}
             >
-              {data.verified ? "Verified" : "Verification unavailable"}
+              {verificationStatusLabel}
             </span>
 
             <span
@@ -528,9 +536,11 @@ export default async function VerifyPage({
             </h2>
             <p className="max-w-3xl text-[15px] leading-7 text-black/75">
               GAFAIG validates the returned signed payload against the published
-              verification key for this record. The signed message is intentionally
-              minimal and deterministic so external systems can independently
-              validate the proof.
+              verification key for this record. Verification MUST be performed
+              against the exact messageString returned by the API. Reconstructing
+              payloads from JSON fields is not permitted and will invalidate
+              verification. External systems should use messageString, signature,
+              and the public key to independently validate the proof.
             </p>
           </div>
 
@@ -551,6 +561,12 @@ export default async function VerifyPage({
               {validation.status === "valid" ? (
                 <span className="inline-flex rounded-full bg-emerald-50 px-3 py-1 text-[11px] font-semibold text-emerald-700 ring-1 ring-emerald-200">
                   Payload Integrity: Verified
+                </span>
+              ) : null}
+
+              {validation.status === "invalid" ? (
+                <span className="inline-flex rounded-full bg-red-50 px-3 py-1 text-[11px] font-semibold text-red-700 ring-1 ring-red-200">
+                  Payload Integrity: Invalid
                 </span>
               ) : null}
 
@@ -661,7 +677,7 @@ export default async function VerifyPage({
             />
             <StatementCard
               title="For systems"
-              body="The raw verification JSON, signature, message string, and public key allow external systems to inspect and consume the same trust result."
+              body="The raw verification JSON, signature, messageString, and public key allow external systems to inspect and consume the same trust result without relying on GAFAIG UI."
             />
           </div>
 
@@ -732,14 +748,19 @@ export default async function VerifyPage({
               Copyable verification materials
             </h2>
             <p className="max-w-3xl text-[15px] leading-7 text-black/75">
-              External systems should treat the signed payload as the canonical
-              input to signature verification. The record object is for display;
-              the proof object is the trust layer.
+              External systems MUST treat messageString as the canonical input
+              to signature verification. The record object is for display only;
+              the proof object is the trust layer. Do not reconstruct the signed
+              payload from JSON fields.
             </p>
           </div>
 
           <div className="mt-6 grid gap-4">
-            <CodePanel label="Signed payload" language="JSON string" value={signedPayload} />
+            <CodePanel
+              label="Signed payload"
+              language="CANONICAL messageString"
+              value={signedPayload}
+            />
             <CodePanel label="Signature" language="Ed25519 signature" value={signature} />
             <CodePanel label="Verification curl" language="cURL" value={verifyCurl} />
             <CodePanel label="Badge curl" language="cURL" value={badgeCurl} />
