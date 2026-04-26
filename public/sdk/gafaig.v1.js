@@ -1,5 +1,5 @@
 (function () {
-  var VERSION = "1.2.2";
+  var VERSION = "1.2.3";
   var DEFAULT_BASE_URL = "https://www.gafaig.com";
   var LOADED_SCRIPTS = {};
 
@@ -126,6 +126,14 @@
   }
 
   function safeBadgeState(verifyData) {
+    if (
+      verifyData &&
+      verifyData.ok === true &&
+      (!hasCanonicalMessageString(verifyData) || !hasSignature(verifyData))
+    ) {
+      return "invalid";
+    }
+
     if (!isStructurallyVerified(verifyData)) return "unavailable";
 
     var record = verifyData.record || {};
@@ -144,6 +152,7 @@
     if (status === "certified") return "GAFAIG Certified";
     if (status === "expired") return "Certification Expired";
     if (status === "revoked") return "Certification Revoked";
+    if (status === "invalid") return "Verification Invalid";
     return "Verification Unavailable";
   }
 
@@ -329,13 +338,18 @@
     var el = resolveElement(target);
 
     var verifyData = await verify(id, cfg);
-    var status = safeBadgeState(verifyData);
-    var label = fallbackLabel(status);
+    var verified = verifyData && verifyData.ok === true;
+
+    var status = verified ? safeBadgeState(verifyData) : "unavailable";
+    var label = verified ? fallbackLabel(status) : "Verification Unavailable";
     var verifyUrl = buildVerifyUrl(id, cfg);
+    var href = verified ? verifyUrl : "#";
+    var cursor = verified ? "pointer" : "not-allowed";
+    var opacity = verified ? "1" : "0.6";
 
     el.innerHTML =
       '<a href="' +
-      escapeHtml(verifyUrl) +
+      escapeHtml(href) +
       '" target="_blank" rel="noopener noreferrer" style="' +
       [
         "display:inline-flex",
@@ -350,7 +364,8 @@
         "font-weight:700",
         "line-height:1",
         "text-decoration:none",
-        "cursor:pointer",
+        "cursor:" + cursor,
+        "opacity:" + opacity,
       ].join(";") +
       '">' +
       escapeHtml(label) +
@@ -408,6 +423,13 @@
 
   async function openVerify(registryId, options) {
     var id = assertRegistryId(registryId);
+
+    var verifyData = await verify(id, options || {});
+
+    if (!verifyData.ok) {
+      return verifyData;
+    }
+
     var loaded = await ensureVerifyModal(options || {});
 
     if (!loaded.ok) {
@@ -419,7 +441,9 @@
       };
     }
 
-    return loaded.verifyGAFAIG(id, options || {});
+    loaded.verifyGAFAIG(id, options || {});
+
+    return verifyData;
   }
 
   function scan(options) {
