@@ -236,6 +236,40 @@ function FeatureCard({
   );
 }
 
+function JumpNav() {
+  const links = [
+    ["#signature-validation", "Signature Validation"],
+    ["#record-identity", "Record Identity"],
+    ["#trust-flow", "Trust Flow"],
+    ["#use-proof", "Use This Proof"],
+    ["#trust-verification", "Technical Summary"],
+    ["#developer-proof", "Developer Proof"],
+    ["#related-urls", "Related URLs"],
+  ];
+
+  return (
+    <section className="rounded-3xl border border-black/10 bg-white p-6">
+      <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
+        Page Navigation
+      </div>
+      <h2 className="mt-3 text-[22px] font-semibold tracking-tight text-black">
+        Jump to verification details
+      </h2>
+      <div className="mt-5 flex flex-wrap gap-2">
+        {links.map(([href, label]) => (
+          <a
+            key={href}
+            href={href}
+            className="inline-flex min-h-[36px] items-center justify-center rounded-full border border-black/15 bg-white px-4 text-[13px] font-semibold text-black transition hover:bg-black hover:text-white"
+          >
+            {label}
+          </a>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 async function getVerify(registryId: string): Promise<VerifyApiResponse | null> {
   const baseUrl = getRuntimeBaseUrl();
 
@@ -401,6 +435,8 @@ export default async function VerifyPage({
   const rawVerifyJson = JSON.stringify(data, null, 2);
 
   const keyData = await getVerificationKey(rawVerificationKeyUrl, baseUrl);
+  const publicKeyPem = keyData.pem || "—";
+
   const validation =
     rawMessageString && String(rawMessageString).trim()
       ? validateSignature(rawMessageString, rawSignature, keyData.pem)
@@ -427,6 +463,15 @@ export default async function VerifyPage({
       : validation.status === "invalid"
         ? "Invalid"
         : "Unavailable";
+
+  const lifecycleInterpretation =
+    lifecycleStatus.toLowerCase() === "expired"
+      ? "The signature may still validate authenticity, but this record is expired and should not be treated as currently active."
+      : lifecycleStatus.toLowerCase() === "revoked"
+        ? "The signature may still validate authenticity, but this certification has been revoked and should not be treated as trusted."
+        : lifecycleStatus.toLowerCase() === "active"
+          ? "This record is active. Signature validation confirms authenticity, and lifecycle status confirms current public trust state."
+          : "Lifecycle status controls whether a verified record should be treated as currently trusted.";
 
   return (
     <main className="mx-auto max-w-[1180px] px-6 py-10">
@@ -526,7 +571,12 @@ export default async function VerifyPage({
           </div>
         </section>
 
-        <section className="rounded-3xl border border-black/10 bg-white p-8">
+        <JumpNav />
+
+        <section
+          id="signature-validation"
+          className="scroll-mt-8 rounded-3xl border border-black/10 bg-white p-8"
+        >
           <div className="space-y-4">
             <div className="text-xs font-semibold uppercase tracking-[0.24em] text-black/40">
               Signature validation
@@ -573,6 +623,18 @@ export default async function VerifyPage({
               <span className="text-sm text-black/70">{validation.detail}</span>
             </div>
 
+            <div className="mt-5 rounded-2xl border border-black/10 bg-white p-5">
+              <div className="text-[13px] font-semibold uppercase tracking-[0.18em] text-black/45">
+                What creates trust
+              </div>
+              <ul className="mt-4 space-y-2 text-[14px] leading-6 text-black/70">
+                <li>/api/verify returns the canonical public record and proof.</li>
+                <li>proof.messageString is the exact signed payload.</li>
+                <li>proof.signature is the cryptographic signature.</li>
+                <li>/api/.well-known/gafaig-public-key exposes the verification key.</li>
+              </ul>
+            </div>
+
             <div className="mt-5 grid gap-4 md:grid-cols-4">
               <InfoCard label="Algorithm" value={algorithm} />
               <InfoCard label="Key ID" value={keyId} />
@@ -590,7 +652,10 @@ export default async function VerifyPage({
           </div>
         </section>
 
-        <section className="rounded-3xl border border-black/10 bg-white p-8">
+        <section
+          id="record-identity"
+          className="scroll-mt-8 rounded-3xl border border-black/10 bg-white p-8"
+        >
           <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
             RECORD IDENTITY
           </div>
@@ -621,7 +686,10 @@ export default async function VerifyPage({
           </div>
         </section>
 
-        <section className="rounded-3xl border border-black/10 bg-white p-8">
+        <section
+          id="trust-flow"
+          className="scroll-mt-8 rounded-3xl border border-black/10 bg-white p-8"
+        >
           <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
             TRUST FLOW
           </div>
@@ -661,7 +729,10 @@ export default async function VerifyPage({
           </div>
         </section>
 
-        <section className="rounded-3xl border border-black/10 bg-white p-8">
+        <section
+          id="use-proof"
+          className="scroll-mt-8 rounded-3xl border border-black/10 bg-white p-8"
+        >
           <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
             USE THIS PROOF
           </div>
@@ -709,7 +780,10 @@ export default async function VerifyPage({
           </div>
         </section>
 
-        <section className="rounded-3xl border border-black/10 bg-white p-8">
+        <section
+          id="trust-verification"
+          className="scroll-mt-8 rounded-3xl border border-black/10 bg-white p-8"
+        >
           <div className="space-y-4">
             <div className="text-xs font-semibold uppercase tracking-[0.24em] text-black/40">
               Trust verification
@@ -722,6 +796,10 @@ export default async function VerifyPage({
               reference, algorithm, signature surface, and eligibility flags used
               to verify and display the trust payload.
             </p>
+          </div>
+
+          <div className="mt-5 rounded-2xl border border-black/10 bg-black/[0.02] p-5 text-[14px] leading-7 text-black/75">
+            {lifecycleInterpretation}
           </div>
 
           <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
@@ -739,7 +817,10 @@ export default async function VerifyPage({
           </div>
         </section>
 
-        <section className="rounded-3xl border border-black/10 bg-white p-8">
+        <section
+          id="developer-proof"
+          className="scroll-mt-8 rounded-3xl border border-black/10 bg-white p-8"
+        >
           <div className="space-y-4">
             <div className="text-xs font-semibold uppercase tracking-[0.24em] text-black/40">
               Developer proof object
@@ -755,6 +836,10 @@ export default async function VerifyPage({
             </p>
           </div>
 
+          <p className="mt-5 text-xs font-semibold uppercase tracking-[0.18em] text-black/45">
+            Verification MUST use the exact messageString returned by the API. Never reconstruct it.
+          </p>
+
           <div className="mt-6 grid gap-4">
             <CodePanel
               label="Signed payload"
@@ -762,13 +847,17 @@ export default async function VerifyPage({
               value={signedPayload}
             />
             <CodePanel label="Signature" language="Ed25519 signature" value={signature} />
+            <CodePanel label="Public key" language="PEM" value={publicKeyPem} />
             <CodePanel label="Verification curl" language="cURL" value={verifyCurl} />
             <CodePanel label="Badge curl" language="cURL" value={badgeCurl} />
             <CodePanel label="Full verification response" language="JSON" value={rawVerifyJson} />
           </div>
         </section>
 
-        <section className="rounded-3xl border border-black/10 bg-white p-8">
+        <section
+          id="related-urls"
+          className="scroll-mt-8 rounded-3xl border border-black/10 bg-white p-8"
+        >
           <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
             RELATED URLS
           </div>
