@@ -3,7 +3,7 @@ import PublicButtonLink from "../_components/PublicButtonLink";
 
 export const dynamic = "force-dynamic";
 
-const DEMO_REGISTRY_ID = "GAFAIG-00000001";
+const DEMO_REGISTRY_ID = "GAFAIG-00363095";
 
 export default function DemoPage() {
   return (
@@ -11,8 +11,8 @@ export default function DemoPage() {
       <div className="space-y-8">
         <PublicPageHero
           eyebrow="DEMO"
-          title="See how human oversight in AI systems becomes independently verifiable"
-          description="GAFAIG converts human oversight in AI systems from a private claim into an independently verifiable public trust record. This demo proves the exact sequence from certified record to signed proof to portable trust surface."
+          title="See how AI governance and human oversight become independently verifiable"
+          description="GAFAIG converts AI governance and human oversight from a private claim into an independently verifiable public trust record. This demo proves the exact sequence from certified record to signed proof to portable trust surface."
           secondaryDescription="This page uses one real GAFAIG record to show how certification is published, verified, and surfaced outside an organization’s platform."
           actions={
             <>
@@ -47,7 +47,7 @@ export default function DemoPage() {
             Organizations can say they have human oversight, internal controls,
             and responsible AI policies. But for customers, regulators, and the
             public, there is usually no consistent way to verify whether that
-            oversight is real, functioning, or effective.
+            oversight is implemented, operational, and producing real oversight outcomes.
           </p>
 
           <div className="mt-7 grid gap-4 md:grid-cols-2">
@@ -208,7 +208,7 @@ export default function DemoPage() {
 
           <p className="mt-4 max-w-[860px] text-[15px] leading-7 text-black/75">
             If your organization operates AI systems and needs independently
-            verifiable proof that human oversight is functioning, you can begin
+            verifiable proof that human oversight is implemented, operational, and producing real oversight outcomes, you can begin
             the GAFAIG verification process now.
           </p>
 
