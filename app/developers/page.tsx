@@ -391,7 +391,7 @@ export default function DevelopersPage() {
           eyebrow="DEVELOPERS"
           title="Verify a GAFAIG record in minutes."
           description="GAFAIG provides a verification-first trust surface for AI governance. Fetch a certified public record, inspect its signed proof, and validate it independently."
-          secondaryDescription="The public layer exposes certification outcomes only. Internal governance records remain private. Trust is derived from the verification endpoint, signed payload, public key, SDK, widget, badge, and modal surfaces."
+          secondaryDescription="The SDK is the canonical integration surface. All UI components (badge, widget, modal) are SDK-controlled render layers over the verification endpoint. The public layer exposes certification outcomes only. Internal governance records remain private. Trust is derived from the verification endpoint, signed payload, public key, SDK, widget, badge, and modal surfaces."
           actions={
             <>
               <PublicButtonLink href="/verify" variant="primary">
@@ -635,16 +635,34 @@ export default function DevelopersPage() {
         >
           <SectionHeading
             eyebrow="INSTALL"
-            title="Load the production SDK"
-            body="Start with the versioned SDK. The SDK is the canonical integration surface. Widgets and modals are optional UI layers. Add the verification modal runtime only if you want inline modal verification. Use versioned v1 files for production. Latest aliases are not recommended for external production embeds."
+            title="Install the GAFAIG SDK (recommended)"
+            body="Start with the versioned SDK. This is the ONLY recommended production integration path. All widgets, badges, and modals should be used through the SDK unless you have a specific advanced requirement."
           />
 
           <div className="mt-8 grid gap-6">
             <CodeCard
-              title="Install stable SDK"
+              title="Recommended: Install SDK"
               language="HTML"
               code={sdkInstallExample}
             />
+          </div>
+        </section>
+
+        <section className="scroll-mt-8 rounded-3xl border border-black/10 bg-white p-8">
+          <SectionHeading
+            eyebrow="ADVANCED"
+            title="Optional runtime files (advanced use only)"
+            body="These files are not required for most integrations. Only use them if you are building custom UI layers outside the SDK."
+          />
+
+          <div className="mt-6">
+            <StatementCard
+              title="Do not use advanced runtimes by default"
+              body="Direct widget and modal runtime files bypass the SDK abstraction layer. This increases integration complexity and should only be used in controlled or custom environments."
+            />
+          </div>
+
+          <div className="mt-8 grid gap-6">
             <CodeCard
               title="Install SDK + verification modal"
               language="HTML"
@@ -694,7 +712,7 @@ export default function DevelopersPage() {
 
           <div className="mt-8 grid gap-6">
             <CodeCard
-              title="Auto-render full widget"
+              title="Render widget via SDK (recommended)"
               language="HTML"
               code={dataWidgetExample}
             />
@@ -712,7 +730,7 @@ export default function DevelopersPage() {
         >
           <SectionHeading
             eyebrow="MODAL"
-            title="Open inline verification modal"
+            title="Open verification modal (SDK-controlled)"
             body="The verification modal allows third-party sites to show GAFAIG verification details without navigating away from the page."
           />
 
