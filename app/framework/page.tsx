@@ -42,7 +42,7 @@ export default function FrameworkPage() {
         <PublicPageHero
           eyebrow="FRAMEWORK"
           title="How GAFAIG works"
-          description="GAFAIG transforms AI governance into a structured verification process. It evaluates whether meaningful human oversight is functioning and publishes certification outcomes as independently verifiable public trust records."
+          description="GAFAIG transforms AI governance into a structured verification process. It evaluates whether governance processes and meaningful human oversight are implemented, operational, and producing real oversight outcomes in practice and publishes certification outcomes as independently verifiable public trust records."
           secondaryDescription="The system separates a private verification engine from a public trust layer. Governance is reviewed internally, while only the certification outcome is exposed and validated through GAFAIG’s verification endpoint."
         />
 
