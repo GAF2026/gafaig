@@ -131,6 +131,8 @@ function CodePanel({
   language: string;
   value: string;
 }) {
+  const isUnavailable = value.startsWith("UNAVAILABLE");
+
   return (
     <div className="rounded-2xl border border-black/10 bg-white p-4">
       <div className="flex items-start justify-between gap-4">
@@ -144,7 +146,11 @@ function CodePanel({
         <ActionButton label="Copy" copyValue={value} compact />
       </div>
 
-      <pre className="mt-4 overflow-x-auto whitespace-pre-wrap break-words rounded-xl border border-black/10 bg-black/[0.03] p-4 text-[12px] leading-6 text-black/75">
+      <pre
+        className={`mt-4 overflow-x-auto whitespace-pre-wrap break-words rounded-xl border border-black/10 bg-black/[0.03] p-4 text-[12px] leading-6 text-black/75 ${
+          isUnavailable ? "border-red-200 bg-red-50 text-red-700" : ""
+        }`}
+      >
         {value}
       </pre>
     </div>
@@ -470,7 +476,7 @@ export default async function VerifyPage({
       : lifecycleStatus.toLowerCase() === "revoked"
         ? "The signature may still validate authenticity, but this certification has been revoked and should not be treated as trusted."
         : lifecycleStatus.toLowerCase() === "active"
-          ? "This record is active. Signature validation confirms authenticity, and lifecycle status confirms current public trust state."
+          ? "Lifecycle Status: ACTIVE. This record is currently valid, within its certification window, and eligible to display public trust claims when the signature validates successfully."
           : "Lifecycle status controls whether a verified record should be treated as currently trusted.";
 
   return (
@@ -549,6 +555,15 @@ export default async function VerifyPage({
               Open Registry Record
             </PublicButtonLink>
 
+            <a
+              href={`/api/verify/${encodeURIComponent(registryId)}`}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex min-h-[42px] items-center justify-center rounded-full border border-black/20 bg-white px-5 text-sm font-semibold text-black transition hover:bg-black hover:text-white"
+            >
+              View Raw Verification JSON
+            </a>
+
             <PublicButtonLink
               href={`/widget-preview/${encodeURIComponent(registryId)}`}
               variant="secondary"
@@ -559,15 +574,6 @@ export default async function VerifyPage({
             <PublicButtonLink href="/demo" variant="secondary">
               See Full Demo
             </PublicButtonLink>
-
-            <a
-              href={`/api/verify/${encodeURIComponent(registryId)}`}
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex min-h-[42px] items-center justify-center rounded-full border border-black/20 bg-white px-5 text-sm font-semibold text-black transition hover:bg-black hover:text-white"
-            >
-              View Raw Verification JSON
-            </a>
           </div>
         </section>
 
@@ -631,8 +637,20 @@ export default async function VerifyPage({
                 <li>/api/verify returns the canonical public record and proof.</li>
                 <li>proof.messageString is the exact signed payload.</li>
                 <li>proof.signature is the cryptographic signature.</li>
+                <li>Never reconstruct or verify from JSON fields.</li>
                 <li>/api/.well-known/gafaig-public-key exposes the verification key.</li>
               </ul>
+            </div>
+
+            <div className="mt-5 rounded-[22px] border border-black/10 bg-white p-6">
+              <p className="text-[12px] font-bold uppercase tracking-[0.22em] text-black/40">
+                If verification fails
+              </p>
+              <p className="mt-3 text-[16px] leading-7 text-black/70">
+                Do not trust this record, do not display certification claims,
+                and treat the record as invalid until the signature,
+                messageString, and public key validate successfully.
+              </p>
             </div>
 
             <div className="mt-5 grid gap-4 md:grid-cols-4">
@@ -791,10 +809,10 @@ export default async function VerifyPage({
             <h2 className="text-[26px] font-semibold tracking-tight text-black">
               Verification details
             </h2>
-            <p className="max-w-3xl text-[15px] leading-7 text-black/75">
-              These fields identify the public record, signing time, key
-              reference, algorithm, signature surface, and eligibility flags used
-              to verify and display the trust payload.
+            <p className="mt-5 max-w-4xl text-[18px] leading-8 text-black/65">
+              These fields are provided for reference and debugging. Trust must
+              be established using the exact messageString returned by the API,
+              the signature, and the public key.
             </p>
           </div>
 
@@ -840,13 +858,24 @@ export default async function VerifyPage({
             Verification MUST use the exact messageString returned by the API. Never reconstruct it.
           </p>
 
+          <p className="mt-3 text-[15px] leading-7 text-black/60">
+            This exact string must be used for verification. Any change to
+            whitespace, ordering, timestamp format, escaping, or field values
+            will invalidate the signature.
+          </p>
+
           <div className="mt-6 grid gap-4">
             <CodePanel
               label="Signed payload"
-              language="CANONICAL messageString"
+              language="CANONICAL MESSAGESTRING — EXACT SIGNED PAYLOAD — DO NOT MODIFY"
               value={signedPayload}
             />
             <CodePanel label="Signature" language="Ed25519 signature" value={signature} />
+            <p className="mt-3 text-[15px] leading-7 text-black/60">
+              Format: PEM / Ed25519. Use this key with the exact messageString
+              and signature to verify the record. This key must be fetched from
+              the official GAFAIG public key endpoint.
+            </p>
             <CodePanel label="Public key" language="PEM" value={publicKeyPem} />
             <CodePanel label="Verification curl" language="cURL" value={verifyCurl} />
             <CodePanel label="Badge curl" language="cURL" value={badgeCurl} />
