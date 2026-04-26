@@ -1,5 +1,5 @@
 (function () {
-  var VERSION = "1.2.0";
+  var VERSION = "1.2.1";
 
   function normalizeBaseUrl(baseUrl) {
     var raw =
@@ -43,37 +43,94 @@
       });
 
       var text = await res.text();
-      var data = text ? JSON.parse(text) : {};
+      var data = {};
+
+      try {
+        data = text ? JSON.parse(text) : {};
+      } catch (_jsonError) {
+        return {
+          ok: false,
+          verified: false,
+          error: "Invalid JSON response",
+        };
+      }
 
       if (!res.ok) {
-        throw new Error(data.error || "Request failed");
+        return {
+          ok: false,
+          verified: false,
+          registryId: data && data.registryId ? data.registryId : undefined,
+          error: data && data.error ? data.error : "Request failed",
+        };
       }
 
       return data;
     } catch (err) {
       return {
         ok: false,
+        verified: false,
         error: err && err.message ? err.message : "Network failure",
       };
     }
   }
 
   function escapeHtml(v) {
-    return String(v || "")
+    return String(v == null ? "" : v)
       .replace(/&/g, "&amp;")
       .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;");
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
   }
 
   function normalizeStatus(v) {
     return String(v || "").toLowerCase().trim();
   }
 
-  function safeBadgeState(data) {
-    var lifecycle = normalizeStatus(data.lifecycleStatus);
-    var eligible = String(data.badgeEligible).toLowerCase();
+  function isTrue(value) {
+    if (value === true) return true;
+    var normalized = String(value == null ? "" : value).trim().toLowerCase();
+    return normalized === "true" || normalized === "1" || normalized === "yes";
+  }
 
-    if (eligible !== "true") return "unavailable";
+  function hasCanonicalMessageString(data) {
+    return !!(
+      data &&
+      data.proof &&
+      typeof data.proof.messageString === "string" &&
+      data.proof.messageString.trim()
+    );
+  }
+
+  function hasSignature(data) {
+    return !!(
+      data &&
+      data.proof &&
+      typeof data.proof.signature === "string" &&
+      data.proof.signature.trim()
+    );
+  }
+
+  function isStructurallyVerified(data) {
+    return !!(
+      data &&
+      data.ok === true &&
+      data.verified === true &&
+      data.record &&
+      data.proof &&
+      hasCanonicalMessageString(data) &&
+      hasSignature(data)
+    );
+  }
+
+  function safeBadgeState(verifyData) {
+    if (!isStructurallyVerified(verifyData)) return "unavailable";
+
+    var record = verifyData.record || {};
+    var lifecycle = normalizeStatus(record.lifecycleStatus);
+    var eligible = isTrue(record.badgeEligible);
+
+    if (!eligible) return "unavailable";
     if (lifecycle === "revoked") return "revoked";
     if (lifecycle === "expired") return "expired";
     if (lifecycle === "active") return "certified";
@@ -88,6 +145,10 @@
     return "Verification Unavailable";
   }
 
+  function buildVerifyApiUrl(id, opts) {
+    return resolveBaseUrl(opts) + "/api/verify/" + encodeURIComponent(id);
+  }
+
   function buildBadgeUrl(id, opts) {
     return resolveBaseUrl(opts) + "/api/badge/" + encodeURIComponent(id);
   }
@@ -96,9 +157,43 @@
     return resolveBaseUrl(opts) + "/verify/" + encodeURIComponent(id);
   }
 
+  async function verify(registryId, options) {
+    var id = assertRegistryId(registryId);
+    var data = await fetchJson(buildVerifyApiUrl(id, options));
+
+    if (!isStructurallyVerified(data)) {
+      return {
+        ok: false,
+        verified: false,
+        registryId: id,
+        error:
+          data && data.error
+            ? data.error
+            : "Verification unavailable",
+        record: data && data.record ? data.record : undefined,
+        proof: data && data.proof ? data.proof : undefined,
+      };
+    }
+
+    return data;
+  }
+
   async function getBadge(registryId, options) {
     var id = assertRegistryId(registryId);
-    return fetchJson(buildBadgeUrl(id, options));
+    var data = await fetchJson(buildBadgeUrl(id, options));
+
+    if (!data || data.ok !== true) {
+      return {
+        ok: false,
+        registryId: id,
+        error:
+          data && data.error
+            ? data.error
+            : "Badge unavailable",
+      };
+    }
+
+    return data;
   }
 
   async function badge(target, config) {
@@ -106,17 +201,15 @@
     var id = assertRegistryId(cfg.registryId);
     var el = resolveElement(target);
 
-    var data = await getBadge(id, cfg);
-
-    var status = safeBadgeState(data || {});
+    var verifyData = await verify(id, cfg);
+    var status = safeBadgeState(verifyData);
     var label = fallbackLabel(status);
-
     var verifyUrl = buildVerifyUrl(id, cfg);
 
     el.innerHTML =
       '<a href="' +
-      verifyUrl +
-      '" target="_blank" style="' +
+      escapeHtml(verifyUrl) +
+      '" target="_blank" rel="noopener noreferrer" style="' +
       [
         "display:inline-flex",
         "align-items:center",
@@ -125,8 +218,11 @@
         "border-radius:999px",
         "border:1px solid #ccc",
         "background:#fff",
+        "color:#111",
         "font-size:12px",
         "font-weight:700",
+        "line-height:1",
+        "text-decoration:none",
         "cursor:pointer",
       ].join(";") +
       '">' +
@@ -155,7 +251,10 @@
 
       node.addEventListener("click", function () {
         if (window.verifyGAFAIG) {
-          window.verifyGAFAIG(node.getAttribute("data-gafaig-open-verify"), options);
+          window.verifyGAFAIG(
+            node.getAttribute("data-gafaig-open-verify"),
+            options
+          );
         }
       });
     });
@@ -168,6 +267,8 @@
   window.gafaig = {
     version: VERSION,
     init: init,
+    scan: scan,
+    verify: verify,
     badge: badge,
     getBadge: getBadge,
   };
