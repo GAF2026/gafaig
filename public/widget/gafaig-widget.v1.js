@@ -9,10 +9,7 @@
     SCRIPT_URL = null;
   }
 
-  var ORIGIN =
-    (SCRIPT_URL && SCRIPT_URL.origin) ||
-    window.location.origin ||
-    "https://www.gafaig.com";
+var ORIGIN = "https://www.gafaig.com";
 
   var STYLE_ID = "gafaig-widget-styles-v8";
 
