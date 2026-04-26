@@ -184,11 +184,11 @@ const dataBadgeExample = `<script src="https://www.gafaig.com/sdk/gafaig.v1.js">
 
 <div data-gafaig-badge="GAFAIG-00363095"></div>`;
 
-const dataWidgetExample = `<script src="https://www.gafaig.com/widget/gafaig-widget.v1.js"></script>
+const dataWidgetExample = `<script src="https://www.gafaig.com/sdk/gafaig.v1.js"></script>
 
 <div data-gafaig-id="GAFAIG-00363095"></div>`;
 
-const dataWidgetModeExample = `<script src="https://www.gafaig.com/widget/gafaig-widget.v1.js"></script>
+const dataWidgetModeExample = `<script src="https://www.gafaig.com/sdk/gafaig.v1.js"></script>
 
 <div
   data-gafaig-id="GAFAIG-00363095"
@@ -217,7 +217,7 @@ const manualModalExample = `<script src="https://www.gafaig.com/sdk/gafaig.v1.js
   document
     .getElementById("open-gafaig-verify")
     .addEventListener("click", function () {
-      verifyGAFAIG("GAFAIG-00363095", {
+      gafaig.openVerify("GAFAIG-00363095", {
         baseUrl: "https://www.gafaig.com"
       });
     });
@@ -246,11 +246,14 @@ const sdkGetBadgeExample = `<script src="https://www.gafaig.com/sdk/gafaig.v1.js
 
 const versionedFilesExample = `Production-stable versioned files:
 
+Primary SDK:
 https://www.gafaig.com/sdk/gafaig.v1.js
+
+Optional advanced UI runtimes:
 https://www.gafaig.com/widget/gafaig-widget.v1.js
 https://www.gafaig.com/widget/gafaig-verify.v1.js
 
-Use these for production embeds.`;
+Use the SDK as the recommended production entry point. Use the widget and modal runtime files only for direct or advanced embeds.`;
 
 const latestAliasExample = `Latest aliases:
 
@@ -420,7 +423,7 @@ export default function DevelopersPage() {
             <StepCard
               number="1"
               title="Load versioned files"
-              body="Use /sdk/gafaig.v1.js, /widget/gafaig-widget.v1.js, and /widget/gafaig-verify.v1.js for stable production integrations."
+              body="Use /sdk/gafaig.v1.js as the primary production integration. Use /widget/gafaig-widget.v1.js and /widget/gafaig-verify.v1.js only for direct or advanced embeds."
             />
             <StepCard
               number="2"
@@ -633,7 +636,7 @@ export default function DevelopersPage() {
           <SectionHeading
             eyebrow="INSTALL"
             title="Load the production SDK"
-            body="Start with the versioned SDK. Add the verification modal runtime only if you want inline modal verification. Use versioned v1 files for production. Latest aliases are not recommended for external production embeds."
+            body="Start with the versioned SDK. The SDK is the canonical integration surface. Widgets and modals are optional UI layers. Add the verification modal runtime only if you want inline modal verification. Use versioned v1 files for production. Latest aliases are not recommended for external production embeds."
           />
 
           <div className="mt-8 grid gap-6">
