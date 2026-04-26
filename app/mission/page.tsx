@@ -9,7 +9,7 @@ export default function MissionPage() {
         <PublicPageHero
           eyebrow="MISSION"
           title="Why GAFAIG exists"
-          description="GAFAIG exists because AI governance must become independently verifiable. As AI systems move into products, infrastructure, operations, and decision-making, organizations need more than internal policy statements or self-declared controls. They need a structured way to verify that human oversight is actually functioning."
+          description="GAFAIG exists because AI governance must become independently verifiable. As AI systems move into products, infrastructure, operations, and decision-making, organizations need more than internal policy statements or self-declared controls. They need a structured way to verify that human oversight is implemented, operational, and producing real oversight outcomes."
           secondaryDescription="GAFAIG combines a private verification engine with a public trust layer. Internal governance is reviewed in a controlled environment, while only the certification outcome is published as an independently verifiable public trust record."
         />
 
@@ -22,8 +22,8 @@ export default function MissionPage() {
             Today, AI governance is largely expressed through internal
             documentation, policy statements, and self-attestation. Organizations
             can claim that oversight exists, but there is no consistent,
-            independent way to verify whether that oversight is real,
-            functioning, or effective.
+            independent way to verify whether that oversight is implemented,
+            operational, and producing real oversight outcomes.
           </p>
 
           <p className="mt-4 text-[15px] leading-7 text-black/75">
@@ -60,7 +60,7 @@ export default function MissionPage() {
         <section className="grid gap-4 md:grid-cols-3">
           <Pillar
             title="Verify oversight"
-            text="GAFAIG verifies whether meaningful human oversight is functioning across an organization’s AI operations."
+            text="GAFAIG verifies whether meaningful human oversight is implemented, operational, and producing real oversight outcomes across an organization’s AI operations."
           />
           <Pillar
             title="Separate private review from public trust"
@@ -105,8 +105,9 @@ export default function MissionPage() {
           <p className="mt-4 text-[15px] leading-7 text-black/75">
             As AI becomes embedded in critical systems, trust must move beyond
             internal assurances. GAFAIG exists to ensure that meaningful human
-            oversight can be verified, published, and trusted across the public
-            web without exposing private governance records.
+            oversight is implemented, operational, and producing real oversight
+            outcomes, and can be verified, published, and trusted across the
+            public web without exposing private governance records.
           </p>
         </section>
       </div>
