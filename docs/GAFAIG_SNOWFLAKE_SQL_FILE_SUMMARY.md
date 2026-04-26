@@ -1,5 +1,5 @@
 # GAFAIG_SNOWFLAKE_SQL_FILE_SUMMARY.md
-Last Updated: 2026-04-24
+Last Updated: 2026-04-26
 
 ## PURPOSE
 This file summarizes all active Snowflake SQL files, objects, and execution logic used in GAFAIG (Global Authority for AI Governance). It serves as the canonical reference for Snowflake as the system of truth and execution for the GAFAIG platform.
@@ -23,6 +23,42 @@ GAFAIG is a deterministic governance verification system. All scoring, certifica
   - REGISTRY_SNAPSHOT_ID
 - Published registry snapshots are IMMUTABLE
 - Public views are projection layers only (no heavy logic)
+
+CRITICAL (Phase 6.4 ADDITION):
+- messageString used in verification MUST be deterministic and stable
+- Field ordering must NEVER change
+- Timestamp format must remain ISO 8601
+- No conditional omission of fields used in messageString
+- messageString is the ONLY valid payload for signature verification
+
+CRITICAL ADDITION:
+- Verification must NEVER be performed using parsed JSON fields
+- Verification must NEVER be performed using reconstructed payloads
+- proof.message is informational only and must NOT be used for verification
+
+---
+
+## GLOBAL TRUST INVARIANTS (PHASE 6.4 — SNOWFLAKE ALIGNMENT)
+
+1. VERIFY API IS THE PROTOCOL CONTRACT  
+   Snowflake output feeds `/api/verify`, which is the canonical external verification interface
+
+2. MESSAGESTRING IS THE ONLY VERIFICATION INPUT  
+   Snowflake output must support deterministic messageString generation
+
+3. NEVER VERIFY FROM JSON  
+   JSON fields must not be relied on for cryptographic validation
+
+4. DETERMINISTIC PAYLOAD GUARANTEE  
+   Field order must remain stable across:
+   Snowflake → API → messageString → signature
+
+5. SIGNATURE VS LIFECYCLE SEPARATION  
+   Signature = authenticity  
+   Lifecycle = current trust state
+
+6. FAIL-CLOSED SYSTEM  
+   Any failure → NOT TRUSTED
 
 ---
 
@@ -61,6 +97,7 @@ These must be fixed before any full system rebuild.
 ### APPLICATION LAYER
 - CORE.APPLICATIONS  
 Defines organization-level intake data  
+
 Includes:
 - APPLICATION_ID
 - ORG_NAME
@@ -72,6 +109,7 @@ Includes:
 ### CASE LAYER
 - CORE.VERIFICATION_CASES  
 Defines each verification case  
+
 Includes:
 - CASE_ID
 - APPLICATION_ID
@@ -175,6 +213,14 @@ Important:
 - Expired records remain visible
 - Lifecycle and eligibility are computed ONLY here
 
+CRITICAL (Phase 6.4 ADDITION):
+This view must produce a deterministic record used to generate messageString.
+Any change to field order, inclusion, or formatting may break signature verification downstream.
+
+CRITICAL ADDITION:
+This view defines the canonical payload foundation for messageString generation.
+Changes to this view must be treated as cryptographic breaking changes.
+
 ---
 
 ### SUPPORTING VIEWS
@@ -214,6 +260,13 @@ CORE.SP_PUBLISH_CASE_TO_REGISTRY_V3
 
 ⚠️ This is the ONLY valid publish path
 
+CRITICAL (Phase 6.4 ADDITION):
+Publishing must produce a stable record that results in a deterministic messageString.
+Any change to publish logic that alters output structure must be treated as a breaking change.
+
+CRITICAL ADDITION:
+Publishing output must maintain field order and structural consistency required for signature generation.
+
 ---
 
 ## PHASE 6 RECORD MODEL
@@ -244,6 +297,13 @@ LIFECYCLE_STATUS:
 - active → VALID_TO > NOW()
 - expired → VALID_TO < NOW()
 - revoked → RENEWAL_STATUS = REVOKED
+
+CRITICAL:
+Lifecycle must be computed ONLY in Snowflake and never inferred externally.
+
+CRITICAL ADDITION:
+Lifecycle determines current trust state.
+Signature determines authenticity.
 
 ---
 
@@ -279,6 +339,12 @@ Public contract excludes:
 - findings
 - evidence
 - internal decisions
+
+CRITICAL (Phase 6.4 ADDITION):
+Public contract must remain stable to support external verification systems.
+
+CRITICAL ADDITION:
+Public contract stability is required for deterministic messageString generation and cryptographic verification.
 
 ---
 
@@ -339,6 +405,7 @@ Snowflake is responsible for:
 - eligibility logic
 - registry snapshot creation
 - public contract projection
+- deterministic payload generation for verification (messageString)
 
 ---
 
@@ -348,8 +415,13 @@ API/UI:
 
 - read from V_REGISTRY_PUBLIC
 - return signed payloads
+- expose messageString, signature, public key reference
 - never compute trust
 - never mutate data
+
+CRITICAL ADDITION:
+Verification must occur using messageString only.
+UI/API must never verify using JSON field reconstruction.
 
 ---
 
@@ -360,12 +432,15 @@ API/UI:
 ✔ Phase 6 public view updated  
 ✔ Lifecycle + eligibility introduced  
 ✔ Deterministic scoring enforced  
+✔ messageString contract aligned with verify page  
+✔ Public verification model stabilized  
 
 🔴 Next step:
-Align VS Code to Snowflake contract:
-- types/registry.ts
-- lib/queries/registry.ts
-- app/api/verify/[registryId]/route.ts
+Align and harden:
+
+- widget verification behavior
+- badge lifecycle enforcement
+- external SDK verification documentation
 
 ---
 
@@ -378,6 +453,7 @@ Snowflake acts as:
 - registry publisher  
 - lifecycle authority  
 - trust source  
+- canonical payload generator for cryptographic verification  
 
 GAFAIG becomes:
 
@@ -385,3 +461,4 @@ GAFAIG becomes:
 - a public trust infrastructure  
 - a certification record system  
 - a Snowflake-native execution platform  
+- a cryptographically verifiable system of record  

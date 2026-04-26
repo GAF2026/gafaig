@@ -1,254 +1,329 @@
 # VERIFICATION_SIGNATURE_CONTRACT.md
-Last Updated: 2026-04-23
+Last Updated: 2026-04-26
 
 ## PURPOSE
+This document defines the canonical verification signature contract for GAFAIG (Global Authority for AI Governance). It governs how GAFAIG public certification records are transformed into signed verification payloads, how those payloads are returned through the public verification API, and how external parties can independently validate the authenticity and integrity of a GAFAIG record.
 
-This document defines the canonical verification signature contract for GAFAIG.
+GAFAIG is the world’s first searchable AI governance registry. GAFAIG verifies that human oversight in AI systems is real, functioning, and independently verifiable.
 
-It governs:
-- how registry records are cryptographically signed
-- how verification payloads are constructed
-- how external systems validate GAFAIG certifications
-- how trust is distributed beyond GAFAIG
+This contract applies to:
+- Snowflake public registry views
+- `/api/verify/[registryId]`
+- `/api/.well-known/gafaig-public-key`
+- SDK verification calls
+- widgets
+- badge rendering
+- external verification consumers
+- public registry record verification
 
-This contract is non-optional and must be strictly enforced across Snowflake, API, and UI layers.
+Trust is established through Snowflake-originated public records and cryptographic proof, not through UI rendering.
 
 ---
 
 ## CORE PRINCIPLE
+A GAFAIG certification record is verifiable only when:
+- The record originates from Snowflake.
+- The record is exposed through the canonical public registry contract.
+- The verify API signs the canonical message.
+- The proof can be validated using GAFAIG’s public key endpoint.
+- The signed payload has not been altered.
 
-A GAFAIG certification is only valid if:
-
-1. It originates from canonical Snowflake data  
-2. It is exposed via /api/verify/[registryId]  
-3. It includes a valid cryptographic signature  
-4. The signature can be independently verified using the GAFAIG public key  
-
-No unsigned record is trusted.
+The UI, SDK, widget, badge, and external consumers must never compute or infer certification truth independently.
 
 ---
 
-## 🔒 TRUST AUTHORITY (PHASE 4 LOCK)
+## GLOBAL TRUST INVARIANTS (PHASE 6.4 — PROTOCOL RULES)
 
-The ONLY source of trust is:
+These rules apply across ALL layers:
+
+1. VERIFY API IS THE PROTOCOL CONTRACT  
+   `/api/verify` is the canonical external verification interface
+
+2. MESSAGESTRING IS THE ONLY VERIFICATION INPUT  
+   Signature validation MUST use `proof.messageString` exactly
+
+3. NEVER VERIFY FROM JSON  
+   Verification must NEVER use parsed JSON fields or reconstructed payloads
+
+4. DETERMINISTIC PAYLOAD GUARANTEE  
+   Field order MUST remain stable across:
+   Snowflake → API → messageString → signature
+
+5. SIGNATURE VS LIFECYCLE SEPARATION  
+   Signature = authenticity  
+   Lifecycle = current trust state
+
+6. FAIL-CLOSED SYSTEM  
+   ANY failure → NOT TRUSTED
+
+7. WIDGETS MUST FAIL CLOSED  
+   Widgets MUST display INVALID / UNVERIFIED when verification fails
+
+---
+
+## SOURCE OF TRUTH
+The source of truth for public verification records is:
+
+CORE.V_REGISTRY_PUBLIC
+
+This view defines the public record contract.
+
+As of Phase 6, CORE.V_REGISTRY_PUBLIC includes:
+- REGISTRY_SNAPSHOT_ID
+- REGISTRY_ID
+- CASE_ID
+- APPLICATION_ID
+- RECORD_TYPE
+- RECORD_NAME
+- ENTITY_NAME
+- ENTITY_TYPE
+- COUNTRY
+- CERTIFICATION_STATUS
+- CERTIFIED_AT
+- VALID_FROM
+- VALID_TO
+- PUBLISHED_AT
+- RENEWAL_STATUS
+- LIFECYCLE_STATUS
+- VISIBILITY_STATUS
+- VERIFICATION_ELIGIBLE
+- BADGE_ELIGIBLE
+
+The API may normalize field names from Snowflake uppercase snake case to TypeScript camel case, but it must not recompute trust, lifecycle, certification status, badge eligibility, or verification eligibility.
+
+CRITICAL ADDITION:
+This view defines the canonical payload foundation used to generate messageString.
+Any structural change must be treated as a cryptographic breaking change.
+
+---
+
+## CANONICAL PUBLIC RECORD MODEL
+A GAFAIG public certification record represents a verifiable record of certified AI governance oversight.
+
+A record may represent:
+- ORGANIZATION
+- AI_SYSTEM
+- PORTFOLIO
+- USE_CASE
+- CERTIFICATION_RECORD
+
+The public record must not imply a broader certification claim than the record itself supports.
+
+Certification attaches to the public record. The record is what is verified.
+
+---
+
+## INTERNAL VS PUBLIC BOUNDARY
+Internal/private GAFAIG data may include:
+- evidence
+- findings
+- reviewer notes
+- scoring details
+- score
+- tier
+- band
+- private decision workflow
+- internal approval gate details
+
+These must not be exposed in the public verification contract unless explicitly promoted through a canonical public Snowflake view.
+
+Public GAFAIG verification may expose:
+- certification outcome
+- lifecycle state
+- validity period
+- eligibility state
+- public metadata
+- signed proof
+
+---
+
+## VERIFY ENDPOINT
+Canonical endpoint:
 
 /api/verify/[registryId]
 
-Rules:
+The verify endpoint is responsible for:
+- accepting a registry ID
+- reading the matching public record from CORE.V_REGISTRY_PUBLIC
+- returning the public record
+- constructing the canonical signed message
+- constructing the canonical messageString (deterministic)
+- signing the canonical message string
+- returning the proof object
+- supporting external verification consumers
 
-- UI must not infer trust  
-- Widgets must not compute trust  
-- Badges must not infer trust  
-- External systems must verify signatures  
+The verify endpoint must:
+- run server-side
+- use runtime = "nodejs"
+- use dynamic = "force-dynamic"
+- use revalidate = 0
+- return Cache-Control: no-store
+- support CORS
+- use the canonical public record from Snowflake
+- preserve Ed25519 signing
+- return safe errors
+- never compute governance score
+- never compute certification status
+- never compute lifecycle status
+- never compute verification eligibility
+- never compute badge eligibility
 
-Trust must never be derived from:
-
-- /api/registry  
-- UI state  
-- client-side logic  
-
----
-
-## TRUST FLOW
-
-Snowflake (Source of Truth)  
-→ CORE.V_REGISTRY_PUBLIC  
-→ /api/verify/[registryId]  
-→ Canonical Message Construction  
-→ Signature (Ed25519)  
-→ External Verification  
-
-The API must reflect Snowflake data exactly.
-
----
-
-## SIGNATURE ALGORITHM
-
-Algorithm: Ed25519
-
-Rules:
-
-- deterministic signing only  
-- no alternate algorithms  
-- no fallback algorithms  
-- compatible with standard Ed25519 libraries  
+CRITICAL (Phase 6.4 ADDITION):
+- messageString must be deterministic
+- messageString must be generated ONCE and never reconstructed
+- signature MUST be generated from messageString ONLY
+- verification MUST use messageString ONLY
+- verify endpoint is the canonical protocol contract
 
 ---
 
-## VERIFY ENDPOINT CONTRACT
+## CORS REQUIREMENTS
+The verify endpoint must support external usage by SDKs, widgets, and third-party consumers.
 
-Endpoint:
+Required CORS headers:
+- Access-Control-Allow-Origin: *
+- Access-Control-Allow-Methods: GET, OPTIONS
+- Access-Control-Allow-Headers: Content-Type
+- Cache-Control: no-store
 
-/api/verify/[registryId]
+The endpoint must support OPTIONS.
 
-Response:
+---
+
+## VERIFY RESPONSE STRUCTURE
+Successful response shape:
 
 {
   "ok": true,
   "verified": true,
-  "registryId": string,
-  "record": {
-    "registryId": string,
-    "applicationId": string | null,
-    "caseId": string | null,
-    "entityName": string | null,
-    "entityType": string | null,
-    "country": string | null,
-    "certificationStatus": string | null,
-    "certifiedAt": string | null,
-    "validFrom": string | null,
-    "validTo": string | null
-  },
-  "proof": {
-    "alg": "Ed25519",
-    "kid": string,
-    "signature": string,
-    "signedAt": string,
-    "verificationKeyUrl": string,
-    "message": object,
-    "messageString": string
-  }
+  "registryId": "GAFAIG-XXXXXXXX",
+  "record": { ... },
+  "proof": { ... }
 }
 
-Rules:
+Failure response shape:
 
-- record = display only  
-- proof = trust layer  
-- message = signed payload  
-- messageString = canonical input  
+{
+  "ok": false,
+  "verified": false,
+  "registryId": "GAFAIG-XXXXXXXX",
+  "error": "Registry record not found"
+}
 
-The following MUST NOT appear anywhere in the verify response:
-
-- decisionStatus  
-- score  
-- tier  
-- band  
-
-These are private and excluded from trust.
+CRITICAL ADDITION:
+Failure MUST result in NOT TRUSTED state.
 
 ---
 
-## PROOF OBJECT (LOCKED)
+## RECORD OBJECT CONTRACT
+The record object is the public registry record returned to consumers.
+
+Required Phase 6 record fields:
+
+registryId
+registrySnapshotId
+applicationId
+caseId
+recordType
+recordName
+entityName
+entityType
+country
+certificationStatus
+certifiedAt
+validFrom
+validTo
+publishedAt
+renewalStatus
+lifecycleStatus
+visibilityStatus
+verificationEligible
+badgeEligible
+
+Rules:
+
+These values must originate from CORE.V_REGISTRY_PUBLIC.
+API may normalize names but must not recompute meaning.
+Dates may be converted to ISO strings for API compatibility.
+Null dates may remain null.
+Public record fields must remain consistent across all surfaces.
+
+---
+
+## PROOF OBJECT CONTRACT
+
+Required proof fields:
+
+alg
+kid
+signature
+signedAt
+verificationKeyUrl
+message
+messageString
+
+CRITICAL (Phase 6.4 ADDITION):
+
+messageString is the ONLY valid verification input.
+
+Rules:
+
+- Verification MUST use messageString exactly as returned
+- Never reconstruct messageString from JSON fields
+- Never verify using message object
+- Never verify using UI-rendered data
+- Never verify using parsed JSON fields
+- Any modification invalidates signature
+
+---
+
+## SIGNING ALGORITHM
+
+Ed25519  
+alg: Ed25519  
+public key alg: EdDSA  
+
+kid:
+gafaig-ed25519-2026-01
+
+---
+
+## CANONICAL MESSAGE OBJECT
 
 Fields:
 
-alg:
-- must be "Ed25519"
-
-kid:
-- must match public key
-
-signature:
-- base64 encoded Ed25519 signature
-
-signedAt:
-- ISO timestamp
-- NOT part of message
-
-verificationKeyUrl:
-- must point to:
-  /api/.well-known/gafaig-public-key
-
-message:
-- canonical JSON object used for signing
-
-messageString:
-- exact serialized string used to generate signature
-
----
-
-## CANONICAL MESSAGE STRUCTURE (PHASE 4 LOCK)
-
-The signed message MUST include ONLY:
-
-{
-  "registryId": string,
-  "entityName": string,
-  "certificationStatus": string,
-  "certifiedAt": string
-}
+registryId
+entityName
+certificationStatus
+certifiedAt
+validFrom
+validTo
 
 Rules:
 
-- fixed field order  
-- no additional fields  
-- no UI/API derived values  
-- no null values  
-- values must come from CORE.V_REGISTRY_PUBLIC  
+- Must remain minimal
+- Must remain stable
+- Must not expand without versioning
+- Must map directly to certification assertion
 
 ---
 
-## 🚫 FORBIDDEN MESSAGE FIELDS
+## MESSAGE STRING
 
-The following MUST NEVER be included in message:
+messageString is the exact serialized payload.
 
-- entityType  
-- country  
-- validFrom  
-- validTo  
-- lifecycleStatus  
-- renewalStatus  
-- publishedAt  
-- decisionStatus  
-- score  
-- tier  
-- band  
+CRITICAL RULES:
 
-This separation is intentional and permanent.
+- Deterministic ordering required
+- No whitespace variation
+- No field omission
+- No formatting drift
+- Never reconstructed
+- Always use returned value
 
----
-
-## MESSAGE STRING REQUIREMENTS
-
-messageString must:
-
-- be deterministic JSON  
-- use fixed key order  
-- contain no extra whitespace  
-- match message exactly  
-- be used directly for signature  
-
-Any mismatch invalidates verification.
-
----
-
-## SIGNING PROCESS (LOCKED)
-
-1. Query CORE.V_REGISTRY_PUBLIC  
-2. Resolve by REGISTRY_ID  
-3. Construct message with ONLY:
-   - registryId  
-   - entityName  
-   - certificationStatus  
-   - certifiedAt  
-4. Normalize values:
-   - trim  
-   - ISO format  
-   - remove nulls  
-5. Serialize deterministically  
-6. Sign with Ed25519  
-7. Construct proof  
-8. Return response  
-
-No deviations allowed.
-
----
-
-## RECORD VS MESSAGE
-
-record:
-- display object  
-- may contain more fields  
-
-message:
-- cryptographic object  
-- minimal and fixed  
-
-Trust depends ONLY on:
-
-- messageString  
-- signature  
-- public key  
+CRITICAL ADDITION:
+Field order must remain stable across:
+Snowflake → API → messageString → signature
 
 ---
 
@@ -256,131 +331,229 @@ Trust depends ONLY on:
 
 /api/.well-known/gafaig-public-key
 
-Response:
+CRITICAL:
 
-{
-  "keys": [
-    {
-      "kid": string,
-      "kty": "OKP",
-      "crv": "Ed25519",
-      "x": string
-    }
-  ]
-}
-
-Rules:
-
-- must match signing key  
-- must be public  
-- no auth  
+- This is the ONLY valid verification key source
+- Consumers must fetch key from this endpoint
+- Do not use hardcoded keys
 
 ---
 
-## VERIFICATION PROCESS (EXTERNAL)
+## EXTERNAL VERIFICATION PROCESS
 
-Steps:
+1. Call /api/verify/[registryId]
+2. Confirm ok === true
+3. Extract proof.messageString
+4. Extract proof.signature
+5. Extract proof.kid
+6. Fetch public key endpoint
+7. Match kid
+8. Verify signature using Ed25519
 
-1. Fetch /api/verify/[registryId]  
-2. Extract:
-   - messageString  
-   - signature  
-   - kid  
-3. Fetch public key  
-4. Verify signature  
-5. TRUE = valid  
-6. FALSE = invalid  
-
-No GAFAIG UI required.
+If valid → record is authentic
 
 ---
 
-## NULL HANDLING
+## TRUST MODEL
 
-- null allowed in record  
-- null NOT allowed in message  
+Trust depends on:
 
-Required message fields:
+- Snowflake-originated record
+- messageString
+- signature
+- public key
 
-- registryId  
-- entityName  
-- certificationStatus  
-- certifiedAt  
+Trust does NOT depend on:
 
-If null → signing must fail  
-
----
-
-## FAILURE MODES
-
-Verification fails if:
-
-- message mismatch  
-- invalid signature  
-- wrong key  
-- field order changes  
-- missing fields  
-- null in message  
-- data drift from Snowflake  
+- UI
+- widgets
+- badges
+- SDK convenience
 
 ---
 
-## TRUST DISTRIBUTION
+## FAILURE RULE
 
-This enables:
+If ANY of the following occur:
 
-- external verification  
-- widgets  
-- badges  
-- independent audit  
-- portable trust  
+- messageString missing
+- signature invalid
+- key mismatch
+- verification failure
 
-Trust does NOT depend on GAFAIG UI.
+THEN:
 
----
+DO NOT TRUST THE RECORD
 
-## SYSTEM RESPONSIBILITIES
-
-Snowflake:
-- canonical data  
-
-API:
-- construct + sign  
-
-UI:
-- display only  
-
-Widgets:
-- consume verify  
-
-External:
-- verify signature  
+CRITICAL ADDITION:
+System MUST fail closed.
 
 ---
 
-## ENFORCEMENT
+## LIFECYCLE STATUS
 
-Any deviation:
+Values:
 
-- breaks trust  
-- invalidates certification  
-- must be fixed immediately  
+- active
+- expired
+- revoked
 
----
+Lifecycle is informational.
 
-## FINAL STATEMENT
+CRITICAL:
 
-A GAFAIG certification is valid because:
-
-- it originates from Snowflake  
-- it is deterministically constructed  
-- it is cryptographically signed  
-- it is independently verifiable  
-
-Trust is not asserted.  
-
-Trust is proven.
+Signature proves authenticity.
+Lifecycle determines current trust state.
 
 ---
 
-END OF FILE
+## VERIFICATION ELIGIBILITY
+
+verificationEligible
+
+- Must come from Snowflake
+- Must not be computed
+
+---
+
+## BADGE ELIGIBILITY
+
+badgeEligible
+
+- Must come from Snowflake
+- Must not be computed
+
+---
+
+## BADGES ARE NOT PROOF
+
+Badges are visual only.
+
+Proof = verify API
+
+---
+
+## WIDGETS ARE NOT PROOF
+
+Widgets are rendering surfaces.
+
+They must:
+- call verify API
+- display proof
+- fail closed on error
+
+They must NOT:
+- compute trust
+
+---
+
+## SDK REQUIREMENTS
+
+SDK must:
+- call verify API
+- expose verification
+- never compute trust
+- never verify from JSON fields
+
+---
+
+## VERIFY API SECURITY
+
+- Sign server-side only
+- Never expose private key
+- No-store caching
+- Safe error handling
+
+---
+
+## DATE FORMAT CONTRACT
+
+All dates must be ISO 8601
+
+---
+
+## FIELD NAMING CONTRACT
+
+Snowflake: UPPERCASE  
+API: camelCase  
+
+---
+
+## PUBLIC CONTRACT EXCLUSIONS
+
+Never expose:
+- score
+- tier
+- band
+- evidence
+- findings
+- internal data
+
+---
+
+## APPROVAL VS CERTIFICATION
+
+Approval = internal  
+Certification = public  
+
+---
+
+## VERSIONING
+
+Changes must:
+- introduce new kid
+- preserve old verification
+- update docs
+
+---
+
+## CURRENT ACTIVE CONTRACT
+
+Algorithm:
+Ed25519
+
+kid:
+gafaig-ed25519-2026-01
+
+Verify endpoint:
+/api/verify/[registryId]
+
+Public key:
+/api/.well-known/gafaig-public-key
+
+Snowflake view:
+CORE.V_REGISTRY_PUBLIC
+
+---
+
+## TEST RECORD
+
+GAFAIG-00363095
+
+---
+
+## DO NOT BREAK
+
+Do not:
+
+- reconstruct messageString
+- verify from JSON
+- compute trust in UI
+- expose private key
+- alter message shape casually
+
+---
+
+## END STATE
+
+GAFAIG verification is:
+
+deterministic  
+Snowflake-originated  
+cryptographically signed  
+independently verifiable  
+lifecycle-aware  
+externally consumable  
+
+GAFAIG is not a claim.  
+GAFAIG is a signed, verifiable public record.

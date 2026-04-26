@@ -1,350 +1,437 @@
 # VERIFIED_DEFINITION.md
-Last Updated: 2026-04-23
+Last Updated: 2026-04-26
 
 ## PURPOSE
 
-This document defines what it means for an AI system, organization, or registry record to be considered "Verified" within the GAFAIG platform.
+This document defines what “Verified” means within GAFAIG (Global Authority for AI Governance). It establishes the canonical, system-wide definition of verification, how verification is determined, how it is represented in public APIs, and how it must be interpreted by UI, SDKs, widgets, badges, and external consumers.
 
-It establishes:
-- the distinction between VERIFIED, APPROVED, and CERTIFIED
-- the required conditions for each state
-- the deterministic enforcement model across Snowflake, API, and UI
-- the exact boundary of public trust
+GAFAIG is a deterministic, Snowflake-executed governance verification system. Verification is not a UI state or a heuristic—it is a cryptographically provable condition tied to a Snowflake-originated public record.
 
-This definition is a core trust contract and must be enforced consistently across all system layers.
+## CORE DEFINITION
 
----
+A GAFAIG record is **Verified = true** if and only if ALL of the following conditions are satisfied:
 
-## CORE PRINCIPLE
+1. **Record Exists**  
+   A record with the given REGISTRY_ID exists in CORE.V_REGISTRY_PUBLIC.
 
-Verification in GAFAIG is deterministic, state-based, and evidence-backed.
+2. **Public Record Contract**  
+   The record returned is a direct projection of the canonical public view (CORE.V_REGISTRY_PUBLIC) without recomputation of trust fields in API/UI/SDK.
 
-A record is NOT considered verified based on:
-- UI display
-- API response
-- widget rendering
+3. **Signed Payload Present**  
+   The verify endpoint returns a proof object containing a signature over a canonical message.
 
-A record is verified ONLY if:
-- all required Snowflake conditions are satisfied
-- the full workflow chain is complete
-- all linked data is structurally valid
+4. **Signature Validity (External Check)**  
+   The signature can be validated against the public key retrieved from /api/.well-known/gafaig-public-key using Ed25519.
 
----
+If any of the above conditions fail, the record must be treated as **Verified = false**.
 
-## TRUST STATE HIERARCHY (LOCKED)
+## CRITICAL (PHASE 6.4 ADDITION)
 
-GAFAIG defines three primary trust states:
+Verification MUST be performed using proof.messageString only.  
+Verification MUST NOT be performed using parsed JSON fields, reconstructed payloads, or UI-rendered data.
 
-1. VERIFIED (workflow completeness — internal)
-2. APPROVED (governance decision — internal)
-3. CERTIFIED (public trust — external)
+## GLOBAL TRUST INVARIANTS (PHASE 6.4)
 
-These states are strictly sequential and cannot be skipped.
+These rules define verification across the entire system:
 
----
+- VERIFY API IS THE PROTOCOL CONTRACT  
+  /api/verify is the canonical external verification interface.
 
-## VERIFIED (DEFINITION)
+- MESSAGESTRING IS THE ONLY VERIFICATION INPUT  
+  Verification MUST use proof.messageString exactly.
 
-A record is VERIFIED when:
+- NEVER VERIFY FROM JSON  
+  Verification must NEVER use parsed JSON fields or reconstructed payloads.
 
-1. A canonical case exists in CORE.VERIFICATION_CASES
-2. The workflow chain is complete:
-   CASE → FINDINGS → EVIDENCE → EVENTS
-3. Findings exist and are linked to the case
-4. Evidence exists and is linked to findings
-5. Events exist and reflect workflow execution
-6. No structural gaps exist in the verification chain
-7. All relationships are valid and deterministic
+- DETERMINISTIC PAYLOAD GUARANTEE  
+  Field order MUST remain stable across:  
+  Snowflake → API → messageString → signature
 
-A VERIFIED record represents:
-- complete data intake
-- complete verification workflow
-- structural data integrity
+- SIGNATURE VS LIFECYCLE SEPARATION  
+  Signature = authenticity  
+  Lifecycle = current trust state
 
-A VERIFIED record does NOT imply:
-- approval
-- certification
-- public trust
+- FAIL-CLOSED SYSTEM  
+  ANY failure → Verified = false
 
----
+- WIDGETS MUST FAIL CLOSED  
+  Widgets MUST display INVALID / UNVERIFIED when verification fails.
 
-## APPROVED (DEFINITION)
+## WHAT “VERIFIED” IS NOT
 
-A record is APPROVED when:
+Verification is NOT:
 
-1. The record is VERIFIED
-2. Scoring has been executed via CORE.SP_SCORE_CASE_ENTERPRISE
-3. A score exists in CORE.CASE_SCORE_SNAPSHOTS
-4. Score originates from CORE.V_GOVERNANCE_SCORE_CASE
-5. A decision exists in CORE.DECISIONS
-6. The active decision row satisfies:
-   - DECISION_STATUS = 'APPROVED'
-   - VALID_TO IS NULL
+- A visual badge  
+- A UI indicator or icon  
+- A successful API call alone  
+- A boolean computed in frontend code  
+- A function of lifecycle (active/expired/revoked)  
+- A function of eligibility flags  
+- A marketing claim  
+- A JSON-based validation  
 
-An APPROVED record represents:
-- completed verification
-- completed scoring
-- formal governance decision
+Verification is a cryptographic property of a Snowflake-originated public record.
 
-An APPROVED record is:
-- strictly INTERNAL
-- never a public trust signal
+## SOURCE OF TRUTH
 
----
+All verification originates from:
 
-## CERTIFIED (DEFINITION)
+CORE.V_REGISTRY_PUBLIC
 
-A record is CERTIFIED when:
+This view defines the public contract and includes:
 
-1. The record is APPROVED
-2. It is currently valid (lifecycle enforced)
-3. It is publishable according to CORE.V_CASE_RENEWAL_STATUS
-4. It has been published via CORE.SP_PUBLISH_CASE_TO_REGISTRY_V3
-5. A registry snapshot exists in CORE.REGISTRY_SNAPSHOTS
-6. A REGISTRY_ID has been assigned
-7. The record appears in CORE.V_REGISTRY_PUBLIC
-8. CERTIFICATION_STATUS resolves to "CERTIFIED"
+REGISTRY_SNAPSHOT_ID  
+REGISTRY_ID  
+CASE_ID  
+APPLICATION_ID  
+RECORD_TYPE  
+RECORD_NAME  
+ENTITY_NAME  
+ENTITY_TYPE  
+COUNTRY  
+CERTIFICATION_STATUS  
+CERTIFIED_AT  
+VALID_FROM  
+VALID_TO  
+PUBLISHED_AT  
+RENEWAL_STATUS  
+LIFECYCLE_STATUS  
+VISIBILITY_STATUS  
+VERIFICATION_ELIGIBLE  
+BADGE_ELIGIBLE  
 
-A CERTIFIED record represents:
-- public trust status
-- registry inclusion
-- eligibility for cryptographic verification
+No other layer may redefine these fields.
 
-Only CERTIFIED records are:
-- authoritative
-- publicly trusted
-- externally verifiable
+CRITICAL ADDITION:  
+This view is the canonical payload foundation used to generate messageString. Any structural change must be treated as a cryptographic breaking change.
 
----
+## VERIFY ENDPOINT CONTRACT
 
-## 🔒 PUBLIC TRUST BOUNDARY (PHASE 4 LOCK)
+Endpoint:  
+/api/verify/[registryId]
 
-The public system exposes ONLY:
+Successful response:
+{
+  "ok": true,
+  "verified": true,
+  "registryId": "GAFAIG-XXXXXXXX",
+  "record": { ... },
+  "proof": { ... }
+}
 
-- certificationStatus
-- certifiedAt
-- validFrom
-- validTo
-- entityName
-- registryId
+Failure response:
+{
+  "ok": false,
+  "verified": false,
+  "registryId": "GAFAIG-XXXXXXXX",
+  "error": "message"
+}
 
-The public system MUST NOT expose:
+Rules:
 
-- decision_status
-- score
-- tier
-- band
-- internal workflow states
+- verified must be true only when proof is present and structurally valid  
+- API must not infer verification from UI or eligibility flags  
+- API must not suppress records based on lifecycle  
 
-This boundary is absolute and non-negotiable.
+CRITICAL ADDITION:
 
----
+- Verification MUST use messageString only  
+- verify endpoint is the protocol contract  
+- Failure MUST result in verified = false  
 
-## VERIFIED VS APPROVED VS CERTIFIED
+## VERIFICATION VS LIFECYCLE
 
-VERIFIED:
-- internal workflow state
-- structural completeness
-- not publicly visible
+Verification is independent of lifecycle.
 
-APPROVED:
-- governance decision issued
-- lifecycle initiated
-- still internal
+A record may be:
 
-CERTIFIED:
-- published to registry
-- publicly visible
-- cryptographically verifiable
+- verified: true AND lifecycleStatus: active  
+- verified: true AND lifecycleStatus: expired  
+- verified: true AND lifecycleStatus: revoked  
 
-Trust exists ONLY at the CERTIFIED level.
+Meaning:
 
----
+- The record is authentic (verified)  
+- The state of certification may vary (lifecycle)  
 
-## DATA REQUIREMENTS — VERIFIED
+CRITICAL:
 
-A record must satisfy:
+Signature proves authenticity  
+Lifecycle determines trust state  
 
-### CASE
-- valid CASE_ID
-- linked to APPLICATION_ID
-- present in CORE.VERIFICATION_CASES
+## VERIFICATION VS ELIGIBILITY
 
-### FINDINGS
-- at least one finding
-- linked to CASE_ID
-- stored in CORE.VERIFICATION_FINDINGS
+Fields:
 
-### EVIDENCE
-- evidence exists
-- linked via CORE.VERIFICATION_FINDING_EVIDENCE
-- stored in CORE.VERIFICATION_EVIDENCE
+verificationEligible  
+badgeEligible  
 
-### EVENTS
-- workflow events exist
-- stored in CORE.VERIFICATION_EVENTS
-- reflect progression of verification
+These are informational controls, not verification determinants.
 
-### INTEGRITY
-- no orphan records
-- no missing joins
-- deterministic IDs
-- consistent relationships
+Rules:
 
----
+- verificationEligible does NOT determine verified  
+- badgeEligible does NOT determine verified  
+- A record can be verified even if eligibility flags are false  
 
-## DATA REQUIREMENTS — APPROVED
+## VERIFICATION VS CERTIFICATION
 
-In addition to VERIFIED:
+Certification:
 
-- score exists in CORE.CASE_SCORE_SNAPSHOTS
-- score derived from CORE.V_GOVERNANCE_SCORE_CASE
-- decision exists in CORE.DECISIONS
-- active decision row:
-  - DECISION_STATUS = 'APPROVED'
-  - VALID_TO IS NULL
+A state of the record (CERTIFIED)  
+Defined by Snowflake  
 
----
+Verification:
 
-## DATA REQUIREMENTS — CERTIFIED
+A cryptographic validation  
+Confirms authenticity of certification claim  
 
-In addition to APPROVED:
+Relationship:
 
-- registry snapshot exists in CORE.REGISTRY_SNAPSHOTS
-- REGISTRY_ID assigned
-- PUBLISHED_AT populated
-- record appears in CORE.V_REGISTRY_PUBLIC
-- CERTIFICATION_STATUS = 'CERTIFIED'
-- lifecycle validity enforced via CORE.V_CASE_RENEWAL_STATUS
+Certification is the claim  
+Verification proves the claim is authentic  
 
----
+## CANONICAL MESSAGE (SIGNED PAYLOAD)
 
-## 🌐 PUBLIC TRUST REQUIREMENTS (UPDATED)
+Verification is tied to a signed message.
 
-A record is publicly trusted ONLY when:
+Current canonical message fields:
 
-1. It is CERTIFIED
-2. It is returned via /api/verify/[registryId]
-3. It includes a valid cryptographic signature
-4. The signature verifies using the GAFAIG public key
-5. The signed message matches EXACTLY
-6. The payload is not modified by any downstream system
+{
+  "registryId": "GAFAIG-XXXXXXXX",
+  "entityName": "Example Entity",
+  "certificationStatus": "CERTIFIED",
+  "certifiedAt": "ISO8601",
+  "validFrom": "ISO8601 | null",
+  "validTo": "ISO8601 | null"
+}
 
-Anything less is NOT trusted.
+Rules:
 
----
+- Message must be minimal  
+- Message must be deterministic  
+- Message must not include score/tier/band  
+- Message must not include lifecycle or eligibility flags  
 
-## 🔐 VERIFY = TRUST (PHASE 4 RULE)
+## PROOF OBJECT
 
-- /api/verify is the ONLY trust authority
-- UI must not infer trust
-- Widgets must not compute trust
-- Badges must not infer trust
+The proof object must include:
 
-All trust is derived ONLY from signed verification payloads.
+{
+  "alg": "Ed25519",
+  "kid": "gafaig-ed25519-2026-01",
+  "signature": "<base64>",
+  "signedAt": "<ISO8601>",
+  "verificationKeyUrl": "https://www.gafaig.com/api/.well-known/gafaig-public-key",
+  "message": { ... },
+  "messageString": "string"
+}
 
----
+Verification requires:
 
-## LIFECYCLE STATES
+- Valid Ed25519 signature  
+- Matching kid  
+- Exact messageString  
 
-Derived states include:
+CRITICAL:
 
-- Not Verified
-- Verified
-- Approved
-- Certified
-- Expired
-- Renewal Required
-- Revoked
+- messageString is the ONLY valid verification input  
+- proof.message is informational ONLY  
+- JSON fields must NEVER be used for verification  
 
-Lifecycle is determined by:
+## PUBLIC KEY VERIFICATION
 
-- CORE.DECISIONS
-- VALID_FROM / VALID_TO
-- CORE.V_CASE_RENEWAL_STATUS
+Public key endpoint:  
+/api/.well-known/gafaig-public-key
 
----
+External verification steps:
 
-## INVALID STATES
+1. Fetch verify endpoint  
+2. Extract proof.messageString and proof.signature  
+3. Fetch public key  
+4. Validate signature using Ed25519  
 
-A record is invalid if:
+If valid → Verified = true  
 
-- missing case
-- missing findings
-- missing evidence
-- missing events
-- missing score (for approved/certified)
-- missing decision
-- no active decision row
-- expired or revoked but exposed
-- missing registry snapshot (for certified)
-- invalid signature (for public trust)
-
----
-
-## SYSTEM ENFORCEMENT
-
-Snowflake:
-- enforces structure and lifecycle
-- stores canonical data
-- computes scoring and renewal
-
-Procedures:
-- enforce deterministic transitions
-- prevent invalid progression
-
-Views:
-- expose only valid states
-- enforce public/private boundary
-
-API:
-- exposes only certified records for trust
-- must not compute trust logic
+## UI / SDK / WIDGET RULES
 
 UI:
-- renders state only
-- must not infer trust
+
+- May display verified state  
+- Must rely on API response  
+- Must not compute verification  
+
+SDK:
+
+- Must call verify endpoint  
+- Must not compute trust locally  
+- Must not verify from JSON  
 
 Widgets:
-- consume verify endpoint only
-- must not reconstruct trust
 
----
+- Must display verification based on API  
+- Must not embed static trust  
+- MUST fail closed on verification failure  
 
-## NON-NEGOTIABLE RULES
+Badges:
 
-- VERIFIED must precede APPROVED
-- APPROVED must precede CERTIFIED
-- no skipping states
-- no UI/API state mutation
-- no certification without registry snapshot
-- no trust without signature
-- no public exposure of non-certified records
+- Must not represent proof  
+- Must link to verification endpoint  
 
----
+## FAILURE CONDITIONS
 
-## TRUST MODEL SUMMARY
+Verification must be false if:
 
-Verified = data integrity  
-Approved = governance decision  
-Certified = public trust  
+- Record not found  
+- Proof missing  
+- Signature invalid  
+- Public key mismatch  
+- Message tampered  
+- messageString altered  
 
-Only CERTIFIED records are trusted externally.
+CRITICAL:
 
----
+System MUST fail closed  
 
-## FINAL STATEMENT
+## DATE HANDLING
 
-A GAFAIG record is:
+All timestamps must be ISO8601 strings:
 
-Verified → structurally complete  
-Approved → governance validated  
-Certified → publicly trusted  
+certifiedAt  
+validFrom  
+validTo  
+publishedAt  
+signedAt  
 
-Trust is not implied.  
+Null values remain null.
 
-Trust is deterministically earned and cryptographically proven.
+## FIELD NAMING
 
----
+Snowflake → API mapping:
 
-END OF FILE
+REGISTRY_ID → registryId  
+RECORD_TYPE → recordType  
+CERTIFIED_AT → certifiedAt  
+LIFECYCLE_STATUS → lifecycleStatus  
+
+No semantic changes allowed.
+
+## PUBLIC CONTRACT EXCLUSIONS
+
+Verification contract must NOT expose:
+
+score  
+tier  
+band  
+internal decision workflow  
+findings  
+evidence  
+reviewer notes  
+
+## APPROVAL VS CERTIFICATION
+
+Approval:  
+Internal workflow state  
+
+Certification:  
+Public record state  
+
+Verification:  
+Cryptographic validation of certification  
+
+Public interfaces must use certification terminology.
+
+## RECORD-LEVEL VERIFICATION
+
+Verification applies to a specific record.
+
+Examples:
+
+- Organization-level record  
+- AI system record  
+- Portfolio record  
+
+Verification does NOT imply:
+
+- Entire organization is certified  
+- All systems are certified  
+
+## NIST / FRAMEWORK ALIGNMENT
+
+GAFAIG verifies that governance processes are functioning.
+
+Frameworks (e.g., NIST AI RMF) define:
+
+Govern  
+Map  
+Measure  
+Manage  
+
+GAFAIG verifies execution of those processes.
+
+Verification must not be presented as NIST certification.
+
+## VERSIONING
+
+Verification contract versioning is controlled by:
+
+kid (key ID)  
+alg (algorithm)  
+
+Future updates must:
+
+- Introduce new key ID if breaking  
+- Maintain backward compatibility  
+
+## CURRENT ACTIVE VALUES
+
+Algorithm: Ed25519  
+Key ID: gafaig-ed25519-2026-01  
+
+Verify endpoint:  
+/api/verify/[registryId]  
+
+Public key endpoint:  
+/api/.well-known/gafaig-public-key  
+
+## TEST RECORD
+
+Example:
+
+gafaig.verify("GAFAIG-00363095").then(console.log)
+
+Expected:
+
+ok: true  
+verified: true  
+record present  
+proof present  
+
+## DO NOT BREAK
+
+Do not:
+
+- compute verification outside API  
+- remove proof object  
+- alter messageString post-signing  
+- expose private key  
+- rely on UI for trust  
+- remove CORS  
+- change signed message without contract update  
+
+## FINAL DEFINITION
+
+Verified = true means:
+
+The GAFAIG certification record:
+
+- originates from Snowflake  
+- is exposed through the public contract  
+- has a canonical signed payload  
+- has a valid Ed25519 signature  
+- can be independently verified using GAFAIG’s public key  
+
+If these conditions are met, the record is authentic, tamper-resistant, and independently verifiable.
+
+GAFAIG verification is not a claim.  
+It is a cryptographic fact.

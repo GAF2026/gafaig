@@ -38,6 +38,25 @@ function toIsoString(value: unknown): string | null {
   return Number.isNaN(date.getTime()) ? null : date.toISOString();
 }
 
+function failClosed(
+  registryId: string | null,
+  error: string,
+  status: number
+): NextResponse {
+  return NextResponse.json(
+    {
+      ok: false,
+      verified: false,
+      ...(registryId ? { registryId } : {}),
+      error,
+    } satisfies VerifyApiResponse,
+    {
+      status,
+      headers: getCorsHeaders(),
+    }
+  );
+}
+
 export async function OPTIONS() {
   return new NextResponse(null, {
     status: 204,
@@ -53,17 +72,7 @@ export async function GET(
     const registryId = String(context.params.registryId ?? "").trim();
 
     if (!registryId) {
-      return NextResponse.json(
-        {
-          ok: false,
-          verified: false,
-          error: "Missing registryId",
-        } satisfies VerifyApiResponse,
-        {
-          status: 400,
-          headers: getCorsHeaders(),
-        }
-      );
+      return failClosed(null, "Missing registryId", 400);
     }
 
     const rows = await sfQuery<any>(`
@@ -94,18 +103,7 @@ export async function GET(
     `);
 
     if (!rows.length) {
-      return NextResponse.json(
-        {
-          ok: false,
-          verified: false,
-          registryId,
-          error: "Registry record not found",
-        } satisfies VerifyApiResponse,
-        {
-          status: 404,
-          headers: getCorsHeaders(),
-        }
-      );
+      return failClosed(registryId, "Registry record not found", 404);
     }
 
     const r = rows[0];
@@ -142,8 +140,28 @@ export async function GET(
     };
 
     const messageString = JSON.stringify(message);
+
+    if (typeof messageString !== "string" || !messageString.trim()) {
+      return failClosed(registryId, "Canonical messageString generation failed", 500);
+    }
+
     const signature = signVerificationPayload(messageString);
+    const kid = getSigningKeyId();
     const baseUrl = getBaseUrl();
+    const verificationKeyUrl = `${baseUrl}/api/.well-known/gafaig-public-key`;
+    const signedAt = new Date().toISOString();
+
+    if (typeof signature !== "string" || !signature.trim()) {
+      return failClosed(registryId, "Verification signature generation failed", 500);
+    }
+
+    if (typeof kid !== "string" || !kid.trim()) {
+      return failClosed(registryId, "Verification key id unavailable", 500);
+    }
+
+    if (typeof GAFAIG_VERIFY_ALG !== "string" || !GAFAIG_VERIFY_ALG.trim()) {
+      return failClosed(registryId, "Verification algorithm unavailable", 500);
+    }
 
     const response: VerifyApiResponse = {
       ok: true,
@@ -152,10 +170,10 @@ export async function GET(
       record,
       proof: {
         alg: GAFAIG_VERIFY_ALG,
-        kid: getSigningKeyId(),
+        kid,
         signature,
-        signedAt: new Date().toISOString(),
-        verificationKeyUrl: `${baseUrl}/api/.well-known/gafaig-public-key`,
+        signedAt,
+        verificationKeyUrl,
         message,
         messageString,
       },
@@ -166,16 +184,6 @@ export async function GET(
       headers: getCorsHeaders(),
     });
   } catch (_error) {
-    return NextResponse.json(
-      {
-        ok: false,
-        verified: false,
-        error: "Verification endpoint failed",
-      } satisfies VerifyApiResponse,
-      {
-        status: 500,
-        headers: getCorsHeaders(),
-      }
-    );
+    return failClosed(null, "Verification endpoint failed", 500);
   }
 }

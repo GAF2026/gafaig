@@ -1,5 +1,5 @@
 (function () {
-  var VERSION = "1.3.3";
+  var VERSION = "1.3.4";
 
   function escapeHtml(value) {
     return String(value == null ? "" : value)
@@ -50,6 +50,36 @@
     return String(value || "").trim().toLowerCase();
   }
 
+  function hasCanonicalMessageString(data) {
+    return !!(
+      data &&
+      data.proof &&
+      typeof data.proof.messageString === "string" &&
+      data.proof.messageString.trim()
+    );
+  }
+
+  function hasSignature(data) {
+    return !!(
+      data &&
+      data.proof &&
+      typeof data.proof.signature === "string" &&
+      data.proof.signature.trim()
+    );
+  }
+
+  function isStructurallyVerified(data) {
+    return !!(
+      data &&
+      data.ok === true &&
+      data.verified === true &&
+      data.record &&
+      data.proof &&
+      hasCanonicalMessageString(data) &&
+      hasSignature(data)
+    );
+  }
+
   function badgeTone(status) {
     var s = normalizeStatus(status);
 
@@ -74,7 +104,12 @@
       };
     }
 
-    if (s === "revoked" || s === "signature invalid") {
+    if (
+      s === "revoked" ||
+      s === "signature invalid" ||
+      s === "payload invalid" ||
+      s === "verification unavailable"
+    ) {
       return {
         border: "#fecdd3",
         background: "#fff1f2",
@@ -184,25 +219,56 @@
     var baseUrl = normalizeBaseUrl(options && options.baseUrl);
     var url = baseUrl + "/api/verify/" + encodeURIComponent(registryId);
 
-    var response = await fetch(url, {
-      method: "GET",
-      cache: "no-store",
-      credentials: "omit",
-      headers: {
-        Accept: "application/json",
-      },
-    });
+    try {
+      var response = await fetch(url, {
+        method: "GET",
+        cache: "no-store",
+        credentials: "omit",
+        headers: {
+          Accept: "application/json",
+        },
+      });
 
-    var text = await response.text();
-    var data = text ? JSON.parse(text) : {};
+      var text = await response.text();
+      var data = {};
 
-    if (!response.ok) {
-      throw new Error(
-        data && data.error ? data.error : "GAFAIG verification request failed"
-      );
+      try {
+        data = text ? JSON.parse(text) : {};
+      } catch (_jsonError) {
+        return {
+          ok: false,
+          verified: false,
+          registryId: registryId,
+          error: "Invalid JSON response",
+        };
+      }
+
+      if (!response.ok) {
+        return {
+          ok: false,
+          verified: false,
+          registryId: registryId,
+          error:
+            data && data.error
+              ? data.error
+              : "GAFAIG verification request failed",
+          record: data && data.record ? data.record : undefined,
+          proof: data && data.proof ? data.proof : undefined,
+        };
+      }
+
+      return data;
+    } catch (error) {
+      return {
+        ok: false,
+        verified: false,
+        registryId: registryId,
+        error:
+          error && error.message
+            ? error.message
+            : "GAFAIG verification request failed",
+      };
     }
-
-    return data;
   }
 
   function buildModal(data, registryId, options) {
@@ -227,10 +293,13 @@
       baseUrl
     );
 
+    var structurallyVerified = isStructurallyVerified(data);
+
     var signedPayloadToCopy =
-      proof && proof.messageString
-        ? proof.messageString
-        : JSON.stringify(record || {}, null, 2);
+      proof && proof.messageString ? proof.messageString : "UNAVAILABLE";
+
+    var signatureToCopy =
+      proof && proof.signature ? proof.signature : "UNAVAILABLE";
 
     var fullVerificationJsonToCopy = JSON.stringify(data || {}, null, 2);
 
@@ -270,7 +339,6 @@
       "box-sizing:border-box",
     ].join(";");
 
-    var verified = !!(data && data.verified);
     var entityName = record.entityName || record.recordName || "GAFAIG Record";
     var certificationStatus = record.certificationStatus || "—";
     var lifecycleStatus = record.lifecycleStatus || "—";
@@ -282,11 +350,14 @@
         : String(record.verificationEligible);
     var badgeEligible =
       record.badgeEligible == null ? "—" : String(record.badgeEligible);
-    var signatureStatus = verified ? "Signature Valid" : "Signature Invalid";
-    var integrityStatus =
-      proof.messageString && proof.signature
-        ? "Payload Verified"
-        : "Payload Unavailable";
+    var signatureStatus = structurallyVerified ? "Signature Valid" : "Signature Invalid";
+    var integrityStatus = structurallyVerified ? "Payload Verified" : "Payload Invalid";
+    var errorMessage =
+      data && data.error
+        ? data.error
+        : structurallyVerified
+          ? ""
+          : "Verification unavailable. Do not trust this record unless proof.messageString and signature are present.";
 
     panel.innerHTML =
       '<div style="display:flex;justify-content:space-between;gap:16px;align-items:flex-start;">' +
@@ -323,10 +394,15 @@
       '<div style="margin-top:18px;border:1px solid #e5e7eb;border-radius:18px;padding:16px;background:#fafafa;">' +
       '<div style="font-size:13px;font-weight:800;color:#111827;">Verification result</div>' +
       '<p style="margin:8px 0 0;font-size:14px;line-height:1.7;color:#52525b;">' +
-      (verified
-        ? "This GAFAIG record is backed by a signed public verification payload. The record can be independently reviewed using the signature, message string, and public key endpoint."
-        : "This GAFAIG record could not be confirmed as verified by the returned verification response.") +
+      (structurallyVerified
+        ? "This GAFAIG record is backed by a signed public verification payload. Independent verification must use proof.messageString exactly as returned, with the signature and public key endpoint."
+        : "Verification failed closed. This GAFAIG record could not be confirmed as verified by the returned verification response.") +
       "</p>" +
+      (errorMessage
+        ? '<p style="margin:8px 0 0;font-size:13px;line-height:1.6;color:#be123c;font-weight:700;">' +
+          escapeHtml(errorMessage) +
+          "</p>"
+        : "") +
       "</div>" +
       '<div style="margin-top:18px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;">' +
       metric("Certification Status", certificationStatus) +
@@ -349,7 +425,7 @@
       '<div style="margin-top:12px;border:1px solid #e5e7eb;border-radius:16px;padding:14px;background:#fafafa;">' +
       '<div style="font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#6b7280;">Canonical signed message string</div>' +
       '<pre style="margin:8px 0 0;white-space:pre-wrap;word-break:break-all;font-size:12px;line-height:1.6;color:#111827;">' +
-      escapeHtml(proof.messageString || "—") +
+      escapeHtml(proof.messageString || "UNAVAILABLE") +
       "</pre>" +
       "</div>" +
       '<div style="margin-top:18px;display:flex;gap:10px;flex-wrap:wrap;">' +
@@ -358,11 +434,11 @@
       linkButton(verifyJsonUrl, "Verify JSON", false) +
       linkButton(keyUrl, "Public key", false) +
       copyButton("Copy signed payload", signedPayloadToCopy) +
-      copyButton("Copy signature", proof.signature || "") +
+      copyButton("Copy signature", signatureToCopy) +
       copyButton("Copy full JSON", fullVerificationJsonToCopy) +
       "</div>" +
       '<div style="margin-top:16px;font-size:12px;line-height:1.6;color:#71717a;">' +
-      "Powered by GAFAIG public trust infrastructure. Verification is based on a Snowflake-originated public record and a signed verification payload." +
+      "Powered by GAFAIG public trust infrastructure. Verification is based on a Snowflake-originated public record, proof.messageString, an Ed25519 signature, and the public key endpoint. Badges and widgets are not proof." +
       "</div>";
 
     overlay.appendChild(panel);
@@ -411,7 +487,15 @@
     var id = String(registryId || "").trim();
 
     if (!id) {
-      throw new Error("GAFAIG registryId is required");
+      var missingIdData = {
+        ok: false,
+        verified: false,
+        registryId: "UNAVAILABLE",
+        error: "GAFAIG registryId is required",
+      };
+      var missingOverlay = buildModal(missingIdData, "UNAVAILABLE", cfg);
+      document.body.appendChild(missingOverlay);
+      return missingIdData;
     }
 
     var sdk = window.gafaig || window.GAFAIG || window.GAFAIGSDK || null;
@@ -422,6 +506,20 @@
       data = await sdk.verify(id, cfg);
     } else {
       data = await fetchVerifyRecord(id, cfg);
+    }
+
+    if (!isStructurallyVerified(data)) {
+      data = {
+        ok: false,
+        verified: false,
+        registryId: id,
+        error:
+          data && data.error
+            ? data.error
+            : "Verification unavailable",
+        record: data && data.record ? data.record : undefined,
+        proof: data && data.proof ? data.proof : undefined,
+      };
     }
 
     var overlay = buildModal(data, id, cfg);

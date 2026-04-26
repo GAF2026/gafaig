@@ -1,365 +1,442 @@
 # GAFAIG_ACTIVE_FILE_MAP.md
-Date: 2026-04-22
+Last Updated: 2026-04-26
 
-## Purpose
+## PURPOSE
+This file maps the currently active GAFAIG files across Snowflake, VS Code, APIs, UI, SDK, and deployment.
 
-This file is the active execution map for GAFAIG (Global Authority for AI Governance). It identifies the current canonical files that matter most for system integrity, production behavior, and next-step execution. It is not a full file tree. It is the active map of files that govern the live platform and its stabilized state.
+GAFAIG = Global Authority for AI Governance  
+GAFAIG is the world’s first searchable AI governance registry.
 
-## Core System Rule
+The platform verifies that human oversight in AI systems is real, functioning, and independently verifiable, and publishes certified outcomes as publicly verifiable records.
+
+This file is canonical system context and must remain aligned with:
+- Snowflake (source of truth)
+- VS Code files (execution layer)
+- Production deployment (Vercel)
+
+---
+
+## NON-NEGOTIABLE ENGINEERING RULES
 
 Snowflake is the source of truth.
 
-All governance computation, scoring, approval state, renewal state, publish eligibility, registry publication, and public trust projection must originate in Snowflake. The app, API, and UI are consumers of canonical Snowflake views and procedures. They must not invent or recompute trust logic.
+Do NOT:
+- Compute governance score, certification, lifecycle, eligibility, or trust in API/UI/SDK
+- Generate IDs outside Snowflake
+- Mutate published registry snapshots
+- Create parallel trust paths
+- Reconstruct verification payloads
 
-## Current Platform State
+CRITICAL (PHASE 6.4 HARDENING):
+Do NOT:
+- Verify using parsed JSON fields
+- Verify using UI-rendered data
+- Reconstruct messageString from proof.message
+- Verify using any payload other than proof.messageString
 
-The Snowflake-backed public trust surface is stabilized.
+All IDs originate in Snowflake and pass through unchanged:
+- APPLICATION_ID
+- CASE_ID
+- REGISTRY_ID
+- FINDING_ID
+- EVIDENCE_ID
+- EVENT_ID
+- REGISTRY_SNAPSHOT_ID
 
-Working and validated:
-- public registry view filtered to approved/current records only
-- explorer stats restored from Snowflake
-- registry page aligned to canonical layout system
-- explorer pages aligned (organizations, countries, systems, root)
-- verify page aligned and fully connected to trust surface
-- widget preview aligned and operational
-- admin pages aligned to unified shell system
-- API registry + explorer + verify routes stabilized
-- decision lifecycle supports approve, revoke, re-approve
-- renewal/publishability layer gates publication correctly
-- revoked records excluded from public registry view
+CRITICAL RULE:
+Verification MUST use `proof.messageString` exactly as returned.
+Never reconstruct from JSON fields.
+Never verify from UI-rendered data.
+Never verify from parsed JSON objects.
 
-Still under active review:
-- explorer systems must strictly use canonical public systems view
-- registry AI systems pages must not leak workflow-level data
-- final registry integrity validation across all surfaces
+CRITICAL ADDITION:
+- messageString is the ONLY valid verification input
+- proof.message is informational ONLY
+- JSON fields are NOT valid verification inputs
 
----
+Canonical flow:
+APPLICATION → CASE → FINDINGS → EVIDENCE → EVENTS → SCORING → DECISION → REGISTRY SNAPSHOT → PUBLIC VIEW → API → SDK/UI
 
-## Canonical Snowflake Workflow Chain
+Public surfaces expose:
+- Certification outcome
+- Lifecycle state
+- Eligibility state
+- Signed proof
+- Public metadata
 
-APPLICATION  
-→ VERIFICATION_CASES  
-→ VERIFICATION_FINDINGS  
-→ VERIFICATION_EVIDENCE  
-→ VERIFICATION_EVENTS  
-→ V_GOVERNANCE_SCORE_CASE  
-→ CASE_SCORE_SNAPSHOTS  
-→ DECISIONS  
-→ V_CASE_RENEWAL_STATUS  
-→ SP_PUBLISH_CASE_TO_REGISTRY_V3  
-→ REGISTRY_SNAPSHOTS  
-→ V_REGISTRY_PUBLIC  
-→ V_REGISTRY_AI_SYSTEMS_PUBLIC  
-→ API  
-→ UI  
-
----
-
-## Active Snowflake Files
-
-### Workflow / Core Tables
-- 11_TABLES_APPLICATIONS.sql
-- 12_TABLES_PARTICIPANTS.sql (NOTE: previously had errors, must be validated)
-- 15_TABLES_EVENTS.sql (NOTE: previously had errors, must be validated)
-- 16_TABLES_CASE_SCORE_SNAPSHOTS.sql
-- 17_TABLES_DECISIONS.sql
-- 18_TABLES_REGISTRY_ENTITIES.sql
-
-### Public / Registry Views
-- 21_VIEWS_PUBLIC_REGISTRY.sql
-- 22_VIEWS_REGISTRY_AI_SYSTEMS_PUBLIC.sql
-- 22_VIEWS_EXPLORER_STATS.sql
-- 26_VIEWS_CASE_RENEWAL_STATUS.sql
-
-### Procedures
-- 23_SP_CREATE_CASE_FROM_APPLICATION.sql
-- 24_SP_SCORE_CASE_ENTERPRISE.sql
-- 25_PROCEDURES_APPROVAL.sql
-- GAFAIG - CORE.REGISTRY_PUBLISH.sql
-
-### Canonical Scoring Engine
-- GAFAIG - Governance Scoring (Enterprise v1.2).sql
+Private data NEVER exposed:
+- Evidence
+- Findings
+- Reviewer notes
+- Score / tier / band
+- Internal decisions
 
 ---
 
-## Snowflake Objects (Canonical)
+## GLOBAL TRUST INVARIANTS (PHASE 6.4 — PROTOCOL RULES)
 
-### Tables
+These rules apply across ALL layers (Snowflake, API, SDK, widget, UI):
+
+1. VERIFY API IS THE PROTOCOL CONTRACT  
+   `/api/verify` is the canonical external verification interface
+
+2. MESSAGESTRING IS THE ONLY VERIFICATION INPUT  
+   Signature validation MUST use `proof.messageString` exactly
+
+3. NEVER VERIFY FROM JSON  
+   Verification must NEVER use parsed JSON fields or reconstructed payloads
+
+4. DETERMINISTIC PAYLOAD GUARANTEE  
+   Field order MUST remain stable across:
+   Snowflake → API → messageString → signature
+
+5. SIGNATURE VS LIFECYCLE SEPARATION  
+   Signature = authenticity  
+   Lifecycle = current trust state
+
+6. FAIL-CLOSED SYSTEM  
+   ANY failure → NOT TRUSTED
+
+7. WIDGETS MUST FAIL CLOSED  
+   Widgets MUST display INVALID / UNVERIFIED when verification fails
+
+---
+
+## CURRENT PHASE
+
+Phase 6.4 — Trust Surface Hardening (VERIFY COMPLETE)
+
+Phase 6.3 Completed:
+- /developers page upgraded to Stripe-level developer experience
+- Versioned SDK + widget architecture clarified
+- messageString rule surfaced in developer flow
+
+Phase 6.4 Completed:
+- /verify/[registryId] hardened to cryptographic verification surface
+- messageString enforced as canonical payload (no reconstruction allowed)
+- Signature validation clearly separated from UI rendering
+- Public key surfaced and labeled as verification authority
+- Failure states explicitly defined (DO NOT TRUST on failure)
+- Lifecycle interpretation clarified (ACTIVE / EXPIRED / REVOKED)
+- Trust chain fully visible:
+  Registry → Verify → Signed Payload → Widget
+
+---
+
+## CORE REPOSITORY
+
+GitHub: GAF2026/gafaig  
+Local Path: C:\Users\drter\dev\gafaig  
+Branch: main  
+Vercel Project: gafaig-vercel  
+Production: https://www.gafaig.com  
+Local: http://localhost:3000  
+
+---
+
+## SNOWFLAKE ENVIRONMENT
+
+ROLE: ACCOUNTADMIN  
+WAREHOUSE: GAFAIG_WH  
+DATABASE: GAFAIG_DB  
+SCHEMA: CORE  
+
+SQL context:
+USE ROLE ACCOUNTADMIN;
+USE WAREHOUSE GAFAIG_WH;
+USE DATABASE GAFAIG_DB;
+USE SCHEMA CORE;
+
+---
+
+## 🔴 CRITICAL SNOWFLAKE FILE PRIORITY
+
+Fix BEFORE any rebuild:
+
+- 12_TABLES_PARTICIPANTS.sql
+- 15_TABLES_EVENTS.sql
+
+Reason:
+- Break canonical run order
+- Block deterministic rebuilds
+- Risk silent corruption
+
+---
+
+## ACTIVE SNOWFLAKE TABLES
+
 - CORE.APPLICATIONS
 - CORE.VERIFICATION_CASES
 - CORE.VERIFICATION_FINDINGS
 - CORE.VERIFICATION_EVIDENCE
-- CORE.VERIFICATION_FINDING_EVIDENCE
 - CORE.VERIFICATION_EVENTS
 - CORE.CASE_SCORE_SNAPSHOTS
 - CORE.DECISIONS
 - CORE.REGISTRY_SNAPSHOTS
 - CORE.REGISTRY_AI_SYSTEMS
+- CORE.REGISTRY_ENTITIES
 
-### Views
-- CORE.V_GOVERNANCE_SCORE_CASE
-- CORE.V_CASE_RENEWAL_STATUS
+---
+
+## ACTIVE SNOWFLAKE VIEWS
+
 - CORE.V_REGISTRY_PUBLIC
+- CORE.V_REGISTRY_LATEST_APPROVED
 - CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC
-- CORE.V_EXPLORER_STATS
-- CORE.V_SCORE_DIMENSIONS_PUBLIC
-- CORE.V_PUBLIC_OVERSIGHT_SIGNAL
+- CORE.V_GOVERNANCE_SCORE_CASE
 
-### Procedures
+IMPORTANT:
+
+V_REGISTRY_PUBLIC is the ONLY public trust contract.
+
+Includes:
+- lifecycle
+- eligibility
+- certification outcome
+
+Excludes:
+- score / tier / band
+
+Expired records remain visible.
+
+CRITICAL ADDITION:
+- This view must produce deterministic output used to generate messageString
+- Any field order change may break verification
+
+---
+
+## ACTIVE PROCEDURES
+
 - CORE.SP_CREATE_CASE_FROM_APPLICATION
 - CORE.SP_SCORE_CASE_ENTERPRISE
-- CORE.APPROVE_CASE_V1
-- CORE.UNAPPROVE_CASE_V1
 - CORE.SP_PUBLISH_CASE_TO_REGISTRY_V3
 
----
-
-## Snowflake Governance Rules (Locked)
-
-### Score Source of Truth
-CORE.V_GOVERNANCE_SCORE_CASE is the ONLY source for:
-- FINAL_SCORE
-- CERTIFIED_TIER
-- CERTIFIED_BAND
-- renewal propagation
-- publish eligibility
-
-### Decision Lifecycle Rule
-- one active row per case (VALID_TO IS NULL)
-- historical rows closed
-- latest row governs trust state
-
-### Renewal Rule
-CORE.V_CASE_RENEWAL_STATUS determines:
-- RENEWAL_STATUS
-- IS_CURRENTLY_VALID
-- IS_PUBLISHABLE
-
-### Publish Rule
-SP_PUBLISH_CASE_TO_REGISTRY_V3 must gate on lifecycle validity, NOT workflow status.
-
-### Public Registry Rule
-CORE.V_REGISTRY_PUBLIC must:
-- use latest snapshot
-- use latest APPROVED decision
-- exclude revoked/expired records
-
-### Public Systems Rule
-CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC is the ONLY allowed source for:
-- explorer systems
-- registry AI systems UI
+CRITICAL ADDITION:
+- Publish output must remain stable for deterministic signing
 
 ---
 
-## Active VS Code / App Files
+## VS CODE STRUCTURE
 
-### Query Layer
-- lib/queries/registry.ts
-- lib/queries/explorer.ts
-
-### API Routes
-- app/api/registry/route.ts
-- app/api/registry/search/route.ts
-- app/api/verify/[registryId]/route.ts
-- app/api/explorer/route.ts
-- app/api/.well-known/gafaig-public-key/route.ts
-- app/api/badge/[registryId]/route.ts
+- app/
+- app/_components/
+- app/api/
+- components/
+- components/registry/
+- components/ui/
+- lib/
+- lib/queries/
+- lib/crypto/
+- types/
+- public/
+- public/widget/
+- public/sdk/
+- public/badges/
+- docs/
 
 ---
 
-## Public Pages (Aligned – Phase 1 Complete)
+## KEY PUBLIC PAGES
 
-### Core Pages
 - app/page.tsx
 - app/mission/page.tsx
 - app/framework/page.tsx
-- app/demo/page.tsx
 - app/developers/page.tsx
-
-### Registry
 - app/registry/page.tsx
 - app/registry/[registryId]/page.tsx
-
-### AI Systems
-- app/registry/ai-systems/page.tsx
-- app/registry/ai-systems/[systemId]/page.tsx
-
-### Explorer
-- app/explorer/page.tsx
-- app/explorer/organizations/page.tsx
-- app/explorer/countries/page.tsx
-- app/explorer/systems/page.tsx
-
-### Verify
 - app/verify/page.tsx
 - app/verify/[registryId]/page.tsx
-
-### Widget
+- app/explorer/*
 - app/widget-preview/[registryId]/page.tsx
 
 ---
 
-## Admin Pages (Aligned – Phase 1 Complete)
+## TRUST SURFACE (FINAL STATE)
 
-### Core
-- app/admin/login/page.tsx
-- app/admin/applications/page.tsx
-- app/admin/participants/page.tsx
+/developers
+- Developer entry point
+- Live API console
+- Widget + modal + badge integration
+- Versioned SDK enforcement
+- messageString rule surfaced
 
-### Verification
-- app/admin/verification/page.tsx
-- app/admin/verification/[caseId]/page.tsx
-- app/admin/verification/[caseId]/findings/page.tsx
-- app/admin/verification/[caseId]/score/page.tsx
-- app/admin/verification/[caseId]/publish/page.tsx
-
----
-
-## Shared UI System (Canonical)
-
-Located in:
-- app/_components/
-
-Key files:
-- PublicPageHero.tsx
-- PublicButtonLink.tsx
-- PublicButton.tsx
-- SiteHeader.tsx
+/verify/[registryId]
+- Cryptographic verification surface
+- Signature validation (primary trust signal)
+- Payload integrity validation
+- Public key verification (Ed25519)
+- Failure-state enforcement (invalid = DO NOT TRUST)
+- Developer proof interface (messageString, signature, key)
+- Canonical trust explanation (no ambiguity)
+- Lifecycle-aware trust interpretation
 
 ---
 
-## Layout System (Now Canonical)
+## API ROUTES
 
-Defined in:
+- /api/registry
+- /api/registry/search
+- /api/verify/[registryId]
+- /api/badge/[registryId]
+- /api/.well-known/gafaig-public-key
+
+---
+
+## VERIFY API (CRITICAL)
+
+Source: CORE.V_REGISTRY_PUBLIC
+
+Must:
+- Return signed proof (Ed25519)
+- Include messageString
+- Support CORS
+- Use no-store cache
+- Never compute trust
+
+CRITICAL:
+- messageString is the ONLY valid input for verification
+- verify API is the canonical protocol contract
+
+---
+
+## SDK (VERSIONED SYSTEM)
+
+Production stable:
+
+- /sdk/gafaig.v1.js
+- /widget/gafaig-widget.v1.js
+- /widget/gafaig-verify.v1.js
+
+Latest aliases (NOT stable):
+
+- /sdk/gafaig.js
+- /widget/gafaig-widget.js
+- /widget/gafaig-verify.js
+
+RULE:
+Use versioned files for production integrations.
+
+---
+
+## WIDGET SYSTEM
+
+Reads from /api/verify  
+Displays trust signals  
+Must NOT compute trust  
+Must fail safely  
+
+CRITICAL:
+- Widget is a rendering layer ONLY
+- Widget MUST fail closed
+- Widget MUST display INVALID when verification fails
+
+States:
+
+- verified
+- invalid
+- unavailable
+- expired
+- revoked
+
+---
+
+## BADGE SYSTEM
+
+Controlled by BADGE_ELIGIBLE  
+Reflects lifecycle  
+No scoring exposure  
+
+States:
+
+- certified
+- expired
+- revoked
+- unavailable
+
+---
+
+## CERTIFICATION MODEL
+
+Approval = internal  
+Certification = public  
+
+Certification = published + verifiable record
+
+---
+
+## LIFECYCLE MODEL
+
+- active
+- expired
+- revoked
+
+Origin: Snowflake only
+
+CRITICAL:
+Signature proves authenticity  
+Lifecycle determines trust state  
+
+---
+
+## ELIGIBILITY MODEL
+
+VERIFICATION_ELIGIBLE → controls verify  
+BADGE_ELIGIBLE → controls badge  
+
+Never computed outside Snowflake.
+
+---
+
+## DOCUMENTATION FILES
+
+- MASTER_STATE.md
+- CURRENT_FOCUS.md
+- ENGINEERING_RULES.md
+- GAFAIG_ACTIVE_FILE_MAP.md
+- GAFAIG_SNOWFLAKE_SQL_FILE_SUMMARY.md
+- GAFAIG_VS_CODE_File_Tree.md
+- CANONICAL_RUN_ORDER.md
 - PAGE_LAYOUT_SYSTEM.md
 - PUBLIC_PAGE_TEMPLATE_MAP.md
 - PUBLIC_PAGE_AUDIT.md
-
-### Locked Rules
-- max width: 1180px
-- px-6 horizontal padding
-- consistent hero usage
-- section-based stacking
-- no page-specific layout overrides
+- VERIFICATION_SIGNATURE_CONTRACT.md
+- VERIFIED_DEFINITION.md
+- VERSIONING.md
 
 ---
 
-## Trust / Crypto Layer
+## TEST ID
 
-### Files
-- lib/crypto/verify-signing.ts
-
-### Endpoints
-- /api/verify/[registryId]
-- /api/.well-known/gafaig-public-key
-
-### Algorithm
-- Ed25519
-
-### Proof Contract
-- alg
-- kid
-- signature
-- signedAt
-- verificationKeyUrl
-- message
-- messageString
+GAFAIG-00363095
 
 ---
 
-## Widget System
+## TEST COMMANDS
 
-### Files
-- public/widget/gafaig-widget.js
-- public/widget/gafaig-verify.js
-
-### Usage
-- external embed
-- driven by /api/verify
+gafaig.version  
+gafaig.verify("GAFAIG-00363095").then(console.log)
 
 ---
 
-## Recently Stabilized Files
+## NEXT ACTION
 
-### Snowflake
-- 16_TABLES_CASE_SCORE_SNAPSHOTS.sql
-- 24_SP_SCORE_CASE_ENTERPRISE.sql
-- 25_PROCEDURES_APPROVAL.sql
-- 26_VIEWS_CASE_RENEWAL_STATUS.sql
-- GAFAIG - CORE.REGISTRY_PUBLISH.sql
-- 21_VIEWS_PUBLIC_REGISTRY.sql
+Phase 7 — Full System Alignment
 
-### App
-- lib/queries/explorer.ts
-- lib/queries/registry.ts
-- app/api/registry/route.ts
-- app/api/explorer/route.ts
-- all explorer pages
-- all registry pages
-- all verify pages
+- Widget hardening (must match verify page trust model exactly)
+- Badge lifecycle enforcement validation
+- Registry page trust surface consistency
+- Multi-case seed validation refresh
+- External verification documentation (SDK-level)
 
 ---
 
-## Files to Watch Next
+## END STATE
 
-### Snowflake
-- 22_VIEWS_REGISTRY_AI_SYSTEMS_PUBLIC.sql
-- 21_VIEWS_PUBLIC_REGISTRY.sql
-- GAFAIG - CORE.REGISTRY_PUBLISH.sql
+GAFAIG becomes:
 
-### App
-- lib/queries/explorer.ts
-- app/explorer/systems/page.tsx
-- app/registry/ai-systems/page.tsx
-
----
-
-## Files NOT Allowed as Public Truth Sources
-
-- CORE.REGISTRY_AI_SYSTEMS (raw)
-- CORE.VERIFICATION_CASES (workflow state)
-- UI-derived lifecycle logic
-- API-derived scoring logic
-
----
-
-## Current Stable Production Checkpoint
-
-- Post Phase 1 UI alignment
-- Snowflake registry stabilized
-- Explorer + Registry + Verify unified
-- Widget system live and aligned
-
----
-
-## Current Remaining Focus
-
-1. Final registry integrity validation
-2. Ensure systems explorer purity (public-only)
-3. Validate no revoked leakage
-4. Maintain strict Snowflake → API → UI flow
-
----
-
-## Execution Rule (Critical)
-
-Always fix in this order:
-
-1. Snowflake (views / procedures)
-2. Query layer
-3. API
-4. UI
-
-Never reverse this order.
-
----
-
-## Final Reminder
-
-GAFAIG is now a Snowflake-governed public trust infrastructure.
-
-Everything must remain anchored to:
-- deterministic lifecycle control
-- append-only registry publication
-- canonical public views
-- zero UI/API recomputation of trust
+- Deterministic Snowflake execution system
+- Public registry of verifiable certification records
+- Verification layer for governance frameworks (NIST AI RMF)
+- Cryptographic trust infrastructure
+- Developer platform (SDK, API, widget, badge)
+- Enterprise-ready multi-record system

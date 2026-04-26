@@ -1,5 +1,5 @@
 # GAFAIG_VS_CODE_File_Tree.md
-Last Updated: 2026-04-24
+Last Updated: 2026-04-26
 
 ## PURPOSE
 This file documents the current VS Code file structure for the GAFAIG platform. It reflects the active Next.js application, API routes, query layer, crypto layer, SDK/widget surfaces, and documentation files. This file must remain aligned with the actual repository at GAF2026/gafaig and the deployed environment on Vercel.
@@ -37,7 +37,10 @@ app/
 ├── framework/
 │   └── page.tsx
 ├── developers/
-│   └── page.tsx
+│   ├── page.tsx
+│   ├── LiveEmbedPreview.tsx
+│   ├── RegistryIdTester.tsx
+│   └── CopyCodeButton.tsx
 ├── registry/
 │   ├── page.tsx
 │   ├── ai-systems/
@@ -153,16 +156,29 @@ Must include:
 - verificationEligible
 - badgeEligible
 
+CRITICAL (Phase 6.4 ADDITION):
+Must include proof structure:
+- proof.messageString
+- proof.signature
+- proof.verificationKeyUrl
+
+CRITICAL ADDITION:
+- proof.messageString is the ONLY valid verification input
+- proof.message must NOT be used for verification
+
 ---
 
 ## PUBLIC ASSETS
 
 public/
 ├── sdk/
-│   └── gafaig.js
+│   ├── gafaig.js
+│   └── gafaig.v1.js
 ├── widget/
 │   ├── gafaig-widget.js
-│   └── gafaig-verify.js
+│   ├── gafaig-widget.v1.js
+│   ├── gafaig-verify.js
+│   └── gafaig-verify.v1.js
 ├── badges/
 │   └── (badge assets go here)
 
@@ -171,10 +187,11 @@ public/
 ## SDK
 
 File:
-public/sdk/gafaig.js
+public/sdk/gafaig.js  
+public/sdk/gafaig.v1.js
 
 Current version:
-1.1.0
+v1 (production-stable)
 
 Capabilities:
 - verify(registryId)
@@ -188,6 +205,15 @@ HTML attributes:
 - data-gafaig-widget
 - data-gafaig-badge
 - data-gafaig-open-verify
+
+CRITICAL:
+Versioned files must be used in production.
+
+CRITICAL ADDITION:
+SDK must NEVER:
+- verify from JSON fields
+- reconstruct payloads
+- compute trust independently
 
 ---
 
@@ -205,6 +231,13 @@ Ed25519
 
 Used by:
 - /api/verify/[registryId]
+
+CRITICAL (Phase 6.4 ADDITION):
+Signature must be generated from messageString only.
+
+CRITICAL ADDITION:
+- messageString must be deterministic
+- signature must NEVER be generated from JSON object
 
 ---
 
@@ -229,6 +262,9 @@ Required fields:
 - BADGE_ELIGIBLE
 - LIFECYCLE_STATUS
 
+CRITICAL:
+Field ordering must remain stable for messageString generation.
+
 ---
 
 ## API LAYER
@@ -240,6 +276,7 @@ app/api/verify/[registryId]/route.ts
 Responsibilities:
 - Fetch record from Snowflake
 - Build verification payload
+- Generate messageString (deterministic)
 - Sign payload using Ed25519
 - Return proof
 
@@ -247,6 +284,16 @@ Must:
 - Use no-store caching
 - Support CORS
 - Not compute lifecycle or eligibility
+
+CRITICAL:
+- messageString is canonical
+- No fallback to reconstructed payload
+- No verification from JSON fields
+
+CRITICAL ADDITION:
+- /api/verify is the canonical verification protocol contract
+- Verification MUST use messageString only
+- Any failure MUST result in NOT TRUSTED state
 
 ---
 
@@ -280,6 +327,9 @@ app/api/.well-known/gafaig-public-key/route.ts
 
 Purpose:
 - Expose Ed25519 public key
+
+CRITICAL:
+This is the ONLY valid key source for verification.
 
 ---
 
@@ -346,15 +396,16 @@ gafaig.verify("GAFAIG-00363095").then(console.log)
 ✔ SDK working  
 ✔ Verify API working  
 ✔ Snowflake public view updated (Phase 6)  
-✔ Developers + Framework pages updated  
-✔ Footer updated  
-✔ Registry system operational  
+✔ Developers page upgraded  
+✔ Verify page hardened to trust surface  
+✔ messageString contract enforced  
+✔ Public key verification surfaced  
+✔ Failure-state handling implemented  
 
 🔴 NEXT:
-Align VS Code files to Phase 6 contract:
-- types/registry.ts
-- lib/queries/registry.ts
-- app/api/verify/[registryId]/route.ts
+- Widget hardening (must match verify page)
+- Badge lifecycle enforcement validation
+- Registry page trust surface consistency
 
 ---
 

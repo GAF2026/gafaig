@@ -1,422 +1,385 @@
-# MASTER_STATE.md
-Date: 2026-04-23
+MASTER_STATE.md
+
+Last Updated: 2026-04-26
+
+PURPOSE
+
+This document defines the complete, canonical system state of GAFAIG (Global Authority for AI Governance). It is the single source of truth for what exists, what is working, what is broken, and what must happen next. This file must always reflect reality across Snowflake, VS Code, API, SDK, and deployed production.
+
+GAFAIG is the world’s first searchable AI governance registry. It verifies that human oversight in AI systems is real, functioning, and independently verifiable, and publishes certified outcomes as cryptographically verifiable public records.
+
+SYSTEM DEFINITION
+
+GAFAIG is a deterministic governance verification system composed of:
+
+Snowflake (execution + truth)
+API (projection + signing)
+SDK / Widgets (distribution layer)
+UI (presentation layer)
+Public registry (trust surface)
+
+All certification truth originates in Snowflake.
+
+NON-NEGOTIABLE RULES
+Snowflake is the ONLY source of truth
+No computation of score, certification, lifecycle, or eligibility in API/UI/SDK
+No mutation of registry snapshots
+No parallel trust systems
+
+CRITICAL (PHASE 6.4 ADDITION):
+
+Verification MUST use proof.messageString only
+Verification MUST NOT use parsed JSON fields
+Verification MUST NOT use reconstructed payloads
+System MUST fail closed on any verification failure
 
----
+All IDs originate in Snowflake and pass through unchanged:
 
-## SYSTEM IDENTITY
+APPLICATION_ID
+CASE_ID
+REGISTRY_ID
+FINDING_ID
+EVIDENCE_ID
+EVENT_ID
+REGISTRY_SNAPSHOT_ID
 
-GAFAIG (Global Authority for AI Governance) is the world’s first deterministic AI governance registry.
+Violation of these rules = system corruption
 
-It is a system designed to:
-- evaluate AI systems
-- assign governance scores (private)
-- issue lifecycle-controlled decisions (private)
-- publish immutable registry records (public)
-- enable external trust via cryptographic verification (public)
+GLOBAL TRUST INVARIANTS (SYSTEM STATE LOCK)
+VERIFY API IS THE PROTOCOL CONTRACT
+/api/verify is the canonical verification interface
+MESSAGESTRING IS THE ONLY VERIFICATION INPUT
+Signature validation MUST use proof.messageString exactly
+NEVER VERIFY FROM JSON
+Verification must NEVER use parsed JSON fields or reconstructed payloads
+DETERMINISTIC PAYLOAD GUARANTEE
+Field order MUST remain stable across:
+Snowflake → API → messageString → signature
+SIGNATURE VS LIFECYCLE SEPARATION
+Signature = authenticity
+Lifecycle = current trust state
+FAIL-CLOSED SYSTEM
+ANY failure → NOT TRUSTED
+WIDGETS MUST FAIL CLOSED
+Widgets MUST display INVALID / UNVERIFIED when verification fails
+CANONICAL FLOW
+
+APPLICATION
+→ CASE
+→ FINDINGS
+→ EVIDENCE
+→ EVENTS
+→ SCORING
+→ DECISION
+→ REGISTRY SNAPSHOT
+→ PUBLIC VIEW
+→ API
+→ SDK/UI
+
+CURRENT PHASE
+
+Phase 6.4 — Trust Surface Hardening (VERIFY COMPLETE)
+
+System has transitioned from:
+“Certification as a simple status”
+
+To:
+“Certification as a structured, verifiable public record”
+
+And now to:
+“Certification as a cryptographically verifiable protocol”
+
+WHAT IS COMPLETE
+SNOWFLAKE
+
+✔ Core tables established
+✔ Canonical workflow chain complete
+✔ Deterministic scoring engine working
+✔ Decision layer working
+✔ Registry snapshot system working
+
+✔ CORE.V_REGISTRY_PUBLIC updated (Phase 6)
 
-GAFAIG is not a database or dashboard.
+Includes:
 
-GAFAIG is a deterministic trust infrastructure.
+RECORD_TYPE
+RECORD_NAME
+VISIBILITY_STATUS
+VERIFICATION_ELIGIBLE
+BADGE_ELIGIBLE
+LIFECYCLE_STATUS
+Full certification fields
 
----
+✔ Expired records remain visible
+✔ Lifecycle computed in Snowflake
+✔ Eligibility computed in Snowflake
 
-## CORE ARCHITECTURE (LOCKED)
+✔ Deterministic payload foundation established for messageString
 
-GAFAIG is built on a strict two-layer model:
+API
 
-1. PRIVATE VERIFICATION ENGINE (Snowflake)  
-2. PUBLIC TRUST LAYER (Views → API → UI → Widget)  
+✔ /api/verify/[registryId] exists
+✔ Ed25519 signing working
+✔ Public key endpoint working
+✔ CORS enabled
+✔ no-store caching implemented
 
-This separation is absolute and non-negotiable.
+✔ messageString contract enforced
+✔ verification protocol established
 
----
+✔ /api/registry working
+✔ /api/badge exists
 
-## CANONICAL DATA FLOW (LOCKED)
+SDK
 
-APPLICATION  
-→ CASE  
-→ FINDINGS  
-→ EVIDENCE  
-→ EVENTS  
-→ SCORING  
-→ DECISION  
-→ REGISTRY SNAPSHOT  
-→ PUBLIC VIEWS  
-→ API  
-→ UI  
-→ VERIFY  
-→ WIDGET  
+✔ public/sdk/gafaig.js created
+✔ Version 1.2.0
+✔ verify() working
+✔ badge() working
+✔ autoInit working
 
-Rules:
+✔ Browser test successful:
+gafaig.verify("GAFAIG-00363095")
 
-- append-only flow  
-- no back-editing  
-- no re-architecture  
-- every downstream layer reflects upstream truth  
+✔ SDK aligned to verification protocol
+✔ SDK does not compute trust
 
----
+UI
 
-## SOURCE OF TRUTH
+✔ Homepage complete
+✔ Mission page complete
+✔ Framework page updated (Snowflake + NIST alignment)
+✔ Developers page updated (SDK + verification positioning)
+✔ Registry page working
+✔ Verify page hardened (protocol-level)
+✔ Explorer pages working
 
-Snowflake is the single source of truth.
+✔ Layout system normalized
+✔ Footer updated with Snowflake execution messaging
 
-ALL of the following originate ONLY in Snowflake:
+✔ Verify page reflects:
 
-- scoring  
-- certification  
-- lifecycle state  
-- registry publication  
-- trust classification  
+messageString
+signature
+public key verification
+failure states
+CRYPTOGRAPHIC TRUST LAYER
 
-No logic allowed in:
-- API  
-- UI  
-- Widgets  
+✔ Ed25519 signing implemented
+✔ Key ID: gafaig-ed25519-2026-01
+✔ Public key endpoint live
+✔ Signed payload contract defined
 
----
+✔ messageString is canonical
+✔ Signature generated from messageString only
+✔ Verification externally reproducible
 
-## SYSTEM LAYERS
-
-### 1. PRIVATE VERIFICATION ENGINE
-
-Purpose:
-- intake  
-- verification workflow  
-- scoring  
-- decision lifecycle  
-
-Core Tables:
-- CORE.APPLICATIONS  
-- CORE.VERIFICATION_CASES  
-- CORE.VERIFICATION_FINDINGS  
-- CORE.VERIFICATION_EVIDENCE  
-- CORE.VERIFICATION_FINDING_EVIDENCE  
-- CORE.VERIFICATION_EVENTS  
-- CORE.CASE_SCORE_SNAPSHOTS  
-- CORE.DECISIONS  
-
-Characteristics:
-- deterministic  
-- lifecycle-controlled  
-- append-only  
-- NEVER publicly exposed  
-
----
-
-### 2. REGISTRY LAYER
-
-Purpose:
-- store certified outcomes as immutable public records  
-
-Core Tables:
-- CORE.REGISTRY_SNAPSHOTS  
-- CORE.REGISTRY_AI_SYSTEMS  
-
-Characteristics:
-- append-only  
-- immutable  
-- historical trace preserved  
-- REGISTRY_ID persistent  
-
----
-
-### 3. PUBLIC TRUST LAYER (PHASE 4 LOCK)
-
-Purpose:
-- expose certified truth externally  
-- provide cryptographic trust  
-
-Core Views:
-- CORE.V_REGISTRY_PUBLIC  
-- CORE.V_REGISTRY_LATEST_APPROVED  
-- CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC  
-- CORE.V_EXPLORER_STATS  
-
-Characteristics:
-- projection-only  
-- no computation  
-- lifecycle-filtered  
-- certification-enforced  
-- PUBLIC DATA ONLY  
-
----
-
-## 🔒 PUBLIC VS PRIVATE BOUNDARY (LOCKED)
-
-### PUBLIC (ALLOWED)
-
-- registryId  
-- entityName  
-- entityType  
-- country  
-- certificationStatus  
-- certifiedAt  
-- validFrom  
-- validTo  
-- lifecycleStatus  
-- renewalStatus  
-
----
-
-### PRIVATE (FORBIDDEN)
-
-- decision_status  
-- score  
-- tier  
-- band  
-- scoring breakdown  
-- workflow states  
-
-These MUST NEVER appear in:
-
-- V_REGISTRY_PUBLIC  
-- API  
-- UI  
-- Widgets  
-- Verify  
-
----
-
-## TRUST MODEL (LOCKED)
-
-GAFAIG defines three strict states:
-
-### VERIFIED (Internal)
-- workflow complete  
-- structural integrity  
-
-### APPROVED (Internal)
-- scoring complete  
-- governance decision issued  
-
-### CERTIFIED (Public)
-- published to registry  
-- lifecycle-valid  
-- cryptographically verifiable  
-
----
-
-## TRUST AUTHORITY (PHASE 4)
-
-The ONLY trust authority is:
-
-/api/verify/[registryId]
-
-Rules:
-
-- UI must not infer trust  
-- Widgets must not compute trust  
-- Badges must not infer trust  
-- External systems must verify signatures  
-
----
-
-## SIGNATURE SYSTEM
-
-Algorithm:
-- Ed25519  
-
-Verify endpoint:
-- /api/verify/[registryId]  
-
-Public key endpoint:
-- /api/.well-known/gafaig-public-key  
-
-Proof includes:
-- alg  
-- kid  
-- signature  
-- signedAt  
-- message  
-- messageString  
-
-Rules:
-- deterministic message  
-- minimal payload  
-- no private fields  
-- independently verifiable  
-
----
-
-## VERIFY CONTRACT (LOCKED)
-
-Signed message contains ONLY:
-
-{
-  registryId,
-  entityName,
-  certificationStatus,
-  certifiedAt
-}
-
-This is the ONLY cryptographic trust payload.
-
----
-
-## REGISTRY MODEL
-
-Registry is:
-
-- append-only  
-- snapshot-based  
-- immutable  
-
-Rules:
-
-- no updates to snapshots  
-- new state = new snapshot  
-- REGISTRY_ID persists  
-
----
-
-## LIFECYCLE MODEL
-
-Controlled by:
-
-- CORE.DECISIONS  
-- VALID_FROM / VALID_TO  
-- CORE.V_CASE_RENEWAL_STATUS  
-
-Public exposure MUST respect lifecycle validity.
-
----
-
-## API LAYER
-
-Endpoints:
-
-/api/registry  
-/api/registry/search  
-/api/registry/[registryId]  
-/api/explorer  
-/api/verify/[registryId]  
-/api/badge/[registryId]  
-/api/.well-known/gafaig-public-key  
-
-Rules:
-
-- no computation  
-- no trust logic  
-- direct mapping to Snowflake  
-- deterministic outputs  
-
----
-
-## UI SYSTEM
-
-Framework:
-- Next.js App Router  
-- TypeScript  
-
-Rules:
-
-- render-only  
-- no trust computation  
-- no derived state  
-
----
-
-## WIDGET SYSTEM (LOCKED)
+WHAT IS BROKEN OR INCOMPLETE
+🔴 SNOWFLAKE RUN ORDER
 
 Files:
 
-- public/widget/gafaig-widget.js  
-- public/widget/gafaig-verify.js  
-
-Rules:
-
-- must call /api/verify  
-- must not call /api/registry  
-- must not compute trust  
-- must display signed results only  
-
-Widgets are portable trust surfaces.
-
----
-
-## CURRENT STATE (PHASE 4)
-
-System is in:
-
-PRODUCTION + TRUST LOCK
+12_TABLES_PARTICIPANTS.sql
+15_TABLES_EVENTS.sql
 
 Status:
 
-- public contract enforced  
-- private boundary locked  
-- verify endpoint authoritative  
-- registry aligned  
-- explorer aligned  
-- badge aligned  
-- widget aligned  
-- modal aligned  
-- signature system stable  
-- deterministic pipeline verified  
+Previously errored
+Must be fixed before full rebuild
+🔴 BADGE SYSTEM
 
----
+Current state:
 
-## CURRENT PRIORITY
+Static assets incomplete
+Eligibility not fully enforced
 
-1. lock documentation  
-2. enforce zero drift  
-3. validate full pipeline determinism  
-4. maintain Snowflake → API → UI → Verify parity  
-5. prevent any reintroduction of private data into public layers  
+Issues:
 
----
+Badge may misrepresent lifecycle
+Rendering not fully fail-safe
+🔴 TYPES + QUERY LAYER
 
-## SYSTEM GUARANTEES
+Files:
 
-GAFAIG guarantees:
+types/registry.ts
+lib/queries/registry.ts
 
-- deterministic outputs  
-- immutable registry  
-- strict lifecycle enforcement  
-- public/private separation  
-- cryptographic trust verification  
-- portable trust surfaces  
+Status:
 
----
+Require strict alignment verification
 
-## DO NOT BREAK
+Impact:
 
-- canonical data flow  
-- Snowflake authority  
-- append-only registry  
-- trust model separation  
-- verify-only trust surface  
-- signature contract  
-- public/private boundary  
+Potential drift risk if not locked
+WHAT WE ARE DOING NEXT
+STEP 0 (MANDATORY)
 
----
+Fix Snowflake run-order files:
 
-## FINAL RULE
+12_TABLES_PARTICIPANTS.sql
+15_TABLES_EVENTS.sql
+STEP 1
 
-If any layer:
+Lock API + query layer alignment
 
-- computes its own trust  
-- overrides Snowflake  
-- exposes private data  
-- introduces non-determinism  
+Goal:
 
-👉 the system is invalid  
+Exact pass-through from Snowflake
+Zero transformation of trust logic
+STEP 2
 
----
+Finalize badge system
 
-## FINAL STATEMENT
+Goal:
 
-GAFAIG is a deterministic trust infrastructure where:
+Lifecycle-aware rendering
+Eligibility enforcement
+No trust misrepresentation
+STEP 3
 
-Snowflake defines truth  
-API transmits truth  
-UI renders truth  
-Verify proves truth  
-Widget distributes truth  
+Finalize widget system
 
-Trust is not asserted.  
+Goal:
 
-Trust is mathematically and cryptographically proven.
+Fail-closed behavior
+messageString-based verification display
+Full protocol alignment
+STEP 4
 
----
+System-wide validation
 
-END OF FILE
+Goal:
+
+Cross-layer consistency check
+Snowflake → API → SDK → UI alignment
+SYSTEM POSITIONING
+
+GAFAIG is NOT:
+
+a dashboard
+a scoring tool
+a rating system
+a UI product
+
+GAFAIG IS:
+
+a verification system
+a registry of public certification records
+a cryptographic trust layer
+a Snowflake-executed governance engine
+CERTIFICATION MODEL
+
+Approval:
+
+Internal workflow state
+
+Certification:
+
+Public record
+
+Verification:
+
+Cryptographic validation of certification
+RECORD MODEL (PHASE 6)
+
+Certification attaches to a record.
+
+Record types:
+
+ORGANIZATION
+AI_SYSTEM
+PORTFOLIO
+USE_CASE
+
+Implication:
+
+Certification is scoped
+No over-claiming trust
+LIFECYCLE MODEL
+
+Defined in Snowflake:
+
+active
+expired
+revoked
+
+Must NOT be computed elsewhere
+
+CRITICAL:
+Signature proves authenticity
+Lifecycle determines trust state
+
+ELIGIBILITY MODEL
+
+Defined in Snowflake:
+
+verificationEligible
+badgeEligible
+
+Must NOT be computed elsewhere
+
+TRUST MODEL
+
+Trust is based on:
+
+Snowflake public record
+messageString
+signature
+public key verification
+
+NOT based on:
+
+UI
+badges
+widgets
+SDK
+DEPLOYMENT
+
+GitHub:
+GAF2026/gafaig
+
+Vercel:
+gafaig-vercel
+
+Production:
+https://www.gafaig.com
+
+TEST RECORD
+
+GAFAIG-00363095
+
+TEST COMMAND
+
+gafaig.verify("GAFAIG-00363095").then(console.log)
+
+Expected:
+
+verified: true
+proof present
+signature valid
+CURRENT STATUS SUMMARY
+
+✔ Core system architecture complete
+✔ Snowflake execution layer complete
+✔ Verification protocol complete
+✔ SDK aligned
+✔ UI trust surface complete
+
+🔴 Snowflake run-order files need fix
+🔴 Badge system finalization needed
+
+FINAL STATE TARGET
+
+GAFAIG becomes:
+
+deterministic governance engine (Snowflake)
+public registry of verifiable certification records
+cryptographic verification protocol
+developer platform (SDK + API)
+enterprise-scale governance infrastructure
+
+FINAL TRUTH
+
+GAFAIG does not claim trust.
+
+GAFAIG proves it.
