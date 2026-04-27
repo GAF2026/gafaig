@@ -220,7 +220,7 @@ export default async function WidgetPreviewPage({
       <div className="space-y-8">
         <PublicPageHero
           eyebrow="WIDGET PREVIEW"
-          title="See how GAFAIG trust travels outside the platform"
+          title="From verified proof to portable trust"
           description="This page shows how a real GAFAIG record can be displayed on a third-party website through a live widget and verification modal."
           secondaryDescription="The widget preview is part of the GAFAIG proof flow. A record is certified in GAFAIG, verified through signed public proof, and then surfaced as a portable trust signal that can appear outside the originating organization’s platform."
           actions={
@@ -246,6 +246,10 @@ export default async function WidgetPreviewPage({
           }
         />
 
+        <p className="mt-2 text-[15px] text-black/70">
+          The widget does not perform verification. It displays the result of the GAFAIG verification layer.
+        </p>
+
         <div className="max-w-3xl text-[15px] leading-7 text-black/70">
           This is how GAFAIG trust appears outside the originating organization’s platform.
         </div>
@@ -256,7 +260,7 @@ export default async function WidgetPreviewPage({
           </div>
 
           <h2 className="mt-4 max-w-[860px] text-[26px] font-semibold tracking-tight text-black">
-            A public trust signal that can appear anywhere
+            A verified trust signal that can be displayed on any external system
           </h2>
 
           <p className="mt-5 max-w-[980px] text-[16px] leading-[1.85] text-black/75">
@@ -298,22 +302,22 @@ export default async function WidgetPreviewPage({
           <div className="mt-8 grid gap-4 md:grid-cols-4">
             <StepCard
               number="1"
-              title="Certified record"
+              title="Certified registry record"
               body="A GAFAIG record exists in the public registry and can be verified through the public trust surface."
             />
             <StepCard
               number="2"
-              title="Widget script"
+              title="External widget integration"
               body="An external site loads the GAFAIG widget script using the registry identifier."
             />
             <StepCard
               number="3"
-              title="Live trust fetch"
+              title="Live verification fetch"
               body="The widget resolves the live trust data from GAFAIG’s public verification endpoints."
             />
             <StepCard
               number="4"
-              title="Portable proof"
+              title="Portable trust surface"
               body="The site displays a current GAFAIG trust signal without running its own governance verification logic."
             />
           </div>
@@ -364,6 +368,11 @@ export default async function WidgetPreviewPage({
             <h2 className="mt-4 text-[26px] font-semibold tracking-tight text-black">
               Copy and use on a third-party site
             </h2>
+
+            <p className="mt-4 text-[14px] leading-7 text-black/70">
+              The widget displays verified results from the GAFAIG verification endpoint.
+              Independent verification must use the exact signed messageString returned by the API.
+            </p>
 
             <div className="mt-6 space-y-6">
               <div>
@@ -447,10 +456,10 @@ export default async function WidgetPreviewPage({
               Why this matters
             </div>
             <p className="mt-3 text-[15px] leading-[1.85] text-black/75">
-              GAFAIG is not just a place to store trust records. It is a public
-              trust infrastructure layer that allows verified governance outcomes
-              to appear, be reviewed, and be trusted outside the originating
-              organization’s platform.
+              GAFAIG turns verified AI governance into a portable public trust
+              signal. It is a public trust infrastructure layer that allows
+              verified governance outcomes to appear, be reviewed, and be trusted
+              outside the originating organization’s platform.
             </p>
           </div>
         </section>
