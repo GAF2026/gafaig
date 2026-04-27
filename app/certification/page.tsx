@@ -189,7 +189,7 @@ export default function CertificationPage() {
             <PublicButtonLink href="/apply" variant="primary">
               Apply for Certification
             </PublicButtonLink>
-            <PublicButtonLink href="/certification/renewal" variant="secondary">
+            <PublicButtonLink href="/apply" variant="secondary">
               Renewal & Fast-Track
             </PublicButtonLink>
             <PublicButtonLink href="/developers" variant="secondary">
