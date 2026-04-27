@@ -1,176 +1,147 @@
-import { NextResponse } from "next/server";
-import path from "path";
-import { promises as fs } from "fs";
+import { NextRequest, NextResponse } from "next/server";
+import { executeQuery } from "@/lib/snowflake";
+import { requireAdmin } from "@/lib/auth/admin";
 
-type EvidenceRow = {
-  evidenceId: string;
-  caseId: string;
-  evidenceType: string;
-  title: string;
-  description?: string | null;
-  sourceUrl?: string | null;
-  storageRef?: string | null;
-  submittedBy?: string | null;
-  submittedAt?: string | null;
-  createdAt?: string | null;
-};
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
-const DATA_DIR = path.join(process.cwd(), "data");
-const EVIDENCE_FILE = path.join(DATA_DIR, "evidence.json");
-
-async function ensureDataDir() {
-  await fs.mkdir(DATA_DIR, { recursive: true });
+function jsonError(message: string, status = 500) {
+  return NextResponse.json({ ok: false, error: message }, { status });
 }
 
-async function readAllEvidence(): Promise<EvidenceRow[]> {
-  try {
-    const raw = await fs.readFile(EVIDENCE_FILE, "utf8");
-    const parsed = JSON.parse(raw);
-    if (Array.isArray(parsed)) return parsed as EvidenceRow[];
-    return [];
-  } catch (e: any) {
-    if (e?.code === "ENOENT") return [];
-    // If JSON is invalid, fail loudly (better than silent hangs)
-    throw e;
-  }
+function normalizeRows<T = any>(result: any): T[] {
+  if (!result) return [];
+  if (Array.isArray(result)) return result as T[];
+  if (Array.isArray((result as any).rows)) return (result as any).rows as T[];
+  return [];
 }
 
-async function writeAllEvidence(rows: EvidenceRow[]) {
-  await ensureDataDir();
-  await fs.writeFile(EVIDENCE_FILE, JSON.stringify(rows, null, 2), "utf8");
+function extractProcedurePayload(result: any): any | null {
+  const rows = normalizeRows<any>(result);
+  const row = rows?.[0];
+  if (!row) return null;
+  const values = Object.values(row);
+  return values.length > 0 ? values[0] : null;
 }
 
-function nowTs() {
-  return new Date().toISOString();
+function pickStr(v: any) {
+  if (v === null || v === undefined) return "";
+  return String(v);
 }
 
 export async function GET(
-  _req: Request,
-  ctx: { params: { caseId: string } }
+  req: NextRequest,
+  { params }: { params: { caseId: string } }
 ) {
+  if (!requireAdmin(req, true)) {
+    return jsonError("Unauthorized", 401);
+  }
+
   try {
-    const caseId = ctx.params.caseId;
-    const all = await readAllEvidence();
-    const rows = all.filter((r) => r.caseId === caseId);
+    const caseId = String(params?.caseId || "").trim();
+    if (!caseId) return jsonError("Missing caseId", 400);
+
+    const result = await executeQuery(
+      `
+      SELECT
+        EVIDENCE_ID  AS "evidenceId",
+        CASE_ID      AS "caseId",
+        EVIDENCE_TYPE AS "evidenceType",
+        TITLE        AS "title",
+        DESCRIPTION  AS "description",
+        SOURCE_URL   AS "sourceUrl",
+        STORAGE_REF  AS "storageRef",
+        SUBMITTED_BY AS "submittedBy",
+        SUBMITTED_AT AS "submittedAt",
+        CREATED_AT   AS "createdAt",
+        UPDATED_AT   AS "updatedAt"
+      FROM GAFAIG_DB.CORE.VERIFICATION_EVIDENCE
+      WHERE CASE_ID = ?
+      ORDER BY CREATED_AT DESC
+      `,
+      [caseId]
+    );
+
+    const rows = normalizeRows(result);
 
     return NextResponse.json({
       ok: true,
       rows,
       total: rows.length,
-      page: 1,
-      pageSize: 20,
+      source: "snowflake",
     });
   } catch (e: any) {
-    return NextResponse.json(
-      { ok: false, error: e?.message || "GET evidence failed" },
-      { status: 500 }
-    );
+    return jsonError(e?.message ?? "Failed to load evidence");
   }
 }
 
 export async function POST(
-  req: Request,
-  ctx: { params: { caseId: string } }
+  req: NextRequest,
+  { params }: { params: { caseId: string } }
 ) {
+  if (!requireAdmin(req, true)) {
+    return jsonError("Unauthorized", 401);
+  }
+
   try {
-    const caseId = ctx.params.caseId;
+    const caseId = String(params?.caseId || "").trim();
+    if (!caseId) return jsonError("Missing caseId", 400);
+
     const body = await req.json().catch(() => ({}));
 
-    const evidenceType = String(body?.evidenceType || "document");
-    const title = String(body?.title || "").trim();
+    const evidenceType = pickStr(body?.evidenceType).trim() || "document";
+    const title = pickStr(body?.title).trim();
     const description =
-      body?.description === undefined ? null : String(body.description);
-    const sourceUrl = body?.sourceUrl === undefined ? null : String(body.sourceUrl);
+      body?.description === undefined ? null : pickStr(body.description);
+    const sourceUrl =
+      body?.sourceUrl === undefined ? null : pickStr(body.sourceUrl);
 
     if (!title) {
-      return NextResponse.json(
-        { ok: false, error: "Missing title" },
-        { status: 400 }
-      );
+      return jsonError("Missing required field: title", 400);
     }
 
-    const all = await readAllEvidence();
+    const result = await executeQuery(
+      `
+      CALL GAFAIG_DB.CORE.SP_CREATE_EVIDENCE(
+        ?, ?, ?, ?, ?
+      )
+      `,
+      [caseId, evidenceType, title, description, sourceUrl]
+    );
 
-    const row: EvidenceRow = {
-      evidenceId: `EVD-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`,
-      caseId,
-      evidenceType,
-      title,
-      description,
-      sourceUrl,
-      storageRef: null,
-      submittedBy: null,
-      submittedAt: nowTs(),
-      createdAt: nowTs(),
-    };
+    const payload = extractProcedurePayload(result);
 
-    all.push(row);
-    await writeAllEvidence(all);
-
-    const rows = all.filter((r) => r.caseId === caseId);
+    if (!payload?.evidenceId) {
+      return jsonError("Invalid evidence procedure response", 500);
+    }
 
     return NextResponse.json({
       ok: true,
-      row,
-      rows,
-      total: rows.length,
-      page: 1,
-      pageSize: 20,
+      row: {
+        evidenceId: payload.evidenceId,
+        caseId: payload.caseId ?? caseId,
+        evidenceType,
+        title,
+        description,
+        sourceUrl,
+      },
+      source: "snowflake",
     });
   } catch (e: any) {
-    return NextResponse.json(
-      { ok: false, error: e?.message || "POST evidence failed" },
-      { status: 500 }
-    );
+    return jsonError(e?.message ?? "Failed to create evidence");
   }
 }
 
 export async function DELETE(
-  req: Request,
-  ctx: { params: { caseId: string } }
+  req: NextRequest,
+  { params }: { params: { caseId: string } }
 ) {
-  try {
-    const caseId = ctx.params.caseId;
-
-    const { searchParams } = new URL(req.url);
-    const evidenceId = searchParams.get("evidenceId")?.trim();
-
-    if (!evidenceId) {
-      return NextResponse.json(
-        { ok: false, error: "Missing query param: evidenceId" },
-        { status: 400 }
-      );
-    }
-
-    const all = await readAllEvidence();
-    const before = all.length;
-
-    const next = all.filter(
-      (r) => !(r.caseId === caseId && r.evidenceId === evidenceId)
-    );
-
-    if (next.length === before) {
-      return NextResponse.json(
-        { ok: false, error: "Evidence not found" },
-        { status: 404 }
-      );
-    }
-
-    await writeAllEvidence(next);
-
-    const rows = next.filter((r) => r.caseId === caseId);
-
-    return NextResponse.json({
-      ok: true,
-      rows,
-      total: rows.length,
-      page: 1,
-      pageSize: 20,
-    });
-  } catch (e: any) {
-    return NextResponse.json(
-      { ok: false, error: e?.message || "DELETE evidence failed" },
-      { status: 500 }
-    );
+  if (!requireAdmin(req, true)) {
+    return jsonError("Unauthorized", 401);
   }
+
+  return jsonError(
+    "DELETE not yet implemented for Snowflake evidence (intentional fail-closed)",
+    501
+  );
 }
