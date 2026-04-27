@@ -49,7 +49,7 @@ export async function POST(req: Request) {
   try {
     const result = await sfQuery(
       `
-      CALL CORE.SP_CREATE_APPLICATION(
+      CALL GAFAIG_DB.CORE.SP_CREATE_APPLICATION(
         ?, ?, ?, ?, ?
       )
       `,
