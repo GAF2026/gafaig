@@ -21,12 +21,20 @@ function pickStr(v: any) {
   return String(v);
 }
 
-function rand6() {
-  return Math.random().toString(16).slice(2, 8);
+function extractProcedurePayload(result: any): any | null {
+  const rows = normalizeRows<any>(result);
+  const row = rows?.[0];
+
+  if (!row) return null;
+
+  const values = Object.values(row);
+  return values.length > 0 ? values[0] : null;
 }
 
-export async function GET(req: NextRequest, { params }: { params: { caseId: string } }) {
-  // Demo allowed: cookie "demo" or "1"
+export async function GET(
+  req: NextRequest,
+  { params }: { params: { caseId: string } }
+) {
   if (!requireAdmin(req, true)) {
     return jsonError("Unauthorized", 401);
   }
@@ -64,8 +72,10 @@ export async function GET(req: NextRequest, { params }: { params: { caseId: stri
   }
 }
 
-export async function POST(req: NextRequest, { params }: { params: { caseId: string } }) {
-  // Demo allowed: cookie "demo" or "1"
+export async function POST(
+  req: NextRequest,
+  { params }: { params: { caseId: string } }
+) {
   if (!requireAdmin(req, true)) {
     return jsonError("Unauthorized", 401);
   }
@@ -83,30 +93,26 @@ export async function POST(req: NextRequest, { params }: { params: { caseId: str
 
     if (!title) return jsonError("Missing required field: title", 400);
 
-    const findingId = `FND-${Date.now()}-${rand6()}`;
+    const result = await executeQuery(
+      `
+      CALL GAFAIG_DB.CORE.SP_CREATE_FINDING(
+        ?, ?, ?, ?, ?
+      )
+      `,
+      [caseId, title, severity, status, category]
+    );
 
-    // Note: created_at/updated_at set in Snowflake
-    const sql = `
-      INSERT INTO GAFAIG_DB.CORE.VERIFICATION_FINDINGS
-        (FINDING_ID, CASE_ID, TITLE, SEVERITY, STATUS, CATEGORY, CREATED_AT, UPDATED_AT)
-      SELECT
-        ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP(), CURRENT_TIMESTAMP()
-    `;
+    const payload = extractProcedurePayload(result);
 
-    await executeQuery(sql, [
-      findingId,
-      caseId,
-      title,
-      severity,
-      status,
-      category,
-    ]);
+    if (!payload?.findingId) {
+      return jsonError("Invalid finding procedure response", 500);
+    }
 
     return NextResponse.json({
       ok: true,
       row: {
-        findingId,
-        caseId,
+        findingId: payload.findingId,
+        caseId: payload.caseId ?? caseId,
         title,
         severity,
         status,
