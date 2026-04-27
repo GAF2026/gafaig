@@ -256,7 +256,7 @@ export default async function HomePage() {
               Walk Through the Demo
             </PublicButtonLink>
             <PublicButtonLink
-              href="/widget-preview/GAFAIG-00000001"
+              href="/widget-preview/GAFAIG-00363095"
               variant="secondary"
             >
               View Widget Preview
