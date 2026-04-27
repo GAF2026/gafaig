@@ -429,7 +429,7 @@ export default function VerifyPage() {
       <div className="space-y-8">
         <PublicPageHero
           eyebrow="Public verification"
-          title="Verify a GAFAIG record"
+          title="Verify AI governance through signed proof"
           description="Confirm whether a GAFAIG public trust record is valid by registry ID. Verification checks the live record, signed proof, signature, and public trust state."
           secondaryDescription="This page verifies the public certification record only. It confirms that a certified public trust record has been published, that the disclosed proof is signed correctly, and that the result can be independently validated without exposing private evidence or internal review materials."
           actions={
@@ -449,6 +449,10 @@ export default function VerifyPage() {
             </>
           }
         />
+
+        <p className="mt-2 text-[15px] text-black/70">
+          This is the independent proof layer behind GAFAIG certification.
+        </p>
 
         <section className="rounded-3xl border border-black/10 bg-white p-8">
           <div className="max-w-3xl text-[15px] leading-7 text-black/75">
@@ -772,6 +776,11 @@ export default function VerifyPage() {
                 result. External parties can inspect them directly, validate the
                 message string, and confirm that the signature matches the
                 published key.
+              </p>
+
+              <p className="mt-4 text-[14px] leading-7 text-black/70">
+                Verification must use the exact signed messageString returned by the API.
+                Reconstructing payloads from JSON fields invalidates the proof.
               </p>
 
               <div className="mt-8 grid gap-4 md:grid-cols-2">

@@ -11,7 +11,7 @@ export default function DemoPage() {
       <div className="space-y-8">
         <PublicPageHero
           eyebrow="DEMO"
-          title="See how AI governance and human oversight become independently verifiable"
+          title="From AI governance claims to independently verifiable proof"
           description="GAFAIG converts AI governance and human oversight from a private claim into an independently verifiable public trust record. This demo proves the exact sequence from certified record to signed proof to portable trust surface."
           secondaryDescription="This page uses one real GAFAIG record to show how certification is published, verified, and surfaced outside an organization’s platform."
           actions={
@@ -40,7 +40,7 @@ export default function DemoPage() {
           </div>
 
           <h2 className="mt-4 max-w-[860px] text-[26px] font-semibold tracking-tight text-black">
-            Most human oversight in AI systems is still a claim
+            Most AI oversight cannot be independently verified
           </h2>
 
           <p className="mt-5 max-w-[960px] text-[15px] leading-7 text-black/75">
@@ -80,22 +80,22 @@ export default function DemoPage() {
           <div className="mt-8 grid gap-4 md:grid-cols-4">
             <StepCard
               number="1"
-              title="Resolve registry record"
+              title="Resolve certified registry record"
               body="Locate the certified record in the public registry."
             />
             <StepCard
               number="2"
-              title="Fetch verification proof"
+              title="Fetch signed verification payload"
               body="Retrieve the signed verification payload from the API."
             />
             <StepCard
               number="3"
-              title="Validate signature"
+              title="Validate cryptographic signature"
               body="Confirm the record using the public verification key."
             />
             <StepCard
               number="4"
-              title="Render trust surface"
+              title="Render external trust surface"
               body="Display the verified result through a widget or UI."
             />
           </div>
@@ -161,6 +161,9 @@ export default function DemoPage() {
               GAFAIG does not ask the public to trust an internal claim. It
               publishes an independently verifiable public trust record backed by
               signed proof and external validation surfaces.
+            </p>
+            <p className="mt-3 text-[15px] leading-7 text-black/75">
+              Verification must use the exact signed messageString returned by the API. Reconstructing payloads from JSON fields invalidates the proof.
             </p>
           </div>
         </section>
@@ -233,8 +236,11 @@ export default function DemoPage() {
           </h2>
 
           <p className="mt-5 max-w-[980px] text-[15px] leading-7 text-black/75">
-            This is the core idea behind GAFAIG. Instead of asking the public to
-            trust internal claims about oversight, GAFAIG publishes a record that
+            GAFAIG replaces unverifiable governance claims with publicly verifiable proof.
+          </p>
+
+          <p className="mt-4 max-w-[980px] text-[15px] leading-7 text-black/75">
+            Instead of asking the public to trust internal claims about oversight, GAFAIG publishes a record that
             can be reviewed, verified, validated, and used across external
             environments.
           </p>
