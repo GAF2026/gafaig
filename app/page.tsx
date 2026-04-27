@@ -104,7 +104,7 @@ export default async function HomePage() {
                 View Public Records
               </PublicButtonLink>
 
-              <PublicButtonLink href="/apply" variant="secondary">
+              <PublicButtonLink href="/certification" variant="secondary">
                 Get Certified
               </PublicButtonLink>
             </>

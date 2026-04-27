@@ -14,7 +14,7 @@ export default function CertificationPage() {
           secondaryDescription="Certification is evidence-based, scope-defined, and published as a public trust record only when the verified outcome meets GAFAIG requirements. Private evidence, reviewer materials, and internal workflows remain protected."
           actions={
             <>
-              <PublicButtonLink href="/certification/apply" variant="primary">
+              <PublicButtonLink href="/apply" variant="primary">
                 Apply for Certification
               </PublicButtonLink>
               <PublicButtonLink href="/demo" variant="secondary">
@@ -186,7 +186,7 @@ export default function CertificationPage() {
           />
 
           <div className="mt-6 flex flex-wrap gap-3">
-            <PublicButtonLink href="/certification/apply" variant="primary">
+            <PublicButtonLink href="/apply" variant="primary">
               Apply for Certification
             </PublicButtonLink>
             <PublicButtonLink href="/certification/renewal" variant="secondary">
