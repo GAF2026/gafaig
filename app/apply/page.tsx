@@ -11,7 +11,7 @@ export default function ApplyPage() {
       <div className="space-y-8">
         <PublicPageHero
           eyebrow="APPLY"
-          title="Apply for independent verification of human oversight in AI"
+          title="Start the process that turns AI governance into verifiable proof"
           description="GAFAIG certification is for organizations that want credible, third-party proof that meaningful human oversight is actually functioning across their AI operations. Verification is performed inside a controlled private review environment and, if certified, published as an independently verifiable public trust record."
           secondaryDescription="The public registry is not the application system. Intake, evidence review, findings, deterministic scoring, and certification decisions occur inside the private GAFAIG verification engine. Only public certification outcomes and trust surfaces are published."
           actions={
@@ -113,7 +113,7 @@ export default function ApplyPage() {
         <section className="rounded-3xl border border-black/10 bg-white p-8">
           <SectionEyebrow>Submit application</SectionEyebrow>
           <h2 className="mt-4 max-w-[860px] text-[26px] font-semibold tracking-tight text-black">
-            Start your private verification intake
+            Begin the process that can produce a certified public proof record
           </h2>
 
           <p className="mt-4 max-w-[900px] text-[15px] leading-7 text-black/75">
@@ -122,7 +122,9 @@ export default function ApplyPage() {
             your application into the verification workflow. Applying does not
             place your organization in the public registry.
           </p>
-
+          <p className="mt-3 max-w-[900px] text-[15px] leading-7 text-black/70">
+            This is the only entry point into the GAFAIG verification workflow that can result in a publicly verifiable certification record.
+          </p>
           <p className="mt-4 max-w-[900px] text-[15px] leading-7 text-black/68">
             You do not need complete documentation to begin. GAFAIG intake is
             designed to structure the verification process from your current
@@ -149,8 +151,35 @@ export default function ApplyPage() {
             </p>
           </div>
 
-          <div className="mt-8">
-            <ApplyForm />
+          <div className="mt-8 space-y-6">
+
+            <div className="rounded-2xl border border-black/10 bg-white p-6">
+              <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/55">
+                What happens after you submit
+              </div>
+
+              <div className="mt-4 grid gap-3 text-[14px] text-black/75">
+                <div>• A GAFAIG verification case is created</div>
+                <div>• Your submission is reviewed in a private verification environment</div>
+                <div>• You are contacted to continue the structured verification process</div>
+                <div>• Certification is only granted after full evaluation</div>
+              </div>
+            </div>
+
+            <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-6">
+              <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/55">
+                Important
+              </div>
+
+              <p className="mt-3 text-[14px] leading-7 text-black/70">
+                Submitting this form does not publish anything publicly. Your organization only appears in the GAFAIG registry after successful certification and approval.
+              </p>
+            </div>
+
+            <div className="mt-4">
+              <ApplyForm />
+            </div>
+
           </div>
         </section>
 

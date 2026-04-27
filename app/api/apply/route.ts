@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import crypto from "crypto";
 import { sfQuery } from "@/lib/snowflake";
 
 export const runtime = "nodejs";
@@ -16,20 +15,6 @@ type ApplyPayload = {
 
 function clean(value: unknown): string {
   return String(value ?? "").trim();
-}
-
-function normalizeUpper(value: unknown): string {
-  return clean(value).toUpperCase();
-}
-
-function makeId(prefix: string) {
-  const yyyyMMdd =
-    new Date().getFullYear().toString() +
-    String(new Date().getMonth() + 1).padStart(2, "0") +
-    String(new Date().getDate()).padStart(2, "0");
-
-  const rand = crypto.randomBytes(4).toString("hex");
-  return `${prefix}-${yyyyMMdd}-${rand}`.trim().toUpperCase();
 }
 
 export async function POST(req: Request) {
@@ -61,50 +46,35 @@ export async function POST(req: Request) {
     );
   }
 
-  const requestId = makeId("REQ");
-  const applicationId = makeId("APP");
-
   try {
-    await sfQuery(
+    const result = await sfQuery(
       `
-      INSERT INTO GAFAIG_DB.CORE.APPLICATIONS
-      (
-        REQUEST_ID,
-        TYPE,
-        STATUS,
-        ORG_NAME,
-        EMAIL,
-        APPLICATION_ID,
-        ORG_TYPE,
-        COUNTRY
+      CALL CORE.SP_CREATE_APPLICATION(
+        ?, ?, ?, ?, ?
       )
-      SELECT
-        ?,
-        ?,
-        ?,
-        ?,
-        ?,
-        ?,
-        ?,
-        ?
       `,
       [
-        normalizeUpper(requestId),
-        systemName ? clean(systemName) : "AI system application",
-        "received",
+        systemName ? clean(systemName) : "certification",
         clean(orgName),
         clean(email),
-        normalizeUpper(applicationId),
         systemType ? clean(systemType) : "Organization",
         country ? clean(country) : null,
       ]
     );
 
+    // Snowflake returns result as VARIANT in first row/column
+    const row = result?.[0];
+    const payload = row ? Object.values(row)[0] as any : null;
+
+    if (!payload || !payload.REQUEST_ID || !payload.APPLICATION_ID) {
+      throw new Error("Invalid procedure response");
+    }
+
     return NextResponse.json(
       {
         ok: true,
-        requestId: normalizeUpper(requestId),
-        applicationId: normalizeUpper(applicationId),
+        requestId: payload.REQUEST_ID,
+        applicationId: payload.APPLICATION_ID,
         message: "Application received.",
       },
       { headers: { "Cache-Control": "no-store" } }

@@ -28,6 +28,8 @@ export default function ApplyForm() {
       country: String(formData.get("country") || "").trim(),
       systemName: String(formData.get("systemName") || "").trim(),
       systemType: String(formData.get("systemType") || "").trim(),
+      systemDescription: String(formData.get("systemDescription") || "").trim(),
+      deploymentStage: String(formData.get("deploymentStage") || "").trim(),
     };
 
     try {
@@ -107,6 +109,20 @@ export default function ApplyForm() {
           name="systemType"
           placeholder="e.g. LLM, assistant, recommendation engine"
           helpText="A short description of the system category to help GAFAIG route the intake correctly."
+        />
+
+        <FormField
+          label="AI system description"
+          name="systemDescription"
+          placeholder="Briefly describe what the system does and how it is used"
+          helpText="This helps GAFAIG understand system context, risk exposure, and governance scope during intake."
+        />
+
+        <FormField
+          label="Deployment stage"
+          name="deploymentStage"
+          placeholder="e.g. production, pilot, internal use"
+          helpText="Indicate whether the system is in production, testing, or internal use to help prioritize verification scope."
         />
       </div>
 
