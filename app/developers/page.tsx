@@ -389,7 +389,7 @@ export default function DevelopersPage() {
       <div className="space-y-8">
         <PublicPageHero
           eyebrow="DEVELOPERS"
-          title="Verify a GAFAIG record in minutes."
+          title="Integrate independently verifiable AI governance"
           description="GAFAIG provides a verification-first trust surface for AI governance. Fetch a certified public record, inspect its signed proof, and validate it independently."
           secondaryDescription="The SDK is the canonical integration surface. All UI components (badge, widget, modal) are SDK-controlled render layers over the verification endpoint. The public layer exposes certification outcomes only. Internal governance records remain private. Trust is derived from the verification endpoint, signed payload, public key, SDK, widget, badge, and modal surfaces."
           actions={
@@ -409,6 +409,10 @@ export default function DevelopersPage() {
             </>
           }
         />
+
+        <p className="mt-2 text-[15px] text-black/70">
+          GAFAIG provides a signed verification layer that external systems can independently validate.
+        </p>
 
         <JumpNav />
 
@@ -924,7 +928,7 @@ export default function DevelopersPage() {
           <SectionHeading
             eyebrow="WHY THIS MATTERS"
             title="Verification without private disclosure"
-            body="GAFAIG is designed so organizations can prove certified governance outcomes without exposing internal evidence, workflows, or reviewer materials. This makes trust portable while preserving confidentiality."
+            body="GAFAIG enables organizations to prove certified AI governance without exposing internal systems. This makes trust portable while preserving confidentiality."
           />
 
           <div className="mt-6 grid gap-4 md:grid-cols-2">
