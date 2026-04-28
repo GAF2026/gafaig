@@ -3,8 +3,6 @@ export type RegistryRow = {
   registryId: string;
   applicationId: string | null;
   caseId: string | null;
-  recordType: string | null;
-  recordName: string | null;
   entityName: string | null;
   entityType: string | null;
   country: string | null;
@@ -13,9 +11,6 @@ export type RegistryRow = {
   validTo: string | null;
   certifiedAt: string | null;
   lifecycleStatus: string | null;
-  visibilityStatus: string | null;
-  verificationEligible: boolean | string | null;
-  badgeEligible: boolean | string | null;
   renewalStatus: string | null;
   publishedAt: string | null;
 };
@@ -42,13 +37,6 @@ export type RegistryAiSystemRow = {
   applicationId: string | null;
   caseId: string | null;
   registrySnapshotId?: string | null;
-
-  recordType?: string | null;
-  recordName?: string | null;
-  lifecycleStatus?: string | null;
-  visibilityStatus?: string | null;
-  verificationEligible?: boolean | string | null;
-  badgeEligible?: boolean | string | null;
 
   entityName: string | null;
   country: string | null;
@@ -105,8 +93,6 @@ export type BadgeApiResponse =
       registrySnapshotId?: string | null;
       applicationId?: string | null;
       caseId?: string | null;
-      recordType?: string | null;
-      recordName?: string | null;
       entityName: string | null;
       entityType?: string | null;
       country?: string | null;
@@ -115,9 +101,7 @@ export type BadgeApiResponse =
       validFrom?: string | null;
       validTo?: string | null;
       lifecycleStatus?: string | null;
-      visibilityStatus?: string | null;
-      verificationEligible?: boolean | string | null;
-      badgeEligible?: boolean | string | null;
+      badgeEligible?: boolean;
       renewalStatus?: string | null;
       publishedAt?: string | null;
       badge: {
@@ -145,8 +129,6 @@ export type VerifyApiResponse =
         registrySnapshotId: string | null;
         applicationId: string | null;
         caseId: string | null;
-        recordType: string | null;
-        recordName: string | null;
         entityName: string | null;
         entityType: string | null;
         country: string | null;
@@ -157,9 +139,6 @@ export type VerifyApiResponse =
         publishedAt: string | null;
         renewalStatus: string | null;
         lifecycleStatus: string | null;
-        visibilityStatus: string | null;
-        verificationEligible: boolean | string | null;
-        badgeEligible: boolean | string | null;
       };
       proof?: {
         alg: string;

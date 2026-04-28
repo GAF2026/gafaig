@@ -16,8 +16,6 @@ function toRegistryRow(row: RegistryRow): RegistryRow {
     registryId: row.registryId,
     applicationId: row.applicationId ?? null,
     caseId: row.caseId ?? null,
-    recordType: row.recordType ?? null,
-    recordName: row.recordName ?? null,
     entityName: row.entityName ?? null,
     entityType: row.entityType ?? null,
     country: row.country ?? null,
@@ -26,9 +24,6 @@ function toRegistryRow(row: RegistryRow): RegistryRow {
     validTo: row.validTo ?? null,
     certifiedAt: row.certifiedAt ?? null,
     lifecycleStatus: row.lifecycleStatus ?? null,
-    visibilityStatus: row.visibilityStatus ?? null,
-    verificationEligible: row.verificationEligible ?? null,
-    badgeEligible: row.badgeEligible ?? null,
     renewalStatus: row.renewalStatus ?? null,
     publishedAt: row.publishedAt ?? null,
   };
@@ -58,7 +53,7 @@ export async function GET(req: Request) {
 
     const response: RegistryApiResponse = {
       ok: true,
-      rows: rows.map((row) => toRegistryRow(row)),
+      rows: rows.map((row) => toRegistryRow(row as RegistryRow)),
       total: rows.length,
       limit,
       filters: {

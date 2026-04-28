@@ -29,12 +29,6 @@ function toIsoString(value: unknown): string | null {
   return Number.isNaN(date.getTime()) ? null : date.toISOString();
 }
 
-function isTrue(value: unknown): boolean {
-  if (value === true) return true;
-  const normalized = String(value ?? "").trim().toLowerCase();
-  return normalized === "true" || normalized === "1" || normalized === "yes";
-}
-
 export async function OPTIONS() {
   return new NextResponse(null, {
     status: 204,
@@ -80,14 +74,19 @@ export async function GET(
 
     const baseUrl = getBaseUrl();
 
+    const certificationStatus = String(record.certificationStatus ?? "")
+      .trim()
+      .toLowerCase();
+
     const lifecycleStatus = String(record.lifecycleStatus ?? "")
       .trim()
       .toLowerCase();
 
-    const badgeEligible = isTrue(record.badgeEligible);
+    const badgeEligible =
+      certificationStatus === "certified" && lifecycleStatus === "active";
 
     const badgeStatus =
-      badgeEligible && lifecycleStatus === "active"
+      badgeEligible
         ? "certified"
         : lifecycleStatus === "revoked"
           ? "revoked"
@@ -110,8 +109,6 @@ export async function GET(
       registrySnapshotId: record.registrySnapshotId,
       applicationId: record.applicationId,
       caseId: record.caseId,
-      recordType: record.recordType,
-      recordName: record.recordName,
       entityName: record.entityName,
       entityType: record.entityType,
       country: record.country,
@@ -120,9 +117,7 @@ export async function GET(
       validFrom: toIsoString(record.validFrom),
       validTo: toIsoString(record.validTo),
       lifecycleStatus: record.lifecycleStatus,
-      visibilityStatus: record.visibilityStatus,
-      verificationEligible: record.verificationEligible,
-      badgeEligible: record.badgeEligible,
+      badgeEligible,
       renewalStatus: record.renewalStatus,
       publishedAt: toIsoString(record.publishedAt),
       badge: {

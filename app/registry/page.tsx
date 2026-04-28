@@ -53,14 +53,11 @@ function formatLabel(value: string | null | undefined): string {
   return cleaned || "—";
 }
 
+/**
+ * 🔒 HARD LOCK — no fallback logic
+ */
 function getStatusLabel(row: RegistryPageRow): string {
-  const certificationStatus = clean(row.certificationStatus);
-  return certificationStatus || "Certified";
-}
-
-function getCertificationLabel(row: RegistryPageRow): string {
-  const certificationStatus = clean(row.certificationStatus);
-  return certificationStatus || "Certified";
+  return formatLabel(row.certificationStatus);
 }
 
 function FilterChip({
@@ -124,16 +121,7 @@ function RegistryCard({ row }: { row: RegistryPageRow }) {
           </div>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-4">
-          <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
-            <div className="text-[12px] font-semibold uppercase tracking-[0.24em] text-black/40">
-              Certification
-            </div>
-            <div className="mt-3 text-[15px] leading-7 text-black">
-              {getCertificationLabel(row)}
-            </div>
-          </div>
-
+        <div className="grid gap-4 md:grid-cols-3">
           <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
             <div className="text-[12px] font-semibold uppercase tracking-[0.24em] text-black/40">
               Certified
@@ -291,140 +279,21 @@ export default async function RegistryPage({
               The registry is the public index of certified records
             </h2>
             <p className="text-[15px] leading-7 text-black/75">
-              Each entry in the Registry of Record represents a published GAFAIG
-              public certification record that can be independently verified
-              outside the originating organization’s platform.
-            </p>
-            <p className="text-[15px] leading-7 text-black/75">
-              Use Registry when you want to inspect a specific certified public
-              record. Explorer is the broader discovery surface for browsing the
-              public trust footprint across organizations, countries, and systems.
-            </p>
-            <p className="text-[15px] leading-7 text-black/75">
-              The Registry of Record is reserved for public certification records
-              that have already been finalized and published. Internal workflow
-              approval remains upstream. The public registry only exposes the
-              certified trust surface.
+              Each entry represents a published GAFAIG certification record that can be independently verified.
             </p>
           </div>
         </section>
 
         <section className="rounded-3xl border border-black/10 bg-white p-8">
-          <div className="space-y-5">
-            <div>
-              <div className="text-xs font-semibold uppercase tracking-[0.24em] text-black/40">
-                Filter registry records
-              </div>
-              <h2 className="mt-3 text-[26px] font-semibold tracking-tight text-black">
-                Narrow the certified public record index
-              </h2>
+          {rows.length === 0 ? (
+            <EmptyState />
+          ) : (
+            <div className="grid gap-6">
+              {rows.map((row) => (
+                <RegistryCard key={row.registryId} row={row} />
+              ))}
             </div>
-
-            <form className="grid gap-4 md:grid-cols-2 xl:grid-cols-3" method="GET">
-              <div>
-                <label className="text-[11px] font-semibold uppercase tracking-[0.18em] text-black/35">
-                  Search
-                </label>
-                <input
-                  name="q"
-                  defaultValue={q}
-                  className="mt-2 w-full rounded-2xl border border-black/10 bg-black/[0.02] px-4 py-3 text-sm text-black outline-none"
-                  placeholder="Entity, country, registry ID"
-                />
-              </div>
-
-              <div>
-                <label className="text-[11px] font-semibold uppercase tracking-[0.18em] text-black/35">
-                  Country
-                </label>
-                <select
-                  name="country"
-                  defaultValue={country}
-                  className="mt-2 w-full rounded-2xl border border-black/10 bg-black/[0.02] px-4 py-3 text-sm text-black outline-none"
-                >
-                  <option value="">All countries</option>
-                  {options.countries.map((value) => (
-                    <option key={value} value={value}>
-                      {value}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="text-[11px] font-semibold uppercase tracking-[0.18em] text-black/35">
-                  Organization
-                </label>
-                <select
-                  name="organization"
-                  defaultValue={organization}
-                  className="mt-2 w-full rounded-2xl border border-black/10 bg-black/[0.02] px-4 py-3 text-sm text-black outline-none"
-                >
-                  <option value="">All organizations</option>
-                  {options.organizations.map((value) => (
-                    <option key={value} value={value}>
-                      {value}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="flex flex-wrap items-end gap-3 xl:col-span-3">
-                <button
-                  type="submit"
-                  className="inline-flex min-h-[42px] items-center justify-center rounded-full border border-black/20 bg-white px-5 text-sm font-semibold text-black transition hover:bg-black hover:text-white"
-                >
-                  Apply filters
-                </button>
-
-                <Link
-                  href="/registry"
-                  className="inline-flex min-h-[42px] items-center justify-center rounded-full border border-black/20 bg-white px-5 text-sm font-semibold text-black transition hover:bg-black hover:text-white"
-                >
-                  Clear all
-                </Link>
-              </div>
-            </form>
-
-            {activeFilters.length > 0 ? (
-              <div className="flex flex-wrap gap-2 pt-1">
-                {activeFilters.map((filter) => (
-                  <FilterChip
-                    key={`${filter.label}-${filter.value}`}
-                    label={filter.label}
-                    value={filter.value}
-                  />
-                ))}
-              </div>
-            ) : null}
-          </div>
-        </section>
-
-        <section className="rounded-3xl border border-black/10 bg-white p-8">
-          <div className="space-y-5">
-            <div className="flex flex-wrap items-end justify-between gap-4">
-              <div>
-                <div className="text-xs font-semibold uppercase tracking-[0.24em] text-black/40">
-                  Certified records
-                </div>
-                <h2 className="mt-3 text-[26px] font-semibold tracking-tight text-black">
-                  {rows.length} public {rows.length === 1 ? "record" : "records"}
-                </h2>
-              </div>
-            </div>
-
-            {!hasAnyFilters && rows.length === 0 ? (
-              <EmptyState />
-            ) : rows.length === 0 ? (
-              <EmptyState />
-            ) : (
-              <div className="grid gap-6">
-                {rows.map((row) => (
-                  <RegistryCard key={row.registryId} row={row} />
-                ))}
-              </div>
-            )}
-          </div>
+          )}
         </section>
       </div>
     </main>
