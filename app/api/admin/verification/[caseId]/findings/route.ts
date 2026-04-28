@@ -45,17 +45,17 @@ export async function GET(
 
     const sql = `
       SELECT
-        finding_id   AS "findingId",
-        case_id      AS "caseId",
-        title        AS "title",
-        severity     AS "severity",
-        status       AS "status",
-        category     AS "category",
-        created_at   AS "createdAt",
-        updated_at   AS "updatedAt"
+        FINDING_ID     AS "findingId",
+        CASE_ID        AS "caseId",
+        CONTROL_TITLE  AS "title",
+        SEVERITY       AS "severity",
+        RESULT         AS "status",
+        CONTROL_ID     AS "category",
+        CREATED_AT     AS "createdAt",
+        UPDATED_AT     AS "updatedAt"
       FROM GAFAIG_DB.CORE.VERIFICATION_FINDINGS
-      WHERE case_id = ?
-      ORDER BY created_at DESC
+      WHERE CASE_ID = ?
+      ORDER BY CREATED_AT DESC
     `;
 
     const result = await executeQuery(sql, [caseId]);

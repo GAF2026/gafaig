@@ -52,10 +52,14 @@ type ScoreResponse =
       suggestions?: string[];
     };
 
-async function fetchJson(url: string) {
+async function fetchJson(url: string, init?: RequestInit) {
   const res = await fetch(url, {
     cache: "no-store",
     credentials: "include",
+    ...init,
+    headers: {
+      ...(init?.headers || {}),
+    },
   });
 
   const text = await res.text();
@@ -101,28 +105,6 @@ function pillClass(value?: string | null) {
   return "bg-gray-50 text-gray-800 border-gray-200";
 }
 
-function MetricCard({
-  label,
-  value,
-  body,
-}: {
-  label: string;
-  value: string;
-  body: string;
-}) {
-  return (
-    <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
-      <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/55">
-        {label}
-      </div>
-      <div className="mt-3 text-[26px] font-semibold tracking-tight text-black">
-        {value}
-      </div>
-      <div className="mt-3 text-[14px] leading-7 text-black/65">{body}</div>
-    </div>
-  );
-}
-
 export default function CaseOverviewPage() {
   const params = useParams();
   const caseIdParam = params?.caseId;
@@ -131,7 +113,10 @@ export default function CaseOverviewPage() {
     : String(caseIdParam ?? "");
 
   const [loading, setLoading] = React.useState(true);
+  const [creatingEvidence, setCreatingEvidence] = React.useState(false);
+  const [creatingFinding, setCreatingFinding] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
+  const [success, setSuccess] = React.useState<string | null>(null);
 
   const [evidenceCount, setEvidenceCount] = React.useState<number>(0);
   const [findingsCount, setFindingsCount] = React.useState<number>(0);
@@ -146,7 +131,7 @@ export default function CaseOverviewPage() {
 
     try {
       const evidenceUrl = `/api/admin/verification/${encodeURIComponent(caseId)}/evidence`;
-      const findingsUrl = `/api/admin/verification/findings?caseId=${encodeURIComponent(caseId)}`;
+      const findingsUrl = `/api/admin/verification/${encodeURIComponent(caseId)}/findings`;
       const decisionUrl = `/api/admin/verification/decisions?caseId=${encodeURIComponent(caseId)}`;
       const scoreUrl = `/api/admin/verification/${encodeURIComponent(caseId)}/score`;
 
@@ -158,10 +143,16 @@ export default function CaseOverviewPage() {
       ]);
 
       if (!e.data?.ok) {
+        if (e.res.status === 401) {
+          throw new Error("Unauthorized (admin cookie missing)");
+        }
         throw new Error(e.data?.error || "Failed to load evidence");
       }
 
       if (!f.data?.ok) {
+        if (f.res.status === 401) {
+          throw new Error("Unauthorized (admin cookie missing)");
+        }
         throw new Error(f.data?.error || "Failed to load findings");
       }
 
@@ -175,12 +166,7 @@ export default function CaseOverviewPage() {
         setDecision(d.data?.row ?? null);
       }
 
-      if (!s.data?.ok) {
-        setScore(s.data as ScoreResponse);
-      } else {
-        setScore(s.data as ScoreResponse);
-      }
-
+      setScore(s.data as ScoreResponse);
       setEvidenceCount(Array.isArray(e.data.rows) ? e.data.rows.length : 0);
       setFindingsCount(Array.isArray(f.data.rows) ? f.data.rows.length : 0);
     } catch (err: any) {
@@ -191,6 +177,81 @@ export default function CaseOverviewPage() {
       setScore(null);
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function createTestEvidence() {
+    if (!caseId || creatingEvidence) return;
+
+    setCreatingEvidence(true);
+    setError(null);
+    setSuccess(null);
+
+    try {
+      const { res, data } = await fetchJson(
+        `/api/admin/verification/${encodeURIComponent(caseId)}/evidence`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            title: "Test Evidence",
+            evidenceType: "document",
+            sourceUrl: "https://example.com",
+          }),
+        }
+      );
+
+      if (!data?.ok) {
+        if (res.status === 401) {
+          throw new Error("Unauthorized (admin cookie missing)");
+        }
+        throw new Error(data?.error || "Failed to create evidence");
+      }
+
+      setSuccess("Test evidence created.");
+      await load();
+    } catch (err: any) {
+      setError(err?.message || String(err));
+    } finally {
+      setCreatingEvidence(false);
+    }
+  }
+
+  async function createTestFinding() {
+    if (!caseId || creatingFinding) return;
+
+    setCreatingFinding(true);
+    setError(null);
+    setSuccess(null);
+
+    try {
+      const { res, data } = await fetchJson(
+        `/api/admin/verification/${encodeURIComponent(caseId)}/findings`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            title: "Test Finding",
+            severity: "medium",
+            status: "open",
+            category: "governance",
+          }),
+        }
+      );
+
+      if (!data?.ok) {
+        if (res.status === 401) {
+          throw new Error("Unauthorized (admin cookie missing)");
+        }
+        throw new Error(data?.error || "Failed to create finding");
+      }
+
+      setSuccess(`Test finding created: ${data?.row?.findingId || "created"}.`);
+      await load();
+    } catch (err: any) {
+      setError(err?.message || String(err));
+    } finally {
+      setCreatingFinding(false);
     }
   }
 
@@ -217,11 +278,7 @@ export default function CaseOverviewPage() {
           meta={loading ? "Loading…" : `Status: ${statusLabel}`}
           actions={
             <div className="flex flex-wrap gap-3">
-              <PublicButton
-                onClick={load}
-                variant="secondary"
-                size="sm"
-              >
+              <PublicButton onClick={load} variant="secondary" size="sm">
                 {loading ? "Loading…" : "Refresh"}
               </PublicButton>
 
@@ -295,6 +352,15 @@ export default function CaseOverviewPage() {
           </div>
         </section>
 
+        {success ? (
+          <div className="mb-6 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3">
+            <div className="text-[14px] font-semibold text-emerald-800">
+              Success
+            </div>
+            <div className="mt-1 text-[14px] text-black/80">{success}</div>
+          </div>
+        ) : null}
+
         {error ? (
           <div className="mb-6 rounded-2xl border border-red-200 bg-red-50 px-4 py-3">
             <div className="text-[14px] font-semibold text-red-700">Error</div>
@@ -317,35 +383,71 @@ export default function CaseOverviewPage() {
         ) : null}
 
         <section className="grid gap-4 md:grid-cols-5">
-          <Link
-            href={`/admin/verification/${encodeURIComponent(caseId)}/evidence`}
-            className="rounded-2xl border border-black/10 bg-white p-5 hover:bg-black/[0.02]"
-          >
-            <div className="text-[12px] font-semibold uppercase tracking-[0.12em] text-black/55">
-              Evidence
-            </div>
-            <div className="mt-3 text-[44px] font-semibold leading-none text-black">
-              {loading ? "—" : evidenceCount}
-            </div>
-            <div className="mt-3 text-[14px] leading-7 text-black/65">
-              Add evidence, manage artifacts, and connect support to the case record.
-            </div>
-          </Link>
+          <div className="rounded-2xl border border-black/10 bg-white p-5">
+            <Link
+              href={`/admin/verification/${encodeURIComponent(caseId)}/evidence`}
+              className="block hover:bg-black/[0.02]"
+            >
+              <div className="text-[12px] font-semibold uppercase tracking-[0.12em] text-black/55">
+                Evidence
+              </div>
+              <div className="mt-3 text-[44px] font-semibold leading-none text-black">
+                {loading ? "—" : evidenceCount}
+              </div>
+              <div className="mt-3 text-[14px] leading-7 text-black/65">
+                Add evidence, manage artifacts, and connect support to the case record.
+              </div>
+            </Link>
 
-          <Link
-            href={`/admin/verification/${encodeURIComponent(caseId)}/findings`}
-            className="rounded-2xl border border-black/10 bg-white p-5 hover:bg-black/[0.02]"
-          >
-            <div className="text-[12px] font-semibold uppercase tracking-[0.12em] text-black/55">
-              Findings
+            <div className="mt-4">
+              <button
+                type="button"
+                onClick={createTestEvidence}
+                disabled={creatingEvidence || loading}
+                className={cx(
+                  "rounded px-3 py-2 text-white",
+                  creatingEvidence || loading
+                    ? "cursor-not-allowed bg-black/40"
+                    : "bg-black hover:bg-black/80"
+                )}
+              >
+                {creatingEvidence ? "Adding…" : "Add Test Evidence"}
+              </button>
             </div>
-            <div className="mt-3 text-[44px] font-semibold leading-none text-black">
-              {loading ? "—" : findingsCount}
+          </div>
+
+          <div className="rounded-2xl border border-black/10 bg-white p-5">
+            <Link
+              href={`/admin/verification/${encodeURIComponent(caseId)}/findings`}
+              className="block hover:bg-black/[0.02]"
+            >
+              <div className="text-[12px] font-semibold uppercase tracking-[0.12em] text-black/55">
+                Findings
+              </div>
+              <div className="mt-3 text-[44px] font-semibold leading-none text-black">
+                {loading ? "—" : findingsCount}
+              </div>
+              <div className="mt-3 text-[14px] leading-7 text-black/65">
+                Review controls, document evaluations, and capture governance conclusions.
+              </div>
+            </Link>
+
+            <div className="mt-4">
+              <button
+                type="button"
+                onClick={createTestFinding}
+                disabled={creatingFinding || loading}
+                className={cx(
+                  "rounded px-3 py-2 text-white",
+                  creatingFinding || loading
+                    ? "cursor-not-allowed bg-black/40"
+                    : "bg-black hover:bg-black/80"
+                )}
+              >
+                {creatingFinding ? "Creating…" : "Create Test Finding"}
+              </button>
             </div>
-            <div className="mt-3 text-[14px] leading-7 text-black/65">
-              Review controls, document evaluations, and capture governance conclusions.
-            </div>
-          </Link>
+          </div>
 
           <Link
             href={`/admin/verification/${encodeURIComponent(caseId)}/score`}
@@ -400,19 +502,24 @@ export default function CaseOverviewPage() {
 
           <ul className="mt-4 list-disc space-y-2 pl-5 text-[14px] leading-7 text-black/70">
             <li>
-              Open <span className="font-semibold text-black">Evidence</span> to add documents, URLs, and supporting artifacts.
+              Open <span className="font-semibold text-black">Evidence</span> to
+              add documents, URLs, and supporting artifacts.
             </li>
             <li>
-              Open <span className="font-semibold text-black">Findings</span> to evaluate controls and document review results.
+              Open <span className="font-semibold text-black">Findings</span> to
+              evaluate controls and document review results.
             </li>
             <li>
-              Open <span className="font-semibold text-black">Score</span> to confirm canonical enterprise scoring results.
+              Open <span className="font-semibold text-black">Score</span> to
+              confirm canonical enterprise scoring results.
             </li>
             <li>
-              Open <span className="font-semibold text-black">Decision</span> to finalize the case outcome and audit trail.
+              Open <span className="font-semibold text-black">Decision</span> to
+              finalize the case outcome and audit trail.
             </li>
             <li>
-              Open <span className="font-semibold text-black">Publish</span> to move an approved case into the public registry pipeline.
+              Open <span className="font-semibold text-black">Publish</span> to
+              move an approved case into the public registry pipeline.
             </li>
           </ul>
         </section>
