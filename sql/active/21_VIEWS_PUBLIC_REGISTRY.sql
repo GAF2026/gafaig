@@ -1,98 +1,133 @@
--- ============================================================
--- 21_VIEWS_PUBLIC_REGISTRY.sql
---
--- Purpose:
---   Canonical public registry views
---   - Uses stable REGISTRY_ID from REGISTRY_ENTITIES
---   - Built on approved registry snapshots
---   - Provides public-facing registry surfaces
--- ============================================================
-
 USE ROLE ACCOUNTADMIN;
 USE WAREHOUSE GAFAIG_WH;
 USE DATABASE GAFAIG_DB;
 USE SCHEMA CORE;
 
--- ------------------------------------------------------------
--- 1) Canonical public registry view (stable IDs)
--- ------------------------------------------------------------
-CREATE OR REPLACE VIEW GAFAIG_DB.CORE.V_REGISTRY_PUBLIC AS
+CREATE OR REPLACE VIEW CORE.V_REGISTRY_PUBLIC AS
+WITH LATEST_DECISION AS (
+    SELECT
+        UPPER(TRIM(COALESCE(CASE_ID, ''))) AS CASE_ID_NORM,
+        CASE_ID,
+        APPLICATION_ID,
+        UPPER(TRIM(COALESCE(DECISION_STATUS, ''))) AS DECISION_STATUS,
+        VALID_FROM,
+        VALID_TO,
+        CREATED_AT,
+        ROW_NUMBER() OVER (
+            PARTITION BY UPPER(TRIM(COALESCE(CASE_ID, '')))
+            ORDER BY CREATED_AT DESC, DECISION_ID DESC
+        ) AS RN
+    FROM CORE.DECISIONS
+    WHERE TRIM(COALESCE(CASE_ID, '')) <> ''
+),
+LATEST_REGISTRY_SNAPSHOT AS (
+    SELECT
+        UPPER(TRIM(COALESCE(CASE_ID, ''))) AS CASE_ID_NORM,
+        REGISTRY_SNAPSHOT_ID,
+        REGISTRY_ID,
+        ORG_ID,
+        CASE_ID,
+        ENTITY_NAME,
+        VERIFICATION_TYPE,
+        MODEL_VERSION,
+        SCORE,
+        TIER,
+        BAND,
+        RENEWAL_STATUS,
+        APPROVED_AT,
+        PUBLISHED_AT,
+        CREATED_AT,
+        ROW_NUMBER() OVER (
+            PARTITION BY UPPER(TRIM(COALESCE(CASE_ID, '')))
+            ORDER BY CREATED_AT DESC, REGISTRY_SNAPSHOT_ID DESC
+        ) AS RN
+    FROM CORE.REGISTRY_SNAPSHOTS
+    WHERE TRIM(COALESCE(CASE_ID, '')) <> ''
+),
+CASE_ENRICHMENT AS (
+    SELECT
+        UPPER(TRIM(COALESCE(vc.CASE_ID, ''))) AS CASE_ID_NORM,
+        vc.CASE_ID,
+        vc.APPLICATION_ID,
+        vc.ENTITY_NAME AS CASE_ENTITY_NAME,
+        ROW_NUMBER() OVER (
+            PARTITION BY UPPER(TRIM(COALESCE(vc.CASE_ID, '')))
+            ORDER BY vc.CASE_ID DESC
+        ) AS RN
+    FROM CORE.VERIFICATION_CASES vc
+    WHERE TRIM(COALESCE(vc.CASE_ID, '')) <> ''
+),
+APPLICATION_ENRICHMENT AS (
+    SELECT
+        UPPER(TRIM(COALESCE(a.APPLICATION_ID, ''))) AS APPLICATION_ID_NORM,
+        a.APPLICATION_ID,
+        a.COUNTRY,
+        a.ORG_TYPE AS ENTITY_TYPE,
+        a.ORG_NAME AS APPLICATION_ENTITY_NAME,
+        ROW_NUMBER() OVER (
+            PARTITION BY UPPER(TRIM(COALESCE(a.APPLICATION_ID, '')))
+            ORDER BY a.CREATED_AT DESC, a.APPLICATION_ID DESC
+        ) AS RN
+    FROM CORE.APPLICATIONS a
+    WHERE TRIM(COALESCE(a.APPLICATION_ID, '')) <> ''
+)
 SELECT
-  re.REGISTRY_ID                                   AS REGISTRY_ID,
-  v.APPLICATION_ID                                 AS APPLICATION_ID,
-  v.CASE_ID                                        AS CASE_ID,
+    rs.REGISTRY_SNAPSHOT_ID                                           AS REGISTRY_SNAPSHOT_ID,
+    rs.REGISTRY_ID                                                    AS REGISTRY_ID,
+    rs.CASE_ID                                                        AS CASE_ID,
+    COALESCE(ld.APPLICATION_ID, ce.APPLICATION_ID, ae.APPLICATION_ID) AS APPLICATION_ID,
 
-  -- Entity
-  COALESCE(re.ENTITY_NAME, p.NAME)                AS ENTITY_NAME,
-  re.ENTITY_TYPE                                   AS ENTITY_TYPE,
-  re.COUNTRY                                       AS COUNTRY,
+    COALESCE(
+        NULLIF(rs.ENTITY_NAME, ''),
+        NULLIF(ce.CASE_ENTITY_NAME, ''),
+        NULLIF(ae.APPLICATION_ENTITY_NAME, '')
+    )                                                                 AS ENTITY_NAME,
 
-  -- Certification outcome
-  v.TIER                                           AS CERTIFIED_TIER,
-  v.BAND                                           AS CERTIFIED_BAND,
-  v.FINAL_SCORE                                    AS CERTIFIED_SCORE,
-  v.APPROVED_AT                                    AS CERTIFIED_AT,
-  v.CASE_STATUS                                    AS DECISION_STATUS,
+    ae.ENTITY_TYPE                                                    AS ENTITY_TYPE,
+    ae.COUNTRY                                                        AS COUNTRY,
 
-  -- Validity
-  v.APPROVED_AT                                    AS VALID_FROM,
-  NULL                                             AS VALID_TO,
+    'CERTIFIED'                                                       AS CERTIFICATION_STATUS,
 
-  -- Metadata
-  v.LAST_ACTIVITY_AT                               AS LAST_ACTIVITY_AT,
-  v.SNAPSHOT_ID                                    AS SNAPSHOT_ID
+    rs.TIER                                                           AS CERTIFIED_TIER,
+    rs.BAND                                                           AS CERTIFIED_BAND,
 
-FROM GAFAIG_DB.CORE.REGISTRY_ENTITIES re
-JOIN GAFAIG_DB.CORE.V_REGISTRY_LATEST_APPROVED v
-  ON v.APPLICATION_ID = re.APPLICATION_ID
-LEFT JOIN GAFAIG_DB.CORE.VERIFICATION_CASES vc
-  ON vc.CASE_ID = v.CASE_ID
-LEFT JOIN GAFAIG_DB.CORE.PARTICIPANTS p
-  ON p.PARTICIPANT_ID = vc.PARTICIPANT_ID
+    COALESCE(rs.PUBLISHED_AT, rs.APPROVED_AT)                         AS CERTIFIED_AT,
 
-WHERE UPPER(v.CASE_STATUS) = 'APPROVED';
+    ld.VALID_FROM                                                     AS VALID_FROM,
+    ld.VALID_TO                                                       AS VALID_TO,
 
--- ------------------------------------------------------------
--- 2) Public-facing simplified view
--- ------------------------------------------------------------
-CREATE OR REPLACE VIEW GAFAIG_DB.CORE.V_PUBLIC_REGISTRY AS
-SELECT
-  REGISTRY_ID                                     AS REGISTRY_RECORD_ID,
-  ENTITY_NAME,
-  ENTITY_TYPE,
-  COUNTRY,
+    COALESCE(rs.PUBLISHED_AT, rs.APPROVED_AT)                         AS PUBLISHED_AT,
 
-  CERTIFIED_TIER,
-  CERTIFIED_BAND,
-  CERTIFIED_SCORE,
+    rs.RENEWAL_STATUS                                                 AS RENEWAL_STATUS,
 
-  CERTIFIED_AT,
-  DECISION_STATUS,
+    CASE
+        WHEN ld.VALID_TO IS NULL OR ld.VALID_TO > CURRENT_TIMESTAMP()
+        THEN 'active'
+        ELSE 'expired'
+    END                                                               AS LIFECYCLE_STATUS
 
-  VALID_FROM,
-  VALID_TO,
-  LAST_ACTIVITY_AT
-FROM GAFAIG_DB.CORE.V_REGISTRY_PUBLIC;
+FROM LATEST_REGISTRY_SNAPSHOT rs
 
--- ------------------------------------------------------------
--- 3) Export view (optional)
--- ------------------------------------------------------------
-CREATE OR REPLACE VIEW GAFAIG_DB.CORE.V_REGISTRY_EXPORT_V1 AS
-SELECT *
-FROM GAFAIG_DB.CORE.V_REGISTRY_PUBLIC;
+INNER JOIN LATEST_DECISION ld
+    ON rs.CASE_ID_NORM = ld.CASE_ID_NORM
+   AND ld.RN = 1
 
--- ------------------------------------------------------------
--- 4) Grants
--- ------------------------------------------------------------
-GRANT SELECT ON VIEW GAFAIG_DB.CORE.V_REGISTRY_PUBLIC
-TO ROLE GAFAIG_APP_ROLE;
+LEFT JOIN CASE_ENRICHMENT ce
+    ON rs.CASE_ID_NORM = ce.CASE_ID_NORM
+   AND ce.RN = 1
 
-GRANT SELECT ON VIEW GAFAIG_DB.CORE.V_PUBLIC_REGISTRY
-TO ROLE GAFAIG_APP_ROLE;
+LEFT JOIN APPLICATION_ENRICHMENT ae
+    ON UPPER(TRIM(COALESCE(COALESCE(ld.APPLICATION_ID, ce.APPLICATION_ID), ''))) = ae.APPLICATION_ID_NORM
+   AND ae.RN = 1
 
-GRANT SELECT ON VIEW GAFAIG_DB.CORE.V_REGISTRY_EXPORT_V1
-TO ROLE GAFAIG_APP_ROLE;
+WHERE rs.RN = 1
+  AND TRIM(COALESCE(rs.REGISTRY_ID, '')) <> ''
+  AND ld.DECISION_STATUS = 'APPROVED'
+  AND (
+        ld.VALID_TO IS NULL
+        OR ld.VALID_TO > CURRENT_TIMESTAMP()
+      )
+;
 
--- ============================================================
--- END
--- ============================================================
+COMMENT ON VIEW CORE.V_REGISTRY_PUBLIC IS
+'GAFAIG canonical public registry view. Surfaces only currently valid certified public records from the latest registry snapshot per CASE_ID. Includes CERTIFIED_TIER and CERTIFIED_BAND derived from the registry snapshot. Internal approval remains a private gate and is not exposed in the public contract.';
