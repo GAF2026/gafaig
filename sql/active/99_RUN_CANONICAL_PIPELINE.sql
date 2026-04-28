@@ -167,29 +167,16 @@ LIMIT 25;
 -- 08. REGISTRY QUERY SMOKE TESTS
 -- =========================================================
 
-SELECT
-  REGISTRY_ID,
-  CASE_ID,
-  ENTITY_NAME,
-  CERTIFICATION_STATUS,
-  CERTIFIED_TIER,
-  CERTIFIED_BAND,
-  PUBLISHED_AT
+SELECT *
 FROM GAFAIG_DB.CORE.V_REGISTRY_PUBLIC
-ORDER BY PUBLISHED_AT DESC
 LIMIT 10;
 
 -- =========================================================
 -- 09. SCORE QUERY SMOKE TEST
 -- =========================================================
 
-SELECT
-  CASE_ID,
-  FINAL_SCORE,
-  CERTIFIED_TIER,
-  CERTIFIED_BAND
+SELECT *
 FROM GAFAIG_DB.CORE.V_GOVERNANCE_SCORE_CASE
-ORDER BY CASE_ID
 LIMIT 10;
 
 -- =========================================================
