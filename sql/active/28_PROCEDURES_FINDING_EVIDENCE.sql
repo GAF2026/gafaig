@@ -1,0 +1,83 @@
+-- 28_PROCEDURES_FINDING_EVIDENCE.sql
+-- Canonical: Finding ↔ Evidence linking
+
+USE DATABASE GAFAIG_DB;
+USE SCHEMA CORE;
+
+-- =========================================
+-- LINK FINDING → EVIDENCE
+-- =========================================
+CREATE OR REPLACE PROCEDURE CORE.SP_LINK_FINDING_EVIDENCE(
+    P_CASE_ID STRING,
+    P_FINDING_ID STRING,
+    P_EVIDENCE_ID STRING
+)
+RETURNS VARIANT
+LANGUAGE SQL
+EXECUTE AS OWNER
+AS
+$$
+BEGIN
+
+    -- Idempotent insert
+    INSERT INTO CORE.VERIFICATION_FINDING_EVIDENCE (
+        FINDING_ID,
+        EVIDENCE_ID,
+        CREATED_AT
+    )
+    SELECT
+        :P_FINDING_ID,
+        :P_EVIDENCE_ID,
+        CURRENT_TIMESTAMP()
+    WHERE NOT EXISTS (
+        SELECT 1
+        FROM CORE.VERIFICATION_FINDING_EVIDENCE
+        WHERE FINDING_ID = :P_FINDING_ID
+          AND EVIDENCE_ID = :P_EVIDENCE_ID
+    );
+
+    RETURN OBJECT_CONSTRUCT(
+        'findingId', :P_FINDING_ID,
+        'evidenceId', :P_EVIDENCE_ID,
+        'linked', TRUE
+    );
+
+END;
+$$;
+
+-- =========================================
+-- UNLINK FINDING → EVIDENCE
+-- =========================================
+CREATE OR REPLACE PROCEDURE CORE.SP_UNLINK_FINDING_EVIDENCE(
+    P_CASE_ID STRING,
+    P_FINDING_ID STRING,
+    P_EVIDENCE_ID STRING
+)
+RETURNS VARIANT
+LANGUAGE SQL
+EXECUTE AS OWNER
+AS
+$$
+BEGIN
+
+    DELETE FROM CORE.VERIFICATION_FINDING_EVIDENCE
+    WHERE FINDING_ID = :P_FINDING_ID
+      AND EVIDENCE_ID = :P_EVIDENCE_ID;
+
+    RETURN OBJECT_CONSTRUCT(
+        'findingId', :P_FINDING_ID,
+        'evidenceId', :P_EVIDENCE_ID,
+        'unlinked', TRUE
+    );
+
+END;
+$$;
+
+-- =========================================
+-- PERMISSIONS
+-- =========================================
+GRANT USAGE ON PROCEDURE CORE.SP_LINK_FINDING_EVIDENCE(STRING, STRING, STRING)
+TO ROLE GAFAIG_DEV_READ_ROLE;
+
+GRANT USAGE ON PROCEDURE CORE.SP_UNLINK_FINDING_EVIDENCE(STRING, STRING, STRING)
+TO ROLE GAFAIG_DEV_READ_ROLE;
