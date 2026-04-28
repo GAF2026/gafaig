@@ -23,24 +23,23 @@ export async function GET(req: NextRequest) {
 
   try {
     const { searchParams } = new URL(req.url);
-    const caseId = searchParams.get("caseId")?.trim();
+    const findingId = searchParams.get("findingId")?.trim();
 
-    if (!caseId) {
-      return jsonError("Missing caseId", 400);
+    if (!findingId) {
+      return jsonError("Missing findingId", 400);
     }
 
     const sql = `
       SELECT
         FINDING_ID  AS "findingId",
         EVIDENCE_ID AS "evidenceId",
-        CASE_ID     AS "caseId",
         CREATED_AT  AS "createdAt"
       FROM GAFAIG_DB.CORE.VERIFICATION_FINDING_EVIDENCE
-      WHERE CASE_ID = ?
+      WHERE FINDING_ID = ?
       ORDER BY CREATED_AT DESC
     `;
 
-    const result = await executeQuery(sql, [caseId]);
+    const result = await executeQuery(sql, [findingId]);
     const rows = normalizeRows(result);
 
     return NextResponse.json({

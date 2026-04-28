@@ -33,10 +33,22 @@ type EvidenceRow = {
   linkedAt?: string;
 };
 
-type ApiList = { ok: true; rows: any[]; total?: number } | { ok: false; error: string };
-type ApiEvidence = { ok: true; rows: any[] } | { ok: false; error: string };
-type ApiPost = { ok: true; row?: any; findingId?: string } | { ok: false; error: string };
-type EditState = Record<string, { status: string; severity: string; category: string }>;
+type ApiList =
+  | { ok: true; rows: any[]; total?: number }
+  | { ok: false; error: string };
+
+type ApiEvidence =
+  | { ok: true; rows: any[]; total?: number }
+  | { ok: false; error: string };
+
+type ApiPost =
+  | { ok: true; row?: any; findingId?: string }
+  | { ok: false; error: string };
+
+type EditState = Record<
+  string,
+  { status: string; severity: string; category: string }
+>;
 
 function fmt(v?: string | null) {
   return v ? String(v) : "—";
@@ -85,31 +97,54 @@ async function copyText(text: string) {
 
 function pillTone(value?: string) {
   const v = (value || "").toLowerCase();
-  if (v === "pass" || v === "approved") return "border-emerald-200 bg-emerald-50 text-emerald-900";
-  if (v === "partial" || v === "needs_more_info" || v === "open") return "border-amber-200 bg-amber-50 text-amber-900";
-  if (v === "fail" || v === "rejected" || v === "suspended") return "border-red-200 bg-red-50 text-red-900";
+
+  if (v === "pass" || v === "approved") {
+    return "border-emerald-200 bg-emerald-50 text-emerald-900";
+  }
+
+  if (v === "partial" || v === "needs_more_info" || v === "open") {
+    return "border-amber-200 bg-amber-50 text-amber-900";
+  }
+
+  if (v === "fail" || v === "rejected" || v === "suspended") {
+    return "border-red-200 bg-red-50 text-red-900";
+  }
+
   return "border-gray-200 bg-gray-50 text-gray-800";
 }
 
 async function safeJson<T>(res: Response): Promise<T> {
   const text = await res.text();
+
   try {
     return JSON.parse(text) as T;
   } catch {
-    throw new Error(`Non-JSON response (status ${res.status}). First chars: ${text.slice(0, 120)}`);
+    throw new Error(
+      `Non-JSON response (status ${res.status}). First chars: ${text.slice(0, 120)}`
+    );
   }
 }
 
 function normalizeFindingRow(raw: any): FindingRow {
-  const findingId = String(raw.findingId ?? raw.FINDING_ID ?? raw.finding_id ?? "");
+  const findingId = String(
+    raw.findingId ?? raw.FINDING_ID ?? raw.finding_id ?? ""
+  );
   const caseId = String(raw.caseId ?? raw.CASE_ID ?? raw.case_id ?? "");
-  const controlId = String(raw.controlId ?? raw.category ?? raw.CONTROL_ID ?? raw.control_id ?? "");
-  const controlTitle = String(raw.controlTitle ?? raw.title ?? raw.CONTROL_TITLE ?? raw.control_title ?? "");
+  const controlId = String(
+    raw.controlId ?? raw.category ?? raw.CONTROL_ID ?? raw.control_id ?? ""
+  );
+  const controlTitle = String(
+    raw.controlTitle ?? raw.title ?? raw.CONTROL_TITLE ?? raw.control_title ?? ""
+  );
   const result = String(raw.result ?? raw.status ?? raw.RESULT ?? "");
   const severity = String(raw.severity ?? raw.SEVERITY ?? "");
   const rationale = (raw.rationale ?? raw.RATIONALE ?? null) as string | null;
-  const createdAt = String(raw.createdAt ?? raw.CREATED_AT ?? raw.created_at ?? "");
-  const updatedAt = String(raw.updatedAt ?? raw.UPDATED_AT ?? raw.updated_at ?? createdAt);
+  const createdAt = String(
+    raw.createdAt ?? raw.CREATED_AT ?? raw.created_at ?? ""
+  );
+  const updatedAt = String(
+    raw.updatedAt ?? raw.UPDATED_AT ?? raw.updated_at ?? createdAt
+  );
 
   return {
     findingId,
@@ -125,16 +160,28 @@ function normalizeFindingRow(raw: any): FindingRow {
 }
 
 function normalizeEvidenceRow(raw: any): EvidenceRow {
-  const evidenceId = String(raw.evidenceId ?? raw.EVIDENCE_ID ?? raw.evidence_id ?? "");
+  const evidenceId = String(
+    raw.evidenceId ?? raw.EVIDENCE_ID ?? raw.evidence_id ?? ""
+  );
   const caseId = String(raw.caseId ?? raw.CASE_ID ?? raw.case_id ?? "");
-  const evidenceType = String(raw.evidenceType ?? raw.EVIDENCE_TYPE ?? raw.evidence_type ?? "");
+  const evidenceType = String(
+    raw.evidenceType ?? raw.EVIDENCE_TYPE ?? raw.evidence_type ?? ""
+  );
   const title = String(raw.title ?? raw.TITLE ?? "");
-  const description = (raw.description ?? raw.DESCRIPTION ?? null) as string | null;
+  const description = (raw.description ?? raw.DESCRIPTION ?? null) as
+    | string
+    | null;
   const sourceUrl = (raw.sourceUrl ?? raw.SOURCE_URL ?? null) as string | null;
-  const storageRef = (raw.storageRef ?? raw.STORAGE_REF ?? null) as string | null;
-  const submittedBy = (raw.submittedBy ?? raw.SUBMITTED_BY ?? null) as string | null;
+  const storageRef = (raw.storageRef ?? raw.STORAGE_REF ?? null) as
+    | string
+    | null;
+  const submittedBy = (raw.submittedBy ?? raw.SUBMITTED_BY ?? null) as
+    | string
+    | null;
   const submittedAt = String(raw.submittedAt ?? raw.SUBMITTED_AT ?? "");
-  const linkedAt = (raw.linkedAt ?? raw.LINKED_AT ?? undefined) as string | undefined;
+  const linkedAt = (raw.linkedAt ?? raw.LINKED_AT ?? raw.createdAt ?? raw.CREATED_AT ?? undefined) as
+    | string
+    | undefined;
 
   return {
     evidenceId,
@@ -150,22 +197,36 @@ function normalizeEvidenceRow(raw: any): EvidenceRow {
   };
 }
 
-export default function FindingsPage({ params }: { params: { caseId: string } }) {
+export default function FindingsPage({
+  params,
+}: {
+  params: { caseId: string };
+}) {
   const caseId = params?.caseId || "";
 
   const [loading, setLoading] = React.useState(false);
   const [saving, setSaving] = React.useState(false);
   const savingRef = React.useRef(false);
+
   const updatingRef = React.useRef<Record<string, boolean>>({});
   const [updating, setUpdating] = React.useState<Record<string, boolean>>({});
+
   const [err, setErr] = React.useState<string | null>(null);
   const [success, setSuccess] = React.useState<string | null>(null);
 
   const [rows, setRows] = React.useState<FindingRow[]>([]);
   const [expanded, setExpanded] = React.useState<Record<string, boolean>>({});
-  const [evidenceByFinding, setEvidenceByFinding] = React.useState<Record<string, EvidenceRow[]>>({});
-  const [evidenceLoading, setEvidenceLoading] = React.useState<Record<string, boolean>>({});
+  const [evidenceByFinding, setEvidenceByFinding] = React.useState<
+    Record<string, EvidenceRow[]>
+  >({});
+  const [evidenceLoading, setEvidenceLoading] = React.useState<
+    Record<string, boolean>
+  >({});
+  const [allEvidence, setAllEvidence] = React.useState<EvidenceRow[]>([]);
+  const [evidenceListLoading, setEvidenceListLoading] = React.useState(false);
+
   const [editRows, setEditRows] = React.useState<EditState>({});
+  const [linkInput, setLinkInput] = React.useState<Record<string, string>>({});
 
   const [controlId, setControlId] = React.useState("");
   const [controlTitle, setControlTitle] = React.useState("");
@@ -173,12 +234,20 @@ export default function FindingsPage({ params }: { params: { caseId: string } })
   const [severity, setSeverity] = React.useState("medium");
   const [rationale, setRationale] = React.useState("");
 
-  const backHref = React.useMemo(() => `/admin/verification/${encodeURIComponent(caseId)}`, [caseId]);
-  const evidencePageHref = React.useMemo(() => `/admin/verification/${encodeURIComponent(caseId)}/evidence`, [caseId]);
+  const backHref = React.useMemo(
+    () => `/admin/verification/${encodeURIComponent(caseId)}`,
+    [caseId]
+  );
+
+  const evidencePageHref = React.useMemo(
+    () => `/admin/verification/${encodeURIComponent(caseId)}/evidence`,
+    [caseId]
+  );
 
   function syncEditRows(nextRows: FindingRow[]) {
     setEditRows((prev) => {
       const next: EditState = {};
+
       for (const r of nextRows) {
         next[r.findingId] = prev[r.findingId] || {
           status: r.result || "open",
@@ -186,17 +255,21 @@ export default function FindingsPage({ params }: { params: { caseId: string } })
           category: r.controlId || "governance",
         };
       }
+
       return next;
     });
   }
 
-  async function load() {
+  async function loadCaseEvidence() {
     if (!caseId) return;
-    setLoading(true);
-    setErr(null);
+
+    setEvidenceListLoading(true);
 
     try {
-      const url = `/api/admin/verification/${encodeURIComponent(caseId)}/findings?t=${Date.now()}`;
+      const url = `/api/admin/verification/${encodeURIComponent(
+        caseId
+      )}/evidence?t=${Date.now()}`;
+
       const res = await fetch(url, {
         method: "GET",
         headers: { "Content-Type": "application/json" },
@@ -204,11 +277,60 @@ export default function FindingsPage({ params }: { params: { caseId: string } })
         cache: "no-store",
       });
 
-      const data = await safeJson<ApiList>(res);
+      const data = await safeJson<ApiEvidence>(res);
 
       if (!res.ok) {
         if (res.status === 401) throw new Error("Unauthorized (admin cookie missing)");
-        throw new Error((data as any)?.error || `GET failed (HTTP ${res.status})`);
+        throw new Error((data as any)?.error || `Evidence list GET failed (HTTP ${res.status})`);
+      }
+
+      if (!("ok" in data) || (data as any).ok === false) {
+        throw new Error((data as any)?.error || "Failed to load case evidence.");
+      }
+
+      const normalized = ((data as any).rows || [])
+        .map(normalizeEvidenceRow)
+        .filter((x: EvidenceRow) => !!x.evidenceId);
+
+      setAllEvidence(normalized);
+    } catch {
+      setAllEvidence([]);
+    } finally {
+      setEvidenceListLoading(false);
+    }
+  }
+
+  async function load() {
+    if (!caseId) return;
+
+    setLoading(true);
+    setErr(null);
+
+    try {
+      const url = `/api/admin/verification/${encodeURIComponent(
+        caseId
+      )}/findings?t=${Date.now()}`;
+
+      const [findingsRes] = await Promise.all([
+        fetch(url, {
+          method: "GET",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          cache: "no-store",
+        }),
+        loadCaseEvidence(),
+      ]);
+
+      const data = await safeJson<ApiList>(findingsRes);
+
+      if (!findingsRes.ok) {
+        if (findingsRes.status === 401) {
+          throw new Error("Unauthorized (admin cookie missing)");
+        }
+
+        throw new Error(
+          (data as any)?.error || `GET failed (HTTP ${findingsRes.status})`
+        );
       }
 
       if (!("ok" in data) || (data as any).ok === false) {
@@ -237,7 +359,11 @@ export default function FindingsPage({ params }: { params: { caseId: string } })
     setEvidenceLoading((m) => ({ ...m, [findingId]: true }));
 
     try {
-      const url = `/api/admin/verification/finding-evidence?findingId=${encodeURIComponent(findingId)}&t=${Date.now()}`;
+      const url =
+        `/api/admin/verification/finding-evidence?findingId=${encodeURIComponent(
+          findingId
+        )}` + `&t=${Date.now()}`;
+
       const res = await fetch(url, {
         method: "GET",
         headers: { "Content-Type": "application/json" },
@@ -269,13 +395,30 @@ export default function FindingsPage({ params }: { params: { caseId: string } })
     }
   }
 
+  async function reloadEvidenceForFinding(findingId: string) {
+    setEvidenceByFinding((m) => {
+      const next = { ...m };
+      delete next[findingId];
+      return next;
+    });
+
+    await loadEvidenceForFinding(findingId);
+  }
+
   async function onToggle(findingId: string) {
     const next = !expanded[findingId];
     setExpanded((m) => ({ ...m, [findingId]: next }));
-    if (next) await loadEvidenceForFinding(findingId);
+
+    if (next) {
+      await loadEvidenceForFinding(findingId);
+    }
   }
 
-  function updateEditValue(findingId: string, key: "status" | "severity" | "category", value: string) {
+  function updateEditValue(
+    findingId: string,
+    key: "status" | "severity" | "category",
+    value: string
+  ) {
     setEditRows((prev) => ({
       ...prev,
       [findingId]: {
@@ -322,18 +465,21 @@ export default function FindingsPage({ params }: { params: { caseId: string } })
     setSuccess(null);
 
     try {
-      const res = await fetch(`/api/admin/verification/${encodeURIComponent(caseId)}/findings`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        cache: "no-store",
-        body: JSON.stringify({
-          findingId,
-          status: edit.status || null,
-          severity: edit.severity || null,
-          category: edit.category || null,
-        }),
-      });
+      const res = await fetch(
+        `/api/admin/verification/${encodeURIComponent(caseId)}/findings`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          cache: "no-store",
+          body: JSON.stringify({
+            findingId,
+            status: edit.status || null,
+            severity: edit.severity || null,
+            category: edit.category || null,
+          }),
+        }
+      );
 
       const data = await safeJson<ApiPost>(res);
 
@@ -353,6 +499,72 @@ export default function FindingsPage({ params }: { params: { caseId: string } })
     } finally {
       updatingRef.current[findingId] = false;
       setUpdating((m) => ({ ...m, [findingId]: false }));
+    }
+  }
+
+  async function linkEvidence(findingId: string, evidenceId: string) {
+    if (!caseId || !findingId || !evidenceId) return;
+
+    setErr(null);
+    setSuccess(null);
+
+    try {
+      const res = await fetch(`/api/admin/verification/finding-evidence`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        cache: "no-store",
+        body: JSON.stringify({
+          caseId,
+          findingId,
+          evidenceId,
+        }),
+      });
+
+      const data = await safeJson<ApiPost>(res);
+
+      if (!res.ok || !data?.ok) {
+        throw new Error((data as any)?.error || "Failed to link evidence");
+      }
+
+      setLinkInput((m) => ({ ...m, [findingId]: "" }));
+      setSuccess(`Evidence linked to finding: ${findingId}.`);
+      await reloadEvidenceForFinding(findingId);
+    } catch (e: any) {
+      setErr(e?.message || "Link failed");
+    }
+  }
+
+  async function unlinkEvidence(findingId: string, evidenceId: string) {
+    if (!caseId || !findingId || !evidenceId) return;
+
+    setErr(null);
+    setSuccess(null);
+
+    try {
+      const url =
+        `/api/admin/verification/finding-evidence?caseId=${encodeURIComponent(
+          caseId
+        )}` +
+        `&findingId=${encodeURIComponent(findingId)}` +
+        `&evidenceId=${encodeURIComponent(evidenceId)}`;
+
+      const res = await fetch(url, {
+        method: "DELETE",
+        credentials: "include",
+        cache: "no-store",
+      });
+
+      const data = await safeJson<ApiPost>(res);
+
+      if (!res.ok || !data?.ok) {
+        throw new Error((data as any)?.error || "Failed to unlink evidence");
+      }
+
+      setSuccess(`Evidence unlinked from finding: ${findingId}.`);
+      await reloadEvidenceForFinding(findingId);
+    } catch (e: any) {
+      setErr(e?.message || "Unlink failed");
     }
   }
 
@@ -381,13 +593,16 @@ export default function FindingsPage({ params }: { params: { caseId: string } })
         category,
       };
 
-      const res = await fetch(`/api/admin/verification/${encodeURIComponent(caseId)}/findings`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        cache: "no-store",
-        body: JSON.stringify(payload),
-      });
+      const res = await fetch(
+        `/api/admin/verification/${encodeURIComponent(caseId)}/findings`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          cache: "no-store",
+          body: JSON.stringify(payload),
+        }
+      );
 
       const data = await safeJson<ApiPost>(res);
 
@@ -400,7 +615,10 @@ export default function FindingsPage({ params }: { params: { caseId: string } })
         throw new Error((data as any)?.error || "Failed to add finding.");
       }
 
-      const findingId = (data as any)?.row?.findingId || (data as any)?.findingId || "created";
+      const findingId =
+        (data as any)?.row?.findingId ||
+        (data as any)?.findingId ||
+        "created";
 
       setControlId("");
       setControlTitle("");
@@ -429,7 +647,11 @@ export default function FindingsPage({ params }: { params: { caseId: string } })
 
   async function copyAllIds(findingId: string) {
     await loadEvidenceForFinding(findingId);
-    const evds = (evidenceByFinding[findingId] || []).map((e) => e.evidenceId).filter(Boolean);
+
+    const evds = (evidenceByFinding[findingId] || [])
+      .map((e) => e.evidenceId)
+      .filter(Boolean);
+
     const text = [`findingId: ${findingId}`, ...evds.map((id) => `evidenceId: ${id}`)].join("\n");
     await copyText(text);
   }
@@ -439,7 +661,8 @@ export default function FindingsPage({ params }: { params: { caseId: string } })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [caseId]);
 
-  const gridCols = "grid-cols-[150px_1fr_170px_150px_160px_260px_300px] min-w-[1360px]";
+  const gridCols =
+    "grid-cols-[150px_1fr_170px_150px_160px_260px_300px] min-w-[1360px]";
   const cellPad = "px-5 py-4";
 
   return (
@@ -450,18 +673,32 @@ export default function FindingsPage({ params }: { params: { caseId: string } })
         <AdminPageHeader
           title={`Findings — ${caseId}`}
           description="Record control evaluations, update finding status, inspect linked evidence, and move the case toward decision."
-          meta={loading ? "Loading…" : `${rows.length} finding${rows.length === 1 ? "" : "s"}`}
+          meta={
+            loading
+              ? "Loading…"
+              : `${rows.length} finding${rows.length === 1 ? "" : "s"}`
+          }
           actions={
             <div className="flex flex-wrap gap-3">
               <PublicButtonLink href={backHref} variant="secondary" size="sm">
                 ← Back
               </PublicButtonLink>
 
-              <PublicButtonLink href={evidencePageHref} variant="secondary" size="sm">
+              <PublicButtonLink
+                href={evidencePageHref}
+                variant="secondary"
+                size="sm"
+              >
                 Evidence →
               </PublicButtonLink>
 
-              <PublicButton type="button" variant="secondary" size="sm" onClick={load} disabled={loading || saving}>
+              <PublicButton
+                type="button"
+                variant="secondary"
+                size="sm"
+                onClick={load}
+                disabled={loading || saving}
+              >
                 {loading ? "Loading…" : "Refresh"}
               </PublicButton>
             </div>
@@ -486,7 +723,9 @@ export default function FindingsPage({ params }: { params: { caseId: string } })
 
         <section className="mt-6 rounded-3xl border border-black/10 bg-white p-8">
           <div className="mb-4">
-            <div className="text-[26px] font-semibold tracking-tight text-black">Add finding</div>
+            <div className="text-[26px] font-semibold tracking-tight text-black">
+              Add finding
+            </div>
             <div className="mt-1 text-[14px] text-black/60">
               Record an evaluation result for a control. Writes are routed through Snowflake procedures only.
             </div>
@@ -567,7 +806,12 @@ export default function FindingsPage({ params }: { params: { caseId: string } })
             </div>
 
             <div className="flex justify-end lg:col-span-12">
-              <PublicButton type="button" variant="primary" onClick={addFinding} disabled={loading || saving}>
+              <PublicButton
+                type="button"
+                variant="primary"
+                onClick={addFinding}
+                disabled={loading || saving}
+              >
                 {saving ? "Saving…" : "Add finding"}
               </PublicButton>
             </div>
@@ -576,14 +820,18 @@ export default function FindingsPage({ params }: { params: { caseId: string } })
 
         <section className="mt-6 rounded-3xl border border-black/10 bg-white p-8">
           <div className="mb-4">
-            <div className="text-[26px] font-semibold tracking-tight text-black">Findings ({rows.length})</div>
+            <div className="text-[26px] font-semibold tracking-tight text-black">
+              Findings ({rows.length})
+            </div>
             <div className="mt-1 text-[14px] text-black/60">
               Update status/severity inline. Click a row to expand and inspect linked evidence.
             </div>
           </div>
 
           <div className="overflow-auto rounded-2xl border border-black/10">
-            <div className={`grid ${gridCols} bg-black/[0.03] text-left text-[12px] font-semibold uppercase tracking-[0.12em] text-black/60`}>
+            <div
+              className={`grid ${gridCols} bg-black/[0.03] text-left text-[12px] font-semibold uppercase tracking-[0.12em] text-black/60`}
+            >
               <div className={cellPad}>Control ID</div>
               <div className={cellPad}>Control title</div>
               <div className={cellPad}>Result</div>
@@ -603,11 +851,13 @@ export default function FindingsPage({ params }: { params: { caseId: string } })
                 const evLoading = !!evidenceLoading[r.findingId];
                 const evRows = evidenceByFinding[r.findingId] || [];
                 const ts = splitDateTime(r.updatedAt || r.createdAt);
+
                 const edit = editRows[r.findingId] || {
                   status: r.result || "open",
                   severity: r.severity || "medium",
                   category: r.controlId || "governance",
                 };
+
                 const changed = hasEditChanges(r);
                 const rowUpdating = !!updating[r.findingId];
 
@@ -617,7 +867,7 @@ export default function FindingsPage({ params }: { params: { caseId: string } })
                       <button
                         type="button"
                         onClick={() => onToggle(r.findingId)}
-                        className={`${cellPad} flex items-center font-mono text-[14px] text-black text-left`}
+                        className={`${cellPad} flex items-center text-left font-mono text-[14px] text-black`}
                       >
                         {r.controlId || "—"}
                       </button>
@@ -636,7 +886,9 @@ export default function FindingsPage({ params }: { params: { caseId: string } })
                           value={edit.status}
                           disabled={rowUpdating}
                           onClick={(e) => e.stopPropagation()}
-                          onChange={(e) => updateEditValue(r.findingId, "status", e.target.value)}
+                          onChange={(e) =>
+                            updateEditValue(r.findingId, "status", e.target.value)
+                          }
                         >
                           <option value="open">open</option>
                           <option value="pass">pass</option>
@@ -652,7 +904,9 @@ export default function FindingsPage({ params }: { params: { caseId: string } })
                           value={edit.severity}
                           disabled={rowUpdating}
                           onClick={(e) => e.stopPropagation()}
-                          onChange={(e) => updateEditValue(r.findingId, "severity", e.target.value)}
+                          onChange={(e) =>
+                            updateEditValue(r.findingId, "severity", e.target.value)
+                          }
                         >
                           <option value="low">low</option>
                           <option value="medium">medium</option>
@@ -667,7 +921,11 @@ export default function FindingsPage({ params }: { params: { caseId: string } })
                       >
                         <div className="leading-tight">
                           <div className="font-mono text-[14px] text-black">{ts.d}</div>
-                          {ts.t ? <div className="font-mono text-[12px] text-black/45">{ts.t}</div> : null}
+                          {ts.t ? (
+                            <div className="font-mono text-[12px] text-black/45">
+                              {ts.t}
+                            </div>
+                          ) : null}
                         </div>
                       </button>
 
@@ -715,6 +973,15 @@ export default function FindingsPage({ params }: { params: { caseId: string } })
                           type="button"
                           variant="secondary"
                           size="sm"
+                          onClick={() => onToggle(r.findingId)}
+                        >
+                          {isOpen ? "Hide" : "Evidence"}
+                        </PublicButton>
+
+                        <PublicButton
+                          type="button"
+                          variant="secondary"
+                          size="sm"
                           onClick={() => copyAllIds(r.findingId)}
                         >
                           Copy all IDs
@@ -725,27 +992,29 @@ export default function FindingsPage({ params }: { params: { caseId: string } })
                     {isOpen ? (
                       <div className="bg-black/[0.02] px-5 py-5">
                         <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
-                          <div className="text-[14px] font-semibold text-black">Linked evidence</div>
+                          <div className="text-[14px] font-semibold text-black">
+                            Linked evidence
+                          </div>
                           <div className="text-[12px] text-black/55">
-                            {evLoading ? "Loading…" : `${evRows.length} item${evRows.length === 1 ? "" : "s"}`}
+                            {evLoading
+                              ? "Loading…"
+                              : `${evRows.length} item${evRows.length === 1 ? "" : "s"}`}
                           </div>
                         </div>
 
                         {evLoading ? (
-                          <div className="text-[14px] text-black/60">Loading evidence…</div>
+                          <div className="text-[14px] text-black/60">
+                            Loading evidence…
+                          </div>
                         ) : evRows.length === 0 ? (
                           <div className="text-[14px] text-black/60">
-                            No evidence linked to this finding yet.{" "}
-                            <Link className="underline" href={evidencePageHref}>
-                              Go to Evidence
-                            </Link>{" "}
-                            to link items.
+                            No evidence linked to this finding yet.
                           </div>
                         ) : (
                           <div className="grid gap-3">
                             {evRows.map((e) => (
                               <div
-                                key={e.evidenceId}
+                                key={`${r.findingId}-${e.evidenceId}`}
                                 className="flex flex-wrap items-start justify-between gap-3 rounded-2xl border border-black/10 bg-white p-4"
                               >
                                 <div className="min-w-0">
@@ -753,25 +1022,37 @@ export default function FindingsPage({ params }: { params: { caseId: string } })
                                     <span className="font-mono text-[13px] text-black">
                                       {truncateMiddle(e.evidenceId, 22, 10)}
                                     </span>
-                                    <PublicButton type="button" variant="secondary" size="sm" onClick={() => copyEvidenceId(e.evidenceId)}>
+
+                                    <PublicButton
+                                      type="button"
+                                      variant="secondary"
+                                      size="sm"
+                                      onClick={() => copyEvidenceId(e.evidenceId)}
+                                    >
                                       Copy
                                     </PublicButton>
+
                                     <span className="inline-flex items-center rounded-full border border-black/10 bg-black/[0.02] px-3 py-1 text-[12px] font-semibold text-black/80">
                                       {prettify(e.evidenceType)}
                                     </span>
                                   </div>
 
                                   <div className="mt-2 break-words text-[14px] font-semibold text-black">
-                                    {e.title}
+                                    {e.title || e.evidenceId}
                                   </div>
 
                                   <div className="mt-2 text-[12px] text-black/55">
-                                    Submitted: <span className="font-mono">{fmt(e.submittedAt)}</span>
+                                    Linked: <span className="font-mono">{fmt(e.linkedAt)}</span>
                                     {e.sourceUrl ? (
                                       <>
                                         {" "}
                                         ·{" "}
-                                        <a className="underline" href={e.sourceUrl} target="_blank" rel="noreferrer">
+                                        <a
+                                          className="underline"
+                                          href={e.sourceUrl}
+                                          target="_blank"
+                                          rel="noreferrer"
+                                        >
                                           Source
                                         </a>
                                       </>
@@ -779,13 +1060,89 @@ export default function FindingsPage({ params }: { params: { caseId: string } })
                                   </div>
                                 </div>
 
-                                <div className="whitespace-nowrap font-mono text-[12px] text-black/45">
-                                  {e.linkedAt ? `Linked: ${e.linkedAt}` : ""}
-                                </div>
+                                <PublicButton
+                                  type="button"
+                                  variant="secondary"
+                                  size="sm"
+                                  onClick={() => unlinkEvidence(r.findingId, e.evidenceId)}
+                                >
+                                  Unlink
+                                </PublicButton>
                               </div>
                             ))}
                           </div>
                         )}
+
+                        <div className="mt-4 border-t border-black/10 pt-4">
+                          <div className="mb-2 text-[13px] font-semibold text-black">
+                            Link evidence to this finding
+                          </div>
+
+                          <div className="flex flex-wrap items-center gap-2">
+                            <select
+                              className="h-10 min-w-[320px] rounded-xl border border-black/15 bg-white px-3 text-[13px] outline-none focus:ring-2 focus:ring-black/10"
+                              value={linkInput[r.findingId] || ""}
+                              disabled={evidenceListLoading}
+                              onClick={(e) => e.stopPropagation()}
+                              onChange={(e) =>
+                                setLinkInput((m) => ({
+                                  ...m,
+                                  [r.findingId]: e.target.value,
+                                }))
+                              }
+                            >
+                              <option value="">
+                                {evidenceListLoading
+                                  ? "Loading evidence…"
+                                  : allEvidence.length
+                                    ? "Select evidence"
+                                    : "No case evidence available"}
+                              </option>
+
+                              {allEvidence.map((e) => (
+                                <option key={e.evidenceId} value={e.evidenceId}>
+                                  {e.evidenceId} — {e.title || e.evidenceType || "Evidence"}
+                                </option>
+                              ))}
+                            </select>
+
+                            <input
+                              className="h-10 min-w-[260px] rounded-xl border border-black/15 bg-white px-3 text-[13px] outline-none focus:ring-2 focus:ring-black/10"
+                              placeholder="Or paste EVIDENCE_ID"
+                              value={linkInput[r.findingId] || ""}
+                              onClick={(e) => e.stopPropagation()}
+                              onChange={(e) =>
+                                setLinkInput((m) => ({
+                                  ...m,
+                                  [r.findingId]: e.target.value,
+                                }))
+                              }
+                            />
+
+                            <PublicButton
+                              type="button"
+                              variant="primary"
+                              size="sm"
+                              onClick={() => {
+                                const id = linkInput[r.findingId]?.trim();
+                                if (id) linkEvidence(r.findingId, id);
+                              }}
+                            >
+                              Link
+                            </PublicButton>
+
+                            <Link
+                              href={evidencePageHref}
+                              className="text-[13px] underline text-black/70"
+                            >
+                              Open Evidence page →
+                            </Link>
+                          </div>
+
+                          <div className="mt-2 text-[12px] text-black/50">
+                            Select existing case evidence or paste an existing Snowflake evidence ID.
+                          </div>
+                        </div>
                       </div>
                     ) : null}
                   </div>
