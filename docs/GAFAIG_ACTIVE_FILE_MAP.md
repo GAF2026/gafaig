@@ -1,442 +1,474 @@
 # GAFAIG_ACTIVE_FILE_MAP.md
-Last Updated: 2026-04-26
+Last Updated: 2026-04-28
 
 ## PURPOSE
-This file maps the currently active GAFAIG files across Snowflake, VS Code, APIs, UI, SDK, and deployment.
+This document defines the **complete active file map** for GAFAIG (Global Authority for AI Governance). It serves as the authoritative reference for:
 
-GAFAIG = Global Authority for AI Governance  
-GAFAIG is the world’s first searchable AI governance registry.
+- All Snowflake SQL files (tables, views, procedures)
+- All API routes (Next.js App Router)
+- All UI pages (admin + public)
+- Data flow ownership
+- Contract boundaries
 
-The platform verifies that human oversight in AI systems is real, functioning, and independently verifiable, and publishes certified outcomes as publicly verifiable records.
-
-This file is canonical system context and must remain aligned with:
-- Snowflake (source of truth)
-- VS Code files (execution layer)
-- Production deployment (Vercel)
+This file MUST remain:
+- Complete (no sections removed)
+- Deterministic
+- Aligned with Snowflake as the sole source of truth
 
 ---
 
-## NON-NEGOTIABLE ENGINEERING RULES
+# CORE SYSTEM PRINCIPLE
 
-Snowflake is the source of truth.
+GAFAIG is a **deterministic Snowflake-first system**
 
-Do NOT:
-- Compute governance score, certification, lifecycle, eligibility, or trust in API/UI/SDK
-- Generate IDs outside Snowflake
-- Mutate published registry snapshots
-- Create parallel trust paths
-- Reconstruct verification payloads
+STRICT RULES:
 
-CRITICAL (PHASE 6.4 HARDENING):
-Do NOT:
-- Verify using parsed JSON fields
-- Verify using UI-rendered data
-- Reconstruct messageString from proof.message
-- Verify using any payload other than proof.messageString
+- Snowflake = Source of Truth
+- API = Pass-through only (NO computation)
+- UI = Display only (NO derivation)
+- Registry = Append-only
+- IDs = Generated ONLY in Snowflake
 
-All IDs originate in Snowflake and pass through unchanged:
+---
+
+# ID PARITY RULE (CRITICAL)
+
+All IDs must be:
+
+- Generated in Snowflake ONLY
+- Never generated in API or UI
+- Passed through unchanged
+
+Applies to:
+
 - APPLICATION_ID
+- REQUEST_ID
 - CASE_ID
-- REGISTRY_ID
 - FINDING_ID
 - EVIDENCE_ID
 - EVENT_ID
-- REGISTRY_SNAPSHOT_ID
+- REGISTRY_ID
+- SNAPSHOT_ID
 
-CRITICAL RULE:
-Verification MUST use `proof.messageString` exactly as returned.
-Never reconstruct from JSON fields.
-Never verify from UI-rendered data.
-Never verify from parsed JSON objects.
-
-CRITICAL ADDITION:
-- messageString is the ONLY valid verification input
-- proof.message is informational ONLY
-- JSON fields are NOT valid verification inputs
-
-Canonical flow:
-APPLICATION → CASE → FINDINGS → EVIDENCE → EVENTS → SCORING → DECISION → REGISTRY SNAPSHOT → PUBLIC VIEW → API → SDK/UI
-
-Public surfaces expose:
-- Certification outcome
-- Lifecycle state
-- Eligibility state
-- Signed proof
-- Public metadata
-
-Private data NEVER exposed:
-- Evidence
-- Findings
-- Reviewer notes
-- Score / tier / band
-- Internal decisions
+Violation = System corruption
 
 ---
 
-## GLOBAL TRUST INVARIANTS (PHASE 6.4 — PROTOCOL RULES)
+# CANONICAL DATA FLOW
 
-These rules apply across ALL layers (Snowflake, API, SDK, widget, UI):
-
-1. VERIFY API IS THE PROTOCOL CONTRACT  
-   `/api/verify` is the canonical external verification interface
-
-2. MESSAGESTRING IS THE ONLY VERIFICATION INPUT  
-   Signature validation MUST use `proof.messageString` exactly
-
-3. NEVER VERIFY FROM JSON  
-   Verification must NEVER use parsed JSON fields or reconstructed payloads
-
-4. DETERMINISTIC PAYLOAD GUARANTEE  
-   Field order MUST remain stable across:
-   Snowflake → API → messageString → signature
-
-5. SIGNATURE VS LIFECYCLE SEPARATION  
-   Signature = authenticity  
-   Lifecycle = current trust state
-
-6. FAIL-CLOSED SYSTEM  
-   ANY failure → NOT TRUSTED
-
-7. WIDGETS MUST FAIL CLOSED  
-   Widgets MUST display INVALID / UNVERIFIED when verification fails
+APPLICATION  
+→ CASE  
+→ FINDINGS  
+→ EVIDENCE  
+→ EVENTS  
+→ SCORING  
+→ DECISION  
+→ REGISTRY SNAPSHOT  
+→ PUBLIC VIEWS  
+→ API  
+→ UI  
 
 ---
 
-## CURRENT PHASE
+# SNOWFLAKE FILE MAP (CANONICAL ORDER)
 
-Phase 6.4 — Trust Surface Hardening (VERIFY COMPLETE)
+## 00 — ENVIRONMENT
+- 00_CORE_SETUP.sql
 
-Phase 6.3 Completed:
-- /developers page upgraded to Stripe-level developer experience
-- Versioned SDK + widget architecture clarified
-- messageString rule surfaced in developer flow
-
-Phase 6.4 Completed:
-- /verify/[registryId] hardened to cryptographic verification surface
-- messageString enforced as canonical payload (no reconstruction allowed)
-- Signature validation clearly separated from UI rendering
-- Public key surfaced and labeled as verification authority
-- Failure states explicitly defined (DO NOT TRUST on failure)
-- Lifecycle interpretation clarified (ACTIVE / EXPIRED / REVOKED)
-- Trust chain fully visible:
-  Registry → Verify → Signed Payload → Widget
+## 01 — REBUILD
+- 01_REBUILD_ENVIRONMENT_CANONICAL.sql
 
 ---
 
-## CORE REPOSITORY
+## 11 — APPLICATIONS
+- 11_TABLES_APPLICATIONS.sql
 
-GitHub: GAF2026/gafaig  
-Local Path: C:\Users\drter\dev\gafaig  
-Branch: main  
-Vercel Project: gafaig-vercel  
-Production: https://www.gafaig.com  
-Local: http://localhost:3000  
+Creates:
+- CORE.APPLICATIONS
 
 ---
 
-## SNOWFLAKE ENVIRONMENT
-
-ROLE: ACCOUNTADMIN  
-WAREHOUSE: GAFAIG_WH  
-DATABASE: GAFAIG_DB  
-SCHEMA: CORE  
-
-SQL context:
-USE ROLE ACCOUNTADMIN;
-USE WAREHOUSE GAFAIG_WH;
-USE DATABASE GAFAIG_DB;
-USE SCHEMA CORE;
-
----
-
-## 🔴 CRITICAL SNOWFLAKE FILE PRIORITY
-
-Fix BEFORE any rebuild:
-
+## 12 — PARTICIPANTS ⚠️ BROKEN FILE (FIX FIRST)
 - 12_TABLES_PARTICIPANTS.sql
+
+Creates:
+- CORE.PARTICIPANTS
+
+⚠️ MUST FIX BEFORE ANY PIPELINE EXECUTION
+
+---
+
+## 14 — EVIDENCE
+- 14_TABLES_EVIDENCE.sql
+
+Creates:
+- CORE.VERIFICATION_EVIDENCE
+
+---
+
+## 15 — EVENTS ⚠️ BROKEN FILE (FIX FIRST)
 - 15_TABLES_EVENTS.sql
 
-Reason:
-- Break canonical run order
-- Block deterministic rebuilds
-- Risk silent corruption
+Creates:
+- CORE.VERIFICATION_EVENTS
+
+⚠️ MUST FIX BEFORE ANY PIPELINE EXECUTION
 
 ---
 
-## ACTIVE SNOWFLAKE TABLES
+## 16 — SCORING SNAPSHOTS
+- 16_TABLES_CASE_SCORE_SNAPSHOTS.sql
 
-- CORE.APPLICATIONS
-- CORE.VERIFICATION_CASES
-- CORE.VERIFICATION_FINDINGS
-- CORE.VERIFICATION_EVIDENCE
-- CORE.VERIFICATION_EVENTS
+Creates:
 - CORE.CASE_SCORE_SNAPSHOTS
+
+---
+
+## 17 — DECISIONS
+- 17_TABLES_DECISIONS.sql
+
+Creates:
 - CORE.DECISIONS
-- CORE.REGISTRY_SNAPSHOTS
-- CORE.REGISTRY_AI_SYSTEMS
+
+---
+
+## 18 — REGISTRY ENTITIES
+- 18_TABLES_REGISTRY_ENTITIES.sql
+
+Creates:
 - CORE.REGISTRY_ENTITIES
 
 ---
 
-## ACTIVE SNOWFLAKE VIEWS
+## FINDINGS (CRITICAL)
+- 13_TABLES_FINDINGS.sql (or equivalent canonical file)
 
+Creates:
+- CORE.VERIFICATION_FINDINGS
+
+Fields REQUIRED:
+
+- FINDING_ID
+- CASE_ID
+- CONTROL_ID
+- CONTROL_TITLE
+- RESULT
+- RATIONALE
+- SEVERITY
+- EVIDENCE_IDS
+- CREATED_AT
+- UPDATED_AT
+
+---
+
+# PROCEDURES
+
+## APPLICATION → CASE
+- 23_SP_CREATE_CASE_FROM_APPLICATION.sql
+
+Creates:
+- CORE.SP_CREATE_CASE_FROM_APPLICATION
+
+---
+
+## APPLICATION INTAKE
+- 24_PROCEDURES_APPLICATION_INTAKE.sql
+
+---
+
+## FINDINGS (CRITICAL)
+- 26_PROCEDURES_FINDINGS.sql
+
+Creates:
+- CORE.SP_CREATE_FINDING
+
+REQUIRED SIGNATURE:
+
+CALL CORE.SP_CREATE_FINDING(
+  CASE_ID,
+  TITLE,
+  SEVERITY,
+  STATUS,
+  CATEGORY
+)
+
+MUST:
+
+- Generate FINDING_ID via sequence
+- Insert into CORE.VERIFICATION_FINDINGS
+- Return OBJECT:
+  {
+    findingId,
+    caseId
+  }
+
+---
+
+## EVIDENCE
+- 27_PROCEDURES_EVIDENCE.sql
+
+---
+
+## FINDING ↔ EVIDENCE LINK
+- 28_PROCEDURES_FINDING_EVIDENCE.sql
+
+---
+
+## SCORING
+- 25_SP_SCORE_CASE_ENTERPRISE.sql
+
+---
+
+## APPROVAL
+- 25_PROCEDURES_APPROVAL.sql
+
+---
+
+## REGISTRY PUBLISH
+- CORE.REGISTRY_PUBLISH.sql
+
+Creates:
+- SP_PUBLISH_CASE_TO_REGISTRY_V3
+
+---
+
+# VIEWS
+
+## PUBLIC REGISTRY
+- 21_VIEWS_PUBLIC_REGISTRY.sql
+
+Creates:
 - CORE.V_REGISTRY_PUBLIC
 - CORE.V_REGISTRY_LATEST_APPROVED
+
+---
+
+## AI SYSTEMS PUBLIC
+- 22_VIEWS_REGISTRY_AI_SYSTEMS_PUBLIC.sql
+
+Creates:
 - CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC
-- CORE.V_GOVERNANCE_SCORE_CASE
-
-IMPORTANT:
-
-V_REGISTRY_PUBLIC is the ONLY public trust contract.
-
-Includes:
-- lifecycle
-- eligibility
-- certification outcome
-
-Excludes:
-- score / tier / band
-
-Expired records remain visible.
-
-CRITICAL ADDITION:
-- This view must produce deterministic output used to generate messageString
-- Any field order change may break verification
 
 ---
 
-## ACTIVE PROCEDURES
-
-- CORE.SP_CREATE_CASE_FROM_APPLICATION
-- CORE.SP_SCORE_CASE_ENTERPRISE
-- CORE.SP_PUBLISH_CASE_TO_REGISTRY_V3
-
-CRITICAL ADDITION:
-- Publish output must remain stable for deterministic signing
+## CASE RENEWAL
+- 26_VIEWS_CASE_RENEWAL_STATUS.sql
 
 ---
 
-## VS CODE STRUCTURE
+# SEED FILES
 
-- app/
-- app/_components/
-- app/api/
-- components/
-- components/registry/
-- components/ui/
-- lib/
-- lib/queries/
-- lib/crypto/
-- types/
-- public/
-- public/widget/
-- public/sdk/
-- public/badges/
-- docs/
+## CANONICAL DEMO
+- GAFAIG - FINAL_CANONICAL_DEMO_SEED.sql
+
+## MULTI-SEED (IN PROGRESS)
+- GAFAIG - FINAL_CANONICAL_MULTI_SEED.sql
 
 ---
 
-## KEY PUBLIC PAGES
+# NEXT.JS API ROUTES
 
-- app/page.tsx
-- app/mission/page.tsx
-- app/framework/page.tsx
-- app/developers/page.tsx
-- app/registry/page.tsx
-- app/registry/[registryId]/page.tsx
-- app/verify/page.tsx
-- app/verify/[registryId]/page.tsx
-- app/explorer/*
-- app/widget-preview/[registryId]/page.tsx
+## APPLICATIONS
+/app/api/admin/applications/route.ts
 
 ---
 
-## TRUST SURFACE (FINAL STATE)
-
-/developers
-- Developer entry point
-- Live API console
-- Widget + modal + badge integration
-- Versioned SDK enforcement
-- messageString rule surfaced
-
-/verify/[registryId]
-- Cryptographic verification surface
-- Signature validation (primary trust signal)
-- Payload integrity validation
-- Public key verification (Ed25519)
-- Failure-state enforcement (invalid = DO NOT TRUST)
-- Developer proof interface (messageString, signature, key)
-- Canonical trust explanation (no ambiguity)
-- Lifecycle-aware trust interpretation
+## APPLICATION DETAIL
+/app/api/admin/applications/[requestId]/route.ts
 
 ---
 
-## API ROUTES
+## CREATE CASE
+/app/api/admin/applications/[requestId]/convert/route.ts
 
-- /api/registry
-- /api/registry/search
-- /api/verify/[registryId]
-- /api/badge/[registryId]
-- /api/.well-known/gafaig-public-key
+Calls:
+- SP_CREATE_CASE_FROM_APPLICATION
 
 ---
 
-## VERIFY API (CRITICAL)
+## FINDINGS (CRITICAL)
 
-Source: CORE.V_REGISTRY_PUBLIC
+### LIST + CREATE
+/app/api/admin/verification/[caseId]/findings/route.ts
 
-Must:
-- Return signed proof (Ed25519)
-- Include messageString
-- Support CORS
-- Use no-store cache
-- Never compute trust
+GET:
+- Reads from CORE.VERIFICATION_FINDINGS
 
-CRITICAL:
-- messageString is the ONLY valid input for verification
-- verify API is the canonical protocol contract
+POST:
+- Calls CORE.SP_CREATE_FINDING
 
 ---
 
-## SDK (VERSIONED SYSTEM)
-
-Production stable:
-
-- /sdk/gafaig.v1.js
-- /widget/gafaig-widget.v1.js
-- /widget/gafaig-verify.v1.js
-
-Latest aliases (NOT stable):
-
-- /sdk/gafaig.js
-- /widget/gafaig-widget.js
-- /widget/gafaig-verify.js
-
-RULE:
-Use versioned files for production integrations.
+## EVIDENCE
+/app/api/admin/verification/[caseId]/evidence/route.ts
 
 ---
 
-## WIDGET SYSTEM
-
-Reads from /api/verify  
-Displays trust signals  
-Must NOT compute trust  
-Must fail safely  
-
-CRITICAL:
-- Widget is a rendering layer ONLY
-- Widget MUST fail closed
-- Widget MUST display INVALID when verification fails
-
-States:
-
-- verified
-- invalid
-- unavailable
-- expired
-- revoked
+## VERIFY (PUBLIC)
+/app/api/verify/[registryId]/route.ts
 
 ---
 
-## BADGE SYSTEM
-
-Controlled by BADGE_ELIGIBLE  
-Reflects lifecycle  
-No scoring exposure  
-
-States:
-
-- certified
-- expired
-- revoked
-- unavailable
+## REGISTRY
+/app/api/registry/route.ts
 
 ---
 
-## CERTIFICATION MODEL
-
-Approval = internal  
-Certification = public  
-
-Certification = published + verifiable record
+## BADGE
+/app/api/badge/[registryId]/route.ts
 
 ---
 
-## LIFECYCLE MODEL
+# ADMIN UI PAGES
 
-- active
-- expired
-- revoked
-
-Origin: Snowflake only
-
-CRITICAL:
-Signature proves authenticity  
-Lifecycle determines trust state  
+## APPLICATION LIST
+/app/admin/applications/page.tsx
 
 ---
 
-## ELIGIBILITY MODEL
-
-VERIFICATION_ELIGIBLE → controls verify  
-BADGE_ELIGIBLE → controls badge  
-
-Never computed outside Snowflake.
+## APPLICATION DETAIL
+/app/admin/applications/[requestId]/page.tsx
 
 ---
 
-## DOCUMENTATION FILES
+## CASE PAGE (CRITICAL)
+/app/admin/verification/[caseId]/page.tsx
 
-- MASTER_STATE.md
-- CURRENT_FOCUS.md
-- ENGINEERING_RULES.md
-- GAFAIG_ACTIVE_FILE_MAP.md
-- GAFAIG_SNOWFLAKE_SQL_FILE_SUMMARY.md
-- GAFAIG_VS_CODE_File_Tree.md
-- CANONICAL_RUN_ORDER.md
-- PAGE_LAYOUT_SYSTEM.md
-- PUBLIC_PAGE_TEMPLATE_MAP.md
-- PUBLIC_PAGE_AUDIT.md
-- VERIFICATION_SIGNATURE_CONTRACT.md
-- VERIFIED_DEFINITION.md
-- VERSIONING.md
+Displays:
 
----
+- Evidence count
+- Findings count
+- Score
+- Decision
+- Publish state
 
-## TEST ID
+Buttons:
 
-GAFAIG-00363095
+- Add Test Evidence
+- Create Test Finding
 
 ---
 
-## TEST COMMANDS
+# CURRENT STATE (WHERE WE LEFT OFF)
 
-gafaig.version  
-gafaig.verify("GAFAIG-00363095").then(console.log)
+## ✅ WORKING
 
----
-
-## NEXT ACTION
-
-Phase 7 — Full System Alignment
-
-- Widget hardening (must match verify page trust model exactly)
-- Badge lifecycle enforcement validation
-- Registry page trust surface consistency
-- Multi-case seed validation refresh
-- External verification documentation (SDK-level)
+- Application → Case conversion
+- Evidence creation
+- Case page rendering
+- Procedure execution (Snowflake)
 
 ---
 
-## END STATE
+## ⚠️ CURRENT ISSUE
 
-GAFAIG becomes:
+Findings show:
 
-- Deterministic Snowflake execution system
-- Public registry of verifiable certification records
-- Verification layer for governance frameworks (NIST AI RMF)
-- Cryptographic trust infrastructure
-- Developer platform (SDK, API, widget, badge)
-- Enterprise-ready multi-record system
+- UI = 0
+- API = sometimes error OR empty
+- Snowflake = no rows inserted
+
+---
+
+## ROOT CAUSES IDENTIFIED
+
+1. ❌ Wrong SELECT columns (`TITLE` instead of `CONTROL_TITLE`) → FIXED  
+2. ❌ Procedure mismatch risk  
+3. ❌ Insert not confirmed  
+4. ❌ API may hit wrong route variant  
+5. ❌ No verification of DB write after POST  
+
+---
+
+# REQUIRED NEXT STEP (IMMEDIATE)
+
+## VERIFY FINDING INSERT
+
+Run:
+
+SELECT *
+FROM GAFAIG_DB.CORE.VERIFICATION_FINDINGS
+WHERE CASE_ID = '<YOUR_CASE_ID>'
+ORDER BY CREATED_AT DESC;
+
+---
+
+## EXPECTED RESULT
+
+At least 1 row:
+
+- FINDING_ID exists
+- CONTROL_TITLE populated
+- CASE_ID correct
+
+---
+
+# IF NO ROWS
+
+Then:
+
+👉 SP_CREATE_FINDING is not inserting  
+👉 Must debug procedure (NOT API)
+
+---
+
+# IF ROWS EXIST BUT UI = 0
+
+Then:
+
+👉 API route issue  
+👉 OR wrong endpoint being called  
+👉 OR caching mismatch  
+
+---
+
+# CANONICAL VALIDATION STEP (FUTURE — REQUIRED)
+
+## 🔴 MUST IMPLEMENT
+
+File:
+
+99_RUN_CANONICAL_PIPELINE.sql
+
+Purpose:
+
+- Execute ALL SQL files in correct order
+- Validate:
+  - Tables
+  - Views
+  - Procedures
+  - End-to-end pipeline
+
+Also include:
+
+- Smoke tests
+- Insert → select validation
+- Procedure execution tests
+
+---
+
+# ENGINEERING RULES (ENFORCED)
+
+- No UI-generated IDs
+- No API computation logic
+- No missing fields in inserts
+- No non-deterministic queries
+- No silent failures
+
+---
+
+# STATUS SUMMARY
+
+System Phase:  
+→ Phase 7 — PRIVATE WORKFLOW (ACTIVE)
+
+Current focus:
+
+- Findings pipeline stabilization
+- Procedure correctness
+- API ↔ Snowflake alignment
+- Deterministic validation
+
+---
+
+# END OF FILE

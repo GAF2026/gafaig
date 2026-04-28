@@ -1,5 +1,5 @@
 # VERIFIED_DEFINITION.md
-Last Updated: 2026-04-26
+Last Updated: 2026-04-28
 
 ## PURPOSE
 
@@ -392,7 +392,7 @@ Verify endpoint:
 /api/verify/[registryId]  
 
 Public key endpoint:  
-/api/.well-known/gafaig-public-key  
+/ api/.well-known/gafaig-public-key  
 
 ## TEST RECORD
 

@@ -1,5 +1,5 @@
 # GAFAIG_SNOWFLAKE_SQL_FILE_SUMMARY.md
-Last Updated: 2026-04-26
+Last Updated: 2026-04-28
 
 ## PURPOSE
 This file summarizes all active Snowflake SQL files, objects, and execution logic used in GAFAIG (Global Authority for AI Governance). It serves as the canonical reference for Snowflake as the system of truth and execution for the GAFAIG platform.
@@ -100,7 +100,11 @@ Defines organization-level intake data
 
 Includes:
 - APPLICATION_ID
+- REQUEST_ID
+- TYPE
+- STATUS
 - ORG_NAME
+- EMAIL
 - ORG_TYPE
 - COUNTRY
 
@@ -113,22 +117,64 @@ Defines each verification case
 Includes:
 - CASE_ID
 - APPLICATION_ID
-- ENTITY_NAME
+- PARTICIPANT_ID
+- STATUS
+- CREATED_AT
+- UPDATED_AT
 
 ---
 
 ### FINDINGS LAYER
 - CORE.VERIFICATION_FINDINGS  
-Structured evaluation outputs tied to CASE_ID
+
+Structured evaluation outputs tied to CASE_ID  
+
+Fields:
+- FINDING_ID
+- CASE_ID
+- CONTROL_ID
+- CONTROL_TITLE
+- RESULT
+- RATIONALE
+- SEVERITY
+- EVIDENCE_IDS
+- CREATED_AT
+- UPDATED_AT
+- ORG_ID
 
 ---
 
 ### EVIDENCE LAYER
 - CORE.VERIFICATION_EVIDENCE  
-Stores supporting materials for findings
 
+Stores supporting materials for findings  
+
+Fields:
+- EVIDENCE_ID
+- CASE_ID
+- EVIDENCE_TYPE
+- TITLE
+- DESCRIPTION
+- SOURCE_URL
+- STORAGE_REF
+- SUBMITTED_BY
+- SUBMITTED_AT
+- CREATED_AT
+- UPDATED_AT
+- ORG_ID
+
+---
+
+### FINDING ↔ EVIDENCE LINK
 - CORE.VERIFICATION_FINDING_EVIDENCE  
-Mapping table between findings and evidence
+
+Mapping table between findings and evidence  
+
+Fields:
+- FINDING_ID
+- EVIDENCE_ID
+- CASE_ID
+- CREATED_AT
 
 ---
 
@@ -146,7 +192,7 @@ Stores deterministic scoring outputs per case
 
 ### DECISION LAYER
 - CORE.DECISIONS  
-Final governance decisions
+Final governance decisions  
 
 Includes:
 - DECISION_STATUS
@@ -157,7 +203,8 @@ Includes:
 
 ### REGISTRY LAYER
 - CORE.REGISTRY_SNAPSHOTS  
-Canonical public certification records
+
+Canonical public certification records  
 
 Includes:
 - REGISTRY_SNAPSHOT_ID
@@ -175,272 +222,152 @@ Includes:
 - CORE.REGISTRY_ENTITIES  
 - CORE.REGISTRY_AI_SYSTEMS  
 
-Used for structured entity modeling and system-level records
-
 ---
 
 ## CORE VIEWS
 
 ### PRIMARY PUBLIC VIEW
-CORE.V_REGISTRY_PUBLIC
+CORE.V_REGISTRY_PUBLIC  
 
 This is the canonical public contract.
 
-Phase 6 update includes:
+Includes:
+- lifecycle
+- eligibility
+- certification outcome
 
-- REGISTRY_SNAPSHOT_ID
-- REGISTRY_ID
-- CASE_ID
-- APPLICATION_ID
-- RECORD_TYPE
-- RECORD_NAME
-- ENTITY_NAME
-- ENTITY_TYPE
-- COUNTRY
-- CERTIFICATION_STATUS
-- CERTIFIED_AT
-- VALID_FROM
-- VALID_TO
-- PUBLISHED_AT
-- RENEWAL_STATUS
-- LIFECYCLE_STATUS
-- VISIBILITY_STATUS
-- VERIFICATION_ELIGIBLE
-- BADGE_ELIGIBLE
+Excludes:
+- score
+- tier
+- band
 
-Important:
-- Score, tier, band are NOT exposed
-- Expired records remain visible
-- Lifecycle and eligibility are computed ONLY here
-
-CRITICAL (Phase 6.4 ADDITION):
-This view must produce a deterministic record used to generate messageString.
-Any change to field order, inclusion, or formatting may break signature verification downstream.
-
-CRITICAL ADDITION:
-This view defines the canonical payload foundation for messageString generation.
-Changes to this view must be treated as cryptographic breaking changes.
+CRITICAL:
+- Deterministic output required for messageString
+- Field order must never change
 
 ---
 
 ### SUPPORTING VIEWS
 
 CORE.V_REGISTRY_LATEST_APPROVED  
-- Latest approved decision per CASE_ID
-
 CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC  
-- Public AI systems surface
-- Must align strictly with V_REGISTRY_PUBLIC
-
 CORE.V_GOVERNANCE_SCORE_CASE  
-- Final scoring output
-- Source of truth for score/tier/band (PRIVATE)
 
 ---
 
 ## STORED PROCEDURES
 
+### APPLICATION INTAKE
+CORE.SP_CREATE_APPLICATION  
+
+---
+
 ### CASE CREATION
 CORE.SP_CREATE_CASE_FROM_APPLICATION  
-- Converts application → case
+
+---
+
+### FINDING CREATION (UPDATED — CRITICAL)
+CORE.SP_CREATE_FINDING  
+
+- Uses sequence: CORE.SEQ_FINDING_ID  
+- Inserts into canonical schema  
+- Maps:
+  - TITLE → CONTROL_TITLE
+  - STATUS → RESULT
+  - CATEGORY → CONTROL_ID  
+
+---
+
+### EVIDENCE CREATION
+CORE.SP_CREATE_EVIDENCE  
+
+- Uses sequence: CORE.SEQ_EVIDENCE_ID  
+
+---
+
+### FINDING ↔ EVIDENCE LINK
+CORE.SP_LINK_FINDING_EVIDENCE  
+CORE.SP_UNLINK_FINDING_EVIDENCE  
 
 ---
 
 ### SCORING
 CORE.SP_SCORE_CASE_ENTERPRISE  
-- Runs deterministic scoring engine
-- Writes to CASE_SCORE_SNAPSHOTS
 
 ---
 
 ### PUBLISH
 CORE.SP_PUBLISH_CASE_TO_REGISTRY_V3  
-- Creates REGISTRY_SNAPSHOTS
-- Publishes certification record
-
-⚠️ This is the ONLY valid publish path
-
-CRITICAL (Phase 6.4 ADDITION):
-Publishing must produce a stable record that results in a deterministic messageString.
-Any change to publish logic that alters output structure must be treated as a breaking change.
-
-CRITICAL ADDITION:
-Publishing output must maintain field order and structural consistency required for signature generation.
 
 ---
 
-## PHASE 6 RECORD MODEL
+## PHASE 7 ADDITION (CRITICAL)
 
-New Snowflake-defined fields:
+System now includes:
 
-- RECORD_TYPE
-- RECORD_NAME
-- VISIBILITY_STATUS
-- LIFECYCLE_STATUS
-- VERIFICATION_ELIGIBLE
-- BADGE_ELIGIBLE
+- Deterministic Findings creation via procedure  
+- Deterministic Evidence creation via procedure  
+- Deterministic Linking via procedure  
+- Removal of ALL JSON/local storage  
 
-These fields enable:
+System is now:
 
-- Organization-level certification
-- System-level certification
-- Portfolio modeling
-- Lifecycle-aware trust
-- Badge control
-
----
-
-## LIFECYCLE LOGIC (SNOWFLAKE ONLY)
-
-LIFECYCLE_STATUS:
-
-- active → VALID_TO > NOW()
-- expired → VALID_TO < NOW()
-- revoked → RENEWAL_STATUS = REVOKED
-
-CRITICAL:
-Lifecycle must be computed ONLY in Snowflake and never inferred externally.
-
-CRITICAL ADDITION:
-Lifecycle determines current trust state.
-Signature determines authenticity.
-
----
-
-## ELIGIBILITY LOGIC
-
-VERIFICATION_ELIGIBLE:
-
-- TRUE unless revoked
-
-BADGE_ELIGIBLE:
-
-- TRUE only if:
-  - active
-  - not revoked
-
----
-
-## DATA CONTRACT RULES
-
-Public contract includes:
-
-- identity fields
-- certification fields
-- lifecycle fields
-- eligibility fields
-- signed proof inputs
-
-Public contract excludes:
-
-- score
-- tier
-- band
-- findings
-- evidence
-- internal decisions
-
-CRITICAL (Phase 6.4 ADDITION):
-Public contract must remain stable to support external verification systems.
-
-CRITICAL ADDITION:
-Public contract stability is required for deterministic messageString generation and cryptographic verification.
+APPLICATION → CASE → FINDING → EVIDENCE → LINK (Snowflake-controlled)
 
 ---
 
 ## SEED FILES
 
-Primary working seed:
+Primary:
 
-- GAFAIG - CANONICAL_DEMO_SEED_MASTER.sql
-
-Responsibilities:
-
-- creates demo applications
-- creates cases
-- inserts findings/evidence/events
-- runs scoring
-- publishes registry records
-
-Must follow canonical flow EXACTLY
+- GAFAIG - FINAL_CANONICAL_DEMO_SEED.sql  
 
 ---
 
 ## CANONICAL RUN ORDER
 
-1. Create tables  
-2. Insert applications  
-3. Create cases  
-4. Insert findings  
-5. Insert evidence  
+1. Tables  
+2. Applications  
+3. Cases  
+4. Findings  
+5. Evidence  
 6. Link findings/evidence  
-7. Insert events  
-8. Run scoring  
-9. Create decisions  
-10. Publish to registry  
+7. Events  
+8. Scoring  
+9. Decisions  
+10. Publish  
 
 ---
 
-## PUBLIC CONTRACT PRINCIPLE
+## 🔴 REQUIRED NEXT FILE (FUTURE)
 
-Certification attaches to RECORDS, not organizations broadly.
+### CANONICAL RUNNER
 
-Each registry entry is:
+File to create:
 
-- independently verifiable
-- cryptographically signed
-- lifecycle-aware
-- externally consumable
+99_RUN_CANONICAL_PIPELINE.sql  
 
----
-
-## SNOWFLAKE RESPONSIBILITIES
-
-Snowflake is responsible for:
-
-- governance computation
-- scoring
-- decisioning
-- lifecycle determination
-- eligibility logic
-- registry snapshot creation
-- public contract projection
-- deterministic payload generation for verification (messageString)
-
----
-
-## API / UI ROLE
-
-API/UI:
-
-- read from V_REGISTRY_PUBLIC
-- return signed payloads
-- expose messageString, signature, public key reference
-- never compute trust
-- never mutate data
-
-CRITICAL ADDITION:
-Verification must occur using messageString only.
-UI/API must never verify using JSON field reconstruction.
+Purpose:
+- Execute all SQL files in deterministic order  
+- Validate:
+  - Tables
+  - Procedures
+  - Views
+  - Full pipeline  
 
 ---
 
 ## CURRENT SYSTEM STATE
 
-✔ Snowflake canonical flow established  
-✔ Registry snapshot model active  
-✔ Phase 6 public view updated  
-✔ Lifecycle + eligibility introduced  
-✔ Deterministic scoring enforced  
-✔ messageString contract aligned with verify page  
-✔ Public verification model stabilized  
+✔ Case creation working  
+✔ Evidence creation working  
+✔ Finding procedure corrected  
+✔ Linking procedures created  
+✔ Snowflake now controls all writes  
 
-🔴 Next step:
-Align and harden:
-
-- widget verification behavior
-- badge lifecycle enforcement
-- external SDK verification documentation
+⚠️ Current issue:
+Findings UI count mismatch (API/UI alignment issue)
 
 ---
 
@@ -453,7 +380,7 @@ Snowflake acts as:
 - registry publisher  
 - lifecycle authority  
 - trust source  
-- canonical payload generator for cryptographic verification  
+- canonical payload generator  
 
 GAFAIG becomes:
 
@@ -462,3 +389,5 @@ GAFAIG becomes:
 - a certification record system  
 - a Snowflake-native execution platform  
 - a cryptographically verifiable system of record  
+
+---

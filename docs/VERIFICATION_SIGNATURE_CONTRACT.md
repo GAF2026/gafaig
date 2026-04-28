@@ -1,10 +1,10 @@
 # VERIFICATION_SIGNATURE_CONTRACT.md
-Last Updated: 2026-04-26
+Last Updated: 2026-04-28
 
 ## PURPOSE
 This document defines the canonical verification signature contract for GAFAIG (Global Authority for AI Governance). It governs how GAFAIG public certification records are transformed into signed verification payloads, how those payloads are returned through the public verification API, and how external parties can independently validate the authenticity and integrity of a GAFAIG record.
 
-GAFAIG is the world’s first searchable AI governance registry. GAFAIG verifies that human oversight in AI systems is real, functioning, and independently verifiable.
+GAFAIG is the world’s first searchable AI governance registry. GAFAIG verifies that human oversight in AI systems is implemented, operational, and producing real oversight outcomes.
 
 This contract applies to:
 - Snowflake public registry views
@@ -92,7 +92,7 @@ As of Phase 6, CORE.V_REGISTRY_PUBLIC includes:
 The API may normalize field names from Snowflake uppercase snake case to TypeScript camel case, but it must not recompute trust, lifecycle, certification status, badge eligibility, or verification eligibility.
 
 CRITICAL ADDITION:
-This view defines the canonical payload foundation used to generate messageString.
+This view defines the canonical payload foundation used to generate messageString.  
 Any structural change must be treated as a cryptographic breaking change.
 
 ---
@@ -220,32 +220,32 @@ The record object is the public registry record returned to consumers.
 
 Required Phase 6 record fields:
 
-registryId
-registrySnapshotId
-applicationId
-caseId
-recordType
-recordName
-entityName
-entityType
-country
-certificationStatus
-certifiedAt
-validFrom
-validTo
-publishedAt
-renewalStatus
-lifecycleStatus
-visibilityStatus
-verificationEligible
-badgeEligible
+registryId  
+registrySnapshotId  
+applicationId  
+caseId  
+recordType  
+recordName  
+entityName  
+entityType  
+country  
+certificationStatus  
+certifiedAt  
+validFrom  
+validTo  
+publishedAt  
+renewalStatus  
+lifecycleStatus  
+visibilityStatus  
+verificationEligible  
+badgeEligible  
 
 Rules:
 
-These values must originate from CORE.V_REGISTRY_PUBLIC.
-API may normalize names but must not recompute meaning.
-Dates may be converted to ISO strings for API compatibility.
-Null dates may remain null.
+These values must originate from CORE.V_REGISTRY_PUBLIC.  
+API may normalize names but must not recompute meaning.  
+Dates may be converted to ISO strings for API compatibility.  
+Null dates may remain null.  
 Public record fields must remain consistent across all surfaces.
 
 ---
@@ -254,13 +254,13 @@ Public record fields must remain consistent across all surfaces.
 
 Required proof fields:
 
-alg
-kid
-signature
-signedAt
-verificationKeyUrl
-message
-messageString
+alg  
+kid  
+signature  
+signedAt  
+verificationKeyUrl  
+message  
+messageString  
 
 CRITICAL (Phase 6.4 ADDITION):
 
@@ -292,19 +292,19 @@ gafaig-ed25519-2026-01
 
 Fields:
 
-registryId
-entityName
-certificationStatus
-certifiedAt
-validFrom
-validTo
+registryId  
+entityName  
+certificationStatus  
+certifiedAt  
+validFrom  
+validTo  
 
 Rules:
 
-- Must remain minimal
-- Must remain stable
-- Must not expand without versioning
-- Must map directly to certification assertion
+- Must remain minimal  
+- Must remain stable  
+- Must not expand without versioning  
+- Must map directly to certification assertion  
 
 ---
 
@@ -314,16 +314,16 @@ messageString is the exact serialized payload.
 
 CRITICAL RULES:
 
-- Deterministic ordering required
-- No whitespace variation
-- No field omission
-- No formatting drift
-- Never reconstructed
-- Always use returned value
+- Deterministic ordering required  
+- No whitespace variation  
+- No field omission  
+- No formatting drift  
+- Never reconstructed  
+- Always use returned value  
 
 CRITICAL ADDITION:
-Field order must remain stable across:
-Snowflake → API → messageString → signature
+Field order must remain stable across:  
+Snowflake → API → messageString → signature  
 
 ---
 
@@ -333,22 +333,22 @@ Snowflake → API → messageString → signature
 
 CRITICAL:
 
-- This is the ONLY valid verification key source
-- Consumers must fetch key from this endpoint
-- Do not use hardcoded keys
+- This is the ONLY valid verification key source  
+- Consumers must fetch key from this endpoint  
+- Do not use hardcoded keys  
 
 ---
 
 ## EXTERNAL VERIFICATION PROCESS
 
-1. Call /api/verify/[registryId]
-2. Confirm ok === true
-3. Extract proof.messageString
-4. Extract proof.signature
-5. Extract proof.kid
-6. Fetch public key endpoint
-7. Match kid
-8. Verify signature using Ed25519
+1. Call /api/verify/[registryId]  
+2. Confirm ok === true  
+3. Extract proof.messageString  
+4. Extract proof.signature  
+5. Extract proof.kid  
+6. Fetch public key endpoint  
+7. Match kid  
+8. Verify signature using Ed25519  
 
 If valid → record is authentic
 
@@ -358,17 +358,17 @@ If valid → record is authentic
 
 Trust depends on:
 
-- Snowflake-originated record
-- messageString
-- signature
-- public key
+- Snowflake-originated record  
+- messageString  
+- signature  
+- public key  
 
 Trust does NOT depend on:
 
-- UI
-- widgets
-- badges
-- SDK convenience
+- UI  
+- widgets  
+- badges  
+- SDK convenience  
 
 ---
 
@@ -376,10 +376,10 @@ Trust does NOT depend on:
 
 If ANY of the following occur:
 
-- messageString missing
-- signature invalid
-- key mismatch
-- verification failure
+- messageString missing  
+- signature invalid  
+- key mismatch  
+- verification failure  
 
 THEN:
 
@@ -394,15 +394,15 @@ System MUST fail closed.
 
 Values:
 
-- active
-- expired
-- revoked
+- active  
+- expired  
+- revoked  
 
 Lifecycle is informational.
 
 CRITICAL:
 
-Signature proves authenticity.
+Signature proves authenticity.  
 Lifecycle determines current trust state.
 
 ---
@@ -411,8 +411,8 @@ Lifecycle determines current trust state.
 
 verificationEligible
 
-- Must come from Snowflake
-- Must not be computed
+- Must come from Snowflake  
+- Must not be computed  
 
 ---
 
@@ -420,8 +420,8 @@ verificationEligible
 
 badgeEligible
 
-- Must come from Snowflake
-- Must not be computed
+- Must come from Snowflake  
+- Must not be computed  
 
 ---
 
@@ -438,31 +438,31 @@ Proof = verify API
 Widgets are rendering surfaces.
 
 They must:
-- call verify API
-- display proof
-- fail closed on error
+- call verify API  
+- display proof  
+- fail closed on error  
 
 They must NOT:
-- compute trust
+- compute trust  
 
 ---
 
 ## SDK REQUIREMENTS
 
 SDK must:
-- call verify API
-- expose verification
-- never compute trust
-- never verify from JSON fields
+- call verify API  
+- expose verification  
+- never compute trust  
+- never verify from JSON fields  
 
 ---
 
 ## VERIFY API SECURITY
 
-- Sign server-side only
-- Never expose private key
-- No-store caching
-- Safe error handling
+- Sign server-side only  
+- Never expose private key  
+- No-store caching  
+- Safe error handling  
 
 ---
 
@@ -482,12 +482,12 @@ API: camelCase
 ## PUBLIC CONTRACT EXCLUSIONS
 
 Never expose:
-- score
-- tier
-- band
-- evidence
-- findings
-- internal data
+- score  
+- tier  
+- band  
+- evidence  
+- findings  
+- internal data  
 
 ---
 
@@ -501,28 +501,28 @@ Certification = public
 ## VERSIONING
 
 Changes must:
-- introduce new kid
-- preserve old verification
-- update docs
+- introduce new kid  
+- preserve old verification  
+- update docs  
 
 ---
 
 ## CURRENT ACTIVE CONTRACT
 
 Algorithm:
-Ed25519
+Ed25519  
 
 kid:
-gafaig-ed25519-2026-01
+gafaig-ed25519-2026-01  
 
 Verify endpoint:
-/api/verify/[registryId]
+/api/verify/[registryId]  
 
 Public key:
-/api/.well-known/gafaig-public-key
+/api/.well-known/gafaig-public-key  
 
 Snowflake view:
-CORE.V_REGISTRY_PUBLIC
+CORE.V_REGISTRY_PUBLIC  
 
 ---
 
@@ -536,11 +536,11 @@ GAFAIG-00363095
 
 Do not:
 
-- reconstruct messageString
-- verify from JSON
-- compute trust in UI
-- expose private key
-- alter message shape casually
+- reconstruct messageString  
+- verify from JSON  
+- compute trust in UI  
+- expose private key  
+- alter message shape casually  
 
 ---
 

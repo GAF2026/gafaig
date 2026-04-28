@@ -1,5 +1,5 @@
 # ENGINEERING_RULES.md
-Last Updated: 2026-04-26
+Last Updated: 2026-04-28
 
 ## PURPOSE
 This document defines the non-negotiable engineering rules for GAFAIG (Global Authority for AI Governance). These rules govern how the system is designed, implemented, modified, and extended across Snowflake, API, SDK, UI, and public trust surfaces.
