@@ -124,3 +124,48 @@ export async function POST(
     return jsonError(e?.message ?? "Failed to create finding");
   }
 }
+
+export async function PUT(
+  req: NextRequest,
+  { params }: { params: { caseId: string } }
+) {
+  if (!requireAdmin(req, true)) {
+    return jsonError("Unauthorized", 401);
+  }
+
+  try {
+    const body = await req.json().catch(() => ({}));
+
+    const findingId = pickStr(body?.findingId).trim();
+    const severity = pickStr(body?.severity).trim() || null;
+    const status = pickStr(body?.status).trim() || null;
+    const category = pickStr(body?.category).trim() || null;
+
+    if (!findingId) {
+      return jsonError("Missing required field: findingId", 400);
+    }
+
+    const result = await executeQuery(
+      `
+      CALL GAFAIG_DB.CORE.SP_UPDATE_FINDING(
+        ?, ?, ?, ?
+      )
+      `,
+      [findingId, severity, status, category]
+    );
+
+    const payload = extractProcedurePayload(result);
+
+    if (!payload?.findingId) {
+      return jsonError("Invalid update response", 500);
+    }
+
+    return NextResponse.json({
+      ok: true,
+      row: payload,
+      source: "snowflake",
+    });
+  } catch (e: any) {
+    return jsonError(e?.message ?? "Failed to update finding");
+  }
+}
