@@ -9,9 +9,13 @@
     SCRIPT_URL = null;
   }
 
-var ORIGIN = "https://www.gafaig.com";
+  function resolveOrigin() {
+    if (SCRIPT_URL && SCRIPT_URL.origin) return SCRIPT_URL.origin;
+    return window.location.origin;
+  }
 
-  var STYLE_ID = "gafaig-widget-styles-v8";
+  var ORIGIN = resolveOrigin();
+  var STYLE_ID = "gafaig-widget-styles-v9";
 
   function injectStyles() {
     if (document.getElementById(STYLE_ID)) return;
@@ -347,6 +351,28 @@ var ORIGIN = "https://www.gafaig.com";
       .replace(/'/g, "&#39;");
   }
 
+  function normalize(value) {
+    return String(value == null ? "" : value).trim().toLowerCase();
+  }
+
+  function isTrue(value) {
+    if (value === true) return true;
+    var normalized = normalize(value);
+    return normalized === "true" || normalized === "1" || normalized === "yes";
+  }
+
+  function isContractValid(record) {
+    if (!record) return false;
+
+    return (
+      normalize(record.certificationStatus) === "certified" &&
+      normalize(record.lifecycleStatus) === "active" &&
+      normalize(record.visibilityStatus) === "public" &&
+      isTrue(record.verificationEligible) &&
+      isTrue(record.badgeEligible)
+    );
+  }
+
   function formatDate(value) {
     return value ? String(value) : "—";
   }
@@ -380,12 +406,7 @@ var ORIGIN = "https://www.gafaig.com";
   function resolveTrustState(record) {
     if (!record) return "Not Certified";
 
-    var status = String(record.certificationStatus || "").trim().toUpperCase();
-    if (status === "CERTIFIED") return "Certified";
-
-    if (record.certifiedAt && String(record.certifiedAt).trim()) {
-      return "Certified";
-    }
+    if (isContractValid(record)) return "Certified";
 
     return "Not Certified";
   }
@@ -401,8 +422,13 @@ var ORIGIN = "https://www.gafaig.com";
       return "Signature Invalid";
     }
 
-    if (verifyData.verified === true) return "Signature Valid";
-    if (verifyData.verified === false) return "Signature Invalid";
+    if (verifyData.verified === true && isContractValid(verifyData.record)) {
+      return "Signature Valid";
+    }
+
+    if (verifyData.verified === false || !isContractValid(verifyData.record)) {
+      return "Signature Invalid";
+    }
 
     return "Unavailable";
   }
@@ -418,11 +444,19 @@ var ORIGIN = "https://www.gafaig.com";
       return "Payload Invalid";
     }
 
-    if (verifyData.ok === true && verifyData.verified === true) {
-      return "Payload Verified";
+    if (
+      verifyData.ok === true &&
+      verifyData.verified === true &&
+      isContractValid(verifyData.record)
+    ) {
+      return "Payload Integrity: Verified";
     }
 
-    if (verifyData.ok === false || verifyData.verified === false) {
+    if (
+      verifyData.ok === false ||
+      verifyData.verified === false ||
+      !isContractValid(verifyData.record)
+    ) {
       return "Payload Invalid";
     }
 
@@ -430,7 +464,10 @@ var ORIGIN = "https://www.gafaig.com";
   }
 
   function resolveTrustCopy(entityName, validation, integrity) {
-    if (validation === "Signature Valid" && integrity === "Payload Verified") {
+    if (
+      validation === "Signature Valid" &&
+      integrity === "Payload Integrity: Verified"
+    ) {
       return (
         entityName +
         " is listed in the GAFAIG registry with signed verification data. The canonical messageString is present and the public verification response reports a valid signature."
@@ -464,8 +501,10 @@ var ORIGIN = "https://www.gafaig.com";
   }
 
   function renderError(el, registryId, message) {
-    var recordUrl = ORIGIN + "/registry/" + encodeURIComponent(registryId);
-    var verifyApiUrl = ORIGIN + "/api/verify/" + encodeURIComponent(registryId);
+    var safeRegistryId = registryId || "";
+    var recordUrl = ORIGIN + "/registry/" + encodeURIComponent(safeRegistryId);
+    var verifyApiUrl =
+      ORIGIN + "/api/verify/" + encodeURIComponent(safeRegistryId);
 
     el.className = "gafaig-widget-root";
     el.innerHTML =
@@ -513,7 +552,7 @@ var ORIGIN = "https://www.gafaig.com";
           : "gafaig-widget-chip-neutral";
 
     var integrityChipClass =
-      integrity === "Payload Verified"
+      integrity === "Payload Integrity: Verified"
         ? "gafaig-widget-chip-integrity"
         : integrity === "Payload Invalid"
           ? "gafaig-widget-chip-invalid"
@@ -595,7 +634,7 @@ var ORIGIN = "https://www.gafaig.com";
           : "gafaig-widget-chip-neutral";
 
     var integrityChipClass =
-      integrity === "Payload Verified"
+      integrity === "Payload Integrity: Verified"
         ? "gafaig-widget-chip-integrity"
         : integrity === "Payload Invalid"
           ? "gafaig-widget-chip-invalid"
@@ -728,28 +767,26 @@ var ORIGIN = "https://www.gafaig.com";
 
     try {
       var verifyUrl =
-        ORIGIN +
-        "/api/verify/" +
-        encodeURIComponent(registryId);
+        ORIGIN + "/api/verify/" + encodeURIComponent(registryId);
 
       var verify = await fetchJson(verifyUrl);
 
-      if (!verify || verify.ok !== true) {
+      if (!verify || verify.ok !== true || !isContractValid(verify.record)) {
         renderError(el, registryId, "Verification unavailable");
         return;
       }
 
-      if (!hasCanonicalMessageString(verify)) {
-        if (mode === "badge") {
-          renderBadgeWidget(el, registryId, verify);
-          return;
-        }
-
-        renderWidget(el, registryId, verify);
+      if (!hasCanonicalMessageString(verify) || !hasSignature(verify)) {
+        renderError(el, registryId, "Verification proof incomplete");
         return;
       }
 
       if (mode === "badge") {
+        if (!isContractValid(verify.record)) {
+          renderError(el, registryId, "Badge not eligible");
+          return;
+        }
+
         renderBadgeWidget(el, registryId, verify);
         return;
       }
@@ -783,5 +820,6 @@ var ORIGIN = "https://www.gafaig.com";
 
   window.GAFAIGWidget = {
     mount: mountAll,
+    origin: ORIGIN,
   };
 })();

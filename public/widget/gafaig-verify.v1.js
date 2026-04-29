@@ -1,5 +1,5 @@
 (function () {
-  var VERSION = "1.3.3";
+  var VERSION = "1.4.0";
 
   function escapeHtml(value) {
     return String(value == null ? "" : value)
@@ -17,6 +17,28 @@
         : "https://www.gafaig.com";
 
     return raw.replace(/\/+$/, "");
+  }
+
+  function normalize(value) {
+    return String(value == null ? "" : value).trim().toLowerCase();
+  }
+
+  function isTrue(value) {
+    if (value === true) return true;
+    var normalized = normalize(value);
+    return normalized === "true" || normalized === "1" || normalized === "yes";
+  }
+
+  function isContractValid(record) {
+    if (!record) return false;
+
+    return (
+      normalize(record.certificationStatus) === "certified" &&
+      normalize(record.lifecycleStatus) === "active" &&
+      normalize(record.visibilityStatus) === "public" &&
+      isTrue(record.verificationEligible) &&
+      isTrue(record.badgeEligible)
+    );
   }
 
   function resolveUrl(url, baseUrl) {
@@ -46,18 +68,14 @@
     });
   }
 
-  function normalizeStatus(value) {
-    return String(value || "").trim().toLowerCase();
-  }
-
   function badgeTone(status) {
-    var s = normalizeStatus(status);
+    var s = normalize(status);
 
     if (
       s === "certified" ||
       s === "active" ||
       s === "signature valid" ||
-      s === "payload verified"
+      s === "payload integrity: verified"
     ) {
       return {
         border: "#9fe0bb",
@@ -74,7 +92,12 @@
       };
     }
 
-    if (s === "revoked" || s === "signature invalid") {
+    if (
+      s === "revoked" ||
+      s === "signature invalid" ||
+      s === "payload invalid" ||
+      s === "not certified"
+    ) {
       return {
         border: "#fecdd3",
         background: "#fff1f2",
@@ -227,6 +250,24 @@
       baseUrl
     );
 
+    var contractValid = isContractValid(record);
+    var verified = !!(data && data.ok === true && data.verified === true && contractValid);
+    var entityName = record.entityName || "GAFAIG Record";
+    var certificationStatus = record.certificationStatus || "—";
+    var lifecycleStatus = record.lifecycleStatus || "—";
+    var visibilityStatus = record.visibilityStatus || "—";
+    var verificationEligible =
+      record.verificationEligible == null
+        ? "—"
+        : String(record.verificationEligible);
+    var badgeEligible =
+      record.badgeEligible == null ? "—" : String(record.badgeEligible);
+    var signatureStatus = verified ? "Signature Valid" : "Signature Invalid";
+    var integrityStatus =
+      proof.messageString && proof.signature && verified
+        ? "Payload Integrity: Verified"
+        : "Payload Invalid";
+
     var signedPayloadToCopy =
       proof && proof.messageString
         ? proof.messageString
@@ -270,24 +311,6 @@
       "box-sizing:border-box",
     ].join(";");
 
-    var verified = !!(data && data.verified);
-    var entityName = record.entityName || record.recordName || "GAFAIG Record";
-    var certificationStatus = record.certificationStatus || "—";
-    var lifecycleStatus = record.lifecycleStatus || "—";
-    var recordType = record.recordType || "—";
-    var visibilityStatus = record.visibilityStatus || "—";
-    var verificationEligible =
-      record.verificationEligible == null
-        ? "—"
-        : String(record.verificationEligible);
-    var badgeEligible =
-      record.badgeEligible == null ? "—" : String(record.badgeEligible);
-    var signatureStatus = verified ? "Signature Valid" : "Signature Invalid";
-    var integrityStatus =
-      proof.messageString && proof.signature
-        ? "Payload Verified"
-        : "Payload Unavailable";
-
     panel.innerHTML =
       '<div style="display:flex;justify-content:space-between;gap:16px;align-items:flex-start;">' +
       "<div>" +
@@ -318,6 +341,7 @@
       statusPill(integrityStatus, integrityStatus) +
       statusPill(certificationStatus, certificationStatus) +
       statusPill(lifecycleStatus, lifecycleStatus) +
+      statusPill(visibilityStatus, visibilityStatus) +
       (proof.alg ? statusPill(proof.alg, proof.alg) : "") +
       "</div>" +
       '<div style="margin-top:18px;border:1px solid #e5e7eb;border-radius:18px;padding:16px;background:#fafafa;">' +
@@ -325,13 +349,12 @@
       '<p style="margin:8px 0 0;font-size:14px;line-height:1.7;color:#52525b;">' +
       (verified
         ? "This GAFAIG record is backed by a signed public verification payload. The record can be independently reviewed using the signature, message string, and public key endpoint."
-        : "This GAFAIG record could not be confirmed as verified by the returned verification response.") +
+        : "This GAFAIG record could not be confirmed as verified by the returned verification response or contract eligibility flags.") +
       "</p>" +
       "</div>" +
       '<div style="margin-top:18px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;">' +
       metric("Certification Status", certificationStatus) +
       metric("Lifecycle", lifecycleStatus) +
-      metric("Record Type", recordType) +
       metric("Visibility", visibilityStatus) +
       metric("Certified At", formatDate(record.certifiedAt || null)) +
       metric("Valid To", formatDate(record.validTo || null)) +
@@ -339,6 +362,7 @@
       metric("Key ID", proof.kid || "—") +
       metric("Verification Eligible", verificationEligible) +
       metric("Badge Eligible", badgeEligible) +
+      metric("Contract Valid", contractValid ? "true" : "false") +
       "</div>" +
       '<div style="margin-top:18px;border:1px solid #e5e7eb;border-radius:16px;padding:14px;background:#fafafa;">' +
       '<div style="font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#6b7280;">Public key URL</div>' +
@@ -392,6 +416,7 @@
       textarea.value = value;
       textarea.style.position = "fixed";
       textarea.style.left = "-9999px";
+      textarea.style.top = "-9999px";
       document.body.appendChild(textarea);
       textarea.focus();
       textarea.select();
@@ -432,7 +457,7 @@
 
       if (
         target === overlay ||
-        target.getAttribute("data-gafaig-close") === "true"
+        (target.getAttribute && target.getAttribute("data-gafaig-close") === "true")
       ) {
         close();
         return;
