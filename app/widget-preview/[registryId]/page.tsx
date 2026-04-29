@@ -346,8 +346,8 @@ export default async function WidgetPreviewPage({
                   (function () {
                     function reinit() {
                       try {
-                        if (window.gafaigWidget && typeof window.gafaigWidget.init === "function") {
-                          window.gafaigWidget.init();
+                        if (window.GAFAIGWidget && typeof window.GAFAIGWidget.mount === "function") {
+                          window.GAFAIGWidget.mount();
                         }
                       } catch (e) {}
                     }

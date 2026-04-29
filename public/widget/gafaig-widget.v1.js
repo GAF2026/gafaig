@@ -117,6 +117,18 @@
         border-color: #9fe0bb;
       }
 
+      .gafaig-widget-chip-expired {
+        background: #fef3c7;
+        color: #92400e;
+        border-color: #fde68a;
+      }
+
+      .gafaig-widget-chip-revoked {
+        background: #fee2e2;
+        color: #991b1b;
+        border-color: #fecaca;
+      }
+
       .gafaig-widget-chip-verified {
         background: #eef4ff;
         color: #2457d6;
@@ -404,11 +416,28 @@
   }
 
   function resolveTrustState(record) {
-    if (!record) return "Not Certified";
+    if (!record) return "Unavailable";
 
-    if (isContractValid(record)) return "Certified";
+    var certification = normalize(record.certificationStatus);
+    var lifecycle = normalize(record.lifecycleStatus);
 
-    return "Not Certified";
+    if (certification !== "certified") {
+      return "Not Certified";
+    }
+
+    if (lifecycle === "active") {
+      return "Certified";
+    }
+
+    if (lifecycle === "expired") {
+      return "Expired";
+    }
+
+    if (lifecycle === "revoked") {
+      return "Revoked";
+    }
+
+    return "Unavailable";
   }
 
   function resolveVerificationState(verifyData) {
@@ -422,11 +451,11 @@
       return "Signature Invalid";
     }
 
-    if (verifyData.verified === true && isContractValid(verifyData.record)) {
+    if (verifyData.verified === true) {
       return "Signature Valid";
     }
 
-    if (verifyData.verified === false || !isContractValid(verifyData.record)) {
+    if (verifyData.verified === false) {
       return "Signature Invalid";
     }
 
@@ -444,19 +473,11 @@
       return "Payload Invalid";
     }
 
-    if (
-      verifyData.ok === true &&
-      verifyData.verified === true &&
-      isContractValid(verifyData.record)
-    ) {
+    if (verifyData.ok === true && verifyData.verified === true) {
       return "Payload Integrity: Verified";
     }
 
-    if (
-      verifyData.ok === false ||
-      verifyData.verified === false ||
-      !isContractValid(verifyData.record)
-    ) {
+    if (verifyData.ok === false || verifyData.verified === false) {
       return "Payload Invalid";
     }
 
@@ -538,11 +559,21 @@
   function renderBadgeWidget(el, registryId, verifyData) {
     var record = verifyData && verifyData.record ? verifyData.record : null;
     var status = resolveTrustState(record);
+    var eligibility = isContractValid(record) ? "Eligible" : "Not Eligible";
     var validation = resolveVerificationState(verifyData);
     var integrity = resolveIntegrityState(verifyData);
     var verifyPageUrl = ORIGIN + "/verify/" + encodeURIComponent(registryId);
     var verifyApiUrl = ORIGIN + "/api/verify/" + encodeURIComponent(registryId);
     var entityName = safeText(record && record.entityName, registryId);
+
+    var statusChipClass =
+      status === "Certified"
+        ? "gafaig-widget-chip-certified"
+        : status === "Expired"
+          ? "gafaig-widget-chip-expired"
+          : status === "Revoked"
+            ? "gafaig-widget-chip-revoked"
+            : "gafaig-widget-chip-neutral";
 
     var validationChipClass =
       validation === "Signature Valid"
@@ -568,8 +599,13 @@
       '"></div>' +
       '<div class="gafaig-widget-eyebrow">GAFAIG Trust Badge</div>' +
       '<div class="gafaig-widget-chip-row">' +
-      '<span class="gafaig-widget-chip gafaig-widget-chip-certified">' +
+      '<span class="gafaig-widget-chip ' +
+      statusChipClass +
+      '">' +
       esc(status) +
+      "</span>" +
+      '<span class="gafaig-widget-chip gafaig-widget-chip-neutral">' +
+      esc(eligibility) +
       "</span>" +
       '<span class="gafaig-widget-chip ' +
       validationChipClass +
@@ -604,6 +640,7 @@
     var entityName = safeText(record && record.entityName, registryId);
     var country = safeText(record && record.country);
     var status = resolveTrustState(record);
+    var eligibility = isContractValid(record) ? "Eligible" : "Not Eligible";
     var validation = resolveVerificationState(verifyData);
     var integrity = resolveIntegrityState(verifyData);
     var validTo = formatDate((record && record.validTo) || null);
@@ -624,7 +661,11 @@
     var statusChipClass =
       status === "Certified"
         ? "gafaig-widget-chip-certified"
-        : "gafaig-widget-chip-neutral";
+        : status === "Expired"
+          ? "gafaig-widget-chip-expired"
+          : status === "Revoked"
+            ? "gafaig-widget-chip-revoked"
+            : "gafaig-widget-chip-neutral";
 
     var validationChipClass =
       validation === "Signature Valid"
@@ -671,6 +712,9 @@
       '">' +
       esc(status) +
       "</span>" +
+      '<span class="gafaig-widget-chip gafaig-widget-chip-neutral">' +
+      esc(eligibility) +
+      "</span>" +
       '<span class="gafaig-widget-chip ' +
       validationChipClass +
       '">' +
@@ -705,6 +749,7 @@
       "</div>" +
       '<div class="gafaig-widget-grid">' +
       metric("Status", status) +
+      metric("Eligibility", eligibility) +
       metric("Validation", validation) +
       metric("Integrity", integrity) +
       metric("Certified", certifiedAt) +
@@ -771,7 +816,7 @@
 
       var verify = await fetchJson(verifyUrl);
 
-      if (!verify || verify.ok !== true || !isContractValid(verify.record)) {
+      if (!verify || verify.ok !== true) {
         renderError(el, registryId, "Verification unavailable");
         return;
       }
@@ -782,11 +827,6 @@
       }
 
       if (mode === "badge") {
-        if (!isContractValid(verify.record)) {
-          renderError(el, registryId, "Badge not eligible");
-          return;
-        }
-
         renderBadgeWidget(el, registryId, verify);
         return;
       }
