@@ -405,8 +405,6 @@ export default async function VerifyPage({
 
   const entityName = safe(record.entityName);
   const certificationStatus = safe(record.certificationStatus);
-  const recordType = safe(record.recordType);
-  const recordName = safe(record.recordName);
   const lifecycleStatus = safe(record.lifecycleStatus);
   const visibilityStatus = safe(record.visibilityStatus);
   const verificationEligible = safe(record.verificationEligible);
@@ -541,8 +539,8 @@ export default async function VerifyPage({
           </div>
 
           <div className="mt-6 grid gap-4 md:grid-cols-4">
-            <InfoCard label="Record Type" value={recordType} />
-            <InfoCard label="Record Name" value={recordName} />
+            <InfoCard label="Entity Type" value={safe(record.entityType)} />
+            <InfoCard label="Entity Name" value={entityName} />
             <InfoCard label="Visibility" value={visibilityStatus} />
             <InfoCard label="Published" value={publishedAt} />
           </div>
