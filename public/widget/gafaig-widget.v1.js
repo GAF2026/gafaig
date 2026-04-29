@@ -625,7 +625,7 @@
       '<div class="gafaig-widget-actions">' +
       '<a class="gafaig-widget-btn gafaig-widget-btn-primary" href="' +
       verifyPageUrl +
-      '" target="_blank" rel="noopener noreferrer">Open verify page</a>' +
+      '" target="_blank" rel="noopener noreferrer">Verify This Record</a>' +
       '<a class="gafaig-widget-btn gafaig-widget-btn-secondary" href="' +
       verifyApiUrl +
       '" target="_blank" rel="noopener noreferrer">View Raw Verification JSON</a>' +
@@ -772,7 +772,7 @@
       '" target="_blank" rel="noopener noreferrer">Open record</a>' +
       '<a class="gafaig-widget-btn gafaig-widget-btn-secondary" href="' +
       verifyPageUrl +
-      '" target="_blank" rel="noopener noreferrer">Open verify page</a>' +
+      '" target="_blank" rel="noopener noreferrer">Verify This Record</a>' +
       '<a class="gafaig-widget-btn gafaig-widget-btn-secondary" href="' +
       verifyApiUrl +
       '" target="_blank" rel="noopener noreferrer">View Raw Verification JSON</a>' +
