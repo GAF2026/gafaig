@@ -11,14 +11,8 @@ export default function MissionPage() {
             eyebrow="MISSION"
             title="Why GAFAIG exists"
             description="GAFAIG establishes a verifiable standard for AI governance by combining structured evaluation with cryptographic verification. Certification outcomes are published as independently verifiable public records backed by signed proof."
-            secondaryDescription="GAFAIG combines a private verification engine with a public trust layer. Internal governance is reviewed in a controlled environment, while only the certification outcome is published as an independently verifiable public trust record."
+            secondaryDescription="GAFAIG combines a private verification engine with a public trust layer, adding cryptographic verification to AI governance certification. Internal governance is reviewed in a controlled environment, while only the certification outcome is published as an independently verifiable public trust record backed by signed proof. Organizations can prove certified AI governance without exposing internal systems, evidence, or workflows."
           />
-
-          <p className="mt-3 max-w-[720px] text-[15px] leading-7 text-black/70">
-            GAFAIG enables organizations to prove certified AI governance
-            without exposing internal systems, evidence, or workflows. Trust is
-            not asserted—it is independently verifiable.
-          </p>
         </div>
 
         <section className="rounded-3xl border border-black/10 bg-white p-8">
