@@ -38,6 +38,12 @@ function toIsoString(value: unknown): string | null {
   return Number.isNaN(date.getTime()) ? null : date.toISOString();
 }
 
+function isTrue(value: unknown): boolean {
+  if (value === true) return true;
+  const normalized = String(value ?? "").trim().toLowerCase();
+  return normalized === "true" || normalized === "1" || normalized === "yes";
+}
+
 function failClosed(
   registryId: string | null,
   error: string,
@@ -81,8 +87,6 @@ export async function GET(
         REGISTRY_ID,
         APPLICATION_ID,
         CASE_ID,
-        RECORD_TYPE,
-        RECORD_NAME,
         ENTITY_NAME,
         ENTITY_TYPE,
         COUNTRY,
@@ -113,8 +117,6 @@ export async function GET(
       registrySnapshotId: r.REGISTRY_SNAPSHOT_ID ?? null,
       applicationId: r.APPLICATION_ID ?? null,
       caseId: r.CASE_ID ?? null,
-      recordType: r.RECORD_TYPE ?? null,
-      recordName: r.RECORD_NAME ?? null,
       entityName: r.ENTITY_NAME ?? null,
       entityType: r.ENTITY_TYPE ?? null,
       country: r.COUNTRY ?? null,
@@ -130,13 +132,28 @@ export async function GET(
       badgeEligible: r.BADGE_ELIGIBLE ?? null,
     };
 
+    if (!isTrue(record.verificationEligible)) {
+      return failClosed(registryId, "Registry record is not verification eligible", 403);
+    }
+
     const message = {
       registryId: record.registryId,
+      registrySnapshotId: record.registrySnapshotId,
+      applicationId: record.applicationId,
+      caseId: record.caseId,
       entityName: record.entityName,
+      entityType: record.entityType,
+      country: record.country,
       certificationStatus: record.certificationStatus,
       certifiedAt: record.certifiedAt,
       validFrom: record.validFrom,
       validTo: record.validTo,
+      publishedAt: record.publishedAt,
+      renewalStatus: record.renewalStatus,
+      lifecycleStatus: record.lifecycleStatus,
+      visibilityStatus: record.visibilityStatus,
+      verificationEligible: record.verificationEligible,
+      badgeEligible: record.badgeEligible,
     };
 
     const messageString = JSON.stringify(message);
