@@ -307,8 +307,6 @@ const proofShapeExample = `{
     "registrySnapshotId": "REG-SNAP-...",
     "applicationId": "APP-DEMO-0001",
     "caseId": "CASE-0001",
-    "recordType": "ORGANIZATION",
-    "recordName": "OpenAI Enterprise Demo Org",
     "entityName": "OpenAI Enterprise Demo Org",
     "entityType": "company",
     "country": "United States",
@@ -784,11 +782,11 @@ export default function DevelopersPage() {
           <div className="mt-6 grid gap-4 md:grid-cols-2">
             <StatementCard
               title="Public fields"
-              body="registryId, registrySnapshotId, applicationId, caseId, recordType, recordName, entityName, entityType, country, certificationStatus, lifecycleStatus, visibilityStatus, verificationEligible, badgeEligible, validFrom, validTo, certifiedAt, publishedAt, and proof."
+              body="registryId, registrySnapshotId, applicationId, caseId, entityName, entityType, country, certificationStatus, lifecycleStatus, visibilityStatus, verificationEligible, badgeEligible, validFrom, validTo, certifiedAt, publishedAt, and proof."
             />
             <StatementCard
               title="Private fields"
-              body="Score, tier, band, scoring breakdowns, reviewer materials, internal workflow state, raw findings, and evidence do not belong in the public trust layer."
+              body="Raw score, scoring breakdowns, reviewer materials, internal workflow state, raw findings, and evidence do not belong in the public trust layer."
             />
           </div>
         </section>
