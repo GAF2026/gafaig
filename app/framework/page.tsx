@@ -42,7 +42,7 @@ export default function FrameworkPage() {
         <PublicPageHero
           eyebrow="FRAMEWORK"
           title="How GAFAIG works"
-          description="GAFAIG transforms AI governance into a structured verification process. It evaluates whether governance processes and meaningful human oversight are implemented, operational, and producing real oversight outcomes in practice and publishes certification outcomes as independently verifiable public trust records."
+          description="GAFAIG operates as a deterministic AI governance certification system. It combines structured evaluation, governed scoring, and cryptographic verification to produce publicly verifiable certification outcomes."
           secondaryDescription="The system separates a private verification engine from a public trust layer. Governance is reviewed internally, while only the certification outcome is exposed and validated through GAFAIG’s verification endpoint."
         />
 
@@ -158,6 +158,10 @@ export default function FrameworkPage() {
             grounded in actual oversight evidence rather than self-attestation.
           </p>
 
+          <p className="mt-4 text-[15px] text-black/70 max-w-[720px]">
+            GAFAIG enforces a deterministic pipeline: Application → Case → Findings → Evidence → Events → Scoring → Decision → Registry → Verification.
+          </p>
+
           <div className="mt-8 grid gap-4 md:grid-cols-6">
             <Step
               number="1"
@@ -198,9 +202,7 @@ export default function FrameworkPage() {
           </h2>
 
           <p className="mt-4 text-[15px] leading-7 text-black/75">
-            GAFAIG certification is the public outcome of a completed verification
-            process. It indicates that oversight was evaluated and finalized into
-            a record that can be independently verified.
+            Certification is not manually assigned. It is derived from a governed scoring system and published as a signed, verifiable record. This ensures consistency, transparency, and auditability.
           </p>
 
           <div className="mt-6 grid gap-4 md:grid-cols-2">
@@ -265,6 +267,10 @@ export default function FrameworkPage() {
             Once certification is finalized, the outcome becomes a signed,
             independently verifiable record that can be validated outside the
             platform.
+          </p>
+
+          <p className="mt-4 text-[15px] text-black/70 max-w-[720px]">
+            Each certified record is backed by a signed verification payload. External systems validate records using the canonical messageString and GAFAIG public key.
           </p>
 
           <div className="mt-6 grid gap-4 md:grid-cols-2">
