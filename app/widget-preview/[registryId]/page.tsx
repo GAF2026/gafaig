@@ -148,8 +148,8 @@ export default async function WidgetPreviewPage({
   const verifyData = await getVerifyData(registryId);
 
   const runtimeBaseUrl = getRuntimeBaseUrl();
-  const widgetScriptSrc = `${runtimeBaseUrl}/widget/gafaig-widget.js`;
-  const verifyScriptSrc = `${runtimeBaseUrl}/widget/gafaig-verify.js`;
+  const widgetScriptSrc = `${runtimeBaseUrl}/widget/gafaig-widget.v1.js`;
+  const verifyScriptSrc = `${runtimeBaseUrl}/widget/gafaig-verify.v1.js`;
 
   const productionBaseUrl =
     process.env.NEXT_PUBLIC_BASE_URL || "https://www.gafaig.com";
@@ -189,11 +189,9 @@ export default async function WidgetPreviewPage({
 
   const record = verifyData.record;
   const entityName = record.entityName || "Unknown Entity";
-  const trustState = verifyData.verified
-    ? "Verified"
-    : String(record.certifiedAt ?? "").trim()
-      ? "Certified"
-      : "Not Certified";
+  const trustState = String(record.certifiedAt ?? "").trim()
+    ? "Certified"
+    : "Not Certified";
 
   const widgetSnippet = `<script src="${productionBaseUrl}/widget/gafaig-widget.js"></script>
 <div data-gafaig-id="${registryId}"></div>`;
@@ -246,13 +244,15 @@ export default async function WidgetPreviewPage({
           }
         />
 
-        <p className="mt-2 text-[15px] text-black/70">
-          The widget does not perform verification. It displays the result of the GAFAIG verification layer.
-        </p>
+        <section className="rounded-3xl border border-black/10 bg-white p-8">
+          <p className="text-[15px] leading-[1.8] text-black/70">
+            The widget does not perform verification. It displays the result of the GAFAIG verification layer.
+          </p>
 
-        <div className="max-w-3xl text-[15px] leading-7 text-black/70">
-          This is how GAFAIG trust appears outside the originating organization’s platform.
-        </div>
+          <p className="mt-4 text-[15px] leading-[1.8] text-black/70">
+            This is how GAFAIG trust appears outside the originating organization’s platform.
+          </p>
+        </section>
 
         <section className="rounded-3xl border border-black/10 bg-white p-8">
           <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
@@ -340,6 +340,37 @@ export default async function WidgetPreviewPage({
 
             <div className="mt-6 rounded-2xl border border-black/10 bg-black/[0.02] p-6">
               <Script src={widgetScriptSrc} strategy="afterInteractive" />
+
+              <Script id="gafaig-widget-reinit" strategy="afterInteractive">
+                {`
+                  (function () {
+                    function reinit() {
+                      try {
+                        if (window.gafaigWidget && typeof window.gafaigWidget.init === "function") {
+                          window.gafaigWidget.init();
+                        }
+                      } catch (e) {}
+                    }
+
+                    // Back/forward navigation
+                    window.addEventListener("pageshow", reinit);
+
+                    // Next.js/browser initial load
+                    document.addEventListener("DOMContentLoaded", reinit);
+
+                    // Tab visibility return
+                    document.addEventListener("visibilitychange", function () {
+                      if (document.visibilityState === "visible") {
+                        reinit();
+                      }
+                    });
+
+                    // Initial fallback (important for hydration timing)
+                    setTimeout(reinit, 250);
+                  })();
+                `}
+              </Script>
+
               <div data-gafaig-id={registryId}></div>
             </div>
 
