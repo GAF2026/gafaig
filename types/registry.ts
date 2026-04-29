@@ -11,6 +11,9 @@ export type RegistryRow = {
   validTo: string | null;
   certifiedAt: string | null;
   lifecycleStatus: string | null;
+  visibilityStatus: string | null;
+  verificationEligible: boolean | string | null;
+  badgeEligible: boolean | string | null;
   renewalStatus: string | null;
   publishedAt: string | null;
 };
@@ -101,7 +104,9 @@ export type BadgeApiResponse =
       validFrom?: string | null;
       validTo?: string | null;
       lifecycleStatus?: string | null;
-      badgeEligible?: boolean;
+      visibilityStatus?: string | null;
+      verificationEligible?: boolean | string | null;
+      badgeEligible?: boolean | string | null;
       renewalStatus?: string | null;
       publishedAt?: string | null;
       badge: {
@@ -139,6 +144,9 @@ export type VerifyApiResponse =
         publishedAt: string | null;
         renewalStatus: string | null;
         lifecycleStatus: string | null;
+        visibilityStatus: string | null;
+        verificationEligible: boolean | string | null;
+        badgeEligible: boolean | string | null;
       };
       proof?: {
         alg: string;

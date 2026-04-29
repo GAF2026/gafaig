@@ -24,6 +24,9 @@ function toRegistryRow(row: RegistryRow): RegistryRow {
     validTo: row.validTo ?? null,
     certifiedAt: row.certifiedAt ?? null,
     lifecycleStatus: row.lifecycleStatus ?? null,
+    visibilityStatus: row.visibilityStatus ?? null,
+    verificationEligible: row.verificationEligible ?? null,
+    badgeEligible: row.badgeEligible ?? null,
     renewalStatus: row.renewalStatus ?? null,
     publishedAt: row.publishedAt ?? null,
   };

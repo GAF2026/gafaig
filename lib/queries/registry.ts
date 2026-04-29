@@ -13,6 +13,9 @@ export type RegistryRecord = {
   validFrom: string | null;
   validTo: string | null;
   lifecycleStatus: string | null;
+  visibilityStatus: string | null;
+  verificationEligible: boolean | string | null;
+  badgeEligible: boolean | string | null;
   renewalStatus: string | null;
   publishedAt: string | null;
 };
@@ -22,6 +25,7 @@ export type RegistryFilterOptions = {
   entityTypes: string[];
   statuses: string[];
   lifecycleStatuses: string[];
+  visibilityStatuses: string[];
 };
 
 type SearchRegistryParams = {
@@ -57,6 +61,9 @@ const BASE_SELECT = `
     VALID_FROM             AS "validFrom",
     VALID_TO               AS "validTo",
     LIFECYCLE_STATUS       AS "lifecycleStatus",
+    VISIBILITY_STATUS      AS "visibilityStatus",
+    VERIFICATION_ELIGIBLE  AS "verificationEligible",
+    BADGE_ELIGIBLE         AS "badgeEligible",
     RENEWAL_STATUS         AS "renewalStatus",
     PUBLISHED_AT           AS "publishedAt"
   FROM CORE.V_REGISTRY_PUBLIC
@@ -109,6 +116,7 @@ export async function searchRegistryRecords(
         OR UPPER(COALESCE(COUNTRY, '')) LIKE UPPER('%${q}%')
         OR UPPER(COALESCE(CERTIFICATION_STATUS, '')) LIKE UPPER('%${q}%')
         OR UPPER(COALESCE(LIFECYCLE_STATUS, '')) LIKE UPPER('%${q}%')
+        OR UPPER(COALESCE(VISIBILITY_STATUS, '')) LIKE UPPER('%${q}%')
       )
     `);
   }
@@ -145,20 +153,23 @@ export async function getRegistryFilterOptions(): Promise<RegistryFilterOptions>
     entityType: string | null;
     certificationStatus: string | null;
     lifecycleStatus: string | null;
+    visibilityStatus: string | null;
   }>(`
     SELECT DISTINCT
       COUNTRY              AS "country",
       ENTITY_TYPE          AS "entityType",
       CERTIFICATION_STATUS AS "certificationStatus",
-      LIFECYCLE_STATUS     AS "lifecycleStatus"
+      LIFECYCLE_STATUS     AS "lifecycleStatus",
+      VISIBILITY_STATUS    AS "visibilityStatus"
     FROM CORE.V_REGISTRY_PUBLIC
-    ORDER BY 1, 2, 3, 4
+    ORDER BY 1, 2, 3, 4, 5
   `);
 
   const countries = new Set<string>();
   const entityTypes = new Set<string>();
   const statuses = new Set<string>();
   const lifecycleStatuses = new Set<string>();
+  const visibilityStatuses = new Set<string>();
 
   for (const row of rows) {
     if (row.country?.trim()) countries.add(row.country.trim());
@@ -169,6 +180,9 @@ export async function getRegistryFilterOptions(): Promise<RegistryFilterOptions>
     if (row.lifecycleStatus?.trim()) {
       lifecycleStatuses.add(row.lifecycleStatus.trim());
     }
+    if (row.visibilityStatus?.trim()) {
+      visibilityStatuses.add(row.visibilityStatus.trim());
+    }
   }
 
   return {
@@ -176,6 +190,9 @@ export async function getRegistryFilterOptions(): Promise<RegistryFilterOptions>
     entityTypes: Array.from(entityTypes).sort((a, b) => a.localeCompare(b)),
     statuses: Array.from(statuses).sort((a, b) => a.localeCompare(b)),
     lifecycleStatuses: Array.from(lifecycleStatuses).sort((a, b) =>
+      a.localeCompare(b)
+    ),
+    visibilityStatuses: Array.from(visibilityStatuses).sort((a, b) =>
       a.localeCompare(b)
     ),
   };
