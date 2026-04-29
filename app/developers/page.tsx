@@ -404,6 +404,9 @@ export default function DevelopersPage() {
               >
                 View Widget Preview
               </PublicButtonLink>
+              <PublicButtonLink href="/public-key" variant="ghost">
+                Public Key
+              </PublicButtonLink>
             </>
           }
         />
