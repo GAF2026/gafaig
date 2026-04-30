@@ -269,20 +269,29 @@ const curlBadgeExample = `curl https://www.gafaig.com/api/badge/GAFAIG-00363095`
 
 const publicKeyExample = `curl https://www.gafaig.com/api/.well-known/gafaig-public-key`;
 
-const jsVerifyExample = `const response = await fetch(
-  "https://www.gafaig.com/api/verify/GAFAIG-00363095",
-  { cache: "no-store" }
-);
+const jsVerifyExample = `<script src="https://www.gafaig.com/sdk/gafaig.v1.js"></script>
 
-const data = await response.json();
+<script>
+  async function verifyGAFAIGRecord() {
+    const result = await gafaig.verify("GAFAIG-00363095", {
+      baseUrl: "https://www.gafaig.com"
+    });
 
-const messageString = data.proof.messageString;
-const signature = data.proof.signature;
-const publicKeyUrl = data.proof.verificationKeyUrl;
+    const publicKey = await gafaig.getPublicKey({
+      baseUrl: "https://www.gafaig.com"
+    });
 
-console.log(messageString);
-console.log(signature);
-console.log(publicKeyUrl);`;
+    const messageString = result.proof.messageString;
+    const signature = result.proof.signature;
+
+    console.log(result);
+    console.log(publicKey);
+    console.log(messageString);
+    console.log(signature);
+  }
+
+  verifyGAFAIGRecord();
+</script>`;
 
 const independentVerificationRuleExample = `Verification MUST use proof.messageString exactly as returned.
 
@@ -818,7 +827,7 @@ export default function DevelopersPage() {
               code={publicKeyExample}
             />
             <CodeCard
-              title="Read public proof in JavaScript"
+              title="Read proof and public key with SDK"
               language="JavaScript"
               code={jsVerifyExample}
             />
