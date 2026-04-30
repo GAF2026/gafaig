@@ -1,5 +1,5 @@
 (function () {
-  var VERSION = "1.2.3";
+  var VERSION = "1.3.0";
   var DEFAULT_BASE_URL = "https://www.gafaig.com";
   var LOADED_SCRIPTS = {};
 
@@ -332,6 +332,10 @@
     return data;
   }
 
+  async function getPublicKey(options) {
+    return fetchJson(resolveBaseUrl(options) + "/api/.well-known/gafaig-public-key");
+  }
+
   async function badge(target, config) {
     var cfg = config || {};
     var id = assertRegistryId(cfg.registryId);
@@ -523,6 +527,7 @@
     badge: badge,
     widget: widget,
     getBadge: getBadge,
+    getPublicKey: getPublicKey,
     openVerify: openVerify,
     ensureWidget: ensureWidget,
     ensureVerifyModal: ensureVerifyModal,
