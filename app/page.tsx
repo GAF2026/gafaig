@@ -203,7 +203,7 @@ export default async function HomePage() {
             </PublicButtonLink>
 
             <PublicButtonLink href="/verify" variant="secondary">
-              Open Verify
+              Verify a Record
             </PublicButtonLink>
 
             <PublicButtonLink href="/registry" variant="secondary">
@@ -260,6 +260,47 @@ export default async function HomePage() {
               variant="secondary"
             >
               View Widget Preview
+            </PublicButtonLink>
+          </div>
+        </section>
+
+        <section className="rounded-3xl border border-black/10 bg-white p-8">
+          <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
+            VERIFICATION LOOP
+          </div>
+
+          <h2 className="mt-4 text-[26px] font-semibold tracking-tight text-black max-w-[860px]">
+            Trust is not asserted. It is independently verified.
+          </h2>
+
+          <p className="mt-5 max-w-[980px] text-[15px] leading-7 text-black/75">
+            Every GAFAIG trust signal resolves to a public verification endpoint, a signed payload,
+            and a public key. External systems can independently validate certification without
+            accessing private governance data or internal workflows.
+          </p>
+
+          <div className="mt-8 grid gap-4 md:grid-cols-3">
+            <StatementCard
+              title="Verify endpoint"
+              body="Fetch the certified record and signed proof from /api/verify."
+            />
+            <StatementCard
+              title="Signed payload"
+              body="Use the exact messageString and signature returned by the verification endpoint."
+            />
+            <StatementCard
+              title="Public key"
+              body="Validate the signature using GAFAIG’s public key endpoint."
+            />
+          </div>
+
+          <div className="mt-6 flex flex-wrap gap-3">
+            <PublicButtonLink href="/verify" variant="primary">
+              Verify a Record
+            </PublicButtonLink>
+
+            <PublicButtonLink href="/public-key" variant="secondary">
+              View Public Key
             </PublicButtonLink>
           </div>
         </section>
