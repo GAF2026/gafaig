@@ -1,9 +1,11 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import AdminNav from "../_components/AdminNav";
 import AdminPageHeader from "../_components/AdminPageHeader";
 import PublicButton from "../../_components/PublicButton";
+import PublicButtonLink from "../../_components/PublicButtonLink";
 
 type VerificationCaseRow = {
   caseId: string;
@@ -92,7 +94,10 @@ export default function AdminVerificationPage() {
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
-  const showingText = useMemo(() => `Showing ${rows.length} of ${total}`, [rows.length, total]);
+  const showingText = useMemo(
+    () => `Showing ${rows.length} of ${total}`,
+    [rows.length, total]
+  );
 
   async function load(nextPage?: number) {
     const targetPage = nextPage ?? page;
@@ -120,7 +125,9 @@ export default function AdminVerificationPage() {
       try {
         data = JSON.parse(text);
       } catch {
-        throw new Error(`Unexpected response (not JSON). First chars: ${text.slice(0, 80)}`);
+        throw new Error(
+          `Unexpected response (not JSON). First chars: ${text.slice(0, 80)}`
+        );
       }
 
       if (!("ok" in data) || data.ok === false) {
@@ -134,7 +141,9 @@ export default function AdminVerificationPage() {
       setTotal(0);
 
       const msg =
-        e && typeof e === "object" && "message" in e ? String((e as any).message) : "";
+        e && typeof e === "object" && "message" in e
+          ? String((e as any).message)
+          : "";
 
       setErr(msg || "Failed to load verification cases.");
     } finally {
@@ -186,7 +195,9 @@ export default function AdminVerificationPage() {
           try {
             data = JSON.parse(text);
           } catch {
-            throw new Error(`Unexpected response (not JSON). First chars: ${text.slice(0, 80)}`);
+            throw new Error(
+              `Unexpected response (not JSON). First chars: ${text.slice(0, 80)}`
+            );
           }
 
           if (!("ok" in data) || data.ok === false) {
@@ -299,19 +310,11 @@ export default function AdminVerificationPage() {
             </div>
 
             <div className="ml-auto flex flex-wrap gap-3">
-              <PublicButton
-                type="button"
-                onClick={onClear}
-                variant="secondary"
-              >
+              <PublicButton type="button" onClick={onClear} variant="secondary">
                 Clear
               </PublicButton>
 
-              <PublicButton
-                type="button"
-                onClick={onApply}
-                variant="primary"
-              >
+              <PublicButton type="button" onClick={onApply} variant="primary">
                 Apply
               </PublicButton>
             </div>
@@ -330,19 +333,22 @@ export default function AdminVerificationPage() {
             <table className="min-w-[980px] w-full text-[14px]">
               <thead className="bg-black/[0.03] text-left text-black">
                 <tr>
-                  <th className="w-[240px] px-4 py-4 font-semibold">Case ID</th>
+                  <th className="w-[260px] px-4 py-4 font-semibold">Case ID</th>
                   <th className="px-4 py-4 font-semibold">Entity</th>
                   <th className="w-[150px] px-4 py-4 font-semibold">Type</th>
                   <th className="w-[160px] px-4 py-4 font-semibold">Status</th>
                   <th className="w-[130px] px-4 py-4 font-semibold">Priority</th>
                   <th className="w-[200px] px-4 py-4 font-semibold">Updated</th>
+                  <th className="w-[120px] px-4 py-4 text-right font-semibold">
+                    Action
+                  </th>
                 </tr>
               </thead>
 
               <tbody>
                 {rows.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="px-4 py-8 text-black/60">
+                    <td colSpan={7} className="px-4 py-8 text-black/60">
                       {loading ? "Loading…" : "No verification cases found."}
                     </td>
                   </tr>
@@ -351,16 +357,19 @@ export default function AdminVerificationPage() {
                     const href = `/admin/verification/${encodeURIComponent(r.caseId)}`;
 
                     return (
-                      <tr key={r.caseId} className="border-t border-black/5 hover:bg-black/[0.02]">
+                      <tr
+                        key={r.caseId}
+                        className="border-t border-black/5 hover:bg-black/[0.02]"
+                      >
                         <td className="px-4 py-4">
                           <div className="flex items-center gap-2">
-                            <a
+                            <Link
                               className="min-w-0 overflow-hidden text-ellipsis whitespace-nowrap font-mono text-[12px] font-semibold underline underline-offset-2"
                               href={href}
-                              title={r.caseId}
+                              title={`Open ${r.caseId}`}
                             >
                               {truncateMiddle(r.caseId)}
-                            </a>
+                            </Link>
 
                             <PublicButton
                               className="px-3 py-1"
@@ -375,20 +384,40 @@ export default function AdminVerificationPage() {
                           </div>
                         </td>
 
-                        <td className="px-4 py-4 text-black/85">{r.entityName}</td>
-
-                        <td className="px-4 py-4">
-                          <span className={typeTagClasses()}>{prettify(r.verificationType)}</span>
+                        <td className="px-4 py-4 text-black/85">
+                          <Link
+                            href={href}
+                            className="font-medium text-black underline-offset-2 hover:underline"
+                            title={`Open ${r.caseId}`}
+                          >
+                            {r.entityName || "—"}
+                          </Link>
                         </td>
 
                         <td className="px-4 py-4">
-                          <span className={statusClasses(r.status)}>{prettify(r.status)}</span>
+                          <span className={typeTagClasses()}>
+                            {prettify(r.verificationType)}
+                          </span>
                         </td>
 
-                        <td className="px-4 py-4 text-black/70">{r.priority || "—"}</td>
+                        <td className="px-4 py-4">
+                          <span className={statusClasses(r.status)}>
+                            {prettify(r.status)}
+                          </span>
+                        </td>
+
+                        <td className="px-4 py-4 text-black/70">
+                          {r.priority || "—"}
+                        </td>
 
                         <td className="px-4 py-4 font-mono text-[12px] text-black/60">
                           {r.updatedAt}
+                        </td>
+
+                        <td className="px-4 py-4 text-right">
+                          <PublicButtonLink href={href} variant="secondary" size="sm">
+                            Open
+                          </PublicButtonLink>
                         </td>
                       </tr>
                     );
@@ -424,7 +453,8 @@ export default function AdminVerificationPage() {
         </section>
 
         <footer className="mt-6 text-[13px] text-black/55">
-          Verification cases connect application intake to deeper evidence, findings, scoring, and decision workflow.
+          Verification cases connect application intake to deeper evidence, findings,
+          scoring, and decision workflow.
         </footer>
       </main>
     </div>

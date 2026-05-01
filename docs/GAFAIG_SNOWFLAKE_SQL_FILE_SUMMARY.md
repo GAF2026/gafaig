@@ -1,393 +1,382 @@
-# GAFAIG_SNOWFLAKE_SQL_FILE_SUMMARY.md
-Last Updated: 2026-04-28
+GAFAIG_SNOWFLAKE_SQL_FILE_SUMMARY.md
 
-## PURPOSE
+Last Updated: 2026-04-30
+
+PURPOSE
+
 This file summarizes all active Snowflake SQL files, objects, and execution logic used in GAFAIG (Global Authority for AI Governance). It serves as the canonical reference for Snowflake as the system of truth and execution for the GAFAIG platform.
 
 GAFAIG is a deterministic governance verification system. All scoring, certification, lifecycle state, and public trust outputs originate in Snowflake and are exposed through controlled public views.
 
----
+NON-NEGOTIABLE RULES
+Snowflake is the ONLY source of truth
+No scoring, certification, lifecycle, or eligibility logic exists outside Snowflake
+API, UI, SDK must NOT compute or override Snowflake outputs
+All IDs originate in Snowflake:
+APPLICATION_ID
+CASE_ID
+REGISTRY_ID
+FINDING_ID
+EVIDENCE_ID
+EVENT_ID
+REGISTRY_SNAPSHOT_ID
+Published registry snapshots are IMMUTABLE
+Registry tables are APPEND-ONLY
+Public views are projection layers only (no heavy logic)
 
-## NON-NEGOTIABLE RULES
+CRITICAL (Verification Contract Enforcement):
 
-- Snowflake is the ONLY source of truth
-- No scoring, certification, lifecycle, or eligibility logic exists outside Snowflake
-- API, UI, SDK must NOT compute or override Snowflake outputs
-- All IDs originate in Snowflake:
-  - APPLICATION_ID
-  - CASE_ID
-  - REGISTRY_ID
-  - FINDING_ID
-  - EVIDENCE_ID
-  - EVENT_ID
-  - REGISTRY_SNAPSHOT_ID
-- Published registry snapshots are IMMUTABLE
-- Public views are projection layers only (no heavy logic)
-
-CRITICAL (Phase 6.4 ADDITION):
-- messageString used in verification MUST be deterministic and stable
-- Field ordering must NEVER change
-- Timestamp format must remain ISO 8601
-- No conditional omission of fields used in messageString
-- messageString is the ONLY valid payload for signature verification
+messageString MUST be deterministic and stable
+Field ordering MUST NEVER change
+Timestamp format MUST remain ISO 8601
+No conditional omission of fields used in messageString
+messageString is the ONLY valid payload for signature verification
 
 CRITICAL ADDITION:
-- Verification must NEVER be performed using parsed JSON fields
-- Verification must NEVER be performed using reconstructed payloads
-- proof.message is informational only and must NOT be used for verification
 
----
+Verification MUST NEVER be performed using parsed JSON fields
+Verification MUST NEVER be performed using reconstructed payloads
+proof.message is informational only and MUST NOT be used for verification
+GLOBAL TRUST INVARIANTS (PHASE 6.4 — SNOWFLAKE ALIGNMENT)
+VERIFY API IS THE PROTOCOL CONTRACT
+Snowflake output feeds /api/verify, which is the canonical external verification interface
+MESSAGESTRING IS THE ONLY VERIFICATION INPUT
+Snowflake output must support deterministic messageString generation
+NEVER VERIFY FROM JSON
+JSON fields must not be relied on for cryptographic validation
+DETERMINISTIC PAYLOAD GUARANTEE
+Field order must remain stable across:
+Snowflake → API → messageString → signature
+SIGNATURE VS LIFECYCLE SEPARATION
+Signature = authenticity
+Lifecycle = current trust state
+FAIL-CLOSED SYSTEM
+Any failure → NOT TRUSTED
+CANONICAL EXECUTION FLOW
 
-## GLOBAL TRUST INVARIANTS (PHASE 6.4 — SNOWFLAKE ALIGNMENT)
+APPLICATION
+→ CASE
+→ FINDINGS
+→ EVIDENCE
+→ EVENTS
+→ SCORING
+→ DECISION
+→ REGISTRY SNAPSHOT
+→ PUBLIC VIEW
 
-1. VERIFY API IS THE PROTOCOL CONTRACT  
-   Snowflake output feeds `/api/verify`, which is the canonical external verification interface
+CRITICAL RUN ORDER FILES (MUST BE STABLE)
 
-2. MESSAGESTRING IS THE ONLY VERIFICATION INPUT  
-   Snowflake output must support deterministic messageString generation
+🔴 IMMEDIATE BLOCKERS (STEP ZERO)
 
-3. NEVER VERIFY FROM JSON  
-   JSON fields must not be relied on for cryptographic validation
-
-4. DETERMINISTIC PAYLOAD GUARANTEE  
-   Field order must remain stable across:
-   Snowflake → API → messageString → signature
-
-5. SIGNATURE VS LIFECYCLE SEPARATION  
-   Signature = authenticity  
-   Lifecycle = current trust state
-
-6. FAIL-CLOSED SYSTEM  
-   Any failure → NOT TRUSTED
-
----
-
-## CANONICAL EXECUTION FLOW
-
-APPLICATION  
-→ CASE  
-→ FINDINGS  
-→ EVIDENCE  
-→ EVENTS  
-→ SCORING  
-→ DECISION  
-→ REGISTRY SNAPSHOT  
-→ PUBLIC VIEW  
-
----
-
-## CRITICAL RUN ORDER FILES (MUST BE STABLE)
-
-🔴 IMMEDIATE PRIORITY
-
-- 12_TABLES_PARTICIPANTS.sql  
-- 15_TABLES_EVENTS.sql  
+12_TABLES_PARTICIPANTS.sql
+15_TABLES_EVENTS.sql
 
 These files:
-- Break canonical run order if incorrect
-- Block deterministic rebuilds
-- Risk silent corruption of downstream tables
 
-These must be fixed before any full system rebuild.
+Break canonical run order if incorrect
+Block deterministic rebuilds
+Risk silent corruption of downstream tables
 
----
+These MUST be fixed before ANY pipeline execution.
 
-## CORE TABLE CREATION FILES
+CORE TABLE CREATION FILES
+APPLICATION LAYER
+CORE.APPLICATIONS
 
-### APPLICATION LAYER
-- CORE.APPLICATIONS  
-Defines organization-level intake data  
-
-Includes:
-- APPLICATION_ID
-- REQUEST_ID
-- TYPE
-- STATUS
-- ORG_NAME
-- EMAIL
-- ORG_TYPE
-- COUNTRY
-
----
-
-### CASE LAYER
-- CORE.VERIFICATION_CASES  
-Defines each verification case  
+Defines organization-level intake data
 
 Includes:
-- CASE_ID
-- APPLICATION_ID
-- PARTICIPANT_ID
-- STATUS
-- CREATED_AT
-- UPDATED_AT
 
----
+APPLICATION_ID
+REQUEST_ID
+TYPE
+STATUS
+ORG_NAME
+EMAIL
+ORG_TYPE
+COUNTRY
+CASE LAYER
+CORE.VERIFICATION_CASES
 
-### FINDINGS LAYER
-- CORE.VERIFICATION_FINDINGS  
+Defines each verification case
 
-Structured evaluation outputs tied to CASE_ID  
+Includes:
 
-Fields:
-- FINDING_ID
-- CASE_ID
-- CONTROL_ID
-- CONTROL_TITLE
-- RESULT
-- RATIONALE
-- SEVERITY
-- EVIDENCE_IDS
-- CREATED_AT
-- UPDATED_AT
-- ORG_ID
+CASE_ID
+APPLICATION_ID
+PARTICIPANT_ID
+STATUS
+CREATED_AT
+UPDATED_AT
+FINDINGS LAYER
+CORE.VERIFICATION_FINDINGS
 
----
-
-### EVIDENCE LAYER
-- CORE.VERIFICATION_EVIDENCE  
-
-Stores supporting materials for findings  
+Structured evaluation outputs tied to CASE_ID
 
 Fields:
-- EVIDENCE_ID
-- CASE_ID
-- EVIDENCE_TYPE
-- TITLE
-- DESCRIPTION
-- SOURCE_URL
-- STORAGE_REF
-- SUBMITTED_BY
-- SUBMITTED_AT
-- CREATED_AT
-- UPDATED_AT
-- ORG_ID
 
----
+FINDING_ID
+CASE_ID
+CONTROL_ID
+CONTROL_TITLE
+RESULT
+RATIONALE
+SEVERITY
+EVIDENCE_IDS
+CREATED_AT
+UPDATED_AT
+ORG_ID
+EVIDENCE LAYER
+CORE.VERIFICATION_EVIDENCE
 
-### FINDING ↔ EVIDENCE LINK
-- CORE.VERIFICATION_FINDING_EVIDENCE  
-
-Mapping table between findings and evidence  
+Stores supporting materials for findings
 
 Fields:
-- FINDING_ID
-- EVIDENCE_ID
-- CASE_ID
-- CREATED_AT
 
----
+EVIDENCE_ID
+CASE_ID
+EVIDENCE_TYPE
+TITLE
+DESCRIPTION
+SOURCE_URL
+STORAGE_REF
+SUBMITTED_BY
+SUBMITTED_AT
+CREATED_AT
+UPDATED_AT
+ORG_ID
+FINDING ↔ EVIDENCE LINK
+CORE.VERIFICATION_FINDING_EVIDENCE
 
-### EVENTS LAYER
-- CORE.VERIFICATION_EVENTS  
+Mapping table between findings and evidence
+
+Fields:
+
+FINDING_ID
+EVIDENCE_ID
+CASE_ID
+CREATED_AT
+EVENTS LAYER
+CORE.VERIFICATION_EVENTS
+
 Tracks actions, timestamps, workflow transitions
 
----
+SCORING LAYER
+CORE.CASE_SCORE_SNAPSHOTS
 
-### SCORING LAYER
-- CORE.CASE_SCORE_SNAPSHOTS  
 Stores deterministic scoring outputs per case
 
----
+⚠️ NOTE:
+Scores exist ONLY internally and MUST NOT be exposed in public views.
 
-### DECISION LAYER
-- CORE.DECISIONS  
-Final governance decisions  
+DECISION LAYER
+CORE.DECISIONS
 
-Includes:
-- DECISION_STATUS
-- VALID_FROM
-- VALID_TO
-
----
-
-### REGISTRY LAYER
-- CORE.REGISTRY_SNAPSHOTS  
-
-Canonical public certification records  
+Final governance decisions
 
 Includes:
-- REGISTRY_SNAPSHOT_ID
-- REGISTRY_ID
-- CASE_ID
-- ENTITY_NAME
-- VERIFICATION_TYPE
-- APPROVED_AT
-- PUBLISHED_AT
-- RENEWAL_STATUS
 
----
+DECISION_STATUS
+VALID_FROM
+VALID_TO
+CERTIFICATION_STATUS
+CERTIFIED_AT
+REGISTRY LAYER
+CORE.REGISTRY_SNAPSHOTS
 
-### ENTITY TABLES
-- CORE.REGISTRY_ENTITIES  
-- CORE.REGISTRY_AI_SYSTEMS  
+Canonical public certification records
 
----
+Includes:
 
-## CORE VIEWS
+REGISTRY_SNAPSHOT_ID
+REGISTRY_ID
+CASE_ID
+ENTITY_NAME
+VERIFICATION_TYPE
+APPROVED_AT
+PUBLISHED_AT
+RENEWAL_STATUS
+ENTITY TABLES
+CORE.REGISTRY_ENTITIES
+CORE.REGISTRY_AI_SYSTEMS
+CORE VIEWS
+PRIMARY PUBLIC VIEW
 
-### PRIMARY PUBLIC VIEW
-CORE.V_REGISTRY_PUBLIC  
+CORE.V_REGISTRY_PUBLIC
 
 This is the canonical public contract.
 
 Includes:
-- lifecycle
-- eligibility
-- certification outcome
+
+certificationStatus
+certifiedAt
+validFrom
+validTo
+lifecycleStatus
+renewalStatus
 
 Excludes:
-- score
-- tier
-- band
+
+score
+tier
+band
+internal decision logic
 
 CRITICAL:
-- Deterministic output required for messageString
-- Field order must never change
 
----
+Deterministic output required for messageString
+Field order must never change
+AI SYSTEMS PUBLIC VIEW
 
-### SUPPORTING VIEWS
+CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC
 
-CORE.V_REGISTRY_LATEST_APPROVED  
-CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC  
-CORE.V_GOVERNANCE_SCORE_CASE  
+Rules:
 
----
+MUST JOIN on CASE_ID
+MUST depend only on:
+CORE.V_REGISTRY_PUBLIC
+CORE.REGISTRY_AI_SYSTEMS
+MUST NOT include:
+score
+decision internals
+SUPPORTING VIEWS
+CORE.V_REGISTRY_LATEST_APPROVED
+CORE.V_GOVERNANCE_SCORE_CASE
+CORE.V_SCORE_DIMENSIONS_PUBLIC
+CORE.V_FINDING_UNMAPPED_CONTROLS
+STORED PROCEDURES
+APPLICATION INTAKE
 
-## STORED PROCEDURES
+CORE.SP_CREATE_APPLICATION
 
-### APPLICATION INTAKE
-CORE.SP_CREATE_APPLICATION  
+CASE CREATION
 
----
+CORE.SP_CREATE_CASE_FROM_APPLICATION
 
-### CASE CREATION
-CORE.SP_CREATE_CASE_FROM_APPLICATION  
+FINDING CREATION (CRITICAL)
 
----
+CORE.SP_CREATE_FINDING
 
-### FINDING CREATION (UPDATED — CRITICAL)
-CORE.SP_CREATE_FINDING  
+Uses sequence: CORE.SEQ_FINDING_ID
+Inserts into CORE.VERIFICATION_FINDINGS
+Maps:
+TITLE → CONTROL_TITLE
+STATUS → RESULT
+CATEGORY → CONTROL_ID
+EVIDENCE CREATION
 
-- Uses sequence: CORE.SEQ_FINDING_ID  
-- Inserts into canonical schema  
-- Maps:
-  - TITLE → CONTROL_TITLE
-  - STATUS → RESULT
-  - CATEGORY → CONTROL_ID  
+CORE.SP_CREATE_EVIDENCE
 
----
+Uses sequence: CORE.SEQ_EVIDENCE_ID
+FINDING ↔ EVIDENCE LINK
 
-### EVIDENCE CREATION
-CORE.SP_CREATE_EVIDENCE  
+CORE.SP_LINK_FINDING_EVIDENCE
+CORE.SP_UNLINK_FINDING_EVIDENCE
 
-- Uses sequence: CORE.SEQ_EVIDENCE_ID  
+SCORING
 
----
+CORE.SP_SCORE_CASE_ENTERPRISE
 
-### FINDING ↔ EVIDENCE LINK
-CORE.SP_LINK_FINDING_EVIDENCE  
-CORE.SP_UNLINK_FINDING_EVIDENCE  
+⚠️ Output must flow ONLY into snapshots → decisions → registry
 
----
+APPROVAL
 
-### SCORING
-CORE.SP_SCORE_CASE_ENTERPRISE  
+CORE.SP_APPROVE_CASE (or equivalent)
 
----
+PUBLISH (CRITICAL OWNER)
 
-### PUBLISH
-CORE.SP_PUBLISH_CASE_TO_REGISTRY_V3  
+CORE.SP_PUBLISH_CASE_TO_REGISTRY_V3
 
----
+RULE:
 
-## PHASE 7 ADDITION (CRITICAL)
+ALL registry writes MUST go through this procedure
+NEVER manually:
+INSERT into registry tables
+DELETE from registry tables
+SEED FILE POLICY (CRITICAL)
 
-System now includes:
+Primary (ONLY allowed seed file):
 
-- Deterministic Findings creation via procedure  
-- Deterministic Evidence creation via procedure  
-- Deterministic Linking via procedure  
-- Removal of ALL JSON/local storage  
+GAFAIG - FINAL_CANONICAL_MULTI_SEED.sql
+STRICT RULES
+❌ NEVER create additional seed files
+❌ NEVER insert directly into:
+CORE.REGISTRY_SNAPSHOTS
+CORE.REGISTRY_AI_SYSTEMS
+❌ NEVER delete from registry tables
+ALLOWED
+✅ Modify master seed file
+✅ Expand dataset
+✅ Add lifecycle realism:
+expired records
+revoked records
+REQUIRED SEED FLOW
 
-System is now:
+Seed MUST:
 
-APPLICATION → CASE → FINDING → EVIDENCE → LINK (Snowflake-controlled)
-
----
-
-## SEED FILES
-
-Primary:
-
-- GAFAIG - FINAL_CANONICAL_DEMO_SEED.sql  
-
----
-
-## CANONICAL RUN ORDER
-
-1. Tables  
-2. Applications  
-3. Cases  
-4. Findings  
-5. Evidence  
-6. Link findings/evidence  
-7. Events  
-8. Scoring  
-9. Decisions  
-10. Publish  
-
----
-
-## 🔴 REQUIRED NEXT FILE (FUTURE)
-
-### CANONICAL RUNNER
+Insert APPLICATIONS
+Create CASES
+Insert FINDINGS
+Insert EVIDENCE
+Link findings ↔ evidence
+Insert EVENTS
+Run scoring
+Create decisions
+CALL publish procedure
+CANONICAL RUN ORDER
+Tables
+Applications
+Cases
+Findings
+Evidence
+Link findings/evidence
+Events
+Scoring
+Decisions
+Publish
+🔴 REQUIRED NEXT FILE
+CANONICAL VALIDATION RUNNER
 
 File to create:
 
-99_RUN_CANONICAL_PIPELINE.sql  
+99_RUN_CANONICAL_PIPELINE.sql
 
 Purpose:
-- Execute all SQL files in deterministic order  
-- Validate:
-  - Tables
-  - Procedures
-  - Views
-  - Full pipeline  
 
----
+Execute ALL SQL files in canonical order
+Validate:
+Tables
+Views
+Procedures
+End-to-end pipeline
 
-## CURRENT SYSTEM STATE
+Must include:
 
-✔ Case creation working  
-✔ Evidence creation working  
-✔ Finding procedure corrected  
-✔ Linking procedures created  
-✔ Snowflake now controls all writes  
+Smoke tests
+Insert → select validation
+Procedure execution checks
+CURRENT SYSTEM STATE
 
-⚠️ Current issue:
-Findings UI count mismatch (API/UI alignment issue)
+✔ Full Snowflake-controlled pipeline operational
+✔ Verification contract enforced (messageString + signature)
+✔ Registry append-only enforced
+✔ AI systems public view aligned to contract
+✔ Seed file corrected to avoid registry mutation
 
----
+FINAL SYSTEM DEFINITION
 
-## END STATE
+Snowflake is:
 
-Snowflake acts as:
+Governance engine
+Certification authority
+Registry publisher
+Lifecycle authority
+Cryptographic payload source
 
-- deterministic governance engine  
-- certification authority  
-- registry publisher  
-- lifecycle authority  
-- trust source  
-- canonical payload generator  
+GAFAIG is:
 
-GAFAIG becomes:
-
-- a verifiable governance registry  
-- a public trust infrastructure  
-- a certification record system  
-- a Snowflake-native execution platform  
-- a cryptographically verifiable system of record  
-
----
+A deterministic AI governance registry
+A public trust infrastructure
+A certification record system
+A verifiable global standard
+END OF FILE
