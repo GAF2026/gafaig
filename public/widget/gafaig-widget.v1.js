@@ -15,7 +15,7 @@
   }
 
   var ORIGIN = resolveOrigin();
-  var STYLE_ID = "gafaig-widget-styles-v9";
+  var STYLE_ID = "gafaig-widget-styles-v10";
 
   function injectStyles() {
     if (document.getElementById(STYLE_ID)) return;
@@ -440,22 +440,170 @@
     return "Unavailable";
   }
 
+  function canonicalize(value) {
+    if (value === null || value === undefined) return null;
+
+    if (typeof value === "string") return value;
+    if (typeof value === "number") return Number.isFinite(value) ? value : null;
+    if (typeof value === "boolean") return value;
+
+    if (Array.isArray(value)) {
+      return value.map(function (item) {
+        return canonicalize(item);
+      });
+    }
+
+    if (typeof value === "object") {
+      var output = {};
+      Object.keys(value)
+        .sort()
+        .forEach(function (key) {
+          output[key] = canonicalize(value[key]);
+        });
+      return output;
+    }
+
+    return String(value);
+  }
+
+  function canonicalJsonStringify(value) {
+    return JSON.stringify(canonicalize(value));
+  }
+
+  function base64ToBytes(value) {
+    var clean = String(value || "")
+      .trim()
+      .replace(/-/g, "+")
+      .replace(/_/g, "/")
+      .replace(/\s+/g, "");
+
+    while (clean.length % 4) {
+      clean += "=";
+    }
+
+    var binary = window.atob(clean);
+    var bytes = new Uint8Array(binary.length);
+
+    for (var i = 0; i < binary.length; i += 1) {
+      bytes[i] = binary.charCodeAt(i);
+    }
+
+    return bytes;
+  }
+
+  function pemToArrayBuffer(pem) {
+    var clean = String(pem || "")
+      .replace(/-----BEGIN PUBLIC KEY-----/g, "")
+      .replace(/-----END PUBLIC KEY-----/g, "")
+      .replace(/\s+/g, "");
+
+    return base64ToBytes(clean).buffer;
+  }
+
+  function extractPublicKeyPem(keyData) {
+    if (!keyData || typeof keyData !== "object") return "";
+
+    return (
+      keyData.publicKeyPem ||
+      keyData.public_key_pem ||
+      keyData.pem ||
+      keyData.publicKey ||
+      keyData.public_key ||
+      keyData.key ||
+      ""
+    );
+  }
+
+  function extractPublicJwk(keyData) {
+    if (!keyData || typeof keyData !== "object") return null;
+
+    if (keyData.kty === "OKP" && keyData.crv === "Ed25519" && keyData.x) {
+      return keyData;
+    }
+
+    if (
+      keyData.jwk &&
+      keyData.jwk.kty === "OKP" &&
+      keyData.jwk.crv === "Ed25519" &&
+      keyData.jwk.x
+    ) {
+      return keyData.jwk;
+    }
+
+    if (keyData.x) {
+      return {
+        kty: "OKP",
+        crv: "Ed25519",
+        x: keyData.x,
+        ext: true,
+      };
+    }
+
+    return null;
+  }
+
+  async function importEd25519PublicKey(keyData) {
+    if (!window.crypto || !window.crypto.subtle) {
+      throw new Error("WebCrypto is unavailable");
+    }
+
+    var jwk = extractPublicJwk(keyData);
+
+    if (jwk) {
+      return window.crypto.subtle.importKey(
+        "jwk",
+        jwk,
+        { name: "Ed25519" },
+        false,
+        ["verify"]
+      );
+    }
+
+    var pem = extractPublicKeyPem(keyData);
+
+    if (!pem) {
+      throw new Error("Public key material unavailable");
+    }
+
+    return window.crypto.subtle.importKey(
+      "spki",
+      pemToArrayBuffer(pem),
+      { name: "Ed25519" },
+      false,
+      ["verify"]
+    );
+  }
+
+  async function verifyEd25519Signature(messageString, signature, keyData) {
+    if (
+      typeof messageString !== "string" ||
+      !messageString.trim() ||
+      typeof signature !== "string" ||
+      !signature.trim()
+    ) {
+      return false;
+    }
+
+    var publicKey = await importEd25519PublicKey(keyData);
+    var encodedMessage = new TextEncoder().encode(messageString);
+    var signatureBytes = base64ToBytes(signature);
+
+    return window.crypto.subtle.verify(
+      { name: "Ed25519" },
+      publicKey,
+      signatureBytes,
+      encodedMessage
+    );
+  }
+
   function resolveVerificationState(verifyData) {
     if (!verifyData) return "Unavailable";
 
-    if (!hasCanonicalMessageString(verifyData)) {
-      return "Signature Invalid";
-    }
-
-    if (!hasSignature(verifyData)) {
-      return "Signature Invalid";
-    }
-
-    if (verifyData.verified === true) {
+    if (verifyData.__signatureVerified === true) {
       return "Signature Valid";
     }
 
-    if (verifyData.verified === false) {
+    if (verifyData.__signatureVerified === false) {
       return "Signature Invalid";
     }
 
@@ -465,19 +613,11 @@
   function resolveIntegrityState(verifyData) {
     if (!verifyData) return "Unavailable";
 
-    if (!hasCanonicalMessageString(verifyData)) {
-      return "Payload Invalid";
-    }
-
-    if (!hasSignature(verifyData)) {
-      return "Payload Invalid";
-    }
-
-    if (verifyData.ok === true && verifyData.verified === true) {
+    if (verifyData.__payloadIntegrityVerified === true) {
       return "Payload Integrity: Verified";
     }
 
-    if (verifyData.ok === false || verifyData.verified === false) {
+    if (verifyData.__payloadIntegrityVerified === false) {
       return "Payload Invalid";
     }
 
@@ -491,7 +631,7 @@
     ) {
       return (
         entityName +
-        " is listed in the GAFAIG registry with signed verification data. The canonical messageString is present and the public verification response reports a valid signature."
+        " is listed in the GAFAIG registry with independently verified signed data. The widget verified the Ed25519 signature against the public GAFAIG verification key."
       );
     }
 
@@ -504,7 +644,7 @@
 
     return (
       entityName +
-      " has a public GAFAIG record, but the verification proof is currently unavailable or incomplete."
+      " has a public GAFAIG record, but browser-side cryptographic verification is currently unavailable or incomplete."
     );
   }
 
@@ -621,7 +761,7 @@
       '<h3 class="gafaig-widget-title">' +
       esc(entityName) +
       "</h3>" +
-      '<p class="gafaig-widget-copy">Portable public trust signal backed by the canonical signed GAFAIG messageString and public verification proof.</p>' +
+      '<p class="gafaig-widget-copy">Portable public trust signal backed by independent browser-side Ed25519 verification of the canonical GAFAIG messageString.</p>' +
       '<div class="gafaig-widget-actions">' +
       '<a class="gafaig-widget-btn gafaig-widget-btn-primary" href="' +
       verifyPageUrl +
@@ -650,9 +790,12 @@
     var messageStringState = hasCanonicalMessageString(verifyData)
       ? "Available"
       : "Missing";
-    var signatureState = hasSignature(verifyData)
-      ? "Available (Ed25519)"
-      : "Unavailable";
+    var signatureState =
+      verifyData.__signatureVerified === true
+        ? "Verified (Ed25519)"
+        : hasSignature(verifyData)
+          ? "Available"
+          : "Unavailable";
 
     var verifyPageUrl = ORIGIN + "/verify/" + encodeURIComponent(registryId);
     var verifyApiUrl = ORIGIN + "/api/verify/" + encodeURIComponent(registryId);
@@ -729,7 +872,7 @@
       '<h3 class="gafaig-widget-title">' +
       esc(entityName) +
       "</h3>" +
-      '<p class="gafaig-widget-copy">Public trust record verified through the GAFAIG verification endpoint. External systems must verify the exact messageString and must not reconstruct payloads from display fields.</p>' +
+      '<p class="gafaig-widget-copy">Public trust record verified through the GAFAIG verification endpoint and independently checked in the browser against the public verification key.</p>' +
       '<div class="gafaig-widget-trust-panel">' +
       '<div class="gafaig-widget-trust-header">' +
       '<div class="gafaig-widget-trust-title">Public trust summary</div>' +
@@ -798,6 +941,50 @@
     return res.json();
   }
 
+  async function lockVerificationProof(verify) {
+    var proof = verify && verify.proof ? verify.proof : null;
+
+    verify.__signatureVerified = false;
+    verify.__payloadIntegrityVerified = false;
+
+    if (!proof || !hasCanonicalMessageString(verify) || !hasSignature(verify)) {
+      return verify;
+    }
+
+    if (normalize(proof.alg) !== "ed25519") {
+      return verify;
+    }
+
+    if (
+      proof.message &&
+      canonicalJsonStringify(proof.message) !== proof.messageString
+    ) {
+      return verify;
+    }
+
+    var keyUrl =
+      typeof proof.verificationKeyUrl === "string" &&
+      proof.verificationKeyUrl.trim()
+        ? proof.verificationKeyUrl.trim()
+        : ORIGIN + "/api/.well-known/gafaig-public-key";
+
+    var keyData = await fetchJson(keyUrl);
+    var verified = await verifyEd25519Signature(
+      proof.messageString,
+      proof.signature,
+      keyData
+    );
+
+    verify.__signatureVerified = verified === true;
+    verify.__payloadIntegrityVerified =
+      verified === true &&
+      verify.ok === true &&
+      verify.verified === true &&
+      canonicalJsonStringify(proof.message) === proof.messageString;
+
+    return verify;
+  }
+
   async function mountOne(el) {
     var registryId =
       el.getAttribute("data-gafaig-id") ||
@@ -825,6 +1012,8 @@
         renderError(el, registryId, "Verification proof incomplete");
         return;
       }
+
+      verify = await lockVerificationProof(verify);
 
       if (mode === "badge") {
         renderBadgeWidget(el, registryId, verify);
