@@ -246,8 +246,8 @@ export default async function WidgetPreviewPage({
 
         <section className="rounded-3xl border border-black/10 bg-white p-8">
           <p className="text-[15px] leading-[1.8] text-black/70">
-            The widget independently verifies the signed GAFAIG payload using the public verification key.
-            No trust is assumed from the host system. The result is cryptographically validated in real time.
+            The widget independently verifies the signed GAFAIG payload in the browser using the public verification key.
+            No trust is assumed from the host system. The result is cryptographically validated against the canonical signed messageString.
           </p>
 
           <p className="mt-4 text-[15px] leading-[1.8] text-black/70">
@@ -266,7 +266,8 @@ export default async function WidgetPreviewPage({
 
           <p className="mt-5 max-w-[980px] text-[16px] leading-[1.85] text-black/75">
             The widget is not a static badge. It is a live trust surface that
-            reads from GAFAIG’s public verification layer. This allows a
+            reads from GAFAIG’s public verification layer and independently
+            verifies the signed payload in the browser. This allows a
             third-party site to display a current GAFAIG trust record without
             recreating the verification process or exposing private internal
             materials.
