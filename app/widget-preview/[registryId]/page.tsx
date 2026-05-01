@@ -247,7 +247,7 @@ export default async function WidgetPreviewPage({
         <section className="rounded-3xl border border-black/10 bg-white p-8">
           <p className="text-[15px] leading-[1.8] text-black/70">
             The widget independently verifies the signed GAFAIG payload in the browser using the public verification key.
-            No trust is assumed from the host system. The result is cryptographically validated against the canonical signed messageString.
+            No trust is assumed from the host system. The result is cryptographically validated against the canonical signed messageString returned by the verification endpoint.
           </p>
 
           <p className="mt-4 text-[15px] leading-[1.8] text-black/70">
