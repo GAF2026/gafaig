@@ -5,15 +5,37 @@ import { getExplorerStats, getLatestExplorerRecords } from "@/lib/queries/explor
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-function formatNumber(value: number): string {
-  return new Intl.NumberFormat("en-US").format(value);
+type ExplorerStats = {
+  publicRecords: number;
+  certified: number;
+  organizations: number;
+  countries: number;
+  systems: number;
+};
+
+type ExplorerRecord = {
+  registryId: string;
+  entityName: string | null;
+  entityType: string | null;
+  country: string | null;
+  certificationStatus: string | null;
+  certifiedAt: string | null;
+  validFrom: string | null;
+  validTo: string | null;
+};
+
+function formatNumber(value: number | null | undefined): string {
+  const safeValue = Number(value ?? 0);
+  return new Intl.NumberFormat("en-US").format(
+    Number.isFinite(safeValue) ? safeValue : 0
+  );
 }
 
-function formatDate(value: string | null): string {
+function formatDate(value: string | null | undefined): string {
   if (!value) return "—";
 
   const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return value;
+  if (Number.isNaN(date.getTime())) return String(value);
 
   return new Intl.DateTimeFormat("en-US", {
     month: "numeric",
@@ -22,15 +44,109 @@ function formatDate(value: string | null): string {
   }).format(date);
 }
 
-function formatText(value: string | null): string {
-  return value && value.trim().length > 0 ? value : "—";
+function formatText(value: string | null | undefined): string {
+  const clean = String(value ?? "").trim();
+  return clean.length > 0 ? clean : "—";
+}
+
+function normalizeStats(stats: Partial<ExplorerStats> | null | undefined): ExplorerStats {
+  return {
+    publicRecords: Number(stats?.publicRecords ?? 0),
+    certified: Number(stats?.certified ?? 0),
+    organizations: Number(stats?.organizations ?? 0),
+    countries: Number(stats?.countries ?? 0),
+    systems: Number(stats?.systems ?? 0),
+  };
+}
+
+function normalizeRecord(row: Partial<ExplorerRecord> | null | undefined): ExplorerRecord | null {
+  if (!row || typeof row !== "object") return null;
+
+  const registryId = String(row.registryId ?? "").trim();
+  if (!registryId) return null;
+
+  return {
+    registryId,
+    entityName: row.entityName ?? null,
+    entityType: row.entityType ?? null,
+    country: row.country ?? null,
+    certificationStatus: row.certificationStatus ?? null,
+    certifiedAt: row.certifiedAt ?? null,
+    validFrom: row.validFrom ?? null,
+    validTo: row.validTo ?? null,
+  };
+}
+
+function ExplorerUnavailableState() {
+  return (
+    <main className="mx-auto max-w-[1180px] px-6 py-10">
+      <div className="space-y-8">
+        <PublicPageHero
+          eyebrow="Public Trust Surface"
+          title="Explore the public GAFAIG trust surface"
+          description="Explorer is temporarily unavailable."
+          secondaryDescription="The public trust surface depends on the canonical Snowflake public views. Please try again shortly."
+          actions={
+            <>
+              <PublicButtonLink href="/registry" variant="primary">
+                View Registry
+              </PublicButtonLink>
+              <PublicButtonLink href="/verify" variant="secondary">
+                Verify a Record
+              </PublicButtonLink>
+            </>
+          }
+        />
+
+        <section className="rounded-3xl border border-black/10 bg-white p-8">
+          <div className="rounded-3xl border border-dashed border-black/10 bg-black/[0.02] px-6 py-14 text-center">
+            <div className="text-lg font-semibold text-black">
+              Explorer unavailable
+            </div>
+            <p className="mt-2 text-sm leading-6 text-black/60">
+              GAFAIG could not load Explorer records from the canonical public views.
+            </p>
+          </div>
+        </section>
+      </div>
+    </main>
+  );
+}
+
+function EmptyLatestRecordsState() {
+  return (
+    <div className="rounded-3xl border border-dashed border-black/10 bg-black/[0.02] px-6 py-14 text-center">
+      <div className="text-lg font-semibold text-black">
+        No public records available
+      </div>
+      <p className="mt-2 text-sm leading-6 text-black/60">
+        Explorer did not receive any published public records from the canonical public view.
+      </p>
+    </div>
+  );
 }
 
 export default async function ExplorerPage() {
-  const [stats, latestRecords] = await Promise.all([
-    getExplorerStats(),
-    getLatestExplorerRecords(8),
-  ]);
+  let rawStats: unknown = null;
+  let rawLatestRecords: unknown = [];
+
+  try {
+    [rawStats, rawLatestRecords] = await Promise.all([
+      getExplorerStats(),
+      getLatestExplorerRecords(8),
+    ]);
+  } catch (error) {
+    console.error("Explorer page failed to load:", error);
+    return <ExplorerUnavailableState />;
+  }
+
+  const stats = normalizeStats(rawStats as Partial<ExplorerStats> | null | undefined);
+
+  const latestRecords = Array.isArray(rawLatestRecords)
+    ? rawLatestRecords
+        .map((record) => normalizeRecord(record as Partial<ExplorerRecord>))
+        .filter((record): record is ExplorerRecord => record !== null)
+    : [];
 
   return (
     <main className="mx-auto max-w-[1180px] px-6 py-10">
@@ -171,78 +287,82 @@ export default async function ExplorerPage() {
           </div>
 
           <div className="mt-8 space-y-4">
-            {latestRecords.map((record) => (
-              <article
-                key={record.registryId}
-                className="rounded-3xl border border-black/10 bg-white p-6"
-              >
-                <div className="flex flex-wrap items-start justify-between gap-4">
-                  <div className="space-y-4">
+            {latestRecords.length === 0 ? (
+              <EmptyLatestRecordsState />
+            ) : (
+              latestRecords.map((record) => (
+                <article
+                  key={record.registryId}
+                  className="rounded-3xl border border-black/10 bg-white p-6"
+                >
+                  <div className="flex flex-wrap items-start justify-between gap-4">
+                    <div className="space-y-4">
+                      <div className="flex flex-wrap gap-3">
+                        <span className="inline-flex items-center rounded-full bg-emerald-100 px-4 py-2 text-[14px] font-semibold text-emerald-800">
+                          {formatText(record.certificationStatus)}
+                        </span>
+                      </div>
+
+                      <div>
+                        <h3 className="text-[26px] font-semibold tracking-tight text-black">
+                          {formatText(record.entityName)}
+                        </h3>
+                        <p className="mt-2 text-[14px] text-black/70">
+                          {formatText(record.country)} · {record.registryId}
+                        </p>
+                      </div>
+                    </div>
+
                     <div className="flex flex-wrap gap-3">
-                      <span className="inline-flex items-center rounded-full bg-emerald-100 px-4 py-2 text-[14px] font-semibold text-emerald-800">
+                      <PublicButtonLink
+                        href={`/registry/${record.registryId}`}
+                        variant="secondary"
+                      >
+                        View Certified Record
+                      </PublicButtonLink>
+                    </div>
+                  </div>
+
+                  <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                    <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
+                      <div className="text-xs font-semibold uppercase tracking-[0.24em] text-black/40">
+                        Certification
+                      </div>
+                      <div className="mt-3 text-[18px] font-semibold text-black">
                         {formatText(record.certificationStatus)}
-                      </span>
+                      </div>
                     </div>
 
-                    <div>
-                      <h3 className="text-[26px] font-semibold tracking-tight text-black">
-                        {record.entityName}
-                      </h3>
-                      <p className="mt-2 text-[14px] text-black/70">
-                        {formatText(record.country)} · {record.registryId}
-                      </p>
+                    <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
+                      <div className="text-xs font-semibold uppercase tracking-[0.24em] text-black/40">
+                        Certified
+                      </div>
+                      <div className="mt-3 text-[18px] font-semibold text-black">
+                        {formatDate(record.certifiedAt)}
+                      </div>
                     </div>
-                  </div>
 
-                  <div className="flex flex-wrap gap-3">
-                    <PublicButtonLink
-                      href={`/registry/${record.registryId}`}
-                      variant="secondary"
-                    >
-                      View Certified Record
-                    </PublicButtonLink>
-                  </div>
-                </div>
+                    <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
+                      <div className="text-xs font-semibold uppercase tracking-[0.24em] text-black/40">
+                        Valid From
+                      </div>
+                      <div className="mt-3 text-[18px] font-semibold text-black">
+                        {formatDate(record.validFrom)}
+                      </div>
+                    </div>
 
-                <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-                  <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
-                    <div className="text-xs font-semibold uppercase tracking-[0.24em] text-black/40">
-                      Certification
-                    </div>
-                    <div className="mt-3 text-[18px] font-semibold text-black">
-                      {formatText(record.certificationStatus)}
-                    </div>
-                  </div>
-
-                  <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
-                    <div className="text-xs font-semibold uppercase tracking-[0.24em] text-black/40">
-                      Certified
-                    </div>
-                    <div className="mt-3 text-[18px] font-semibold text-black">
-                      {formatDate(record.certifiedAt)}
+                    <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
+                      <div className="text-xs font-semibold uppercase tracking-[0.24em] text-black/40">
+                        Valid To
+                      </div>
+                      <div className="mt-3 text-[18px] font-semibold text-black">
+                        {formatDate(record.validTo)}
+                      </div>
                     </div>
                   </div>
-
-                  <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
-                    <div className="text-xs font-semibold uppercase tracking-[0.24em] text-black/40">
-                      Valid From
-                    </div>
-                    <div className="mt-3 text-[18px] font-semibold text-black">
-                      {formatDate(record.validFrom)}
-                    </div>
-                  </div>
-
-                  <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
-                    <div className="text-xs font-semibold uppercase tracking-[0.24em] text-black/40">
-                      Valid To
-                    </div>
-                    <div className="mt-3 text-[18px] font-semibold text-black">
-                      {formatDate(record.validTo)}
-                    </div>
-                  </div>
-                </div>
-              </article>
-            ))}
+                </article>
+              ))
+            )}
           </div>
         </section>
       </div>

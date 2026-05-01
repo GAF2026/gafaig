@@ -53,6 +53,30 @@ function formatLabel(value: string | null | undefined): string {
   return cleaned || "—";
 }
 
+function normalizeRow(row: Partial<RegistryPageRow> | null | undefined): RegistryPageRow | null {
+  const registryId = clean(row?.registryId);
+
+  if (!registryId) {
+    return null;
+  }
+
+  return {
+    registryId,
+    applicationId: row?.applicationId ?? null,
+    caseId: row?.caseId ?? null,
+    entityName: row?.entityName ?? null,
+    entityType: row?.entityType ?? null,
+    country: row?.country ?? null,
+    certificationStatus: row?.certificationStatus ?? null,
+    certifiedAt: row?.certifiedAt ?? null,
+    validFrom: row?.validFrom ?? null,
+    validTo: row?.validTo ?? null,
+    lifecycleStatus: row?.lifecycleStatus ?? null,
+    renewalStatus: row?.renewalStatus ?? null,
+    publishedAt: row?.publishedAt ?? null,
+  };
+}
+
 /**
  * 🔒 HARD LOCK — no fallback logic
  */
@@ -88,6 +112,40 @@ function EmptyState() {
         </PublicButtonLink>
       </div>
     </div>
+  );
+}
+
+function RegistryUnavailableState() {
+  return (
+    <main className="mx-auto max-w-[1180px] px-6 py-10">
+      <div className="space-y-8">
+        <PublicPageHero
+          eyebrow="Registry of Record"
+          title="Browse the GAFAIG public registry"
+          description="The public registry is temporarily unavailable."
+          secondaryDescription="The registry surface is read-only and depends on the canonical Snowflake public view. Please try again shortly."
+          actions={
+            <>
+              <PublicButtonLink href="/verify" variant="primary">
+                Verify a Record
+              </PublicButtonLink>
+              <PublicButtonLink href="/explorer" variant="secondary">
+                Open Explorer
+              </PublicButtonLink>
+            </>
+          }
+        />
+
+        <section className="rounded-3xl border border-black/10 bg-white p-8">
+          <div className="rounded-3xl border border-dashed border-black/10 bg-black/[0.02] px-6 py-14 text-center">
+            <div className="text-lg font-semibold text-black">Registry unavailable</div>
+            <p className="mt-2 text-sm leading-6 text-black/60">
+              GAFAIG could not load the public registry records from the canonical public view.
+            </p>
+          </div>
+        </section>
+      </div>
+    </main>
   );
 }
 
@@ -210,26 +268,40 @@ export default async function RegistryPage({
   const hasServerFilters = q.length > 0 || country.length > 0;
   const hasAnyFilters = hasServerFilters || organization.length > 0;
 
-  const [baseRows, rawOptionsUnknown] = await Promise.all([
-    hasServerFilters
-      ? searchRegistryRecords({
-          q,
-          country,
-          registryId: "",
-          caseId: "",
-          applicationId: "",
-          limit: 500,
-        })
-      : getRegistryRecords(500),
-    getRegistryFilterOptions(),
-  ]);
+  let baseRowsUnknown: unknown = [];
+  let rawOptionsUnknown: unknown = {};
+
+  try {
+    [baseRowsUnknown, rawOptionsUnknown] = await Promise.all([
+      hasServerFilters
+        ? searchRegistryRecords({
+            q,
+            country,
+            registryId: "",
+            caseId: "",
+            applicationId: "",
+            limit: 500,
+          })
+        : getRegistryRecords(500),
+      getRegistryFilterOptions(),
+    ]);
+  } catch (error) {
+    console.error("Registry page failed to load:", error);
+    return <RegistryUnavailableState />;
+  }
+
+  const baseRows = Array.isArray(baseRowsUnknown)
+    ? baseRowsUnknown
+        .map((row) => normalizeRow(row as Partial<RegistryPageRow>))
+        .filter((row): row is RegistryPageRow => row !== null)
+    : [];
 
   const rawOptions = rawOptionsUnknown as {
     countries?: string[];
     organizations?: string[];
   };
 
-  const rows = (baseRows as RegistryPageRow[]).filter((row) => {
+  const rows = baseRows.filter((row) => {
     const matchesOrganization =
       !organization ||
       clean(row.entityName).toLowerCase() === organization.toLowerCase();
@@ -281,6 +353,18 @@ export default async function RegistryPage({
             <p className="text-[15px] leading-7 text-black/75">
               Each entry represents a published GAFAIG certification record that can be independently verified.
             </p>
+
+            {hasAnyFilters && activeFilters.length > 0 ? (
+              <div className="flex flex-wrap gap-2 pt-2">
+                {activeFilters.map((filter) => (
+                  <FilterChip
+                    key={`${filter.label}-${filter.value}`}
+                    label={filter.label}
+                    value={filter.value}
+                  />
+                ))}
+              </div>
+            ) : null}
           </div>
         </section>
 

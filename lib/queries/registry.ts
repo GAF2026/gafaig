@@ -22,6 +22,7 @@ export type RegistryRecord = {
 
 export type RegistryFilterOptions = {
   countries: string[];
+  organizations: string[];
   entityTypes: string[];
   statuses: string[];
   lifecycleStatuses: string[];
@@ -117,6 +118,7 @@ export async function searchRegistryRecords(
         OR UPPER(COALESCE(CERTIFICATION_STATUS, '')) LIKE UPPER('%${q}%')
         OR UPPER(COALESCE(LIFECYCLE_STATUS, '')) LIKE UPPER('%${q}%')
         OR UPPER(COALESCE(VISIBILITY_STATUS, '')) LIKE UPPER('%${q}%')
+        OR UPPER(COALESCE(RENEWAL_STATUS, '')) LIKE UPPER('%${q}%')
       )
     `);
   }
@@ -150,6 +152,7 @@ export async function getRegistryRecordById(
 export async function getRegistryFilterOptions(): Promise<RegistryFilterOptions> {
   const rows = await sfQuery<{
     country: string | null;
+    organization: string | null;
     entityType: string | null;
     certificationStatus: string | null;
     lifecycleStatus: string | null;
@@ -157,15 +160,17 @@ export async function getRegistryFilterOptions(): Promise<RegistryFilterOptions>
   }>(`
     SELECT DISTINCT
       COUNTRY              AS "country",
+      ENTITY_NAME          AS "organization",
       ENTITY_TYPE          AS "entityType",
       CERTIFICATION_STATUS AS "certificationStatus",
       LIFECYCLE_STATUS     AS "lifecycleStatus",
       VISIBILITY_STATUS    AS "visibilityStatus"
     FROM CORE.V_REGISTRY_PUBLIC
-    ORDER BY 1, 2, 3, 4, 5
+    ORDER BY 1, 2, 3, 4, 5, 6
   `);
 
   const countries = new Set<string>();
+  const organizations = new Set<string>();
   const entityTypes = new Set<string>();
   const statuses = new Set<string>();
   const lifecycleStatuses = new Set<string>();
@@ -173,6 +178,7 @@ export async function getRegistryFilterOptions(): Promise<RegistryFilterOptions>
 
   for (const row of rows) {
     if (row.country?.trim()) countries.add(row.country.trim());
+    if (row.organization?.trim()) organizations.add(row.organization.trim());
     if (row.entityType?.trim()) entityTypes.add(row.entityType.trim());
     if (row.certificationStatus?.trim()) {
       statuses.add(row.certificationStatus.trim());
@@ -187,6 +193,9 @@ export async function getRegistryFilterOptions(): Promise<RegistryFilterOptions>
 
   return {
     countries: Array.from(countries).sort((a, b) => a.localeCompare(b)),
+    organizations: Array.from(organizations).sort((a, b) =>
+      a.localeCompare(b)
+    ),
     entityTypes: Array.from(entityTypes).sort((a, b) => a.localeCompare(b)),
     statuses: Array.from(statuses).sort((a, b) => a.localeCompare(b)),
     lifecycleStatuses: Array.from(lifecycleStatuses).sort((a, b) =>
