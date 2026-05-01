@@ -11,6 +11,14 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
+type CanonicalJson =
+  | string
+  | number
+  | boolean
+  | null
+  | CanonicalJson[]
+  | { [key: string]: CanonicalJson };
+
 function getCorsHeaders(): HeadersInit {
   return {
     "Access-Control-Allow-Origin": "*",
@@ -34,14 +42,43 @@ function escapeSqlString(value: string): string {
 
 function toIsoString(value: unknown): string | null {
   if (!value) return null;
+
   const date = new Date(String(value));
   return Number.isNaN(date.getTime()) ? null : date.toISOString();
 }
 
 function isTrue(value: unknown): boolean {
   if (value === true) return true;
+
   const normalized = String(value ?? "").trim().toLowerCase();
   return normalized === "true" || normalized === "1" || normalized === "yes";
+}
+
+function canonicalize(value: unknown): CanonicalJson {
+  if (value === null || value === undefined) return null;
+
+  if (typeof value === "string") return value;
+  if (typeof value === "number") return Number.isFinite(value) ? value : null;
+  if (typeof value === "boolean") return value;
+
+  if (value instanceof Date) return value.toISOString();
+
+  if (Array.isArray(value)) {
+    return value.map((item) => canonicalize(item));
+  }
+
+  if (typeof value === "object") {
+    const input = value as Record<string, unknown>;
+    const output: Record<string, CanonicalJson> = {};
+
+    for (const key of Object.keys(input).sort()) {
+      output[key] = canonicalize(input[key]);
+    }
+
+    return output;
+  }
+
+  return String(value);
 }
 
 function failClosed(
@@ -128,15 +165,19 @@ export async function GET(
       renewalStatus: r.RENEWAL_STATUS ?? null,
       lifecycleStatus: r.LIFECYCLE_STATUS ?? null,
       visibilityStatus: r.VISIBILITY_STATUS ?? null,
-      verificationEligible: r.VERIFICATION_ELIGIBLE ?? null,
-      badgeEligible: r.BADGE_ELIGIBLE ?? null,
+      verificationEligible: isTrue(r.VERIFICATION_ELIGIBLE),
+      badgeEligible: isTrue(r.BADGE_ELIGIBLE),
     };
 
-    if (!isTrue(record.verificationEligible)) {
-      return failClosed(registryId, "Registry record is not verification eligible", 403);
+    if (!record.verificationEligible) {
+      return failClosed(
+        registryId,
+        "Registry record is not verification eligible",
+        403
+      );
     }
 
-    const message = {
+    const message = canonicalize({
       registryId: record.registryId,
       registrySnapshotId: record.registrySnapshotId,
       applicationId: record.applicationId,
@@ -154,12 +195,16 @@ export async function GET(
       visibilityStatus: record.visibilityStatus,
       verificationEligible: record.verificationEligible,
       badgeEligible: record.badgeEligible,
-    };
+    }) as Record<string, unknown>;
 
     const messageString = JSON.stringify(message);
 
     if (typeof messageString !== "string" || !messageString.trim()) {
-      return failClosed(registryId, "Canonical messageString generation failed", 500);
+      return failClosed(
+        registryId,
+        "Canonical messageString generation failed",
+        500
+      );
     }
 
     const signature = signVerificationPayload(messageString);
@@ -169,7 +214,11 @@ export async function GET(
     const signedAt = new Date().toISOString();
 
     if (typeof signature !== "string" || !signature.trim()) {
-      return failClosed(registryId, "Verification signature generation failed", 500);
+      return failClosed(
+        registryId,
+        "Verification signature generation failed",
+        500
+      );
     }
 
     if (typeof kid !== "string" || !kid.trim()) {
