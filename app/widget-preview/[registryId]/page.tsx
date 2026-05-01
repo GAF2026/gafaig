@@ -246,7 +246,8 @@ export default async function WidgetPreviewPage({
 
         <section className="rounded-3xl border border-black/10 bg-white p-8">
           <p className="text-[15px] leading-[1.8] text-black/70">
-            The widget does not perform verification. It displays the result of the GAFAIG verification layer.
+            The widget independently verifies the signed GAFAIG payload using the public verification key.
+            No trust is assumed from the host system. The result is cryptographically validated in real time.
           </p>
 
           <p className="mt-4 text-[15px] leading-[1.8] text-black/70">
