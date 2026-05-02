@@ -86,14 +86,14 @@ export default async function HomePage() {
     <main className="mx-auto max-w-[1180px] px-6 py-10">
       <div className="space-y-8">
         <PublicPageHero
-          eyebrow="GLOBAL AUTHORITY FOR AI GOVERNANCE"
-          title="Proof that human oversight in AI systems is real, functioning, and independently verifiable."
-          description="GAFAIG is the Global Authority for AI Governance. It verifies that governance processes and meaningful human oversight are implemented, operational, and producing real oversight outcomes across an organization’s AI operations and publishes independently verifiable public trust records."
-          secondaryDescription="GAFAIG combines a private verification engine with a public trust layer, adding cryptographic verification to AI governance certification. Certified outcomes are published as independently verifiable public trust records backed by signed proof and validated through GAFAIG’s verification endpoint and public key—without exposing private evidence or internal workflows."
+          eyebrow="VERIFIABLE AI GOVERNANCE"
+          title="AI governance, independently verifiable."
+          description="GAFAIG is the first system that makes AI governance verifiable. Organizations don’t just claim oversight—they publish signed certification records that anyone can validate using cryptographic proof."
+          secondaryDescription="For organizations: prove your AI governance is real. For the public: verify which AI systems can actually be trusted."
           actions={
             <>
-              <PublicButtonLink href="/demo" variant="primary">
-                Start Demo
+              <PublicButtonLink href="/certification" variant="primary">
+                Start Free Certification
               </PublicButtonLink>
 
               <PublicButtonLink href="/verify" variant="secondary">
@@ -101,55 +101,97 @@ export default async function HomePage() {
               </PublicButtonLink>
 
               <PublicButtonLink href="/registry" variant="secondary">
-                View Public Records
-              </PublicButtonLink>
-
-              <PublicButtonLink href="/certification" variant="secondary">
-                Get Certified
+                Explore Registry
               </PublicButtonLink>
             </>
           }
         />
 
-        <section className="grid gap-4 md:grid-cols-3">
-          <PillarCard
-            eyebrow="Pillar 1"
-            title="Private Verification Engine"
-            body="Organizations move through a structured verification process where evidence, findings, governance controls, and human oversight materials are assessed in a controlled private environment."
+        <section className="grid gap-4 md:grid-cols-2">
+          <AudienceCard
+            eyebrow="FOR ORGANIZATIONS"
+            title="Prove your AI governance"
+            body="Turn internal oversight into a verifiable public record. GAFAIG helps organizations publish signed certification outcomes that customers, partners, and regulators can independently validate."
             points={[
-              "Private review workflow",
-              "Structured evidence and findings process",
-              "Deterministic certification path",
+              "Turn oversight into a public trust record",
+              "Publish signed certification outcomes",
+              "Give stakeholders proof—not claims",
             ]}
-            href="/framework"
-            cta="See the process"
+            href="/certification"
+            cta="Start Free Certification"
+            primary
           />
 
-          <PillarCard
-            eyebrow="Pillar 2"
-            title="Public Certification Record"
-            body="When a record is certified, GAFAIG publishes a public trust record that contains no internal governance data. The only exposed signal is a certified outcome that can be independently verified through a signed payload."
+          <AudienceCard
+            eyebrow="FOR THE PUBLIC"
+            title="Verify which AI you can trust"
+            body="Use GAFAIG to check real certification records, validate signed governance proof, and understand whether a public AI governance record is active, expired, or revoked."
             points={[
-              "Public certification outcome",
-              "Signed proof and verification layer",
-              "Registry, badge, widget, and API trust signals",
+              "Check real certification records",
+              "Validate signed governance proof",
+              "View active, expired, and revoked states",
             ]}
             href="/registry"
-            cta="View public records"
+            cta="Explore Registry"
           />
+        </section>
 
-          <PillarCard
-            eyebrow="Pillar 3"
-            title="Global Trust Surface"
-            body="GAFAIG distributes trust through a verification-first architecture. Every public surface—registry pages, APIs, widgets, and badges—derives its trust signal exclusively from the verification endpoint."
-            points={[
-              "Organizations and AI systems",
-              "Country-level public visibility",
-              "Portable external trust verification",
-            ]}
-            href="/explorer"
-            cta="Open explorer"
-          />
+        <section className="rounded-3xl border border-black/10 bg-white p-8">
+          <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
+            HOW GAFAIG WORKS
+          </div>
+
+          <h2 className="mt-4 text-[26px] font-semibold tracking-tight text-black max-w-[860px]">
+            GAFAIG converts AI governance from a claim into a verifiable public record
+          </h2>
+
+          <p className="mt-5 max-w-[980px] text-[15px] leading-7 text-black/75">
+            GAFAIG combines a private verification engine with a public trust
+            layer. Evidence and findings stay private. Certified outcomes are
+            published as signed records that can be verified through the registry,
+            API, SDK, widget, and public key.
+          </p>
+
+          <div className="mt-8 grid gap-4 md:grid-cols-3">
+            <PillarCard
+              eyebrow="Pillar 1"
+              title="Private Verification Engine"
+              body="Organizations move through a structured verification process where evidence, findings, governance controls, and human oversight materials are assessed in a controlled private environment."
+              points={[
+                "Private review workflow",
+                "Structured evidence and findings process",
+                "Deterministic certification path",
+              ]}
+              href="/framework"
+              cta="See the process"
+            />
+
+            <PillarCard
+              eyebrow="Pillar 2"
+              title="Public Certification Record"
+              body="When a record is certified, GAFAIG publishes a public trust record that contains no internal governance data. The exposed signal is a certified outcome that can be independently verified through a signed payload."
+              points={[
+                "Public certification outcome",
+                "Signed proof and verification layer",
+                "Registry, badge, widget, and API trust signals",
+              ]}
+              href="/registry"
+              cta="View public records"
+            />
+
+            <PillarCard
+              eyebrow="Pillar 3"
+              title="Global Trust Surface"
+              body="GAFAIG distributes trust through a verification-first architecture. Every public surface—registry pages, APIs, widgets, and badges—derives its trust signal exclusively from the verification endpoint."
+              points={[
+                "Organizations and AI systems",
+                "Country-level public visibility",
+                "Portable external trust verification",
+              ]}
+              href="/explorer"
+              cta="Open explorer"
+            />
+          </div>
         </section>
 
         <section className="rounded-3xl border border-black/10 bg-white p-8">
@@ -158,7 +200,7 @@ export default async function HomePage() {
           </div>
 
           <h2 className="mt-4 text-[26px] font-semibold tracking-tight text-black max-w-[860px]">
-            Human oversight should be visible, reviewable, and independently verifiable
+            Most AI governance cannot be independently verified
           </h2>
 
           <p className="mt-5 max-w-[980px] text-[15px] leading-7 text-black/75">
@@ -178,6 +220,45 @@ export default async function HomePage() {
               title="Certification backed by proof"
               body="Certified records are published as independently verifiable public trust records backed by signed proof, verification endpoints, and portable trust surfaces."
             />
+          </div>
+        </section>
+
+        <section className="rounded-3xl border border-black/10 bg-white p-8">
+          <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
+            EARLY GAFAIG VERIFIED RECORDS
+          </div>
+
+          <h2 className="mt-4 text-[26px] font-semibold tracking-tight text-black max-w-[860px]">
+            Public records that can be inspected, verified, and validated
+          </h2>
+
+          <p className="mt-5 max-w-[980px] text-[15px] leading-7 text-black/75">
+            Each public GAFAIG record includes a registry identifier, a public
+            verification surface, and signed proof. The registry is the public
+            trust layer. The verify endpoint is the proof layer.
+          </p>
+
+          <div className="mt-7 grid gap-4 md:grid-cols-2">
+            <VerifiedRecordCard
+              registryId="GAFAIG-00000001"
+              status="Certified"
+              href="/registry/GAFAIG-00000001"
+            />
+            <VerifiedRecordCard
+              registryId="GAFAIG-00363095"
+              status="Certified"
+              href="/registry/GAFAIG-00363095"
+            />
+          </div>
+
+          <div className="mt-6 flex flex-wrap gap-3">
+            <PublicButtonLink href="/registry" variant="primary">
+              Explore Registry
+            </PublicButtonLink>
+
+            <PublicButtonLink href="/verify" variant="secondary">
+              Verify a Record
+            </PublicButtonLink>
           </div>
         </section>
 
@@ -207,7 +288,7 @@ export default async function HomePage() {
             </PublicButtonLink>
 
             <PublicButtonLink href="/registry" variant="secondary">
-              View Registry
+              Explore Registry
             </PublicButtonLink>
           </div>
         </section>
@@ -218,7 +299,7 @@ export default async function HomePage() {
           </div>
 
           <h2 className="mt-4 text-[26px] font-semibold tracking-tight text-black max-w-[860px]">
-            The four steps that make human oversight in AI systems independently verifiable
+            This is not a claim. This is a verifiable system.
           </h2>
 
           <p className="mt-5 max-w-[980px] text-[15px] leading-7 text-black/75">
@@ -256,7 +337,7 @@ export default async function HomePage() {
               Walk Through the Demo
             </PublicButtonLink>
             <PublicButtonLink
-              href="/widget-preview/GAFAIG-00363095"
+              href="/widget-preview/GAFAIG-00000001"
               variant="secondary"
             >
               View Widget Preview
@@ -345,6 +426,53 @@ export default async function HomePage() {
   );
 }
 
+function AudienceCard({
+  eyebrow,
+  title,
+  body,
+  points,
+  href,
+  cta,
+  primary = false,
+}: {
+  eyebrow: string;
+  title: string;
+  body: string;
+  points: string[];
+  href: string;
+  cta: string;
+  primary?: boolean;
+}) {
+  return (
+    <div className="rounded-3xl border border-black/10 bg-white p-6">
+      <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-black/45">
+        {eyebrow}
+      </div>
+
+      <h2 className="mt-3 text-[26px] font-semibold leading-[1.2] tracking-tight text-black">
+        {title}
+      </h2>
+
+      <p className="mt-4 text-[15px] leading-7 text-black/75">{body}</p>
+
+      <ul className="mt-5 space-y-3 text-[14px] leading-7 text-black/70">
+        {points.map((item) => (
+          <li key={item} className="flex gap-3">
+            <span className="mt-[8px] h-1.5 w-1.5 shrink-0 rounded-full bg-black" />
+            <span>{item}</span>
+          </li>
+        ))}
+      </ul>
+
+      <div className="mt-6">
+        <PublicButtonLink href={href} variant={primary ? "primary" : "secondary"}>
+          {cta}
+        </PublicButtonLink>
+      </div>
+    </div>
+  );
+}
+
 function MetricCard({
   label,
   value,
@@ -403,6 +531,42 @@ function PillarCard({
       <div className="mt-6">
         <PublicButtonLink href={href} variant="ghost" size="sm">
           {cta} →
+        </PublicButtonLink>
+      </div>
+    </div>
+  );
+}
+
+function VerifiedRecordCard({
+  registryId,
+  status,
+  href,
+}: {
+  registryId: string;
+  status: string;
+  href: string;
+}) {
+  return (
+    <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
+      <div className="inline-flex rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-sm font-semibold text-emerald-700">
+        {status}
+      </div>
+
+      <div className="mt-4 text-[20px] font-semibold tracking-tight text-black">
+        {registryId}
+      </div>
+
+      <p className="mt-3 text-[14px] leading-7 text-black/70">
+        Public GAFAIG record with signed proof and independent verification.
+      </p>
+
+      <div className="mt-5 flex flex-wrap gap-3">
+        <PublicButtonLink href={href} variant="secondary" size="sm">
+          Open Record
+        </PublicButtonLink>
+
+        <PublicButtonLink href={`/verify/${registryId}`} variant="ghost" size="sm">
+          Verify a Record →
         </PublicButtonLink>
       </div>
     </div>
