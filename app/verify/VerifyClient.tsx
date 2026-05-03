@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import PublicPageHero from "@/app/_components/PublicPageHero";
 import PublicButtonLink from "@/app/_components/PublicButtonLink";
 import nacl from "tweetnacl";
@@ -312,13 +312,12 @@ export default function VerifyClient({
   initialId: string;
   fallbackId: string;
 }) {
-  const [registryId, setRegistryId] = useState(initialId);
+  const latestId = initialId || fallbackId;
+  const [registryId, setRegistryId] = useState("");
   const [state, setState] = useState<ClientVerificationState>({
     status: "idle",
   });
   const [copiedMessageString, setCopiedMessageString] = useState(false);
-
-  const exampleId = initialId || fallbackId;
 
   const verifyEndpointUrl = useMemo(() => {
     const id = registryId.trim();
@@ -342,7 +341,9 @@ export default function VerifyClient({
     if (!targetId) {
       setState({
         status: "error",
-        message: `Enter a valid GAFAIG registry ID (e.g. ${exampleId}).`,
+        message: `Enter a valid GAFAIG registry ID${
+          latestId ? ` (e.g. ${latestId})` : ""
+        }.`,
       });
       return;
     }
@@ -416,12 +417,6 @@ export default function VerifyClient({
     }
   }
 
-  useEffect(() => {
-    if (initialId) {
-      runVerification(initialId);
-    }
-  }, [initialId]);
-
   const result =
     state.status === "success"
       ? state.payload
@@ -443,96 +438,27 @@ export default function VerifyClient({
         <PublicPageHero
           eyebrow="Public verification"
           title="Verify AI governance through signed proof"
-          description="Confirm whether a GAFAIG public trust record is valid by registry ID. Verification checks the live record, signed proof, signature, and public trust state."
+          description="Confirm whether a GAFAIG public trust record is valid by registry ID. Enter a registry ID or load the latest certified record to inspect the live record, signed proof, signature, and public trust state."
           secondaryDescription="Verification is deterministic and reproducible. Anyone can validate the same result independently using the exact messageString, signature, and GAFAIG public key."
           actions={
             <>
-              <PublicButtonLink
-                href={initialId ? `/registry/${initialId}` : "/registry"}
-                variant="secondary"
-              >
-                View example record
-              </PublicButtonLink>
               <PublicButtonLink href="/registry" variant="secondary">
                 Open registry
               </PublicButtonLink>
               <PublicButtonLink href="/developers" variant="secondary">
                 Developer docs
               </PublicButtonLink>
+              {latestId ? (
+                <PublicButtonLink
+                  href={`/registry/${latestId}`}
+                  variant="secondary"
+                >
+                  View latest certified record
+                </PublicButtonLink>
+              ) : null}
             </>
           }
         />
-
-        <section className="rounded-3xl border border-black/10 bg-white p-8">
-          <div className="max-w-3xl text-[15px] leading-7 text-black/75">
-            This is the independent proof layer behind the certified public trust record.
-          </div>
-
-          <div className="mt-8 text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
-            WHAT THIS PAGE PROVES
-          </div>
-
-          <h2 className="mt-4 max-w-[860px] text-[26px] font-semibold tracking-tight text-black">
-            Independent verification of the public trust record
-          </h2>
-
-          <p className="mt-5 max-w-[980px] text-[15px] leading-7 text-black/75">
-            This page proves that the public trust record is valid, that the
-            disclosed signed proof is consistent with the registry, and that the
-            result can be independently verified outside GAFAIG.
-          </p>
-
-          <div className="mt-7 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-            <ProofCard
-              title="Record integrity"
-              body="The signed proof resolves against the public trust record that represents the certified outcome."
-            />
-            <ProofCard
-              title="Signed proof"
-              body="The disclosed payload is cryptographically signed and surfaced with its verification key reference."
-            />
-            <ProofCard
-              title="Independent verification"
-              body="External parties can validate the record without access to private reviewer materials or internal evidence."
-            />
-            <ProofCard
-              title="Portable trust"
-              body="The same result can be verified across registry, API, and widget trust surfaces."
-            />
-          </div>
-        </section>
-
-        <section className="rounded-3xl border border-black/10 bg-white p-8">
-          <div className="max-w-[980px] space-y-3 text-[15px] leading-7 text-black/75">
-            <p>
-              GAFAIG verification focuses on the public certification stage rather
-              than internal workflow stages.
-            </p>
-
-            <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
-              <div className="grid gap-3 text-[15px] leading-7 text-black/75">
-                <div>
-                  <span className="font-semibold text-black">Verification</span>{" "}
-                  confirms that the public record, signed proof, and published
-                  verification key are consistent with one another.
-                </div>
-
-                <div>
-                  <span className="font-semibold text-black">Certified</span>{" "}
-                  means the evaluated outcome has been finalized and published
-                  as an independently verifiable public trust record in the
-                  Registry of Record.
-                </div>
-              </div>
-            </div>
-
-            <p className="text-black/70">
-              This page does not expose private evidence, scoring, or internal
-              assessment workflow details. It confirms the public certification
-              outcome and the integrity of the disclosed proof materials.
-            </p>
-          </div>
-        </section>
 
         <section className="rounded-3xl border border-black/10 bg-white p-8">
           <div className="text-[12px] font-semibold uppercase tracking-[0.22em] text-black/55">
@@ -545,14 +471,15 @@ export default function VerifyClient({
 
           <p className="mt-3 max-w-3xl text-[15px] leading-7 text-black/75">
             Enter a GAFAIG registry ID to retrieve the public trust record and
-            signed proof payload.
+            signed proof payload. The result will appear directly below this
+            input section.
           </p>
 
           <div className="mt-6 flex flex-col gap-3 lg:flex-row">
             <input
               value={registryId}
               onChange={(e) => setRegistryId(e.target.value)}
-              placeholder="Enter registry ID"
+              placeholder={latestId ? `e.g. ${latestId}` : "Enter registry ID"}
               className="h-14 flex-1 rounded-2xl border border-black/10 bg-white px-4 text-[15px] outline-none transition focus:border-black/25"
             />
 
@@ -567,24 +494,26 @@ export default function VerifyClient({
 
             <button
               type="button"
-              onClick={() => runVerification(initialId || fallbackId)}
-              disabled={state.status === "loading"}
+              onClick={() => runVerification(latestId)}
+              disabled={state.status === "loading" || !latestId}
               className="inline-flex h-14 items-center justify-center rounded-full border border-black/15 px-6 text-sm font-semibold transition hover:bg-black/[0.04] disabled:cursor-not-allowed disabled:opacity-60"
             >
-              Load example
+              Load latest certified record
             </button>
           </div>
 
-          <div className="mt-3 text-[13px] text-black/55">
-            Example ID:{" "}
-            <button
-              type="button"
-              onClick={() => setRegistryId(initialId || fallbackId)}
-              className="font-mono underline underline-offset-2"
-            >
-              {initialId || fallbackId}
-            </button>
-          </div>
+          {latestId ? (
+            <div className="mt-3 text-[13px] text-black/55">
+              Latest certified record:{" "}
+              <button
+                type="button"
+                onClick={() => setRegistryId(latestId)}
+                className="font-mono underline underline-offset-2"
+              >
+                {latestId}
+              </button>
+            </div>
+          ) : null}
 
           {state.status === "error" ? (
             <div className="mt-6 rounded-2xl border border-red-200 bg-red-50 p-4 text-[14px] text-red-700">
@@ -593,64 +522,86 @@ export default function VerifyClient({
           ) : null}
         </section>
 
-        <section className="rounded-3xl border border-black/10 bg-black p-8 text-white">
-          <div className="text-[12px] font-semibold uppercase tracking-[0.22em] text-white/55">
-            How verification works
-          </div>
-
-          <h2 className="mt-3 text-[26px] font-semibold tracking-tight text-white">
-            Public trust without private evidence disclosure
-          </h2>
-
-          <p className="mt-4 max-w-3xl text-[15px] leading-7 text-white/72">
-            GAFAIG verification confirms that a public trust record exists, that
-            it is currently surfaced through the canonical registry views, and
-            that its signed proof is valid for independent verification. The
-            public layer does not disclose private reviewer materials, internal
-            evidence, or assessment workflow details.
-          </p>
-
-          <div className="mt-8 grid gap-4 md:grid-cols-3">
-            <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-5">
-              <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/45">
-                Step 1
+        {state.status === "idle" ? (
+          <>
+            <section className="rounded-3xl border border-black/10 bg-white p-8">
+              <div className="max-w-3xl text-[15px] leading-7 text-black/75">
+                This is the independent proof layer behind a certified public
+                trust record.
               </div>
-              <div className="mt-3 text-[20px] font-semibold text-white">
-                Resolve public trust record
+
+              <div className="mt-8 text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
+                WHAT THIS PAGE PROVES
               </div>
-              <p className="mt-3 text-[14px] leading-7 text-white/68">
-                The verification endpoint resolves the public trust record from
-                the canonical public registry view in Snowflake.
+
+              <h2 className="mt-4 max-w-[860px] text-[26px] font-semibold tracking-tight text-black">
+                Independent verification of the public trust record
+              </h2>
+
+              <p className="mt-5 max-w-[980px] text-[15px] leading-7 text-black/75">
+                This page proves that a public trust record is valid, that the
+                disclosed signed proof is consistent with the registry, and that
+                the result can be independently verified outside GAFAIG.
               </p>
-            </div>
 
-            <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-5">
-              <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/45">
-                Step 2
+              <div className="mt-7 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                <ProofCard
+                  title="Record integrity"
+                  body="The signed proof resolves against the public trust record that represents the certified outcome."
+                />
+                <ProofCard
+                  title="Signed proof"
+                  body="The disclosed payload is cryptographically signed and surfaced with its verification key reference."
+                />
+                <ProofCard
+                  title="Independent verification"
+                  body="External parties can validate the record without access to private reviewer materials or internal evidence."
+                />
+                <ProofCard
+                  title="Portable trust"
+                  body="The same result can be verified across registry, API, and widget trust surfaces."
+                />
               </div>
-              <div className="mt-3 text-[20px] font-semibold text-white">
-                Return signed proof
-              </div>
-              <p className="mt-3 text-[14px] leading-7 text-white/68">
-                GAFAIG returns a deterministic signed proof payload generated
-                during certification.
-              </p>
-            </div>
+            </section>
 
-            <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-5">
-              <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/45">
-                Step 3
+            <section className="rounded-3xl border border-black/10 bg-white p-8">
+              <div className="max-w-[980px] space-y-3 text-[15px] leading-7 text-black/75">
+                <p>
+                  GAFAIG verification focuses on the public certification stage
+                  rather than internal workflow stages.
+                </p>
+
+                <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
+                  <div className="grid gap-3 text-[15px] leading-7 text-black/75">
+                    <div>
+                      <span className="font-semibold text-black">
+                        Verification
+                      </span>{" "}
+                      confirms that the public record, signed proof, and
+                      published verification key are consistent with one another.
+                    </div>
+
+                    <div>
+                      <span className="font-semibold text-black">
+                        Certified
+                      </span>{" "}
+                      means the evaluated outcome has been finalized and
+                      published as an independently verifiable public trust
+                      record in the Registry of Record.
+                    </div>
+                  </div>
+                </div>
+
+                <p className="text-black/70">
+                  This page does not expose private evidence, scoring, or
+                  internal assessment workflow details. It confirms the public
+                  certification outcome and the integrity of the disclosed proof
+                  materials.
+                </p>
               </div>
-              <div className="mt-3 text-[20px] font-semibold text-white">
-                Verify signature externally
-              </div>
-              <p className="mt-3 text-[14px] leading-7 text-white/68">
-                External parties use the exact messageString, signature, and
-                public key to independently confirm the record.
-              </p>
-            </div>
-          </div>
-        </section>
+            </section>
+          </>
+        ) : null}
 
         {state.status === "success" && result && proof && record && proofState ? (
           <>
@@ -658,7 +609,7 @@ export default function VerifyClient({
               <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
                 <div className="max-w-3xl">
                   <div className="text-[12px] font-semibold uppercase tracking-[0.22em] text-black/55">
-                    Proof integrity
+                    Verification result
                   </div>
 
                   <h2 className="mt-3 text-[26px] font-semibold tracking-tight text-black">
@@ -666,10 +617,10 @@ export default function VerifyClient({
                   </h2>
 
                   <p className="mt-4 text-[15px] leading-7 text-black/75">
-                    This panel combines the server-side GAFAIG verification
-                    response with independent client-side Ed25519 signature
-                    validation. It is the clearest public proof surface for the
-                    record currently under review.
+                    This is the result of the verification request. GAFAIG
+                    resolved the public record, retrieved the signed proof, and
+                    validated the exact messageString against the published
+                    Ed25519 public key.
                   </p>
                 </div>
 
@@ -915,6 +866,65 @@ export default function VerifyClient({
             </section>
           </>
         ) : null}
+
+        <section className="rounded-3xl border border-black/10 bg-black p-8 text-white">
+          <div className="text-[12px] font-semibold uppercase tracking-[0.22em] text-white/55">
+            How verification works
+          </div>
+
+          <h2 className="mt-3 text-[26px] font-semibold tracking-tight text-white">
+            Public trust without private evidence disclosure
+          </h2>
+
+          <p className="mt-4 max-w-3xl text-[15px] leading-7 text-white/72">
+            GAFAIG verification confirms that a public trust record exists, that
+            it is currently surfaced through the canonical registry views, and
+            that its signed proof is valid for independent verification. The
+            public layer does not disclose private reviewer materials, internal
+            evidence, or assessment workflow details.
+          </p>
+
+          <div className="mt-8 grid gap-4 md:grid-cols-3">
+            <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-5">
+              <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/45">
+                Step 1
+              </div>
+              <div className="mt-3 text-[20px] font-semibold text-white">
+                Resolve public trust record
+              </div>
+              <p className="mt-3 text-[14px] leading-7 text-white/68">
+                The verification endpoint resolves the public trust record from
+                the canonical public registry view in Snowflake.
+              </p>
+            </div>
+
+            <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-5">
+              <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/45">
+                Step 2
+              </div>
+              <div className="mt-3 text-[20px] font-semibold text-white">
+                Return signed proof
+              </div>
+              <p className="mt-3 text-[14px] leading-7 text-white/68">
+                GAFAIG returns a deterministic signed proof payload generated
+                during certification.
+              </p>
+            </div>
+
+            <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-5">
+              <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/45">
+                Step 3
+              </div>
+              <div className="mt-3 text-[20px] font-semibold text-white">
+                Verify signature externally
+              </div>
+              <p className="mt-3 text-[14px] leading-7 text-white/68">
+                External parties use the exact messageString, signature, and
+                public key to independently confirm the record.
+              </p>
+            </div>
+          </div>
+        </section>
       </div>
     </main>
   );
