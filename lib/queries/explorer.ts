@@ -78,6 +78,35 @@ function toNumber(value: unknown): number {
   return Number.isFinite(n) ? n : 0;
 }
 
+export async function getLatestCertifiedRecord(): Promise<ExplorerRecord | null> {
+  const rows = await sfQuery<ExplorerRecord>(`
+    SELECT
+      REGISTRY_ID AS "registryId",
+      REGISTRY_SNAPSHOT_ID AS "registrySnapshotId",
+      APPLICATION_ID AS "applicationId",
+      CASE_ID AS "caseId",
+      ENTITY_NAME AS "entityName",
+      ENTITY_TYPE AS "entityType",
+      COUNTRY AS "country",
+      CERTIFICATION_STATUS AS "certificationStatus",
+      CERTIFIED_AT AS "certifiedAt",
+      VALID_FROM AS "validFrom",
+      VALID_TO AS "validTo",
+      PUBLISHED_AT AS "publishedAt",
+      RENEWAL_STATUS AS "renewalStatus",
+      LIFECYCLE_STATUS AS "lifecycleStatus",
+      VISIBILITY_STATUS AS "visibilityStatus",
+      VERIFICATION_ELIGIBLE AS "verificationEligible",
+      BADGE_ELIGIBLE AS "badgeEligible"
+    FROM CORE.V_REGISTRY_PUBLIC
+    WHERE UPPER(TRIM(COALESCE(CERTIFICATION_STATUS, ''))) = 'CERTIFIED'
+    ORDER BY PUBLISHED_AT DESC, REGISTRY_ID ASC
+    LIMIT 1
+  `);
+
+  return rows?.[0] ?? null;
+}
+
 export async function getExplorerStats(): Promise<ExplorerStats> {
   const rows = await sfQuery<{
     publicRecords: number;
