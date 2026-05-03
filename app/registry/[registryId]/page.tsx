@@ -130,7 +130,11 @@ export default async function RegistryRecordPage({
         <PublicPageHero
           eyebrow="Registry"
           title={formatLabel(record.entityName)}
-          description={`${formatLabel(record.entityType)} · ${formatLabel(record.country)}`}
+          description={
+            [record.entityType, record.country]
+              .filter(Boolean)
+              .join(" · ")
+          }
           actions={
             <>
               <PublicButtonLink
@@ -180,14 +184,12 @@ export default async function RegistryRecordPage({
 
           <div className="mt-6 grid gap-4 md:grid-cols-3">
             <DetailCard label="Registry ID" value={formatLabel(record.registryId)} />
-            <DetailCard label="Entity Type" value={formatLabel(record.entityType)} />
             <DetailCard label="Country" value={formatLabel(record.country)} />
-            <DetailCard label="Application ID" value={formatLabel(record.applicationId)} />
-            <DetailCard label="Case ID" value={formatLabel(record.caseId)} />
             <DetailCard label="Certification Status" value={formatLabel(record.certificationStatus)} />
-            <DetailCard label="Lifecycle Status" value={formatLabel(record.lifecycleStatus)} />
-            <DetailCard label="Renewal Status" value={formatLabel(record.renewalStatus)} />
-            <DetailCard label="Published At" value={formatDate(record.publishedAt)} />
+            <DetailCard label="Certified" value={formatDate(record.certifiedAt)} />
+            <DetailCard label="Valid From" value={formatDate(record.validFrom)} />
+            <DetailCard label="Valid To" value={formatDate(record.validTo)} />
+            <DetailCard label="Published" value={formatDate(record.publishedAt)} />
           </div>
         </section>
 
@@ -197,7 +199,7 @@ export default async function RegistryRecordPage({
           </h2>
 
           <div className="mt-6 grid gap-4 md:grid-cols-3">
-            <DetailCard label="Verification Endpoint" value={verifyJsonHref} />
+            <DetailCard label="Verification API" value={verifyJsonHref} />
             <DetailCard label="Registry Page" value={registryHref} />
             <DetailCard label="Widget Preview" value={widgetHref} />
           </div>
