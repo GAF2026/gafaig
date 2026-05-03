@@ -1,6 +1,6 @@
-CANONICAL_RUN_ORDER.md
+# CANONICAL_RUN_ORDER.md
 
-Last Updated: 2026-04-30
+Last Updated: 2026-05-02
 
 PURPOSE
 
@@ -18,7 +18,7 @@ All downstream systems (API/UI/Widget) are read-only projections.
 
 GLOBAL EXECUTION RULES
 
-Always run in ACCOUNTADMIN (or appropriate elevated role)
+Always run in ACCOUNTADMIN or appropriate elevated role.
 
 Always execute:
 
@@ -27,30 +27,33 @@ USE WAREHOUSE GAFAIG_WH;
 USE DATABASE GAFAIG_DB;
 USE SCHEMA CORE;
 
-Never modify table contracts outside canonical files
-Never introduce derived logic in API/UI
-Registry is append-only
-IDs must be deterministic and stable
-All joins must use TRIM(UPPER(...)) normalization
-All scoring must originate from Snowflake views only
+Never modify table contracts outside canonical files.
+Never introduce derived logic in API/UI.
+Registry is append-only.
+IDs must be deterministic and stable.
+All joins must use TRIM(UPPER(...)) normalization where ID matching is required.
+All scoring must originate from Snowflake views only.
 
-CRITICAL (PHASE 6.4 ADDITION):
+CRITICAL MESSAGESTRING RULES
 
-All fields used for messageString must remain deterministic
-Field ordering must NEVER change once in use
-No conditional field omission for signed payload inputs
-Any change impacting messageString = cryptographic breaking change
+All fields used for messageString must remain deterministic.
+Field ordering must NEVER change once in use.
+No conditional field omission for signed payload inputs.
+Any change impacting messageString = cryptographic breaking change.
+messageString is the ONLY valid external verification input.
+Never reconstruct signed payloads from UI or JSON object fields.
 
 🔴 CRITICAL PRE-RUN CHECKS (MANDATORY)
 
 Before running ANY rebuild:
 
-12_TABLES_PARTICIPANTS.sql must compile without errors
-15_TABLES_EVENTS.sql must compile without errors
+12_TABLES_PARTICIPANTS.sql must compile without errors.
+15_TABLES_EVENTS.sql must compile without errors.
 
 If either fails:
 
-STOP. DO NOT PROCEED.
+STOP.
+DO NOT PROCEED.
 
 These files:
 
@@ -105,29 +108,63 @@ no assumptions
 
 CRITICAL ADDITIONS:
 
-All ID columns must originate in Snowflake only
-No derived IDs allowed
-Referential integrity must be enforced before downstream steps
+All ID columns must originate in Snowflake only.
+No derived IDs allowed.
+Referential integrity must be enforced before downstream steps.
+CORE.DECISIONS.CASE_ID must be NOT NULL.
+Decision validity must be time-bounded with VALID_FROM and VALID_TO.
+VALID_TO must not be NULL for approved decisions.
 
 20 — CORE VIEWS (READ LAYER)
 
 20_VIEWS_VERIFICATION_CASE_DETAIL.sql
 
 26_VIEWS_CASE_RENEWAL_STATUS.sql
-Defines: CORE.V_CASE_RENEWAL_STATUS
+
+Defines:
+
+CORE.V_CASE_RENEWAL_STATUS
+
+Rules:
+
+one row per CASE_ID
+latest decision by CREATED_AT / DECISION_ID
+DAYS_TO_EXPIRY must compute from VALID_TO
+active validity must use:
+
+DECISION_STATUS = 'APPROVED'
+AND CURRENT_TIMESTAMP() BETWEEN VALID_FROM AND VALID_TO
 
 21_VIEWS_PUBLIC_REGISTRY.sql
+
 Defines:
 
 CORE.V_REGISTRY_PUBLIC
 CORE.V_REGISTRY_LATEST_APPROVED
 
+Rules:
+
+public contract only
+score-blind
+no private scoring leakage
+certification status comes from approved + published + valid decision state
+must not reference IS_PUBLISHABLE unless the renewal view explicitly exposes it
+
 22_VIEWS_REGISTRY_AI_SYSTEMS_PUBLIC.sql
+
 Defines:
 
 CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC
 
+Rules:
+
+must join on CASE_ID
+must not expose score
+must not expose internal decision logic
+only public contract fields allowed
+
 22_VIEWS_EXPLORER_STATS.sql
+
 Defines:
 
 CORE.V_EXPLORER_STATS
@@ -142,32 +179,65 @@ certification filtering must be enforced here
 
 CRITICAL ADDITIONS:
 
-V_REGISTRY_PUBLIC is the canonical public contract
-This view defines the payload basis for messageString
-Field order stability is REQUIRED
+V_REGISTRY_PUBLIC is the canonical public contract.
+This view defines the payload basis for messageString.
+Field order stability is REQUIRED.
 
-🔴 CRITICAL (NEW — BLOCKER FIX):
+🔴 CRITICAL VIEW BLOCKER RULE
 
-NO VIEW may reference:
+NO PUBLIC VIEW may expose:
 
-SCORE
-V_CASE_SCORE_ENTERPRISE
-V_GOVERNANCE_SCORE_CASE
-ANY scoring-derived column
+private SCORE
+private scoring internals
+raw reviewer evidence
+internal workflow-only data
 
-Score is PRIVATE and must NEVER leak into public or registry-layer views
-
-If found → REMOVE immediately
+Score is PRIVATE and must NEVER leak into public or registry-layer views unless explicitly authorized by a dedicated public-safe view.
 
 23 — CORE PROCEDURES (PIPELINE ENGINE)
 
 23_SP_CREATE_CASE_FROM_APPLICATION.sql
+
 APPLICATION → CASE
 
-24_SP_SCORE_CASE_ENTERPRISE.sql
-CASE → SCORE
+24_PROCEDURES_APPLICATION_INTAKE.sql
+
+Application intake procedures.
+
+26_PROCEDURES_FINDINGS.sql
+
+Creates:
+
+CORE.SP_CREATE_FINDING
+
+Rules:
+
+generate FINDING_ID in Snowflake only
+insert into CORE.VERIFICATION_FINDINGS
+return canonical OBJECT payload
+API must call this procedure and not insert directly
+
+27_PROCEDURES_EVIDENCE.sql
+
+Creates evidence procedure layer.
+
+28_PROCEDURES_FINDING_EVIDENCE.sql
+
+Creates finding ↔ evidence linking procedure layer.
+
+25_SP_SCORE_CASE_ENTERPRISE.sql
+
+CASE → SCORE SNAPSHOT
+
+Rules:
+
+must read from CORE.V_GOVERNANCE_SCORE_CASE
+must write to CORE.CASE_SCORE_SNAPSHOTS
+must return rowsInserted
+must not compute score outside Snowflake scoring view
 
 25_PROCEDURES_APPROVAL.sql
+
 Defines:
 
 CORE.APPROVE_CASE_V1
@@ -178,6 +248,12 @@ Rules:
 deterministic transitions only
 no partial state
 no implicit assumptions
+APPROVE_CASE_V1 must require latest score snapshot
+APPROVE_CASE_V1 must attach SNAPSHOT_ID
+APPROVE_CASE_V1 must create one-year VALID_FROM / VALID_TO window
+APPROVE_CASE_V1 must close active or overlapping prior decisions
+UNAPPROVE_CASE_V1 must close active or overlapping prior decisions
+Decision windows must not overlap for the same CASE_ID
 
 30 — SCORING ENGINE (AUTHORITATIVE)
 
@@ -192,11 +268,13 @@ Rules:
 single source of score/tier/band
 no duplicate scoring logic
 must execute AFTER tables and BEFORE publishing
+cases with no findings should still resolve safely where applicable
+score/tier/band remain private unless explicitly projected through approved public-safe contracts
 
 CRITICAL:
 
-This layer is PRIVATE ONLY
-No downstream dependency allowed outside scoring + decisions
+This layer is PRIVATE ONLY.
+No public downstream dependency should expose private scoring internals.
 
 REGISTRY PUBLISH (CRITICAL)
 
@@ -221,9 +299,13 @@ never rely on API/UI
 
 CRITICAL ADDITIONS:
 
-Publish output must be deterministic
-Publish output must support messageString generation
-Any change to publish structure = versioning required
+Publish output must be deterministic.
+Publish output must support messageString generation.
+Any change to publish structure = versioning required.
+Publishability is derived from:
+
+DECISION_STATUS = 'APPROVED'
+AND CURRENT_TIMESTAMP() BETWEEN VALID_FROM AND VALID_TO
 
 🔴 CRITICAL:
 
@@ -233,7 +315,7 @@ INSERT INTO CORE.REGISTRY_SNAPSHOTS
 INSERT INTO CORE.REGISTRY_AI_SYSTEMS
 DELETE FROM registry tables
 
-Procedure owns ALL registry writes
+Procedure owns ALL registry writes.
 
 40 — SEED (DETERMINISTIC DATA)
 
@@ -294,9 +376,9 @@ CALL CORE.SP_PUBLISH_CASE_TO_REGISTRY_V3
 
 CRITICAL ADDITIONS:
 
-No step may be skipped
-No parallel execution allowed
-No API-level execution of pipeline
+No step may be skipped.
+No parallel execution allowed.
+No API-level execution of pipeline.
 
 VALIDATION QUERIES
 
@@ -314,6 +396,78 @@ SELECT * FROM CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC WHERE CASE_ID = '<CASE_ID>';
 
 SELECT * FROM CORE.V_EXPLORER_STATS;
 
+DECISION INTEGRITY VALIDATION
+
+SELECT COUNT(*) AS bad_decisions
+FROM CORE.DECISIONS
+WHERE CASE_ID IS NULL
+   OR TRIM(CASE_ID) = '';
+
+Expected:
+
+0
+
+Overlap check:
+
+SELECT
+  d1.CASE_ID,
+  d1.DECISION_ID AS decision_id_1,
+  d1.VALID_FROM AS valid_from_1,
+  d1.VALID_TO AS valid_to_1,
+  d2.DECISION_ID AS decision_id_2,
+  d2.VALID_FROM AS valid_from_2,
+  d2.VALID_TO AS valid_to_2
+FROM CORE.DECISIONS d1
+JOIN CORE.DECISIONS d2
+  ON d1.CASE_ID = d2.CASE_ID
+ AND d1.DECISION_ID < d2.DECISION_ID
+WHERE d1.VALID_FROM < d2.VALID_TO
+  AND d2.VALID_FROM < d1.VALID_TO
+ORDER BY d1.CASE_ID;
+
+Expected:
+
+0 rows
+
+RENEWAL VALIDATION
+
+SELECT
+  CASE_ID,
+  DECISION_STATUS,
+  VALID_FROM,
+  VALID_TO,
+  DAYS_TO_EXPIRY,
+  RENEWAL_STATUS,
+  IS_CURRENTLY_VALID
+FROM CORE.V_CASE_RENEWAL_STATUS
+WHERE CASE_ID = '<CASE_ID>';
+
+Expected for active certified records:
+
+IS_CURRENTLY_VALID = TRUE
+DAYS_TO_EXPIRY is not NULL
+RENEWAL_STATUS = VALID or active equivalent
+
+PUBLIC REGISTRY VALIDATION
+
+SELECT
+  REGISTRY_ID,
+  CASE_ID,
+  CERTIFICATION_STATUS,
+  VALID_FROM,
+  VALID_TO,
+  RENEWAL_STATUS,
+  LIFECYCLE_STATUS
+FROM CORE.V_REGISTRY_PUBLIC
+WHERE CASE_ID = '<CASE_ID>';
+
+Expected:
+
+CERTIFICATION_STATUS = CERTIFIED
+VALID_FROM populated
+VALID_TO populated
+LIFECYCLE_STATUS = active
+
 TRUST SURFACE LAYER
 
 VERIFY ENDPOINT
@@ -321,6 +475,7 @@ VERIFY ENDPOINT
 /api/verify/[registryId]
 
 Source:
+
 CORE.V_REGISTRY_PUBLIC
 
 Rules:
@@ -329,18 +484,16 @@ no computation
 no mutation
 deterministic message
 ISO timestamps
-
-Must return:
-
-record
-proof
-messageString
+must return record
+must return proof
+must return messageString
 
 CRITICAL ADDITIONS:
 
-messageString is the ONLY valid verification input
-Never reconstruct payload
-Never verify from JSON
+messageString is the ONLY valid verification input.
+Never reconstruct payload.
+Never verify from JSON object order.
+Any change to signed payload fields requires contract versioning.
 
 PUBLIC KEY ENDPOINT
 
@@ -359,12 +512,15 @@ REGISTRY ENDPOINT
 /api/registry
 
 Source:
+
 CORE.V_REGISTRY_PUBLIC
 
 Rules:
 
 projection only
 no derived logic
+no score computation
+no lifecycle recomputation
 
 EXPLORER ENDPOINT
 
@@ -381,6 +537,8 @@ Rules:
 no workflow data
 no temporary IDs
 no derived trust logic
+must be null-safe
+must fail closed or return controlled empty state
 
 CRYPTO RULES
 
@@ -392,9 +550,28 @@ Signature must match messageString EXACTLY
 
 CRITICAL ADDITIONS:
 
-messageString must be deterministic
-messageString must not be reconstructed
-Verification MUST fail closed on any mismatch
+messageString must be deterministic.
+messageString must not be reconstructed.
+Verification MUST fail closed on any mismatch.
+
+EXTERNAL VERIFICATION VALIDATION
+
+Node verifier:
+
+external-tests/verify-gafaig-node.js
+
+Python verifier:
+
+external-tests/verify-gafaig-python.py
+
+Tamper verifier:
+
+external-tests/verify-gafaig-tamper.js
+
+Expected:
+
+Valid payload verifies TRUE
+Tampered payload verifies FALSE
 
 NON-NEGOTIABLE RULES
 
@@ -405,6 +582,9 @@ generate registry records in API
 mutate registry snapshots
 introduce non-deterministic IDs
 expose workflow data publicly
+manually insert decisions
+manually publish registry records
+recreate seed sprawl
 
 ALWAYS:
 
@@ -412,6 +592,8 @@ use Snowflake as source of truth
 use append-only registry
 enforce deterministic joins
 follow this run order EXACTLY
+use stored procedures for writes
+preserve public contract stability
 
 PHASE 7 ADDITION — PROCEDURE-ONLY WRITE ENFORCEMENT (LOCKED)
 
@@ -419,11 +601,14 @@ All writes in the pipeline MUST occur through stored procedures.
 
 Applies to:
 
-APPLICATION → CORE.SP_CREATE_APPLICATION
+APPLICATION → CORE.SP_CREATE_APPLICATION or canonical intake procedure
 CASE → CORE.SP_CREATE_CASE_FROM_APPLICATION
 FINDINGS → CORE.SP_CREATE_FINDING
 EVIDENCE → CORE.SP_CREATE_EVIDENCE
 LINKS → CORE.SP_LINK_FINDING_EVIDENCE
+SCORING → CORE.SP_SCORE_CASE_ENTERPRISE
+APPROVAL → CORE.APPROVE_CASE_V1 / CORE.UNAPPROVE_CASE_V1
+PUBLISH → CORE.SP_PUBLISH_CASE_TO_REGISTRY_V3
 
 Do NOT:
 
@@ -435,64 +620,79 @@ CRITICAL:
 
 Pipeline integrity depends on procedure-only execution.
 
-CURRENT SYSTEM STATE (AS OF 2026-04-30)
+CURRENT SYSTEM STATE (AS OF 2026-05-02)
 
 🔴 CANONICAL SEED STATUS (LOCKED)
 
-✔ GAFAIG - FINAL_CANONICAL_MULTI_SEED.sql is WORKING
-✔ Produces:
+✔ GAFAIG - FINAL_CANONICAL_MULTI_SEED.sql is active canonical seed baseline
+✔ Single seed rule remains mandatory
+✔ Future expansion must MODIFY this file — not replace it
 
-26 cases
-26 decisions
-14 public registry records
-28 AI system records
-✔ Fully drives:
-/registry
-/explorer
-/verify
-admin workflow
-
-This file is now LOCKED as the canonical seed baseline.
-
-Any future expansion must MODIFY this file — not replace it.
-
-✔ Full pipeline operational
-✔ Scoring engine stable
-✔ Decision lifecycle enforced
-✔ Registry publishing deterministic
-✔ REGISTRY_ID reuse enforced
-✔ CORE.V_REGISTRY_PUBLIC Phase 6 updated
-✔ Lifecycle + eligibility fields introduced
-✔ API /verify operational
+✔ Full verification API operational
 ✔ Ed25519 signing validated
 ✔ Public key endpoint operational
-✔ SDK operational (v1.3.0)
-✔ UI aligned
-✔ Verification protocol (Phase 6.4) enforced
+✔ messageString locked and externally verified
+✔ External verification works in Node
+✔ External verification works in Python
+✔ Tamper test passes
+✔ Registry pipeline deterministic end-to-end
+✔ CORE.V_REGISTRY_PUBLIC stable
+✔ Lifecycle model converted to time-bounded validity
+✔ VALID_FROM / VALID_TO enforced
+✔ CASE_ID NOT NULL enforced in CORE.DECISIONS
+✔ Overlapping decision windows cleaned
+✔ APPROVE_CASE_V1 closes overlapping decisions
+✔ SP_PUBLISH_CASE_TO_REGISTRY_V3 aligned to bounded validity
+✔ /registry detail route working
+✔ /registry list route hardened
+✔ /explorer page hardened with null-safe rendering
+✔ Widget verification language aligned
+✔ Widget browser-side verification operational
+✔ SDK layer operational
 
-✔ Phase 7 workflow partially operational
-✔ Application → Case working
-✔ Evidence pipeline working
-✔ Finding procedures implemented
-✔ Linking procedures implemented
+ACTIVE ISSUES / IN PROGRESS
 
-🔴 Run-order files still critical validation point
-🔴 Findings pipeline visibility issue (active debug)
+🔴 12_TABLES_PARTICIPANTS.sql still requires final compile validation
+🔴 15_TABLES_EVENTS.sql still requires final compile validation
+🟡 Explorer query contract is being restored after drift from temporary smaller files
+🟡 /explorer subpages must be revalidated:
+   /explorer/organizations
+   /explorer/countries
+   /explorer/systems
+🟡 Stress testing not yet complete
+🟡 Multi-case edge lifecycle testing not yet complete
 
 NEXT PHASE
 
-SYSTEM HARDENING + PRIVATE WORKFLOW COMPLETION
+SYSTEM STRESS VALIDATION + PRIVATE WORKFLOW COMPLETION
 
 Goals:
 
-fix findings pipeline
-activate linking
-enable scoring dependency
-badge lifecycle enforcement
-widget fail-closed behavior
-SDK failure handling
-strict API contract enforcement
-full system validation
+restore and validate explorer query contract
+validate explorer subpages
+stress test multi-case registry
+test expired / near-expiry / future-valid lifecycle states
+validate API consistency
+validate widget fail-closed behavior
+validate SDK failure handling
+build canonical validation runner
+complete private workflow polish
+
+NEXT REQUIRED FILE
+
+99_RUN_CANONICAL_PIPELINE.sql
+
+Must:
+
+execute full pipeline in canonical order
+validate tables
+validate views
+validate procedures
+validate scoring
+validate decisions
+validate registry output
+validate public API readiness
+detect drift automatically
 
 FINAL PRINCIPLE
 

@@ -1,8 +1,10 @@
 CURRENT_FOCUS.md
 
-Last Updated: 2026-04-30
+Last Updated: 2026-05-02
 
 PURPOSE
+
+This document also enforces phase gating between build completion and distribution activation.
 
 Defines the exact execution focus for GAFAIG with zero ambiguity.
 
@@ -12,7 +14,7 @@ No drift.
 
 CURRENT SYSTEM POSITION
 
-GAFAIG is in production trust distribution phase transitioning into private workflow completion.
+GAFAIG is in production build completion phase transitioning into distribution readiness.
 
 ✔ Snowflake canonical pipeline complete
 ✔ Registry snapshots working
@@ -38,6 +40,13 @@ GAFAIG is in production trust distribution phase transitioning into private work
 ✔ Public key endpoint live
 ✔ Public key page live
 ✔ External widget rendering validated (off-domain test successful)
+
+✔ /registry page working in production
+✔ /registry/[registryId] detail page working
+✔ /verify endpoint validated with signature + messageString
+✔ Badge SVG rendering working
+
+🟡 Homepage conversion layer updated locally (NOT yet deployed due to Explorer blocker)
 
 🔴 IMMEDIATE BLOCKER (STILL VALID — DO NOT SKIP)
 
@@ -72,7 +81,48 @@ State not refreshing
 
 👉 This must be resolved before moving to scoring.
 
-🔴 SECONDARY BLOCKER (ADDED — DO NOT IGNORE)
+🔴 SECONDARY BLOCKER (ACTIVE — UPDATED)
+
+Explorer page failure
+
+Symptoms:
+
+/explorer page shows:
+
+"GAFAIG could not load Explorer records from the canonical public views."
+
+Root cause:
+
+lib/queries/explorer.ts contract drift
+Missing exports (getExplorerData, getExplorerCountries, etc.)
+Mismatch between UI expectations and query layer
+Potential mismatch with CORE.V_REGISTRY_PUBLIC or AI systems view
+
+Impact:
+
+Explorer unavailable in production
+Blocks deployment (Next.js build failure)
+Breaks public trust surface completeness
+Prevents homepage deployment
+
+Required action:
+
+Restore full explorer query contract
+Ensure ALL required exports exist
+Align types with UI pages
+Ensure queries pull ONLY from canonical public views
+
+CRITICAL:
+
+Explorer must read ONLY from:
+
+CORE.V_REGISTRY_PUBLIC
+CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC
+
+No scoring
+No private data
+
+🔴 SECONDARY BLOCKER (STILL VALID)
 
 SCORE dependency leaking into rebuild validation
 
@@ -92,9 +142,7 @@ Run:
 
 SELECT GET_DDL('VIEW', 'GAFAIG_DB.CORE.V_REGISTRY_AI_SYSTEMS_BY_REGISTRY');
 
-Then:
-
-Remove ANY reference to:
+Then remove ANY reference to:
 
 SCORE
 V_CASE_SCORE_ENTERPRISE
@@ -135,9 +183,9 @@ Widgets MUST fail closed
 
 Phase 7 — Private Verification Workflow Completion
 → then Phase 8 — Trust Surface Hardening + Production Lock
+→ then Distribution Activation (POST-BUILD ONLY)
 
 EXECUTION PLAN (STRICT ORDER)
-
 STEP 0 — FIX SNOWFLAKE RUN ORDER
 
 Files:
@@ -165,194 +213,40 @@ Finding inserts into Snowflake
 API returns row
 UI reflects count
 
-Must:
-
-verify DB insert
-verify API response
-verify correct endpoint usage
-
-STEP 2 — LINK FINDINGS ↔ EVIDENCE
+STEP 2 — RESTORE EXPLORER (CRITICAL FOR DEPLOYMENT)
 
 Files:
 
-28_PROCEDURES_FINDING_EVIDENCE.sql
-app/api/admin/verification/finding-evidence/route.ts
+lib/queries/explorer.ts
+app/api/explorer/route.ts
+app/explorer/page.tsx
+app/explorer/* subpages
 
 Objective:
+
+Restore full explorer functionality
+Unblock Next.js build
+Enable production deployment
+
+STEP 3 — LINK FINDINGS ↔ EVIDENCE
 
 Activate:
 
 CORE.VERIFICATION_FINDING_EVIDENCE
 
-Must:
-
-use Snowflake procedures only
-no JSON storage
-
-STEP 3 — ACTIVATE SCORING PIPELINE
+STEP 4 — ACTIVATE SCORING PIPELINE
 
 Files:
 
 CORE.SP_SCORE_CASE_ENTERPRISE
 CASE_SCORE_SNAPSHOTS
 
-Objective:
-
-Score must respond to:
-
-Findings
-Linked evidence
-
-CRITICAL:
-
-No scoring in API/UI
-
-STEP 4 — BADGE HARDENING
-
-File:
-
-public/sdk/gafaig.js
-
-Objective:
-
-Badge must ALWAYS reflect:
-
-lifecycleStatus
-badgeEligible
-
-Must:
-
-degrade to "Unavailable" if invalid
-never show Certified incorrectly
-never imply trust without verification
-
-CRITICAL ADDITION:
-
-Badge must NEVER be treated as proof
-Badge must always defer to verify endpoint
-
-STEP 5 — MODAL HARDENING
-
-File:
-
-public/widget/gafaig-verify.js
-
-Objective:
-
-Modal must:
-
-always load verify endpoint
-never rely on badge data
-fail safely if API fails
-
-Add:
-
-loading state
-error state
-fallback messaging
-
-CRITICAL ADDITION:
-
-Modal MUST display messageString-based verification
-Modal MUST reflect signature validity explicitly
-
-STEP 6 — SDK FAILURE HANDLING
-
-File:
-
-public/sdk/gafaig.js
-
-Objective:
-
-Handle:
-
-network failure
-invalid JSON
-missing fields
-
-Must:
-
-never crash page
-return safe error object
-
-CRITICAL ADDITION:
-
-SDK must NEVER verify using JSON fields
-SDK must NEVER reconstruct payloads
-
-STEP 7 — VERIFY API LOCK
-
-File:
-
-app/api/verify/[registryId]/route.ts
-
-Objective:
-
-Lock response contract
-
-Must:
-
-always return:
-
-record (full Phase 6)
-proof
-messageString
-
-Must NOT:
-
-change field names
-remove fields
-
-CRITICAL ADDITION:
-
-Verify API is the protocol contract
-messageString must be deterministic
-signature must be generated from messageString only
-
-STEP 8 — BADGE API LOCK
-
-File:
-
-app/api/badge/[registryId]/route.ts
-
-Objective:
-
-Lock response contract
-
-Must:
-
-respect lifecycleStatus
-respect badgeEligible
-
-Must NOT:
-
-guess status
-override Snowflake truth
-
-STEP 9 — WIDGET FAIL-SAFE UX
-
-File:
-
-public/widget/gafaig.js (or equivalent)
-
-Objective:
-
-If API fails:
-
-Show:
-
-"Verification unavailable"
-
-NOT:
-
-blank state
-broken UI
-
-CRITICAL ADDITION:
-
-Widget MUST fail closed
-Widget MUST display INVALID when verification fails
-
+STEP 5 — COMPLETE BADGE HARDENING
+STEP 6 — COMPLETE MODAL HARDENING
+STEP 7 — COMPLETE SDK FAILURE HANDLING
+STEP 8 — LOCK VERIFY API CONTRACT
+STEP 9 — LOCK BADGE API CONTRACT
+STEP 10 — COMPLETE WIDGET FAIL-SAFE UX
 🧠 SYSTEM THINKING (LOCKED)
 
 GAFAIG is:
@@ -390,69 +284,95 @@ Do not verify from JSON
 
 🧪 TEST (MANDATORY)
 
-Test:
+Explorer:
 
-External page:
-
-badge loads
-modal opens
-SDK returns JSON
-
-Verify page:
-
-signature valid
-payload verified
-messageString present
-
-Admin:
-
-Create finding → count increases
-Create evidence → count increases
-Link evidence → scoring changes
-
-API:
-
-/api/badge/{id}
-/api/verify/{id}
-/api/admin/verification/{caseId}/findings
+/explorer loads without error
+countries / organizations / systems pages load
 
 CRITICAL:
 
 Verification must use messageString only
 
-🚀 DEPLOY FLOW
+🚀 DEPLOY FLOW (BLOCKED UNTIL EXPLORER FIX)
 
 git add .
-git commit -m "Phase 7/8: <description>"
+git commit -m "Homepage + Explorer fix"
 git push origin main
+vercel --prod
 
 📍 CURRENT STATE SUMMARY
 
-✔ System aligned
-✔ External trust working
-✔ Production endpoints live
-✔ Verification protocol enforced
-✔ Private workflow mostly functional
+✔ Core system architecture complete
+✔ Verification protocol complete
+✔ SDK + UI aligned
+✔ Homepage conversion optimized (local only)
 
 🔴 Snowflake run-order fix still required
 🔴 Findings pipeline bug (active)
-🔴 SCORE dependency leak (new blocker)
-🔴 Badge + widget final hardening pending
+🔴 Explorer broken (deployment blocker)
+🔴 SCORE dependency leak (active risk)
 
-🎯 NEXT FOCUS:
+🚫 DISTRIBUTION PLAN STATUS (NOT ACTIVE YET)
 
-Fix findings pipeline
-Fix SCORE dependency in view
-Restore deterministic rebuild
-Activate linking
-Trigger scoring
-Harden trust surfaces
-Lock contracts
-Eliminate failure modes
+30-Day Execution Plan for onboarding first 5 organizations EXISTS
+BUT is NOT ACTIVE
+
+Activation condition:
+
+✔ Explorer fully working
+✔ Full platform build complete
+✔ Seeding finalized and expanded
+✔ Public trust surface stable
+✔ Deployment fully working
+✔ UI polished and production-ready
+
+🚀 FUTURE PHASE (LOCKED — DO NOT START YET)
+
+30-DAY EXECUTION PLAN (POST-BUILD)
+
+Goal:
+
+Get first 5 real organizations testing GAFAIG
+
+Strategy:
+
+Free pilot certification
+One system per organization
+Signed public record output
+
+Channels:
+
+LinkedIn
+Cold outreach
+Developer API exposure
+
+Success Criteria:
+
+3–5 organizations tested
+3+ real registry records
+1–2 public mentions
+1 confirmed value signal
+
+CRITICAL:
+
+This phase ONLY begins after platform completion
+
+🎯 NEXT FOCUS
+
+Fix Explorer (deployment blocker)
+Complete platform build
+Finalize seed data
+Polish UI
+Stabilize system
+Deploy homepage update
+
+ONLY THEN:
+
+Activate distribution
 
 FINAL LINE
 
-Do not add features.
-Do not redesign.
+Do not start outreach.
+Do not start promotion.
 
-Stabilize and lock the system.
+Finish the system.

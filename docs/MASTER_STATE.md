@@ -1,10 +1,12 @@
 MASTER_STATE.md
 
-Last Updated: 2026-04-30
+Last Updated: 2026-05-02
 
 PURPOSE
 
 This document defines the complete, canonical system state of GAFAIG (Global Authority for AI Governance). It is the single source of truth for what exists, what is working, what is broken, and what must happen next. This file must always reflect reality across Snowflake, VS Code, API, SDK, and deployed production.
+
+This document also enforces phase separation between system build completion and distribution activation.
 
 GAFAIG is the world’s first searchable AI governance registry. It verifies that human oversight in AI systems is implemented, operational, and producing real oversight outcomes, and publishes certified outcomes as cryptographically verifiable public records.
 
@@ -69,7 +71,7 @@ FAIL-CLOSED SYSTEM
 ANY failure → NOT TRUSTED
 
 WIDGETS MUST FAIL CLOSED
-Widgets MUST display INVALID / UNVERIFIED when verification fails
+Widgets MUST display INVALID / UNVERIFIED / UNAVAILABLE / EXPIRED / REVOKED when verification or lifecycle fails
 
 CANONICAL FLOW
 
@@ -87,7 +89,7 @@ APPLICATION
 
 CURRENT PHASE
 
-Phase 7 — Private Verification Workflow Completion (IN PROGRESS)
+Phase 8 — System Hardening + Validation + Explorer Restoration (IN PROGRESS)
 
 System has transitioned from:
 
@@ -101,11 +103,47 @@ And then to:
 
 “Certification as a cryptographically verifiable protocol”
 
-And now to:
+And then to:
 
 “Certification as a deterministic, Snowflake-controlled private workflow with public cryptographic proof”
 
+Now to:
+
+“System-wide validation, contract lock, and external trust surface readiness”
+
+STRATEGIC STATE UPDATE (CRITICAL)
+
+GAFAIG is technically strong but not yet discoverable.
+
+The system has achieved:
+
+✔ Deterministic execution
+✔ Cryptographic verification
+✔ Public registry trust surface
+
+However, GAFAIG currently lacks:
+
+External visibility
+Market awareness
+Active organizational usage
+
+This creates the current mismatch:
+
+GAFAIG is “truth infrastructure”
+The market responds to “visible value”
+
+Therefore:
+
+Distribution, narrative, and first pilot organizations are now recognized priorities
+
+BUT:
+
+These are NOT active execution tasks yet
+
+They are gated behind full system completion
+
 WHAT IS COMPLETE
+
 SNOWFLAKE
 
 ✔ Core tables established
@@ -114,7 +152,7 @@ SNOWFLAKE
 ✔ Decision layer working
 ✔ Registry snapshot system working
 
-✔ CORE.V_REGISTRY_PUBLIC updated (Phase 6)
+✔ CORE.V_REGISTRY_PUBLIC updated and aligned to bounded validity model
 
 Includes:
 
@@ -138,220 +176,76 @@ Full certification fields
 ✔ Finding creation procedure corrected to match canonical schema
 ✔ Finding ↔ Evidence linking procedures created
 
+✔ Decision lifecycle hardened
+
+✔ CORE.V_CASE_RENEWAL_STATUS fixed
+
+✔ SP_PUBLISH_CASE_TO_REGISTRY_V3 aligned
+
+✔ Registry append-only enforcement restored
+
+✔ 99_RUN_CANONICAL_PIPELINE.sql created
+
 API
 
-✔ /api/verify/[registryId] exists
+✔ /api/verify working
 ✔ Ed25519 signing working
 ✔ Public key endpoint working
 ✔ CORS enabled
-✔ no-store caching implemented
-
 ✔ messageString contract enforced
-✔ verification protocol established
 
 ✔ /api/registry working
-✔ /api/registry/search working
-✔ /api/badge exists
+✔ /api/search working
+✔ /api/badge working
 
-✔ Admin verification routes created:
-
-/api/admin/verification/[caseId]/findings
-/api/admin/verification/[caseId]/evidence
-/api/admin/verification/finding-evidence
-
-✔ API now calls Snowflake procedures (no JSON/local storage)
+✔ API remains pass-through
 
 SDK
 
-✔ public/sdk/gafaig.js created
-✔ public/sdk/gafaig.v1.js versioned
-✔ Version 1.3.0 production-stable
-✔ verify() working
-✔ badge() working
-✔ getPublicKey() added
-✔ autoInit working
-
-✔ Browser test successful:
-gafaig.verify("GAFAIG-00363095")
-
-✔ SDK aligned to verification protocol
-✔ SDK does not compute trust
+✔ SDK stable (v1.3.0)
+✔ verify(), badge(), getPublicKey() working
+✔ External validation working
 
 UI
 
-✔ Homepage complete
-✔ Mission page complete
-✔ Framework page updated (Snowflake + NIST alignment)
-✔ Developers page updated (SDK + verification positioning)
-✔ Registry page working
-✔ Verify page hardened (protocol-level)
-✔ Explorer pages working
+✔ Core pages built and aligned
+✔ Registry working
+✔ Verify working
+✔ Certification + Apply pages created
+✔ Admin workflows functional
 
-✔ Layout system normalized
-✔ Footer updated with Snowflake execution messaging
+✔ Homepage conversion layer updated (LOCAL ONLY)
 
-✔ Certification page created
-✔ Apply page created
-✔ Admin applications UI working
-✔ Admin case creation working
-✔ Admin verification case UI active
+CRITICAL:
 
-✔ Evidence creation button working
-✔ Evidence count updating correctly
-
-✔ Verify page reflects:
-
-messageString
-signature
-public key verification
-failure states
-
-✔ Widget preview page aligned with GAFAIGWidget.mount()
-✔ Public key page created and integrated
+Homepage update has NOT been deployed due to Explorer build failure
 
 CRYPTOGRAPHIC TRUST LAYER
 
-✔ Ed25519 signing implemented
-✔ Key ID: gafaig-ed25519-2026-01
-✔ Public key endpoint live
-✔ Signed payload contract defined
-
-✔ messageString is canonical
-✔ Signature generated from messageString only
-✔ Verification externally reproducible
+✔ Fully operational
+✔ messageString canonical
+✔ Signature validation reproducible
+✔ External verification confirmed
 
 WHAT IS BROKEN OR INCOMPLETE
+
 🔴 SNOWFLAKE RUN ORDER
-
-Files:
-
-12_TABLES_PARTICIPANTS.sql
-15_TABLES_EVENTS.sql
-
-Status:
-
-Previously errored
-Must be fixed before full rebuild
-
-🔴 FINDINGS PIPELINE (CURRENT BLOCKER)
-
-Status:
-
-Finding procedure corrected
-API route corrected
-UI updated to new endpoint
-
-Issue:
-
-Findings count still shows 0 in admin case overview
-
-Potential causes:
-
-UI still referencing stale endpoint
-POST failing silently
-CASE_ID mismatch
-UI state not refreshing
-🔴 BADGE SYSTEM
-
-Current state:
-
-SVG + API working
-Eligibility partially enforced
-
-Issues:
-
-Badge may misrepresent lifecycle
-Rendering not fully fail-safe in all states
-🔴 TYPES + QUERY LAYER
-
-Files:
-
-types/registry.ts
-lib/queries/registry.ts
-
-Status:
-
-Require strict alignment verification
-
-Impact:
-
-Potential drift risk if not locked
+🔴 FINDINGS PIPELINE
+🔴 EXPLORER QUERY CONTRACT (BLOCKING DEPLOYMENT)
+🔴 BADGE LIFECYCLE ENFORCEMENT
+🔴 TYPE / QUERY ALIGNMENT
 
 WHAT WE ARE DOING NEXT
-STEP 0 (MANDATORY)
 
-Fix Snowflake run-order files:
-
-12_TABLES_PARTICIPANTS.sql
-15_TABLES_EVENTS.sql
-
-STEP 1
-
-Fix findings pipeline visibility
-
-Goal:
-
-Ensure:
-
-Finding is inserted in Snowflake
-API returns row
-UI reflects count
-STEP 2
-
-Build finding ↔ evidence linking UI
-
-Goal:
-
-Activate:
-
-CORE.VERIFICATION_FINDING_EVIDENCE
-
-STEP 3
-
-Activate scoring pipeline
-
-Goal:
-
-Score responds to linked findings/evidence
-
-STEP 4
-
-Finalize badge system
-
-Goal:
-
-Lifecycle-aware rendering
-Eligibility enforcement
-No trust misrepresentation
-
-STEP 5
-
-Finalize widget system
-
-Goal:
-
-Fail-closed behavior
-messageString-based verification display
-Full protocol alignment
-
-STEP 6
-
-System-wide validation
-
-Goal:
-
-Snowflake → API → SDK → UI alignment
-
-STEP 7 (UPCOMING)
-
-Create canonical SQL runner:
-
-99_RUN_CANONICAL_PIPELINE.sql
-
-Goal:
-
-Eliminate scratch-pad testing
-Validate full deterministic rebuild
+STEP 0 — Fix Snowflake run-order
+STEP 1 — Fix findings pipeline
+STEP 2 — Restore explorer (deployment blocker)
+STEP 3 — Complete linking
+STEP 4 — Activate scoring
+STEP 5 — Harden badge
+STEP 6 — Harden widget
+STEP 7 — Validate system
+STEP 8 — Run canonical pipeline
 
 SYSTEM POSITIONING
 
@@ -360,132 +254,89 @@ GAFAIG is NOT:
 a dashboard
 a scoring tool
 a rating system
-a UI product
 
 GAFAIG IS:
 
 a verification system
-a registry of public certification records
+a registry
 a cryptographic trust layer
-a Snowflake-executed governance engine
-
-CERTIFICATION MODEL
-
-Approval:
-
-Internal workflow state
-
-Certification:
-
-Public record
-
-Verification:
-
-Cryptographic validation of certification
-
-RECORD MODEL (PHASE 6)
-
-Certification attaches to a record.
-
-Record types:
-
-ORGANIZATION
-AI_SYSTEM
-PORTFOLIO
-USE_CASE
-
-Implication:
-
-Certification is scoped
-No over-claiming trust
-
-LIFECYCLE MODEL
-
-Defined in Snowflake:
-
-active
-expired
-revoked
-
-Must NOT be computed elsewhere
-
-CRITICAL:
-
-Signature proves authenticity
-Lifecycle determines trust state
-
-ELIGIBILITY MODEL
-
-Defined in Snowflake:
-
-verificationEligible
-badgeEligible
-
-Must NOT be computed elsewhere
+a governance execution engine
 
 TRUST MODEL
 
 Trust is based on:
 
-Snowflake public record
+Snowflake record
 messageString
 signature
-public key verification
+public key
 
 NOT based on:
 
 UI
-badges
-widgets
+badge
 SDK
+widget
 
 DEPLOYMENT
 
-GitHub:
-GAF2026/gafaig
-
-Vercel:
-gafaig-vercel
-
-Production:
-https://www.gafaig.com
-
-TEST RECORD
-
-GAFAIG-00363095
-
-TEST COMMAND
-
-gafaig.verify("GAFAIG-00363095").then(console.log)
-
-Expected:
-
-verified: true
-proof present
-signature valid
+GitHub: GAF2026/gafaig
+Vercel: gafaig-vercel
+Production: https://www.gafaig.com
 
 CURRENT STATUS SUMMARY
 
-✔ Core system architecture complete
-✔ Snowflake execution layer complete
+✔ Core architecture complete
 ✔ Verification protocol complete
-✔ SDK aligned
-✔ UI trust surface complete
-✔ Private workflow mostly operational
+✔ SDK + UI aligned
+✔ Private workflow mostly complete
 
-🔴 Snowflake run-order files need fix
-🔴 Findings count bug (active debug)
-🔴 Badge system finalization needed
+🟡 Homepage conversion optimized (LOCAL ONLY)
+
+🔴 Explorer blocks deployment
+🔴 Findings pipeline incomplete
+🔴 Run-order validation pending
+
+DISTRIBUTION STATUS (LOCKED)
+
+Distribution phase is DEFINED but NOT ACTIVE
+
+Conditions required before activation:
+
+✔ Explorer fully functional
+✔ Full build completed
+✔ Seeding expanded and stable
+✔ UI polished
+✔ Production deployment stable
+
+ONLY AFTER THIS:
+
+Distribution begins
+
+FUTURE STATE (POST-BUILD)
+
+GAFAIG will:
+
+Acquire first pilot organizations
+Publish real records
+Establish visibility
+Demonstrate value
+
+Through:
+
+Free certification pilots
+Verification-first narrative
+Public trust surface
 
 FINAL STATE TARGET
 
 GAFAIG becomes:
 
-deterministic governance engine (Snowflake)
-public registry of verifiable certification records
+deterministic governance engine
+public certification registry
 cryptographic verification protocol
-developer platform (SDK + API)
-enterprise-scale governance infrastructure
+developer platform
+global trust infrastructure
 
 FINAL TRUTH
 

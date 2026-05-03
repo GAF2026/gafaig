@@ -1,6 +1,6 @@
 VERIFIED_DEFINITION.md
 
-Last Updated: 2026-04-30
+Last Updated: 2026-05-02
 
 PURPOSE
 
@@ -14,12 +14,16 @@ A GAFAIG record is Verified = true if and only if ALL of the following condition
 
 Record Exists
 A record with the given REGISTRY_ID exists in CORE.V_REGISTRY_PUBLIC.
+
 Public Record Contract
-The record returned is a direct projection of the canonical public view (CORE.V_REGISTRY_PUBLIC) without recomputation of trust fields in API/UI/SDK.
+The record returned is a direct projection of the canonical public view (CORE.V_REGISTRY_PUBLIC) without recomputation of trust fields in API, UI, SDK, or widget layers.
+
 Signed Payload Present
 The verify endpoint returns a proof object containing a signature over a canonical messageString.
+
 Canonical messageString Present
 The proof object contains proof.messageString exactly as signed by GAFAIG.
+
 Signature Validity (External Check)
 The signature can be validated against the public key retrieved from /api/.well-known/gafaig-public-key using Ed25519.
 
@@ -28,43 +32,60 @@ If any of the above conditions fail, the record must be treated as Verified = fa
 CRITICAL VERIFICATION RULE
 
 Verification MUST be performed using proof.messageString only.
-Verification MUST NOT be performed using parsed JSON fields, reconstructed payloads, proof.message, or UI-rendered data.
+
+Verification MUST NOT be performed using:
+
+parsed JSON fields
+reconstructed payloads
+proof.message
+UI-rendered data
+SDK convenience outputs
 
 GLOBAL TRUST INVARIANTS
 
-These rules define verification across the entire system:
-
 VERIFY API IS THE PROTOCOL CONTRACT
 /api/verify is the canonical external verification interface.
+
 MESSAGESTRING IS THE ONLY VERIFICATION INPUT
 Verification MUST use proof.messageString exactly.
+
 NEVER VERIFY FROM JSON
 Verification must NEVER use parsed JSON fields or reconstructed payloads.
+
 DETERMINISTIC PAYLOAD GUARANTEE
 Field order MUST remain stable across:
-Snowflake → API → messageString → signature
+
+Snowflake
+→ API
+→ messageString
+→ signature
+→ external verifier
+
 SIGNATURE VS LIFECYCLE SEPARATION
 Signature = authenticity
 Lifecycle = current trust state
+
 FAIL-CLOSED SYSTEM
 ANY failure → Verified = false
+
 WIDGETS MUST FAIL CLOSED
 Widgets MUST display invalid, unavailable, expired, or revoked states when verification or lifecycle fails.
+
 WHAT “VERIFIED” IS NOT
 
 Verification is NOT:
 
-A visual badge
-A UI indicator or icon
-A successful API call alone
-A boolean computed in frontend code
-A function of lifecycle alone
-A function of eligibility flags alone
-A marketing claim
-A JSON-based validation
-A static widget display
-A screenshot
-A manually copied record
+a visual badge
+a UI indicator or icon
+a successful API call alone
+a boolean computed in frontend code
+a function of lifecycle alone
+a function of eligibility flags alone
+a marketing claim
+a JSON-based validation
+a static widget display
+a screenshot
+a manually copied record
 
 Verification is a cryptographic property of a Snowflake-originated public record.
 
@@ -96,15 +117,18 @@ BADGE_ELIGIBLE
 
 No other layer may redefine these fields.
 
-CRITICAL ADDITION:
+CRITICAL:
+
 This view is the canonical payload foundation used to generate messageString. Any structural change that impacts signed payload fields must be treated as a cryptographic breaking change.
 
 VERIFY ENDPOINT CONTRACT
 
 Endpoint:
+
 /api/verify/[registryId]
 
 Successful response:
+
 {
 "ok": true,
 "verified": true,
@@ -114,6 +138,7 @@ Successful response:
 }
 
 Failure response:
+
 {
 "ok": false,
 "verified": false,
@@ -129,11 +154,12 @@ API must not suppress records based on lifecycle
 API must return messageString when proof is available
 API must fail safely when a record or proof cannot be produced
 
-CRITICAL ADDITION:
+CRITICAL:
 
 Verification MUST use messageString only
 verify endpoint is the protocol contract
 Failure MUST result in verified = false
+
 VERIFICATION VS LIFECYCLE
 
 Verification is independent of lifecycle.
@@ -163,6 +189,24 @@ expired + valid signature = authentic expired record
 revoked + valid signature = authentic revoked record
 missing signature = not verified
 signature mismatch = not verified
+
+BOUNDED VALIDITY MODEL
+
+GAFAIG uses a time-bounded certification lifecycle.
+
+Canonical validity rule:
+
+DECISION_STATUS = 'APPROVED'
+AND CURRENT_TIMESTAMP() BETWEEN VALID_FROM AND VALID_TO
+
+VALID_FROM and VALID_TO must originate from Snowflake.
+
+Approved decisions must have:
+
+VALID_FROM populated
+VALID_TO populated
+one active non-overlapping decision window per CASE_ID
+
 VERIFICATION VS ELIGIBILITY
 
 Fields:
@@ -170,14 +214,13 @@ Fields:
 verificationEligible
 badgeEligible
 
-These are public controls, not cryptographic determinants.
-
 Rules:
 
 verificationEligible does NOT determine whether the signature is valid
 badgeEligible does NOT determine whether the signature is valid
 A record can be cryptographically authentic even if eligibility flags are false
-Eligibility determines display/availability behavior, not signature authenticity
+Eligibility determines display behavior, not authenticity
+
 VERIFICATION VS CERTIFICATION
 
 Certification:
@@ -222,26 +265,24 @@ badgeEligible
 Rules:
 
 Message must be deterministic
-Message must not include score/tier/band
+Message must not include score, tier, or band
 Message must not include raw evidence
 Message must not include findings
 Message must not include reviewer notes
 Message must not include private workflow data
 Message must not expand without versioning
+
 PROOF OBJECT
 
 The proof object must include:
 
-{
-"alg": "Ed25519",
-"kid": "gafaig-ed25519-2026-01",
-"signature": "<base64>",
-"signedAt": "<ISO8601>",
-"verificationKeyUrl": "https://www.gafaig.com/api/.well-known/gafaig-public-key
-",
-"message": { ... },
-"messageString": "string"
-}
+alg
+kid
+signature
+signedAt
+verificationKeyUrl
+message
+messageString
 
 Verification requires:
 
@@ -255,12 +296,15 @@ messageString is the ONLY valid verification input
 proof.message is informational ONLY
 JSON fields must NEVER be used for verification
 reconstructed payloads must NEVER be used for verification
+
 PUBLIC KEY VERIFICATION
 
 Public key endpoint:
+
 /api/.well-known/gafaig-public-key
 
 Public key page:
+
 /public-key
 
 External verification steps:
@@ -295,15 +339,16 @@ Widgets:
 
 Must display verification based on API
 Must not embed static trust
-MUST fail closed on verification failure
+Must fail closed on verification failure
 Must link to /verify/[registryId]
-Must use “Verify This Record” as the canonical CTA for public trust navigation
+Must use “Verify This Record” CTA
 
 Badges:
 
 Must not represent proof
 Must link to verification endpoint
 Must respect lifecycleStatus and badgeEligible
+
 FAILURE CONDITIONS
 
 Verification must be false if:
@@ -374,16 +419,9 @@ private key material
 
 APPROVAL VS CERTIFICATION
 
-Approval:
-Internal workflow state
-
-Certification:
-Public record state
-
-Verification:
-Cryptographic validation of certification
-
-Public interfaces must use certification terminology.
+Approval: internal workflow state
+Certification: public record state
+Verification: cryptographic validation
 
 Approval alone does not create public trust.
 Certification requires publication to the public registry layer.
@@ -392,53 +430,27 @@ RECORD-LEVEL VERIFICATION
 
 Verification applies to a specific record.
 
-Examples:
-
-Organization-level record
-AI system record
-Portfolio record
-Certification record
-
 Verification does NOT imply:
 
-Entire organization is certified
-All systems are certified
-All future systems are certified
-Internal evidence is public
+entire organization is certified
+all systems are certified
+all future systems are certified
+internal evidence is public
 
 The public record defines the scope of verification.
-
-NIST / FRAMEWORK ALIGNMENT
-
-GAFAIG verifies that governance processes are functioning.
-
-Frameworks such as NIST AI RMF define governance practices including:
-
-Govern
-Map
-Measure
-Manage
-
-GAFAIG verifies execution of governance processes.
-Verification must not be presented as NIST certification.
 
 REGISTRY IMMUTABILITY
 
 Registry tables are append-only.
-
-Append-only registry tables:
 
 CORE.REGISTRY_SNAPSHOTS
 CORE.REGISTRY_AI_SYSTEMS
 
 Do not manually:
 
-insert into registry snapshots
-delete from registry snapshots
-update registry snapshots
-insert into registry AI systems
-delete from registry AI systems
-update registry AI systems
+insert
+delete
+update
 
 Only allowed publish path:
 
@@ -453,63 +465,50 @@ GAFAIG - FINAL_CANONICAL_MULTI_SEED.sql
 Rules:
 
 Do not create additional seed files
-Do not split seed logic across multiple seed files
-Do not create expansion seed files
-Do not directly mutate registry tables from seed logic
-Use seed data only for testing, public-page loading, and pipeline validation
-
-Seed data is not production data.
+Do not split seed logic
+Do not mutate registry tables from seed logic
 
 VERSIONING
 
-Verification contract versioning is controlled by:
+Controlled by:
 
-kid (key ID)
-alg (algorithm)
-
-Future updates must:
-
-Introduce new key ID if breaking
-Maintain backward compatibility where required
-Update verification contract
-Update public key page
-Update developers page
-Update SDK examples
-Update widget behavior if proof semantics change
+kid
+algorithm
 
 Breaking changes include:
 
-changing signed message fields
-changing signed field order
-changing signing algorithm
-changing key format
+changing signed fields
+changing field order
+changing algorithm
 changing messageString construction
-changing public verification contract
+changing public contract
+
 CURRENT ACTIVE VALUES
 
 Algorithm: Ed25519
 Key ID: gafaig-ed25519-2026-01
 
 Verify endpoint:
+
 /api/verify/[registryId]
 
 Public key endpoint:
+
 /api/.well-known/gafaig-public-key
 
-Public key page:
-/public-key
-
 SDK:
+
 public/sdk/gafaig.v1.js
 
 Widget:
+
 public/widget/gafaig-widget.v1.js
 
 TEST RECORD
 
 Example:
 
-gafaig.verify("GAFAIG-00363095").then(console.log)
+gafaig.verify("GAFAIG-00000001").then(console.log)
 
 Expected:
 
@@ -519,19 +518,6 @@ record present
 proof present
 messageString present
 signature present
-verificationKeyUrl present
-
-Production validation endpoints:
-
-https://www.gafaig.com/api/verify/GAFAIG-00363095
-
-https://www.gafaig.com/api/badge/GAFAIG-00363095
-
-https://www.gafaig.com/api/.well-known/gafaig-public-key
-
-https://www.gafaig.com/widget-preview/GAFAIG-00363095
-
-https://www.gafaig.com/public-key
 
 DO NOT BREAK
 
@@ -544,11 +530,10 @@ reconstruct messageString
 verify from JSON
 expose private key
 rely on UI for trust
-remove CORS
 change signed message without contract update
-expose score internals publicly
-create additional seed files
+expose score internally
 mutate registry tables manually
+
 FINAL DEFINITION
 
 Verified = true means:

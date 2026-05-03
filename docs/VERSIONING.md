@@ -1,6 +1,6 @@
 VERSIONING.md
 
-Last Updated: 2026-04-30
+Last Updated: 2026-05-02
 
 PURPOSE
 
@@ -28,12 +28,13 @@ Cryptographic verification must remain backward verifiable
 UI/SDK must never redefine contract behavior
 Versioning must be explicit, traceable, and auditable
 
-CRITICAL ADDITIONS:
+CRITICAL ENFORCEMENT
 
 Versioning must preserve verification protocol integrity
-messageString format must remain deterministic across versions
+messageString must remain deterministic across versions
 Verification must never rely on JSON field reconstruction
 All changes must maintain fail-closed verification behavior
+
 GLOBAL TRUST INVARIANTS (VERSIONING ENFORCEMENT)
 
 These invariants MUST be preserved across ALL versions:
@@ -86,13 +87,14 @@ Non-breaking:
 
 Adding new columns to views
 Adding new record types
-Adding new eligibility fields
+Adding new eligibility or lifecycle fields
 
 Breaking:
 
 Removing columns from public views
 Renaming existing columns
 Changing semantic meaning of fields
+Altering validity logic or lifecycle interpretation
 
 REQUIREMENT
 
@@ -102,13 +104,14 @@ be coordinated with API layer
 be reflected in documentation
 not silently alter public behavior
 
-CRITICAL ADDITION:
+CRITICAL:
 
 Changes affecting fields used in messageString MUST be treated as cryptographic breaking changes.
 
 PUBLIC VIEW CONTRACT VERSIONING
 
 Primary public contract:
+
 CORE.V_REGISTRY_PUBLIC
 
 Rules:
@@ -117,18 +120,27 @@ This is the canonical public data contract
 Fields must not be removed without version transition
 New fields may be added (forward-compatible)
 
-Recent additions include:
+Current public contract includes:
 
-RECORD_TYPE
-RECORD_NAME
+REGISTRY_SNAPSHOT_ID
+REGISTRY_ID
+CASE_ID
+APPLICATION_ID
+ENTITY_NAME
+ENTITY_TYPE
+COUNTRY
+CERTIFICATION_STATUS
+CERTIFIED_AT
+VALID_FROM
+VALID_TO
+PUBLISHED_AT
+RENEWAL_STATUS
+LIFECYCLE_STATUS
 VISIBILITY_STATUS
 VERIFICATION_ELIGIBLE
 BADGE_ELIGIBLE
-LIFECYCLE_STATUS
 
-These are additive and non-breaking.
-
-CRITICAL ADDITION:
+CRITICAL:
 
 This view defines the canonical payload used for messageString generation. Any structural change may require signature versioning.
 
@@ -145,6 +157,7 @@ Primary endpoints:
 /api/registry/search
 /api/badge/[registryId]
 /api/.well-known/gafaig-public-key
+/api/explorer
 
 RULES
 
@@ -161,8 +174,9 @@ required fields are removed or renamed
 verification contract changes
 messageString structure changes
 proof object structure changes
+public contract semantics change
 
-CRITICAL ADDITION:
+CRITICAL:
 
 Any change that affects messageString structure or verification logic requires versioning.
 
@@ -196,15 +210,16 @@ not be expanded casually
 If message structure changes:
 
 introduce new kid
-optionally introduce version field
+optionally introduce explicit version field
 
-CRITICAL ADDITION:
+CRITICAL:
 
-messageString must remain deterministic across versions and must not be reconstructed.
+messageString must remain deterministic across versions and must never be reconstructed.
 
 PUBLIC KEY VERSIONING
 
 Endpoint:
+
 /api/.well-known/gafaig-public-key
 
 Rules:
@@ -309,13 +324,14 @@ display verification state
 display lifecycle state
 fail closed
 
-CRITICAL ADDITION:
+CRITICAL:
 
 Widgets MUST fail closed and display INVALID / UNAVAILABLE / EXPIRED / REVOKED when verification or lifecycle fails.
 
 BADGE VERSIONING
 
 Badge assets:
+
 /public/badges/
 
 Rules:
@@ -332,14 +348,14 @@ They are representations only.
 
 RECORD MODEL VERSIONING
 
-GAFAIG uses record-level certification model.
+GAFAIG uses a record-level certification model.
 
-Key additions include:
+Current capabilities include:
 
-RECORD_TYPE
-RECORD_NAME
+record-level certification
 lifecycle-aware verification
 eligibility controls
+public trust projection without exposing internal workflow
 
 Rules:
 
@@ -357,6 +373,9 @@ ENGINEERING_RULES.md
 VERIFICATION_SIGNATURE_CONTRACT.md
 VERIFIED_DEFINITION.md
 VERSIONING.md
+GAFAIG_ACTIVE_FILE_MAP.md
+GAFAIG_SNOWFLAKE_SQL_FILE_SUMMARY.md
+GAFAIG_VS_CODE_File_Tree.md
 
 Rules:
 
@@ -399,8 +418,9 @@ alters public contract semantics
 breaks SDK integrations
 alters messageString structure
 changes signed field ordering
+changes lifecycle interpretation tied to trust
 
-When breaking:
+WHEN BREAKING
 
 Introduce new version
 Preserve old version
@@ -443,6 +463,7 @@ Seed is for testing and UI population only.
 DEPLOYMENT VERSION CONTROL
 
 Deployment via:
+
 Vercel (gafaig-vercel)
 
 Rules:
@@ -457,7 +478,7 @@ TESTING VERSION CONSISTENCY
 Example:
 
 gafaig.version
-gafaig.verify("GAFAIG-00363095").then(console.log)
+gafaig.verify("GAFAIG-00000001").then(console.log)
 
 Expected:
 
@@ -476,23 +497,28 @@ Algorithm: Ed25519
 Key ID: gafaig-ed25519-2026-01
 
 Verify endpoint:
+
 /api/verify/[registryId]
 
 Public key endpoint:
+
 /api/.well-known/gafaig-public-key
 
 Public key page:
+
 /public-key
 
 SDK:
+
 public/sdk/gafaig.v1.js
 
 Widget:
+
 public/widget/gafaig-widget.v1.js
 
-TEST RECORD
+Primary test record:
 
-GAFAIG-00363095
+GAFAIG-00000001
 
 DO NOT BREAK
 
@@ -510,6 +536,7 @@ remove proof.messageString
 expose score internals publicly
 mutate registry tables
 create additional seed files
+
 FINAL PRINCIPLE
 
 Versioning in GAFAIG is not optional.
@@ -522,3 +549,5 @@ external verifiability
 system integrity
 
 Versioning mistakes = trust failures.
+
+END OF FILE

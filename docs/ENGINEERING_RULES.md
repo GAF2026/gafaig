@@ -1,6 +1,6 @@
 ENGINEERING_RULES.md
 
-Last Updated: 2026-04-30
+Last Updated: 2026-05-02
 
 PURPOSE
 
@@ -22,26 +22,33 @@ Snowflake is the ONLY source of truth.
 
 Everything else is a projection.
 
-GLOBAL TRUST INVARIANTS (PHASE 6.4 — LOCKED)
+GLOBAL TRUST INVARIANTS (PHASE 6.4+ — LOCKED)
 
 These rules override all implementation details.
 
 VERIFY API IS THE PROTOCOL CONTRACT
 /api/verify is the canonical external verification interface.
+
 MESSAGESTRING IS THE ONLY VERIFICATION INPUT
 Signature validation MUST use proof.messageString exactly.
+
 NEVER VERIFY FROM JSON
 Verification must NEVER use parsed JSON fields or reconstructed payloads.
+
 DETERMINISTIC PAYLOAD GUARANTEE
 Field order MUST remain stable across:
 Snowflake → API → messageString → signature
+
 SIGNATURE VS LIFECYCLE SEPARATION
 Signature = authenticity
 Lifecycle = current trust state
+
 FAIL-CLOSED SYSTEM
 ANY failure → NOT TRUSTED
+
 WIDGETS MUST FAIL CLOSED
-Widgets MUST display INVALID / UNVERIFIED when verification fails
+Widgets MUST display INVALID / UNVERIFIED / UNAVAILABLE / EXPIRED / REVOKED when verification or lifecycle fails
+
 CANONICAL ARCHITECTURE (LOCKED)
 
 APPLICATION
@@ -65,6 +72,7 @@ reorder
 bypass
 duplicate
 simulate outside Snowflake
+
 DATA AUTHORITY RULE
 
 All authoritative data originates in Snowflake.
@@ -132,6 +140,15 @@ CRITICAL ADDITION:
 This contract is the foundation for messageString generation.
 Changes to this contract are cryptographic breaking changes.
 
+CRITICAL ADDITION:
+Explorer and all public data surfaces must also derive strictly from:
+
+CORE.V_REGISTRY_PUBLIC
+CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC
+
+No private workflow tables
+No score exposure
+
 VIEW DESIGN RULE
 
 Snowflake views must be:
@@ -149,6 +166,9 @@ introduce side effects
 CRITICAL:
 Views must maintain deterministic field ordering.
 
+CRITICAL ADDITION:
+Views must NOT reference SCORE or any scoring view in public projections.
+
 SNAPSHOT IMMUTABILITY RULE
 
 CORE.REGISTRY_SNAPSHOTS are immutable.
@@ -161,7 +181,7 @@ cannot be rewritten
 
 New state → new snapshot.
 
-🔴 REGISTRY IMMUTABILITY RULE (ADDED — CRITICAL)
+🔴 REGISTRY IMMUTABILITY RULE (CRITICAL)
 
 The following tables are APPEND-ONLY:
 
@@ -225,6 +245,7 @@ Certification is NOT:
 a UI label
 a badge
 a computed flag in API
+
 VERIFICATION RULE
 
 Verification is:
@@ -238,6 +259,7 @@ Verification is NOT:
 a UI state
 a boolean guess
 based on lifecycle
+
 SIGNATURE RULE
 
 Verification payload must:
@@ -294,6 +316,7 @@ compute trust
 compute lifecycle
 compute certification
 generate IDs
+
 VERIFY API RULES
 
 Endpoint:
@@ -318,6 +341,7 @@ CRITICAL:
 verify API is the protocol contract
 verification MUST use messageString only
 failure MUST result in NOT TRUSTED state
+
 BADGE RULES
 
 Badges are visual only.
@@ -348,6 +372,7 @@ override API results
 store authoritative state
 verify from JSON fields
 reconstruct messageString
+
 UI RULES
 
 UI is presentation only.
@@ -364,6 +389,7 @@ compute certification
 compute lifecycle
 infer trust
 mutate data
+
 WIDGET RULE
 
 Widgets are rendering layers.
@@ -408,7 +434,7 @@ BADGE_ELIGIBLE
 
 Defined ONLY in Snowflake.
 
-RECORD MODEL RULE (PHASE 6)
+RECORD MODEL RULE (PHASE 8)
 
 Certification attaches to records.
 
@@ -424,6 +450,7 @@ Rules:
 certification is scoped
 no over-claiming trust
 record defines what is verified
+
 NO UI HACKS RULE
 
 Do NOT:
@@ -458,6 +485,7 @@ Rules:
 preserve structure
 preserve content
 standardize shell only
+
 VERSIONING RULE
 
 All breaking changes must be versioned.
@@ -485,11 +513,12 @@ Rules:
 push only tested code
 do not deploy broken builds
 test locally first
+
 TESTING RULE
 
 Always validate:
 
-gafaig.verify("GAFAIG-00363095").then(console.log)
+gafaig.verify("GAFAIG-00000001").then(console.log)
 
 CRITICAL:
 Verification must use messageString only.
@@ -499,6 +528,7 @@ SEED DATA RULE (CRITICAL)
 GAFAIG must use exactly ONE canonical seed file.
 
 Active file:
+
 GAFAIG - FINAL_CANONICAL_MULTI_SEED.sql
 
 Rules:
