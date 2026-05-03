@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 
-const REGISTRY_ID = "GAFAIG-00363095";
+const REGISTRY_ID = "GAFAIG-00000001";
 const BASE_URL = "https://www.gafaig.com";
 
 function loadScript(src: string) {
@@ -89,7 +89,7 @@ export default function LiveEmbedPreview() {
 
       <p className="mt-5 max-w-[980px] text-[15px] leading-7 text-black/75">
         This preview loads the production versioned SDK, badge, widget, and
-        verification modal using GAFAIG-00363095.
+        verification modal using GAFAIG-00000001.
       </p>
 
       <div className="mt-6 rounded-2xl border border-black/10 bg-black/[0.02] p-4 text-[13px] font-semibold text-black/60">

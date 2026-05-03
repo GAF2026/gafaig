@@ -61,7 +61,7 @@ function CodeBlock({ code }: { code: string }) {
 
 const publicKeyCurl = `curl https://www.gafaig.com/api/.well-known/gafaig-public-key`;
 
-const verifyCurl = `curl https://www.gafaig.com/api/verify/GAFAIG-00363095`;
+const verifyCurl = `curl https://www.gafaig.com/api/verify/GAFAIG-00000001`;
 
 const verificationRule = `Verification MUST use:
 

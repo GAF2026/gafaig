@@ -3,7 +3,7 @@ import PublicButtonLink from "../_components/PublicButtonLink";
 
 export const dynamic = "force-dynamic";
 
-const DEMO_REGISTRY_ID = "GAFAIG-00363095";
+const DEMO_REGISTRY_ID = "GAFAIG-00000001";
 
 export default function DemoPage() {
   return (

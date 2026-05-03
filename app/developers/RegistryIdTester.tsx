@@ -97,7 +97,7 @@ function DetailCard({
 }
 
 export default function RegistryIdTester() {
-  const [registryId, setRegistryId] = useState("GAFAIG-00363095");
+  const [registryId, setRegistryId] = useState("GAFAIG-00000001");
   const [verifyUrl, setVerifyUrl] = useState("");
   const [status, setStatus] = useState<TestStatus>(null);
   const [httpStatus, setHttpStatus] = useState<number | null>(null);
@@ -128,7 +128,7 @@ export default function RegistryIdTester() {
 
   const curlVerify = links
     ? `curl ${links.apiVerify}`
-    : "curl https://www.gafaig.com/api/verify/GAFAIG-00363095";
+    : "curl https://www.gafaig.com/api/verify/GAFAIG-00000001";
 
   const jsFetch = links
     ? `const response = await fetch("${links.apiVerify}", {

@@ -4,6 +4,8 @@ import PublicButtonLink from "./_components/PublicButtonLink";
 
 export const dynamic = "force-dynamic";
 
+const FEATURED_REGISTRY_ID = "GAFAIG-00000001";
+
 type PublicMetricsResponse =
   | {
       ok: true;
@@ -225,11 +227,11 @@ export default async function HomePage() {
 
         <section className="rounded-3xl border border-black/10 bg-white p-8">
           <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
-            EARLY GAFAIG VERIFIED RECORDS
+            FEATURED GAFAIG VERIFIED RECORD
           </div>
 
           <h2 className="mt-4 text-[26px] font-semibold tracking-tight text-black max-w-[860px]">
-            Public records that can be inspected, verified, and validated
+            A public record that can be inspected, verified, and validated
           </h2>
 
           <p className="mt-5 max-w-[980px] text-[15px] leading-7 text-black/75">
@@ -238,16 +240,11 @@ export default async function HomePage() {
             trust layer. The verify endpoint is the proof layer.
           </p>
 
-          <div className="mt-7 grid gap-4 md:grid-cols-2">
+          <div className="mt-7 max-w-xl">
             <VerifiedRecordCard
-              registryId="GAFAIG-00000001"
+              registryId={FEATURED_REGISTRY_ID}
               status="Certified"
-              href="/registry/GAFAIG-00000001"
-            />
-            <VerifiedRecordCard
-              registryId="GAFAIG-00363095"
-              status="Certified"
-              href="/registry/GAFAIG-00363095"
+              href={`/registry/${FEATURED_REGISTRY_ID}`}
             />
           </div>
 
@@ -256,8 +253,8 @@ export default async function HomePage() {
               Explore Registry
             </PublicButtonLink>
 
-            <PublicButtonLink href="/verify" variant="secondary">
-              Verify a Record
+            <PublicButtonLink href={`/verify/${FEATURED_REGISTRY_ID}`} variant="secondary">
+              Verify Featured Record
             </PublicButtonLink>
           </div>
         </section>
@@ -283,8 +280,8 @@ export default async function HomePage() {
               Start Demo
             </PublicButtonLink>
 
-            <PublicButtonLink href="/verify" variant="secondary">
-              Verify a Record
+            <PublicButtonLink href={`/verify/${FEATURED_REGISTRY_ID}`} variant="secondary">
+              Verify Featured Record
             </PublicButtonLink>
 
             <PublicButtonLink href="/registry" variant="secondary">
@@ -337,7 +334,7 @@ export default async function HomePage() {
               Walk Through the Demo
             </PublicButtonLink>
             <PublicButtonLink
-              href="/widget-preview/GAFAIG-00000001"
+              href={`/widget-preview/${FEATURED_REGISTRY_ID}`}
               variant="secondary"
             >
               View Widget Preview
@@ -376,8 +373,8 @@ export default async function HomePage() {
           </div>
 
           <div className="mt-6 flex flex-wrap gap-3">
-            <PublicButtonLink href="/verify" variant="primary">
-              Verify a Record
+            <PublicButtonLink href={`/verify/${FEATURED_REGISTRY_ID}`} variant="primary">
+              Verify Featured Record
             </PublicButtonLink>
 
             <PublicButtonLink href="/public-key" variant="secondary">
