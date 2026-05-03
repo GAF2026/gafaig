@@ -145,7 +145,7 @@ function getProofStateLabel(
   if (endpointVerified && signatureVerified) {
     return {
       title: "Proof valid",
-      body: "The public trust record resolved successfully and the disclosed signature validates against the published key.",
+      body: "The public trust record resolved successfully and the exact messageString validates against the published GAFAIG public key.",
       tone: "success" as const,
     };
   }
@@ -160,8 +160,8 @@ function getProofStateLabel(
 
   if (endpointVerified && !signatureVerified) {
     return {
-      title: "Endpoint verified, signature invalid",
-      body: "The public trust record resolved, but the signature did not validate against the published key.",
+      title: "Endpoint verified, payload integrity invalid",
+      body: "The public trust record resolved, but the signature did not validate against the exact messageString and published key.",
       tone: "danger" as const,
     };
   }
@@ -194,13 +194,7 @@ function VerificationBadge({
   );
 }
 
-function ProofCard({
-  title,
-  body,
-}: {
-  title: string;
-  body: string;
-}) {
+function ProofCard({ title, body }: { title: string; body: string }) {
   return (
     <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
       <div className="text-[18px] font-semibold tracking-tight text-black">
@@ -233,13 +227,7 @@ function ProofMetricCard({
   );
 }
 
-function DetailCard({
-  label,
-  value,
-}: {
-  label: string;
-  value: string;
-}) {
+function DetailCard({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
       <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-black/45">
@@ -265,22 +253,22 @@ function ProofStateBanner({
     tone === "success"
       ? "border-emerald-200 bg-emerald-50"
       : tone === "warning"
-      ? "border-amber-200 bg-amber-50"
-      : "border-red-200 bg-red-50";
+        ? "border-amber-200 bg-amber-50"
+        : "border-red-200 bg-red-50";
 
   const titleClasses =
     tone === "success"
       ? "text-emerald-800"
       : tone === "warning"
-      ? "text-amber-800"
-      : "text-red-800";
+        ? "text-amber-800"
+        : "text-red-800";
 
   const bodyClasses =
     tone === "success"
       ? "text-emerald-700"
       : tone === "warning"
-      ? "text-amber-700"
-      : "text-red-700";
+        ? "text-amber-700"
+        : "text-red-700";
 
   return (
     <div className={cn("rounded-2xl border p-5", toneClasses)}>
@@ -324,11 +312,23 @@ export default function VerifyPage() {
   const [state, setState] = useState<ClientVerificationState>({
     status: "idle",
   });
+  const [copiedMessageString, setCopiedMessageString] = useState(false);
 
   const verifyEndpointUrl = useMemo(() => {
     const id = registryId.trim();
     return id ? `/api/verify/${encodeURIComponent(id)}` : "";
   }, [registryId]);
+
+  async function copyMessageString(value: string) {
+    if (!value) return;
+
+    await navigator.clipboard.writeText(value);
+    setCopiedMessageString(true);
+
+    window.setTimeout(() => {
+      setCopiedMessageString(false);
+    }, 1800);
+  }
 
   async function runVerification(inputId?: string) {
     const targetId = String(inputId ?? registryId).trim();
@@ -336,12 +336,13 @@ export default function VerifyPage() {
     if (!targetId) {
       setState({
         status: "error",
-        message: "Enter a GAFAIG registry ID.",
+        message: `Enter a valid GAFAIG registry ID (e.g. ${EXAMPLE_ID}).`,
       });
       return;
     }
 
     setRegistryId(targetId);
+    setCopiedMessageString(false);
     setState({ status: "loading" });
 
     try {
@@ -413,8 +414,8 @@ export default function VerifyPage() {
     state.status === "success"
       ? state.payload
       : state.status === "error"
-      ? state.payload
-      : null;
+        ? state.payload
+        : null;
 
   const proof = result?.proof;
   const record = result?.record;
@@ -431,7 +432,7 @@ export default function VerifyPage() {
           eyebrow="Public verification"
           title="Verify AI governance through signed proof"
           description="Confirm whether a GAFAIG public trust record is valid by registry ID. Verification checks the live record, signed proof, signature, and public trust state."
-          secondaryDescription="This page verifies the public certification record only. It confirms that a certified public trust record has been published, that the disclosed proof is signed correctly, and that the result can be independently validated without exposing private evidence or internal review materials."
+          secondaryDescription="Verification is deterministic and reproducible. Anyone can validate the same result independently using the exact messageString, signature, and GAFAIG public key."
           actions={
             <>
               <PublicButtonLink
@@ -449,10 +450,6 @@ export default function VerifyPage() {
             </>
           }
         />
-
-        <p className="mt-2 text-[15px] text-black/70">
-          This is the independent proof layer behind GAFAIG certification.
-        </p>
 
         <section className="rounded-3xl border border-black/10 bg-white p-8">
           <div className="max-w-3xl text-[15px] leading-7 text-black/75">
@@ -620,11 +617,11 @@ export default function VerifyPage() {
                 Step 2
               </div>
               <div className="mt-3 text-[20px] font-semibold text-white">
-                Construct signed proof
+                Return signed proof
               </div>
               <p className="mt-3 text-[14px] leading-7 text-white/68">
-                GAFAIG creates a deterministic public signed proof payload from
-                the disclosed trust record.
+                GAFAIG returns a deterministic signed proof payload generated
+                during certification.
               </p>
             </div>
 
@@ -636,8 +633,8 @@ export default function VerifyPage() {
                 Verify signature externally
               </div>
               <p className="mt-3 text-[14px] leading-7 text-white/68">
-                External parties can fetch the public key, validate the
-                signature, and independently confirm the record.
+                External parties use the exact messageString, signature, and
+                public key to independently confirm the record.
               </p>
             </div>
           </div>
@@ -673,12 +670,13 @@ export default function VerifyPage() {
                         : "Endpoint not verified"
                     }
                   />
+
                   <VerificationBadge
                     verified={Boolean(state.signatureVerified)}
                     label={
                       state.signatureVerified
-                        ? "Signature valid"
-                        : "Signature invalid"
+                        ? "Payload Integrity: Verified"
+                        : "Payload Integrity: Invalid"
                     }
                   />
                 </div>
@@ -774,13 +772,14 @@ export default function VerifyPage() {
               <p className="mt-4 max-w-3xl text-[15px] leading-7 text-black/75">
                 These are the exact public materials used to validate the trust
                 result. External parties can inspect them directly, validate the
-                message string, and confirm that the signature matches the
+                messageString, and confirm that the signature matches the
                 published key.
               </p>
 
-              <p className="mt-4 text-[14px] leading-7 text-black/70">
-                Verification must use the exact signed messageString returned by the API.
-                Reconstructing payloads from JSON fields invalidates the proof.
+              <p className="mt-4 text-[14px] font-semibold leading-7 text-black">
+                Verification MUST use the exact messageString returned by the
+                API. Do NOT reconstruct payloads from JSON fields. Any
+                reconstruction invalidates the signature.
               </p>
 
               <div className="mt-8 grid gap-4 md:grid-cols-2">
@@ -806,9 +805,20 @@ export default function VerifyPage() {
               </div>
 
               <div className="mt-4 rounded-2xl border border-black/10 bg-black/[0.02] p-5">
-                <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-black/45">
-                  Full signed message string
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-black/45">
+                    Full signed messageString
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => copyMessageString(proof.messageString ?? "")}
+                    className="rounded-full border border-black/15 bg-white px-3 py-1 text-xs font-semibold text-black transition hover:bg-black/[0.04]"
+                  >
+                    {copiedMessageString ? "Copied" : "Copy messageString"}
+                  </button>
                 </div>
+
                 <pre className="mt-3 overflow-x-auto rounded-2xl border border-black/10 bg-white p-4 text-[12px] leading-6 text-black/75">
                   {proof.messageString ?? "—"}
                 </pre>
@@ -841,7 +851,7 @@ export default function VerifyPage() {
                   <ul className="mt-4 space-y-3 text-[14px] leading-7 text-black/70">
                     <li>• Live GAFAIG verification endpoint response</li>
                     <li>• Public key fetched from published key URL</li>
-                    <li>• Exact deterministic message string</li>
+                    <li>• Exact deterministic messageString</li>
                     <li>• Ed25519 signature verification in browser</li>
                   </ul>
                 </div>
@@ -860,19 +870,16 @@ export default function VerifyPage() {
                     <li>
                       • Result:{" "}
                       {state.signatureVerified
-                        ? "Signature valid"
-                        : "Signature invalid"}
+                        ? "Payload Integrity: Verified"
+                        : "Payload Integrity: Invalid"}
                     </li>
                   </ul>
                 </div>
               </div>
 
               <div className="mt-8 flex flex-wrap gap-3">
-                <PublicButtonLink
-                  href={verifyEndpointUrl}
-                  variant="secondary"
-                >
-                  Open verify endpoint
+                <PublicButtonLink href={verifyEndpointUrl} variant="secondary">
+                  Open raw verification JSON
                 </PublicButtonLink>
 
                 {proof.verificationKeyUrl ? (
