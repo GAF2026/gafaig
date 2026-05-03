@@ -2,7 +2,7 @@ import { sfQuery } from "@/lib/snowflake";
 
 export type RegistryRecord = {
   registrySnapshotId: string | null;
-  registryId: string;
+  registryId: string | null;
   applicationId: string | null;
   caseId: string | null;
   entityName: string | null;
@@ -33,8 +33,6 @@ type SearchRegistryParams = {
   q?: string;
   country?: string;
   registryId?: string;
-  caseId?: string;
-  applicationId?: string;
   limit?: number;
 };
 
@@ -63,6 +61,31 @@ const SELECT_FIELDS = `
 `;
 
 /**
+ * 🔁 ADDED: Row mapper (per instruction)
+ */
+function toRegistryRow(row: any): RegistryRecord {
+  return {
+    registrySnapshotId: row.REGISTRY_SNAPSHOT_ID ?? null,
+    registryId: row.REGISTRY_ID ?? null,
+    applicationId: row.APPLICATION_ID ?? null,
+    caseId: row.CASE_ID ?? null,
+    entityName: row.ENTITY_NAME ?? null,
+    entityType: row.ENTITY_TYPE ?? null,
+    country: row.COUNTRY ?? null,
+    certificationStatus: row.CERTIFICATION_STATUS ?? null,
+    validFrom: row.VALID_FROM ?? null,
+    validTo: row.VALID_TO ?? null,
+    certifiedAt: row.CERTIFIED_AT ?? null,
+    lifecycleStatus: row.LIFECYCLE_STATUS ?? null,
+    visibilityStatus: row.VISIBILITY_STATUS ?? null,
+    verificationEligible: row.VERIFICATION_ELIGIBLE ?? null,
+    badgeEligible: row.BADGE_ELIGIBLE ?? null,
+    renewalStatus: row.RENEWAL_STATUS ?? null,
+    publishedAt: row.PUBLISHED_AT ?? null,
+  };
+}
+
+/**
  * 🔥 CRITICAL: LIMIT FIRST (performance fix)
  */
 function baseLimitedSubquery(limit: number) {
@@ -77,11 +100,13 @@ function baseLimitedSubquery(limit: number) {
 export async function getRegistryRecords(limit = 50): Promise<RegistryRecord[]> {
   const safeLimit = toLimit(limit);
 
-  return sfQuery<RegistryRecord>(`
+  const rows = await sfQuery<any>(`
     SELECT ${SELECT_FIELDS}
     FROM (${baseLimitedSubquery(safeLimit)}) t
     ORDER BY PUBLISHED_AT DESC, REGISTRY_ID ASC
   `);
+
+  return rows.map(toRegistryRow);
 }
 
 export async function searchRegistryRecords(
@@ -93,16 +118,6 @@ export async function searchRegistryRecords(
 
   if (params.registryId?.trim()) {
     where.push(`UPPER(REGISTRY_ID) = UPPER('${esc(params.registryId.trim())}')`);
-  }
-
-  if (params.caseId?.trim()) {
-    where.push(`UPPER(CASE_ID) = UPPER('${esc(params.caseId.trim())}')`);
-  }
-
-  if (params.applicationId?.trim()) {
-    where.push(
-      `UPPER(APPLICATION_ID) = UPPER('${esc(params.applicationId.trim())}')`
-    );
   }
 
   if (params.country?.trim()) {
@@ -121,13 +136,15 @@ export async function searchRegistryRecords(
 
   const whereSql = where.length ? `WHERE ${where.join("\n AND ")}` : "";
 
-  return sfQuery<RegistryRecord>(`
+  const rows = await sfQuery<any>(`
     SELECT ${SELECT_FIELDS}
     FROM (${baseLimitedSubquery(500)}) t
     ${whereSql}
     ORDER BY PUBLISHED_AT DESC
     LIMIT ${safeLimit}
   `);
+
+  return rows.map(toRegistryRow);
 }
 
 export async function getRegistryRecordById(
@@ -136,14 +153,14 @@ export async function getRegistryRecordById(
   const value = registryId.trim();
   if (!value) return null;
 
-  const rows = await sfQuery<RegistryRecord>(`
+  const rows = await sfQuery<any>(`
     SELECT ${SELECT_FIELDS}
     FROM CORE.V_REGISTRY_PUBLIC
     WHERE REGISTRY_ID = '${esc(value)}'
     LIMIT 1
   `);
 
-  return rows[0] ?? null;
+  return rows[0] ? toRegistryRow(rows[0]) : null;
 }
 
 /**
@@ -161,10 +178,10 @@ export async function getRegistryFilterOptions(): Promise<RegistryFilterOptions>
     SELECT
       COUNTRY              AS "country",
       ENTITY_NAME          AS "organization",
-      ENTITY_TYPE          AS "entityType",
+      NULL                 AS "entityType",
       CERTIFICATION_STATUS AS "certificationStatus",
-      LIFECYCLE_STATUS     AS "lifecycleStatus",
-      VISIBILITY_STATUS    AS "visibilityStatus"
+      NULL                 AS "lifecycleStatus",
+      NULL                 AS "visibilityStatus"
     FROM (${baseLimitedSubquery(500)})
   `);
 

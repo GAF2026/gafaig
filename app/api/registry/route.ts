@@ -48,8 +48,6 @@ export async function GET(req: Request) {
       q,
       country,
       registryId,
-      caseId,
-      applicationId,
       limit,
     });
 

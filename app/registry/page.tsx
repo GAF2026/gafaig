@@ -286,8 +286,6 @@ export default async function RegistryPage({
             q,
             country,
             registryId: "",
-            caseId: "",
-            applicationId: "",
             limit: 100,
           })
         : getRegistryRecords(100),

@@ -127,7 +127,11 @@ export async function GET(
 
     if (wantsSvg) {
       return new NextResponse(
-        renderSvgBadge(badgeLabel, record.entityName ?? record.registryId, badgeStatus),
+        renderSvgBadge(
+          badgeLabel,
+          record.entityName ?? record.registryId ?? "GAFAIG Record",
+          badgeStatus
+        ),
         {
           status: 200,
           headers: {
@@ -139,12 +143,12 @@ export async function GET(
     }
 
     const imageUrl = `${baseUrl}/api/badge/${encodeURIComponent(
-      record.registryId
+      record.registryId ?? ""
     )}?format=svg`;
 
     const response: BadgeApiResponse = {
       ok: true,
-      registryId: record.registryId,
+      registryId: record.registryId ?? registryId,
       registrySnapshotId: record.registrySnapshotId,
       applicationId: record.applicationId,
       caseId: record.caseId,
@@ -166,9 +170,9 @@ export async function GET(
         label: badgeLabel,
         imageUrl,
       },
-      verifyUrl: `${baseUrl}/verify/${encodeURIComponent(record.registryId)}`,
-      registryUrl: `${baseUrl}/registry/${encodeURIComponent(record.registryId)}`,
-      widgetUrl: `${baseUrl}/widget-preview/${encodeURIComponent(record.registryId)}`,
+      verifyUrl: `${baseUrl}/verify/${encodeURIComponent(record.registryId ?? "")}`,
+      registryUrl: `${baseUrl}/registry/${encodeURIComponent(record.registryId ?? "")}`,
+      widgetUrl: `${baseUrl}/widget-preview/${encodeURIComponent(record.registryId ?? "")}`,
     };
 
     return NextResponse.json(response, {
