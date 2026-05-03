@@ -1,5 +1,8 @@
+"use client";
+
 import Link from "next/link";
-import type { ComponentProps, ReactNode } from "react";
+import { useRouter } from "next/navigation";
+import type { ComponentProps, MouseEvent, ReactNode } from "react";
 
 type PublicButtonLinkProps = {
   href: string;
@@ -48,13 +51,25 @@ export default function PublicButtonLink({
   variant = "secondary",
   size = "md",
   className,
+  onMouseEnter,
   ...rest
 }: PublicButtonLinkProps) {
+  const router = useRouter();
   const isLinkVariant = variant === "link";
+
+  function handleMouseEnter(event: MouseEvent<HTMLAnchorElement>) {
+    if (href.startsWith("/")) {
+      router.prefetch(href);
+    }
+
+    onMouseEnter?.(event);
+  }
 
   return (
     <Link
       href={href}
+      prefetch={true}
+      onMouseEnter={handleMouseEnter}
       className={cn(
         "inline-flex items-center justify-center rounded-full font-semibold transition whitespace-nowrap",
         !isLinkVariant && sizeClasses[size],
