@@ -1,10 +1,10 @@
 import { headers } from "next/headers";
 import PublicPageHero from "./_components/PublicPageHero";
 import PublicButtonLink from "./_components/PublicButtonLink";
+import { getLatestCertifiedRecord } from "@/lib/queries/explorer";
 
 export const dynamic = "force-dynamic";
 
-const FEATURED_REGISTRY_ID = "GAFAIG-00000001";
 
 type PublicMetricsResponse =
   | {
@@ -83,6 +83,8 @@ function fmt(value?: number) {
 export default async function HomePage() {
   const metricsResp = await getPublicMetrics();
   const metrics = metricsResp && metricsResp.ok ? metricsResp.metrics : null;
+  const latest = await getLatestCertifiedRecord();
+  const featuredRegistryId = latest?.registryId ?? "";
 
   return (
     <main className="mx-auto max-w-[1180px] px-6 py-10">
@@ -241,12 +243,23 @@ export default async function HomePage() {
           </p>
 
           <div className="mt-7 max-w-xl">
-            <VerifiedRecordCard
-              registryId={FEATURED_REGISTRY_ID}
-              status="Certified"
-              integrity="Payload Integrity: Verified"
-              href={`/registry/${FEATURED_REGISTRY_ID}`}
-            />
+            {featuredRegistryId ? (
+              <VerifiedRecordCard
+                registryId={featuredRegistryId}
+                status="Certified"
+                integrity="Payload Integrity: Verified"
+                href={`/registry/${featuredRegistryId}`}
+              />
+            ) : (
+              <div className="rounded-2xl border border-dashed border-black/10 bg-black/[0.02] p-5">
+                <div className="text-[18px] font-semibold tracking-tight text-black">
+                  No certified record available
+                </div>
+                <p className="mt-3 text-[14px] leading-7 text-black/70">
+                  GAFAIG will display the latest certified public record here once one is available.
+                </p>
+              </div>
+            )}
           </div>
 
           <div className="mt-6 flex flex-wrap gap-3">
@@ -255,7 +268,11 @@ export default async function HomePage() {
             </PublicButtonLink>
 
             <PublicButtonLink
-              href={`/verify/${FEATURED_REGISTRY_ID}`}
+              href={
+                featuredRegistryId
+                  ? `/verify/${featuredRegistryId}`
+                  : "/verify"
+              }
               variant="secondary"
             >
               Verify Featured Record
@@ -285,7 +302,11 @@ export default async function HomePage() {
             </PublicButtonLink>
 
             <PublicButtonLink
-              href={`/verify/${FEATURED_REGISTRY_ID}`}
+              href={
+                featuredRegistryId
+                  ? `/verify/${featuredRegistryId}`
+                  : "/verify"
+              }
               variant="secondary"
             >
               Verify Featured Record
@@ -341,7 +362,11 @@ export default async function HomePage() {
               Walk Through the Demo
             </PublicButtonLink>
             <PublicButtonLink
-              href={`/widget-preview/${FEATURED_REGISTRY_ID}`}
+              href={
+                featuredRegistryId
+                  ? `/widget-preview/${featuredRegistryId}`
+                  : "/widget-preview"
+              }
               variant="secondary"
             >
               View Widget Preview
@@ -382,7 +407,11 @@ export default async function HomePage() {
 
           <div className="mt-6 flex flex-wrap gap-3">
             <PublicButtonLink
-              href={`/verify/${FEATURED_REGISTRY_ID}`}
+              href={
+                featuredRegistryId
+                  ? `/verify/${featuredRegistryId}`
+                  : "/verify"
+              }
               variant="primary"
             >
               Verify Featured Record
