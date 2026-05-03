@@ -238,17 +238,25 @@ function RegistryCard({ row }: { row: RegistryPageRow }) {
         </div>
 
         <div className="flex flex-wrap gap-3 pt-1">
-          <PublicButtonLink href={`/registry/${row.registryId}`} variant="primary">
-            Open record
-          </PublicButtonLink>
-          <PublicButtonLink href={`/verify/${row.registryId}`} variant="secondary">
-            Verify record
-          </PublicButtonLink>
           <PublicButtonLink
-            href={`/api/verify/${row.registryId}`}
+            href={`/verify/${encodeURIComponent(row.registryId)}`}
+            variant="primary"
+          >
+            Verify This Record
+          </PublicButtonLink>
+
+          <PublicButtonLink
+            href={`/registry/${row.registryId}`}
             variant="secondary"
           >
-            View JSON proof
+            View Registry Record
+          </PublicButtonLink>
+
+          <PublicButtonLink
+            href={`/api/verify/${encodeURIComponent(row.registryId)}`}
+            variant="secondary"
+          >
+            View JSON Proof
           </PublicButtonLink>
         </div>
       </div>

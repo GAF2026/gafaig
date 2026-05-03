@@ -131,6 +131,16 @@ export default async function RegistryRecordPage({
           eyebrow="Registry"
           title={formatLabel(record.entityName)}
           description={`${formatLabel(record.entityType)} · ${formatLabel(record.country)}`}
+          actions={
+            <>
+              <PublicButtonLink
+                href={`/verify/${encodeURIComponent(registryId)}`}
+                variant="primary"
+              >
+                Verify This Record
+              </PublicButtonLink>
+            </>
+          }
         />
 
         <section className="rounded-3xl border border-black/10 bg-white p-8">
@@ -144,8 +154,8 @@ export default async function RegistryRecordPage({
             </div>
 
             <div className="flex flex-wrap gap-3">
-              <PublicButtonLink href={verifyHref} variant="primary">
-                Verify Record
+              <PublicButtonLink href={verifyHref} variant="secondary">
+                Open Full Proof Page
               </PublicButtonLink>
               <PublicButtonLink href={verifyJsonHref} variant="secondary">
                 JSON Proof
