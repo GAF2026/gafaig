@@ -280,9 +280,9 @@ export default async function RegistryPage({
             registryId: "",
             caseId: "",
             applicationId: "",
-            limit: 500,
+            limit: 100,
           })
-        : getRegistryRecords(500),
+        : getRegistryRecords(100),
       getRegistryFilterOptions(),
     ]);
   } catch (error) {
@@ -301,13 +301,15 @@ export default async function RegistryPage({
     organizations?: string[];
   };
 
-  const rows = baseRows.filter((row) => {
+  const filteredRows = baseRows.filter((row) => {
     const matchesOrganization =
       !organization ||
       clean(row.entityName).toLowerCase() === organization.toLowerCase();
 
     return matchesOrganization;
   });
+
+  const rows = filteredRows.slice(0, 100);
 
   const options: FilterOptions = {
     countries: Array.isArray(rawOptions?.countries) ? rawOptions.countries : [],
