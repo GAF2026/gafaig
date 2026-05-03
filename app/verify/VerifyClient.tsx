@@ -436,8 +436,8 @@ export default function VerifyClient({
     <main className="mx-auto max-w-[1180px] px-6 py-10">
       <div className="space-y-8">
         <PublicPageHero
-          eyebrow="Public verification"
-          title="Verify AI governance through signed proof"
+          eyebrow="Verification Tool"
+          title="Verify a GAFAIG record by registry ID"
           description="Confirm whether a GAFAIG public trust record is valid by registry ID. Enter a registry ID or load the latest certified record to inspect the live record, signed proof, signature, and public trust state."
           secondaryDescription="Verification is deterministic and reproducible. Anyone can validate the same result independently using the exact messageString, signature, and GAFAIG public key."
           actions={
@@ -833,14 +833,23 @@ export default function VerifyClient({
                     <li>
                       • Result:{" "}
                       {state.signatureVerified
-                        ? "Payload Integrity: Verified"
-                        : "Payload Integrity: Invalid"}
+                        ? "Signature Valid"
+                        : "Signature Invalid"}
                     </li>
                   </ul>
                 </div>
               </div>
 
               <div className="mt-8 flex flex-wrap gap-3">
+                {record.registryId ? (
+                  <PublicButtonLink
+                    href={`/verify/${encodeURIComponent(record.registryId)}`}
+                    variant="primary"
+                  >
+                    Open full proof page
+                  </PublicButtonLink>
+                ) : null}
+
                 <PublicButtonLink href={verifyEndpointUrl} variant="secondary">
                   Open raw verification JSON
                 </PublicButtonLink>

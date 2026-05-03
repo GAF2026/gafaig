@@ -481,7 +481,11 @@ export default async function VerifyPage({
     <main className="mx-auto max-w-[1180px] px-6 py-10">
       <div className="space-y-8">
         <section className="rounded-3xl border border-black/10 bg-white p-8">
-          <div className="flex flex-wrap gap-2">
+          <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
+            PUBLIC PROOF RECORD
+          </div>
+
+          <div className="mt-4 flex flex-wrap gap-2">
             <span
               className={`inline-flex rounded-full px-3 py-1 text-[11px] font-semibold ring-1 ${pillTone(
                 verificationStatusLabel
@@ -520,7 +524,7 @@ export default async function VerifyPage({
           </div>
 
           <h1 className="mt-4 text-[42px] font-semibold tracking-tight text-black">
-            {entityName}
+            Public proof record for {entityName}
           </h1>
 
           <div className="mt-4 max-w-4xl text-[15px] leading-7 text-black/75">
@@ -614,13 +618,13 @@ export default async function VerifyPage({
 
               {validation.status === "valid" ? (
                 <span className="inline-flex rounded-full bg-emerald-50 px-3 py-1 text-[11px] font-semibold text-emerald-700 ring-1 ring-emerald-200">
-                  Payload Integrity: Verified
+                  Signature Valid
                 </span>
               ) : null}
 
               {validation.status === "invalid" ? (
                 <span className="inline-flex rounded-full bg-red-50 px-3 py-1 text-[11px] font-semibold text-red-700 ring-1 ring-red-200">
-                  Payload Integrity: Invalid
+                  Signature Invalid
                 </span>
               ) : null}
 
