@@ -151,8 +151,8 @@ function RegistryUnavailableState() {
 
 function RegistryCard({ row }: { row: RegistryPageRow }) {
   return (
-    <article className="rounded-3xl border border-black/10 bg-white p-6">
-      <div className="flex flex-col gap-5">
+    <article className="rounded-3xl border border-black/10 bg-white p-6 shadow-sm">
+      <div className="space-y-5">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="space-y-3">
             <div className="inline-flex rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-sm font-semibold text-emerald-700">
@@ -164,7 +164,9 @@ function RegistryCard({ row }: { row: RegistryPageRow }) {
                 {formatLabel(row.entityName)}
               </h2>
               <p className="mt-2 text-[14px] text-black/70">
-                {formatLabel(row.entityType)} · {formatLabel(row.country)}
+                {row.entityType ? row.entityType : ""}
+                {row.entityType && row.country ? " · " : ""}
+                {row.country ? row.country : ""}
               </p>
             </div>
           </div>
@@ -179,7 +181,7 @@ function RegistryCard({ row }: { row: RegistryPageRow }) {
           </div>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-3">
+        <div className="mt-5 grid gap-3 md:grid-cols-3">
           <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
             <div className="text-[12px] font-semibold uppercase tracking-[0.24em] text-black/40">
               Certified
@@ -206,26 +208,6 @@ function RegistryCard({ row }: { row: RegistryPageRow }) {
               {formatDate(row.validTo)}
             </div>
           </div>
-        </div>
-
-        <div className="grid gap-4 md:grid-cols-3">
-          <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
-            <div className="text-[12px] font-semibold uppercase tracking-[0.24em] text-black/40">
-              Application ID
-            </div>
-            <div className="mt-3 text-[15px] leading-7 text-black">
-              {formatLabel(row.applicationId)}
-            </div>
-          </div>
-
-          <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
-            <div className="text-[12px] font-semibold uppercase tracking-[0.24em] text-black/40">
-              Case ID
-            </div>
-            <div className="mt-3 text-[15px] leading-7 text-black">
-              {formatLabel(row.caseId)}
-            </div>
-          </div>
 
           <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
             <div className="text-[12px] font-semibold uppercase tracking-[0.24em] text-black/40">
@@ -233,6 +215,24 @@ function RegistryCard({ row }: { row: RegistryPageRow }) {
             </div>
             <div className="mt-3 text-[15px] leading-7 text-black">
               {formatDate(row.publishedAt)}
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
+            <div className="text-[12px] font-semibold uppercase tracking-[0.24em] text-black/40">
+              Country
+            </div>
+            <div className="mt-3 text-[15px] leading-7 text-black">
+              {row.country ?? "—"}
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
+            <div className="text-[12px] font-semibold uppercase tracking-[0.24em] text-black/40">
+              Registry ID
+            </div>
+            <div className="mt-3 break-all text-[15px] leading-7 text-black">
+              {row.registryId}
             </div>
           </div>
         </div>
@@ -246,7 +246,7 @@ function RegistryCard({ row }: { row: RegistryPageRow }) {
           </PublicButtonLink>
 
           <PublicButtonLink
-            href={`/registry/${row.registryId}`}
+            href={`/registry/${encodeURIComponent(row.registryId)}`}
             variant="secondary"
           >
             View Registry Record
