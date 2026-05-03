@@ -144,7 +144,7 @@ function getProofStateLabel(
 ) {
   if (endpointVerified && signatureVerified) {
     return {
-      title: "Proof valid",
+      title: "Signature Verified",
       body: "The public trust record resolved successfully and the exact messageString validates against the published GAFAIG public key.",
       tone: "success" as const,
     };
