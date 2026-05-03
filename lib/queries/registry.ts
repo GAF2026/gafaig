@@ -48,18 +48,6 @@ function toLimit(value?: number): number {
   return Math.min(Math.max(Math.trunc(n), 1), 500);
 }
 
-/**
- * 🔥 CRITICAL: LIMIT FIRST (performance fix)
- */
-function baseLimitedSubquery(limit: number) {
-  return `
-    SELECT *
-    FROM CORE.V_REGISTRY_PUBLIC
-    ORDER BY PUBLISHED_AT DESC
-    LIMIT ${limit}
-  `;
-}
-
 const SELECT_FIELDS = `
   REGISTRY_SNAPSHOT_ID   AS "registrySnapshotId",
   REGISTRY_ID            AS "registryId",
@@ -79,6 +67,18 @@ const SELECT_FIELDS = `
   RENEWAL_STATUS         AS "renewalStatus",
   PUBLISHED_AT           AS "publishedAt"
 `;
+
+/**
+ * 🔥 CRITICAL: LIMIT FIRST (performance fix)
+ */
+function baseLimitedSubquery(limit: number) {
+  return `
+    SELECT ${SELECT_FIELDS}
+    FROM CORE.V_REGISTRY_PUBLIC
+    ORDER BY PUBLISHED_AT DESC
+    LIMIT ${limit}
+  `;
+}
 
 export async function getRegistryRecords(limit = 50): Promise<RegistryRecord[]> {
   const safeLimit = toLimit(limit);

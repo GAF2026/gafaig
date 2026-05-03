@@ -3,8 +3,7 @@ import { searchRegistryRecords } from "@/lib/queries/registry";
 import type { RegistryApiResponse, RegistryRow } from "@/types/registry";
 
 export const runtime = "nodejs";
-export const dynamic = "force-dynamic";
-export const revalidate = 0;
+export const revalidate = 60; // ✅ cache for 60 seconds
 
 function clean(value: string | null): string {
   return String(value ?? "").trim();
@@ -54,23 +53,17 @@ export async function GET(req: Request) {
       limit,
     });
 
-    const response: RegistryApiResponse = {
-      ok: true,
-      rows: rows.map((row) => toRegistryRow(row as RegistryRow)),
-      total: rows.length,
-      limit,
-      filters: {
-        q,
-        country,
-        registryId,
-        caseId,
-        applicationId,
-      },
-    };
+    const mappedRows = rows.map((row) => toRegistryRow(row as RegistryRow));
 
-    return NextResponse.json(response, {
-      headers: { "Cache-Control": "no-store" },
-    });
+    return NextResponse.json(
+      { ok: true, rows: mappedRows, total: mappedRows.length, limit },
+      {
+        headers: {
+          "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300",
+          "Access-Control-Allow-Origin": "*",
+        },
+      }
+    );
   } catch (_error) {
     const response: RegistryApiResponse = {
       ok: false,
