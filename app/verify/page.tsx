@@ -675,8 +675,8 @@ export default function VerifyPage() {
                     verified={Boolean(state.signatureVerified)}
                     label={
                       state.signatureVerified
-                        ? "Payload Integrity: Verified"
-                        : "Payload Integrity: Invalid"
+                        ? "Signature Valid"
+                        : "Signature Invalid"
                     }
                   />
                 </div>
