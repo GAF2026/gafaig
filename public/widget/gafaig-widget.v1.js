@@ -911,11 +911,11 @@
       "</div>" +
       '<div class="gafaig-widget-actions">' +
       '<a class="gafaig-widget-btn gafaig-widget-btn-primary" href="' +
-      recordUrl +
-      '" target="_blank" rel="noopener noreferrer">Open record</a>' +
-      '<a class="gafaig-widget-btn gafaig-widget-btn-secondary" href="' +
       verifyPageUrl +
       '" target="_blank" rel="noopener noreferrer">Verify This Record</a>' +
+      '<a class="gafaig-widget-btn gafaig-widget-btn-secondary" href="' +
+      recordUrl +
+      '" target="_blank" rel="noopener noreferrer">View Registry Record</a>' +
       '<a class="gafaig-widget-btn gafaig-widget-btn-secondary" href="' +
       verifyApiUrl +
       '" target="_blank" rel="noopener noreferrer">View Raw Verification JSON</a>' +
