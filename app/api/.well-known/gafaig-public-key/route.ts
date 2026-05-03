@@ -1,3 +1,4 @@
+import { createPublicKey } from "crypto";
 import { NextResponse } from "next/server";
 import {
   getPublicKeyPem,
@@ -15,6 +16,17 @@ function pemToBase64(pem: string) {
     .replace(/-----END PUBLIC KEY-----/g, "")
     .replace(/\s+/g, "")
     .trim();
+}
+
+function getRawEd25519PublicKeyBase64(publicKeyPem: string): string {
+  const key = createPublicKey(publicKeyPem);
+  const jwk = key.export({ format: "jwk" }) as JsonWebKey;
+
+  if (!jwk.x || typeof jwk.x !== "string") {
+    throw new Error("Failed to export Ed25519 public key raw material");
+  }
+
+  return jwk.x;
 }
 
 function getCorsHeaders(): HeadersInit {
@@ -38,7 +50,9 @@ export async function GET() {
   try {
     const publicKeyPem = getPublicKeyPem();
     const kid = getSigningKeyId();
-    const publicKeyBase64 = pemToBase64(publicKeyPem);
+
+    const publicKeySpkiBase64 = pemToBase64(publicKeyPem);
+    const publicKeyRawBase64 = getRawEd25519PublicKeyBase64(publicKeyPem);
 
     return NextResponse.json(
       {
@@ -47,9 +61,20 @@ export async function GET() {
         alg: GAFAIG_VERIFY_ALG,
         publicKey: publicKeyPem,
         publicKeyPem,
-        publicKeyBase64,
+        publicKeyBase64: publicKeyRawBase64,
+        publicKeyRawBase64,
+        publicKeySpkiBase64,
+        jwk: {
+          kty: "OKP",
+          crv: "Ed25519",
+          x: publicKeyRawBase64,
+          use: "sig",
+          kid,
+          alg: "EdDSA",
+        },
         kty: "OKP",
         crv: "Ed25519",
+        x: publicKeyRawBase64,
         use: "sig",
       },
       {
