@@ -48,24 +48,18 @@ function toLimit(value?: number): number {
   return Math.min(Math.max(Math.trunc(n), 1), 500);
 }
 
+/**
+ * 🔁 UPDATED SAFE SELECT FIELDS (per instruction)
+ */
 const SELECT_FIELDS = `
-  REGISTRY_SNAPSHOT_ID   AS "registrySnapshotId",
-  REGISTRY_ID            AS "registryId",
-  APPLICATION_ID         AS "applicationId",
-  CASE_ID                AS "caseId",
-  ENTITY_NAME            AS "entityName",
-  ENTITY_TYPE            AS "entityType",
-  COUNTRY                AS "country",
-  CERTIFICATION_STATUS   AS "certificationStatus",
-  CERTIFIED_AT           AS "certifiedAt",
-  VALID_FROM             AS "validFrom",
-  VALID_TO               AS "validTo",
-  LIFECYCLE_STATUS       AS "lifecycleStatus",
-  VISIBILITY_STATUS      AS "visibilityStatus",
-  VERIFICATION_ELIGIBLE  AS "verificationEligible",
-  BADGE_ELIGIBLE         AS "badgeEligible",
-  RENEWAL_STATUS         AS "renewalStatus",
-  PUBLISHED_AT           AS "publishedAt"
+  REGISTRY_ID,
+  ENTITY_NAME,
+  COUNTRY,
+  CERTIFICATION_STATUS,
+  CERTIFIED_AT,
+  VALID_FROM,
+  VALID_TO,
+  PUBLISHED_AT
 `;
 
 /**
