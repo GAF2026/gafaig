@@ -173,7 +173,7 @@ function JumpNav() {
   );
 }
 
-const DEMO_REGISTRY_ID = "GAFAIG-00363095";
+const DEMO_REGISTRY_ID = "GAFAIG-00000001";
 
 const sdkInstallExample = `<script src="https://www.gafaig.com/sdk/gafaig.v1.js"></script>`;
 
@@ -182,23 +182,23 @@ const sdkAndModalInstallExample = `<script src="https://www.gafaig.com/sdk/gafai
 
 const dataBadgeExample = `<script src="https://www.gafaig.com/sdk/gafaig.v1.js"></script>
 
-<div data-gafaig-badge="GAFAIG-00363095"></div>`;
+<div data-gafaig-badge="GAFAIG-00000001"></div>`;
 
 const dataWidgetExample = `<script src="https://www.gafaig.com/sdk/gafaig.v1.js"></script>
 
-<div data-gafaig-id="GAFAIG-00363095"></div>`;
+<div data-gafaig-id="GAFAIG-00000001"></div>`;
 
 const dataWidgetModeExample = `<script src="https://www.gafaig.com/sdk/gafaig.v1.js"></script>
 
 <div
-  data-gafaig-id="GAFAIG-00363095"
+  data-gafaig-id="GAFAIG-00000001"
   data-mode="badge"
 ></div>`;
 
 const modalExample = `<script src="https://www.gafaig.com/sdk/gafaig.v1.js"></script>
 <script src="https://www.gafaig.com/widget/gafaig-verify.v1.js"></script>
 
-<button data-gafaig-open-verify="GAFAIG-00363095">
+<button data-gafaig-open-verify="GAFAIG-00000001">
   Verify this GAFAIG record
 </button>
 
@@ -217,7 +217,7 @@ const manualModalExample = `<script src="https://www.gafaig.com/sdk/gafaig.v1.js
   document
     .getElementById("open-gafaig-verify")
     .addEventListener("click", function () {
-      gafaig.openVerify("GAFAIG-00363095", {
+      gafaig.openVerify("GAFAIG-00000001", {
         baseUrl: "https://www.gafaig.com"
       });
     });
@@ -229,7 +229,7 @@ const sdkBadgeExample = `<script src="https://www.gafaig.com/sdk/gafaig.v1.js"><
 
 <script>
   gafaig.badge("#gafaig-badge-target", {
-    registryId: "GAFAIG-00363095",
+    registryId: "GAFAIG-00000001",
     baseUrl: "https://www.gafaig.com"
   });
 </script>`;
@@ -238,7 +238,7 @@ const sdkGetBadgeExample = `<script src="https://www.gafaig.com/sdk/gafaig.v1.js
 
 <script>
   gafaig
-    .getBadge("GAFAIG-00363095", {
+    .getBadge("GAFAIG-00000001", {
       baseUrl: "https://www.gafaig.com"
     })
     .then(console.log);
@@ -263,9 +263,9 @@ https://www.gafaig.com/widget/gafaig-verify.js
 
 These aliases point to the latest build and may change behavior. Use for testing, internal previews, or controlled rollouts only.`;
 
-const curlVerifyExample = `curl https://www.gafaig.com/api/verify/GAFAIG-00363095`;
+const curlVerifyExample = `curl https://www.gafaig.com/api/verify/GAFAIG-00000001`;
 
-const curlBadgeExample = `curl https://www.gafaig.com/api/badge/GAFAIG-00363095`;
+const curlBadgeExample = `curl https://www.gafaig.com/api/badge/GAFAIG-00000001`;
 
 const publicKeyExample = `curl https://www.gafaig.com/api/.well-known/gafaig-public-key`;
 
@@ -273,7 +273,7 @@ const jsVerifyExample = `<script src="https://www.gafaig.com/sdk/gafaig.v1.js"><
 
 <script>
   async function verifyGAFAIGRecord() {
-    const result = await gafaig.verify("GAFAIG-00363095", {
+    const result = await gafaig.verify("GAFAIG-00000001", {
       baseUrl: "https://www.gafaig.com"
     });
 
@@ -310,9 +310,9 @@ Use:
 const proofShapeExample = `{
   "ok": true,
   "verified": true,
-  "registryId": "GAFAIG-00363095",
+  "registryId": "GAFAIG-00000001",
   "record": {
-    "registryId": "GAFAIG-00363095",
+    "registryId": "GAFAIG-00000001",
     "registrySnapshotId": "REG-SNAP-...",
     "applicationId": "APP-DEMO-0001",
     "caseId": "CASE-0001",
@@ -335,14 +335,14 @@ const proofShapeExample = `{
     "signedAt": "<iso-timestamp>",
     "verificationKeyUrl": "https://www.gafaig.com/api/.well-known/gafaig-public-key",
     "message": {
-      "registryId": "GAFAIG-00363095",
+      "registryId": "GAFAIG-00000001",
       "entityName": "OpenAI Enterprise Demo Org",
       "certificationStatus": "CERTIFIED",
       "certifiedAt": "2026-04-21T12:37:57.000Z",
       "validFrom": "2026-04-15T00:00:00.000Z",
       "validTo": "2027-04-15T10:20:24.000Z"
     },
-    "messageString": "{\\"registryId\\":\\"GAFAIG-00363095\\",...}"
+    "messageString": "{\\"registryId\\":\\"GAFAIG-00000001\\",...}"
   }
 }`;
 
@@ -371,9 +371,9 @@ const externalTestExample = `<!DOCTYPE html>
   <body>
     <h1>GAFAIG External Embed Test</h1>
 
-    <div data-gafaig-badge="GAFAIG-00363095"></div>
+    <div data-gafaig-badge="GAFAIG-00000001"></div>
 
-    <button data-gafaig-open-verify="GAFAIG-00363095">
+    <button data-gafaig-open-verify="GAFAIG-00000001">
       Open Verification Modal
     </button>
 
@@ -408,7 +408,7 @@ export default function DevelopersPage() {
                 Browse Registry
               </PublicButtonLink>
               <PublicButtonLink
-                href="/widget-preview/GAFAIG-00363095"
+                href="/widget-preview/GAFAIG-00000001"
                 variant="secondary"
               >
                 View Widget Preview
@@ -923,7 +923,7 @@ export default function DevelopersPage() {
               Open Registry
             </PublicButtonLink>
             <PublicButtonLink
-              href="/widget-preview/GAFAIG-00363095"
+              href="/widget-preview/GAFAIG-00000001"
               variant="secondary"
             >
               Preview Widget
