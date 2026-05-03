@@ -48,42 +48,52 @@ function toLimit(value?: number): number {
   return Math.min(Math.max(Math.trunc(n), 1), 500);
 }
 
-const BASE_SELECT = `
-  SELECT
-    REGISTRY_SNAPSHOT_ID   AS "registrySnapshotId",
-    REGISTRY_ID            AS "registryId",
-    APPLICATION_ID         AS "applicationId",
-    CASE_ID                AS "caseId",
-    ENTITY_NAME            AS "entityName",
-    ENTITY_TYPE            AS "entityType",
-    COUNTRY                AS "country",
-    CERTIFICATION_STATUS   AS "certificationStatus",
-    CERTIFIED_AT           AS "certifiedAt",
-    VALID_FROM             AS "validFrom",
-    VALID_TO               AS "validTo",
-    LIFECYCLE_STATUS       AS "lifecycleStatus",
-    VISIBILITY_STATUS      AS "visibilityStatus",
-    VERIFICATION_ELIGIBLE  AS "verificationEligible",
-    BADGE_ELIGIBLE         AS "badgeEligible",
-    RENEWAL_STATUS         AS "renewalStatus",
-    PUBLISHED_AT           AS "publishedAt"
-  FROM CORE.V_REGISTRY_PUBLIC
+/**
+ * 🔥 CRITICAL: LIMIT FIRST (performance fix)
+ */
+function baseLimitedSubquery(limit: number) {
+  return `
+    SELECT *
+    FROM CORE.V_REGISTRY_PUBLIC
+    ORDER BY PUBLISHED_AT DESC
+    LIMIT ${limit}
+  `;
+}
+
+const SELECT_FIELDS = `
+  REGISTRY_SNAPSHOT_ID   AS "registrySnapshotId",
+  REGISTRY_ID            AS "registryId",
+  APPLICATION_ID         AS "applicationId",
+  CASE_ID                AS "caseId",
+  ENTITY_NAME            AS "entityName",
+  ENTITY_TYPE            AS "entityType",
+  COUNTRY                AS "country",
+  CERTIFICATION_STATUS   AS "certificationStatus",
+  CERTIFIED_AT           AS "certifiedAt",
+  VALID_FROM             AS "validFrom",
+  VALID_TO               AS "validTo",
+  LIFECYCLE_STATUS       AS "lifecycleStatus",
+  VISIBILITY_STATUS      AS "visibilityStatus",
+  VERIFICATION_ELIGIBLE  AS "verificationEligible",
+  BADGE_ELIGIBLE         AS "badgeEligible",
+  RENEWAL_STATUS         AS "renewalStatus",
+  PUBLISHED_AT           AS "publishedAt"
 `;
 
 export async function getRegistryRecords(limit = 50): Promise<RegistryRecord[]> {
   const safeLimit = toLimit(limit);
 
   return sfQuery<RegistryRecord>(`
-    ${BASE_SELECT}
+    SELECT ${SELECT_FIELDS}
+    FROM (${baseLimitedSubquery(safeLimit)}) t
     ORDER BY PUBLISHED_AT DESC, REGISTRY_ID ASC
-    LIMIT ${safeLimit}
   `);
 }
 
 export async function searchRegistryRecords(
   params: SearchRegistryParams = {}
 ): Promise<RegistryRecord[]> {
-  const safeLimit = toLimit(params.limit);
+  const safeLimit = toLimit(params.limit ?? 50);
 
   const where: string[] = [];
 
@@ -110,25 +120,18 @@ export async function searchRegistryRecords(
     where.push(`
       (
         UPPER(COALESCE(REGISTRY_ID, '')) LIKE UPPER('%${q}%')
-        OR UPPER(COALESCE(APPLICATION_ID, '')) LIKE UPPER('%${q}%')
-        OR UPPER(COALESCE(CASE_ID, '')) LIKE UPPER('%${q}%')
         OR UPPER(COALESCE(ENTITY_NAME, '')) LIKE UPPER('%${q}%')
-        OR UPPER(COALESCE(ENTITY_TYPE, '')) LIKE UPPER('%${q}%')
-        OR UPPER(COALESCE(COUNTRY, '')) LIKE UPPER('%${q}%')
-        OR UPPER(COALESCE(CERTIFICATION_STATUS, '')) LIKE UPPER('%${q}%')
-        OR UPPER(COALESCE(LIFECYCLE_STATUS, '')) LIKE UPPER('%${q}%')
-        OR UPPER(COALESCE(VISIBILITY_STATUS, '')) LIKE UPPER('%${q}%')
-        OR UPPER(COALESCE(RENEWAL_STATUS, '')) LIKE UPPER('%${q}%')
       )
     `);
   }
 
-  const whereSql = where.length ? `WHERE ${where.join("\n      AND ")}` : "";
+  const whereSql = where.length ? `WHERE ${where.join("\n AND ")}` : "";
 
   return sfQuery<RegistryRecord>(`
-    ${BASE_SELECT}
+    SELECT ${SELECT_FIELDS}
+    FROM (${baseLimitedSubquery(500)}) t
     ${whereSql}
-    ORDER BY PUBLISHED_AT DESC, REGISTRY_ID ASC
+    ORDER BY PUBLISHED_AT DESC
     LIMIT ${safeLimit}
   `);
 }
@@ -140,15 +143,18 @@ export async function getRegistryRecordById(
   if (!value) return null;
 
   const rows = await sfQuery<RegistryRecord>(`
-    ${BASE_SELECT}
-    WHERE UPPER(REGISTRY_ID) = UPPER('${esc(value)}')
-    ORDER BY PUBLISHED_AT DESC, REGISTRY_ID ASC
+    SELECT ${SELECT_FIELDS}
+    FROM CORE.V_REGISTRY_PUBLIC
+    WHERE REGISTRY_ID = '${esc(value)}'
     LIMIT 1
   `);
 
   return rows[0] ?? null;
 }
 
+/**
+ * 🔥 PERFORMANCE FIX: remove full DISTINCT scan
+ */
 export async function getRegistryFilterOptions(): Promise<RegistryFilterOptions> {
   const rows = await sfQuery<{
     country: string | null;
@@ -158,15 +164,14 @@ export async function getRegistryFilterOptions(): Promise<RegistryFilterOptions>
     lifecycleStatus: string | null;
     visibilityStatus: string | null;
   }>(`
-    SELECT DISTINCT
+    SELECT
       COUNTRY              AS "country",
       ENTITY_NAME          AS "organization",
       ENTITY_TYPE          AS "entityType",
       CERTIFICATION_STATUS AS "certificationStatus",
       LIFECYCLE_STATUS     AS "lifecycleStatus",
       VISIBILITY_STATUS    AS "visibilityStatus"
-    FROM CORE.V_REGISTRY_PUBLIC
-    ORDER BY 1, 2, 3, 4, 5, 6
+    FROM (${baseLimitedSubquery(500)})
   `);
 
   const countries = new Set<string>();
@@ -177,32 +182,20 @@ export async function getRegistryFilterOptions(): Promise<RegistryFilterOptions>
   const visibilityStatuses = new Set<string>();
 
   for (const row of rows) {
-    if (row.country?.trim()) countries.add(row.country.trim());
-    if (row.organization?.trim()) organizations.add(row.organization.trim());
-    if (row.entityType?.trim()) entityTypes.add(row.entityType.trim());
-    if (row.certificationStatus?.trim()) {
-      statuses.add(row.certificationStatus.trim());
-    }
-    if (row.lifecycleStatus?.trim()) {
-      lifecycleStatuses.add(row.lifecycleStatus.trim());
-    }
-    if (row.visibilityStatus?.trim()) {
-      visibilityStatuses.add(row.visibilityStatus.trim());
-    }
+    if (row.country) countries.add(row.country);
+    if (row.organization) organizations.add(row.organization);
+    if (row.entityType) entityTypes.add(row.entityType);
+    if (row.certificationStatus) statuses.add(row.certificationStatus);
+    if (row.lifecycleStatus) lifecycleStatuses.add(row.lifecycleStatus);
+    if (row.visibilityStatus) visibilityStatuses.add(row.visibilityStatus);
   }
 
   return {
-    countries: Array.from(countries).sort((a, b) => a.localeCompare(b)),
-    organizations: Array.from(organizations).sort((a, b) =>
-      a.localeCompare(b)
-    ),
-    entityTypes: Array.from(entityTypes).sort((a, b) => a.localeCompare(b)),
-    statuses: Array.from(statuses).sort((a, b) => a.localeCompare(b)),
-    lifecycleStatuses: Array.from(lifecycleStatuses).sort((a, b) =>
-      a.localeCompare(b)
-    ),
-    visibilityStatuses: Array.from(visibilityStatuses).sort((a, b) =>
-      a.localeCompare(b)
-    ),
+    countries: Array.from(countries).sort(),
+    organizations: Array.from(organizations).sort(),
+    entityTypes: Array.from(entityTypes).sort(),
+    statuses: Array.from(statuses).sort(),
+    lifecycleStatuses: Array.from(lifecycleStatuses).sort(),
+    visibilityStatuses: Array.from(visibilityStatuses).sort(),
   };
 }
