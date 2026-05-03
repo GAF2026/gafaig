@@ -551,10 +551,10 @@ export default async function VerifyPage({
 
           <div className="mt-6 flex flex-wrap gap-3">
             <PublicButtonLink
-              href={`/registry/${encodeURIComponent(registryId)}`}
+              href={`/verify/${encodeURIComponent(registryId)}`}
               variant="primary"
             >
-              Open Registry Record
+              Verify This Record
             </PublicButtonLink>
 
             <a
@@ -615,18 +615,6 @@ export default async function VerifyPage({
                     ? "Signature Invalid"
                     : "Validation Unavailable"}
               </span>
-
-              {validation.status === "valid" ? (
-                <span className="inline-flex rounded-full bg-emerald-50 px-3 py-1 text-[11px] font-semibold text-emerald-700 ring-1 ring-emerald-200">
-                  Signature Valid
-                </span>
-              ) : null}
-
-              {validation.status === "invalid" ? (
-                <span className="inline-flex rounded-full bg-red-50 px-3 py-1 text-[11px] font-semibold text-red-700 ring-1 ring-red-200">
-                  Signature Invalid
-                </span>
-              ) : null}
 
               <span className="text-sm text-black/70">{validation.detail}</span>
             </div>
