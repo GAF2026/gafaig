@@ -91,19 +91,19 @@ export default async function HomePage() {
           eyebrow="VERIFIABLE AI GOVERNANCE"
           title="AI governance, independently verifiable."
           description="GAFAIG is the first system that makes AI governance verifiable. Organizations don’t just claim oversight—they publish signed certification records that anyone can validate using cryptographic proof."
-          secondaryDescription="For organizations: prove your AI governance is real. For the public: verify which AI systems can actually be trusted."
+          secondaryDescription="Every certified record includes a signed payload that can be independently verified using GAFAIG’s public key."
           actions={
             <>
               <PublicButtonLink href="/certification" variant="primary">
-                Start Free Certification
+                Certify Your AI System
               </PublicButtonLink>
 
               <PublicButtonLink href="/verify" variant="secondary">
-                Verify a Record
+                Verify a Public Record
               </PublicButtonLink>
 
               <PublicButtonLink href="/registry" variant="secondary">
-                Explore Registry
+                Explore Certified Systems
               </PublicButtonLink>
             </>
           }
@@ -143,15 +143,15 @@ export default async function HomePage() {
             HOW GAFAIG WORKS
           </div>
 
-          <h2 className="mt-4 text-[26px] font-semibold tracking-tight text-black max-w-[860px]">
+          <h2 className="mt-4 max-w-[860px] text-[26px] font-semibold tracking-tight text-black">
             GAFAIG converts AI governance from a claim into a verifiable public record
           </h2>
 
           <p className="mt-5 max-w-[980px] text-[15px] leading-7 text-black/75">
-            GAFAIG combines a private verification engine with a public trust
-            layer. Evidence and findings stay private. Certified outcomes are
-            published as signed records that can be verified through the registry,
-            API, SDK, widget, and public key.
+            Private verification produces a certified outcome. Certified
+            outcomes become signed public records. Public records can be
+            independently verified through the registry, API, SDK, widget, and
+            public key.
           </p>
 
           <div className="mt-8 grid gap-4 md:grid-cols-3">
@@ -201,7 +201,7 @@ export default async function HomePage() {
             WHY GAFAIG EXISTS
           </div>
 
-          <h2 className="mt-4 text-[26px] font-semibold tracking-tight text-black max-w-[860px]">
+          <h2 className="mt-4 max-w-[860px] text-[26px] font-semibold tracking-tight text-black">
             Most AI governance cannot be independently verified
           </h2>
 
@@ -230,7 +230,7 @@ export default async function HomePage() {
             FEATURED GAFAIG VERIFIED RECORD
           </div>
 
-          <h2 className="mt-4 text-[26px] font-semibold tracking-tight text-black max-w-[860px]">
+          <h2 className="mt-4 max-w-[860px] text-[26px] font-semibold tracking-tight text-black">
             A public record that can be inspected, verified, and validated
           </h2>
 
@@ -244,6 +244,7 @@ export default async function HomePage() {
             <VerifiedRecordCard
               registryId={FEATURED_REGISTRY_ID}
               status="Certified"
+              integrity="Payload Integrity: Verified"
               href={`/registry/${FEATURED_REGISTRY_ID}`}
             />
           </div>
@@ -253,7 +254,10 @@ export default async function HomePage() {
               Explore Registry
             </PublicButtonLink>
 
-            <PublicButtonLink href={`/verify/${FEATURED_REGISTRY_ID}`} variant="secondary">
+            <PublicButtonLink
+              href={`/verify/${FEATURED_REGISTRY_ID}`}
+              variant="secondary"
+            >
               Verify Featured Record
             </PublicButtonLink>
           </div>
@@ -264,7 +268,7 @@ export default async function HomePage() {
             SEE HOW IT WORKS
           </div>
 
-          <h2 className="mt-4 text-[26px] font-semibold tracking-tight text-black max-w-[860px]">
+          <h2 className="mt-4 max-w-[860px] text-[26px] font-semibold tracking-tight text-black">
             Follow a real GAFAIG record from certification to verification
           </h2>
 
@@ -280,7 +284,10 @@ export default async function HomePage() {
               Start Demo
             </PublicButtonLink>
 
-            <PublicButtonLink href={`/verify/${FEATURED_REGISTRY_ID}`} variant="secondary">
+            <PublicButtonLink
+              href={`/verify/${FEATURED_REGISTRY_ID}`}
+              variant="secondary"
+            >
               Verify Featured Record
             </PublicButtonLink>
 
@@ -295,7 +302,7 @@ export default async function HomePage() {
             PROOF PREVIEW
           </div>
 
-          <h2 className="mt-4 text-[26px] font-semibold tracking-tight text-black max-w-[860px]">
+          <h2 className="mt-4 max-w-[860px] text-[26px] font-semibold tracking-tight text-black">
             This is not a claim. This is a verifiable system.
           </h2>
 
@@ -347,33 +354,37 @@ export default async function HomePage() {
             VERIFICATION LOOP
           </div>
 
-          <h2 className="mt-4 text-[26px] font-semibold tracking-tight text-black max-w-[860px]">
+          <h2 className="mt-4 max-w-[860px] text-[26px] font-semibold tracking-tight text-black">
             Trust is not asserted. It is independently verified.
           </h2>
 
           <p className="mt-5 max-w-[980px] text-[15px] leading-7 text-black/75">
-            Every GAFAIG trust signal resolves to a public verification endpoint, a signed payload,
-            and a public key. External systems can independently validate certification without
-            accessing private governance data or internal workflows.
+            Every GAFAIG trust signal resolves to a public verification endpoint,
+            a signed payload, and a public key. External systems can independently
+            validate certification without accessing private governance data or
+            internal workflows.
           </p>
 
           <div className="mt-8 grid gap-4 md:grid-cols-3">
             <StatementCard
-              title="Verify endpoint"
+              title="Fetch record"
               body="Fetch the certified record and signed proof from /api/verify."
             />
             <StatementCard
-              title="Signed payload"
+              title="Validate signature"
               body="Use the exact messageString and signature returned by the verification endpoint."
             />
             <StatementCard
-              title="Public key"
+              title="Verify with public key"
               body="Validate the signature using GAFAIG’s public key endpoint."
             />
           </div>
 
           <div className="mt-6 flex flex-wrap gap-3">
-            <PublicButtonLink href={`/verify/${FEATURED_REGISTRY_ID}`} variant="primary">
+            <PublicButtonLink
+              href={`/verify/${FEATURED_REGISTRY_ID}`}
+              variant="primary"
+            >
               Verify Featured Record
             </PublicButtonLink>
 
@@ -390,13 +401,13 @@ export default async function HomePage() {
                 LIVE TRUST SIGNALS
               </div>
 
-              <h2 className="mt-4 text-[26px] font-semibold tracking-tight text-black max-w-[860px]">
+              <h2 className="mt-4 max-w-[860px] text-[26px] font-semibold tracking-tight text-black">
                 Current public GAFAIG footprint
               </h2>
 
               <p className="mt-4 max-w-[760px] text-[14px] text-black/70">
-                These counters are derived from GAFAIG&apos;s live public
-                registry and explorer surfaces.
+                Live metrics derived from GAFAIG&apos;s public registry. All
+                values reflect verifiable published records.
               </p>
             </div>
 
@@ -470,13 +481,7 @@ function AudienceCard({
   );
 }
 
-function MetricCard({
-  label,
-  value,
-}: {
-  label: string;
-  value: string;
-}) {
+function MetricCard({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
       <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/55">
@@ -537,16 +542,24 @@ function PillarCard({
 function VerifiedRecordCard({
   registryId,
   status,
+  integrity,
   href,
 }: {
   registryId: string;
   status: string;
+  integrity: string;
   href: string;
 }) {
   return (
     <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
-      <div className="inline-flex rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-sm font-semibold text-emerald-700">
-        {status}
+      <div className="flex flex-wrap gap-2">
+        <div className="inline-flex rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-sm font-semibold text-emerald-700">
+          {status}
+        </div>
+
+        <div className="inline-flex rounded-full border border-violet-200 bg-violet-50 px-3 py-1 text-sm font-semibold text-violet-700">
+          {integrity}
+        </div>
       </div>
 
       <div className="mt-4 text-[20px] font-semibold tracking-tight text-black">
@@ -565,18 +578,20 @@ function VerifiedRecordCard({
         <PublicButtonLink href={`/verify/${registryId}`} variant="ghost" size="sm">
           Verify a Record →
         </PublicButtonLink>
+
+        <PublicButtonLink
+          href={`/api/verify/${registryId}`}
+          variant="ghost"
+          size="sm"
+        >
+          Verifiable via API →
+        </PublicButtonLink>
       </div>
     </div>
   );
 }
 
-function StatementCard({
-  title,
-  body,
-}: {
-  title: string;
-  body: string;
-}) {
+function StatementCard({ title, body }: { title: string; body: string }) {
   return (
     <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
       <div className="text-[18px] font-semibold tracking-tight text-black">
