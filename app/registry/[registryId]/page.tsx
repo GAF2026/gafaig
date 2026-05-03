@@ -128,12 +128,15 @@ export default async function RegistryRecordPage({
       <div className="space-y-8">
 
         <PublicPageHero
-          eyebrow="Registry"
-          title={formatLabel(record.entityName)}
+          eyebrow="PUBLIC CERTIFICATION RECORD"
+          title={`Public certification record for ${formatLabel(record.entityName)}`}
           description={
-            [record.entityType, record.country]
+            [
+              [record.entityType, record.country].filter(Boolean).join(" · "),
+              "This page shows the official GAFAIG certification record. To verify its authenticity, open the full proof record."
+            ]
               .filter(Boolean)
-              .join(" · ")
+              .join(" — ")
           }
           actions={
             <>
