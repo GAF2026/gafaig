@@ -1,11 +1,22 @@
 import PublicPageHero from "../_components/PublicPageHero";
 import PublicButtonLink from "../_components/PublicButtonLink";
+import { getLatestCertifiedRecord } from "@/lib/queries/explorer";
 
 export const dynamic = "force-dynamic";
 
-const DEMO_REGISTRY_ID = "GAFAIG-00000001";
+export default async function DemoPage() {
+  const latest = await getLatestCertifiedRecord();
+  const demoRegistryId = latest?.registryId ?? "";
 
-export default function DemoPage() {
+  const registryHref = demoRegistryId ? `/registry/${demoRegistryId}` : "/registry";
+  const verifyHref = demoRegistryId ? `/verify/${demoRegistryId}` : "/verify";
+  const apiVerifyHref = demoRegistryId
+    ? `/api/verify/${demoRegistryId}`
+    : "/verify";
+  const widgetPreviewHref = demoRegistryId
+    ? `/widget-preview/${demoRegistryId}`
+    : "/widget-preview";
+
   return (
     <main className="mx-auto max-w-[1180px] px-6 py-10">
       <div className="space-y-8">
@@ -13,13 +24,10 @@ export default function DemoPage() {
           eyebrow="DEMO"
           title="From AI governance claims to independently verifiable proof"
           description="GAFAIG converts AI governance and human oversight from a private claim into an independently verifiable public trust record. This demo proves the exact sequence from certified record to signed proof to portable trust surface."
-          secondaryDescription="This page uses one real GAFAIG record to show how certification is published, verified, and surfaced outside an organization’s platform."
+          secondaryDescription="This page uses one live GAFAIG record to show how certification is published, verified, and surfaced outside an organization’s platform."
           actions={
             <>
-              <PublicButtonLink
-                href={`/registry/${DEMO_REGISTRY_ID}`}
-                variant="primary"
-              >
+              <PublicButtonLink href={registryHref} variant="primary">
                 Start Demo
               </PublicButtonLink>
 
@@ -106,7 +114,7 @@ export default function DemoPage() {
             eyebrow="STEP 1"
             title="Resolve the certified registry record"
             body="Start with the public trust record. This is the published certification outcome that external parties can review by registry ID."
-            href={`/registry/${DEMO_REGISTRY_ID}`}
+            href={registryHref}
             cta="Open Registry Record"
           />
 
@@ -114,7 +122,7 @@ export default function DemoPage() {
             eyebrow="STEP 2"
             title="Fetch the verification proof"
             body="Open the verify page to inspect the proof layer behind the certification record, including trust state, key references, and signature validation."
-            href={`/verify/${DEMO_REGISTRY_ID}`}
+            href={verifyHref}
             cta="Open Verify Page"
           />
         </section>
@@ -124,7 +132,7 @@ export default function DemoPage() {
             eyebrow="STEP 3"
             title="Inspect the signed proof payload"
             body="The verification endpoint exposes the machine-readable proof directly. This is what allows external systems to independently verify the record instead of relying on a visual page alone."
-            href={`/api/verify/${DEMO_REGISTRY_ID}`}
+            href={apiVerifyHref}
             cta="Open Verify JSON"
           />
 
@@ -132,7 +140,7 @@ export default function DemoPage() {
             eyebrow="STEP 4"
             title="Render the external trust surface"
             body="The widget preview proves how the same verified trust result can appear outside GAFAIG through a portable, embeddable interface."
-            href={`/widget-preview/${DEMO_REGISTRY_ID}`}
+            href={widgetPreviewHref}
             cta="Open Widget Preview"
           />
         </section>
@@ -252,10 +260,7 @@ export default function DemoPage() {
           </p>
 
           <div className="mt-6 flex flex-wrap gap-3">
-            <PublicButtonLink
-              href={`/registry/${DEMO_REGISTRY_ID}`}
-              variant="primary"
-            >
+            <PublicButtonLink href={registryHref} variant="primary">
               Restart Demo
             </PublicButtonLink>
 
