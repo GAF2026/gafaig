@@ -92,7 +92,8 @@ export default async function HomePage() {
         <PublicPageHero
           eyebrow="GLOBAL AUTHORITY FOR AI GOVERNANCE"
           title="AI governance, independently verifiable."
-          description="GAFAIG is the first system that makes AI governance independently verifiable. With GAFAIG, organizations don’t just claim oversight—they publish signed certification records that anyone can independently verify using cryptographic proof. Every certified record includes a signed payload that can be independently verified using GAFAIG’s public key."
+          description="GAFAIG is the first system that makes AI governance verifiable. Organizations don’t just claim oversight—they publish signed certification records that anyone can independently verify using cryptographic proof."
+          secondaryDescription="Every certified record includes a signed payload that can be independently verified using GAFAIG’s public key."
           actions={
             <>
               <PublicButtonLink href="/certification" variant="primary">
@@ -203,7 +204,7 @@ export default async function HomePage() {
           </div>
 
           <h2 className="mt-4 max-w-[860px] text-[26px] font-semibold tracking-tight text-black">
-            Most AI governance cannot be independently verified
+            AI governance must be independently verifiable
           </h2>
 
           <p className="mt-5 max-w-[980px] text-[15px] leading-7 text-black/75">
