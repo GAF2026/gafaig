@@ -413,7 +413,7 @@ export default function DevelopersPage() {
               >
                 View Widget Preview
               </PublicButtonLink>
-              <PublicButtonLink href="/public-key" variant="ghost">
+              <PublicButtonLink href="/public-key" variant="secondary">
                 Public Key
               </PublicButtonLink>
             </>
