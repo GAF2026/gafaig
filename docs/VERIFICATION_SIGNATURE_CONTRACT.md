@@ -1,6 +1,6 @@
-VERIFICATION_SIGNATURE_CONTRACT.md
+# VERIFICATION_SIGNATURE_CONTRACT.md
 
-Last Updated: 2026-05-02
+Last Updated: 2026-05-04
 
 PURPOSE
 
@@ -111,6 +111,14 @@ This view defines the canonical payload foundation used to generate messageStrin
 
 Any structural change that impacts signed payload fields must be treated as a cryptographic breaking change.
 
+PUBLIC UI EXPOSURE NOTE
+
+Although CORE.V_REGISTRY_PUBLIC may contain CASE_ID and APPLICATION_ID for internal public-contract continuity, the public-facing UI pages must not display Application ID or Case ID.
+
+Public registry and proof pages currently remove these internal IDs from user-facing views.
+
+These IDs may remain in API payloads only if required by the signed message contract and must not be treated as user-facing trust copy.
+
 CANONICAL PUBLIC RECORD MODEL
 
 A GAFAIG public certification record represents a verifiable record of certified AI governance oversight.
@@ -126,6 +134,29 @@ CERTIFICATION_RECORD
 The public record must not imply a broader certification claim than the record itself supports.
 
 Certification attaches to the public record. The record is what is verified.
+
+CURRENT PUBLIC TERMINOLOGY
+
+GAFAIG public surfaces use the following terminology:
+
+Public Certification Registry
+Public Certification Record
+Public Proof Record
+Verify This Record
+Open Certification Record
+Open Full Proof Page
+Proof JSON
+Proof API
+Widget Preview
+Public Certification + Cryptographic Proof
+
+The following terms should be avoided or replaced in public-facing UI where possible:
+
+Raw Verification JSON → Proof JSON
+Registry Record → Certification Record
+Open JSON → View Proof JSON
+Application ID → not shown publicly
+Case ID → not shown publicly
 
 INTERNAL VS PUBLIC BOUNDARY
 
@@ -265,6 +296,7 @@ Null dates may remain null.
 Public record fields must remain consistent across all surfaces.
 Public record fields must not include private workflow data.
 Public record fields must not include raw scoring internals.
+Public UI must not display Application ID or Case ID even if they remain part of the machine-readable contract.
 
 PROOF OBJECT CONTRACT
 
@@ -341,6 +373,7 @@ Must not include private workflow data.
 Must not include raw evidence.
 Must not include internal findings.
 Must not include score, tier, or band unless a future version explicitly promotes those fields into a new public contract.
+If applicationId or caseId remain in the signed message, they are machine-contract fields and must not be shown as public UI labels.
 
 MESSAGE STRING
 
@@ -558,6 +591,24 @@ override API output
 trust the host page
 treat static badge display as verification
 
+CURRENT WIDGET LANGUAGE
+
+The current widget public language is aligned as:
+
+Verify This Record
+Open Certification Record
+View Proof JSON
+Public Certification + Cryptographic Proof
+Certified by GAFAIG and independently verifiable using cryptographic proof
+
+Widget terminology must remain aligned with:
+
+/registry
+/registry/[registryId]
+/verify
+/verify/[registryId]
+/developers
+
 SDK REQUIREMENTS
 
 SDK must:
@@ -695,6 +746,119 @@ Use seed data only for testing, public-page loading, and pipeline validation.
 
 Seed data is not production data.
 
+PUBLIC PAGE ALIGNMENT
+
+The current public trust layer has been aligned as follows:
+
+Homepage:
+
+Uses GAFAIG’s formal identity:
+Global Authority for AI Governance
+
+Hero message:
+
+AI governance, independently verifiable.
+
+Registry list:
+
+/registry
+
+Public label:
+
+PUBLIC CERTIFICATION REGISTRY
+
+Primary public actions:
+
+Verify This Record
+Open Certification Record
+View Proof JSON
+
+Registry detail:
+
+/registry/[registryId]
+
+Public label:
+
+PUBLIC CERTIFICATION RECORD
+
+Primary public actions:
+
+Verify This Record
+Open Full Proof Page
+Proof JSON
+Widget Preview
+
+Trust surface labels:
+
+Proof API
+Certification Record
+Widget Preview
+
+Verify tool:
+
+/verify
+
+Purpose:
+
+User-facing verification tool for entering or loading a registry ID.
+
+Current behavior:
+
+Loads latest certified record example.
+Verifies public record using exact messageString.
+Displays proof state and public key validation.
+Links to proof page, proof JSON, public key, and certification record.
+
+Verify proof page:
+
+/verify/[registryId]
+
+Public label:
+
+PUBLIC PROOF RECORD
+
+Purpose:
+
+Deep public proof surface for a registry ID.
+
+Must show:
+
+Signature validation
+Public key reference
+Signed payload
+Proof JSON
+Certification record link
+Lifecycle state
+
+Must not show:
+
+Application ID
+Case ID
+Private workflow data
+
+Developers page:
+
+/developers
+
+Current state:
+
+SDK-first integration path.
+Fast Install section added.
+Advanced runtime files separated from SDK.
+Public Key button styled correctly.
+messageString-only verification reinforced.
+
+Widget:
+
+/public/widget/gafaig-widget.v1.js
+
+Current state:
+
+Browser-side Ed25519 verification operational.
+Public language aligned.
+CTA hierarchy aligned.
+Fail-closed behavior preserved.
+
 VERSIONING
 
 Changes must:
@@ -777,6 +941,12 @@ https://www.gafaig.com/registry
 
 https://www.gafaig.com/registry/GAFAIG-00000001
 
+https://www.gafaig.com/verify
+
+https://www.gafaig.com/verify/GAFAIG-00000001
+
+https://www.gafaig.com/developers
+
 EXTERNAL VERIFICATION TESTS
 
 Node verifier:
@@ -812,6 +982,11 @@ external Python verification passes
 tamper test passes
 registry detail route working
 registry list route hardened
+registry terminology aligned
+proof page terminology aligned
+verify tool terminology aligned
+homepage messaging aligned
+developers page updated with Fast Install
 widget verification language aligned
 widget CTA standardized to “Verify This Record”
 widget browser-side payload verification operational
@@ -821,10 +996,17 @@ bounded validity model active
 VALID_FROM / VALID_TO populated for approved records
 DAYS_TO_EXPIRY fixed in renewal view
 public registry view aligned to current bounded validity model
+public pages no longer expose Application ID or Case ID in user-facing pages
 
 Active system work:
 
-Explorer query contract restoration
+Snowflake validation is next
+12_TABLES_PARTICIPANTS.sql requires final compile validation
+15_TABLES_EVENTS.sql requires final compile validation
+CORE.V_REGISTRY_PUBLIC requires deep contract validation
+CORE.V_REGISTRY_LATEST_APPROVED requires validation
+CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC requires validation
+Explorer query contract requires revalidation after Snowflake public contract validation
 Explorer subpage revalidation
 multi-case stress testing
 edge lifecycle testing
@@ -848,6 +1030,55 @@ create additional seed files
 treat UI display as proof
 treat badge display as proof
 treat widget display as proof without signature validation
+show Application ID publicly
+show Case ID publicly
+rename Proof JSON back to Raw Verification JSON
+rename Certification Record back to Registry Record
+
+POST-VALIDATION FUTURE PHASE
+
+AI INTELLIGENCE LAYER
+
+After Snowflake validation is complete, GAFAIG may add a separate Snowflake-backed AI intelligence layer.
+
+AI must be advisory only.
+
+AI may:
+
+Observe governance patterns
+Learn from verification cases
+Identify recurring evidence gaps
+Recommend new governance controls
+Recommend schema or standard improvements
+Highlight top governance structures
+Assist pre-submission guidance
+Support global benchmarking
+
+AI must NOT:
+
+Assign FINAL_SCORE
+Assign CERTIFICATION_TIER
+Assign CERTIFICATION_BAND
+Create DECISION_STATUS
+Publish registry records
+Modify signed payloads
+Override Snowflake outputs
+
+Canonical AI rule:
+
+AI suggests
+Humans approve
+Snowflake decides
+Registry publishes
+Proof verifies
+
+Potential future tables:
+
+CORE.AI_OBSERVATIONS
+CORE.AI_RECOMMENDATIONS
+CORE.AI_RISK_PATTERNS
+CORE.AI_STANDARD_UPDATES
+CORE.AI_RECOMMENDATION_REVIEWS
 
 END STATE
 

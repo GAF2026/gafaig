@@ -1,378 +1,568 @@
-CURRENT_FOCUS.md
+# CURRENT_FOCUS.md
 
-Last Updated: 2026-05-02
+Last Updated: 2026-05-04
 
 PURPOSE
 
-This document also enforces phase gating between build completion and distribution activation.
+This document defines the exact execution focus for GAFAIG (Global Authority for AI Governance) with zero ambiguity.
 
-Defines the exact execution focus for GAFAIG with zero ambiguity.
+This document enforces:
 
-No theory.
-No re-architecture.
-No drift.
+Strict phase gating  
+No re-architecture  
+No drift  
+No speculative work  
+
+This document reflects ONLY what must be done next.
+
+No theory.  
+No abstraction.  
+Execution only.  
+
+---
 
 CURRENT SYSTEM POSITION
 
-GAFAIG is in production build completion phase transitioning into distribution readiness.
+GAFAIG is in:
 
-✔ Snowflake canonical pipeline complete
-✔ Registry snapshots working
-✔ Verification + signature system working
-✔ Phase 6 record model aligned (Snowflake → API → SDK → UI)
-✔ Badge API working
-✔ SDK working externally
-✔ Verification modal working externally
-✔ Production endpoints verified
+Build Completion → Snowflake Validation → Pre-Distribution Readiness  
 
-✔ Phase 6.4 verification protocol fully enforced
-✔ messageString contract enforced across all layers
-✔ Verify endpoint acting as canonical protocol surface
+The system is functionally complete at the architectural level and has transitioned into:
 
-✔ Phase 7 private workflow partially implemented
-✔ Application intake → case creation working
-✔ Evidence creation working (Snowflake-backed)
-✔ Finding procedure corrected to canonical schema
-✔ Finding API route updated
-✔ Finding ↔ evidence procedures created
+Validation  
+Hardening  
+Contract lock  
 
-✔ Widget system aligned to contract (GAFAIGWidget.mount)
-✔ Public key endpoint live
-✔ Public key page live
-✔ External widget rendering validated (off-domain test successful)
+---
 
-✔ /registry page working in production
-✔ /registry/[registryId] detail page working
-✔ /verify endpoint validated with signature + messageString
-✔ Badge SVG rendering working
+WHAT IS WORKING
 
-🟡 Homepage conversion layer updated locally (NOT yet deployed due to Explorer blocker)
+SNOWFLAKE
 
-🔴 IMMEDIATE BLOCKER (STILL VALID — DO NOT SKIP)
+✔ Core tables established  
+✔ Canonical pipeline defined  
+
+APPLICATION  
+→ CASE  
+→ FINDINGS  
+→ EVIDENCE  
+→ EVENTS  
+→ SCORING  
+→ DECISION  
+→ REGISTRY  
+
+✔ Registry snapshots working  
+✔ Append-only enforcement working  
+✔ Decision lifecycle implemented (VALID_FROM / VALID_TO)  
+✔ CORE.V_REGISTRY_PUBLIC aligned to bounded validity  
+✔ CORE.V_CASE_RENEWAL_STATUS working  
+✔ SP_PUBLISH_CASE_TO_REGISTRY_V3 working  
+✔ Deterministic payload foundation for messageString  
+
+---
+
+API
+
+✔ /api/verify working  
+✔ Ed25519 signing working  
+✔ messageString contract enforced  
+✔ Public key endpoint working  
+✔ CORS enabled  
+
+✔ /api/registry working  
+✔ /api/search working  
+✔ /api/badge working  
+
+✔ API is pass-through only  
+
+---
+
+SDK / WIDGET
+
+✔ SDK working externally  
+✔ Widget rendering working  
+✔ Widget verification working  
+✔ Browser-side verification working  
+✔ Fail-closed behavior implemented  
+✔ CTA standardized: “Verify This Record”  
+
+---
+
+UI
+
+✔ /registry page working  
+✔ /registry/[registryId] working  
+✔ /verify page working  
+✔ /verify/[registryId] proof page working  
+✔ /developers page aligned  
+✔ Public terminology aligned  
+
+✔ No Application ID exposed  
+✔ No Case ID exposed  
+
+---
+
+CRYPTOGRAPHIC TRUST LAYER
+
+✔ Fully operational  
+✔ messageString deterministic  
+✔ Signature validation reproducible  
+✔ External verification passing (Node + Python)  
+✔ Tamper test passing  
+
+---
+
+PRODUCTION
+
+✔ Deployment working  
+✔ Endpoints verified  
+✔ Public key endpoint live  
+✔ Widget functioning off-domain  
+
+---
+
+🟡 LOCAL (NOT DEPLOYED)
+
+Homepage conversion improvements  
+Explorer fixes (pending validation)  
+
+---
+
+🔴 IMMEDIATE BLOCKER — STEP ZERO (MANDATORY)
 
 Fix Snowflake Run Order Failures
 
 Files:
 
-12_TABLES_PARTICIPANTS.sql
-15_TABLES_EVENTS.sql
-
-Why:
-
-Break deterministic rebuilds
-Risk silent data corruption
-
-👉 MUST be fixed before any full rebuild.
-
-🔴 CURRENT BLOCKER (ACTIVE)
-
-Findings pipeline visibility issue
-
-Symptoms:
-
-Findings count = 0 in admin case overview
-
-Possible causes:
-
-UI still referencing legacy endpoint
-POST failing silently
-CaseId mismatch
-State not refreshing
-
-👉 This must be resolved before moving to scoring.
-
-🔴 SECONDARY BLOCKER (ACTIVE — UPDATED)
-
-Explorer page failure
-
-Symptoms:
-
-/explorer page shows:
-
-"GAFAIG could not load Explorer records from the canonical public views."
-
-Root cause:
-
-lib/queries/explorer.ts contract drift
-Missing exports (getExplorerData, getExplorerCountries, etc.)
-Mismatch between UI expectations and query layer
-Potential mismatch with CORE.V_REGISTRY_PUBLIC or AI systems view
+12_TABLES_PARTICIPANTS.sql  
+15_TABLES_EVENTS.sql  
 
 Impact:
 
-Explorer unavailable in production
-Blocks deployment (Next.js build failure)
-Breaks public trust surface completeness
-Prevents homepage deployment
+Break deterministic rebuild  
+Block full pipeline validation  
+Risk silent corruption  
 
-Required action:
+RULE:
 
-Restore full explorer query contract
-Ensure ALL required exports exist
-Align types with UI pages
-Ensure queries pull ONLY from canonical public views
+This must be fixed BEFORE ANY further pipeline validation  
 
-CRITICAL:
+---
 
-Explorer must read ONLY from:
-
-CORE.V_REGISTRY_PUBLIC
-CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC
-
-No scoring
-No private data
-
-🔴 SECONDARY BLOCKER (STILL VALID)
-
-SCORE dependency leaking into rebuild validation
+🔴 CURRENT BLOCKER — FINDINGS PIPELINE
 
 Symptoms:
 
-01_REBUILD_ENVIRONMENT_CANONICAL.sql fails with:
+Findings count = 0 in admin UI  
 
-invalid identifier 'SCORE'
+Possible causes:
 
-Root cause (likely):
+API route not returning inserted rows  
+UI referencing outdated endpoint  
+CaseId mismatch  
+State not refreshing after POST  
 
-CORE.V_REGISTRY_AI_SYSTEMS_BY_REGISTRY referencing SCORE or legacy scoring view
+Required outcome:
+
+Finding created in Snowflake  
+API returns inserted row  
+UI reflects correct count  
+
+RULE:
+
+Findings pipeline must be fully operational before scoring validation  
+
+---
+
+🔴 CURRENT BLOCKER — EXPLORER (DEPLOYMENT BLOCKER)
+
+Symptoms:
+
+/explorer page fails  
+Next.js build fails  
+Production deployment blocked  
+
+Root cause:
+
+lib/queries/explorer.ts contract drift  
+Missing exports  
+Type mismatch with UI  
+Mismatch with Snowflake public views  
+
+Impact:
+
+Explorer unavailable  
+Homepage cannot be deployed  
+Public trust surface incomplete  
 
 Required action:
 
-Run:
+Restore full explorer query contract  
 
-SELECT GET_DDL('VIEW', 'GAFAIG_DB.CORE.V_REGISTRY_AI_SYSTEMS_BY_REGISTRY');
+Ensure exports exist:
 
-Then remove ANY reference to:
+getExplorerData  
+getExplorerCountries  
+getExplorerOrganizations  
+getExplorerSystems  
 
-SCORE
-V_CASE_SCORE_ENTERPRISE
-V_PUBLIC_OVERSIGHT_SIGNAL
+Ensure queries read ONLY from:
 
-CRITICAL:
+CORE.V_REGISTRY_PUBLIC  
+CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC  
 
-Public views must NEVER depend on score
+RULE:
 
-Score is PRIVATE (Snowflake internal only)
+No scoring  
+No private data  
+No internal workflow exposure  
+
+---
+
+🔴 ACTIVE RISK — SCORE DEPENDENCY LEAK
+
+Symptoms:
+
+Rebuild failure referencing SCORE  
+
+Likely cause:
+
+View referencing:
+
+SCORE  
+V_CASE_SCORE_ENTERPRISE  
+V_PUBLIC_OVERSIGHT_SIGNAL  
+
+Required action:
+
+Remove ALL score dependencies from public views  
+
+RULE:
+
+Score is PRIVATE  
+Public views must NEVER depend on score  
+
+---
 
 🔑 CRITICAL RULE (LOCKED)
 
 ID PARITY RULE
 
-All IDs:
+All IDs must be:
 
-Generated ONLY in Snowflake
-Never generated in API/UI/SDK
-Passed through unchanged
+Generated ONLY in Snowflake  
+Never generated in API/UI/SDK  
+Passed through unchanged  
 
-Violation = system corruption.
+Applies to:
+
+APPLICATION_ID  
+CASE_ID  
+REGISTRY_ID  
+FINDING_ID  
+EVIDENCE_ID  
+EVENT_ID  
+
+Violation = system corruption  
+
+---
 
 🔐 GLOBAL TRUST INVARIANTS (LOCKED)
 
 These MUST be enforced during all work:
 
-Verification MUST use proof.messageString only
-Verification MUST NOT use JSON fields
-Verification MUST NOT reconstruct payloads
-Field order MUST remain deterministic
-Signature validates authenticity
-Lifecycle defines trust state
-ANY failure → NOT TRUSTED
-Widgets MUST fail closed
+Verification MUST use proof.messageString only  
+Verification MUST NOT use JSON fields  
+Verification MUST NOT reconstruct payloads  
+Field order MUST remain deterministic  
+Signature validates authenticity  
+Lifecycle defines trust state  
+ANY failure → NOT TRUSTED  
+Widgets MUST fail closed  
+
+---
 
 🎯 PRIMARY EXECUTION TARGET
 
-Phase 7 — Private Verification Workflow Completion
-→ then Phase 8 — Trust Surface Hardening + Production Lock
-→ then Distribution Activation (POST-BUILD ONLY)
+Complete:
+
+Snowflake Validation Phase  
+
+Then:
+
+System Hardening  
+Contract Lock  
+Production Stability  
+
+Then ONLY:
+
+Distribution Activation  
+
+---
 
 EXECUTION PLAN (STRICT ORDER)
-STEP 0 — FIX SNOWFLAKE RUN ORDER
+
+STEP 0 — FIX SNOWFLAKE RUN ORDER  
 
 Files:
 
-12_TABLES_PARTICIPANTS.sql
-15_TABLES_EVENTS.sql
+12_TABLES_PARTICIPANTS.sql  
+15_TABLES_EVENTS.sql  
 
 Objective:
 
-Restore deterministic rebuild capability
+Restore deterministic rebuild  
 
-STEP 1 — FIX FINDINGS PIPELINE (CURRENT PRIORITY)
+---
 
-Files:
+STEP 1 — VALIDATE CORE PIPELINE  
 
-app/admin/verification/[caseId]/page.tsx
-app/api/admin/verification/[caseId]/findings/route.ts
-CORE.SP_CREATE_FINDING
-
-Objective:
+APPLICATION  
+→ CASE  
+→ FINDINGS  
+→ EVIDENCE  
+→ EVENTS  
 
 Ensure:
 
-Finding inserts into Snowflake
-API returns row
-UI reflects count
+All joins valid  
+No orphaned records  
+All IDs consistent  
 
-STEP 2 — RESTORE EXPLORER (CRITICAL FOR DEPLOYMENT)
+---
 
-Files:
+STEP 2 — FIX FINDINGS PIPELINE  
 
-lib/queries/explorer.ts
-app/api/explorer/route.ts
-app/explorer/page.tsx
-app/explorer/* subpages
+Ensure:
 
-Objective:
+Insert → API → UI flow working  
 
-Restore full explorer functionality
-Unblock Next.js build
-Enable production deployment
+---
 
-STEP 3 — LINK FINDINGS ↔ EVIDENCE
+STEP 3 — RESTORE EXPLORER  
 
-Activate:
+Fix:
 
-CORE.VERIFICATION_FINDING_EVIDENCE
+Query layer  
+API route  
+UI pages  
 
-STEP 4 — ACTIVATE SCORING PIPELINE
+Unblock deployment  
 
-Files:
+---
 
-CORE.SP_SCORE_CASE_ENTERPRISE
-CASE_SCORE_SNAPSHOTS
+STEP 4 — VALIDATE SCORING  
 
-STEP 5 — COMPLETE BADGE HARDENING
-STEP 6 — COMPLETE MODAL HARDENING
-STEP 7 — COMPLETE SDK FAILURE HANDLING
-STEP 8 — LOCK VERIFY API CONTRACT
-STEP 9 — LOCK BADGE API CONTRACT
-STEP 10 — COMPLETE WIDGET FAIL-SAFE UX
+Ensure:
+
+CORE.V_GOVERNANCE_SCORE_CASE correct  
+Snapshots created correctly  
+
+---
+
+STEP 5 — VALIDATE DECISIONS  
+
+Ensure:
+
+VALID_FROM / VALID_TO correct  
+No overlap  
+Correct lifecycle states  
+
+---
+
+STEP 6 — VALIDATE REGISTRY  
+
+Ensure:
+
+Append-only  
+Correct publish behavior  
+Correct snapshot linkage  
+
+---
+
+STEP 7 — VALIDATE PUBLIC VIEWS  
+
+CORE.V_REGISTRY_PUBLIC  
+CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC  
+
+Ensure:
+
+One row per CASE_ID  
+No score leakage  
+Correct contract  
+
+---
+
+STEP 8 — VALIDATE API  
+
+Ensure:
+
+Pass-through only  
+No recomputation  
+Correct mapping  
+
+---
+
+STEP 9 — VALIDATE SDK / WIDGET  
+
+Ensure:
+
+Fail-closed  
+Correct verification  
+No trust computation  
+
+---
+
+STEP 10 — RUN CANONICAL VALIDATION RUNNER  
+
+File:
+
+99_RUN_CANONICAL_PIPELINE.sql  
+
+Ensure:
+
+Full system integrity  
+No drift  
+
+---
+
 🧠 SYSTEM THINKING (LOCKED)
 
 GAFAIG is:
 
-a verification system
-a registry of certified records
-a cryptographic trust layer
-a Snowflake execution engine
+A verification system  
+A registry  
+A cryptographic trust layer  
+A Snowflake execution engine  
+
+---
 
 🔐 TRUST MODEL (LOCKED)
 
 Trust comes from:
 
-Snowflake record
-messageString
-signature
-public key verification
+Snowflake record  
+messageString  
+signature  
+public key  
 
 NOT from:
 
-UI
-SDK
-badge
-widget
+UI  
+SDK  
+badge  
+widget  
+
+---
 
 ⚠️ DO NOT BREAK
 
-No computation outside Snowflake
-No lifecycle logic outside Snowflake
-No certification logic outside Snowflake
-No ID generation outside Snowflake
-Do not modify signed payload structure
-Do not change messageString format
-Do not verify from JSON
+No computation outside Snowflake  
+No lifecycle logic outside Snowflake  
+No certification logic outside Snowflake  
+No ID generation outside Snowflake  
+Do not modify signed payload structure  
+Do not change messageString format  
+Do not verify from JSON  
+
+---
 
 🧪 TEST (MANDATORY)
 
 Explorer:
 
-/explorer loads without error
-countries / organizations / systems pages load
+/explorer loads  
+countries page loads  
+organizations page loads  
+systems page loads  
 
-CRITICAL:
+Verify:
 
-Verification must use messageString only
+Signature validation works  
+messageString used only  
+
+---
 
 🚀 DEPLOY FLOW (BLOCKED UNTIL EXPLORER FIX)
 
-git add .
-git commit -m "Homepage + Explorer fix"
-git push origin main
-vercel --prod
+git add .  
+git commit -m "Explorer fix + validation alignment"  
+git push origin main  
+vercel --prod  
+
+---
 
 📍 CURRENT STATE SUMMARY
 
-✔ Core system architecture complete
-✔ Verification protocol complete
-✔ SDK + UI aligned
-✔ Homepage conversion optimized (local only)
+✔ Core system architecture complete  
+✔ Verification protocol complete  
+✔ SDK + UI aligned  
+✔ Public trust layer operational  
 
-🔴 Snowflake run-order fix still required
-🔴 Findings pipeline bug (active)
-🔴 Explorer broken (deployment blocker)
-🔴 SCORE dependency leak (active risk)
+🔴 Snowflake run-order fix required  
+🔴 Findings pipeline issue active  
+🔴 Explorer broken (deployment blocker)  
+🔴 Score dependency leak risk  
 
-🚫 DISTRIBUTION PLAN STATUS (NOT ACTIVE YET)
+---
 
-30-Day Execution Plan for onboarding first 5 organizations EXISTS
-BUT is NOT ACTIVE
+🚫 DISTRIBUTION PLAN STATUS (LOCKED)
 
-Activation condition:
+Distribution plan EXISTS  
+Distribution is NOT ACTIVE  
 
-✔ Explorer fully working
-✔ Full platform build complete
-✔ Seeding finalized and expanded
-✔ Public trust surface stable
-✔ Deployment fully working
-✔ UI polished and production-ready
+Activation requires:
 
-🚀 FUTURE PHASE (LOCKED — DO NOT START YET)
+✔ Explorer working  
+✔ Full system validated  
+✔ Seed dataset stable  
+✔ UI polished  
+✔ Production stable  
+
+---
+
+🚀 FUTURE PHASE (LOCKED — DO NOT START)
 
 30-DAY EXECUTION PLAN (POST-BUILD)
 
 Goal:
 
-Get first 5 real organizations testing GAFAIG
+Onboard first 5 organizations  
 
 Strategy:
 
-Free pilot certification
-One system per organization
-Signed public record output
+Free certification  
+Real records  
+Public proof  
 
 Channels:
 
-LinkedIn
-Cold outreach
-Developer API exposure
+LinkedIn  
+Direct outreach  
+Developer API  
 
-Success Criteria:
-
-3–5 organizations tested
-3+ real registry records
-1–2 public mentions
-1 confirmed value signal
-
-CRITICAL:
-
-This phase ONLY begins after platform completion
+---
 
 🎯 NEXT FOCUS
 
-Fix Explorer (deployment blocker)
-Complete platform build
-Finalize seed data
-Polish UI
-Stabilize system
-Deploy homepage update
+Fix Snowflake run order  
+Fix findings pipeline  
+Fix explorer  
+Validate system  
+Stabilize platform  
 
 ONLY THEN:
 
-Activate distribution
+Deploy homepage  
+Activate distribution  
+
+---
 
 FINAL LINE
 
-Do not start outreach.
-Do not start promotion.
+Do not start outreach.  
+Do not start promotion.  
 
 Finish the system.
+
+END OF FILE

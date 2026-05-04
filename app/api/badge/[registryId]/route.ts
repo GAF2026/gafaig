@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { getRegistryRecordById } from "@/lib/queries/registry";
-import type { BadgeApiResponse } from "@/types/registry";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -27,12 +26,6 @@ function toIsoString(value: unknown): string | null {
   if (!value) return null;
   const date = new Date(String(value));
   return Number.isNaN(date.getTime()) ? null : date.toISOString();
-}
-
-function isTrue(value: unknown): boolean {
-  if (value === true) return true;
-  const normalized = String(value ?? "").trim().toLowerCase();
-  return normalized === "true" || normalized === "1" || normalized === "yes";
 }
 
 function esc(value: unknown): string {
@@ -77,7 +70,7 @@ export async function GET(
 
     if (!registryId) {
       return NextResponse.json(
-        { ok: false, error: "Missing registryId" } satisfies BadgeApiResponse,
+        { ok: false, error: "Missing registryId" },
         { status: 400, headers: getCorsHeaders() }
       );
     }
@@ -86,44 +79,29 @@ export async function GET(
 
     if (!record) {
       return NextResponse.json(
-        {
-          ok: false,
-          registryId,
-          error: "Registry record not found",
-        } satisfies BadgeApiResponse,
+        { ok: false, registryId, error: "Registry record not found" },
         { status: 404, headers: getCorsHeaders() }
       );
     }
 
     const baseUrl = getBaseUrl();
     const url = new URL(req.url);
+
     const wantsSvg =
       url.searchParams.get("format") === "svg" ||
       req.headers.get("accept")?.includes("image/svg+xml");
 
-    const lifecycleStatus = String(record.lifecycleStatus ?? "")
+    const certificationStatus = String(record.certificationStatus ?? "")
       .trim()
       .toLowerCase();
 
-    const badgeEligible = isTrue(record.badgeEligible);
-
     const badgeStatus =
-      badgeEligible && lifecycleStatus === "active"
-        ? "certified"
-        : lifecycleStatus === "revoked"
-          ? "revoked"
-          : lifecycleStatus === "expired"
-            ? "expired"
-            : "unavailable";
+      certificationStatus === "certified" ? "certified" : "unavailable";
 
     const badgeLabel =
       badgeStatus === "certified"
         ? "GAFAIG Certified"
-        : badgeStatus === "revoked"
-          ? "GAFAIG Certification Revoked"
-          : badgeStatus === "expired"
-            ? "GAFAIG Certification Expired"
-            : "GAFAIG Verification Unavailable";
+        : "GAFAIG Verification Unavailable";
 
     if (wantsSvg) {
       return new NextResponse(
@@ -142,46 +120,41 @@ export async function GET(
       );
     }
 
-    const imageUrl = `${baseUrl}/api/badge/${encodeURIComponent(
-      record.registryId ?? ""
-    )}?format=svg`;
+    const encodedRegistryId = encodeURIComponent(record.registryId ?? registryId);
 
-    const response: BadgeApiResponse = {
-      ok: true,
-      registryId: record.registryId ?? registryId,
-      registrySnapshotId: record.registrySnapshotId,
-      applicationId: record.applicationId,
-      caseId: record.caseId,
-      entityName: record.entityName,
-      entityType: record.entityType,
-      country: record.country,
-      certificationStatus: record.certificationStatus,
-      certifiedAt: toIsoString(record.certifiedAt),
-      validFrom: toIsoString(record.validFrom),
-      validTo: toIsoString(record.validTo),
-      lifecycleStatus: record.lifecycleStatus,
-      visibilityStatus: record.visibilityStatus,
-      verificationEligible: record.verificationEligible,
-      badgeEligible: record.badgeEligible,
-      renewalStatus: record.renewalStatus,
-      publishedAt: toIsoString(record.publishedAt),
-      badge: {
-        status: badgeStatus,
-        label: badgeLabel,
-        imageUrl,
-      },
-      verifyUrl: `${baseUrl}/verify/${encodeURIComponent(record.registryId ?? "")}`,
-      registryUrl: `${baseUrl}/registry/${encodeURIComponent(record.registryId ?? "")}`,
-      widgetUrl: `${baseUrl}/widget-preview/${encodeURIComponent(record.registryId ?? "")}`,
-    };
-
-    return NextResponse.json(response, {
-      status: 200,
-      headers: getCorsHeaders(),
-    });
-  } catch (_error) {
     return NextResponse.json(
-      { ok: false, error: "Badge endpoint failed" } satisfies BadgeApiResponse,
+      {
+        ok: true,
+        registryId: record.registryId ?? registryId,
+        registrySnapshotId: record.registrySnapshotId,
+        applicationId: record.applicationId,
+        caseId: record.caseId,
+        entityName: record.entityName,
+        entityType: record.entityType,
+        country: record.country,
+        certificationStatus: record.certificationStatus,
+        certifiedAt: toIsoString(record.certifiedAt),
+        validFrom: toIsoString(record.validFrom),
+        validTo: toIsoString(record.validTo),
+        renewalStatus: record.renewalStatus,
+        publishedAt: toIsoString(record.publishedAt),
+        badge: {
+          status: badgeStatus,
+          label: badgeLabel,
+          imageUrl: `${baseUrl}/api/badge/${encodedRegistryId}?format=svg`,
+        },
+        verifyUrl: `${baseUrl}/verify/${encodedRegistryId}`,
+        registryUrl: `${baseUrl}/registry/${encodedRegistryId}`,
+        widgetUrl: `${baseUrl}/widget-preview/${encodedRegistryId}`,
+      },
+      {
+        status: 200,
+        headers: getCorsHeaders(),
+      }
+    );
+  } catch {
+    return NextResponse.json(
+      { ok: false, error: "Badge endpoint failed" },
       { status: 500, headers: getCorsHeaders() }
     );
   }

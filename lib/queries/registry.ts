@@ -12,10 +12,6 @@ export type RegistryRecord = {
   certifiedAt: string | null;
   validFrom: string | null;
   validTo: string | null;
-  lifecycleStatus: string | null;
-  visibilityStatus: string | null;
-  verificationEligible: boolean | string | null;
-  badgeEligible: boolean | string | null;
   renewalStatus: string | null;
   publishedAt: string | null;
 };
@@ -46,23 +42,22 @@ function toLimit(value?: number): number {
   return Math.min(Math.max(Math.trunc(n), 1), 500);
 }
 
-/**
- * 🔁 UPDATED SAFE SELECT FIELDS (per instruction)
- */
 const SELECT_FIELDS = `
+  REGISTRY_SNAPSHOT_ID,
   REGISTRY_ID,
+  APPLICATION_ID,
+  CASE_ID,
   ENTITY_NAME,
+  ENTITY_TYPE,
   COUNTRY,
   CERTIFICATION_STATUS,
   CERTIFIED_AT,
   VALID_FROM,
   VALID_TO,
-  PUBLISHED_AT
+  PUBLISHED_AT,
+  RENEWAL_STATUS
 `;
 
-/**
- * 🔁 ADDED: Row mapper (per instruction)
- */
 function toRegistryRow(row: any): RegistryRecord {
   return {
     registrySnapshotId: row.REGISTRY_SNAPSHOT_ID ?? null,
@@ -73,21 +68,14 @@ function toRegistryRow(row: any): RegistryRecord {
     entityType: row.ENTITY_TYPE ?? null,
     country: row.COUNTRY ?? null,
     certificationStatus: row.CERTIFICATION_STATUS ?? null,
+    certifiedAt: row.CERTIFIED_AT ?? null,
     validFrom: row.VALID_FROM ?? null,
     validTo: row.VALID_TO ?? null,
-    certifiedAt: row.CERTIFIED_AT ?? null,
-    lifecycleStatus: row.LIFECYCLE_STATUS ?? null,
-    visibilityStatus: row.VISIBILITY_STATUS ?? null,
-    verificationEligible: row.VERIFICATION_ELIGIBLE ?? null,
-    badgeEligible: row.BADGE_ELIGIBLE ?? null,
     renewalStatus: row.RENEWAL_STATUS ?? null,
     publishedAt: row.PUBLISHED_AT ?? null,
   };
 }
 
-/**
- * 🔥 CRITICAL: LIMIT FIRST (performance fix)
- */
 function baseLimitedSubquery(limit: number) {
   return `
     SELECT ${SELECT_FIELDS}
@@ -130,6 +118,8 @@ export async function searchRegistryRecords(
       (
         UPPER(COALESCE(REGISTRY_ID, '')) LIKE UPPER('%${q}%')
         OR UPPER(COALESCE(ENTITY_NAME, '')) LIKE UPPER('%${q}%')
+        OR UPPER(COALESCE(CASE_ID, '')) LIKE UPPER('%${q}%')
+        OR UPPER(COALESCE(APPLICATION_ID, '')) LIKE UPPER('%${q}%')
       )
     `);
   }
@@ -163,25 +153,18 @@ export async function getRegistryRecordById(
   return rows[0] ? toRegistryRow(rows[0]) : null;
 }
 
-/**
- * 🔥 PERFORMANCE FIX: remove full DISTINCT scan
- */
 export async function getRegistryFilterOptions(): Promise<RegistryFilterOptions> {
   const rows = await sfQuery<{
     country: string | null;
     organization: string | null;
     entityType: string | null;
     certificationStatus: string | null;
-    lifecycleStatus: string | null;
-    visibilityStatus: string | null;
   }>(`
     SELECT
       COUNTRY              AS "country",
       ENTITY_NAME          AS "organization",
-      NULL                 AS "entityType",
-      CERTIFICATION_STATUS AS "certificationStatus",
-      NULL                 AS "lifecycleStatus",
-      NULL                 AS "visibilityStatus"
+      ENTITY_TYPE          AS "entityType",
+      CERTIFICATION_STATUS AS "certificationStatus"
     FROM (${baseLimitedSubquery(500)})
   `);
 
@@ -189,16 +172,12 @@ export async function getRegistryFilterOptions(): Promise<RegistryFilterOptions>
   const organizations = new Set<string>();
   const entityTypes = new Set<string>();
   const statuses = new Set<string>();
-  const lifecycleStatuses = new Set<string>();
-  const visibilityStatuses = new Set<string>();
 
   for (const row of rows) {
     if (row.country) countries.add(row.country);
     if (row.organization) organizations.add(row.organization);
     if (row.entityType) entityTypes.add(row.entityType);
     if (row.certificationStatus) statuses.add(row.certificationStatus);
-    if (row.lifecycleStatus) lifecycleStatuses.add(row.lifecycleStatus);
-    if (row.visibilityStatus) visibilityStatuses.add(row.visibilityStatus);
   }
 
   return {
@@ -206,7 +185,7 @@ export async function getRegistryFilterOptions(): Promise<RegistryFilterOptions>
     organizations: Array.from(organizations).sort(),
     entityTypes: Array.from(entityTypes).sort(),
     statuses: Array.from(statuses).sort(),
-    lifecycleStatuses: Array.from(lifecycleStatuses).sort(),
-    visibilityStatuses: Array.from(visibilityStatuses).sort(),
+    lifecycleStatuses: [],
+    visibilityStatuses: [],
   };
 }

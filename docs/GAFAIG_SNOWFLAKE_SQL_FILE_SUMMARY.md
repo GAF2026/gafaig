@@ -1,6 +1,6 @@
-GAFAIG_SNOWFLAKE_SQL_FILE_SUMMARY.md
+# GAFAIG_SNOWFLAKE_SQL_FILE_SUMMARY.md
 
-Last Updated: 2026-05-02
+Last Updated: 2026-05-04
 
 PURPOSE
 
@@ -8,7 +8,7 @@ This file summarizes all active Snowflake SQL files, objects, and execution logi
 
 GAFAIG is a deterministic governance verification system. All scoring, certification, lifecycle state, registry publication, and public trust outputs originate in Snowflake and are exposed through controlled public views.
 
-This update preserves the original file structure and intent while aligning the file to the current bounded-validity lifecycle, registry publish procedure, verification contract, and public trust layer state.
+This update preserves the original file structure and intent while aligning the file to the current bounded-validity lifecycle, registry publish procedure, verification contract, public trust layer state, current public page alignment, and the next Snowflake validation phase.
 
 NON-NEGOTIABLE RULES
 
@@ -174,6 +174,7 @@ CORE.PARTICIPANTS
 Status:
 
 Must be validated before rebuild execution.
+This remains an immediate blocker before deterministic pipeline execution.
 
 FINDINGS LAYER
 
@@ -254,6 +255,7 @@ Tracks actions, timestamps, workflow transitions, scoring actions, approval acti
 Status:
 
 Must be validated before rebuild execution.
+This remains an immediate blocker before deterministic pipeline execution.
 
 SCORING SNAPSHOT LAYER
 
@@ -407,6 +409,33 @@ Public layer must remain score-blind
 Certification status is derived from approved + published + valid state
 Do not reference IS_PUBLISHABLE unless CORE.V_CASE_RENEWAL_STATUS explicitly exposes it
 Current system should derive publishability from approved + bounded validity
+
+Public UI alignment currently expects:
+
+REGISTRY_ID
+ENTITY_NAME
+ENTITY_TYPE
+COUNTRY
+CERTIFICATION_STATUS
+CERTIFIED_AT
+VALID_FROM
+VALID_TO
+PUBLISHED_AT
+LIFECYCLE_STATUS
+RENEWAL_STATUS
+VISIBILITY_STATUS
+VERIFICATION_ELIGIBLE
+BADGE_ELIGIBLE
+
+Public UI must not expose:
+
+APPLICATION_ID
+CASE_ID
+Internal scoring
+Raw findings
+Raw evidence
+Reviewer workflow
+Private decision internals
 
 CASE RENEWAL VIEW
 
@@ -766,6 +795,8 @@ Must return proof
 Must return messageString
 Must sign deterministic messageString
 Must expose ISO timestamps
+Must use proof.messageString as the canonical signed payload
+Must not reconstruct signed payload from parsed JSON fields
 
 REGISTRY ENDPOINT
 
@@ -781,6 +812,8 @@ Projection only
 No score computation
 No lifecycle recomputation
 No certification derivation
+Must return public-safe registry fields only
+Must support registryId filtering for detail pages
 
 BADGE ENDPOINT
 
@@ -794,6 +827,8 @@ Rules:
 
 Projection only
 No trust computation outside Snowflake
+Badge eligibility must derive from public Snowflake output
+Must fail closed if record is invalid or unavailable
 
 PUBLIC KEY ENDPOINT
 
@@ -806,6 +841,7 @@ crv: Ed25519
 alg: EdDSA
 kid
 publicKey
+publicKeyPem and/or compatible public key material required by verifier surfaces
 
 EXPLORER ENDPOINT
 
@@ -827,7 +863,25 @@ Must fail closed or return controlled empty state
 
 PUBLIC UI CONTRACTS
 
-Registry list:
+HOME PAGE
+
+/app/page.tsx
+
+Current state:
+
+Homepage messaging aligned to GAFAIG’s formal identity and public trust positioning.
+Eyebrow uses Global Authority for AI Governance.
+Hero language emphasizes independently verifiable AI governance, signed certification records, and cryptographic proof.
+Why GAFAIG Exists section uses principle-based framing: AI governance must be independently verifiable.
+
+Rules:
+
+No certification computation
+No proof verification logic
+No Snowflake logic
+Display only public-facing positioning and links
+
+REGISTRY LIST
 
 /app/registry/page.tsx
 
@@ -838,18 +892,87 @@ Display only public view fields
 Normalize rows before rendering
 Fail gracefully if query fails
 Never compute certification
+Never expose Application ID
+Never expose Case ID
 
-Registry detail:
+Current public labels:
+
+PUBLIC CERTIFICATION REGISTRY
+Verify This Record
+Open Certification Record
+View Proof JSON
+
+Registry list is the public index of certified records.
+
+REGISTRY DETAIL
 
 /app/registry/[registryId]/page.tsx
 
 Must:
 
-Display public record
-Link to verification
+Display public certification record
+Link to full proof page
 Use registryId unchanged
+Never expose Application ID
+Never expose Case ID
+Never expose workflow internals
 
-Explorer:
+Current public labels:
+
+PUBLIC CERTIFICATION RECORD
+Verify This Record
+Open Full Proof Page
+Proof JSON
+Widget Preview
+Proof API
+Certification Record
+
+VERIFY TOOL
+
+/app/verify/page.tsx
+/app/verify/VerifyClient.tsx
+
+Must:
+
+Allow entry of registry ID
+Load latest certified record example
+Display public record proof state
+Use exact messageString
+Never reconstruct messageString
+Verify signature using public key
+Differentiate certification record from proof record
+
+Current public labels:
+
+Verify This Record
+Open full proof page
+View Proof JSON
+Open Certification Record
+Load latest certified record (example)
+
+VERIFY PROOF PAGE
+
+/app/verify/[registryId]/page.tsx
+
+Must:
+
+Display verification result
+Rely on API verify response
+Never reconstruct messageString
+Validate exact messageString
+Expose proof materials
+Never expose Application ID
+Never expose Case ID
+
+Current public labels:
+
+PUBLIC PROOF RECORD
+View Proof JSON
+Certification Record
+Open Certification Record
+Copy Proof JSON
+
+EXPLORER
 
 /app/explorer/page.tsx
 /app/explorer/organizations/page.tsx
@@ -862,16 +985,28 @@ Use public-safe query layer
 Render null-safe data
 Never expose workflow internals
 Never derive trust state
+Must be revalidated after Snowflake public view validation
 
-Verify page:
+DEVELOPERS PAGE
 
-/app/verify/[registryId]/page.tsx
+/app/developers/page.tsx
+
+Current state:
+
+Developer page includes Fast Install section.
+SDK is presented as canonical production integration path.
+Advanced widget/modal runtimes are separated from recommended SDK path.
+Public Key button uses outlined pill styling.
+Developer docs reinforce messageString-only verification.
 
 Must:
 
-Display verification result
-Rely on API verify response
-Never reconstruct messageString
+Present SDK as canonical integration surface
+Recommend versioned SDK files
+Explain proof object
+Explain failure modes
+Never suggest reconstructing payloads
+Never expose private governance records
 
 TRUST SURFACE
 
@@ -888,6 +1023,14 @@ Uses public verification key
 No trust assumed from host system
 Fail closed on mismatch
 Displays unavailable state instead of crashing
+
+Current public labels:
+
+Verify This Record
+Open Certification Record
+View Proof JSON
+Public Certification + Cryptographic Proof
+Certified by GAFAIG and independently verifiable using cryptographic proof
 
 SDK:
 
@@ -934,27 +1077,54 @@ DAYS_TO_EXPIRY fixed in CORE.V_CASE_RENEWAL_STATUS
 CORE.V_REGISTRY_PUBLIC aligned to bounded validity
 Public registry detail route working
 Public registry list route hardened
-Explorer page hardened with null-safe rendering
+Public registry terminology aligned
+Public proof page terminology aligned
+Public verification tool terminology aligned
+Homepage messaging aligned
+Developers page includes Fast Install
 Widget browser-side verification operational
+Widget terminology aligned
 SDK layer operational
+Public pages reviewed and aligned for certification/proof terminology
 
 Active issues / in progress:
 
 12_TABLES_PARTICIPANTS.sql requires final compile validation
 15_TABLES_EVENTS.sql requires final compile validation
-Explorer query contract is being restored after temporary drift
+Explorer query contract requires revalidation after Snowflake public contract validation
 Explorer subpages require revalidation
 Multi-case stress testing not complete
 Lifecycle edge case testing not complete
 Performance optimization not started
+Snowflake validation is the immediate next phase
 
 NEXT PHASE
 
-System stress validation and private workflow completion.
+Snowflake validation and private workflow completion.
+
+Primary validation sequence:
+
+APPLICATION
+→ CASE
+→ FINDINGS
+→ EVIDENCE
+→ EVENTS
+→ SCORING
+→ DECISION
+→ REGISTRY
 
 Goals:
 
-Restore and validate explorer query contract
+Validate 12_TABLES_PARTICIPANTS.sql
+Validate 15_TABLES_EVENTS.sql
+Validate CORE.V_REGISTRY_PUBLIC
+Validate CORE.V_REGISTRY_LATEST_APPROVED
+Validate CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC
+Validate scoring snapshots
+Validate decision lifecycle
+Validate registry snapshot append-only behavior
+Validate registry publish procedure
+Validate explorer query contract
 Validate explorer subpages
 Stress test multi-case registry
 Test expired records
@@ -966,6 +1136,51 @@ Validate widget fail-closed behavior
 Validate SDK failure handling
 Complete canonical validation runner usage
 Complete private workflow polish
+
+POST-VALIDATION FUTURE PHASE
+
+AI INTELLIGENCE LAYER
+
+AI will be created as a separate Snowflake-backed recommendation system after Snowflake validation is complete.
+
+AI must be advisory only.
+
+AI may:
+
+Observe governance patterns
+Learn from verification cases
+Identify recurring evidence gaps
+Recommend new governance controls
+Recommend schema or standard improvements
+Highlight top governance structures
+Assist pre-submission guidance
+Support global benchmarking
+
+AI must NOT:
+
+Assign FINAL_SCORE
+Assign CERTIFICATION_TIER
+Assign CERTIFICATION_BAND
+Create DECISION_STATUS
+Publish registry records
+Modify signed payloads
+Override Snowflake outputs
+
+Canonical AI rule:
+
+AI suggests
+Humans approve
+Snowflake decides
+Registry publishes
+Proof verifies
+
+Potential future tables:
+
+CORE.AI_OBSERVATIONS
+CORE.AI_RECOMMENDATIONS
+CORE.AI_RISK_PATTERNS
+CORE.AI_STANDARD_UPDATES
+CORE.AI_RECOMMENDATION_REVIEWS
 
 FINAL SYSTEM DEFINITION
 

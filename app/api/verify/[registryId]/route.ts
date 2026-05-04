@@ -11,14 +11,6 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-type CanonicalJson =
-  | string
-  | number
-  | boolean
-  | null
-  | CanonicalJson[]
-  | { [key: string]: CanonicalJson };
-
 function getCorsHeaders(): HeadersInit {
   return {
     "Access-Control-Allow-Origin": "*",
@@ -42,43 +34,14 @@ function escapeSqlString(value: string): string {
 
 function toIsoString(value: unknown): string | null {
   if (!value) return null;
-
   const date = new Date(String(value));
   return Number.isNaN(date.getTime()) ? null : date.toISOString();
 }
 
 function isTrue(value: unknown): boolean {
   if (value === true) return true;
-
   const normalized = String(value ?? "").trim().toLowerCase();
   return normalized === "true" || normalized === "1" || normalized === "yes";
-}
-
-function canonicalize(value: unknown): CanonicalJson {
-  if (value === null || value === undefined) return null;
-
-  if (typeof value === "string") return value;
-  if (typeof value === "number") return Number.isFinite(value) ? value : null;
-  if (typeof value === "boolean") return value;
-
-  if (value instanceof Date) return value.toISOString();
-
-  if (Array.isArray(value)) {
-    return value.map((item) => canonicalize(item));
-  }
-
-  if (typeof value === "object") {
-    const input = value as Record<string, unknown>;
-    const output: Record<string, CanonicalJson> = {};
-
-    for (const key of Object.keys(input).sort()) {
-      output[key] = canonicalize(input[key]);
-    }
-
-    return output;
-  }
-
-  return String(value);
 }
 
 function failClosed(
@@ -150,7 +113,7 @@ export async function GET(
     const r = rows[0];
 
     const record = {
-      registryId: r.REGISTRY_ID,
+      registryId: r.REGISTRY_ID ?? null,
       registrySnapshotId: r.REGISTRY_SNAPSHOT_ID ?? null,
       applicationId: r.APPLICATION_ID ?? null,
       caseId: r.CASE_ID ?? null,
@@ -169,6 +132,10 @@ export async function GET(
       badgeEligible: isTrue(r.BADGE_ELIGIBLE),
     };
 
+    if (!record.registryId) {
+      return failClosed(registryId, "Registry ID unavailable", 500);
+    }
+
     if (!record.verificationEligible) {
       return failClosed(
         registryId,
@@ -177,25 +144,15 @@ export async function GET(
       );
     }
 
-    const message = canonicalize({
+    const message = {
       registryId: record.registryId,
-      registrySnapshotId: record.registrySnapshotId,
-      applicationId: record.applicationId,
-      caseId: record.caseId,
       entityName: record.entityName,
-      entityType: record.entityType,
-      country: record.country,
       certificationStatus: record.certificationStatus,
       certifiedAt: record.certifiedAt,
       validFrom: record.validFrom,
       validTo: record.validTo,
       publishedAt: record.publishedAt,
-      renewalStatus: record.renewalStatus,
-      lifecycleStatus: record.lifecycleStatus,
-      visibilityStatus: record.visibilityStatus,
-      verificationEligible: record.verificationEligible,
-      badgeEligible: record.badgeEligible,
-    }) as Record<string, unknown>;
+    };
 
     const messageString = JSON.stringify(message);
 

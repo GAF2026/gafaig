@@ -1,6 +1,6 @@
-VERIFIED_DEFINITION.md
+# VERIFIED_DEFINITION.md
 
-Last Updated: 2026-05-02
+Last Updated: 2026-05-04
 
 PURPOSE
 
@@ -13,18 +13,23 @@ CORE DEFINITION
 A GAFAIG record is Verified = true if and only if ALL of the following conditions are satisfied:
 
 Record Exists
+
 A record with the given REGISTRY_ID exists in CORE.V_REGISTRY_PUBLIC.
 
 Public Record Contract
+
 The record returned is a direct projection of the canonical public view (CORE.V_REGISTRY_PUBLIC) without recomputation of trust fields in API, UI, SDK, or widget layers.
 
 Signed Payload Present
+
 The verify endpoint returns a proof object containing a signature over a canonical messageString.
 
 Canonical messageString Present
+
 The proof object contains proof.messageString exactly as signed by GAFAIG.
 
 Signature Validity (External Check)
+
 The signature can be validated against the public key retrieved from /api/.well-known/gafaig-public-key using Ed25519.
 
 If any of the above conditions fail, the record must be treated as Verified = false.
@@ -40,19 +45,25 @@ reconstructed payloads
 proof.message
 UI-rendered data
 SDK convenience outputs
+widget-rendered data
+badge-rendered data
 
 GLOBAL TRUST INVARIANTS
 
 VERIFY API IS THE PROTOCOL CONTRACT
+
 /api/verify is the canonical external verification interface.
 
 MESSAGESTRING IS THE ONLY VERIFICATION INPUT
+
 Verification MUST use proof.messageString exactly.
 
 NEVER VERIFY FROM JSON
+
 Verification must NEVER use parsed JSON fields or reconstructed payloads.
 
 DETERMINISTIC PAYLOAD GUARANTEE
+
 Field order MUST remain stable across:
 
 Snowflake
@@ -62,13 +73,16 @@ Snowflake
 → external verifier
 
 SIGNATURE VS LIFECYCLE SEPARATION
+
 Signature = authenticity
 Lifecycle = current trust state
 
 FAIL-CLOSED SYSTEM
+
 ANY failure → Verified = false
 
 WIDGETS MUST FAIL CLOSED
+
 Widgets MUST display invalid, unavailable, expired, or revoked states when verification or lifecycle fails.
 
 WHAT “VERIFIED” IS NOT
@@ -86,6 +100,9 @@ a JSON-based validation
 a static widget display
 a screenshot
 a manually copied record
+a claim that an entire organization is certified
+a claim that all future systems are certified
+a replacement for the public proof record
 
 Verification is a cryptographic property of a Snowflake-originated public record.
 
@@ -120,6 +137,12 @@ No other layer may redefine these fields.
 CRITICAL:
 
 This view is the canonical payload foundation used to generate messageString. Any structural change that impacts signed payload fields must be treated as a cryptographic breaking change.
+
+PUBLIC UI EXPOSURE NOTE
+
+Although CORE.V_REGISTRY_PUBLIC may include CASE_ID and APPLICATION_ID for internal public-contract continuity and signed payload stability, public-facing UI pages must not display Application ID or Case ID.
+
+These IDs may remain in API payloads only if required by the signed message contract and must not be treated as user-facing trust copy.
 
 VERIFY ENDPOINT CONTRACT
 
@@ -227,6 +250,7 @@ Certification:
 
 A state of the record (CERTIFIED)
 Defined by Snowflake
+Represents the finalized public trust outcome
 
 Verification:
 
@@ -237,6 +261,10 @@ Relationship:
 
 Certification is the claim.
 Verification proves the claim is authentic.
+
+Approval is internal.
+Certification is public.
+Verification is proof.
 
 CANONICAL MESSAGE (SIGNED PAYLOAD)
 
@@ -271,6 +299,7 @@ Message must not include findings
 Message must not include reviewer notes
 Message must not include private workflow data
 Message must not expand without versioning
+If applicationId or caseId remain in the signed message, they are machine-contract fields and must not be shown as public UI labels
 
 PROOF OBJECT
 
@@ -326,6 +355,7 @@ Must rely on API response
 Must not compute verification
 Must not reconstruct messageString
 Must not verify from JSON fields
+Must not expose Application ID or Case ID as public-facing trust labels
 
 SDK:
 
@@ -334,6 +364,7 @@ Must expose getPublicKey()
 Must not compute trust locally
 Must not verify from JSON
 Must not reconstruct payloads
+Must fail closed
 
 Widgets:
 
@@ -342,12 +373,37 @@ Must not embed static trust
 Must fail closed on verification failure
 Must link to /verify/[registryId]
 Must use “Verify This Record” CTA
+Must use proof.messageString for cryptographic validation where browser verification is supported
 
 Badges:
 
 Must not represent proof
 Must link to verification endpoint
 Must respect lifecycleStatus and badgeEligible
+Must fail safely when unavailable
+
+PUBLIC TERMINOLOGY ALIGNMENT
+
+GAFAIG public surfaces should use:
+
+Public Certification Registry
+Public Certification Record
+Public Proof Record
+Verify This Record
+Open Certification Record
+Open Full Proof Page
+Proof JSON
+Proof API
+Widget Preview
+Public Certification + Cryptographic Proof
+
+Avoid or replace:
+
+Raw Verification JSON → Proof JSON
+Registry Record → Certification Record
+Open JSON → View Proof JSON
+Application ID → not displayed publicly
+Case ID → not displayed publicly
 
 FAILURE CONDITIONS
 
@@ -363,6 +419,9 @@ Public key mismatch
 Message tampered
 messageString altered
 Payload must be reconstructed to verify
+Unexpected signing algorithm
+Malformed proof
+Malformed key response
 
 CRITICAL:
 
@@ -417,6 +476,13 @@ reviewer notes
 private workflow data
 private key material
 
+Public UI pages must NOT expose:
+
+Application ID
+Case ID
+Private workflow state
+Internal scoring state
+
 APPROVAL VS CERTIFICATION
 
 Approval: internal workflow state
@@ -425,6 +491,7 @@ Verification: cryptographic validation
 
 Approval alone does not create public trust.
 Certification requires publication to the public registry layer.
+Verification proves that the public certification record is authentic.
 
 RECORD-LEVEL VERIFICATION
 
@@ -436,6 +503,8 @@ entire organization is certified
 all systems are certified
 all future systems are certified
 internal evidence is public
+private scoring has been disclosed
+reviewer notes have been disclosed
 
 The public record defines the scope of verification.
 
@@ -482,6 +551,8 @@ changing field order
 changing algorithm
 changing messageString construction
 changing public contract
+changing lifecycle semantics
+changing public key format
 
 CURRENT ACTIVE VALUES
 
@@ -519,6 +590,52 @@ proof present
 messageString present
 signature present
 
+CURRENT SYSTEM STATE
+
+Working:
+
+Verification API locked to deterministic signed payload
+messageString present
+signature present
+verificationKeyUrl present
+public key endpoint operational
+Ed25519 signing validated
+external Node verification passes
+external Python verification passes
+tamper test passes
+registry detail route working
+registry list route hardened
+registry terminology aligned
+proof page terminology aligned
+verify tool terminology aligned
+homepage messaging aligned
+developers page updated with Fast Install
+widget verification language aligned
+widget CTA standardized to “Verify This Record”
+widget browser-side payload verification operational
+public key page available
+developers page includes public key usage
+bounded validity model active
+VALID_FROM / VALID_TO populated for approved records
+DAYS_TO_EXPIRY fixed in renewal view
+public registry view aligned to current bounded validity model
+public pages no longer expose Application ID or Case ID in user-facing pages
+
+Active system work:
+
+Snowflake validation is next
+12_TABLES_PARTICIPANTS.sql requires final compile validation
+15_TABLES_EVENTS.sql requires final compile validation
+CORE.V_REGISTRY_PUBLIC requires deep contract validation
+CORE.V_REGISTRY_LATEST_APPROVED requires validation
+CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC requires validation
+Explorer query contract requires revalidation after Snowflake public contract validation
+Explorer subpage revalidation
+multi-case stress testing
+edge lifecycle testing
+widget fail-closed validation at scale
+SDK failure handling validation at scale
+
 DO NOT BREAK
 
 Do not:
@@ -533,6 +650,11 @@ rely on UI for trust
 change signed message without contract update
 expose score internally
 mutate registry tables manually
+create additional seed files
+show Application ID publicly
+show Case ID publicly
+rename Proof JSON back to Raw Verification JSON
+rename Certification Record back to Registry Record
 
 FINAL DEFINITION
 
@@ -548,5 +670,9 @@ can be independently verified using GAFAIG’s public key
 
 If these conditions are met, the record is authentic, tamper-resistant, and independently verifiable.
 
+Lifecycle must still be evaluated separately to determine whether the authentic record is currently active, expired, or revoked.
+
 GAFAIG verification is not a claim.
 It is a cryptographic fact.
+
+END OF FILE
