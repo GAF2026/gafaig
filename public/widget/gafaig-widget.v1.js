@@ -685,7 +685,7 @@
       '" target="_blank" rel="noopener noreferrer">Open GAFAIG record</a>' +
       '<a class="gafaig-widget-btn gafaig-widget-btn-secondary" href="' +
       verifyApiUrl +
-      '" target="_blank" rel="noopener noreferrer">View Raw Verification JSON</a>' +
+      '" target="_blank" rel="noopener noreferrer">View Proof JSON</a>' +
       "</div>" +
       "</div>";
   }
@@ -761,14 +761,14 @@
       '<h3 class="gafaig-widget-title">' +
       esc(entityName) +
       "</h3>" +
-      '<p class="gafaig-widget-copy">Portable public trust signal backed by independent browser-side Ed25519 verification of the canonical GAFAIG messageString.</p>' +
+      '<p class="gafaig-widget-copy">Certified by GAFAIG and independently verifiable using cryptographic proof.</p>' +
       '<div class="gafaig-widget-actions">' +
       '<a class="gafaig-widget-btn gafaig-widget-btn-primary" href="' +
       verifyPageUrl +
       '" target="_blank" rel="noopener noreferrer">Verify This Record</a>' +
       '<a class="gafaig-widget-btn gafaig-widget-btn-secondary" href="' +
       verifyApiUrl +
-      '" target="_blank" rel="noopener noreferrer">View Raw Verification JSON</a>' +
+      '" target="_blank" rel="noopener noreferrer">View Proof JSON</a>' +
       "</div>" +
       "</div>";
   }
@@ -872,7 +872,10 @@
       '<h3 class="gafaig-widget-title">' +
       esc(entityName) +
       "</h3>" +
-      '<p class="gafaig-widget-copy">Public trust record verified through the GAFAIG verification endpoint and independently checked in the browser against the public verification key.</p>' +
+      '<div class="gafaig-widget-copy" style="margin-top:4px;font-size:11px;color:rgba(11,11,12,0.55);">' +
+      "Public Certification + Cryptographic Proof" +
+      "</div>" +
+      '<p class="gafaig-widget-copy">This record is certified by GAFAIG and independently verified using cryptographic proof. Anyone can validate its authenticity using the GAFAIG public key.</p>' +
       '<div class="gafaig-widget-trust-panel">' +
       '<div class="gafaig-widget-trust-header">' +
       '<div class="gafaig-widget-trust-title">Public trust summary</div>' +
@@ -915,13 +918,13 @@
       '" target="_blank" rel="noopener noreferrer">Verify This Record</a>' +
       '<a class="gafaig-widget-btn gafaig-widget-btn-secondary" href="' +
       recordUrl +
-      '" target="_blank" rel="noopener noreferrer">View Registry Record</a>' +
+      '" target="_blank" rel="noopener noreferrer">Open Certification Record</a>' +
       '<a class="gafaig-widget-btn gafaig-widget-btn-secondary" href="' +
       verifyApiUrl +
-      '" target="_blank" rel="noopener noreferrer">View Raw Verification JSON</a>' +
+      '" target="_blank" rel="noopener noreferrer">View Proof JSON</a>' +
       "</div>" +
       '<div class="gafaig-widget-footer">' +
-      'Verified via GAFAIG public trust infrastructure · <a href="' +
+      'Verified using GAFAIG public verification system · <a href="' +
       verifyApiUrl +
       '" target="_blank" rel="noopener noreferrer">View signed verification JSON</a>' +
       "</div>" +
