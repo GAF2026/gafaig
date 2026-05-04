@@ -498,7 +498,7 @@ export default function VerifyClient({
               disabled={state.status === "loading" || !latestId}
               className="inline-flex h-14 items-center justify-center rounded-full border border-black/15 px-6 text-sm font-semibold transition hover:bg-black/[0.04] disabled:cursor-not-allowed disabled:opacity-60"
             >
-              Load latest certified record
+              Load latest certified record (example)
             </button>
           </div>
 
@@ -851,7 +851,7 @@ export default function VerifyClient({
                 ) : null}
 
                 <PublicButtonLink href={verifyEndpointUrl} variant="secondary">
-                  Open raw verification JSON
+                  View Proof JSON
                 </PublicButtonLink>
 
                 {proof.verificationKeyUrl ? (
@@ -868,7 +868,7 @@ export default function VerifyClient({
                     href={`/registry/${encodeURIComponent(record.registryId)}`}
                     variant="secondary"
                   >
-                    Open registry record
+                    Open Certification Record
                   </PublicButtonLink>
                 ) : null}
               </div>
