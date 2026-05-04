@@ -1,4 +1,3 @@
-import Link from "next/link";
 import PublicPageHero from "../_components/PublicPageHero";
 import PublicButtonLink from "../_components/PublicButtonLink";
 import {
@@ -81,6 +80,12 @@ function normalizeRow(row: Partial<RegistryPageRow> | null | undefined): Registr
  * 🔒 HARD LOCK — no fallback logic
  */
 function getStatusLabel(row: RegistryPageRow): string {
+  const status = clean(row.lifecycleStatus).toLowerCase();
+
+  if (status === "active") return "Certified";
+  if (status === "expired") return "Expired";
+  if (status === "revoked") return "Revoked";
+
   return formatLabel(row.certificationStatus);
 }
 
@@ -120,7 +125,7 @@ function RegistryUnavailableState() {
     <main className="mx-auto max-w-[1180px] px-6 py-10">
       <div className="space-y-8">
         <PublicPageHero
-          eyebrow="Registry of Record"
+          eyebrow="PUBLIC CERTIFICATION REGISTRY"
           title="Browse the GAFAIG public registry"
           description="The public registry is temporarily unavailable."
           secondaryDescription="The registry surface is read-only and depends on the canonical Snowflake public view. Please try again shortly."
@@ -227,14 +232,7 @@ function RegistryCard({ row }: { row: RegistryPageRow }) {
             </div>
           </div>
 
-          <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
-            <div className="text-[12px] font-semibold uppercase tracking-[0.24em] text-black/40">
-              Registry ID
-            </div>
-            <div className="mt-3 break-all text-[15px] leading-7 text-black">
-              {row.registryId}
-            </div>
-          </div>
+          
         </div>
 
         <div className="flex flex-wrap gap-3 pt-1">
@@ -249,14 +247,14 @@ function RegistryCard({ row }: { row: RegistryPageRow }) {
             href={`/registry/${encodeURIComponent(row.registryId)}`}
             variant="secondary"
           >
-            View Registry Record
+            Open Certification Record
           </PublicButtonLink>
 
           <PublicButtonLink
             href={`/api/verify/${encodeURIComponent(row.registryId)}`}
             variant="secondary"
           >
-            View JSON Proof
+            View Proof JSON
           </PublicButtonLink>
         </div>
       </div>
@@ -334,10 +332,10 @@ export default async function RegistryPage({
     <main className="mx-auto max-w-[1180px] px-6 py-10">
       <div className="space-y-8">
         <PublicPageHero
-          eyebrow="Registry of Record"
+          eyebrow="PUBLIC CERTIFICATION REGISTRY"
           title="Browse the GAFAIG public registry"
-          description="Browse independently verifiable public certification records by organization, jurisdiction, and registry identifier."
-          secondaryDescription="Use Registry when you want to inspect a specific certified public trust record. Registry is the canonical record-by-record surface for viewing finalized public certification records and their verification proof."
+          description="Browse publicly certified AI systems and their verification records. Every record is independently verifiable using GAFAIG’s cryptographic proof system."
+          secondaryDescription="Each record links to a full certification page and a publicly verifiable proof record."
           actions={
             <>
               <PublicButtonLink href="/explorer" variant="primary">
