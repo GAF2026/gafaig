@@ -528,11 +528,7 @@ export default async function VerifyPage({
           </h1>
 
           <div className="mt-4 max-w-4xl text-[15px] leading-7 text-black/75">
-            This page is the public proof surface for a GAFAIG record. It shows
-            the certification window, signature validation result, public key
-            reference, signed payload, and machine-readable verification object
-            needed to independently review the record outside the originating
-            organization’s platform.
+            This page exposes the public proof behind a GAFAIG certification record. It includes the signed payload, verification key, and validation result required for independent verification.
           </div>
 
           <div className="mt-6 grid gap-4 md:grid-cols-4">
@@ -563,7 +559,7 @@ export default async function VerifyPage({
               rel="noreferrer"
               className="inline-flex min-h-[42px] items-center justify-center rounded-full border border-black/20 bg-white px-5 text-sm font-semibold text-black transition hover:bg-black hover:text-white"
             >
-              View Raw Verification JSON
+              View Proof JSON
             </a>
 
             <PublicButtonLink
@@ -655,7 +651,7 @@ export default async function VerifyPage({
               <ActionButton label="Copy Signed Payload" copyValue={signedPayload} />
               <ActionButton label="Copy Public Key URL" copyValue={verificationKeyUrl} />
               <ActionButton label="Copy Verification curl" copyValue={verifyCurl} />
-              <ActionButton label="Copy Raw Verification JSON" copyValue={rawVerifyJson} />
+              <ActionButton label="Copy Proof JSON" copyValue={rawVerifyJson} />
             </div>
           </div>
         </section>
@@ -682,8 +678,6 @@ export default async function VerifyPage({
           <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
             <InfoCard label="Registry ID" value={registryId} />
             <InfoCard label="Registry Snapshot ID" value={registrySnapshotId} />
-            <InfoCard label="Application ID" value={applicationId} />
-            <InfoCard label="Case ID" value={caseId} />
           </div>
 
           <div className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
@@ -762,10 +756,10 @@ export default async function VerifyPage({
 
           <div className="mt-6 grid gap-4 md:grid-cols-4">
             <FeatureCard
-              title="Registry record"
+              title="Certification Record"
               body="Open the public certification record that this proof supports."
               href={`/registry/${encodeURIComponent(registryId)}`}
-              cta="Open record"
+              cta="Open Certification Record"
             />
             <FeatureCard
               title="Widget preview"
@@ -777,7 +771,7 @@ export default async function VerifyPage({
               title="Verify JSON"
               body="Open the machine-readable proof returned by the verification endpoint."
               href={`/api/verify/${encodeURIComponent(registryId)}`}
-              cta="Open JSON"
+              cta="View Proof JSON"
             />
             <FeatureCard
               title="Demo flow"
