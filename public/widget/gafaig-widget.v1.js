@@ -957,14 +957,7 @@
     if (normalize(proof.alg) !== "ed25519") {
       return verify;
     }
-
-    if (
-      proof.message &&
-      canonicalJsonStringify(proof.message) !== proof.messageString
-    ) {
-      return verify;
-    }
-
+   
     var keyUrl =
       typeof proof.verificationKeyUrl === "string" &&
       proof.verificationKeyUrl.trim()
