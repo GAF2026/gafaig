@@ -420,7 +420,34 @@ export default function DevelopersPage() {
           }
         />
 
-        
+        <section className="rounded-3xl border border-black/10 bg-black/[0.02] p-8">
+          <SectionHeading
+            eyebrow="FAST INSTALL"
+            title="Add GAFAIG to your site in under 30 seconds"
+            body="Copy and paste this snippet to display a verified GAFAIG trust signal on your site."
+          />
+
+          <div className="mt-6">
+            <CodeCard
+              title="Paste into your HTML"
+              language="HTML"
+              code={`<script src="https://www.gafaig.com/sdk/gafaig.v1.js"></script>
+
+<div data-gafaig-id="GAFAIG-00000001"></div>`}
+            />
+          </div>
+
+          <div className="mt-6 flex gap-3">
+            <PublicButtonLink href="/widget-preview/GAFAIG-00000001" variant="primary">
+              See it live
+            </PublicButtonLink>
+
+            <PublicButtonLink href="#install" variant="secondary">
+              Full integration guide
+            </PublicButtonLink>
+          </div>
+        </section>
+
         <JumpNav />
 
         <section className="rounded-3xl border border-black/10 bg-white p-8">
