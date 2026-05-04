@@ -90,10 +90,9 @@ export default async function HomePage() {
     <main className="mx-auto max-w-[1180px] px-6 py-10">
       <div className="space-y-8">
         <PublicPageHero
-          eyebrow="VERIFIABLE AI GOVERNANCE"
+          eyebrow="GLOBAL AUTHORITY FOR AI GOVERNANCE"
           title="AI governance, independently verifiable."
-          description="GAFAIG is the first system that makes AI governance verifiable. Organizations don’t just claim oversight—they publish signed certification records that anyone can validate using cryptographic proof."
-          secondaryDescription="Every certified record includes a signed payload that can be independently verified using GAFAIG’s public key."
+          description="GAFAIG is the first system that makes AI governance independently verifiable. With GAFAIG, organizations don’t just claim oversight—they publish signed certification records that anyone can independently verify using cryptographic proof. Every certified record includes a signed payload that can be independently verified using GAFAIG’s public key."
           actions={
             <>
               <PublicButtonLink href="/certification" variant="primary">
