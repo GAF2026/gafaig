@@ -165,10 +165,10 @@ export default async function RegistryRecordPage({
                 Open Full Proof Page
               </PublicButtonLink>
               <PublicButtonLink href={verifyJsonHref} variant="secondary">
-                JSON Proof
+                Proof JSON
               </PublicButtonLink>
               <PublicButtonLink href={widgetHref} variant="secondary">
-                Widget
+                Widget Preview
               </PublicButtonLink>
             </div>
           </div>
@@ -202,14 +202,14 @@ export default async function RegistryRecordPage({
           </h2>
 
           <div className="mt-6 grid gap-4 md:grid-cols-3">
-            <DetailCard label="Verification API" value={verifyJsonHref} />
-            <DetailCard label="Registry Page" value={registryHref} />
+            <DetailCard label="Proof API" value={verifyJsonHref} />
+            <DetailCard label="Certification Record" value={registryHref} />
             <DetailCard label="Widget Preview" value={widgetHref} />
           </div>
 
           <div className="mt-6 flex flex-wrap gap-3">
             <PublicButtonLink href={verifyJsonHref} variant="secondary">
-              Open verification JSON
+              View Proof JSON
             </PublicButtonLink>
             <PublicButtonLink href="/registry" variant="secondary">
               Back to registry
