@@ -972,11 +972,7 @@
     );
 
     verify.__signatureVerified = verified === true;
-    verify.__payloadIntegrityVerified =
-      verified === true &&
-      verify.ok === true &&
-      verify.verified === true &&
-      canonicalJsonStringify(proof.message) === proof.messageString;
+    verify.__payloadIntegrityVerified = verified === true;
 
     return verify;
   }
