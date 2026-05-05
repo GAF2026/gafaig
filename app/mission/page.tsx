@@ -10,8 +10,8 @@ export default function MissionPage() {
           <PublicPageHero
             eyebrow="MISSION"
             title="Why GAFAIG exists"
-            description="GAFAIG establishes a verifiable standard for AI governance by combining structured evaluation with cryptographic verification. Certification outcomes are published as independently verifiable public records backed by signed proof."
-            secondaryDescription="GAFAIG combines a private verification engine with a public trust layer, adding cryptographic verification to AI governance certification. Internal governance is reviewed in a controlled environment, while only the certification outcome is published as an independently verifiable public trust record backed by signed proof. Organizations can prove certified AI governance without exposing internal systems, evidence, or workflows."
+            description="GAFAIG establishes a verifiable standard for AI governance by combining structured evaluation with cryptographic verification. Certification outcomes can be published as independently verifiable public records backed by signed proof when the organization elects to make the certified record public."
+            secondaryDescription="GAFAIG combines a private verification engine with a public trust layer, adding cryptographic verification to AI governance certification. Internal governance is reviewed in a controlled environment, while only the certification outcome may be published as an independently verifiable public trust record backed by signed proof if the organization elects publication. Organizations can prove certified AI governance without exposing internal systems, evidence, or workflows."
           />
         </div>
 
@@ -23,8 +23,9 @@ export default function MissionPage() {
           <p className="mt-4 text-[15px] leading-7 text-black/75">
             AI governance is increasingly required, but most systems rely on
             internal attestations, opaque audits, or unverifiable claims. GAFAIG
-            introduces a model where certification is computed, recorded, and
-            published as a verifiable public record.
+            introduces a model where certification is computed and recorded, and
+            may be published as a verifiable public record if the organization
+            elects public listing.
           </p>
 
           <p className="mt-4 text-[15px] text-black/70 max-w-[720px]">
@@ -46,7 +47,7 @@ export default function MissionPage() {
             />
             <StatementCard
               title="With GAFAIG"
-              body="Oversight is evaluated through a structured private process and the certified outcome is published as a public trust record that can be independently verified."
+              body="Oversight is evaluated through a structured private process and the certified outcome may be published as a public trust record that can be independently verified if the organization elects publication."
             />
           </div>
 
@@ -64,11 +65,11 @@ export default function MissionPage() {
           />
           <Pillar
             title="Separate private review from public trust"
-            text="Governance evidence, findings, and internal review materials stay in a controlled verification environment while only the certification outcome is made public."
+            text="Governance evidence, findings, and internal review materials stay in a controlled verification environment while only the certification outcome is made public if the organization elects publication."
           />
           <Pillar
             title="Publish proof"
-            text="Certified outcomes are published as public trust records backed by signed proof and designed for independent verification."
+            text="Certified outcomes that organizations choose to publish become public trust records backed by signed proof and designed for independent verification."
           />
         </section>
 
@@ -98,8 +99,9 @@ export default function MissionPage() {
           <p className="mt-4 text-[15px] leading-7 text-black/75">
             GAFAIG establishes a verification-first model for AI governance. It
             enables organizations to move from internal claims to certified
-            public trust records and gives external stakeholders a clear
-            mechanism to validate those records independently.
+            records, with the option to publish those records as public trust
+            records and gives external stakeholders a clear mechanism to validate
+            those records independently.
           </p>
 
           <p className="mt-4 text-[15px] leading-7 text-black/75">

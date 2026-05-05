@@ -107,10 +107,9 @@ function FilterChip({
 function EmptyState() {
   return (
     <div className="rounded-3xl border border-dashed border-black/10 bg-black/[0.02] px-6 py-14 text-center">
-      <div className="text-lg font-semibold text-black">No registry records found</div>
-      <p className="mt-2 text-sm leading-6 text-black/60">
-        Try changing or clearing your filters to see more certified public records.
-      </p>
+      <div className="text-lg font-semibold text-black">
+        No published records available. Certification is evaluated privately, and records only appear here if organizations choose to publish them.
+      </div>
       <div className="mt-6">
         <PublicButtonLink href="/registry" variant="secondary">
           Clear all filters
@@ -189,7 +188,7 @@ function RegistryCard({ row }: { row: RegistryPageRow }) {
         <div className="mt-5 grid gap-3 md:grid-cols-3">
           <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
             <div className="text-[12px] font-semibold uppercase tracking-[0.24em] text-black/40">
-              Certified
+              Certified (Published)
             </div>
             <div className="mt-3 text-[15px] leading-7 text-black">
               {formatDate(row.certifiedAt)}
@@ -334,8 +333,8 @@ export default async function RegistryPage({
         <PublicPageHero
           eyebrow="PUBLIC CERTIFICATION REGISTRY"
           title="Browse the GAFAIG public registry"
-          description="Browse publicly certified AI systems and their verification records. Every record is independently verifiable using GAFAIG’s cryptographic proof system."
-          secondaryDescription="Each record links to a full certification page and a publicly verifiable proof record."
+          description="The public registry contains GAFAIG certification records that organizations have chosen to publish. Certification is evaluated privately, and only published records appear in the public registry."
+          secondaryDescription="Explore publicly published GAFAIG certification records."
           actions={
             <>
               <PublicButtonLink href="/explorer" variant="primary">
@@ -354,10 +353,10 @@ export default async function RegistryPage({
               How to read the registry
             </div>
             <h2 className="text-[26px] font-semibold tracking-tight text-black">
-              The registry is the public index of certified records
+              The registry is the public index of published records
             </h2>
             <p className="text-[15px] leading-7 text-black/75">
-              Each entry represents a published GAFAIG certification record that can be independently verified.
+              Each entry represents a GAFAIG certification record that an organization has chosen to publish. Only published records appear in the public registry and can be independently verified.
             </p>
 
             {hasAnyFilters && activeFilters.length > 0 ? (

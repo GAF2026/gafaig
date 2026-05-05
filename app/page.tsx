@@ -92,7 +92,7 @@ export default async function HomePage() {
         <PublicPageHero
           eyebrow="GLOBAL AUTHORITY FOR AI GOVERNANCE"
           title="AI governance, independently verifiable."
-          description="GAFAIG is the first system that makes AI governance verifiable. Organizations don’t just claim oversight—they publish signed certification records that anyone can independently verify using cryptographic proof."
+          description="GAFAIG is the first system that makes AI governance verifiable. Organizations don’t just claim oversight—they can elect to publish signed certification records that anyone can independently verify using cryptographic proof after certification is achieved."
           secondaryDescription="Every certified record includes a signed payload that can be independently verified using GAFAIG’s public key."
           actions={
             <>
@@ -150,8 +150,7 @@ export default async function HomePage() {
           </h2>
 
           <p className="mt-5 max-w-[980px] text-[15px] leading-7 text-black/75">
-            Private verification produces a certified outcome. Certified
-            outcomes become signed public records. Public records can be
+            Private verification produces a certified outcome. After certification is achieved, the organization may elect to publish the record for public listing as a signed public record. Public records can be
             independently verified through the registry, API, SDK, widget, and
             public key.
           </p>
@@ -173,7 +172,7 @@ export default async function HomePage() {
             <PillarCard
               eyebrow="Pillar 2"
               title="Public Certification Record"
-              body="When a record is certified, GAFAIG publishes a public trust record that contains no internal governance data. The exposed signal is a certified outcome that can be independently verified through a signed payload."
+              body="When a record is certified and the organization elects publication, GAFAIG publishes a public trust record that contains no internal governance data. The exposed signal is a certified outcome that can be independently verified through a signed payload."
               points={[
                 "Public certification outcome",
                 "Signed proof and verification layer",
@@ -211,18 +210,17 @@ export default async function HomePage() {
             As AI systems move into real-world use, governance cannot remain a
             policy statement or internal claim. It must be externally verifiable.
             GAFAIG provides a deterministic system where human oversight in AI
-            systems is reviewed privately, certified publicly, and validated
-            through signed proof.
+            systems is reviewed privately, certification is evaluated privately, and published records are validated through signed proof.
           </p>
 
           <div className="mt-7 grid gap-4 md:grid-cols-2">
             <StatementCard
               title="Private review, public trust"
-              body="Evidence, findings, and internal review materials are assessed in a controlled verification environment. The public sees only the certified trust outcome, not the private record set behind it."
+              body="Evidence, findings, and internal review materials are assessed in a controlled verification environment. If the organization elects publication after certification, the public sees only the certified trust outcome, not the private record set behind it."
             />
             <StatementCard
               title="Certification backed by proof"
-              body="Certified records are published as independently verifiable public trust records backed by signed proof, verification endpoints, and portable trust surfaces."
+              body="Certified records that organizations choose to publish become independently verifiable public trust records backed by signed proof, verification endpoints, and portable trust surfaces."
             />
           </div>
         </section>

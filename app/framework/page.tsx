@@ -42,8 +42,8 @@ export default function FrameworkPage() {
         <PublicPageHero
           eyebrow="FRAMEWORK"
           title="How GAFAIG works"
-          description="GAFAIG operates as a deterministic AI governance certification system. It combines structured evaluation, governed scoring, and cryptographic verification to produce publicly verifiable certification outcomes."
-          secondaryDescription="The system separates a private verification engine from a public trust layer. Governance is reviewed internally, while only the certification outcome is exposed and validated through GAFAIG’s verification endpoint."
+          description="GAFAIG operates as a deterministic AI governance certification system. It combines structured evaluation, governed scoring, and cryptographic verification to produce certification outcomes that can be published as publicly verifiable records if the organization elects publication."
+          secondaryDescription="The system separates a private verification engine from a public trust layer. Governance is reviewed internally, while only certification outcomes that are explicitly published are exposed and validated through GAFAIG’s verification endpoint."
         />
 
         <section className="rounded-3xl border border-black/10 bg-white p-8">
@@ -72,8 +72,9 @@ export default function FrameworkPage() {
           <p className="mt-4 text-[15px] leading-7 text-black/75">
             GAFAIG runs as a deterministic governance engine with Snowflake as the
             system of execution. Governance records are processed privately,
-            certification outcomes are snapshotted into the registry, and only the
-            public trust contract is exposed through views, APIs, and verification
+            certification outcomes are produced and may be snapshotted into the
+            registry if the organization elects publication, and only the public
+            trust contract is exposed through views, APIs, and verification
             surfaces.
           </p>
 
@@ -141,9 +142,9 @@ export default function FrameworkPage() {
           <p className="mt-6 text-[15px] leading-7 text-black/75">
             Certification is issued when organizations show that oversight in AI
             systems is real, functioning, and independently verifiable. Each
-            certification is represented as a verifiable public record, allowing
-            external parties to confirm governance without accessing private
-            internal materials.
+            certification may be represented as a verifiable public record if the
+            organization elects publication, allowing external parties to confirm
+            governance without accessing private internal materials.
           </p>
         </section>
 
@@ -159,7 +160,7 @@ export default function FrameworkPage() {
           </p>
 
           <p className="mt-4 text-[15px] text-black/70 max-w-[720px]">
-            GAFAIG enforces a deterministic pipeline: Application → Case → Findings → Evidence → Events → Scoring → Decision → Registry → Verification.
+            GAFAIG enforces a deterministic pipeline: Application → Case → Findings → Evidence → Events → Scoring → Decision → Certification → (Optional) Publication → Registry → Verification.
           </p>
 
           <div className="mt-8 grid gap-4 md:grid-cols-6">
@@ -185,8 +186,8 @@ export default function FrameworkPage() {
             />
             <Step
               number="5"
-              title="Public Certification"
-              body="The certification outcome is published as a public trust record without exposing private materials."
+              title="Publication (Optional)"
+              body="If certification is achieved, the organization may elect to publish the outcome as a public trust record without exposing private materials."
             />
             <Step
               number="6"
@@ -202,7 +203,7 @@ export default function FrameworkPage() {
           </h2>
 
           <p className="mt-4 text-[15px] leading-7 text-black/75">
-            Certification is not manually assigned. It is derived from a governed scoring system and published as a signed, verifiable record. This ensures consistency, transparency, and auditability.
+            Certification is not manually assigned. It is derived from a governed scoring system and can be published as a signed, verifiable record if the organization elects publication. This ensures consistency, transparency, and auditability.
           </p>
 
           <div className="mt-6 grid gap-4 md:grid-cols-2">
@@ -213,7 +214,7 @@ export default function FrameworkPage() {
               Certification reflects a structured, completed verification process.
             </BulletCard>
             <BulletCard>
-              Certification results in a public trust record.
+              Certification may result in a public trust record if the organization elects publication.
             </BulletCard>
             <BulletCard>
               Certification can be independently verified using signed proof.
@@ -249,9 +250,9 @@ export default function FrameworkPage() {
                 Public trust layer
               </div>
               <p className="mt-3 text-[14px] leading-7 text-black/70">
-                Only the certification outcome is exposed publicly. External
-                parties can verify the result without accessing internal
-                materials.
+                Only certification outcomes that are explicitly published are
+                exposed publicly. External parties can verify the result without
+                accessing internal materials.
               </p>
             </article>
           </div>
@@ -264,9 +265,9 @@ export default function FrameworkPage() {
 
           <p className="mt-4 text-[15px] leading-7 text-black/75">
             GAFAIG is both a verification system and a trust distribution layer.
-            Once certification is finalized, the outcome becomes a signed,
-            independently verifiable record that can be validated outside the
-            platform.
+            Once certification is finalized, the outcome may become a signed,
+            independently verifiable record if the organization elects publication
+            that can be validated outside the platform.
           </p>
 
           <p className="mt-4 text-[15px] text-black/70 max-w-[720px]">

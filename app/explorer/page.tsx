@@ -154,7 +154,7 @@ export default async function ExplorerPage() {
         <PublicPageHero
           eyebrow="Public Trust Surface"
           title="Explore the public GAFAIG trust surface"
-          description="Explorer shows the broader public governance footprint across organizations, countries, and publicly surfaced records in the GAFAIG network."
+          description="Explorer shows the public governance footprint derived from GAFAIG certification records that organizations have chosen to publish."
           secondaryDescription="Use Explorer when you want to browse the broader public trust surface across organizations, countries, and systems. Registry is the canonical record-by-record surface for inspecting a specific certified public record."
           actions={
             <>
@@ -201,9 +201,7 @@ export default async function ExplorerPage() {
                 Certified
               </h3>
               <p className="mt-3 text-[15px] leading-7 text-black/75">
-                Certified means the evaluated outcome has been finalized, published
-                into the GAFAIG registry, assigned certification metadata, and surfaced
-                as a public record.
+                Certified means the evaluated outcome has been finalized through the GAFAIG verification process. Certification is evaluated privately, and only records that organizations choose to publish appear in the public registry and Explorer.
               </p>
             </div>
 
@@ -231,7 +229,7 @@ export default async function ExplorerPage() {
 
           <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
             <div className="text-xs font-semibold uppercase tracking-[0.24em] text-black/40">
-              Certified
+              Published Certified Records
             </div>
             <div className="mt-4 text-[40px] font-semibold tracking-tight text-black">
               {formatNumber(stats.certified)}
@@ -273,11 +271,12 @@ export default async function ExplorerPage() {
                 Latest Public Records
               </div>
               <h2 className="mt-3 text-[26px] font-semibold tracking-tight text-black">
-                Public records currently visible in Explorer
+                Published records currently visible in Explorer
               </h2>
               <p className="mt-4 text-[15px] leading-7 text-black/75">
-                This view surfaces public registry metadata across entities and
-                certification state without exposing private reviewer materials.
+                This view surfaces metadata from published GAFAIG certification
+                records across entities and certification state without exposing
+                private reviewer materials.
               </p>
             </div>
 
@@ -318,7 +317,7 @@ export default async function ExplorerPage() {
                         href={`/registry/${record.registryId}`}
                         variant="secondary"
                       >
-                        View Certified Record
+                        View Published Record
                       </PublicButtonLink>
                     </div>
                   </div>
