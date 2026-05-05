@@ -322,11 +322,7 @@ const proofShapeExample = `{
     "certificationStatus": "CERTIFIED",
     "certifiedAt": "2026-04-21T12:37:57.000Z",
     "validFrom": "2026-04-15T00:00:00.000Z",
-    "validTo": "2027-04-15T10:20:24.000Z",
-    "lifecycleStatus": "active",
-    "visibilityStatus": "public",
-    "verificationEligible": true,
-    "badgeEligible": true
+    "validTo": "2027-04-15T10:20:24.000Z"
   },
   "proof": {
     "alg": "Ed25519",
@@ -397,8 +393,8 @@ export default function DevelopersPage() {
         <PublicPageHero
           eyebrow="DEVELOPERS"
           title="Integrate independently verifiable AI governance"
-          description="GAFAIG provides a verification-first trust surface for AI governance. Developers can fetch certified public records, inspect signed proof, and independently validate payload integrity using GAFAIG’s verification endpoint and public key."
-          secondaryDescription="The SDK is the canonical integration surface for GAFAIG trust signals. Badges, widgets, and verification modals are render layers over the public verification endpoint. Internal governance records remain private; external systems validate only the certified outcome, canonical messageString, signature, and public key."
+          description="GAFAIG provides a verification-first trust surface for AI governance. Developers can fetch published certification records, inspect signed proof, and independently validate payload integrity using GAFAIG’s verification endpoint and public key."
+          secondaryDescription="The SDK is the canonical integration surface for GAFAIG trust signals. Badges, widgets, and verification modals are render layers over the public verification endpoint. Internal governance records remain private; external systems validate only published certification outcomes, canonical messageString, signature, and public key."
           actions={
             <>
               <PublicButtonLink href="/verify" variant="primary">
@@ -424,7 +420,7 @@ export default function DevelopersPage() {
           <SectionHeading
             eyebrow="FAST INSTALL"
             title="Add GAFAIG to your site in under 30 seconds"
-            body="Copy and paste this snippet to display a verified GAFAIG trust signal on your site."
+            body="Copy and paste this snippet to display a GAFAIG trust signal for a published certification record on your site."
           />
 
           <div className="mt-6">
@@ -559,7 +555,7 @@ export default function DevelopersPage() {
               <div className="mt-5 space-y-3">
                 <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-4">
                   <div className="text-sm font-semibold text-black">
-                    Certified
+                    Certified (Published)
                   </div>
                   <p className="mt-1 text-sm leading-5 text-black/60">
                     This record is published and valid in the GAFAIG registry.
@@ -812,13 +808,13 @@ export default function DevelopersPage() {
           <SectionHeading
             eyebrow="PUBLIC CONTRACT"
             title="What the public layer exposes"
-            body="GAFAIG exposes only the certification outcome, public record fields, lifecycle and eligibility flags, and verification proof. Internal scoring, workflow, decision, and reviewer materials are not part of the public contract."
+            body="GAFAIG exposes only published certification outcomes, public record fields, and verification proof. Internal scoring, workflow, decision, and reviewer materials are not part of the public contract."
           />
 
           <div className="mt-6 grid gap-4 md:grid-cols-2">
             <StatementCard
               title="Public fields"
-              body="registryId, registrySnapshotId, applicationId, caseId, entityName, entityType, country, certificationStatus, lifecycleStatus, visibilityStatus, verificationEligible, badgeEligible, validFrom, validTo, certifiedAt, publishedAt, and proof."
+              body="registryId, registrySnapshotId, applicationId, caseId, entityName, entityType, country, certificationStatus, validFrom, validTo, certifiedAt, publishedAt, and proof."
             />
             <StatementCard
               title="Private fields"
@@ -909,7 +905,7 @@ export default function DevelopersPage() {
             <BulletCard text="Missing messageString means verification is invalid. Do not reconstruct a payload." />
             <BulletCard text="Missing signature means no cryptographic proof is available." />
             <BulletCard text="Public key failure means verification is unavailable until the key can be fetched." />
-            <BulletCard text="Expired or revoked records must be displayed according to lifecycleStatus even if the signature proves authenticity." />
+            <BulletCard text="Expired or revoked published records must be displayed according to the public verification response even if the signature proves authenticity." />
           </div>
         </section>
 
@@ -967,7 +963,7 @@ export default function DevelopersPage() {
 
           <div className="mt-6 grid gap-4 md:grid-cols-2">
             <BulletCard text="Internal governance review stays in the private verification engine." />
-            <BulletCard text="The public layer exposes only certified outcomes and proof needed to verify them." />
+            <BulletCard text="The public layer exposes only published certification outcomes and proof needed to verify them." />
             <BulletCard text="Trust can be validated outside GAFAIG using the signed payload and public key." />
             <BulletCard text="The same public trust signal can appear on registry pages, APIs, badges, widgets, SDK integrations, and external websites." />
           </div>
