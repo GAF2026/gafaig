@@ -17,6 +17,18 @@ function clean(value: unknown): string {
   return String(value ?? "").trim();
 }
 
+function limitLength(value: string, max: number): string {
+  return value.length > max ? value.slice(0, max) : value;
+}
+
+function isValidEmail(email: string): boolean {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+
+function noStoreHeaders() {
+  return { "Cache-Control": "no-store" };
+}
+
 export async function POST(req: Request) {
   let body: ApplyPayload = {};
 
@@ -26,23 +38,37 @@ export async function POST(req: Request) {
     body = {};
   }
 
-  const orgName = clean(body.orgName);
-  const email = clean(body.email);
-  const country = clean(body.country);
-  const systemName = clean(body.systemName);
-  const systemType = clean(body.systemType);
+  const orgName = limitLength(clean(body.orgName), 200);
+  const email = limitLength(clean(body.email), 200);
+  const country = limitLength(clean(body.country), 100);
+  const systemName = limitLength(clean(body.systemName), 200);
+  const systemType = limitLength(clean(body.systemType), 100);
 
   if (!orgName) {
     return NextResponse.json(
       { ok: false, error: "Organization name is required." },
-      { status: 400, headers: { "Cache-Control": "no-store" } }
+      { status: 400, headers: noStoreHeaders() }
+    );
+  }
+
+  if (orgName.length < 2) {
+    return NextResponse.json(
+      { ok: false, error: "Organization name must be at least 2 characters." },
+      { status: 400, headers: noStoreHeaders() }
     );
   }
 
   if (!email) {
     return NextResponse.json(
       { ok: false, error: "Contact email is required." },
-      { status: 400, headers: { "Cache-Control": "no-store" } }
+      { status: 400, headers: noStoreHeaders() }
+    );
+  }
+
+  if (!isValidEmail(email)) {
+    return NextResponse.json(
+      { ok: false, error: "Invalid email format." },
+      { status: 400, headers: noStoreHeaders() }
     );
   }
 
@@ -54,19 +80,22 @@ export async function POST(req: Request) {
       )
       `,
       [
-        systemName ? clean(systemName) : "certification",
-        clean(orgName),
-        clean(email),
-        systemType ? clean(systemType) : "Organization",
-        country ? clean(country) : null,
+        systemName || "certification",
+        orgName,
+        email,
+        systemType || "Organization",
+        country || null,
       ]
     );
 
-    // Snowflake returns result as VARIANT in first row/column
     const row = result?.[0];
-    const payload = row ? Object.values(row)[0] as any : null;
+    const payload = row ? (Object.values(row)[0] as any) : null;
 
-    if (!payload || !payload.REQUEST_ID || !payload.APPLICATION_ID) {
+    if (
+      !payload ||
+      typeof payload.REQUEST_ID !== "string" ||
+      typeof payload.APPLICATION_ID !== "string"
+    ) {
       throw new Error("Invalid procedure response");
     }
 
@@ -77,7 +106,7 @@ export async function POST(req: Request) {
         applicationId: payload.APPLICATION_ID,
         message: "Application received.",
       },
-      { headers: { "Cache-Control": "no-store" } }
+      { headers: noStoreHeaders() }
     );
   } catch (error) {
     return NextResponse.json(
@@ -88,7 +117,7 @@ export async function POST(req: Request) {
             ? error.message
             : "Application submission failed.",
       },
-      { status: 500, headers: { "Cache-Control": "no-store" } }
+      { status: 500, headers: noStoreHeaders() }
     );
   }
 }

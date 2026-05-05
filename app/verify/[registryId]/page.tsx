@@ -528,7 +528,7 @@ export default async function VerifyPage({
           </h1>
 
           <div className="mt-4 max-w-4xl text-[15px] leading-7 text-black/75">
-            This page exposes the public proof behind a GAFAIG certification record. It includes the signed payload, verification key, and validation result required for independent verification.
+            This page exposes the public proof behind a GAFAIG certification record. Only records that have been explicitly published by the organization appear in the public registry and verification system.
           </div>
 
           <div className="mt-6 grid gap-4 md:grid-cols-4">

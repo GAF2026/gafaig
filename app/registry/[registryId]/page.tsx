@@ -133,7 +133,7 @@ export default async function RegistryRecordPage({
           description={
             [
               [record.entityType, record.country].filter(Boolean).join(" · "),
-              "This page shows the official GAFAIG certification record. To verify its authenticity, open the full proof record."
+              "This page shows a publicly published GAFAIG certification record. Only records that organizations choose to publish appear in the public registry."
             ]
               .filter(Boolean)
               .join(" — ")

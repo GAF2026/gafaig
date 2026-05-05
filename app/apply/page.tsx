@@ -172,7 +172,7 @@ export default function ApplyPage() {
               </div>
 
               <p className="mt-3 text-[14px] leading-7 text-black/70">
-                Submitting this form does not publish anything publicly. Your organization only appears in the GAFAIG registry after successful certification and approval.
+                Submitting this form does not publish anything publicly. Certification is evaluated privately. Public registry listing occurs only if the organization chooses to publish the certified record.
               </p>
             </div>
 

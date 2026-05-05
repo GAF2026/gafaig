@@ -1,13 +1,15 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 type SubmitState =
   | { kind: "idle"; message: "" }
-  | { kind: "success"; message: string }
   | { kind: "error"; message: string };
 
 export default function ApplyForm() {
+  const router = useRouter();
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitState, setSubmitState] = useState<SubmitState>({
     kind: "idle",
@@ -16,6 +18,9 @@ export default function ApplyForm() {
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+
+    if (isSubmitting) return;
+
     setIsSubmitting(true);
     setSubmitState({ kind: "idle", message: "" });
 
@@ -32,13 +37,35 @@ export default function ApplyForm() {
       deploymentStage: String(formData.get("deploymentStage") || "").trim(),
     };
 
+    if (!payload.orgName || payload.orgName.length < 2) {
+      setSubmitState({
+        kind: "error",
+        message: "Organization name must be at least 2 characters.",
+      });
+      setIsSubmitting(false);
+      return;
+    }
+
+    if (!payload.email || !payload.email.includes("@")) {
+      setSubmitState({
+        kind: "error",
+        message: "Please enter a valid email address.",
+      });
+      setIsSubmitting(false);
+      return;
+    }
+
     try {
       const response = await fetch("/api/apply", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({
+          ...payload,
+          orgName: payload.orgName.trim(),
+          email: payload.email.trim(),
+        }),
       });
 
       const result = await response.json();
@@ -53,12 +80,11 @@ export default function ApplyForm() {
         return;
       }
 
-      setSubmitState({
-        kind: "success",
-        message: `Application received. Request ID: ${result.requestId}. Your submission has entered the private GAFAIG verification intake process. Public registry visibility happens only after review, certification, and publication.`,
-      });
-
-      form.reset();
+      router.push(
+        `/apply/success/${encodeURIComponent(
+          result.applicationId
+        )}?requestId=${encodeURIComponent(result.requestId)}`
+      );
     } catch {
       setSubmitState({
         kind: "error",
@@ -132,13 +158,16 @@ export default function ApplyForm() {
         </div>
         <div className="mt-3 space-y-2 text-[14px] leading-7 text-black/72">
           <p>
-            1. Your application enters the private GAFAIG verification intake process.
+            1. Your application enters the private GAFAIG verification intake
+            process.
           </p>
           <p>
-            2. GAFAIG reviews scope, organization details, and system context before moving into structured verification.
+            2. GAFAIG reviews scope, organization details, and system context
+            before moving into structured verification.
           </p>
           <p>
-            3. Public visibility does not happen at application. Public registry listing occurs only after review, certification, and publication.
+            3. Public visibility does not happen at application. Public registry
+            listing occurs only after review, certification, and publication.
           </p>
         </div>
       </div>
@@ -151,12 +180,6 @@ export default function ApplyForm() {
         >
           {isSubmitting ? "Submitting..." : "Begin GAFAIG verification intake"}
         </button>
-
-        {submitState.kind === "success" ? (
-          <div className="max-w-3xl rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium leading-6 text-emerald-800">
-            {submitState.message}
-          </div>
-        ) : null}
 
         {submitState.kind === "error" ? (
           <div className="max-w-3xl rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium leading-6 text-red-800">
@@ -197,7 +220,9 @@ function FormField({
         className="w-full rounded-[18px] border border-black/10 bg-black/[0.02] px-4 py-3 text-sm text-black outline-none transition focus:border-black/30"
       />
       {helpText ? (
-        <div className="mt-2 text-[13px] leading-6 text-black/60">{helpText}</div>
+        <div className="mt-2 text-[13px] leading-6 text-black/60">
+          {helpText}
+        </div>
       ) : null}
     </label>
   );
