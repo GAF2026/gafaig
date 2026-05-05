@@ -12,7 +12,7 @@ export default function ApplyPage() {
         <PublicPageHero
           eyebrow="APPLY"
           title="Start the process that turns AI governance into verifiable proof"
-          description="GAFAIG certification is for organizations that want credible, third-party proof that meaningful human oversight is actually functioning across their AI operations. Verification is performed inside a controlled private review environment and, if certified, published as an independently verifiable public trust record."
+          description="GAFAIG certification is for organizations that want credible, third-party proof that meaningful human oversight is actually functioning across their AI operations. Verification is performed inside a controlled private review environment. Certification is evaluated privately. After certification is achieved, the organization may elect to publish the record for public listing as an independently verifiable public trust record."
           secondaryDescription="The public registry is not the application system. Intake, evidence review, findings, deterministic scoring, and certification decisions occur inside the private GAFAIG verification engine. Only public certification outcomes and trust surfaces are published."
           actions={
             <>
