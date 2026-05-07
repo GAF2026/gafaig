@@ -23,8 +23,8 @@ export default async function DemoPage() {
         <PublicPageHero
           eyebrow="DEMO"
           title="From AI governance claims to independently verifiable proof"
-          description="GAFAIG converts AI governance and human oversight from a private claim into an independently verifiable public trust record. This demo proves the exact sequence from certified record to signed proof to portable trust surface."
-          secondaryDescription="This page uses one live GAFAIG record to show how certification is published, verified, and surfaced outside an organization’s platform."
+          description="GAFAIG converts AI governance from private claims into publication-controlled, independently verifiable public certification records. This demo shows the exact sequence from certification record to signed proof to portable trust surface."
+          secondaryDescription="Certification is evaluated privately. Publication is explicit. Public verification uses the exact proof.messageString, signature, and GAFAIG public key."
           actions={
             <>
               <PublicButtonLink href={registryHref} variant="primary">
@@ -48,24 +48,25 @@ export default async function DemoPage() {
           </div>
 
           <h2 className="mt-4 max-w-[860px] text-[26px] font-semibold tracking-tight text-black">
-            Most AI oversight cannot be independently verified
+            Most AI governance claims cannot be independently verified
           </h2>
 
           <p className="mt-5 max-w-[960px] text-[15px] leading-7 text-black/75">
             Organizations can say they have human oversight, internal controls,
-            and responsible AI policies. But for customers, regulators, and the
-            public, there is usually no consistent way to verify whether that
-            oversight is implemented, operational, and producing real oversight outcomes.
+            and responsible AI policies. But for customers, regulators, partners,
+            and the public, there is usually no consistent way to independently
+            verify whether that governance outcome has been certified and
+            published as a public trust record.
           </p>
 
           <div className="mt-7 grid gap-4 md:grid-cols-2">
             <StatementCard
               title="What usually exists"
-              body="A policy statement, internal documentation, or self-declared claim that oversight is in place."
+              body="A policy statement, internal documentation, or self-declared claim that governance controls are in place."
             />
             <StatementCard
               title="What GAFAIG proves"
-              body="An independently verifiable public trust record backed by signed proof, a verification surface, and portable trust signals."
+              body="A publication-controlled public certification record backed by signed proof, a verification surface, and portable trust signals."
             />
           </div>
         </section>
@@ -80,31 +81,31 @@ export default async function DemoPage() {
           </h2>
 
           <p className="mt-5 max-w-[960px] text-[15px] leading-7 text-black/75">
-            This walkthrough uses a live GAFAIG record to prove how trust moves
-            through the public surface. Each step proves a real part of the
+            This walkthrough uses a live GAFAIG record to show how trust moves
+            through the public surface. Each step demonstrates a real part of the
             verification process that is already built and publicly accessible.
           </p>
 
           <div className="mt-8 grid gap-4 md:grid-cols-4">
             <StepCard
               number="1"
-              title="Resolve certified registry record"
-              body="Locate the certified record in the public registry."
+              title="Resolve certification record"
+              body="Locate the published certification record in the public registry."
             />
             <StepCard
               number="2"
-              title="Fetch signed verification payload"
-              body="Retrieve the signed verification payload from the API."
+              title="Fetch signed proof"
+              body="Retrieve the signed proof payload from the verification API."
             />
             <StepCard
               number="3"
-              title="Validate cryptographic signature"
-              body="Confirm the record using the public verification key."
+              title="Validate signature"
+              body="Confirm the record using the exact messageString and public key."
             />
             <StepCard
               number="4"
-              title="Render external trust surface"
-              body="Display the verified result through a widget or UI."
+              title="Render trust surface"
+              body="Display the verified result through a widget, badge, API, or UI."
             />
           </div>
         </section>
@@ -112,34 +113,34 @@ export default async function DemoPage() {
         <section className="grid gap-4 md:grid-cols-2">
           <DemoCard
             eyebrow="STEP 1"
-            title="Resolve the certified registry record"
-            body="Start with the public trust record. This is the published certification outcome that external parties can review by registry ID."
+            title="Resolve the public certification record"
+            body="Start with the public certification record. This is the published outcome that external parties can review by registry ID."
             href={registryHref}
-            cta="Open Registry Record"
+            cta="Open Certification Record"
           />
 
           <DemoCard
             eyebrow="STEP 2"
             title="Fetch the verification proof"
-            body="Open the verify page to inspect the proof layer behind the certification record, including trust state, key references, and signature validation."
+            body="Open the proof page to inspect the verification layer behind the certification record, including trust state, key references, and signature validation."
             href={verifyHref}
-            cta="Open Verify Page"
+            cta="Open Proof Page"
           />
         </section>
 
         <section className="grid gap-4 md:grid-cols-2">
           <DemoCard
             eyebrow="STEP 3"
-            title="Inspect the signed proof payload"
-            body="The verification endpoint exposes the machine-readable proof directly. This is what allows external systems to independently verify the record instead of relying on a visual page alone."
+            title="Inspect the Proof JSON"
+            body="The verification endpoint exposes machine-readable proof directly. This allows external systems to independently verify the record instead of relying on a visual page alone."
             href={apiVerifyHref}
-            cta="Open Verify JSON"
+            cta="Open Proof JSON"
           />
 
           <DemoCard
             eyebrow="STEP 4"
             title="Render the external trust surface"
-            body="The widget preview proves how the same verified trust result can appear outside GAFAIG through a portable, embeddable interface."
+            body="The widget preview shows how the same verified trust result can appear outside GAFAIG through a portable, embeddable interface."
             href={widgetPreviewHref}
             cta="Open Widget Preview"
           />
@@ -151,13 +152,13 @@ export default async function DemoPage() {
           </div>
 
           <h2 className="mt-4 max-w-[860px] text-[26px] font-semibold tracking-tight text-black">
-            GAFAIG is a trust system, not just a registry page
+            GAFAIG is deterministic public trust infrastructure, not just a registry page
           </h2>
 
           <div className="mt-7 grid gap-4 md:grid-cols-2">
-            <BulletCard text="The registry record proves that a public certification outcome exists." />
-            <BulletCard text="The verify page proves that the public trust record is backed by signed proof." />
-            <BulletCard text="The signed JSON proves that the trust result is machine-readable and portable." />
+            <BulletCard text="The certification record proves that a published public certification outcome exists." />
+            <BulletCard text="The proof page proves that the public certification record is backed by signed proof." />
+            <BulletCard text="The Proof JSON proves that the trust result is machine-readable and portable." />
             <BulletCard text="The widget proves that the same verified result can travel outside GAFAIG." />
           </div>
 
@@ -167,11 +168,13 @@ export default async function DemoPage() {
             </div>
             <p className="mt-3 text-[15px] leading-7 text-black/75">
               GAFAIG does not ask the public to trust an internal claim. It
-              publishes an independently verifiable public trust record backed by
-              signed proof and external validation surfaces.
+              publishes an independently verifiable public certification record
+              backed by signed proof and external validation surfaces.
             </p>
             <p className="mt-3 text-[15px] leading-7 text-black/75">
-              Verification must use the exact signed messageString returned by the API. Reconstructing payloads from JSON fields invalidates the proof.
+              Verification must use the exact proof.messageString returned by
+              the API. Reconstructing payloads from JSON fields invalidates the
+              proof.
             </p>
           </div>
         </section>
@@ -187,16 +190,16 @@ export default async function DemoPage() {
 
           <div className="mt-7 grid gap-4 md:grid-cols-3">
             <FeatureCard
-              title="Public trust record"
+              title="Public certification record"
               body="Confirm that the record is published in the registry and tied to a real registry ID."
             />
             <FeatureCard
               title="Signed verification proof"
-              body="Confirm that the verification surface exposes signed proof and a public key reference."
+              body="Confirm that the verification surface exposes signed proof, a signature, and a public key reference."
             />
             <FeatureCard
               title="Portable trust outcome"
-              body="Confirm that the same result appears in the registry, API, verify page, and widget."
+              body="Confirm that the same result appears in the registry, API, proof page, widget, and external trust surfaces."
             />
           </div>
         </section>
@@ -207,25 +210,26 @@ export default async function DemoPage() {
           </div>
 
           <h2 className="mt-3 max-w-[860px] text-[26px] font-semibold tracking-tight text-black">
-            Ready to create a verified record?
+            Ready to create a published certification record?
           </h2>
 
           <p className="mt-4 max-w-[860px] text-[15px] leading-7 text-black/75">
             You’ve seen how a GAFAIG record appears in the registry, how it is
             verified through signed proof, how it can be inspected through the
             public API, and how it can appear outside the platform through a
-            widget. This is the outcome of the GAFAIG verification process.
+            widget. This is the public outcome of the GAFAIG certification and
+            publication process.
           </p>
 
           <p className="mt-4 max-w-[860px] text-[15px] leading-7 text-black/75">
             If your organization operates AI systems and needs independently
-            verifiable proof that human oversight is implemented, operational, and producing real oversight outcomes, you can begin
-            the GAFAIG verification process now.
+            verifiable proof that governance has been certified and published as
+            a public trust record, you can begin the GAFAIG intake process now.
           </p>
 
           <div className="mt-6 flex flex-wrap gap-3">
             <PublicButtonLink href="/apply" variant="primary">
-              Begin GAFAIG verification intake
+              Begin GAFAIG Intake
             </PublicButtonLink>
 
             <PublicButtonLink href="/framework" variant="secondary">
@@ -244,19 +248,20 @@ export default async function DemoPage() {
           </h2>
 
           <p className="mt-5 max-w-[980px] text-[15px] leading-7 text-black/75">
-            GAFAIG replaces unverifiable governance claims with publicly verifiable proof.
+            GAFAIG replaces unverifiable governance claims with publicly
+            verifiable proof.
           </p>
 
           <p className="mt-4 max-w-[980px] text-[15px] leading-7 text-black/75">
-            Instead of asking the public to trust internal claims about oversight, GAFAIG publishes a record that
-            can be reviewed, verified, validated, and used across external
-            environments.
+            Instead of asking the public to trust internal claims about
+            governance, GAFAIG publishes a record that can be reviewed, verified,
+            validated, and used across external environments.
           </p>
 
           <p className="mt-4 max-w-[980px] text-[15px] leading-7 text-black/75">
-            The demo is intentionally simple: resolve the registry record, fetch
-            the proof, validate the signature, and render the verified trust
-            surface. That sequence is the product.
+            The demo is intentionally simple: resolve the certification record,
+            fetch the proof, validate the signature, and render the verified
+            trust surface. That sequence is the product.
           </p>
 
           <div className="mt-6 flex flex-wrap gap-3">

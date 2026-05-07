@@ -6,14 +6,12 @@ export default function MissionPage() {
   return (
     <main className="mx-auto max-w-[1180px] px-6 py-10">
       <div className="space-y-8">
-        <div>
-          <PublicPageHero
-            eyebrow="MISSION"
-            title="Why GAFAIG exists"
-            description="GAFAIG establishes a verifiable standard for AI governance by combining structured evaluation with cryptographic verification. Certification outcomes can be published as independently verifiable public records backed by signed proof when the organization elects to make the certified record public."
-            secondaryDescription="GAFAIG combines a private verification engine with a public trust layer, adding cryptographic verification to AI governance certification. Internal governance is reviewed in a controlled environment, while only the certification outcome may be published as an independently verifiable public trust record backed by signed proof if the organization elects publication. Organizations can prove certified AI governance without exposing internal systems, evidence, or workflows."
-          />
-        </div>
+        <PublicPageHero
+          eyebrow="MISSION"
+          title="Why GAFAIG exists"
+          description="GAFAIG exists to create deterministic, independently verifiable trust infrastructure for AI governance at global scale. It enables organizations to certify AI governance outcomes privately and, if they elect publication, publish signed public certification records that anyone can independently verify."
+          secondaryDescription="GAFAIG combines private governance execution, publication-controlled certification, append-only registry publication, governance observability, governance simulations, remediation orchestration, and cryptographic proof infrastructure into one deterministic global AI governance architecture."
+        />
 
         <section className="rounded-3xl border border-black/10 bg-white p-8">
           <h2 className="text-[26px] font-semibold tracking-tight text-black">
@@ -21,55 +19,56 @@ export default function MissionPage() {
           </h2>
 
           <p className="mt-4 text-[15px] leading-7 text-black/75">
-            AI governance is increasingly required, but most systems rely on
-            internal attestations, opaque audits, or unverifiable claims. GAFAIG
-            introduces a model where certification is computed and recorded, and
-            may be published as a verifiable public record if the organization
-            elects public listing.
+            AI governance is increasingly required, but most systems still rely
+            on internal attestations, opaque audits, unverifiable disclosures, or
+            trust claims that cannot be independently validated by customers,
+            regulators, partners, or the public.
           </p>
 
-          <p className="mt-4 text-[15px] text-black/70 max-w-[720px]">
-            Every certified record includes a canonical messageString and
-            signature, allowing external systems to validate certification
-            status, payload integrity, and authenticity.
+          <p className="mt-4 max-w-[900px] text-[15px] leading-7 text-black/75">
+            GAFAIG introduces deterministic global AI governance infrastructure:
+            governance is executed privately, certification is controlled inside
+            Snowflake, publication is explicit, and public trust records are
+            backed by cryptographic proof.
           </p>
         </section>
 
         <section className="rounded-3xl border border-black/10 bg-white p-8">
           <h2 className="text-[26px] font-semibold tracking-tight text-black">
-            A shift from claims to verification
+            A shift from governance claims to verifiable infrastructure
           </h2>
 
           <div className="mt-6 grid gap-4 md:grid-cols-2">
             <StatementCard
               title="Before GAFAIG"
-              body="Organizations describe governance through internal policies, frameworks, or disclosures. Oversight is asserted, but cannot be independently verified."
+              body="Organizations describe AI governance through policies, frameworks, reports, and disclosures. Oversight may be asserted, but external stakeholders cannot independently verify the certified governance outcome."
             />
             <StatementCard
               title="With GAFAIG"
-              body="Oversight is evaluated through a structured private process and the certified outcome may be published as a public trust record that can be independently verified if the organization elects publication."
+              body="Governance outcomes are produced through deterministic private execution. Certified outcomes may then be published as signed public certification records that external systems can independently verify."
             />
           </div>
 
           <p className="mt-6 text-[15px] leading-7 text-black/75">
-            GAFAIG does not replace governance frameworks. It adds a
-            verification layer that makes governance outcomes externally
-            reviewable and independently verifiable.
+            GAFAIG does not replace governance frameworks. It adds deterministic
+            public trust infrastructure that makes certification outcomes
+            externally verifiable while preserving private governance data,
+            internal evidence, and workflow confidentiality.
           </p>
         </section>
 
         <section className="grid gap-4 md:grid-cols-3">
           <Pillar
-            title="Verify oversight"
-            text="GAFAIG verifies whether meaningful human oversight is implemented, operational, and producing real oversight outcomes across an organization’s AI operations."
+            title="Execute governance deterministically"
+            text="GAFAIG structures AI governance certification through Snowflake-controlled workflows, deterministic scoring, bounded lifecycle states, human oversight, and controlled publication."
           />
           <Pillar
-            title="Separate private review from public trust"
-            text="Governance evidence, findings, and internal review materials stay in a controlled verification environment while only the certification outcome is made public if the organization elects publication."
+            title="Separate certification from publication"
+            text="Certification is private and deterministic. Publication is explicit and optional. Only published certification records become public trust records."
           />
           <Pillar
-            title="Publish proof"
-            text="Certified outcomes that organizations choose to publish become public trust records backed by signed proof and designed for independent verification."
+            title="Verify proof independently"
+            text="Published records are backed by signed proof.messageString payloads, Ed25519 signatures, public-key validation, and fail-closed verification behavior."
           />
         </section>
 
@@ -79,10 +78,12 @@ export default function MissionPage() {
           </h2>
 
           <div className="mt-6 grid gap-4 md:grid-cols-2">
-            <BulletCard text="Verification occurs in a controlled environment, separate from public disclosure." />
-            <BulletCard text="Only the certification outcome is exposed publicly; internal governance materials remain private." />
-            <BulletCard text="Public records can be independently verified using a canonical messageString, signed proof, a verification endpoint, and a public key." />
-            <BulletCard text="Trust signals can be distributed across registry pages, APIs, widgets, badges, and external platforms." />
+            <BulletCard text="Snowflake is the source of truth for certification, publication, lifecycle state, registry snapshots, and proof payload inputs." />
+            <BulletCard text="Certification remains private unless the organization explicitly elects publication." />
+            <BulletCard text="Public verification uses proof.messageString only, never reconstructed JSON fields or UI-rendered values." />
+            <BulletCard text="AI governance intelligence is advisory only and can never certify, publish, mutate registry state, or alter proof state." />
+            <BulletCard text="Governance simulations are operational only and cannot modify certification, publication, registry, or proof state." />
+            <BulletCard text="Public trust records are append-only, publication-controlled, and independently verifiable." />
           </div>
         </section>
 
@@ -92,22 +93,23 @@ export default function MissionPage() {
           </h2>
 
           <p className="mt-4 text-[16px] leading-7 text-black/75">
-            Our mission is to make human oversight in AI systems visible,
-            reviewable, and independently verifiable.
+            Our mission is to make AI governance deterministic, observable,
+            certifiable, publishable, and independently verifiable.
           </p>
 
           <p className="mt-4 text-[15px] leading-7 text-black/75">
-            GAFAIG establishes a verification-first model for AI governance. It
-            enables organizations to move from internal claims to certified
-            records, with the option to publish those records as public trust
-            records and gives external stakeholders a clear mechanism to validate
-            those records independently.
+            GAFAIG gives organizations a structured way to manage governance
+            execution privately while giving external stakeholders a reliable way
+            to verify published certification outcomes through cryptographic
+            proof.
           </p>
 
           <p className="mt-4 text-[15px] leading-7 text-black/75">
-            GAFAIG creates a foundation for portable, machine-verifiable trust
-            in AI systems. Certification becomes a provable state that can be
-            validated across platforms, applications, and jurisdictions.
+            GAFAIG creates the foundation for portable, machine-verifiable trust
+            in AI governance across organizations, AI systems, regulators,
+            enterprises, governments, research institutions, universities,
+            laboratories, non-profits, technology providers, and governance
+            stakeholders.
           </p>
         </section>
       </div>

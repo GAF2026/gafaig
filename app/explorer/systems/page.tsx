@@ -1,22 +1,21 @@
 import {
   getExplorerStats,
   getExplorerSystems,
-  type ExplorerSystemRow,
 } from "@/lib/queries/explorer";
 import PublicButtonLink from "@/app/_components/PublicButtonLink";
 import PublicPageHero from "@/app/_components/PublicPageHero";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 function numberFormat(value: number): string {
-  return new Intl.NumberFormat("en-US").format(value);
+  return new Intl.NumberFormat("en-US").format(Number(value ?? 0));
 }
 
 function formatText(value?: string | null): string {
   const clean = String(value ?? "").trim();
   return clean.length > 0 ? clean : "—";
 }
-
-export const dynamic = "force-dynamic";
-export const revalidate = 0;
 
 export default async function ExplorerSystemsPage() {
   const [rows, stats] = await Promise.all([
@@ -28,9 +27,10 @@ export default async function ExplorerSystemsPage() {
     <main className="mx-auto max-w-[1180px] px-6 py-10">
       <div className="space-y-8">
         <PublicPageHero
-          eyebrow="AI Systems"
+          eyebrow="EXPLORER / AI SYSTEMS"
           title="Explore AI systems in the GAFAIG public trust surface"
-          description="This page surfaces registry-linked AI systems using Snowflake-backed explorer data."
+          description="This page surfaces registry-linked AI systems associated with published GAFAIG certification records using publication-controlled Snowflake-backed explorer data."
+          secondaryDescription="Only AI systems tied to explicitly published certification records appear here. Private governance evidence, findings, scoring internals, reviewer materials, and governance telemetry are not exposed."
           actions={
             <>
               <PublicButtonLink href="/explorer" variant="primary">
@@ -75,16 +75,22 @@ export default async function ExplorerSystemsPage() {
         </section>
 
         <section className="rounded-3xl border border-black/10 bg-white p-8">
-          <div className="flex flex-wrap items-end justify-between gap-4">
-            <div>
-              <p className="text-[13px] font-semibold uppercase tracking-[0.28em] text-black/45">
-                Public AI Systems
-              </p>
-              <h2 className="mt-4 text-[26px] font-semibold tracking-tight text-black">
-                Systems currently visible in Explorer
-              </h2>
-            </div>
+          <div className="max-w-4xl space-y-4">
+            <p className="text-[13px] font-semibold uppercase tracking-[0.28em] text-black/45">
+              Public AI Systems
+            </p>
+            <h2 className="text-[26px] font-semibold tracking-tight text-black">
+              Systems currently visible in Explorer
+            </h2>
+            <p className="text-[15px] leading-7 text-black/75">
+              Each row represents a public-safe AI system record associated with
+              a published GAFAIG certification record. Explorer does not compute
+              trust and does not expose unpublished systems or private governance
+              workflows.
+            </p>
+          </div>
 
+          <div className="mt-6 flex justify-end">
             <p className="text-[14px] text-black/70">{rows.length} shown</p>
           </div>
 
@@ -97,19 +103,25 @@ export default async function ExplorerSystemsPage() {
             </div>
 
             <div className="divide-y divide-black/10">
-              {rows.map((row) => (
-                <div
-                  key={`${row.registryId}-${row.caseId ?? "none"}`}
-                  className="grid grid-cols-[minmax(0,1.8fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)] gap-0 px-6 py-5 text-[15px] leading-7 text-black/75"
-                >
-                  <div className="font-semibold text-black">
-                    {formatText(row.systemName)}
-                  </div>
-                  <div>{formatText(row.entityName)}</div>
-                  <div>{formatText(row.country)}</div>
-                  <div>{formatText(row.certificationStatus)}</div>
+              {rows.length === 0 ? (
+                <div className="px-6 py-10 text-[15px] leading-7 text-black/70">
+                  No published AI system records are currently available.
                 </div>
-              ))}
+              ) : (
+                rows.map((row) => (
+                  <div
+                    key={`${row.registryId}-${row.caseId ?? "none"}`}
+                    className="grid grid-cols-[minmax(0,1.8fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)] gap-0 px-6 py-5 text-[15px] leading-7 text-black/75"
+                  >
+                    <div className="font-semibold text-black">
+                      {formatText(row.systemName)}
+                    </div>
+                    <div>{formatText(row.entityName)}</div>
+                    <div>{formatText(row.country)}</div>
+                    <div>{formatText(row.certificationStatus)}</div>
+                  </div>
+                ))
+              )}
             </div>
           </div>
         </section>

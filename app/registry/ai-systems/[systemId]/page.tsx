@@ -16,8 +16,6 @@ type System = {
   DEVELOPER_ORGANIZATION?: string;
   COUNTRY?: string;
   CERTIFIED_AT?: string;
-  CERTIFIED_TIER?: string;
-  CERTIFIED_BAND?: string;
   DECISION_STATUS?: string;
   REGISTRY_ID?: string;
 };
@@ -37,8 +35,9 @@ function pillTone(value: string) {
   const v = value.toUpperCase();
 
   if (v === "CERTIFIED") return "bg-emerald-50 text-emerald-700 ring-emerald-200";
-  if (v === "APPROVED") return "bg-blue-50 text-blue-700 ring-blue-200";
-  if (v.includes("HIGH")) return "bg-red-50 text-red-700 ring-red-200";
+  if (v === "ACTIVE") return "bg-emerald-50 text-emerald-700 ring-emerald-200";
+  if (v === "EXPIRED") return "bg-amber-50 text-amber-700 ring-amber-200";
+  if (v === "REVOKED") return "bg-red-50 text-red-700 ring-red-200";
 
   return "bg-slate-100 text-slate-600 ring-slate-200";
 }
@@ -49,7 +48,20 @@ function InfoCard({ label, value }: { label: string; value: string }) {
       <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-black/45">
         {label}
       </div>
-      <div className="mt-3 text-[15px] font-semibold text-black">{value}</div>
+      <div className="mt-3 break-words text-[15px] font-semibold text-black">
+        {value}
+      </div>
+    </div>
+  );
+}
+
+function StatementCard({ title, body }: { title: string; body: string }) {
+  return (
+    <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
+      <div className="text-[18px] font-semibold tracking-tight text-black">
+        {title}
+      </div>
+      <p className="mt-3 text-[15px] leading-7 text-black/75">{body}</p>
     </div>
   );
 }
@@ -60,7 +72,7 @@ async function getSystem(systemId: string): Promise<System | null> {
     process.env.NEXT_PUBLIC_SITE_URL ||
     "http://localhost:3000";
 
-  const res = await fetch(`${baseUrl}/api/systems/${systemId}`, {
+  const res = await fetch(`${baseUrl}/api/systems/${encodeURIComponent(systemId)}`, {
     cache: "no-store",
   });
 
@@ -77,21 +89,37 @@ export default async function SystemDetailPage({
 
   if (!system) return notFound();
 
+  const registryId = safe(system.REGISTRY_ID);
+  const hasRegistryId = registryId !== "—";
+
   return (
     <main className="mx-auto max-w-[1180px] px-6 py-10">
       <div className="space-y-8">
         <PublicPageHero
-          eyebrow="AI System"
+          eyebrow="PUBLIC AI SYSTEM RECORD"
           title={safe(system.SYSTEM_NAME)}
-          description="This page surfaces the public detail view for an AI system associated with a GAFAIG-certified registry record."
+          description="This page surfaces the public detail view for an AI system associated with a published GAFAIG certification record. It displays public-safe system metadata only."
+          secondaryDescription="Private governance evidence, findings, scoring internals, reviewer materials, and governance telemetry are not exposed on public AI system pages."
+          actions={
+            <>
+              {hasRegistryId ? (
+                <PublicButtonLink
+                  href={`/registry/${encodeURIComponent(registryId)}`}
+                  variant="primary"
+                >
+                  Open Certification Record
+                </PublicButtonLink>
+              ) : null}
+
+              <PublicButtonLink href="/explorer/systems" variant="secondary">
+                Back to Systems
+              </PublicButtonLink>
+            </>
+          }
         />
 
         <section className="rounded-3xl border border-black/10 bg-white p-8">
           <div className="flex flex-wrap gap-2">
-            <span className="inline-flex rounded-full bg-emerald-50 px-3 py-1 text-[11px] font-semibold text-emerald-700 ring-1 ring-emerald-200">
-              Certified
-            </span>
-
             <span
               className={`inline-flex rounded-full px-3 py-1 text-[11px] font-semibold ring-1 ${pillTone(
                 safe(system.DECISION_STATUS)
@@ -99,10 +127,19 @@ export default async function SystemDetailPage({
             >
               {safe(system.DECISION_STATUS)}
             </span>
+
+            <span
+              className={`inline-flex rounded-full px-3 py-1 text-[11px] font-semibold ring-1 ${pillTone(
+                safe(system.LIFECYCLE_STATUS)
+              )}`}
+            >
+              {safe(system.LIFECYCLE_STATUS)}
+            </span>
           </div>
 
           <p className="mt-4 text-[15px] leading-7 text-black/75">
-            {safe(system.DEVELOPER_ORGANIZATION)} · {safe(system.SYSTEM_TYPE)} · {safe(system.COUNTRY)}
+            {safe(system.DEVELOPER_ORGANIZATION)} · {safe(system.SYSTEM_TYPE)} ·{" "}
+            {safe(system.COUNTRY)}
           </p>
 
           <div className="mt-6 grid gap-4 md:grid-cols-4">
@@ -119,25 +156,45 @@ export default async function SystemDetailPage({
           </div>
 
           <div className="mt-6 flex flex-wrap gap-3">
-            <PublicButtonLink
-              href={`/registry/${system.REGISTRY_ID}`}
-              variant="primary"
-            >
-              View Certified Record
-            </PublicButtonLink>
+            {hasRegistryId ? (
+              <>
+                <PublicButtonLink
+                  href={`/registry/${encodeURIComponent(registryId)}`}
+                  variant="primary"
+                >
+                  Open Certification Record
+                </PublicButtonLink>
+
+                <PublicButtonLink
+                  href={`/verify/${encodeURIComponent(registryId)}`}
+                  variant="secondary"
+                >
+                  Verify This Record
+                </PublicButtonLink>
+              </>
+            ) : null}
 
             <PublicButtonLink href="/explorer/systems" variant="secondary">
-              Back to systems
+              Back to Systems
             </PublicButtonLink>
           </div>
         </section>
 
         <section className="rounded-3xl border border-black/10 bg-white p-8">
           <h2 className="text-[26px] font-semibold tracking-tight text-black">
-            System details
+            Public system details
           </h2>
 
+          <p className="mt-4 max-w-[900px] text-[15px] leading-7 text-black/75">
+            These fields describe the public AI system record associated with a
+            published GAFAIG certification record. This page does not expose
+            private workflow state, scoring internals, evidence, findings, or
+            reviewer notes.
+          </p>
+
           <div className="mt-6 grid gap-4 md:grid-cols-3">
+            <InfoCard label="System ID" value={safe(system.SYSTEM_ID)} />
+            <InfoCard label="Registry ID" value={registryId} />
             <InfoCard label="Intended Use" value={safe(system.INTENDED_USE)} />
             <InfoCard
               label="Oversight Level"
@@ -148,9 +205,49 @@ export default async function SystemDetailPage({
               value={safe(system.LIFECYCLE_STATUS)}
             />
             <InfoCard label="Certified" value={formatDate(system.CERTIFIED_AT)} />
-            <InfoCard label="Tier" value={safe(system.CERTIFIED_TIER)} />
-            <InfoCard label="Band" value={safe(system.CERTIFIED_BAND)} />
           </div>
+        </section>
+
+        <section className="rounded-3xl border border-black/10 bg-white p-8">
+          <h2 className="text-[26px] font-semibold tracking-tight text-black">
+            Certification and verification
+          </h2>
+
+          <div className="mt-6 grid gap-4 md:grid-cols-2">
+            <StatementCard
+              title="Certification record"
+              body="The associated certification record is the canonical public trust record. It represents a published certification outcome selected for public visibility."
+            />
+            <StatementCard
+              title="Verification proof"
+              body="External systems should verify the associated registry ID through the GAFAIG verification endpoint and exact proof.messageString payload."
+            />
+          </div>
+
+          {hasRegistryId ? (
+            <div className="mt-6 flex flex-wrap gap-3">
+              <PublicButtonLink
+                href={`/registry/${encodeURIComponent(registryId)}`}
+                variant="primary"
+              >
+                Open Certification Record
+              </PublicButtonLink>
+
+              <PublicButtonLink
+                href={`/verify/${encodeURIComponent(registryId)}`}
+                variant="secondary"
+              >
+                Verify This Record
+              </PublicButtonLink>
+
+              <PublicButtonLink
+                href={`/api/verify/${encodeURIComponent(registryId)}`}
+                variant="secondary"
+              >
+                View Proof JSON
+              </PublicButtonLink>
+            </div>
+          ) : null}
         </section>
       </div>
     </main>

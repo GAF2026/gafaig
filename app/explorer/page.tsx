@@ -1,6 +1,9 @@
 import PublicButtonLink from "@/app/_components/PublicButtonLink";
 import PublicPageHero from "@/app/_components/PublicPageHero";
-import { getExplorerStats, getLatestExplorerRecords } from "@/lib/queries/explorer";
+import {
+  getExplorerStats,
+  getLatestExplorerRecords,
+} from "@/lib/queries/explorer";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -26,6 +29,7 @@ type ExplorerRecord = {
 
 function formatNumber(value: number | null | undefined): string {
   const safeValue = Number(value ?? 0);
+
   return new Intl.NumberFormat("en-US").format(
     Number.isFinite(safeValue) ? safeValue : 0
   );
@@ -35,7 +39,10 @@ function formatDate(value: string | null | undefined): string {
   if (!value) return "—";
 
   const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return String(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return String(value);
+  }
 
   return new Intl.DateTimeFormat("en-US", {
     month: "numeric",
@@ -46,10 +53,13 @@ function formatDate(value: string | null | undefined): string {
 
 function formatText(value: string | null | undefined): string {
   const clean = String(value ?? "").trim();
+
   return clean.length > 0 ? clean : "—";
 }
 
-function normalizeStats(stats: Partial<ExplorerStats> | null | undefined): ExplorerStats {
+function normalizeStats(
+  stats: Partial<ExplorerStats> | null | undefined
+): ExplorerStats {
   return {
     publicRecords: Number(stats?.publicRecords ?? 0),
     certified: Number(stats?.certified ?? 0),
@@ -59,11 +69,18 @@ function normalizeStats(stats: Partial<ExplorerStats> | null | undefined): Explo
   };
 }
 
-function normalizeRecord(row: Partial<ExplorerRecord> | null | undefined): ExplorerRecord | null {
-  if (!row || typeof row !== "object") return null;
+function normalizeRecord(
+  row: Partial<ExplorerRecord> | null | undefined
+): ExplorerRecord | null {
+  if (!row || typeof row !== "object") {
+    return null;
+  }
 
   const registryId = String(row.registryId ?? "").trim();
-  if (!registryId) return null;
+
+  if (!registryId) {
+    return null;
+  }
 
   return {
     registryId,
@@ -82,7 +99,7 @@ function ExplorerUnavailableState() {
     <main className="mx-auto max-w-[1180px] px-6 py-10">
       <div className="space-y-8">
         <PublicPageHero
-          eyebrow="Public Trust Surface"
+          eyebrow="PUBLIC TRUST SURFACE"
           title="Explore the public GAFAIG trust surface"
           description="Explorer is temporarily unavailable."
           secondaryDescription="The public trust surface depends on the canonical Snowflake public views. Please try again shortly."
@@ -91,6 +108,7 @@ function ExplorerUnavailableState() {
               <PublicButtonLink href="/registry" variant="primary">
                 View Registry
               </PublicButtonLink>
+
               <PublicButtonLink href="/verify" variant="secondary">
                 Verify a Record
               </PublicButtonLink>
@@ -103,8 +121,10 @@ function ExplorerUnavailableState() {
             <div className="text-lg font-semibold text-black">
               Explorer unavailable
             </div>
+
             <p className="mt-2 text-sm leading-6 text-black/60">
-              GAFAIG could not load Explorer records from the canonical public views.
+              GAFAIG could not load Explorer records from the canonical public
+              views.
             </p>
           </div>
         </section>
@@ -119,8 +139,10 @@ function EmptyLatestRecordsState() {
       <div className="text-lg font-semibold text-black">
         No public records available
       </div>
+
       <p className="mt-2 text-sm leading-6 text-black/60">
-        Explorer did not receive any published public records from the canonical public view.
+        Explorer did not receive any published public records from the canonical
+        public view.
       </p>
     </div>
   );
@@ -137,37 +159,56 @@ export default async function ExplorerPage() {
     ]);
   } catch (error) {
     console.error("Explorer page failed to load:", error);
+
     return <ExplorerUnavailableState />;
   }
 
-  const stats = normalizeStats(rawStats as Partial<ExplorerStats> | null | undefined);
+  const stats = normalizeStats(
+    rawStats as Partial<ExplorerStats> | null | undefined
+  );
 
   const latestRecords = Array.isArray(rawLatestRecords)
     ? rawLatestRecords
-        .map((record) => normalizeRecord(record as Partial<ExplorerRecord>))
-        .filter((record): record is ExplorerRecord => record !== null)
+        .map((record) =>
+          normalizeRecord(record as Partial<ExplorerRecord>)
+        )
+        .filter(
+          (record): record is ExplorerRecord => record !== null
+        )
     : [];
 
   return (
     <main className="mx-auto max-w-[1180px] px-6 py-10">
       <div className="space-y-8">
         <PublicPageHero
-          eyebrow="Public Trust Surface"
+          eyebrow="PUBLIC TRUST SURFACE"
           title="Explore the public GAFAIG trust surface"
-          description="Explorer shows the public governance footprint derived from GAFAIG certification records that organizations have chosen to publish."
-          secondaryDescription="Use Explorer when you want to browse the broader public trust surface across organizations, countries, and systems. Registry is the canonical record-by-record surface for inspecting a specific certified public record."
+          description="Explorer shows the public governance footprint derived from GAFAIG certification records that organizations have explicitly chosen to publish."
+          secondaryDescription="Use Explorer when you want to browse the broader public trust surface across organizations, countries, and systems. Registry is the canonical record-by-record trust surface for inspecting a specific published certification record."
           actions={
             <>
-              <PublicButtonLink href="/registry" variant="secondary">
+              <PublicButtonLink href="/registry" variant="primary">
                 View Registry
               </PublicButtonLink>
-              <PublicButtonLink href="/explorer/organizations" variant="secondary">
+
+              <PublicButtonLink
+                href="/explorer/organizations"
+                variant="secondary"
+              >
                 Organizations
               </PublicButtonLink>
-              <PublicButtonLink href="/explorer/countries" variant="secondary">
+
+              <PublicButtonLink
+                href="/explorer/countries"
+                variant="secondary"
+              >
                 Countries
               </PublicButtonLink>
-              <PublicButtonLink href="/explorer/systems" variant="secondary">
+
+              <PublicButtonLink
+                href="/explorer/systems"
+                variant="secondary"
+              >
                 AI Systems
               </PublicButtonLink>
             </>
@@ -179,39 +220,48 @@ export default async function ExplorerPage() {
             <div className="text-xs font-semibold uppercase tracking-[0.24em] text-black/40">
               How to read Explorer
             </div>
+
             <h2 className="text-[26px] font-semibold tracking-tight text-black">
-              Certified and published records appear in the public trust surface
+              Published certification records appear in the public trust surface
             </h2>
+
             <p className="text-[15px] leading-7 text-black/75">
-              Explorer is broader than a single Registry of Record detail page, but it
-              still follows the public trust policy. Only records that have completed
-              publication are shown here.
+              Explorer is broader than a single certification record page, but
+              it still follows the public trust policy. Only certification
+              records that organizations explicitly choose to publish appear
+              here.
             </p>
+
             <p className="text-[15px] leading-7 text-black/75">
-              Use Explorer when you want to browse the broader public trust
-              footprint across organizations, countries, and systems. Use
-              Registry when you want to inspect a specific certified public
-              record and its verification surfaces.
+              Explorer surfaces publication-controlled trust metadata across
+              organizations, countries, and systems without exposing private
+              governance workflows, findings, reviewer materials, scoring
+              internals, or operational telemetry.
             </p>
           </div>
 
           <div className="mt-8 grid gap-4 md:grid-cols-2">
             <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
               <h3 className="text-[18px] font-semibold tracking-tight text-black">
-                Certified
+                Certification remains private until publication
               </h3>
+
               <p className="mt-3 text-[15px] leading-7 text-black/75">
-                Certified means the evaluated outcome has been finalized through the GAFAIG verification process. Certification is evaluated privately, and only records that organizations choose to publish appear in the public registry and Explorer.
+                Governance evaluation occurs inside the deterministic private
+                verification engine. Public trust surfaces expose only published
+                certification outcomes and verification proof infrastructure.
               </p>
             </div>
 
             <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
               <h3 className="text-[18px] font-semibold tracking-tight text-black">
-                Explorer visibility
+                Explorer is projection-only
               </h3>
+
               <p className="mt-3 text-[15px] leading-7 text-black/75">
-                Approved-only workflow records remain private. Explorer and the public
-                registry reflect published trust records only.
+                Explorer does not recompute trust. It renders projection data
+                from canonical Snowflake public views and links users to the
+                registry and verification surfaces.
               </p>
             </div>
           </div>
@@ -222,6 +272,7 @@ export default async function ExplorerPage() {
             <div className="text-xs font-semibold uppercase tracking-[0.24em] text-black/40">
               Public Records
             </div>
+
             <div className="mt-4 text-[40px] font-semibold tracking-tight text-black">
               {formatNumber(stats.publicRecords)}
             </div>
@@ -229,8 +280,9 @@ export default async function ExplorerPage() {
 
           <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
             <div className="text-xs font-semibold uppercase tracking-[0.24em] text-black/40">
-              Published Certified Records
+              Published Certifications
             </div>
+
             <div className="mt-4 text-[40px] font-semibold tracking-tight text-black">
               {formatNumber(stats.certified)}
             </div>
@@ -240,6 +292,7 @@ export default async function ExplorerPage() {
             <div className="text-xs font-semibold uppercase tracking-[0.24em] text-black/40">
               Organizations
             </div>
+
             <div className="mt-4 text-[40px] font-semibold tracking-tight text-black">
               {formatNumber(stats.organizations)}
             </div>
@@ -249,6 +302,7 @@ export default async function ExplorerPage() {
             <div className="text-xs font-semibold uppercase tracking-[0.24em] text-black/40">
               Countries
             </div>
+
             <div className="mt-4 text-[40px] font-semibold tracking-tight text-black">
               {formatNumber(stats.countries)}
             </div>
@@ -258,6 +312,7 @@ export default async function ExplorerPage() {
             <div className="text-xs font-semibold uppercase tracking-[0.24em] text-black/40">
               Systems
             </div>
+
             <div className="mt-4 text-[40px] font-semibold tracking-tight text-black">
               {formatNumber(stats.systems)}
             </div>
@@ -268,15 +323,17 @@ export default async function ExplorerPage() {
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div className="max-w-4xl">
               <div className="text-xs font-semibold uppercase tracking-[0.24em] text-black/40">
-                Latest Public Records
+                Latest Published Records
               </div>
+
               <h2 className="mt-3 text-[26px] font-semibold tracking-tight text-black">
-                Published records currently visible in Explorer
+                Recently published certification records
               </h2>
+
               <p className="mt-4 text-[15px] leading-7 text-black/75">
-                This view surfaces metadata from published GAFAIG certification
-                records across entities and certification state without exposing
-                private reviewer materials.
+                Explorer surfaces metadata from published GAFAIG certification
+                records while preserving the boundary between public trust
+                surfaces and private governance execution infrastructure.
               </p>
             </div>
 
@@ -306,8 +363,10 @@ export default async function ExplorerPage() {
                         <h3 className="text-[26px] font-semibold tracking-tight text-black">
                           {formatText(record.entityName)}
                         </h3>
+
                         <p className="mt-2 text-[14px] text-black/70">
-                          {formatText(record.country)} · {record.registryId}
+                          {formatText(record.country)} ·{" "}
+                          {record.registryId}
                         </p>
                       </div>
                     </div>
@@ -317,7 +376,14 @@ export default async function ExplorerPage() {
                         href={`/registry/${record.registryId}`}
                         variant="secondary"
                       >
-                        View Published Record
+                        Open Certification Record
+                      </PublicButtonLink>
+
+                      <PublicButtonLink
+                        href={`/verify/${record.registryId}`}
+                        variant="primary"
+                      >
+                        Verify Record
                       </PublicButtonLink>
                     </div>
                   </div>
@@ -327,6 +393,7 @@ export default async function ExplorerPage() {
                       <div className="text-xs font-semibold uppercase tracking-[0.24em] text-black/40">
                         Certification
                       </div>
+
                       <div className="mt-3 text-[18px] font-semibold text-black">
                         {formatText(record.certificationStatus)}
                       </div>
@@ -336,6 +403,7 @@ export default async function ExplorerPage() {
                       <div className="text-xs font-semibold uppercase tracking-[0.24em] text-black/40">
                         Certified
                       </div>
+
                       <div className="mt-3 text-[18px] font-semibold text-black">
                         {formatDate(record.certifiedAt)}
                       </div>
@@ -345,6 +413,7 @@ export default async function ExplorerPage() {
                       <div className="text-xs font-semibold uppercase tracking-[0.24em] text-black/40">
                         Valid From
                       </div>
+
                       <div className="mt-3 text-[18px] font-semibold text-black">
                         {formatDate(record.validFrom)}
                       </div>
@@ -354,6 +423,7 @@ export default async function ExplorerPage() {
                       <div className="text-xs font-semibold uppercase tracking-[0.24em] text-black/40">
                         Valid To
                       </div>
+
                       <div className="mt-3 text-[18px] font-semibold text-black">
                         {formatDate(record.validTo)}
                       </div>

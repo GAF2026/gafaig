@@ -1,540 +1,765 @@
-# CANONICAL_RUN_ORDER.md
+CANONICAL_RUN_ORDER.md
 
-Last Updated: 2026-05-04
+Last Updated: 2026-05-07
 
 PURPOSE
 
-This document defines the exact deterministic execution order of all GAFAIG Snowflake files and procedures.
+This document defines the ONLY valid deterministic execution order for rebuilding, validating, and operating the GAFAIG Snowflake infrastructure.
 
-This is the ONLY valid run sequence.
+GAFAIG = Global Authority for AI Governance.
 
-Do not reorder.  
-Do not skip.  
-Do not parallelize.  
+GAFAIG is a deterministic global AI governance infrastructure platform that enables organizations, AI systems, regulators, enterprises, governments, research institutions, universities, laboratories, non-profits, technology providers, and governance stakeholders to manage, evaluate, certify, publish, verify, monitor, observe, and coordinate AI governance outcomes through Snowflake-originated public trust records and cryptographic proof infrastructure.
 
-Snowflake is the source of truth.  
-All computation must occur in Snowflake.  
-All downstream systems (API/UI/Widget) are read-only projections.  
+This file defines:
 
----
+canonical Snowflake execution ordering
+deterministic rebuild sequencing
+AI governance layer ordering
+governance simulation ordering
+governance observability ordering
+publication ordering
+validation ordering
+append-only registry protections
+public trust validation sequencing
+cryptographic verification sequencing
 
+This is the ONLY valid execution sequence.
+
+Do NOT:
+
+reorder
+skip
+parallelize
+partially execute canonical layers
+
+Snowflake is the source of truth.
+
+All governance execution, certification, publication, and trust validation originate in Snowflake.
+
+GLOBAL POSITIONING EVOLUTION (CRITICAL)
+
+GAFAIG has evolved beyond the earlier framing of:
+
+"registry platform"
+
+The platform must now be consistently positioned as:
+
+deterministic global AI governance infrastructure
+
+This evolution reflects the expansion of GAFAIG into:
+
+deterministic certification infrastructure
+governance execution infrastructure
+governance intelligence infrastructure
+governance observability infrastructure
+governance simulation infrastructure
+remediation orchestration infrastructure
+append-only publication infrastructure
+cryptographic public trust infrastructure
+independent verification infrastructure
+global governance coordination infrastructure
+
+CRITICAL:
+
+This positioning evolution must NOT weaken:
+
+Snowflake-first execution
+deterministic trust guarantees
+publication control
+append-only registry behavior
+proof.messageString verification enforcement
+cryptographic verification integrity
+fail-closed verification behavior
+AI advisory-only boundaries
 GLOBAL EXECUTION RULES
 
-Always run in ACCOUNTADMIN or appropriate elevated role.
-
-Always execute:
+Required execution context:
 
 USE ROLE ACCOUNTADMIN;
 USE WAREHOUSE GAFAIG_WH;
 USE DATABASE GAFAIG_DB;
 USE SCHEMA CORE;
 
-Never modify table contracts outside canonical files.  
-Never introduce derived logic in API/UI.  
-Registry is append-only.  
-IDs must be deterministic and stable.  
-All joins must use TRIM(UPPER(...)) normalization where ID matching is required.  
-All scoring must originate from Snowflake views only.  
+All canonical execution assumes:
 
----
+deterministic ordering
+deterministic object ownership
+deterministic IDs
+deterministic public trust outputs
 
-CRITICAL MESSAGESTRING RULES
+Never:
 
-All fields used for messageString must remain deterministic.  
-Field ordering must NEVER change once in use.  
-No conditional field omission for signed payload inputs.  
-Any change impacting messageString = cryptographic breaking change.  
-messageString is the ONLY valid external verification input.  
-Never reconstruct signed payloads from UI or JSON object fields.  
+generate IDs outside Snowflake
+bypass canonical procedures
+publish directly into registry tables
+mutate registry snapshots manually
+reconstruct verification payloads outside canonical contracts
+CORE SYSTEM RULES
 
----
+Snowflake is the source of truth.
 
-🔴 CRITICAL PRE-RUN CHECKS (MANDATORY)
+API is pass-through only.
 
-Before running ANY rebuild:
+UI is display only.
 
-12_TABLES_PARTICIPANTS.sql must compile without errors.  
-15_TABLES_EVENTS.sql must compile without errors.  
+Registry is append-only.
 
-If either fails:
+Certification is private.
 
-STOP.  
-DO NOT PROCEED.  
+Publication is explicit.
 
-These files:
+Verification uses proof.messageString only.
 
-break canonical run order  
-block deterministic rebuild  
-can silently corrupt downstream workflow  
+AI is advisory only.
 
-This is STEP ZERO.  
+Humans approve.
 
----
+Snowflake decides.
+
+Registry publishes.
+
+Proof verifies.
+
+Simulation is operational only.
+
+Governance intelligence must NEVER override deterministic trust.
+
+VERIFICATION CONTRACT RULES
+
+Verification MUST use:
+
+proof.messageString ONLY
+
+Verification MUST NEVER use:
+
+reconstructed payloads
+parsed JSON fields
+UI-rendered fields
+reordered payload fields
+reserialized payloads
+
+Verification behavior:
+
+deterministic
+fail-closed
+Ed25519-based
+externally reproducible
+
+Canonical verification endpoint:
+
+/api/verify/[registryId]
+
+Canonical public key endpoint:
+
+/api/.well-known/gafaig-public-key
+
+Canonical public contract:
+
+CORE.V_REGISTRY_PUBLIC
+
+PUBLICATION MODEL
+
+Certification and publication are separate states.
+
+Certification:
+
+private
+deterministic
+Snowflake-controlled
+
+Publication:
+
+explicit
+optional
+append-only
+visibility-controlled
+
+Public visibility requires:
+
+PUBLISHED = TRUE
+
+All public trust surfaces MUST enforce:
+
+WHERE PUBLISHED = TRUE
+
+No unpublished records may appear publicly.
+
+AI GOVERNANCE RULE
+
+Core rule:
+
+AI suggests.
+Humans approve.
+Snowflake decides.
+Registry publishes.
+Proof verifies.
+
+AI governance systems may:
+
+observe
+recommend
+orchestrate
+analyze
+simulate
+coordinate
+
+AI governance systems must NEVER:
+
+assign certification
+assign publication state
+publish registry records
+mutate registry snapshots
+mutate proof payloads
+override deterministic Snowflake trust outputs
+PREVIOUS CRITICAL BLOCKER (HISTORICAL CONTEXT)
+
+Earlier in the GAFAIG build process, the following files were identified as canonical rebuild blockers:
+
+12_TABLES_PARTICIPANTS.sql
+15_TABLES_EVENTS.sql
+
+These files previously required alignment to preserve:
+
+deterministic rebuild ordering
+downstream dependency integrity
+canonical pipeline stability
+
+The platform has since evolved beyond that earlier stabilization phase into:
+
+governance intelligence
+governance simulations
+governance observability
+remediation orchestration
+public trust infrastructure
+cryptographic verification hardening
+global AI governance infrastructure expansion
+
+Future canonical rebuild validation remains important before major infrastructure expansion, but these files should NOT be treated as unresolved blockers unless active compile/runtime failures reappear during Snowflake validation.
 
 CANONICAL EXECUTION ORDER
-
 00 — ENVIRONMENT SETUP
-
-00_CORE_SETUP.sql
-
----
-
-01 — FULL RESET (OPTIONAL BUT RECOMMENDED)
-
-01_REBUILD_ENVIRONMENT_CANONICAL.sql
 
 Purpose:
 
-full deterministic rebuild  
-eliminates residual state  
-ensures reproducibility  
+environment validation
+role validation
+warehouse validation
+deterministic setup
 
-CRITICAL:
+Files:
 
-This is the ONLY valid method to reset registry state.  
-DO NOT manually delete registry tables.  
-
----
-
-10 — CORE TABLES (FOUNDATION)
-
-10_TABLES_SUBMISSIONS.sql  
-11_TABLES_APPLICATIONS.sql  
-12_TABLES_PARTICIPANTS.sql  
-13_TABLES_VERIFICATION_CASES.sql  
-14_TABLES_VERIFICATION_FINDINGS.sql  
-14_TABLES_VERIFICATION_EVIDENCE.sql  
-14_TABLES_VERIFICATION_FINDING_EVIDENCE.sql  
-15_TABLES_EVENTS.sql  
-16_TABLES_CASE_SCORE_SNAPSHOTS.sql  
-17_TABLES_DECISIONS.sql  
-18_TABLES_REGISTRY_SNAPSHOTS.sql  
-19_TABLES_REGISTRY_AI_SYSTEMS.sql  
+00_CORE_SETUP.sql
 
 Rules:
 
-all tables must compile clean  
-no missing columns  
-no schema drift  
-no assumptions  
+must execute first
+no downstream assumptions before setup completes
+01 — FULL REBUILD FOUNDATION
 
-CRITICAL:
+Purpose:
 
-All IDs originate in Snowflake only.  
-No derived IDs allowed.  
-Referential integrity must be enforced.  
-CORE.DECISIONS.CASE_ID must be NOT NULL.  
-Approved decisions MUST have VALID_FROM and VALID_TO.  
-VALID_TO must NOT be NULL for approved decisions.  
-Decision windows must not overlap.  
+deterministic environment rebuild
+canonical reset
+object recreation
 
----
+Files:
 
-20 — CORE VIEWS (READ LAYER)
+01_REBUILD_ENVIRONMENT_CANONICAL.sql
 
-20_VIEWS_VERIFICATION_CASE_DETAIL.sql  
+Rules:
 
-26_VIEWS_CASE_RENEWAL_STATUS.sql  
+foundation layer only
+deterministic object ownership
+no business logic here
+CORE TABLE LAYER
+10 — CORE TABLES
+
+Purpose:
+
+deterministic governance storage
+foundational trust entities
+
+Files:
+
+10_TABLES_SUBMISSIONS.sql
+11_TABLES_APPLICATIONS.sql
+12_TABLES_PARTICIPANTS.sql
+13_TABLES_VERIFICATION_CASES.sql
+14_TABLES_VERIFICATION_FINDINGS.sql
+14_TABLES_VERIFICATION_EVIDENCE.sql
+14_TABLES_VERIFICATION_FINDING_EVIDENCE.sql
+15_TABLES_EVENTS.sql
+16_TABLES_CASE_SCORE_SNAPSHOTS.sql
+17_TABLES_DECISIONS.sql
+18_TABLES_REGISTRY_SNAPSHOTS.sql
+19_TABLES_REGISTRY_AI_SYSTEMS.sql
+
+Rules:
+
+IDs originate ONLY in Snowflake
+registry tables remain append-only
+no direct publication inserts
+
+Protected append-only tables:
+
+CORE.REGISTRY_SNAPSHOTS
+CORE.REGISTRY_AI_SYSTEMS
+
+Canonical publish path ONLY:
+
+CALL CORE.SP_PUBLISH_CASE_TO_REGISTRY_V4(...)
+PUBLIC VIEW LAYER
+20 — PUBLIC TRUST VIEWS
+
+Purpose:
+
+canonical public trust projections
+verification-safe public contracts
+
+Files:
+
+20_VIEWS_VERIFICATION_CASE_DETAIL.sql
+21_VIEWS_PUBLIC_REGISTRY.sql
+22_VIEWS_REGISTRY_AI_SYSTEMS_PUBLIC.sql
+22_VIEWS_EXPLORER_STATS.sql
+26_VIEWS_CASE_RENEWAL_STATUS.sql
+
+Rules:
+
+projection-only
+no trust recomputation
+no unpublished records
+no governance telemetry leakage
+
+All public views MUST enforce:
+
+WHERE PUBLISHED = TRUE
+
+Canonical public trust view:
+
+CORE.V_REGISTRY_PUBLIC
+AI INPUT LAYER
+25 — AI INPUT VIEWS
+
+Purpose:
+
+deterministic governance intelligence ingestion
+
+Files:
+
+AI_LAYER_INPUT_VIEWS.sql
+
+Operational views:
+
+CORE.V_AI_CASE_INPUT
+CORE.V_AI_FINDING_INPUT
+CORE.V_AI_EVIDENCE_INPUT
+CORE.V_AI_EVENT_INPUT
+CORE.V_AI_DECISION_INPUT
+CORE.V_AI_REGISTRY_SNAPSHOT_INPUT
+
+Rules:
+
+read-only
+deterministic
+no public view dependence
+no UI-derived data
+CORE PROCEDURE LAYER
+30 — CORE PROCEDURES
+
+Purpose:
+
+deterministic governance execution
+scoring
+publication
+
+Files:
+
+23_SP_CREATE_CASE_FROM_APPLICATION.sql
+24_PROCEDURES_APPLICATION_INTAKE.sql
+24_SP_SCORE_CASE_ENTERPRISE.sql
+25_PROCEDURES_APPROVAL.sql
+26_PROCEDURES_FINDINGS.sql
+26_PROCEDURES_FINDINGS_UPDATE.sql
+27_PROCEDURES_EVIDENCE.sql
+28_PROCEDURES_FINDING_EVIDENCE.sql
+GAFAIG - Governance Scoring (Enterprise v1.2).sql
+GAFAIG - CORE.REGISTRY_PUBLISH_V4.sql
+GAFAIG - CORE.REGISTRY_PUBLISH.sql
+
+Rules:
+
+deterministic only
+Snowflake-only execution
+publication separated from certification
+
+Canonical publication procedure:
+
+CORE.SP_PUBLISH_CASE_TO_REGISTRY_V4
+
+Legacy compatibility only:
+
+CORE.SP_PUBLISH_CASE_TO_REGISTRY_V3
+AI GOVERNANCE FOUNDATION
+35 — AI OBSERVATION + REVIEW LAYER
+
+Purpose:
+
+governance intelligence
+observations
+recommendations
+review orchestration
+
+Files:
+
+AI_LAYER_TABLES.sql
+AI_LAYER_INGESTION_PROCEDURES.sql
+AI_LAYER_OBSERVATION_GENERATOR.sql
+AI_LAYER_REVIEW_WORKFLOW.sql
+
+Rules:
+
+advisory only
+no certification authority
+no publication authority
+no proof mutation
+SCORING ENGINE
+40 — SCORING ENGINE
+
+Purpose:
+
+deterministic governance scoring
+
+Files:
+
+GAFAIG - Governance Scoring (Enterprise v1.2).sql
+24_SP_SCORE_CASE_ENTERPRISE.sql
 
 Defines:
 
-CORE.V_CASE_RENEWAL_STATUS  
+CORE.V_GOVERNANCE_SCORE_CASE
+CORE.V_CASE_TIER_BAND
 
 Rules:
 
-one row per CASE_ID  
-latest decision only  
-DAYS_TO_EXPIRY derived from VALID_TO  
+private only
+Snowflake-only
+no public trust exposure unless future public-safe contracts explicitly allow it
+CONSENSUS + POLICY GOVERNANCE
+45 — AI CONSENSUS + POLICY GOVERNANCE
 
-Active validity:
+Purpose:
 
-DECISION_STATUS = 'APPROVED'  
-AND CURRENT_TIMESTAMP() BETWEEN VALID_FROM AND VALID_TO  
+consensus governance
+policy mapping
+deterministic governance escalation
 
----
+Files:
 
-21_VIEWS_PUBLIC_REGISTRY.sql  
-
-Defines:
-
-CORE.V_REGISTRY_PUBLIC  
-CORE.V_REGISTRY_LATEST_APPROVED  
-
-Rules:
-
-canonical public contract  
-score-blind  
-no scoring leakage  
-certification derived from approved + valid + published  
-
-CRITICAL:
-
-This view defines the messageString payload foundation.  
-Field order MUST remain stable.  
-
----
-
-22_VIEWS_REGISTRY_AI_SYSTEMS_PUBLIC.sql  
-
-Defines:
-
-CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC  
+AI_LAYER_MULTI_REVIEW_GOVERNANCE.sql
+AI_LAYER_POLICY_ENGINE.sql
 
 Rules:
 
-join on CASE_ID  
-no score exposure  
-no private logic  
+advisory and operational only
+no certification mutation
+no registry mutation
+RISK + DRIFT GOVERNANCE
+50 — AI RISK + DRIFT GOVERNANCE
 
----
+Purpose:
 
-22_VIEWS_EXPLORER_STATS.sql  
+governance risk analysis
+governance drift analysis
+escalation detection
 
-Defines:
+Files:
 
-CORE.V_EXPLORER_STATS  
-
-Rules:
-
-projection only  
-no recomputation  
-lifecycle enforced  
-
----
-
-🔴 CRITICAL VIEW BLOCKER RULE
-
-NO PUBLIC VIEW may expose:
-
-SCORE  
-scoring internals  
-raw evidence  
-private workflow data  
-
-Score is PRIVATE.  
-
----
-
-23 — CORE PROCEDURES (PIPELINE ENGINE)
-
-23_SP_CREATE_CASE_FROM_APPLICATION.sql  
-
-APPLICATION → CASE  
-
----
-
-24_PROCEDURES_APPLICATION_INTAKE.sql  
-
-Application intake procedures  
-
----
-
-26_PROCEDURES_FINDINGS.sql  
-
-Defines:
-
-CORE.SP_CREATE_FINDING  
+AI_LAYER_RISK_AND_DRIFT_ENGINE.sql
 
 Rules:
 
-FINDING_ID generated in Snowflake  
-insert only via procedure  
-return canonical payload  
+operational only
+no proof mutation
+no registry mutation
+REMEDIATION GOVERNANCE
+55 — AI REMEDIATION + ORCHESTRATION
 
----
+Purpose:
 
-27_PROCEDURES_EVIDENCE.sql  
+remediation workflows
+governance orchestration
+escalation coordination
 
-Evidence creation procedures  
+Files:
 
----
-
-28_PROCEDURES_FINDING_EVIDENCE.sql  
-
-Finding ↔ Evidence linking procedures  
-
----
-
-25_SP_SCORE_CASE_ENTERPRISE.sql  
-
-CASE → SCORE SNAPSHOT  
+AI_LAYER_REMEDIATION_ORCHESTRATION.sql
+AI_LAYER_AUTOMATION_ENGINE.sql
 
 Rules:
 
-read from CORE.V_GOVERNANCE_SCORE_CASE  
-write to CORE.CASE_SCORE_SNAPSHOTS  
-no external computation  
+operational only
+append-safe
+deterministic workflow coordination only
+EXECUTION GOVERNANCE
+60 — AI EXECUTION + CONTINUOUS GOVERNANCE
 
----
+Purpose:
 
-25_PROCEDURES_APPROVAL.sql  
+execution governance
+monitoring
+operational governance analytics
 
-Defines:
+Files:
 
-CORE.APPROVE_CASE_V1  
-CORE.UNAPPROVE_CASE_V1  
-
-Rules:
-
-attach SNAPSHOT_ID  
-create VALID_FROM / VALID_TO  
-close overlapping decisions  
-no overlapping validity windows  
-
----
-
-30 — SCORING ENGINE (AUTHORITATIVE)
-
-GAFAIG - Governance Scoring (Enterprise v1.2).sql  
-
-Defines:
-
-CORE.V_GOVERNANCE_SCORE_CASE  
+AI_LAYER_EXECUTION_GOVERNANCE.sql
+AI_LAYER_CONTINUOUS_MONITORING.sql
 
 Rules:
 
-single source of score  
-no duplicate logic  
-PRIVATE ONLY  
+operational only
+no publication authority
+no certification authority
+GOVERNANCE SIMULATION LAYER
+65 — AI SIMULATION GOVERNANCE
 
----
+Purpose:
 
-REGISTRY PUBLISH (CRITICAL)
+operational governance simulation
+governance stress testing
+trust decay analysis
 
-GAFAIG - CORE.REGISTRY_PUBLISH.sql  
+Files:
 
-Defines:
-
-CORE.SP_PUBLISH_CASE_TO_REGISTRY_V3  
-
-Rules:
-
-append-only  
-reuse REGISTRY_ID  
-deterministic output  
-derive publishability from:
-
-DECISION_STATUS = 'APPROVED'  
-AND CURRENT_TIMESTAMP() BETWEEN VALID_FROM AND VALID_TO  
-
-🔴 CRITICAL:
-
-DO NOT manually insert or delete registry data  
-
----
-
-40 — SEED (DETERMINISTIC DATA)
-
-GAFAIG - FINAL_CANONICAL_MULTI_SEED.sql  
-
-🔴 ONLY canonical seed file  
+AI_LAYER_SIMULATION_STRESS_TESTING.sql
 
 Rules:
 
-no additional seed files  
-no splitting logic  
-must produce full pipeline  
+NON-DESTRUCTIVE
+deterministic
+append-safe
+operational only
 
-CRITICAL:
+Simulation systems MUST NEVER:
 
-Seed must NOT:
+mutate certification
+mutate publication
+mutate registry snapshots
+mutate proof state
+GOVERNANCE TIMELINE LAYER
+70 — GOVERNANCE TIMELINE LAYER
 
-insert into registry tables  
-delete from registry tables  
+Purpose:
 
-Seed MUST use:
+governance observability
+timeline intelligence
+governance sequencing
 
-CALL CORE.SP_PUBLISH_CASE_TO_REGISTRY_V3(...)  
+Files:
 
----
-
-END-TO-END PIPELINE EXECUTION
-
-MANDATORY ORDER:
-
-INSERT INTO CORE.APPLICATIONS  
-CALL CORE.SP_CREATE_CASE_FROM_APPLICATION  
-CALL CORE.SP_SCORE_CASE_ENTERPRISE  
-CALL CORE.APPROVE_CASE_V1  
-CALL CORE.SP_PUBLISH_CASE_TO_REGISTRY_V3  
-
-No step may be skipped.  
-
----
-
-VALIDATION QUERIES
-
-SELECT * FROM CORE.V_GOVERNANCE_SCORE_CASE WHERE CASE_ID = '<CASE_ID>';  
-SELECT * FROM CORE.CASE_SCORE_SNAPSHOTS WHERE CASE_ID = '<CASE_ID>';  
-SELECT * FROM CORE.DECISIONS WHERE CASE_ID = '<CASE_ID>';  
-SELECT * FROM CORE.REGISTRY_SNAPSHOTS WHERE CASE_ID = '<CASE_ID>';  
-SELECT * FROM CORE.V_REGISTRY_PUBLIC WHERE CASE_ID = '<CASE_ID>';  
-SELECT * FROM CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC WHERE CASE_ID = '<CASE_ID>';  
-SELECT * FROM CORE.V_EXPLORER_STATS;  
-
----
-
-DECISION INTEGRITY VALIDATION
-
-SELECT COUNT(*) FROM CORE.DECISIONS  
-WHERE CASE_ID IS NULL OR TRIM(CASE_ID) = '';  
-
-Expected: 0  
-
-Overlap validation:
-
-(no overlapping VALID_FROM / VALID_TO windows)
-
----
-
-RENEWAL VALIDATION
-
-SELECT * FROM CORE.V_CASE_RENEWAL_STATUS WHERE CASE_ID = '<CASE_ID>';  
-
-Expected:
-
-IS_CURRENTLY_VALID = TRUE  
-DAYS_TO_EXPIRY not null  
-
----
-
-PUBLIC REGISTRY VALIDATION
-
-SELECT * FROM CORE.V_REGISTRY_PUBLIC WHERE CASE_ID = '<CASE_ID>';  
-
-Expected:
-
-CERTIFICATION_STATUS = CERTIFIED  
-VALID_FROM populated  
-VALID_TO populated  
-LIFECYCLE_STATUS = active  
-
----
-
-TRUST SURFACE LAYER
-
-VERIFY ENDPOINT
-
-/api/verify/[registryId]  
+AI_LAYER_GOVERNANCE_TIMELINE.sql
 
 Rules:
 
-no computation  
-deterministic  
-returns messageString  
+read-only
+projection-only
+operational observability only
 
-CRITICAL:
+Timeline systems MUST NEVER:
 
-messageString is ONLY verification input  
+publish
+certify
+mutate registry state
+mutate proof state
+PUBLICATION LAYER
+80 — PUBLICATION
 
----
+Purpose:
 
-PUBLIC KEY ENDPOINT
+append-only publication
+public trust distribution
 
-/api/.well-known/gafaig-public-key  
+Files:
 
-Must expose:
+GAFAIG - CORE.REGISTRY_PUBLISH_V4.sql
 
-Ed25519 key  
+Rules:
 
----
+publication explicit only
+append-only
+deterministic
+publication separate from certification
+SEED DATA
+90 — SEED DATA
 
-REGISTRY ENDPOINT
+Purpose:
 
-/api/registry  
+deterministic test data
+trust-surface population
+validation support
 
-Projection only  
+Files:
 
----
+GAFAIG - FINAL_CANONICAL_MULTI_SEED.sql
 
-EXPLORER ENDPOINT
+Rules:
 
-/api/explorer  
+exactly ONE canonical seed file
+no parallel seed systems
+no direct registry inserts
+no direct AI governance inserts
 
-Sources:
+Seed exists ONLY to:
 
-V_REGISTRY_PUBLIC  
-V_REGISTRY_AI_SYSTEMS_PUBLIC  
-V_EXPLORER_STATS  
+validate pipeline
+populate public UI
+validate verification
+validate registry APIs
+validate widgets/SDK
+VALIDATION + DIAGNOSTICS
+95 — VALIDATION + SMOKE TESTS
 
----
+Purpose:
 
-CRYPTO RULES
+deterministic diagnostics
+public trust validation
+registry validation
 
-Algorithm: Ed25519  
-Signing: server-side  
-Private key NEVER exposed  
+Files:
 
-CRITICAL:
+98_SMOKE_TEST_REGISTRY_PUBLIC_SURFACE.sql
+98_END_TO_END_CERTIFICATION_DEMO.sql
+98_ENVIRONMENT_DIAGNOSTICS.sql
+98_DIAGNOSTICS_PUBLIC_VIEWS.sql
 
-messageString must be deterministic  
-verification must fail closed  
+Rules:
 
----
+non-destructive
+validation only
+deterministic diagnostics
+CANONICAL VALIDATION RUNNER
+99 — CANONICAL VALIDATION RUNNER
 
-EXTERNAL VERIFICATION
+Purpose:
 
-Node + Python + Tamper tests  
+full deterministic operational validation
 
-Expected:
+Files:
 
-Valid = TRUE  
-Tampered = FALSE  
+99_RUN_CANONICAL_PIPELINE.sql
 
----
+Validation coverage:
 
-NON-NEGOTIABLE RULES
+publication enforcement
+public visibility enforcement
+AI governance existence
+AI governance isolation
+governance simulation validation
+governance timeline validation
+cryptographic verification integrity
+append-only registry enforcement
+operational governance integrity
 
-DO NOT:
+Final validation marker:
 
-compute score outside Snowflake  
-generate registry records outside procedure  
-mutate registry  
-expose private data  
+GAFAIG_CANONICAL_PIPELINE_VALIDATION_COMPLETE
 
-ALWAYS:
+CRITICAL RULE:
 
-use Snowflake  
-follow run order  
-use procedures  
-preserve determinism  
+99_RUN_CANONICAL_PIPELINE.sql
+MUST NEVER contain:
 
----
+DROP
+DELETE
+TRUNCATE
+destructive rebuild logic
+PUBLIC TRUST API CONTRACTS
 
-PHASE LOCK
+Operational APIs:
 
-All writes must occur via procedures  
+/api/registry
+/api/verify/[registryId]
+/api/badge/[registryId]
 
-No direct inserts from API  
+Rules:
 
----
+projection only
+fail-closed
+publication-controlled
+deterministic
 
-CURRENT SYSTEM STATE
+API MUST NEVER:
 
-✔ Verification system complete  
-✔ Public registry working  
-✔ messageString locked  
-✔ Ed25519 verified  
-✔ Widget + SDK working  
+score
+certify
+publish
+generate IDs
+reconstruct proof payloads
+AI LAYER ISOLATION GUARANTEE
 
-🔴 12_TABLES_PARTICIPANTS.sql → needs validation  
-🔴 15_TABLES_EVENTS.sql → needs validation  
+AI governance remains isolated from:
 
-🟡 Explorer contract being restored  
-🟡 Stress testing pending  
+CORE.CASE_SCORE_SNAPSHOTS
+CORE.DECISIONS
+CORE.REGISTRY_SNAPSHOTS
+CORE.V_REGISTRY_PUBLIC
+verification signature system
 
----
+Unless explicitly controlled through deterministic Snowflake procedures.
 
-NEXT PHASE
+Violation = system corruption.
 
-Snowflake validation + stress testing  
+CURRENT EXECUTION STATE
 
----
+WORKING
 
-FINAL PRINCIPLE
+Operational:
 
-GAFAIG is not an application.
+deterministic verification
+publication enforcement
+append-only registry behavior
+governance intelligence
+governance simulations
+governance observability
+governance timelines
+remediation orchestration
+operational governance analytics
+cryptographic verification
+fail-closed verification
+canonical validation runner
 
-GAFAIG is a deterministic, cryptographically verifiable governance protocol.
+Validated successfully in Snowflake.
+
+CURRENT PHASE
+
+GLOBAL AI GOVERNANCE INFRASTRUCTURE EXPANSION
+
+Focus:
+
+governance intelligence
+simulations
+observability
+remediation
+operational governance
+deterministic public trust infrastructure
+
+WITHOUT weakening:
+
+Snowflake-first execution
+publication control
+append-only registry behavior
+cryptographic verification
+deterministic trust
+FINAL EXECUTION PRINCIPLE
+
+Snowflake decides.
+
+API projects.
+
+UI displays.
+
+Registry publishes only explicit public records.
+
+Proof verifies.
 
 END OF FILE

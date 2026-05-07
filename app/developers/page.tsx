@@ -392,9 +392,9 @@ export default function DevelopersPage() {
       <div className="space-y-8">
         <PublicPageHero
           eyebrow="DEVELOPERS"
-          title="Integrate independently verifiable AI governance"
-          description="GAFAIG provides a verification-first trust surface for AI governance. Developers can fetch published certification records, inspect signed proof, and independently validate payload integrity using GAFAIG’s verification endpoint and public key."
-          secondaryDescription="The SDK is the canonical integration surface for GAFAIG trust signals. Badges, widgets, and verification modals are render layers over the public verification endpoint. Internal governance records remain private; external systems validate only published certification outcomes, canonical messageString, signature, and public key."
+          title="Integrate deterministic AI governance proof"
+          description="GAFAIG provides a verification-first trust surface for deterministic global AI governance infrastructure. Developers can fetch published certification records, inspect signed proof, and independently validate payload integrity using GAFAIG’s verification endpoint and public key."
+          secondaryDescription="The SDK is the canonical integration surface for GAFAIG public trust signals. Badges, widgets, and verification modals are render layers over the public verification endpoint. Internal governance records remain private; external systems validate only published certification outcomes, canonical messageString, signature, and public key."
           actions={
             <>
               <PublicButtonLink href="/verify" variant="primary">
@@ -467,7 +467,7 @@ export default function DevelopersPage() {
             <StepCard
               number="3"
               title="Verify independently"
-              body="Use the verification endpoint, exact messageString, signature, and public key to validate the public record."
+              body="Use the verification endpoint, exact messageString, signature, and public key to validate the public certification record."
             />
           </div>
 
@@ -626,7 +626,7 @@ export default function DevelopersPage() {
                   rel="noreferrer"
                   className="rounded-full border border-black/15 px-5 py-2.5 text-sm font-semibold text-black transition hover:border-black"
                 >
-                  View JSON
+                  View Proof JSON
                 </a>
               </div>
             </div>
@@ -741,7 +741,7 @@ export default function DevelopersPage() {
           <SectionHeading
             eyebrow="WIDGET"
             title="Render the full trust widget"
-            body="The widget is a richer trust surface. It fetches the verify endpoint, renders record status, signature state, payload integrity, and links to the registry and raw verification JSON."
+            body="The widget is a richer trust surface. It fetches the verify endpoint, renders record status, signature state, payload integrity, and links to the registry and Proof JSON."
           />
 
           <div className="mt-8 grid gap-6">
@@ -814,11 +814,11 @@ export default function DevelopersPage() {
           <div className="mt-6 grid gap-4 md:grid-cols-2">
             <StatementCard
               title="Public fields"
-              body="registryId, registrySnapshotId, applicationId, caseId, entityName, entityType, country, certificationStatus, validFrom, validTo, certifiedAt, publishedAt, and proof."
+              body="Published certification record fields, lifecycle state, registry identifiers, eligibility flags, and cryptographic proof required for independent verification."
             />
             <StatementCard
               title="Private fields"
-              body="Raw score, scoring breakdowns, reviewer materials, internal workflow state, raw findings, and evidence do not belong in the public trust layer."
+              body="Raw score, scoring breakdowns, reviewer materials, internal workflow state, raw findings, evidence, governance telemetry, and private operational records do not belong in the public trust layer."
             />
           </div>
         </section>

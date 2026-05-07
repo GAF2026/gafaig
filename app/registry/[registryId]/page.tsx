@@ -59,9 +59,11 @@ function statusPillClass(status?: string | null): string {
   if (normalized === "CERTIFIED") {
     return "border-emerald-300 bg-emerald-50 text-emerald-700";
   }
+
   if (normalized === "PENDING") {
     return "border-amber-300 bg-amber-50 text-amber-700";
   }
+
   if (normalized === "REVOKED" || normalized === "EXPIRED") {
     return "border-red-300 bg-red-50 text-red-700";
   }
@@ -95,7 +97,20 @@ function DetailCard({ label, value }: { label: string; value: string }) {
   );
 }
 
-async function getRegistryRecord(registryId: string): Promise<RegistryApiRow | null> {
+function ExplanationCard({ title, body }: { title: string; body: string }) {
+  return (
+    <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
+      <h3 className="text-[18px] font-semibold tracking-tight text-black">
+        {title}
+      </h3>
+      <p className="mt-3 text-[15px] leading-7 text-black/75">{body}</p>
+    </div>
+  );
+}
+
+async function getRegistryRecord(
+  registryId: string
+): Promise<RegistryApiRow | null> {
   const baseUrl = buildBaseUrl();
   const response = await fetch(
     `${baseUrl}/api/registry?registryId=${encodeURIComponent(registryId)}`,
@@ -118,33 +133,33 @@ export default async function RegistryRecordPage({
 
   if (!record) notFound();
 
-  const verifyHref = `/verify/${record.registryId}`;
-  const verifyJsonHref = `/api/verify/${record.registryId}`;
-  const widgetHref = `/widget-preview/${record.registryId}`;
-  const registryHref = `/registry/${record.registryId}`;
+  const verifyHref = `/verify/${encodeURIComponent(record.registryId)}`;
+  const verifyJsonHref = `/api/verify/${encodeURIComponent(record.registryId)}`;
+  const widgetHref = `/widget-preview/${encodeURIComponent(record.registryId)}`;
+  const registryHref = `/registry/${encodeURIComponent(record.registryId)}`;
 
   return (
     <main className="mx-auto max-w-[1180px] px-6 py-10">
       <div className="space-y-8">
-
         <PublicPageHero
           eyebrow="PUBLIC CERTIFICATION RECORD"
-          title={`Public certification record for ${formatLabel(record.entityName)}`}
-          description={
-            [
-              [record.entityType, record.country].filter(Boolean).join(" · "),
-              "This page shows a publicly published GAFAIG certification record. Only records that organizations choose to publish appear in the public registry."
-            ]
-              .filter(Boolean)
-              .join(" — ")
-          }
+          title={`Public certification record for ${formatLabel(
+            record.entityName
+          )}`}
+          description="This page displays a published GAFAIG certification record. Certification is evaluated privately, publication is explicit, and only organizations that elect publication appear in the public registry."
+          secondaryDescription="This record is a public trust surface only. Private evidence, findings, scoring internals, reviewer materials, governance telemetry, Application ID, and Case ID are not displayed publicly."
           actions={
             <>
-              <PublicButtonLink
-                href={`/verify/${encodeURIComponent(registryId)}`}
-                variant="primary"
-              >
+              <PublicButtonLink href={verifyHref} variant="primary">
                 Verify This Record
+              </PublicButtonLink>
+
+              <PublicButtonLink href={verifyJsonHref} variant="secondary">
+                View Proof JSON
+              </PublicButtonLink>
+
+              <PublicButtonLink href="/registry" variant="secondary">
+                Back to Registry
               </PublicButtonLink>
             </>
           }
@@ -165,7 +180,7 @@ export default async function RegistryRecordPage({
                 Open Full Proof Page
               </PublicButtonLink>
               <PublicButtonLink href={verifyJsonHref} variant="secondary">
-                Proof JSON
+                View Proof JSON
               </PublicButtonLink>
               <PublicButtonLink href={widgetHref} variant="secondary">
                 Widget Preview
@@ -174,25 +189,60 @@ export default async function RegistryRecordPage({
           </div>
 
           <div className="mt-6 grid gap-4 md:grid-cols-3">
-            <MetricCard label="Certified" value={formatDate(record.certifiedAt)} />
-            <MetricCard label="Valid From" value={formatDate(record.validFrom)} />
+            <MetricCard
+              label="Certified"
+              value={formatDate(record.certifiedAt)}
+            />
+            <MetricCard
+              label="Valid From"
+              value={formatDate(record.validFrom)}
+            />
             <MetricCard label="Valid To" value={formatDate(record.validTo)} />
           </div>
         </section>
 
         <section className="rounded-3xl border border-black/10 bg-white p-8">
           <h2 className="text-[26px] font-semibold tracking-tight text-black">
-            Record details
+            Certification record details
           </h2>
 
+          <p className="mt-4 max-w-[900px] text-[15px] leading-7 text-black/75">
+            These fields describe the public certification record. This page does
+            not expose private workflow identifiers or internal governance
+            materials.
+          </p>
+
           <div className="mt-6 grid gap-4 md:grid-cols-3">
-            <DetailCard label="Registry ID" value={formatLabel(record.registryId)} />
+            <DetailCard
+              label="Registry ID"
+              value={formatLabel(record.registryId)}
+            />
+            <DetailCard
+              label="Entity"
+              value={formatLabel(record.entityName)}
+            />
+            <DetailCard
+              label="Entity Type"
+              value={formatLabel(record.entityType)}
+            />
             <DetailCard label="Country" value={formatLabel(record.country)} />
-            <DetailCard label="Certification Status" value={formatLabel(record.certificationStatus)} />
-            <DetailCard label="Certified" value={formatDate(record.certifiedAt)} />
-            <DetailCard label="Valid From" value={formatDate(record.validFrom)} />
+            <DetailCard
+              label="Certification Status"
+              value={formatLabel(record.certificationStatus)}
+            />
+            <DetailCard
+              label="Certified"
+              value={formatDate(record.certifiedAt)}
+            />
+            <DetailCard
+              label="Valid From"
+              value={formatDate(record.validFrom)}
+            />
             <DetailCard label="Valid To" value={formatDate(record.validTo)} />
-            <DetailCard label="Published" value={formatDate(record.publishedAt)} />
+            <DetailCard
+              label="Published"
+              value={formatDate(record.publishedAt)}
+            />
           </div>
         </section>
 
@@ -201,22 +251,51 @@ export default async function RegistryRecordPage({
             Trust surface
           </h2>
 
+          <p className="mt-4 max-w-[900px] text-[15px] leading-7 text-black/75">
+            The registry distributes the public certification record. The verify
+            endpoint distributes the signed proof. External systems should verify
+            the exact proof.messageString returned by the verification endpoint
+            and must never reconstruct the signed payload from JSON fields.
+          </p>
+
           <div className="mt-6 grid gap-4 md:grid-cols-3">
             <DetailCard label="Proof API" value={verifyJsonHref} />
-            <DetailCard label="Certification Record" value={registryHref} />
+            <DetailCard
+              label="Certification Record"
+              value={registryHref}
+            />
             <DetailCard label="Widget Preview" value={widgetHref} />
           </div>
 
           <div className="mt-6 flex flex-wrap gap-3">
+            <PublicButtonLink href={verifyHref} variant="primary">
+              Verify This Record
+            </PublicButtonLink>
             <PublicButtonLink href={verifyJsonHref} variant="secondary">
               View Proof JSON
             </PublicButtonLink>
             <PublicButtonLink href="/registry" variant="secondary">
-              Back to registry
+              Back to Registry
             </PublicButtonLink>
           </div>
         </section>
 
+        <section className="rounded-3xl border border-black/10 bg-white p-8">
+          <h2 className="text-[26px] font-semibold tracking-tight text-black">
+            What this public record does and does not prove
+          </h2>
+
+          <div className="mt-6 grid gap-4 md:grid-cols-2">
+            <ExplanationCard
+              title="What this record proves"
+              body="This record proves that GAFAIG has a published certification record for the listed entity and registry identifier, and that the record can be independently verified through the public proof endpoint."
+            />
+            <ExplanationCard
+              title="What remains private"
+              body="Private evidence, findings, reviewer notes, internal scoring details, governance telemetry, Application ID, and Case ID remain outside the public certification record."
+            />
+          </div>
+        </section>
       </div>
     </main>
   );

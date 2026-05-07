@@ -52,7 +52,9 @@ function formatLabel(value: string | null | undefined): string {
   return cleaned || "—";
 }
 
-function normalizeRow(row: Partial<RegistryPageRow> | null | undefined): RegistryPageRow | null {
+function normalizeRow(
+  row: Partial<RegistryPageRow> | null | undefined
+): RegistryPageRow | null {
   const registryId = clean(row?.registryId);
 
   if (!registryId) {
@@ -89,13 +91,7 @@ function getStatusLabel(row: RegistryPageRow): string {
   return formatLabel(row.certificationStatus);
 }
 
-function FilterChip({
-  label,
-  value,
-}: {
-  label: string;
-  value: string;
-}) {
+function FilterChip({ label, value }: { label: string; value: string }) {
   return (
     <span className="inline-flex items-center justify-center rounded-full border border-black/10 bg-black/[0.02] px-3 py-1 text-sm font-medium text-black/70">
       <span className="mr-2 text-black/40">{label}</span>
@@ -108,7 +104,8 @@ function EmptyState() {
   return (
     <div className="rounded-3xl border border-dashed border-black/10 bg-black/[0.02] px-6 py-14 text-center">
       <div className="text-lg font-semibold text-black">
-        No published records available. Certification is evaluated privately, and records only appear here if organizations choose to publish them.
+        No published records available. Certification is evaluated privately, and
+        records only appear here if organizations choose to publish them.
       </div>
       <div className="mt-6">
         <PublicButtonLink href="/registry" variant="secondary">
@@ -125,7 +122,7 @@ function RegistryUnavailableState() {
       <div className="space-y-8">
         <PublicPageHero
           eyebrow="PUBLIC CERTIFICATION REGISTRY"
-          title="Browse the GAFAIG public registry"
+          title="Browse published GAFAIG certification records"
           description="The public registry is temporarily unavailable."
           secondaryDescription="The registry surface is read-only and depends on the canonical Snowflake public view. Please try again shortly."
           actions={
@@ -142,9 +139,12 @@ function RegistryUnavailableState() {
 
         <section className="rounded-3xl border border-black/10 bg-white p-8">
           <div className="rounded-3xl border border-dashed border-black/10 bg-black/[0.02] px-6 py-14 text-center">
-            <div className="text-lg font-semibold text-black">Registry unavailable</div>
+            <div className="text-lg font-semibold text-black">
+              Registry unavailable
+            </div>
             <p className="mt-2 text-sm leading-6 text-black/60">
-              GAFAIG could not load the public registry records from the canonical public view.
+              GAFAIG could not load the public registry records from the
+              canonical public view.
             </p>
           </div>
         </section>
@@ -188,7 +188,7 @@ function RegistryCard({ row }: { row: RegistryPageRow }) {
         <div className="mt-5 grid gap-3 md:grid-cols-3">
           <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
             <div className="text-[12px] font-semibold uppercase tracking-[0.24em] text-black/40">
-              Certified (Published)
+              Certified
             </div>
             <div className="mt-3 text-[15px] leading-7 text-black">
               {formatDate(row.certifiedAt)}
@@ -230,8 +230,6 @@ function RegistryCard({ row }: { row: RegistryPageRow }) {
               {row.country ?? "—"}
             </div>
           </div>
-
-          
         </div>
 
         <div className="flex flex-wrap gap-3 pt-1">
@@ -332,9 +330,9 @@ export default async function RegistryPage({
       <div className="space-y-8">
         <PublicPageHero
           eyebrow="PUBLIC CERTIFICATION REGISTRY"
-          title="Browse the GAFAIG public registry"
-          description="The public registry contains GAFAIG certification records that organizations have chosen to publish. Certification is evaluated privately, and only published records appear in the public registry."
-          secondaryDescription="Explore publicly published GAFAIG certification records."
+          title="Browse published GAFAIG certification records"
+          description="The public registry is the publication-controlled trust surface of GAFAIG’s deterministic global AI governance infrastructure. Certification is evaluated privately, and only records that organizations explicitly choose to publish appear here."
+          secondaryDescription="Each published certification record can be independently verified through GAFAIG’s verification endpoint, signed proof.messageString payload, and public key infrastructure."
           actions={
             <>
               <PublicButtonLink href="/explorer" variant="primary">
@@ -353,10 +351,20 @@ export default async function RegistryPage({
               How to read the registry
             </div>
             <h2 className="text-[26px] font-semibold tracking-tight text-black">
-              The registry is the public index of published records
+              The registry is the public index of explicitly published
+              certification records
             </h2>
             <p className="text-[15px] leading-7 text-black/75">
-              Each entry represents a GAFAIG certification record that an organization has chosen to publish. Only published records appear in the public registry and can be independently verified.
+              Each entry represents a GAFAIG certification record that an
+              organization has chosen to publish. Private governance data,
+              evidence, findings, scoring internals, reviewer materials, and
+              governance telemetry are not exposed in the public registry.
+            </p>
+            <p className="text-[15px] leading-7 text-black/75">
+              Public certification records are projection-only trust surfaces.
+              They are not recomputed in the UI. Verification depends on the
+              canonical verify endpoint, exact proof.messageString payload,
+              signature, and GAFAIG public key.
             </p>
 
             {hasAnyFilters && activeFilters.length > 0 ? (

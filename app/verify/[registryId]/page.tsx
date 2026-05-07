@@ -372,11 +372,11 @@ function validateSignature(
     return isValid
       ? {
           status: "valid",
-          detail: "The signed payload validates against the published verification key.",
+          detail: "The exact proof.messageString validates against the published GAFAIG verification key.",
         }
       : {
           status: "invalid",
-          detail: "The signature does not validate against the published verification key.",
+          detail: "The signature does not validate against the exact proof.messageString and published verification key.",
         };
   } catch (error) {
     return {
@@ -419,8 +419,6 @@ export default async function VerifyPage({
 
   const registryId = safe(data.registryId || record.registryId || registryIdParam);
   const registrySnapshotId = safe(record.registrySnapshotId);
-  const applicationId = safe(record.applicationId);
-  const caseId = safe(record.caseId);
   const signedAt = formatDateTime(proof.signedAt || data.signedAt);
 
   const rawVerificationKeyUrl = proof.verificationKeyUrl || data.verificationKeyUrl || null;
@@ -528,7 +526,9 @@ export default async function VerifyPage({
           </h1>
 
           <div className="mt-4 max-w-4xl text-[15px] leading-7 text-black/75">
-            This page exposes the public proof behind a GAFAIG certification record. Only records that have been explicitly published by the organization appear in the public registry and verification system.
+            This page exposes the public proof behind a GAFAIG certification
+            record. Only records that have been explicitly published by the
+            organization appear in the public registry and verification system.
           </div>
 
           <div className="mt-6 grid gap-4 md:grid-cols-4">
@@ -591,10 +591,9 @@ export default async function VerifyPage({
             <p className="max-w-3xl text-[15px] leading-7 text-black/75">
               GAFAIG validates the returned signed payload against the published
               verification key for this record. Verification MUST be performed
-              against the exact messageString returned by the API. Reconstructing
-              payloads from JSON fields is not permitted and will invalidate
-              verification. External systems should use messageString, signature,
-              and the public key to independently validate the proof.
+              against the exact proof.messageString returned by the API.
+              Reconstructing payloads from JSON fields is not permitted and will
+              invalidate verification.
             </p>
           </div>
 
@@ -669,10 +668,9 @@ export default async function VerifyPage({
           </h2>
 
           <p className="mt-5 max-w-[980px] text-[15px] leading-7 text-black/75">
-            These identifiers connect the public verification response to the
-            Snowflake-issued registry snapshot, application, and verification
-            case. IDs are displayed exactly as returned by the public verification
-            endpoint.
+            These fields connect the public verification response to the
+            Snowflake-originated public registry snapshot. Private Application ID
+            and Case ID values are not displayed on this public proof page.
           </p>
 
           <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
@@ -703,25 +701,26 @@ export default async function VerifyPage({
           <p className="mt-5 max-w-[980px] text-[15px] leading-7 text-black/75">
             This page is one part of the full GAFAIG proof sequence. A record
             appears in the public registry, is verified through signed proof,
-            exposes its machine-readable payload, and can then travel outside
-            the platform through a portable widget, badge, or external modal.
+            exposes its machine-readable proof payload, and can then travel
+            outside the platform through a portable widget, badge, SDK, or
+            external modal.
           </p>
 
           <div className="mt-8 grid gap-4 md:grid-cols-4">
             <StepCard
               number="1"
-              title="Registry Record"
-              body="The public certification record establishes the trust outcome."
+              title="Certification Record"
+              body="The published certification record establishes the public trust outcome."
             />
             <StepCard
               number="2"
-              title="Verify Page"
+              title="Proof Page"
               body="This page validates the signed proof behind that record."
             />
             <StepCard
               number="3"
-              title="Signed JSON"
-              body="The machine-readable payload makes the trust record portable."
+              title="Proof JSON"
+              body="The machine-readable proof makes the trust record portable."
             />
             <StepCard
               number="4"
@@ -746,11 +745,11 @@ export default async function VerifyPage({
           <div className="mt-7 grid gap-4 md:grid-cols-2">
             <StatementCard
               title="For people"
-              body="The registry page and this verify page provide a readable public trust surface for customers, regulators, partners, and the public."
+              body="The certification record and this proof page provide a readable public trust surface for customers, regulators, partners, and the public."
             />
             <StatementCard
               title="For systems"
-              body="The raw verification JSON, signature, messageString, and public key allow external systems to inspect and consume the same trust result without relying on GAFAIG UI."
+              body="The Proof JSON, signature, messageString, and public key allow external systems to inspect and consume the same trust result without relying on GAFAIG UI."
             />
           </div>
 
@@ -762,22 +761,22 @@ export default async function VerifyPage({
               cta="Open Certification Record"
             />
             <FeatureCard
-              title="Widget preview"
+              title="Widget Preview"
               body="See how the same trust signal appears on an external site."
               href={`/widget-preview/${encodeURIComponent(registryId)}`}
-              cta="View widget"
+              cta="View Widget"
             />
             <FeatureCard
-              title="Verify JSON"
+              title="Proof JSON"
               body="Open the machine-readable proof returned by the verification endpoint."
               href={`/api/verify/${encodeURIComponent(registryId)}`}
               cta="View Proof JSON"
             />
             <FeatureCard
-              title="Demo flow"
+              title="Demo Flow"
               body="See how this page fits into the full GAFAIG proof walkthrough."
               href="/demo"
-              cta="Open demo"
+              cta="Open Demo"
             />
           </div>
         </section>
@@ -795,8 +794,8 @@ export default async function VerifyPage({
             </h2>
             <p className="mt-5 max-w-4xl text-[18px] leading-8 text-black/65">
               These fields are provided for reference and debugging. Trust must
-              be established using the exact messageString returned by the API,
-              the signature, and the public key.
+              be established using the exact proof.messageString returned by the
+              API, the signature, and the public key.
             </p>
           </div>
 
@@ -880,9 +879,9 @@ export default async function VerifyPage({
           </h2>
 
           <div className="mt-6 grid gap-4 md:grid-cols-2">
-            <InfoCard label="Registry Page" value={registryUrl} />
+            <InfoCard label="Certification Record" value={registryUrl} />
             <InfoCard label="Widget Preview" value={widgetUrl} />
-            <InfoCard label="Verify JSON" value={verifyJsonUrl} />
+            <InfoCard label="Proof JSON" value={verifyJsonUrl} />
             <InfoCard label="Badge JSON" value={badgeJsonUrl} />
             <InfoCard label="Public Key Endpoint" value={verificationKeyUrl} />
             <InfoCard label="Demo Page" value={demoUrl} />
