@@ -239,8 +239,8 @@ export async function getExplorerSystems(
       REGISTRY_ID AS "registryId",
       CASE_ID AS "caseId",
       ENTITY_NAME AS "entityName",
-      ENTITY_NAME AS "systemName",
-      ENTITY_TYPE AS "entityType",
+      SYSTEM_NAME AS "systemName",
+      SYSTEM_TYPE AS "systemType",
       COUNTRY AS "country",
       CERTIFICATION_STATUS AS "certificationStatus",
       NULL AS "certifiedTier",
@@ -248,7 +248,7 @@ export async function getExplorerSystems(
       NULL AS "publishedAt",
       LIFECYCLE_STATUS AS "lifecycleStatus"
     FROM CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC
-    ORDER BY REGISTRY_ID ASC
+    ORDER BY REGISTRY_ID ASC, SYSTEM_NAME ASC
     LIMIT ${safeLimit}
   `);
 }
