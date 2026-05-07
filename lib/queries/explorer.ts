@@ -92,7 +92,6 @@ export async function getLatestCertifiedRecord(): Promise<ExplorerRecord | null>
       CERTIFIED_AT AS "certifiedAt",
       VALID_FROM AS "validFrom",
       VALID_TO AS "validTo",
-      PUBLISHED_AT AS "publishedAt",
       RENEWAL_STATUS AS "renewalStatus",
       LIFECYCLE_STATUS AS "lifecycleStatus",
       VISIBILITY_STATUS AS "visibilityStatus",
@@ -246,10 +245,10 @@ export async function getExplorerSystems(
       CERTIFICATION_STATUS AS "certificationStatus",
       NULL AS "certifiedTier",
       NULL AS "certifiedBand",
-      PUBLISHED_AT AS "publishedAt",
+      NULL AS "publishedAt",
       LIFECYCLE_STATUS AS "lifecycleStatus"
     FROM CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC
-    ORDER BY PUBLISHED_AT DESC, REGISTRY_ID ASC
+    ORDER BY REGISTRY_ID ASC
     LIMIT ${safeLimit}
   `);
 }
