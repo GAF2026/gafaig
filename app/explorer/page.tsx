@@ -340,6 +340,68 @@ export default async function ExplorerPage() {
           </div>
         </section>
 
+        <section className="mt-10 grid gap-4 md:grid-cols-3">
+          <article className="rounded-3xl border border-neutral-200 bg-white p-6 transition hover:border-neutral-400">
+            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-black/40">
+              Lifecycle
+            </p>
+
+            <h2 className="mt-4 text-[22px] font-semibold tracking-tight text-black">
+              Certification Lifecycle
+            </h2>
+
+            <p className="mt-3 text-[15px] leading-7 text-black/70">
+              Publication-safe certification lifecycle visibility derived from canonical Snowflake registry views.
+            </p>
+
+            <div className="mt-5">
+              <PublicButtonLink href="/explorer/lifecycle" variant="secondary">
+                Open Lifecycle
+              </PublicButtonLink>
+            </div>
+          </article>
+
+          <article className="rounded-3xl border border-neutral-200 bg-white p-6 transition hover:border-neutral-400">
+            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-black/40">
+              Renewals
+            </p>
+
+            <h2 className="mt-4 text-[22px] font-semibold tracking-tight text-black">
+              Renewal Observability
+            </h2>
+
+            <p className="mt-3 text-[15px] leading-7 text-black/70">
+              Public renewal posture and certification continuity intelligence for certified registry records.
+            </p>
+
+            <div className="mt-5">
+              <PublicButtonLink href="/explorer/renewals" variant="secondary">
+                Open Renewals
+              </PublicButtonLink>
+            </div>
+          </article>
+
+          <article className="rounded-3xl border border-neutral-200 bg-white p-6 transition hover:border-neutral-400">
+            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-black/40">
+              Signals
+            </p>
+
+            <h2 className="mt-4 text-[22px] font-semibold tracking-tight text-black">
+              Governance Signals
+            </h2>
+
+            <p className="mt-3 text-[15px] leading-7 text-black/70">
+              Aggregated governance telemetry and publication-safe operational observability signals.
+            </p>
+
+            <div className="mt-5">
+              <PublicButtonLink href="/explorer/governance-signals" variant="secondary">
+                Open Signals
+              </PublicButtonLink>
+            </div>
+          </article>
+        </section>
+
         <section className="rounded-3xl border border-black/10 bg-white p-8">
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div className="max-w-4xl">
