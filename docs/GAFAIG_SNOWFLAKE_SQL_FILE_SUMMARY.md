@@ -72,6 +72,7 @@ proof.messageString verification enforcement
 cryptographic verification integrity
 fail-closed verification behavior
 AI advisory-only boundaries
+
 CORE SYSTEM RULES
 
 Snowflake is the source of truth.
@@ -135,6 +136,7 @@ Current active contract:
 
 alg: Ed25519
 kid: gafaig-ed25519-2026-01
+
 PUBLICATION MODEL
 
 Certification and publication are separate states.
@@ -170,6 +172,7 @@ USE ROLE ACCOUNTADMIN;
 USE WAREHOUSE GAFAIG_WH;
 USE DATABASE GAFAIG_DB;
 USE SCHEMA CORE;
+
 CANONICAL EXECUTION LAYERS
 
 GAFAIG execution now operates through the following deterministic layers:
@@ -202,6 +205,7 @@ APPLICATION
 → VERIFICATION
 
 00 — ENVIRONMENT FOUNDATION
+
 00_CORE_SETUP.sql
 
 Purpose:
@@ -220,7 +224,9 @@ Rules:
 
 must execute first
 no downstream assumptions
+
 01 — FULL ENVIRONMENT REBUILD
+
 01_REBUILD_ENVIRONMENT_CANONICAL.sql
 
 Purpose:
@@ -239,7 +245,9 @@ Rules:
 rebuild foundation only
 no scoring logic
 no publication logic
+
 CORE GOVERNANCE TABLES
+
 10_TABLES_SUBMISSIONS.sql
 
 Purpose:
@@ -249,6 +257,7 @@ submission intake tracking
 Primary tables:
 
 CORE.SUBMISSIONS
+
 11_TABLES_APPLICATIONS.sql
 
 Purpose:
@@ -258,6 +267,7 @@ application lifecycle tracking
 Primary tables:
 
 CORE.APPLICATIONS
+
 12_TABLES_PARTICIPANTS.sql
 
 Purpose:
@@ -268,6 +278,7 @@ entity/person linkage
 Primary tables:
 
 CORE.PARTICIPANTS
+
 13_TABLES_VERIFICATION_CASES.sql
 
 Purpose:
@@ -281,6 +292,7 @@ CORE.VERIFICATION_CASES
 Critical role:
 
 canonical governance execution anchor
+
 14_TABLES_VERIFICATION_FINDINGS.sql
 
 Purpose:
@@ -290,6 +302,7 @@ governance findings storage
 Primary tables:
 
 CORE.VERIFICATION_FINDINGS
+
 14_TABLES_VERIFICATION_EVIDENCE.sql
 
 Purpose:
@@ -299,6 +312,7 @@ governance evidence storage
 Primary tables:
 
 CORE.VERIFICATION_EVIDENCE
+
 14_TABLES_VERIFICATION_FINDING_EVIDENCE.sql
 
 Purpose:
@@ -308,6 +322,7 @@ finding/evidence relationship tracking
 Primary tables:
 
 CORE.VERIFICATION_FINDING_EVIDENCE
+
 15_TABLES_EVENTS.sql
 
 Purpose:
@@ -322,6 +337,7 @@ CORE.VERIFICATION_EVENTS
 Compatibility support:
 
 CORE.EVENTS
+
 16_TABLES_CASE_SCORE_SNAPSHOTS.sql
 
 Purpose:
@@ -336,6 +352,7 @@ Rules:
 
 append-only snapshots
 deterministic scoring outputs
+
 17_TABLES_DECISIONS.sql
 
 Purpose:
@@ -345,6 +362,7 @@ deterministic governance decisions
 Primary tables:
 
 CORE.DECISIONS
+
 18_TABLES_REGISTRY_SNAPSHOTS.sql
 
 Purpose:
@@ -360,6 +378,7 @@ Rules:
 append-only only
 no direct mutation
 no overwrite behavior
+
 19_TABLES_REGISTRY_AI_SYSTEMS.sql
 
 Purpose:
@@ -374,6 +393,7 @@ Rules:
 
 append-only only
 publication-controlled visibility
+
 PREVIOUS CRITICAL BLOCKER (HISTORICAL CONTEXT)
 
 Earlier in the GAFAIG build process, the following files were identified as canonical rebuild blockers:
@@ -400,6 +420,7 @@ global AI governance infrastructure expansion
 Future canonical rebuild validation remains important before major infrastructure expansion, but these files should NOT be treated as unresolved blockers unless active compile/runtime failures reappear during Snowflake validation.
 
 PUBLIC TRUST VIEW LAYER
+
 20_VIEWS_VERIFICATION_CASE_DETAIL.sql
 
 Purpose:
@@ -414,6 +435,7 @@ Rules:
 
 projection only
 no trust recomputation
+
 21_VIEWS_PUBLIC_REGISTRY.sql
 
 Purpose:
@@ -439,6 +461,7 @@ append-only projections
 All visibility enforcement requires:
 
 WHERE PUBLISHED = TRUE
+
 22_VIEWS_REGISTRY_AI_SYSTEMS_PUBLIC.sql
 
 Purpose:
@@ -454,6 +477,7 @@ Rules:
 projection only
 public-safe only
 no private governance telemetry
+
 22_VIEWS_EXPLORER_STATS.sql
 
 Purpose:
@@ -465,6 +489,118 @@ Rules:
 
 public-safe only
 publication-controlled only
+
+23_VIEWS_LIFECYCLE_PUBLIC.sql
+
+Purpose:
+
+public lifecycle governance visibility
+certification lifecycle monitoring
+publication-safe lifecycle intelligence
+
+Operational views:
+
+CORE.V_LIFECYCLE_PUBLIC
+CORE.V_LIFECYCLE_BY_COUNTRY_PUBLIC
+CORE.V_LIFECYCLE_BY_ORGANIZATION_PUBLIC
+
+Responsibilities:
+
+active certification visibility
+expiration tracking
+lifecycle categorization
+publication-safe lifecycle analytics
+
+Rules:
+
+projection-only
+publication-controlled
+verification-safe
+append-safe
+
+Must NEVER expose:
+
+private governance telemetry
+private findings
+private evidence
+internal scoring
+AI recommendation internals
+non-public certification states
+
+24_VIEWS_RENEWAL_PUBLIC.sql
+
+Purpose:
+
+public renewal governance observability
+renewal continuity monitoring
+publication-safe renewal analytics
+
+Operational views:
+
+CORE.V_RENEWAL_PUBLIC
+CORE.V_RENEWAL_BY_COUNTRY_PUBLIC
+CORE.V_RENEWAL_BY_ORGANIZATION_PUBLIC
+
+Responsibilities:
+
+renewal window visibility
+renewal readiness analytics
+expiration forecasting
+certification continuity observability
+
+Rules:
+
+projection-only
+publication-controlled
+verification-safe
+append-safe
+
+Must NEVER expose:
+
+private governance telemetry
+private review state
+internal governance workflows
+internal scoring
+AI recommendation internals
+non-public certification states
+
+25_VIEWS_OBSERVABILITY_PUBLIC.sql
+
+Purpose:
+
+public governance observability infrastructure
+publication-safe trust observability
+global certification continuity analytics
+
+Operational views:
+
+CORE.V_OBSERVABILITY_PUBLIC
+CORE.V_OBSERVABILITY_SIGNALS_PUBLIC
+
+Responsibilities:
+
+global observability rollups
+public trust continuity metrics
+renewal pressure visibility
+active certification monitoring
+country-level continuity analytics
+
+Rules:
+
+projection-only
+publication-controlled
+verification-safe
+append-safe
+
+Must NEVER expose:
+
+private governance telemetry
+private findings
+private evidence
+internal scoring
+AI recommendation internals
+non-public certification states
+
 26_VIEWS_CASE_RENEWAL_STATUS.sql
 
 Purpose:
@@ -479,7 +615,9 @@ Rules:
 
 lifecycle-only
 no trust recomputation
+
 CORE PROCEDURE LAYER
+
 23_SP_CREATE_CASE_FROM_APPLICATION.sql
 
 Purpose:
@@ -499,6 +637,7 @@ Rules:
 
 Snowflake-only ID generation
 deterministic workflow only
+
 24_PROCEDURES_APPLICATION_INTAKE.sql
 
 Purpose:
@@ -508,6 +647,7 @@ application intake orchestration
 Responsibilities:
 
 canonical intake execution
+
 24_SP_SCORE_CASE_ENTERPRISE.sql
 
 Purpose:
@@ -527,7 +667,9 @@ Rules:
 
 writes ONLY to:
 CORE.CASE_SCORE_SNAPSHOTS
+
 scores remain private
+
 25_PROCEDURES_APPROVAL.sql
 
 Purpose:
@@ -537,6 +679,7 @@ governance approval workflows
 Responsibilities:
 
 deterministic governance approvals
+
 26_PROCEDURES_FINDINGS.sql
 
 Purpose:
@@ -551,6 +694,7 @@ Responsibilities:
 
 deterministic finding creation
 canonical evidence linkage
+
 26_PROCEDURES_FINDINGS_UPDATE.sql
 
 Purpose:
@@ -560,6 +704,7 @@ governance finding updates
 Responsibilities:
 
 controlled finding mutation
+
 27_PROCEDURES_EVIDENCE.sql
 
 Purpose:
@@ -569,6 +714,7 @@ evidence management
 Responsibilities:
 
 deterministic evidence storage
+
 28_PROCEDURES_FINDING_EVIDENCE.sql
 
 Purpose:
@@ -578,7 +724,9 @@ finding/evidence linkage
 Responsibilities:
 
 deterministic governance linkage
+
 GOVERNANCE SCORING ENGINE
+
 GAFAIG - Governance Scoring (Enterprise v1.2).sql
 
 Purpose:
@@ -599,6 +747,7 @@ private
 Scores MUST NOT appear publicly unless future public-safe contracts explicitly allow them.
 
 PUBLICATION INFRASTRUCTURE
+
 GAFAIG - CORE.REGISTRY_PUBLISH_V4.sql
 
 Purpose:
@@ -620,6 +769,7 @@ Rules:
 publication separate from certification
 append-only only
 no overwrite behavior
+
 GAFAIG - CORE.REGISTRY_PUBLISH.sql
 
 Purpose:
@@ -634,7 +784,9 @@ Status:
 
 compatibility only
 superseded by V4
+
 AI GOVERNANCE FOUNDATION
+
 AI_LAYER_TABLES.sql
 
 Purpose:
@@ -666,7 +818,9 @@ Rules:
 advisory only
 no certification authority
 no publication authority
+
 AI INPUT LAYER
+
 AI_LAYER_INPUT_VIEWS.sql
 
 Purpose:
@@ -687,7 +841,9 @@ Rules:
 deterministic inputs only
 no UI-derived logic
 no trust recomputation
+
 AI INGESTION LAYER
+
 AI_LAYER_INGESTION_PROCEDURES.sql
 
 Purpose:
@@ -702,7 +858,9 @@ Rules:
 
 advisory only
 append-safe
+
 AI OBSERVATION ENGINE
+
 AI_LAYER_OBSERVATION_GENERATOR.sql
 
 Purpose:
@@ -725,7 +883,9 @@ Rules:
 
 advisory only
 no trust mutation
+
 HUMAN REVIEW WORKFLOW
+
 AI_LAYER_REVIEW_WORKFLOW.sql
 
 Purpose:
@@ -747,7 +907,9 @@ Rules:
 no certification mutation
 no registry mutation
 no proof mutation
+
 CONSENSUS GOVERNANCE
+
 AI_LAYER_MULTI_REVIEW_GOVERNANCE.sql
 
 Purpose:
@@ -769,7 +931,9 @@ Rules:
 
 advisory only
 no publication authority
+
 POLICY GOVERNANCE
+
 AI_LAYER_POLICY_ENGINE.sql
 
 Purpose:
@@ -785,7 +949,9 @@ Rules:
 
 advisory only
 no deterministic trust override
+
 RISK + DRIFT GOVERNANCE
+
 AI_LAYER_RISK_AND_DRIFT_ENGINE.sql
 
 Purpose:
@@ -803,7 +969,9 @@ Rules:
 operational only
 no publication authority
 no proof mutation
+
 REMEDIATION GOVERNANCE
+
 AI_LAYER_REMEDIATION_ORCHESTRATION.sql
 
 Purpose:
@@ -819,7 +987,9 @@ Rules:
 
 operational only
 deterministic workflow coordination
+
 EXECUTION GOVERNANCE
+
 AI_LAYER_EXECUTION_GOVERNANCE.sql
 
 Purpose:
@@ -836,7 +1006,9 @@ Rules:
 
 operational only
 no trust authority
+
 CONTINUOUS GOVERNANCE
+
 AI_LAYER_CONTINUOUS_MONITORING.sql
 
 Purpose:
@@ -852,7 +1024,9 @@ Rules:
 
 operational only
 no publication authority
+
 GOVERNANCE SIMULATION INFRASTRUCTURE
+
 AI_LAYER_SIMULATION_STRESS_TESTING.sql
 
 Purpose:
@@ -886,7 +1060,9 @@ mutate certification
 mutate publication
 mutate registry state
 mutate proof state
+
 GOVERNANCE TIMELINE INFRASTRUCTURE
+
 AI_LAYER_GOVERNANCE_TIMELINE.sql
 
 Purpose:
@@ -924,31 +1100,38 @@ publish
 certify
 mutate proof state
 mutate registry state
+
 VALIDATION + DIAGNOSTICS
+
 98_SMOKE_TEST_REGISTRY_PUBLIC_SURFACE.sql
 
 Purpose:
 
 public trust validation
 registry API validation
+
 98_END_TO_END_CERTIFICATION_DEMO.sql
 
 Purpose:
 
 deterministic pipeline validation
 end-to-end governance execution testing
+
 98_ENVIRONMENT_DIAGNOSTICS.sql
 
 Purpose:
 
 environment diagnostics
 deterministic validation
+
 98_DIAGNOSTICS_PUBLIC_VIEWS.sql
 
 Purpose:
 
 public trust projection diagnostics
+
 CANONICAL VALIDATION RUNNER
+
 99_RUN_CANONICAL_PIPELINE.sql
 
 Purpose:
@@ -973,12 +1156,14 @@ GAFAIG_CANONICAL_PIPELINE_VALIDATION_COMPLETE
 CRITICAL RULE:
 
 99_RUN_CANONICAL_PIPELINE.sql
+
 MUST NEVER contain:
 
 DROP
 DELETE
 TRUNCATE
 destructive rebuild logic
+
 CURRENT EXECUTION STATE
 
 WORKING
@@ -1020,6 +1205,7 @@ publication control
 append-only registry behavior
 cryptographic verification
 deterministic trust
+
 FINAL PRINCIPLE
 
 Snowflake decides.

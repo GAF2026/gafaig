@@ -211,6 +211,27 @@ export default async function ExplorerPage() {
               >
                 AI Systems
               </PublicButtonLink>
+
+              <PublicButtonLink
+                href="/explorer/lifecycle"
+                variant="secondary"
+              >
+                Lifecycle
+              </PublicButtonLink>
+
+              <PublicButtonLink
+                href="/explorer/renewals"
+                variant="secondary"
+              >
+                Renewals
+              </PublicButtonLink>
+
+              <PublicButtonLink
+                href="/explorer/governance-signals"
+                variant="secondary"
+              >
+                Governance Signals
+              </PublicButtonLink>
             </>
           }
         />

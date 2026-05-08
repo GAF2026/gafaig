@@ -67,6 +67,39 @@ export type ExplorerSystem = {
 
 export type ExplorerSystemRow = ExplorerSystem;
 
+export type LifecycleRecord = {
+  registryId: string;
+  entityName: string | null;
+  entityType: string | null;
+  country: string | null;
+  certificationStatus: string | null;
+  lifecycleStatus: string | null;
+  renewalStatus: string | null;
+  validFrom: string | null;
+  validTo: string | null;
+  daysUntilExpiration: number | null;
+  lifecycleWindow: string | null;
+};
+
+export type RenewalRecord = {
+  registryId: string;
+  entityName: string | null;
+  country: string | null;
+  certificationStatus: string | null;
+  renewalStatus: string | null;
+  lifecycleStatus: string | null;
+  validTo: string | null;
+  daysUntilExpiration: number | null;
+  renewalWindow: string | null;
+};
+
+export type GovernanceSignal = {
+  signalType: string;
+  signalValue: number;
+  signalDescription: string | null;
+  lastActivityAt: string | null;
+};
+
 function toLimit(value?: number): number {
   const n = Number(value ?? 25);
   if (!Number.isFinite(n)) return 25;
@@ -250,5 +283,69 @@ export async function getExplorerSystems(
     FROM CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC
     ORDER BY REGISTRY_ID ASC, SYSTEM_NAME ASC
     LIMIT ${safeLimit}
+  `);
+}
+
+export async function getLifecycleRecords(
+  limit = 100
+): Promise<LifecycleRecord[]> {
+  const safeLimit = toLimit(limit);
+
+  return sfQuery<LifecycleRecord>(`
+    SELECT
+      REGISTRY_ID AS "registryId",
+      ENTITY_NAME AS "entityName",
+      ENTITY_TYPE AS "entityType",
+      COUNTRY AS "country",
+      CERTIFICATION_STATUS AS "certificationStatus",
+      LIFECYCLE_STATUS AS "lifecycleStatus",
+      RENEWAL_STATUS AS "renewalStatus",
+      VALID_FROM AS "validFrom",
+      VALID_TO AS "validTo",
+      DAYS_UNTIL_EXPIRATION AS "daysUntilExpiration",
+      LIFECYCLE_WINDOW AS "lifecycleWindow"
+    FROM CORE.V_LIFECYCLE_PUBLIC
+    ORDER BY
+      DAYS_UNTIL_EXPIRATION ASC,
+      REGISTRY_ID ASC
+    LIMIT ${safeLimit}
+  `);
+}
+
+export async function getRenewalRecords(
+  limit = 100
+): Promise<RenewalRecord[]> {
+  const safeLimit = toLimit(limit);
+
+  return sfQuery<RenewalRecord>(`
+    SELECT
+      REGISTRY_ID AS "registryId",
+      ENTITY_NAME AS "entityName",
+      COUNTRY AS "country",
+      CERTIFICATION_STATUS AS "certificationStatus",
+      RENEWAL_STATUS AS "renewalStatus",
+      LIFECYCLE_STATUS AS "lifecycleStatus",
+      VALID_TO AS "validTo",
+      DAYS_UNTIL_EXPIRATION AS "daysUntilExpiration",
+      RENEWAL_WINDOW AS "renewalWindow"
+    FROM CORE.V_RENEWAL_PUBLIC
+    ORDER BY
+      DAYS_UNTIL_EXPIRATION ASC,
+      REGISTRY_ID ASC
+    LIMIT ${safeLimit}
+  `);
+}
+
+export async function getGovernanceSignals(): Promise<
+  GovernanceSignal[]
+> {
+  return sfQuery<GovernanceSignal>(`
+    SELECT
+      SIGNAL_TYPE AS "signalType",
+      SIGNAL_VALUE AS "signalValue",
+      SIGNAL_DESCRIPTION AS "signalDescription",
+      LAST_ACTIVITY_AT AS "lastActivityAt"
+    FROM CORE.V_GOVERNANCE_SIGNALS_PUBLIC
+    ORDER BY SIGNAL_TYPE ASC
   `);
 }

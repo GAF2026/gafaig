@@ -698,6 +698,49 @@ MUST NOT expose unpublished systems
 22_VIEWS_EXPLORER_STATS.sql
 26_VIEWS_CASE_RENEWAL_STATUS.sql
 
+ACTIVE — CANONICAL GOVERNANCE OBSERVABILITY INFRASTRUCTURE
+
+23_VIEWS_LIFECYCLE_PUBLIC.sql
+24_VIEWS_RENEWAL_PUBLIC.sql
+25_VIEWS_OBSERVABILITY_PUBLIC.sql
+PUBLIC_OBSERVABILITY_RULES.md
+
+Purpose:
+
+public lifecycle governance visibility
+
+renewal governance observability
+
+publication-safe governance telemetry
+
+certification continuity intelligence
+
+global governance observability infrastructure
+
+Rules:
+
+projection-only
+
+publication-controlled
+
+append-safe
+
+verification-safe
+
+Must NEVER expose:
+
+private findings
+
+private evidence
+
+internal scoring
+
+internal governance telemetry
+
+AI recommendation internals
+
+non-public certification states
+
 25 — AI INPUT VIEWS
 AI_LAYER_INPUT_VIEWS.sql
 Defines:

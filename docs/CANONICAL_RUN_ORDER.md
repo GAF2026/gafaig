@@ -71,6 +71,7 @@ proof.messageString verification enforcement
 cryptographic verification integrity
 fail-closed verification behavior
 AI advisory-only boundaries
+
 GLOBAL EXECUTION RULES
 
 Required execution context:
@@ -94,6 +95,7 @@ bypass canonical procedures
 publish directly into registry tables
 mutate registry snapshots manually
 reconstruct verification payloads outside canonical contracts
+
 CORE SYSTEM RULES
 
 Snowflake is the source of truth.
@@ -211,6 +213,7 @@ publish registry records
 mutate registry snapshots
 mutate proof payloads
 override deterministic Snowflake trust outputs
+
 PREVIOUS CRITICAL BLOCKER (HISTORICAL CONTEXT)
 
 Earlier in the GAFAIG build process, the following files were identified as canonical rebuild blockers:
@@ -237,6 +240,7 @@ global AI governance infrastructure expansion
 Future canonical rebuild validation remains important before major infrastructure expansion, but these files should NOT be treated as unresolved blockers unless active compile/runtime failures reappear during Snowflake validation.
 
 CANONICAL EXECUTION ORDER
+
 00 — ENVIRONMENT SETUP
 
 Purpose:
@@ -254,6 +258,7 @@ Rules:
 
 must execute first
 no downstream assumptions before setup completes
+
 01 — FULL REBUILD FOUNDATION
 
 Purpose:
@@ -271,7 +276,9 @@ Rules:
 foundation layer only
 deterministic object ownership
 no business logic here
+
 CORE TABLE LAYER
+
 10 — CORE TABLES
 
 Purpose:
@@ -308,7 +315,9 @@ CORE.REGISTRY_AI_SYSTEMS
 Canonical publish path ONLY:
 
 CALL CORE.SP_PUBLISH_CASE_TO_REGISTRY_V4(...)
+
 PUBLIC VIEW LAYER
+
 20 — PUBLIC TRUST VIEWS
 
 Purpose:
@@ -322,6 +331,9 @@ Files:
 21_VIEWS_PUBLIC_REGISTRY.sql
 22_VIEWS_REGISTRY_AI_SYSTEMS_PUBLIC.sql
 22_VIEWS_EXPLORER_STATS.sql
+23_VIEWS_LIFECYCLE_PUBLIC.sql
+24_VIEWS_RENEWAL_PUBLIC.sql
+25_VIEWS_OBSERVABILITY_PUBLIC.sql
 26_VIEWS_CASE_RENEWAL_STATUS.sql
 
 Rules:
@@ -338,7 +350,33 @@ WHERE PUBLISHED = TRUE
 Canonical public trust view:
 
 CORE.V_REGISTRY_PUBLIC
+
+Lifecycle and renewal observability views provide:
+
+public lifecycle visibility
+renewal observability
+expiration monitoring
+publication-safe governance observability
+country-level certification continuity analysis
+
+These views remain:
+
+projection-only
+append-safe
+publication-controlled
+verification-safe
+
+These views MUST NEVER expose:
+
+private findings
+private evidence
+internal scoring
+internal governance telemetry
+AI recommendation internals
+non-public certification states
+
 AI INPUT LAYER
+
 25 — AI INPUT VIEWS
 
 Purpose:
@@ -364,7 +402,9 @@ read-only
 deterministic
 no public view dependence
 no UI-derived data
+
 CORE PROCEDURE LAYER
+
 30 — CORE PROCEDURES
 
 Purpose:
@@ -400,7 +440,9 @@ CORE.SP_PUBLISH_CASE_TO_REGISTRY_V4
 Legacy compatibility only:
 
 CORE.SP_PUBLISH_CASE_TO_REGISTRY_V3
+
 AI GOVERNANCE FOUNDATION
+
 35 — AI OBSERVATION + REVIEW LAYER
 
 Purpose:
@@ -423,7 +465,9 @@ advisory only
 no certification authority
 no publication authority
 no proof mutation
+
 SCORING ENGINE
+
 40 — SCORING ENGINE
 
 Purpose:
@@ -445,7 +489,9 @@ Rules:
 private only
 Snowflake-only
 no public trust exposure unless future public-safe contracts explicitly allow it
+
 CONSENSUS + POLICY GOVERNANCE
+
 45 — AI CONSENSUS + POLICY GOVERNANCE
 
 Purpose:
@@ -464,7 +510,9 @@ Rules:
 advisory and operational only
 no certification mutation
 no registry mutation
+
 RISK + DRIFT GOVERNANCE
+
 50 — AI RISK + DRIFT GOVERNANCE
 
 Purpose:
@@ -482,7 +530,9 @@ Rules:
 operational only
 no proof mutation
 no registry mutation
+
 REMEDIATION GOVERNANCE
+
 55 — AI REMEDIATION + ORCHESTRATION
 
 Purpose:
@@ -501,7 +551,9 @@ Rules:
 operational only
 append-safe
 deterministic workflow coordination only
+
 EXECUTION GOVERNANCE
+
 60 — AI EXECUTION + CONTINUOUS GOVERNANCE
 
 Purpose:
@@ -520,7 +572,9 @@ Rules:
 operational only
 no publication authority
 no certification authority
+
 GOVERNANCE SIMULATION LAYER
+
 65 — AI SIMULATION GOVERNANCE
 
 Purpose:
@@ -546,7 +600,9 @@ mutate certification
 mutate publication
 mutate registry snapshots
 mutate proof state
+
 GOVERNANCE TIMELINE LAYER
+
 70 — GOVERNANCE TIMELINE LAYER
 
 Purpose:
@@ -571,7 +627,9 @@ publish
 certify
 mutate registry state
 mutate proof state
+
 PUBLICATION LAYER
+
 80 — PUBLICATION
 
 Purpose:
@@ -589,7 +647,9 @@ publication explicit only
 append-only
 deterministic
 publication separate from certification
+
 SEED DATA
+
 90 — SEED DATA
 
 Purpose:
@@ -616,7 +676,9 @@ populate public UI
 validate verification
 validate registry APIs
 validate widgets/SDK
+
 VALIDATION + DIAGNOSTICS
+
 95 — VALIDATION + SMOKE TESTS
 
 Purpose:
@@ -637,7 +699,9 @@ Rules:
 non-destructive
 validation only
 deterministic diagnostics
+
 CANONICAL VALIDATION RUNNER
+
 99 — CANONICAL VALIDATION RUNNER
 
 Purpose:
@@ -667,12 +731,14 @@ GAFAIG_CANONICAL_PIPELINE_VALIDATION_COMPLETE
 CRITICAL RULE:
 
 99_RUN_CANONICAL_PIPELINE.sql
+
 MUST NEVER contain:
 
 DROP
 DELETE
 TRUNCATE
 destructive rebuild logic
+
 PUBLIC TRUST API CONTRACTS
 
 Operational APIs:
@@ -695,6 +761,7 @@ certify
 publish
 generate IDs
 reconstruct proof payloads
+
 AI LAYER ISOLATION GUARANTEE
 
 AI governance remains isolated from:
@@ -750,6 +817,7 @@ publication control
 append-only registry behavior
 cryptographic verification
 deterministic trust
+
 FINAL EXECUTION PRINCIPLE
 
 Snowflake decides.
