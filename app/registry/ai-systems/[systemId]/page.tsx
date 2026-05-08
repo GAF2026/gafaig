@@ -96,10 +96,10 @@ export default async function SystemDetailPage({
     <main className="mx-auto max-w-[1180px] px-6 py-10">
       <div className="space-y-8">
         <PublicPageHero
-          eyebrow="PUBLIC AI SYSTEM RECORD"
+          eyebrow="PUBLIC AI GOVERNANCE RECORD"
           title={safe(system.SYSTEM_NAME)}
-          description="This page surfaces the public detail view for an AI system associated with a published GAFAIG certification record. It displays public-safe system metadata only."
-          secondaryDescription="Private governance evidence, findings, scoring internals, reviewer materials, and governance telemetry are not exposed on public AI system pages."
+          description="This page surfaces the public AI governance observability record associated with a published GAFAIG certification record. It displays publication-safe governance metadata only."
+          secondaryDescription="Private governance evidence, findings, scoring internals, reviewer materials, and governance telemetry are not exposed on public AI governance observability pages."
           actions={
             <>
               {hasRegistryId ? (
@@ -182,18 +182,17 @@ export default async function SystemDetailPage({
 
         <section className="rounded-3xl border border-black/10 bg-white p-8">
           <h2 className="text-[26px] font-semibold tracking-tight text-black">
-            Public system details
+            Public AI governance observability record
           </h2>
 
           <p className="mt-4 max-w-[900px] text-[15px] leading-7 text-black/75">
-            These fields describe the public AI system record associated with a
-            published GAFAIG certification record. This page does not expose
-            private workflow state, scoring internals, evidence, findings, or
-            reviewer notes.
+            These fields describe the publication-safe AI governance
+            observability record associated with a published GAFAIG
+            certification record. This page does not expose private workflow
+            state, scoring internals, evidence, findings, or reviewer notes.
           </p>
 
           <div className="mt-6 grid gap-4 md:grid-cols-3">
-            <InfoCard label="System ID" value={safe(system.SYSTEM_ID)} />
             <InfoCard label="Registry ID" value={registryId} />
             <InfoCard label="Intended Use" value={safe(system.INTENDED_USE)} />
             <InfoCard
@@ -205,6 +204,34 @@ export default async function SystemDetailPage({
               value={safe(system.LIFECYCLE_STATUS)}
             />
             <InfoCard label="Certified" value={formatDate(system.CERTIFIED_AT)} />
+          </div>
+        </section>
+
+        <section className="rounded-3xl border border-black/10 bg-white p-8">
+          <div className="max-w-4xl space-y-4">
+            <h2 className="text-[26px] font-semibold tracking-tight text-black">
+              AI governance observability
+            </h2>
+
+            <p className="text-[15px] leading-7 text-black/75">
+              This page surfaces publication-safe AI governance metadata derived
+              from canonical Snowflake public registry views.
+            </p>
+
+            <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
+              <p className="text-[13px] font-semibold uppercase tracking-[0.24em] text-black/45">
+                This page does not expose
+              </p>
+
+              <ul className="mt-4 grid gap-2 text-[15px] leading-7 text-black/75 md:grid-cols-2">
+                <li>findings</li>
+                <li>evidence</li>
+                <li>scoring internals</li>
+                <li>reviewer materials</li>
+                <li>governance execution telemetry</li>
+                <li>private workflow state</li>
+              </ul>
+            </div>
           </div>
         </section>
 

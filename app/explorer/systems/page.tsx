@@ -23,14 +23,24 @@ export default async function ExplorerSystemsPage() {
     getExplorerStats(),
   ]);
 
+  const lifecycleActive = rows.filter(
+    (row) => String(row.lifecycleStatus ?? "").trim().toLowerCase() === "active"
+  ).length;
+
+  const countriesRepresented = new Set(
+    rows
+      .map((row) => String(row.country ?? "").trim())
+      .filter((country) => country.length > 0)
+  ).size;
+
   return (
     <main className="mx-auto max-w-[1180px] px-6 py-10">
       <div className="space-y-8">
         <PublicPageHero
-          eyebrow="EXPLORER / AI SYSTEMS"
-          title="Explore AI systems in the GAFAIG public trust surface"
-          description="This page surfaces registry-linked AI systems associated with published GAFAIG certification records using publication-controlled Snowflake-backed explorer data."
-          secondaryDescription="Only AI systems tied to explicitly published certification records appear here. Private governance evidence, findings, scoring internals, reviewer materials, and governance telemetry are not exposed."
+          eyebrow="EXPLORER / AI GOVERNANCE OBSERVABILITY"
+          title="Explore public AI governance observability"
+          description="This page surfaces publication-safe AI system governance observability derived from canonical Snowflake public registry views."
+          secondaryDescription="Only AI systems associated with explicitly published certification records appear here. Explorer exposes publication-safe AI governance metadata only. Private governance evidence, findings, scoring internals, reviewer materials, and governance telemetry are not exposed."
           actions={
             <>
               <PublicButtonLink href="/explorer" variant="primary">
@@ -44,7 +54,7 @@ export default async function ExplorerSystemsPage() {
         />
 
         <section className="rounded-3xl border border-black/10 bg-white p-8">
-          <div className="grid gap-4 md:grid-cols-3">
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
             <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
               <p className="text-[12px] font-semibold uppercase tracking-[0.24em] text-black/40">
                 Systems
@@ -71,22 +81,72 @@ export default async function ExplorerSystemsPage() {
                 {numberFormat(stats.organizations)}
               </p>
             </div>
+
+            <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
+              <p className="text-[12px] font-semibold uppercase tracking-[0.24em] text-black/40">
+                Lifecycle Active
+              </p>
+              <p className="mt-3 text-[26px] font-semibold tracking-tight text-black">
+                {numberFormat(lifecycleActive)}
+              </p>
+            </div>
+
+            <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
+              <p className="text-[12px] font-semibold uppercase tracking-[0.24em] text-black/40">
+                Countries
+              </p>
+              <p className="mt-3 text-[26px] font-semibold tracking-tight text-black">
+                {numberFormat(countriesRepresented)}
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <section className="rounded-3xl border border-black/10 bg-white p-8">
+          <div className="max-w-4xl space-y-4">
+            <h2 className="text-[26px] font-semibold tracking-tight text-black">
+              AI governance observability
+            </h2>
+
+            <p className="text-[15px] leading-7 text-black/75">
+              Explorer surfaces publication-safe AI governance metadata derived
+              from canonical Snowflake public registry views.
+            </p>
+
+            <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
+              <p className="text-[13px] font-semibold uppercase tracking-[0.24em] text-black/45">
+                This page does not expose
+              </p>
+
+              <ul className="mt-4 grid gap-2 text-[15px] leading-7 text-black/75 md:grid-cols-2">
+                <li>findings</li>
+                <li>evidence</li>
+                <li>scoring internals</li>
+                <li>reviewer materials</li>
+                <li>recommendation systems</li>
+                <li>governance execution telemetry</li>
+                <li>private workflow state</li>
+              </ul>
+            </div>
           </div>
         </section>
 
         <section className="rounded-3xl border border-black/10 bg-white p-8">
           <div className="max-w-4xl space-y-4">
             <p className="text-[13px] font-semibold uppercase tracking-[0.28em] text-black/45">
-              Public AI Systems
+              AI Governance Observability
             </p>
+
             <h2 className="text-[26px] font-semibold tracking-tight text-black">
-              Systems currently visible in Explorer
+              Public AI governance observability records
             </h2>
+
             <p className="text-[15px] leading-7 text-black/75">
-              Each row represents a public-safe AI system record associated with
-              a published GAFAIG certification record. Explorer does not compute
-              trust and does not expose unpublished systems or private governance
-              workflows.
+              Each row represents publication-safe AI governance observability
+              metadata associated with published GAFAIG certification records.
+              Explorer does not compute trust and does not expose unpublished
+              systems, findings, evidence, reviewer materials, or private
+              governance execution workflows.
             </p>
           </div>
 
@@ -94,35 +154,128 @@ export default async function ExplorerSystemsPage() {
             <p className="text-[14px] text-black/70">{rows.length} shown</p>
           </div>
 
-          <div className="mt-6 overflow-hidden rounded-2xl border border-black/10 bg-white">
-            <div className="grid grid-cols-[minmax(0,1.8fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)] gap-0 border-b border-black/10 bg-black/[0.02] px-6 py-4 text-[12px] font-semibold uppercase tracking-[0.24em] text-black/40">
-              <div>System</div>
-              <div>Organization</div>
-              <div>Country</div>
-              <div>Status</div>
-            </div>
-
-            <div className="divide-y divide-black/10">
-              {rows.length === 0 ? (
-                <div className="px-6 py-10 text-[15px] leading-7 text-black/70">
-                  No published AI system records are currently available.
+          <div className="mt-6 grid gap-4">
+            {rows.length === 0 ? (
+              <div className="rounded-3xl border border-dashed border-black/10 bg-black/[0.02] px-6 py-14 text-center">
+                <div className="text-lg font-semibold text-black">
+                  No publication-safe AI governance observability records are
+                  currently available.
                 </div>
-              ) : (
-                rows.map((row) => (
-                  <div
-                    key={`${row.registryId}-${row.caseId ?? "none"}`}
-                    className="grid grid-cols-[minmax(0,1.8fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)] gap-0 px-6 py-5 text-[15px] leading-7 text-black/75"
-                  >
-                    <div className="font-semibold text-black">
-                      {formatText(row.systemName)}
+
+                <p className="mt-2 text-sm leading-6 text-black/60">
+                  GAFAIG did not receive public AI governance observability
+                  records from the canonical Snowflake public registry views.
+                </p>
+              </div>
+            ) : (
+              rows.map((row) => (
+                <article
+                  key={`${row.registryId}-${row.caseId ?? "none"}`}
+                  className="rounded-3xl border border-black/10 bg-white p-6"
+                >
+                  <div className="flex flex-wrap items-start justify-between gap-4">
+                    <div className="space-y-3">
+                      <span className="inline-flex rounded-full border border-black/10 bg-black/[0.02] px-3 py-1 text-[12px] font-semibold uppercase tracking-[0.16em] text-black/70">
+                        AI Governance Record
+                      </span>
+
+                      <div>
+                        <h2 className="text-[24px] font-semibold tracking-tight text-black">
+                          {formatText(row.systemName)}
+                        </h2>
+
+                        <p className="mt-2 text-[14px] text-black/70">
+                          {formatText(row.entityName)} ·{" "}
+                          {formatText(row.country)}
+                        </p>
+                      </div>
                     </div>
-                    <div>{formatText(row.entityName)}</div>
-                    <div>{formatText(row.country)}</div>
-                    <div>{formatText(row.certificationStatus)}</div>
+
+                    <div className="flex flex-wrap gap-3">
+                      <PublicButtonLink
+                        href={`/registry/${encodeURIComponent(
+                          row.registryId
+                        )}`}
+                        variant="secondary"
+                      >
+                        Open Certification Record
+                      </PublicButtonLink>
+
+                      <PublicButtonLink
+                        href={`/verify/${encodeURIComponent(row.registryId)}`}
+                        variant="primary"
+                      >
+                        Verify Record
+                      </PublicButtonLink>
+                    </div>
                   </div>
-                ))
-              )}
-            </div>
+
+                  <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                    <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
+                      <div className="text-[12px] font-semibold uppercase tracking-[0.24em] text-black/40">
+                        Organization
+                      </div>
+
+                      <div className="mt-3 text-[18px] font-semibold text-black">
+                        {formatText(row.entityName)}
+                      </div>
+                    </div>
+
+                    <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
+                      <div className="text-[12px] font-semibold uppercase tracking-[0.24em] text-black/40">
+                        Country
+                      </div>
+
+                      <div className="mt-3 text-[18px] font-semibold text-black">
+                        {formatText(row.country)}
+                      </div>
+                    </div>
+
+                    <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
+                      <div className="text-[12px] font-semibold uppercase tracking-[0.24em] text-black/40">
+                        Certification
+                      </div>
+
+                      <div className="mt-3 text-[18px] font-semibold text-black">
+                        {formatText(row.certificationStatus)}
+                      </div>
+                    </div>
+
+                    <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
+                      <div className="text-[12px] font-semibold uppercase tracking-[0.24em] text-black/40">
+                        Lifecycle
+                      </div>
+
+                      <div className="mt-3 text-[18px] font-semibold text-black">
+                        {formatText(row.lifecycleStatus)}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mt-4 grid gap-4 md:grid-cols-2">
+                    <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
+                      <div className="text-[12px] font-semibold uppercase tracking-[0.24em] text-black/40">
+                        Registry ID
+                      </div>
+
+                      <div className="mt-3 break-all text-[16px] font-semibold text-black">
+                        {formatText(row.registryId)}
+                      </div>
+                    </div>
+
+                    <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
+                      <div className="text-[12px] font-semibold uppercase tracking-[0.24em] text-black/40">
+                        Governance Surface
+                      </div>
+
+                      <div className="mt-3 text-[16px] font-semibold text-black">
+                        Publication-safe observability
+                      </div>
+                    </div>
+                  </div>
+                </article>
+              ))
+            )}
           </div>
         </section>
       </div>
