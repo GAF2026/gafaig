@@ -67,6 +67,21 @@ export type ExplorerSystem = {
 
 export type ExplorerSystemRow = ExplorerSystem;
 
+export type ExplorerSystemByRegistryId = {
+  REGISTRY_ID: string | null;
+  SYSTEM_NAME: string | null;
+  SYSTEM_TYPE: string | null;
+  INTENDED_USE: string | null;
+  DEPLOYMENT_STATUS: string | null;
+  OVERSIGHT_LEVEL: string | null;
+  LIFECYCLE_STATUS: string | null;
+  RENEWAL_STATUS: string | null;
+  DEVELOPER_ORGANIZATION: string | null;
+  COUNTRY: string | null;
+  CERTIFIED_AT: string | null;
+  DECISION_STATUS: string | null;
+};
+
 export type LifecycleRecord = {
   registryId: string;
   entityName: string | null;
@@ -284,6 +299,39 @@ export async function getExplorerSystems(
     ORDER BY REGISTRY_ID ASC, SYSTEM_NAME ASC
     LIMIT ${safeLimit}
   `);
+}
+
+export async function getExplorerSystemByRegistryId(
+  registryId: string
+): Promise<ExplorerSystemByRegistryId | null> {
+  const publicRegistryId = String(registryId || "").trim();
+
+  if (!publicRegistryId) return null;
+
+  const rows = await sfQuery<ExplorerSystemByRegistryId>(
+    `
+    SELECT
+      REGISTRY_ID AS "REGISTRY_ID",
+      SYSTEM_NAME AS "SYSTEM_NAME",
+      SYSTEM_TYPE AS "SYSTEM_TYPE",
+      INTENDED_USE AS "INTENDED_USE",
+      NULL AS "DEPLOYMENT_STATUS",
+      NULL AS "OVERSIGHT_LEVEL",
+      LIFECYCLE_STATUS AS "LIFECYCLE_STATUS",
+      RENEWAL_STATUS AS "RENEWAL_STATUS",
+      ENTITY_NAME AS "DEVELOPER_ORGANIZATION",
+      COUNTRY AS "COUNTRY",
+      CERTIFIED_AT AS "CERTIFIED_AT",
+      CERTIFICATION_STATUS AS "DECISION_STATUS"
+    FROM CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC
+    WHERE TRIM(UPPER(REGISTRY_ID)) = TRIM(UPPER(?))
+    ORDER BY REGISTRY_ID ASC, SYSTEM_NAME ASC
+    LIMIT 1
+    `,
+    [publicRegistryId]
+  );
+
+  return rows?.[0] ?? null;
 }
 
 export async function getLifecycleRecords(

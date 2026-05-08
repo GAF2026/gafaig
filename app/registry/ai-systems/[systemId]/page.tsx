@@ -1,23 +1,24 @@
 import { notFound } from "next/navigation";
 import PublicButtonLink from "@/app/_components/PublicButtonLink";
 import PublicPageHero from "@/app/_components/PublicPageHero";
+import { getExplorerSystemByRegistryId } from "@/lib/queries/explorer";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 type System = {
-  SYSTEM_ID?: string;
-  SYSTEM_NAME?: string;
-  SYSTEM_TYPE?: string;
-  INTENDED_USE?: string;
-  DEPLOYMENT_STATUS?: string;
-  OVERSIGHT_LEVEL?: string;
-  LIFECYCLE_STATUS?: string;
-  DEVELOPER_ORGANIZATION?: string;
-  COUNTRY?: string;
-  CERTIFIED_AT?: string;
-  DECISION_STATUS?: string;
-  REGISTRY_ID?: string;
+  SYSTEM_NAME: string | null;
+  SYSTEM_TYPE: string | null;
+  INTENDED_USE: string | null;
+  DEPLOYMENT_STATUS: string | null;
+  OVERSIGHT_LEVEL: string | null;
+  LIFECYCLE_STATUS: string | null;
+  RENEWAL_STATUS: string | null;
+  DEVELOPER_ORGANIZATION: string | null;
+  COUNTRY: string | null;
+  CERTIFIED_AT: string | null;
+  DECISION_STATUS: string | null;
+  REGISTRY_ID: string | null;
 };
 
 function safe(v?: string | null) {
@@ -36,6 +37,7 @@ function pillTone(value: string) {
 
   if (v === "CERTIFIED") return "bg-emerald-50 text-emerald-700 ring-emerald-200";
   if (v === "ACTIVE") return "bg-emerald-50 text-emerald-700 ring-emerald-200";
+  if (v === "PUBLISHED") return "bg-emerald-50 text-emerald-700 ring-emerald-200";
   if (v === "EXPIRED") return "bg-amber-50 text-amber-700 ring-amber-200";
   if (v === "REVOKED") return "bg-red-50 text-red-700 ring-red-200";
 
@@ -66,18 +68,8 @@ function StatementCard({ title, body }: { title: string; body: string }) {
   );
 }
 
-async function getSystem(systemId: string): Promise<System | null> {
-  const baseUrl =
-    process.env.NEXT_PUBLIC_BASE_URL ||
-    process.env.NEXT_PUBLIC_SITE_URL ||
-    "http://localhost:3000";
-
-  const res = await fetch(`${baseUrl}/api/systems/${encodeURIComponent(systemId)}`, {
-    cache: "no-store",
-  });
-
-  if (!res.ok) return null;
-  return res.json();
+async function getSystem(publicRegistryId: string): Promise<System | null> {
+  return getExplorerSystemByRegistryId(publicRegistryId);
 }
 
 export default async function SystemDetailPage({
@@ -134,6 +126,14 @@ export default async function SystemDetailPage({
               )}`}
             >
               {safe(system.LIFECYCLE_STATUS)}
+            </span>
+
+            <span
+              className={`inline-flex rounded-full px-3 py-1 text-[11px] font-semibold ring-1 ${pillTone(
+                safe(system.RENEWAL_STATUS)
+              )}`}
+            >
+              {safe(system.RENEWAL_STATUS)}
             </span>
           </div>
 
@@ -202,6 +202,10 @@ export default async function SystemDetailPage({
             <InfoCard
               label="Lifecycle"
               value={safe(system.LIFECYCLE_STATUS)}
+            />
+            <InfoCard
+              label="Renewal"
+              value={safe(system.RENEWAL_STATUS)}
             />
             <InfoCard label="Certified" value={formatDate(system.CERTIFIED_AT)} />
           </div>
