@@ -2,18 +2,18 @@ import { notFound } from "next/navigation";
 import PublicButtonLink from "@/app/_components/PublicButtonLink";
 import PublicPageHero from "@/app/_components/PublicPageHero";
 import {
-  getCountryAiSystems,
-  getCountryGovernanceSignals,
-  getCountryIntelligence,
-  getCountryOrganizations,
-} from "@/lib/queries/country-intelligence";
+  getOrganizationAiSystems,
+  getOrganizationCertificationRecords,
+  getOrganizationGovernanceSignals,
+  getOrganizationIntelligence,
+} from "@/lib/queries/organization-intelligence";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 type PageProps = {
   params: {
-    country: string;
+    organization: string;
   };
 };
 
@@ -55,53 +55,49 @@ function MetricCard({ label, value }: { label: string; value: string }) {
       <p className="text-[12px] font-semibold uppercase tracking-[0.24em] text-black/40">
         {label}
       </p>
-      <p className="mt-3 text-[26px] font-semibold tracking-tight text-black">
+      <p className="mt-3 text-[20px] font-semibold tracking-tight text-black">
         {value}
       </p>
     </div>
   );
 }
 
-export default async function CountryGovernanceIntelligencePage({
+export default async function OrganizationGovernanceIntelligencePage({
   params,
 }: PageProps) {
-  const decodedCountry = decodeURIComponent(params.country);
+  const decodedOrganization = decodeURIComponent(params.organization);
 
-  const [countries, signals, organizations, systems] = await Promise.all([
-    getCountryIntelligence(),
-    getCountryGovernanceSignals(),
-    getCountryOrganizations(decodedCountry),
-    getCountryAiSystems(decodedCountry),
+  const [organizations, signals, records, systems] = await Promise.all([
+    getOrganizationIntelligence(),
+    getOrganizationGovernanceSignals(decodedOrganization),
+    getOrganizationCertificationRecords(decodedOrganization),
+    getOrganizationAiSystems(decodedOrganization),
   ]);
 
-  const country = countries.find(
+  const organization = organizations.find(
     (row) =>
-      row.country.trim().toLowerCase() === decodedCountry.trim().toLowerCase()
+      row.organizationName.trim().toLowerCase() ===
+      decodedOrganization.trim().toLowerCase()
   );
 
-  if (!country) {
+  if (!organization) {
     return notFound();
   }
-
-  const countrySignals = signals.filter(
-    (signal) =>
-      signal.country.trim().toLowerCase() === decodedCountry.trim().toLowerCase()
-  );
 
   return (
     <main className="mx-auto max-w-[1180px] px-6 py-10">
       <div className="space-y-8">
         <PublicPageHero
-          eyebrow="EXPLORER / COUNTRY GOVERNANCE INTELLIGENCE"
+          eyebrow="EXPLORER / ORGANIZATION GOVERNANCE INTELLIGENCE"
           title={`Public AI governance observability for ${safe(
-            country.country
+            organization.organizationName
           )}`}
-          description="This country profile surfaces publication-safe governance intelligence derived from GAFAIG’s canonical Snowflake public observability views."
-          secondaryDescription="Country intelligence is projection-only. It does not expose findings, evidence, scoring internals, reviewer materials, governance execution systems, or private workflow telemetry."
+          description="This organization profile surfaces publication-safe governance intelligence derived from GAFAIG’s canonical Snowflake public observability views."
+          secondaryDescription="Organization intelligence is projection-only. It does not expose findings, evidence, scoring internals, reviewer materials, governance execution systems, or private workflow telemetry."
           actions={
             <>
-              <PublicButtonLink href="/explorer/countries" variant="primary">
-                Back to Countries
+              <PublicButtonLink href="/explorer/organizations" variant="primary">
+                Back to Organizations
               </PublicButtonLink>
 
               <PublicButtonLink href="/explorer" variant="secondary">
@@ -119,38 +115,38 @@ export default async function CountryGovernanceIntelligencePage({
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
             <MetricCard
               label="Published Records"
-              value={numberFormat(country.totalPublicRecords)}
-            />
-            <MetricCard
-              label="Organizations"
-              value={numberFormat(country.totalOrganizations)}
+              value={numberFormat(organization.totalPublicRecords)}
             />
             <MetricCard
               label="AI Systems"
-              value={numberFormat(country.totalAiSystems)}
+              value={numberFormat(organization.totalAiSystems)}
             />
             <MetricCard
               label="Active Certifications"
-              value={numberFormat(country.activeCertifications)}
+              value={numberFormat(organization.activeCertifications)}
+            />
+            <MetricCard
+              label="Continuity Records"
+              value={numberFormat(organization.certificationContinuityRecords)}
             />
           </div>
 
           <div className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
             <MetricCard
               label="Renewal Due 30 Days"
-              value={numberFormat(country.renewalDue30Days)}
+              value={numberFormat(organization.renewalDue30Days)}
             />
             <MetricCard
               label="Renewal Due 90 Days"
-              value={numberFormat(country.renewalDue90Days)}
+              value={numberFormat(organization.renewalDue90Days)}
             />
             <MetricCard
-              label="Continuity Records"
-              value={numberFormat(country.certificationContinuityRecords)}
+              label="Country"
+              value={safe(organization.country)}
             />
             <MetricCard
               label="Latest Activity"
-              value={formatDate(country.latestPublicationActivity)}
+              value={formatDate(organization.latestPublicationActivity)}
             />
           </div>
         </section>
@@ -162,31 +158,27 @@ export default async function CountryGovernanceIntelligencePage({
             </p>
 
             <h2 className="text-[26px] font-semibold tracking-tight text-black">
-              Country-level governance observability signals
+              Organization-level governance observability signals
             </h2>
 
             <p className="text-[15px] leading-7 text-black/75">
               Each signal is derived from canonical Snowflake public views and
-              summarizes publication-safe lifecycle, renewal, continuity,
-              organization, and AI system disclosure intelligence.
+              summarizes publication-safe lifecycle, renewal, continuity, and AI
+              system disclosure intelligence.
             </p>
           </div>
 
           <div className="mt-6 grid gap-4 md:grid-cols-2">
-            {countrySignals.length === 0 ? (
+            {signals.length === 0 ? (
               <div className="rounded-3xl border border-dashed border-black/10 bg-black/[0.02] px-6 py-14 text-center md:col-span-2">
                 <div className="text-lg font-semibold text-black">
-                  No country governance signals available
+                  No organization governance signals available
                 </div>
-                <p className="mt-2 text-sm leading-6 text-black/60">
-                  GAFAIG did not receive country-level signal rows from the
-                  canonical Snowflake public signal view.
-                </p>
               </div>
             ) : (
-              countrySignals.map((signal) => (
+              signals.map((signal) => (
                 <article
-                  key={`${signal.country}-${signal.signalType}`}
+                  key={`${signal.organizationName}-${signal.country}-${signal.signalType}`}
                   className="rounded-3xl border border-black/10 bg-white p-6"
                 >
                   <p className="text-[12px] font-semibold uppercase tracking-[0.24em] text-black/40">
@@ -221,64 +213,81 @@ export default async function CountryGovernanceIntelligencePage({
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div className="max-w-4xl space-y-4">
               <p className="text-[12px] font-semibold uppercase tracking-[0.24em] text-black/40">
-                Organizations
+                Certification Records
               </p>
 
               <h2 className="text-[26px] font-semibold tracking-tight text-black">
-                Published organizations in {safe(country.country)}
+                Published certification records
               </h2>
 
               <p className="text-[15px] leading-7 text-black/75">
-                These organizations are represented only through explicitly
-                published GAFAIG certification records.
+                These records appear only when explicitly published into the
+                GAFAIG public trust surface.
               </p>
             </div>
 
             <p className="text-[14px] text-black/70">
-              {numberFormat(organizations.length)} shown
+              {numberFormat(records.length)} shown
             </p>
           </div>
 
           <div className="mt-6 grid gap-4">
-            {organizations.length === 0 ? (
+            {records.length === 0 ? (
               <div className="rounded-3xl border border-dashed border-black/10 bg-black/[0.02] px-6 py-14 text-center">
                 <div className="text-lg font-semibold text-black">
-                  No published organizations available
+                  No published certification records available
                 </div>
               </div>
             ) : (
-              organizations.map((organization) => (
+              records.map((record) => (
                 <article
-                  key={`${organization.country}-${organization.organizationName}`}
+                  key={`${record.registryId}-${record.registrySnapshotId ?? ""}`}
                   className="rounded-3xl border border-black/10 bg-white p-6"
                 >
                   <div className="flex flex-wrap items-start justify-between gap-4">
                     <div>
                       <h3 className="text-[22px] font-semibold tracking-tight text-black">
-                        {safe(organization.organizationName)}
+                        {safe(record.registryId)}
                       </h3>
+
                       <p className="mt-2 text-[14px] text-black/70">
-                        {safe(organization.country)}
+                        {safe(record.country)} · {safe(record.lifecycleStatus)}
                       </p>
+                    </div>
+
+                    <div className="flex flex-wrap gap-3">
+                      <PublicButtonLink
+                        href={`/registry/${encodeURIComponent(record.registryId)}`}
+                        variant="secondary"
+                      >
+                        Open Certification Record
+                      </PublicButtonLink>
+
+                      <PublicButtonLink
+                        href={`/verify/${encodeURIComponent(record.registryId)}`}
+                        variant="primary"
+                      >
+                        Verify Record
+                      </PublicButtonLink>
                     </div>
                   </div>
 
                   <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
                     <MetricCard
-                      label="Public Records"
-                      value={numberFormat(organization.totalPublicRecords)}
+                      label="Certification"
+                      value={safe(record.certificationStatus)}
                     />
                     <MetricCard
-                      label="Active"
-                      value={numberFormat(organization.activeCertifications)}
+                      label="Renewal"
+                      value={safe(record.renewalStatus)}
                     />
                     <MetricCard
-                      label="Renewal 30"
-                      value={numberFormat(organization.renewalDue30Days)}
+                      label="Valid To"
+                      value={formatDate(record.validTo)}
                     />
                     <MetricCard
-                      label="Renewal 90"
-                      value={numberFormat(organization.renewalDue90Days)}
+                      label="Days Until Expiration"
+                      value={numberFormat(record.daysUntilExpiration)}
                     />
                   </div>
                 </article>
@@ -295,7 +304,9 @@ export default async function CountryGovernanceIntelligencePage({
               </p>
 
               <h2 className="text-[26px] font-semibold tracking-tight text-black">
-                Public AI systems disclosed in {safe(country.country)}
+                Public AI systems disclosed by {safe(
+                  organization.organizationName
+                )}
               </h2>
 
               <p className="text-[15px] leading-7 text-black/75">
@@ -327,6 +338,7 @@ export default async function CountryGovernanceIntelligencePage({
                       <h3 className="text-[22px] font-semibold tracking-tight text-black">
                         {safe(system.systemName)}
                       </h3>
+
                       <p className="mt-2 text-[14px] text-black/70">
                         {safe(system.systemType)} · {safe(system.country)}
                       </p>
@@ -386,7 +398,7 @@ export default async function CountryGovernanceIntelligencePage({
             </h2>
 
             <p className="text-[15px] leading-7 text-black/75">
-              Country intelligence is derived exclusively from canonical
+              Organization intelligence is derived exclusively from canonical
               Snowflake public registry, lifecycle, renewal, and AI system
               observability views.
             </p>

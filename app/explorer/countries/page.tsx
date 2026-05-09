@@ -70,17 +70,18 @@ export default async function ExplorerCountriesPage() {
         <section className="rounded-3xl border border-black/10 bg-white p-8">
           <div className="max-w-4xl space-y-4">
             <div className="text-[12px] font-semibold uppercase tracking-[0.24em] text-black/40">
-              Country Directory
+              Country Governance Intelligence
             </div>
 
             <h2 className="text-[26px] font-semibold tracking-tight text-black">
-              Public trust footprint by country
+              Public governance observability by country
             </h2>
 
             <p className="text-[15px] leading-7 text-black/75">
               Explorer country views aggregate publicly visible certification
               metadata from organizations that explicitly elected publication.
-              Private governance workflows and unpublished records are not shown.
+              Select a country to open its country-level governance intelligence
+              profile.
             </p>
           </div>
 
@@ -88,38 +89,94 @@ export default async function ExplorerCountriesPage() {
             <p className="text-[14px] text-black/70">{rows.length} shown</p>
           </div>
 
-          <div className="mt-6 overflow-hidden rounded-2xl border border-black/10 bg-white">
-            <div className="grid grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)] gap-0 border-b border-black/10 bg-black/[0.02] px-6 py-4 text-[12px] font-semibold uppercase tracking-[0.24em] text-black/40">
-              <div>Country</div>
-              <div>Organizations</div>
-              <div>Public Records</div>
-              <div>Systems</div>
-            </div>
-
-            <div className="divide-y divide-black/10">
-              {rows.length === 0 ? (
-                <div className="px-6 py-10 text-[15px] leading-7 text-black/70">
+          <div className="mt-6 grid gap-4">
+            {rows.length === 0 ? (
+              <div className="rounded-3xl border border-dashed border-black/10 bg-black/[0.02] px-6 py-14 text-center">
+                <div className="text-lg font-semibold text-black">
                   No published country records are currently available.
                 </div>
-              ) : (
-                rows.map((row) => (
-                  <div
-                    key={row.country}
-                    className="grid grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)] gap-0 px-6 py-5 text-[15px] leading-7 text-black/75"
-                  >
-                    <div className="font-semibold text-black">
-                      {safe(row.country)}
+
+                <p className="mt-2 text-sm leading-6 text-black/60">
+                  GAFAIG did not receive country rows from the canonical
+                  Snowflake public explorer views.
+                </p>
+              </div>
+            ) : (
+              rows.map((row) => (
+                <article
+                  key={row.country}
+                  className="rounded-3xl border border-black/10 bg-white p-6"
+                >
+                  <div className="flex flex-wrap items-start justify-between gap-4">
+                    <div>
+                      <p className="text-[12px] font-semibold uppercase tracking-[0.24em] text-black/40">
+                        Country Intelligence Profile
+                      </p>
+
+                      <h3 className="mt-3 text-[24px] font-semibold tracking-tight text-black">
+                        {safe(row.country)}
+                      </h3>
+
+                      <p className="mt-2 text-[14px] leading-6 text-black/70">
+                        Publication-safe country-level governance observability
+                        derived from canonical Snowflake public registry views.
+                      </p>
                     </div>
 
-                    <div>{numberFormat(row.organizations)}</div>
-
-                    <div>{numberFormat(row.publicRecords)}</div>
-
-                    <div>{numberFormat(row.systems)}</div>
+                    <PublicButtonLink
+                      href={`/explorer/countries/${encodeURIComponent(
+                        safe(row.country)
+                      )}`}
+                      variant="primary"
+                    >
+                      Open Country Intelligence
+                    </PublicButtonLink>
                   </div>
-                ))
-              )}
-            </div>
+
+                  <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                    <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
+                      <div className="text-[12px] font-semibold uppercase tracking-[0.24em] text-black/40">
+                        Organizations
+                      </div>
+
+                      <div className="mt-3 text-[18px] font-semibold text-black">
+                        {numberFormat(row.organizations)}
+                      </div>
+                    </div>
+
+                    <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
+                      <div className="text-[12px] font-semibold uppercase tracking-[0.24em] text-black/40">
+                        Public Records
+                      </div>
+
+                      <div className="mt-3 text-[18px] font-semibold text-black">
+                        {numberFormat(row.publicRecords)}
+                      </div>
+                    </div>
+
+                    <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
+                      <div className="text-[12px] font-semibold uppercase tracking-[0.24em] text-black/40">
+                        Systems
+                      </div>
+
+                      <div className="mt-3 text-[18px] font-semibold text-black">
+                        {numberFormat(row.systems)}
+                      </div>
+                    </div>
+
+                    <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
+                      <div className="text-[12px] font-semibold uppercase tracking-[0.24em] text-black/40">
+                        Governance Surface
+                      </div>
+
+                      <div className="mt-3 text-[18px] font-semibold text-black">
+                        Publication-safe
+                      </div>
+                    </div>
+                  </div>
+                </article>
+              ))
+            )}
           </div>
         </section>
       </div>
