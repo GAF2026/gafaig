@@ -16,6 +16,10 @@ function safe(value: string | null | undefined): string {
   return String(value ?? "").trim() || "—";
 }
 
+function hrefSafe(value: string | null | undefined): string {
+  return encodeURIComponent(String(value ?? "").trim());
+}
+
 function formatDate(value: string | null | undefined): string {
   if (!value) return "—";
 
@@ -56,6 +60,8 @@ export default async function ExplorerAiSystemDetailPage({
   }
 
   const publicRegistryId = safe(system.REGISTRY_ID);
+  const organizationName = safe(system.DEVELOPER_ORGANIZATION);
+  const country = safe(system.COUNTRY);
 
   return (
     <main className="mx-auto max-w-[1180px] px-6 py-10">
@@ -72,19 +78,17 @@ export default async function ExplorerAiSystemDetailPage({
               </PublicButtonLink>
 
               <PublicButtonLink
-                href={`/registry/ai-systems/${encodeURIComponent(
-                  publicRegistryId
-                )}`}
+                href={`/explorer/organizations/${hrefSafe(organizationName)}`}
                 variant="secondary"
               >
-                Open AI Governance Record
+                View Organization
               </PublicButtonLink>
 
               <PublicButtonLink
-                href={`/verify/${encodeURIComponent(publicRegistryId)}`}
+                href={`/explorer/countries/${hrefSafe(country)}`}
                 variant="secondary"
               >
-                Verify Record
+                View Country
               </PublicButtonLink>
             </>
           }
@@ -92,11 +96,8 @@ export default async function ExplorerAiSystemDetailPage({
 
         <section className="rounded-3xl border border-black/10 bg-white p-8">
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-            <MetricCard
-              label="Organization"
-              value={safe(system.DEVELOPER_ORGANIZATION)}
-            />
-            <MetricCard label="Country" value={safe(system.COUNTRY)} />
+            <MetricCard label="Organization" value={organizationName} />
+            <MetricCard label="Country" value={country} />
             <MetricCard
               label="Certification"
               value={safe(system.DECISION_STATUS)}
@@ -117,7 +118,67 @@ export default async function ExplorerAiSystemDetailPage({
               label="Oversight Level"
               value={safe(system.OVERSIGHT_LEVEL)}
             />
-            <MetricCard label="Certified" value={formatDate(system.CERTIFIED_AT)} />
+            <MetricCard
+              label="Certified"
+              value={formatDate(system.CERTIFIED_AT)}
+            />
+          </div>
+        </section>
+
+        <section className="rounded-3xl border border-black/10 bg-white p-8">
+          <div className="max-w-4xl space-y-4">
+            <p className="text-[12px] font-semibold uppercase tracking-[0.24em] text-black/40">
+              Intelligence Navigation
+            </p>
+
+            <h2 className="text-[26px] font-semibold tracking-tight text-black">
+              Connected public governance intelligence
+            </h2>
+
+            <p className="text-[15px] leading-7 text-black/75">
+              This AI system is part of a broader publication-safe governance
+              intelligence graph connecting systems, organizations, countries,
+              certification records, and verification proofs.
+            </p>
+          </div>
+
+          <div className="mt-6 flex flex-wrap gap-3">
+            <PublicButtonLink
+              href={`/registry/ai-systems/${encodeURIComponent(
+                publicRegistryId
+              )}`}
+              variant="primary"
+            >
+              Open AI Governance Record
+            </PublicButtonLink>
+
+            <PublicButtonLink
+              href={`/registry/${encodeURIComponent(publicRegistryId)}`}
+              variant="secondary"
+            >
+              Open Certification Record
+            </PublicButtonLink>
+
+            <PublicButtonLink
+              href={`/verify/${encodeURIComponent(publicRegistryId)}`}
+              variant="secondary"
+            >
+              Verify Record
+            </PublicButtonLink>
+
+            <PublicButtonLink
+              href={`/explorer/organizations/${hrefSafe(organizationName)}`}
+              variant="secondary"
+            >
+              Organization Intelligence
+            </PublicButtonLink>
+
+            <PublicButtonLink
+              href={`/explorer/countries/${hrefSafe(country)}`}
+              variant="secondary"
+            >
+              Country Intelligence
+            </PublicButtonLink>
           </div>
         </section>
 
