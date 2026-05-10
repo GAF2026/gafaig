@@ -56,13 +56,14 @@ export type ExplorerSystem = {
   caseId: string | null;
   entityName: string | null;
   systemName: string | null;
-  entityType: string | null;
+  systemType: string | null;
   country: string | null;
   certificationStatus: string | null;
   certifiedTier: string | null;
   certifiedBand: string | null;
   publishedAt: string | null;
   lifecycleStatus: string | null;
+  renewalStatus: string | null;
 };
 
 export type ExplorerSystemRow = ExplorerSystem;
@@ -294,7 +295,8 @@ export async function getExplorerSystems(
       NULL AS "certifiedTier",
       NULL AS "certifiedBand",
       NULL AS "publishedAt",
-      LIFECYCLE_STATUS AS "lifecycleStatus"
+      LIFECYCLE_STATUS AS "lifecycleStatus",
+      RENEWAL_STATUS AS "renewalStatus"
     FROM CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC
     ORDER BY REGISTRY_ID ASC, SYSTEM_NAME ASC
     LIMIT ${safeLimit}
