@@ -1,146 +1,222 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
+import PublicButtonLink from "@/app/_components/PublicButtonLink";
+import PublicPageHero from "@/app/_components/PublicPageHero";
 import { getExplorerSystemByRegistryId } from "@/lib/queries/explorer";
 
-export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 type PageProps = {
   params: {
     registryId: string;
   };
-  searchParams?: {
-    systemName?: string;
-  };
 };
 
-function valueOrDash(value: string | null | undefined): string {
-  const clean = String(value ?? "").trim();
-  return clean.length > 0 ? clean : "—";
+function safe(value: string | null | undefined): string {
+  return String(value ?? "").trim() || "—";
 }
 
-function DetailCard({
-  label,
-  value,
-}: {
-  label: string;
-  value: string | null | undefined;
-}) {
+function formatDate(value: string | null | undefined): string {
+  if (!value) return "—";
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return String(value);
+  }
+
+  return new Intl.DateTimeFormat("en-US", {
+    month: "numeric",
+    day: "numeric",
+    year: "numeric",
+  }).format(date);
+}
+
+function MetricCard({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-2xl border border-neutral-200 bg-neutral-50 px-5 py-5">
-      <div className="text-[11px] font-semibold uppercase tracking-[0.28em] text-neutral-400">
+    <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
+      <p className="text-[12px] font-semibold uppercase tracking-[0.24em] text-black/40">
         {label}
-      </div>
-      <div className="mt-3 text-base font-semibold text-neutral-950">
-        {valueOrDash(value)}
-      </div>
+      </p>
+      <p className="mt-3 break-words text-[18px] font-semibold tracking-tight text-black">
+        {value}
+      </p>
     </div>
   );
 }
 
-export default async function AISystemDetailPage({
+export default async function ExplorerAiSystemDetailPage({
   params,
-  searchParams,
 }: PageProps) {
   const registryId = decodeURIComponent(params.registryId);
-  const systemName = String(searchParams?.systemName ?? "").trim();
-  const system = await getExplorerSystemByRegistryId(registryId, systemName);
+  const system = await getExplorerSystemByRegistryId(registryId);
 
   if (!system) {
-    notFound();
+    return notFound();
   }
 
-  const publicRegistryId = valueOrDash(system.REGISTRY_ID);
+  const publicRegistryId = safe(system.REGISTRY_ID);
 
   return (
     <main className="mx-auto max-w-[1180px] px-6 py-10">
-      <section className="rounded-3xl border border-neutral-200 bg-white p-8 shadow-sm">
-        <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
-          <div>
-            <div className="text-xs font-semibold uppercase tracking-[0.35em] text-neutral-400">
-              AI Governance Intelligence Record
-            </div>
+      <div className="space-y-8">
+        <PublicPageHero
+          eyebrow="EXPLORER / AI SYSTEM INTELLIGENCE"
+          title={safe(system.SYSTEM_NAME)}
+          description="This AI system intelligence profile surfaces publication-safe governance observability metadata derived from GAFAIG’s canonical Snowflake public registry views."
+          secondaryDescription="This page is projection-only. It does not expose findings, evidence, scoring internals, reviewer materials, governance execution telemetry, or private workflow state."
+          actions={
+            <>
+              <PublicButtonLink href="/explorer/ai-systems" variant="primary">
+                Back to AI Systems
+              </PublicButtonLink>
 
-            <h1 className="mt-4 max-w-3xl text-4xl font-semibold tracking-tight text-neutral-950">
-              {valueOrDash(system.SYSTEM_NAME)}
-            </h1>
+              <PublicButtonLink
+                href={`/registry/ai-systems/${encodeURIComponent(
+                  publicRegistryId
+                )}`}
+                variant="secondary"
+              >
+                Open AI Governance Record
+              </PublicButtonLink>
 
-            <p className="mt-3 max-w-3xl text-sm leading-6 text-neutral-600">
-              Publication-safe AI system governance record derived from canonical
-              Snowflake public registry views. This page exposes only published
-              certification observability metadata.
+              <PublicButtonLink
+                href={`/verify/${encodeURIComponent(publicRegistryId)}`}
+                variant="secondary"
+              >
+                Verify Record
+              </PublicButtonLink>
+            </>
+          }
+        />
+
+        <section className="rounded-3xl border border-black/10 bg-white p-8">
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            <MetricCard
+              label="Organization"
+              value={safe(system.DEVELOPER_ORGANIZATION)}
+            />
+            <MetricCard label="Country" value={safe(system.COUNTRY)} />
+            <MetricCard
+              label="Certification"
+              value={safe(system.DECISION_STATUS)}
+            />
+            <MetricCard
+              label="Lifecycle"
+              value={safe(system.LIFECYCLE_STATUS)}
+            />
+          </div>
+
+          <div className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            <MetricCard label="Renewal" value={safe(system.RENEWAL_STATUS)} />
+            <MetricCard
+              label="Deployment"
+              value={safe(system.DEPLOYMENT_STATUS)}
+            />
+            <MetricCard
+              label="Oversight Level"
+              value={safe(system.OVERSIGHT_LEVEL)}
+            />
+            <MetricCard label="Certified" value={formatDate(system.CERTIFIED_AT)} />
+          </div>
+        </section>
+
+        <section className="rounded-3xl border border-black/10 bg-white p-8">
+          <div className="max-w-4xl space-y-4">
+            <p className="text-[12px] font-semibold uppercase tracking-[0.24em] text-black/40">
+              AI System Governance Intelligence
+            </p>
+
+            <h2 className="text-[26px] font-semibold tracking-tight text-black">
+              Publication-safe AI system observability
+            </h2>
+
+            <p className="text-[15px] leading-7 text-black/75">
+              This profile represents a public AI governance intelligence object
+              associated with a published GAFAIG certification record. It
+              displays only public metadata projected from canonical Snowflake
+              public views.
             </p>
           </div>
 
-          <div className="flex shrink-0 flex-wrap gap-3">
-            <Link
-              href={`/registry/${encodeURIComponent(publicRegistryId)}`}
-              className="rounded-full border border-neutral-300 px-5 py-2 text-sm font-semibold text-neutral-900 hover:bg-neutral-50"
-            >
-              Open Registry Record
-            </Link>
+          <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            <MetricCard label="Registry ID" value={publicRegistryId} />
+            <MetricCard label="System Type" value={safe(system.SYSTEM_TYPE)} />
+            <MetricCard label="Intended Use" value={safe(system.INTENDED_USE)} />
+          </div>
+        </section>
 
-            <Link
+        <section className="rounded-3xl border border-black/10 bg-white p-8">
+          <div className="max-w-4xl space-y-4">
+            <p className="text-[12px] font-semibold uppercase tracking-[0.24em] text-black/40">
+              Certification and Verification
+            </p>
+
+            <h2 className="text-[26px] font-semibold tracking-tight text-black">
+              Public trust is anchored to the certification record
+            </h2>
+
+            <p className="text-[15px] leading-7 text-black/75">
+              The registry ID is the canonical public trust identifier. External
+              systems should verify the associated registry ID through the
+              GAFAIG verification endpoint and proof payload.
+            </p>
+          </div>
+
+          <div className="mt-6 flex flex-wrap gap-3">
+            <PublicButtonLink
+              href={`/registry/${encodeURIComponent(publicRegistryId)}`}
+              variant="primary"
+            >
+              Open Certification Record
+            </PublicButtonLink>
+
+            <PublicButtonLink
               href={`/verify/${encodeURIComponent(publicRegistryId)}`}
-              className="rounded-full bg-black px-5 py-2 text-sm font-semibold text-white hover:bg-neutral-800"
+              variant="secondary"
             >
               Verify Record
-            </Link>
+            </PublicButtonLink>
+
+            <PublicButtonLink
+              href={`/api/verify/${encodeURIComponent(publicRegistryId)}`}
+              variant="secondary"
+            >
+              View Proof JSON
+            </PublicButtonLink>
           </div>
-        </div>
-      </section>
+        </section>
 
-      <section className="mt-6 rounded-3xl border border-neutral-200 bg-white p-8 shadow-sm">
-        <div className="mb-6">
-          <div className="text-xs font-semibold uppercase tracking-[0.35em] text-neutral-400">
-            Public Governance Surface
+        <section className="rounded-3xl border border-black/10 bg-white p-8">
+          <div className="max-w-4xl space-y-4">
+            <p className="text-[12px] font-semibold uppercase tracking-[0.24em] text-black/40">
+              Public Trust Boundary
+            </p>
+
+            <h2 className="text-[26px] font-semibold tracking-tight text-black">
+              This page surfaces publication-safe AI system telemetry only
+            </h2>
+
+            <p className="text-[15px] leading-7 text-black/75">
+              AI system intelligence is derived exclusively from canonical
+              Snowflake public registry and AI system observability views.
+            </p>
+
+            <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
+              <ul className="grid gap-2 text-[15px] leading-7 text-black/75 md:grid-cols-2">
+                <li>findings</li>
+                <li>evidence</li>
+                <li>reviewer materials</li>
+                <li>scoring internals</li>
+                <li>recommendation systems</li>
+                <li>governance execution telemetry</li>
+                <li>private workflow state</li>
+                <li>unpublished certification records</li>
+              </ul>
+            </div>
           </div>
-          <h2 className="mt-3 text-2xl font-semibold tracking-tight text-neutral-950">
-            AI system observability details
-          </h2>
-        </div>
-
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          <DetailCard label="Registry ID" value={system.REGISTRY_ID} />
-          <DetailCard label="System Type" value={system.SYSTEM_TYPE} />
-          <DetailCard label="Organization" value={system.DEVELOPER_ORGANIZATION} />
-          <DetailCard label="Country" value={system.COUNTRY} />
-          <DetailCard label="Certification Status" value={system.DECISION_STATUS} />
-          <DetailCard label="Lifecycle Status" value={system.LIFECYCLE_STATUS} />
-          <DetailCard label="Renewal Status" value={system.RENEWAL_STATUS} />
-          <DetailCard label="Deployment Status" value={system.DEPLOYMENT_STATUS} />
-          <DetailCard label="Oversight Level" value={system.OVERSIGHT_LEVEL} />
-          <DetailCard label="Certified At" value={system.CERTIFIED_AT} />
-        </div>
-      </section>
-
-      <section className="mt-6 rounded-3xl border border-neutral-200 bg-white p-8 shadow-sm">
-        <div className="text-xs font-semibold uppercase tracking-[0.35em] text-neutral-400">
-          Intended Use
-        </div>
-
-        <p className="mt-4 max-w-4xl text-sm leading-7 text-neutral-700">
-          {valueOrDash(system.INTENDED_USE)}
-        </p>
-      </section>
-
-      <section className="mt-6 rounded-3xl border border-neutral-200 bg-white p-8 shadow-sm">
-        <div className="text-xs font-semibold uppercase tracking-[0.35em] text-neutral-400">
-          Publication-Safe Boundary
-        </div>
-
-        <h2 className="mt-3 text-xl font-semibold tracking-tight text-neutral-950">
-          This page exposes public AI system observability only
-        </h2>
-
-        <p className="mt-3 max-w-4xl text-sm leading-7 text-neutral-600">
-          This public page is projection-only, publication-controlled,
-          append-safe, and verification-safe. It must never expose private
-          findings, private evidence, internal scoring, internal governance
-          telemetry, AI recommendation internals, or non-public certification
-          states.
-        </p>
-      </section>
+        </section>
+      </div>
     </main>
   );
 }
