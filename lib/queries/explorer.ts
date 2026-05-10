@@ -304,9 +304,11 @@ export async function getExplorerSystems(
 }
 
 export async function getExplorerSystemByRegistryId(
-  registryId: string
+  registryId: string,
+  systemName?: string
 ): Promise<ExplorerSystemByRegistryId | null> {
   const publicRegistryId = String(registryId || "").trim();
+  const publicSystemName = String(systemName || "").trim();
 
   if (!publicRegistryId) return null;
 
@@ -327,10 +329,14 @@ export async function getExplorerSystemByRegistryId(
       CERTIFICATION_STATUS AS "DECISION_STATUS"
     FROM CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC
     WHERE TRIM(UPPER(REGISTRY_ID)) = TRIM(UPPER(?))
+      AND (
+        ? = ''
+        OR TRIM(UPPER(SYSTEM_NAME)) = TRIM(UPPER(?))
+      )
     ORDER BY REGISTRY_ID ASC, SYSTEM_NAME ASC
     LIMIT 1
     `,
-    [publicRegistryId]
+    [publicRegistryId, publicSystemName, publicSystemName]
   );
 
   return rows?.[0] ?? null;

@@ -9,6 +9,9 @@ type PageProps = {
   params: {
     registryId: string;
   };
+  searchParams?: {
+    systemName?: string;
+  };
 };
 
 function valueOrDash(value: string | null | undefined): string {
@@ -35,9 +38,13 @@ function DetailCard({
   );
 }
 
-export default async function AISystemDetailPage({ params }: PageProps) {
+export default async function AISystemDetailPage({
+  params,
+  searchParams,
+}: PageProps) {
   const registryId = decodeURIComponent(params.registryId);
-  const system = await getExplorerSystemByRegistryId(registryId);
+  const systemName = String(searchParams?.systemName ?? "").trim();
+  const system = await getExplorerSystemByRegistryId(registryId, systemName);
 
   if (!system) {
     notFound();

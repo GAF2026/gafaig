@@ -123,6 +123,10 @@ export default async function ExplorerAiSystemsPage() {
                 const systemName = safe(field(row, "systemName"));
                 const entityName = safe(field(row, "entityName"));
                 const country = safe(field(row, "country"));
+                const systemNameQuery =
+                  systemName !== "—"
+                    ? `?systemName=${encodeURIComponent(systemName)}`
+                    : "";
 
                 return (
                   <article
@@ -148,7 +152,7 @@ export default async function ExplorerAiSystemsPage() {
                         <PublicButtonLink
                           href={`/explorer/ai-systems/${encodeURIComponent(
                             registryId
-                          )}`}
+                          )}${systemNameQuery}`}
                           variant="secondary"
                         >
                           Open AI Governance Record
