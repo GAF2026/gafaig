@@ -67,13 +67,25 @@ export default async function GovernanceSignalsPage() {
   const { signals, summary, aiSystems, validation } =
     await getGovernanceObservabilityData();
 
+  const aggregateSignalValue = signals.reduce(
+    (total, signal) => total + Number(signal.signalValue ?? 0),
+    0
+  );
+
+  const latestSignalActivity =
+    signals
+      .map((signal) => String(signal.lastActivityAt ?? "").trim())
+      .filter(Boolean)
+      .sort()
+      .reverse()[0] ?? null;
+
   return (
     <main className="mx-auto w-full max-w-[1180px] px-6 py-10">
       <PublicPageHero
         eyebrow="EXPLORER / GOVERNANCE SIGNALS"
-        title="Public governance observability signals"
+        title="Global public governance intelligence signals"
         description="Governance Signals surfaces publication-safe operational trust telemetry derived from GAFAIG’s canonical Snowflake observability infrastructure."
-        secondaryDescription="Signals are aggregated projections only. This page does not expose findings, evidence, reviewer state, scoring internals, AI recommendation internals, or private governance execution telemetry."
+        secondaryDescription="Signals are aggregated projections only. This page does not expose findings, evidence, reviewer state, scoring internals, AI recommendation internals, governance execution telemetry, or private governance workflow state."
         actions={
           <>
             <PublicButtonLink href="/explorer" variant="primary">
@@ -84,6 +96,9 @@ export default async function GovernanceSignalsPage() {
             </PublicButtonLink>
             <PublicButtonLink href="/explorer/renewals" variant="secondary">
               Renewal Observability
+            </PublicButtonLink>
+            <PublicButtonLink href="/explorer/ai-systems" variant="secondary">
+              AI Systems
             </PublicButtonLink>
           </>
         }
@@ -148,6 +163,19 @@ export default async function GovernanceSignalsPage() {
           label="Expiring 90 Days"
           value={summary.totalExpiring90Days}
         />
+      </section>
+
+      <section className="mt-8 grid gap-4 md:grid-cols-3">
+        <MetricCard label="Signal Types" value={validation.distinctSignalTypes} />
+        <MetricCard label="Aggregate Signal Value" value={aggregateSignalValue} />
+        <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
+          <p className="text-[12px] font-semibold uppercase tracking-[0.24em] text-black/40">
+            Latest Signal Activity
+          </p>
+          <p className="mt-3 text-[26px] font-semibold tracking-tight text-black">
+            {formatDate(latestSignalActivity)}
+          </p>
+        </div>
       </section>
 
       <section className="mt-8 rounded-3xl border border-black/10 bg-white p-8">
@@ -290,6 +318,12 @@ export default async function GovernanceSignalsPage() {
           This page does not expose private governance execution
         </h2>
 
+        <p className="mt-3 max-w-4xl text-[15px] leading-7 text-black/70">
+          Governance Signals are projection-only, publication-controlled,
+          append-safe, and verification-safe. They support public governance
+          observability without exposing private governance operations.
+        </p>
+
         <div className="mt-6 rounded-2xl border border-black/10 bg-black/[0.02] p-5">
           <ul className="grid gap-2 text-[15px] leading-7 text-black/75 md:grid-cols-2">
             <li>findings</li>
@@ -316,6 +350,13 @@ export default async function GovernanceSignalsPage() {
             className="rounded-full border border-neutral-300 px-5 py-3 text-sm font-semibold text-neutral-900 transition hover:bg-neutral-100"
           >
             Open Registry
+          </Link>
+
+          <Link
+            href="/explorer/ai-systems"
+            className="rounded-full border border-neutral-300 px-5 py-3 text-sm font-semibold text-neutral-900 transition hover:bg-neutral-100"
+          >
+            Open AI Systems
           </Link>
         </div>
       </section>
