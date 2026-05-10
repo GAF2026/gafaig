@@ -146,7 +146,7 @@ export default async function ExplorerAiSystemsPage() {
 
                       <div className="flex flex-wrap gap-3">
                         <PublicButtonLink
-                          href={`/registry/ai-systems/${encodeURIComponent(
+                          href={`/explorer/ai-systems/${encodeURIComponent(
                             registryId
                           )}`}
                           variant="secondary"
