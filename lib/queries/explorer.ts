@@ -89,6 +89,8 @@ export type LifecycleRecord = {
   entityType: string | null;
   country: string | null;
   certificationStatus: string | null;
+  certifiedAt: string | null;
+  publishedAt: string | null;
   lifecycleStatus: string | null;
   renewalStatus: string | null;
   validFrom: string | null;
@@ -354,6 +356,8 @@ export async function getLifecycleRecords(
       ENTITY_TYPE AS "entityType",
       COUNTRY AS "country",
       CERTIFICATION_STATUS AS "certificationStatus",
+      CERTIFIED_AT AS "certifiedAt",
+      PUBLISHED_AT AS "publishedAt",
       LIFECYCLE_STATUS AS "lifecycleStatus",
       RENEWAL_STATUS AS "renewalStatus",
       VALID_FROM AS "validFrom",
