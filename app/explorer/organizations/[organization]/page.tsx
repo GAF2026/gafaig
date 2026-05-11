@@ -88,12 +88,12 @@ export default async function OrganizationGovernanceIntelligencePage({
     <main className="mx-auto max-w-[1180px] px-6 py-10">
       <div className="space-y-8">
         <PublicPageHero
-          eyebrow="EXPLORER / ORGANIZATION GOVERNANCE INTELLIGENCE"
-          title={`Public AI governance observability for ${safe(
+          eyebrow="EXPLORER / ORGANIZATION INTELLIGENCE"
+          title={`${safe(
             organization.organizationName
-          )}`}
-          description="This organization profile surfaces publication-safe governance intelligence derived from GAFAIG’s canonical Snowflake public observability views."
-          secondaryDescription="Organization intelligence is projection-only. It does not expose findings, evidence, scoring internals, reviewer materials, governance execution systems, or private workflow telemetry."
+          )} governance intelligence`}
+          description="This organization intelligence profile surfaces publication-safe governance observability derived from GAFAIG’s canonical Snowflake public registry and AI system intelligence views."
+          secondaryDescription="This page exposes only publication-safe governance metadata projections. Findings, evidence, reviewer materials, scoring internals, recommendation systems, governance execution telemetry, and private workflow state are not exposed."
           actions={
             <>
               <PublicButtonLink href="/explorer/organizations" variant="primary">
@@ -154,11 +154,11 @@ export default async function OrganizationGovernanceIntelligencePage({
         <section className="rounded-3xl border border-black/10 bg-white p-8">
           <div className="max-w-4xl space-y-4">
             <p className="text-[12px] font-semibold uppercase tracking-[0.24em] text-black/40">
-              Governance Signals
+              Governance Intelligence Signals
             </p>
 
             <h2 className="text-[26px] font-semibold tracking-tight text-black">
-              Organization-level governance observability signals
+              Publication-safe organization governance intelligence
             </h2>
 
             <p className="text-[15px] leading-7 text-black/75">
@@ -217,7 +217,7 @@ export default async function OrganizationGovernanceIntelligencePage({
               </p>
 
               <h2 className="text-[26px] font-semibold tracking-tight text-black">
-                Published certification records
+                Published certification intelligence records
               </h2>
 
               <p className="text-[15px] leading-7 text-black/75">
@@ -390,17 +390,55 @@ export default async function OrganizationGovernanceIntelligencePage({
         <section className="rounded-3xl border border-black/10 bg-white p-8">
           <div className="max-w-4xl space-y-4">
             <p className="text-[12px] font-semibold uppercase tracking-[0.24em] text-black/40">
+              Connected Governance Intelligence
+            </p>
+
+            <h2 className="text-[26px] font-semibold tracking-tight text-black">
+              This organization participates in GAFAIG’s broader governance
+              intelligence topology
+            </h2>
+
+            <p className="text-[15px] leading-7 text-black/75">
+              Connected governance intelligence links organizations, countries,
+              certification records, AI systems, lifecycle observability, renewal
+              continuity, and verification trust surfaces into a deterministic
+              publication-safe global governance intelligence framework.
+            </p>
+
+            <div className="flex flex-wrap gap-3 pt-2">
+              <PublicButtonLink href="/explorer" variant="primary">
+                Open Governance Explorer
+              </PublicButtonLink>
+
+              <PublicButtonLink href="/explorer/ai-systems" variant="secondary">
+                View AI Systems
+              </PublicButtonLink>
+
+              <PublicButtonLink href="/explorer/countries" variant="secondary">
+                View Countries
+              </PublicButtonLink>
+
+              <PublicButtonLink href="/registry" variant="secondary">
+                Open Public Certification Records
+              </PublicButtonLink>
+            </div>
+          </div>
+        </section>
+
+        <section className="rounded-3xl border border-black/10 bg-white p-8">
+          <div className="max-w-4xl space-y-4">
+            <p className="text-[12px] font-semibold uppercase tracking-[0.24em] text-black/40">
               Public Trust Boundary
             </p>
 
             <h2 className="text-[26px] font-semibold tracking-tight text-black">
-              This page surfaces publication-safe governance telemetry only
+              Publication-safe governance boundaries
             </h2>
 
             <p className="text-[15px] leading-7 text-black/75">
               Organization intelligence is derived exclusively from canonical
-              Snowflake public registry, lifecycle, renewal, and AI system
-              observability views.
+              Snowflake public registry, lifecycle, renewal, certification, and
+              AI system observability projections.
             </p>
 
             <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
