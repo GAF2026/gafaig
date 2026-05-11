@@ -92,12 +92,10 @@ export default async function CountryGovernanceIntelligencePage({
     <main className="mx-auto max-w-[1180px] px-6 py-10">
       <div className="space-y-8">
         <PublicPageHero
-          eyebrow="EXPLORER / COUNTRY GOVERNANCE INTELLIGENCE"
-          title={`Public AI governance observability for ${safe(
-            country.country
-          )}`}
-          description="This country profile surfaces publication-safe governance intelligence derived from GAFAIG’s canonical Snowflake public observability views."
-          secondaryDescription="Country intelligence is projection-only. It does not expose findings, evidence, scoring internals, reviewer materials, governance execution systems, or private workflow telemetry."
+          eyebrow="EXPLORER / COUNTRY INTELLIGENCE"
+          title={`${safe(country.country)} governance intelligence`}
+          description="This country intelligence profile surfaces publication-safe governance observability derived from GAFAIG’s canonical Snowflake public registry and AI system intelligence views."
+          secondaryDescription="This page exposes only publication-safe governance metadata projections. Findings, evidence, reviewer materials, scoring internals, recommendation systems, governance execution telemetry, and private workflow state are not exposed."
           actions={
             <>
               <PublicButtonLink href="/explorer/countries" variant="primary">
@@ -158,11 +156,11 @@ export default async function CountryGovernanceIntelligencePage({
         <section className="rounded-3xl border border-black/10 bg-white p-8">
           <div className="max-w-4xl space-y-4">
             <p className="text-[12px] font-semibold uppercase tracking-[0.24em] text-black/40">
-              Governance Signals
+              Governance Intelligence Signals
             </p>
 
             <h2 className="text-[26px] font-semibold tracking-tight text-black">
-              Country-level governance observability signals
+              Publication-safe country governance intelligence
             </h2>
 
             <p className="text-[15px] leading-7 text-black/75">
@@ -225,7 +223,7 @@ export default async function CountryGovernanceIntelligencePage({
               </p>
 
               <h2 className="text-[26px] font-semibold tracking-tight text-black">
-                Published organizations in {safe(country.country)}
+                Published governance organizations in {safe(country.country)}
               </h2>
 
               <p className="text-[15px] leading-7 text-black/75">
@@ -295,7 +293,8 @@ export default async function CountryGovernanceIntelligencePage({
               </p>
 
               <h2 className="text-[26px] font-semibold tracking-tight text-black">
-                Public AI systems disclosed in {safe(country.country)}
+                Published AI governance systems disclosed in{" "}
+                {safe(country.country)}
               </h2>
 
               <p className="text-[15px] leading-7 text-black/75">
@@ -378,17 +377,59 @@ export default async function CountryGovernanceIntelligencePage({
         <section className="rounded-3xl border border-black/10 bg-white p-8">
           <div className="max-w-4xl space-y-4">
             <p className="text-[12px] font-semibold uppercase tracking-[0.24em] text-black/40">
+              Connected Governance Intelligence
+            </p>
+
+            <h2 className="text-[26px] font-semibold tracking-tight text-black">
+              This country participates in GAFAIG’s broader governance
+              intelligence topology
+            </h2>
+
+            <p className="text-[15px] leading-7 text-black/75">
+              Connected governance intelligence links countries, organizations,
+              certification records, AI systems, lifecycle observability,
+              renewal continuity, and verification trust surfaces into a
+              deterministic publication-safe global governance intelligence
+              framework.
+            </p>
+
+            <div className="flex flex-wrap gap-3 pt-2">
+              <PublicButtonLink href="/explorer" variant="primary">
+                Open Governance Explorer
+              </PublicButtonLink>
+
+              <PublicButtonLink
+                href="/explorer/organizations"
+                variant="secondary"
+              >
+                View Organizations
+              </PublicButtonLink>
+
+              <PublicButtonLink href="/explorer/ai-systems" variant="secondary">
+                View AI Systems
+              </PublicButtonLink>
+
+              <PublicButtonLink href="/registry" variant="secondary">
+                Open Public Certification Records
+              </PublicButtonLink>
+            </div>
+          </div>
+        </section>
+
+        <section className="rounded-3xl border border-black/10 bg-white p-8">
+          <div className="max-w-4xl space-y-4">
+            <p className="text-[12px] font-semibold uppercase tracking-[0.24em] text-black/40">
               Public Trust Boundary
             </p>
 
             <h2 className="text-[26px] font-semibold tracking-tight text-black">
-              This page surfaces publication-safe governance telemetry only
+              Publication-safe governance boundaries
             </h2>
 
             <p className="text-[15px] leading-7 text-black/75">
               Country intelligence is derived exclusively from canonical
-              Snowflake public registry, lifecycle, renewal, and AI system
-              observability views.
+              Snowflake public registry, lifecycle, renewal, certification, and
+              AI system observability projections.
             </p>
 
             <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
