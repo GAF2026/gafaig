@@ -99,12 +99,12 @@ export default async function SystemDetailPage({
                   href={`/registry/${encodeURIComponent(registryId)}`}
                   variant="primary"
                 >
-                  Open Certification Record
+                  Open Public Certification Record
                 </PublicButtonLink>
               ) : null}
 
-              <PublicButtonLink href="/explorer/systems" variant="secondary">
-                Back to Systems
+              <PublicButtonLink href="/explorer/ai-systems" variant="secondary">
+                Back to AI Systems
               </PublicButtonLink>
             </>
           }
@@ -162,7 +162,7 @@ export default async function SystemDetailPage({
                   href={`/registry/${encodeURIComponent(registryId)}`}
                   variant="primary"
                 >
-                  Open Certification Record
+                  Open Public Certification Record
                 </PublicButtonLink>
 
                 <PublicButtonLink
@@ -174,8 +174,8 @@ export default async function SystemDetailPage({
               </>
             ) : null}
 
-            <PublicButtonLink href="/explorer/systems" variant="secondary">
-              Back to Systems
+            <PublicButtonLink href="/explorer/ai-systems" variant="secondary">
+              Back to AI Systems
             </PublicButtonLink>
           </div>
         </section>
@@ -214,7 +214,7 @@ export default async function SystemDetailPage({
         <section className="rounded-3xl border border-black/10 bg-white p-8">
           <div className="max-w-4xl space-y-4">
             <h2 className="text-[26px] font-semibold tracking-tight text-black">
-              AI governance observability
+              Publication-safe governance boundaries
             </h2>
 
             <p className="text-[15px] leading-7 text-black/75">
@@ -241,6 +241,43 @@ export default async function SystemDetailPage({
 
         <section className="rounded-3xl border border-black/10 bg-white p-8">
           <h2 className="text-[26px] font-semibold tracking-tight text-black">
+            Connected governance intelligence
+          </h2>
+
+          <p className="mt-4 max-w-[900px] text-[15px] leading-7 text-black/75">
+            This published AI governance record participates in GAFAIG’s broader
+            publication-safe governance intelligence topology connecting
+            certification records, organizations, countries, and verification
+            trust surfaces.
+          </p>
+
+          <div className="mt-6 flex flex-wrap gap-3">
+            <PublicButtonLink href="/explorer/ai-systems" variant="primary">
+              View AI Systems
+            </PublicButtonLink>
+
+            {hasRegistryId ? (
+              <>
+                <PublicButtonLink
+                  href={`/verify/${encodeURIComponent(registryId)}`}
+                  variant="secondary"
+                >
+                  Verify Record
+                </PublicButtonLink>
+
+                <PublicButtonLink
+                  href={`/registry/${encodeURIComponent(registryId)}`}
+                  variant="secondary"
+                >
+                  Open Public Certification Record
+                </PublicButtonLink>
+              </>
+            ) : null}
+          </div>
+        </section>
+
+        <section className="rounded-3xl border border-black/10 bg-white p-8">
+          <h2 className="text-[26px] font-semibold tracking-tight text-black">
             Certification and verification
           </h2>
 
@@ -261,7 +298,7 @@ export default async function SystemDetailPage({
                 href={`/registry/${encodeURIComponent(registryId)}`}
                 variant="primary"
               >
-                Open Certification Record
+                Open Public Certification Record
               </PublicButtonLink>
 
               <PublicButtonLink
