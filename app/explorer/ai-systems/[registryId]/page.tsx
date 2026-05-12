@@ -220,7 +220,7 @@ export default async function ExplorerAiSystemDetailPage({
             <p className="text-[15px] leading-7 text-black/75">
               The registry ID is the canonical public trust identifier. External
               systems should verify the associated registry ID through the
-              GAFAIG verification endpoint and proof payload.
+              GAFAIG verification endpoint and signed proof.
             </p>
           </div>
 

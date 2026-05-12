@@ -253,9 +253,9 @@ export default async function RegistryRecordPage({
 
           <p className="mt-4 max-w-[900px] text-[15px] leading-7 text-black/75">
             The registry distributes the public certification record. The verify
-            endpoint distributes the signed proof. External systems should verify
-            the exact proof.messageString returned by the verification endpoint
-            and must never reconstruct the signed payload from JSON fields.
+            endpoint distributes the signed proof JSON. External systems should
+            verify the exact proof.messageString returned by the verification
+            endpoint and must never reconstruct the signed payload from JSON fields.
           </p>
 
           <div className="mt-6 grid gap-4 md:grid-cols-3">

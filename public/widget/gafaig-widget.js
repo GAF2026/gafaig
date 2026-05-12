@@ -638,7 +638,7 @@
     if (validation === "Signature Invalid" || integrity === "Payload Invalid") {
       return (
         entityName +
-        " has an incomplete or invalid public verification proof. External systems must not reconstruct the signed payload from display fields."
+        " has an incomplete or invalid public verification proof. External systems must not reconstruct the canonical signed payload from display fields."
       );
     }
 
@@ -926,7 +926,7 @@
       '<div class="gafaig-widget-footer">' +
       'Verified using GAFAIG public verification system · <a href="' +
       verifyApiUrl +
-      '" target="_blank" rel="noopener noreferrer">View signed verification JSON</a>' +
+      '" target="_blank" rel="noopener noreferrer">View Signed Proof JSON</a>' +
       "</div>" +
       "</div>";
   }

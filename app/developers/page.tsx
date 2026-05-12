@@ -598,7 +598,7 @@ export default function DevelopersPage() {
 
                 <ul className="mt-3 space-y-2 text-sm leading-5 text-black/60">
                   <li>/api/verify returns the canonical record and proof.</li>
-                  <li>proof.messageString is the exact signed payload.</li>
+                  <li>proof.messageString is the exact canonical signed payload.</li>
                   <li>proof.signature is the cryptographic signature.</li>
                   <li>
                     /api/.well-known/gafaig-public-key exposes the verification
@@ -640,7 +640,7 @@ export default function DevelopersPage() {
           <SectionHeading
             eyebrow="CANONICAL VERIFICATION RULE"
             title="Verify the exact messageString. Never reconstruct it."
-            body="The signed payload is proof.messageString. It must be copied and verified exactly as returned by /api/verify. Reconstructing payloads from record fields, proof.message, UI values, or reordered JSON will invalidate verification."
+            body="The canonical signed payload is proof.messageString. It must be copied and verified exactly as returned by /api/verify. Reconstructing payloads from record fields, proof.message, UI values, or reordered JSON will invalidate verification."
           />
 
           <div className="mt-6 grid gap-4 md:grid-cols-2">
@@ -828,7 +828,7 @@ export default function DevelopersPage() {
           className="scroll-mt-8 rounded-3xl border border-black/10 bg-white p-8"
         >
           <SectionHeading
-            eyebrow="RAW API"
+            eyebrow="PUBLIC API"
             title="Use the verify, badge, and public key endpoints directly"
             body="For advanced integrations, call the public API endpoints directly. The SDK and widget are convenience layers on top of the same public contracts."
           />
@@ -863,7 +863,7 @@ export default function DevelopersPage() {
         >
           <SectionHeading
             eyebrow="PROOF OBJECT"
-            title="The signed payload you verify"
+            title="The canonical signed payload you verify"
             body="The record object is for display. The proof object is the trust layer. Signature validation depends on messageString, signature, key ID, algorithm, and the public key endpoint."
           />
 
@@ -877,7 +877,7 @@ export default function DevelopersPage() {
 
           <div className="mt-6 grid gap-4 md:grid-cols-2">
             <BulletCard text="Trust depends on the proof object, not UI rendering." />
-            <BulletCard text="The signed payload is proof.messageString exactly as returned by the API." />
+            <BulletCard text="The canonical signed payload is proof.messageString exactly as returned by the API." />
             <BulletCard text="External systems must treat messageString as the canonical input to signature verification." />
             <BulletCard text="SDK, widget, badge, and modal bindings are thin consumers of verify and badge endpoints and never compute trust." />
           </div>

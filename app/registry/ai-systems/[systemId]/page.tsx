@@ -288,7 +288,7 @@ export default async function SystemDetailPage({
             />
             <StatementCard
               title="Verification proof"
-              body="External systems should verify the associated registry ID through the GAFAIG verification endpoint and exact proof.messageString payload."
+              body="External systems should verify the associated registry ID through the GAFAIG verification endpoint and exact proof.messageString from the canonical signed payload."
             />
           </div>
 

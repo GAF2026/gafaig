@@ -227,7 +227,7 @@ export default async function WidgetPreviewPage({
                 href={`/registry/${encodeURIComponent(registryId)}`}
                 variant="primary"
               >
-                Open Registry Record
+                Open Certification Record
               </PublicButtonLink>
 
               <PublicButtonLink
@@ -267,7 +267,7 @@ export default async function WidgetPreviewPage({
           <p className="mt-5 max-w-[980px] text-[16px] leading-[1.85] text-black/75">
             The widget is not a static badge. It is a live trust surface that
             reads from GAFAIG’s public verification layer and independently
-            verifies the signed payload in the browser. This allows a
+            verifies the canonical signed payload in the browser. This allows a
             third-party site to display a current GAFAIG trust record without
             recreating the verification process or exposing private internal
             materials.
@@ -381,14 +381,14 @@ export default async function WidgetPreviewPage({
                 href={`/registry/${encodeURIComponent(registryId)}`}
                 variant="secondary"
               >
-                Open record
+                Open Certification Record
               </PublicButtonLink>
 
               <PublicButtonLink
                 href={`/verify/${encodeURIComponent(registryId)}`}
                 variant="secondary"
               >
-                Open verify page
+                Open Verify Page
               </PublicButtonLink>
             </div>
           </section>
@@ -594,9 +594,9 @@ export default async function WidgetPreviewPage({
           </h2>
 
           <div className="mt-7 grid gap-4 md:grid-cols-4">
-            <MetricCard label="Registry Record" value={registryUrl} />
+            <MetricCard label="Certification Record" value={registryUrl} />
             <MetricCard label="Verify Page" value={verifyPageUrl} />
-            <MetricCard label="Verify JSON" value={verifyJsonUrl} />
+            <MetricCard label="Proof JSON" value={verifyJsonUrl} />
             <MetricCard label="Demo Page" value={demoUrl} />
           </div>
 
@@ -628,15 +628,15 @@ export default async function WidgetPreviewPage({
           </p>
 
           <div className="mt-5 grid gap-4 md:grid-cols-2">
-            <BulletCard text="public verification JSON" />
-            <BulletCard text="signed proof payloads" />
+            <BulletCard text="public signed proof JSON" />
+            <BulletCard text="canonical signed proof payloads" />
             <BulletCard text="detached signatures" />
             <BulletCard text="public verification keys" />
           </div>
 
           <div className="mt-7 grid gap-4 md:grid-cols-3">
             <StatementCard
-              title="Verification JSON"
+              title="Proof JSON"
               body="The verification endpoint exposes the canonical public trust payload used throughout the GAFAIG verification flow."
             />
             <StatementCard

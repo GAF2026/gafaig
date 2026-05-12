@@ -647,7 +647,7 @@ export default async function VerifyPage({
 
             <div className="mt-5 flex flex-wrap gap-3">
               <ActionButton label="Copy Signature" copyValue={signature} />
-              <ActionButton label="Copy Signed Payload" copyValue={signedPayload} />
+              <ActionButton label="Copy Canonical Signed Payload" copyValue={signedPayload} />
               <ActionButton label="Copy Public Key URL" copyValue={verificationKeyUrl} />
               <ActionButton label="Copy Verification curl" copyValue={verifyCurl} />
               <ActionButton label="Copy Proof JSON" copyValue={rawVerifyJson} />
@@ -849,7 +849,7 @@ export default async function VerifyPage({
 
           <div className="mt-6 grid gap-4">
             <CodePanel
-              label="Signed payload"
+              label="Canonical signed payload"
               language="CANONICAL MESSAGESTRING — EXACT SIGNED PAYLOAD — DO NOT MODIFY"
               value={signedPayload}
             />
@@ -862,7 +862,7 @@ export default async function VerifyPage({
             <CodePanel label="Public key" language="PEM" value={publicKeyPem} />
             <CodePanel label="Verification curl" language="cURL" value={verifyCurl} />
             <CodePanel label="Badge curl" language="cURL" value={badgeCurl} />
-            <CodePanel label="Full verification response" language="JSON" value={rawVerifyJson} />
+            <CodePanel label="Proof JSON" language="JSON" value={rawVerifyJson} />
           </div>
         </section>
 
