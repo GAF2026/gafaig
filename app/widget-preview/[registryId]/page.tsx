@@ -193,11 +193,11 @@ export default async function WidgetPreviewPage({
     ? "Certified"
     : "Not Certified";
 
-  const widgetSnippet = `<script src="${productionBaseUrl}/widget/gafaig-widget.js"></script>
+  const widgetSnippet = `<script src="${productionBaseUrl}/widget/gafaig-widget.v1.js"></script>
 <div data-gafaig-id="${registryId}"></div>`;
 
-  const verifyButtonSnippet = `<script src="${productionBaseUrl}/widget/gafaig-widget.js"></script>
-<script src="${productionBaseUrl}/widget/gafaig-verify.js"></script>
+  const verifyButtonSnippet = `<script src="${productionBaseUrl}/widget/gafaig-widget.v1.js"></script>
+<script src="${productionBaseUrl}/widget/gafaig-verify.v1.js"></script>
 <button onclick="verifyGAFAIG('${registryId}', { baseUrl: '${productionBaseUrl}' })">
   Verify this GAFAIG record
 </button>`;
@@ -407,6 +407,10 @@ export default async function WidgetPreviewPage({
               Independent verification must use the exact signed messageString returned by the API.
             </p>
 
+            <p className="mt-4 text-[14px] leading-7 text-black/70">
+              Production integrations should use versioned SDK and widget URLs for long-term integration stability and deterministic trust behavior.
+            </p>
+
             <div className="mt-6 space-y-6">
               <div>
                 <div className="flex flex-wrap items-center justify-between gap-3">
@@ -468,6 +472,89 @@ export default async function WidgetPreviewPage({
           </div>
         </section>
 
+
+
+        <section className="rounded-3xl border border-black/10 bg-white p-8">
+          <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
+            PORTABLE VERIFICATION
+          </div>
+
+          <h2 className="mt-4 max-w-[860px] text-[26px] font-semibold tracking-tight text-black">
+            Trust can be verified independently outside GAFAIG
+          </h2>
+
+          <p className="mt-5 max-w-[960px] text-[16px] leading-[1.85] text-black/75">
+            GAFAIG trust does not depend on the widget, the host website, or the GAFAIG interface itself.
+          </p>
+
+          <p className="mt-5 max-w-[960px] text-[16px] leading-[1.85] text-black/75">
+            Independent verification uses:
+          </p>
+
+          <div className="mt-5 grid gap-4 md:grid-cols-3">
+            <BulletCard text="the exact proof.messageString" />
+            <BulletCard text="the detached Ed25519 signature" />
+            <BulletCard text="the public verification key exposed by GAFAIG" />
+          </div>
+
+          <p className="mt-6 max-w-[960px] text-[16px] leading-[1.85] text-black/75">
+            This allows third parties to independently validate the certification outcome outside the originating organization’s platform.
+          </p>
+
+          <div className="mt-7 grid gap-4 md:grid-cols-3">
+            <StatementCard
+              title="Signed proof"
+              body="The verification payload contains the canonical signed messageString returned by the public verification endpoint."
+            />
+            <StatementCard
+              title="Detached signature"
+              body="The proof includes a detached Ed25519 signature that can be independently validated outside the browser widget."
+            />
+            <StatementCard
+              title="Public verification key"
+              body="GAFAIG exposes the public verification key through the public key endpoint so external systems can independently validate trust."
+            />
+          </div>
+        </section>
+
+        <section className="rounded-3xl border border-black/10 bg-white p-8">
+          <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
+            FAIL-CLOSED TRUST
+          </div>
+
+          <h2 className="mt-4 max-w-[860px] text-[26px] font-semibold tracking-tight text-black">
+            Verification intentionally fails closed
+          </h2>
+
+          <p className="mt-5 max-w-[960px] text-[16px] leading-[1.85] text-black/75">
+            GAFAIG does not silently assume trust if verification cannot be completed successfully.
+          </p>
+
+          <p className="mt-5 max-w-[960px] text-[16px] leading-[1.85] text-black/75">
+            If:
+          </p>
+
+          <div className="mt-5 grid gap-4 md:grid-cols-2">
+            <BulletCard text="the proof is incomplete" />
+            <BulletCard text="the signature is invalid" />
+            <BulletCard text="the canonical messageString is missing" />
+            <BulletCard text="verification data cannot be resolved" />
+          </div>
+
+          <p className="mt-6 max-w-[960px] text-[16px] leading-[1.85] text-black/75">
+            the trust surface intentionally refuses to display a verified state.
+          </p>
+
+          <div className="mt-6 rounded-2xl border border-black/10 bg-black/[0.02] p-5">
+            <div className="text-[18px] font-semibold tracking-tight text-black">
+              Why this matters
+            </div>
+            <p className="mt-3 text-[15px] leading-[1.85] text-black/75">
+              Many trust systems fail open and continue displaying trust indicators even when verification is unavailable. GAFAIG intentionally fails closed to preserve deterministic verification integrity.
+            </p>
+          </div>
+        </section>
+
         <section className="rounded-3xl border border-black/10 bg-white p-8">
           <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
             WHAT THIS ADDS TO THE DEMO
@@ -521,6 +608,76 @@ export default async function WidgetPreviewPage({
               Browse Registry
             </PublicButtonLink>
           </div>
+        </section>
+
+        <section className="rounded-3xl border border-black/10 bg-white p-8">
+          <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
+            DOWNLOADABLE PROOF
+          </div>
+
+          <h2 className="mt-4 max-w-[860px] text-[26px] font-semibold tracking-tight text-black">
+            Portable verification artifacts
+          </h2>
+
+          <p className="mt-5 max-w-[960px] text-[16px] leading-[1.85] text-black/75">
+            GAFAIG verification records are designed to support portable trust workflows beyond the browser widget itself.
+          </p>
+
+          <p className="mt-5 max-w-[960px] text-[16px] leading-[1.85] text-black/75">
+            Organizations, regulators, auditors, and third-party systems may independently retrieve:
+          </p>
+
+          <div className="mt-5 grid gap-4 md:grid-cols-2">
+            <BulletCard text="public verification JSON" />
+            <BulletCard text="signed proof payloads" />
+            <BulletCard text="detached signatures" />
+            <BulletCard text="public verification keys" />
+          </div>
+
+          <div className="mt-7 grid gap-4 md:grid-cols-3">
+            <StatementCard
+              title="Verification JSON"
+              body="The verification endpoint exposes the canonical public trust payload used throughout the GAFAIG verification flow."
+            />
+            <StatementCard
+              title="Proof portability"
+              body="The signed proof can be archived, transferred, and independently verified outside GAFAIG while preserving cryptographic integrity."
+            />
+            <StatementCard
+              title="External verification"
+              body="Third-party systems can validate the proof independently using the public Ed25519 verification key and canonical messageString."
+            />
+          </div>
+        </section>
+
+        <section className="rounded-3xl border border-black/10 bg-white p-8">
+          <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
+            TRUST ORIGINS
+          </div>
+
+          <h2 className="mt-4 max-w-[860px] text-[26px] font-semibold tracking-tight text-black">
+            The widget is a distribution surface, not the source of trust
+          </h2>
+
+          <p className="mt-5 max-w-[960px] text-[16px] leading-[1.85] text-black/75">
+            The widget, SDK, and verification modal distribute publicly verifiable trust outcomes.
+          </p>
+
+          <p className="mt-5 max-w-[960px] text-[16px] leading-[1.85] text-black/75">
+            Trust itself originates from:
+          </p>
+
+          <div className="mt-5 grid gap-4 md:grid-cols-2">
+            <BulletCard text="the canonical Snowflake verification pipeline" />
+            <BulletCard text="append-only registry publication" />
+            <BulletCard text="deterministic verification procedures" />
+            <BulletCard text="signed public proof" />
+            <BulletCard text="independent cryptographic verification" />
+          </div>
+
+          <p className="mt-6 max-w-[960px] text-[16px] leading-[1.85] text-black/75">
+            The browser widget is a portable trust surface layered on top of the underlying signed verification architecture.
+          </p>
         </section>
 
         <script
