@@ -431,7 +431,7 @@
       '<div style="margin-top:18px;display:flex;gap:10px;flex-wrap:wrap;">' +
       linkButton(registryUrl, "Open record", true) +
       linkButton(verifyPageUrl, "Open verify page", false) +
-      linkButton(verifyJsonUrl, "Verify JSON", false) +
+      linkButton(verifyJsonUrl, "Proof JSON", false) +
       linkButton(keyUrl, "Public key", false) +
       copyButton("Copy signed payload", signedPayloadToCopy) +
       copyButton("Copy signature", signatureToCopy) +

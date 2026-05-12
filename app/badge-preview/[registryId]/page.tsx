@@ -196,7 +196,7 @@ export default async function BadgePage({
             </PublicButtonLink>
 
             <PublicButtonLink href={verifyPath} variant="secondary">
-              Open verify JSON
+              Open Proof JSON
             </PublicButtonLink>
           </div>
         </section>
@@ -364,7 +364,7 @@ export default async function BadgePage({
           <div className="mt-6 grid gap-3 md:grid-cols-3">
             <InfoCard label="Registry ID" value={registryId} />
             <InfoCard label="Registry Record" value={`${baseUrl}${registryPath}`} />
-            <InfoCard label="Verify JSON" value={`${baseUrl}${verifyPath}`} />
+            <InfoCard label="Proof JSON" value={`${baseUrl}${verifyPath}`} />
           </div>
         </section>
       </div>

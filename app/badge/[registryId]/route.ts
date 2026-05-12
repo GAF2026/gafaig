@@ -400,7 +400,7 @@ function htmlPage(input: {
 
         <div class="actions">
           <a class="button primary" href="${recordUrl}">Open record</a>
-          <a class="button" href="${verificationUrl}">Verify JSON</a>
+          <a class="button" href="${verificationUrl}">Proof JSON</a>
         </div>
 
         <div class="footer">

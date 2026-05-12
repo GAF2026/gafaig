@@ -102,7 +102,7 @@ export default function RegistryTrustTools({
             Open Badge
           </PublicButtonLink>
           <PublicButtonLink href={absoluteVerifyUrl} variant="secondary">
-            Verify JSON
+            Proof JSON
           </PublicButtonLink>
         </div>
       </div>
