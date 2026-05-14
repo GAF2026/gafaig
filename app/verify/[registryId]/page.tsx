@@ -247,7 +247,7 @@ function JumpNav() {
     ["#signature-validation", "Signature Validation"],
     ["#record-identity", "Record Identity"],
     ["#trust-flow", "Trust Flow"],
-    ["#use-proof", "Use This Proof"],
+    ["#use-proof", "Use Verification Proof"],
     ["#trust-verification", "Technical Summary"],
     ["#developer-proof", "Developer Proof"],
     ["#related-urls", "Related URLs"],
@@ -480,7 +480,7 @@ export default async function VerifyPage({
       <div className="space-y-8">
         <section className="rounded-3xl border border-black/10 bg-white p-8">
           <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
-            PUBLIC PROOF RECORD
+            PUBLIC VERIFICATION PROOF
           </div>
 
           <div className="mt-4 flex flex-wrap gap-2">
@@ -522,11 +522,11 @@ export default async function VerifyPage({
           </div>
 
           <h1 className="mt-4 text-[42px] font-semibold tracking-tight text-black">
-            Public proof record for {entityName}
+            Public verification proof for {entityName}
           </h1>
 
           <div className="mt-4 max-w-4xl text-[15px] leading-7 text-black/75">
-            This page exposes the public proof behind a GAFAIG certification
+            This verification surface exposes the public proof behind a GAFAIG certification
             record. Only records that have been explicitly published by the
             organization appear in the public registry and verification system.
           </div>
@@ -550,7 +550,7 @@ export default async function VerifyPage({
               href={`/verify/${encodeURIComponent(registryId)}`}
               variant="primary"
             >
-              Verify This Record
+              Verify Certification Record
             </PublicButtonLink>
 
             <a
@@ -589,7 +589,7 @@ export default async function VerifyPage({
               Cryptographic validation status
             </h2>
             <p className="max-w-3xl text-[15px] leading-7 text-black/75">
-              GAFAIG validates the returned signed payload against the published
+              GAFAIG validates the returned canonical signed public payload using the published
               verification key for this record. Verification MUST be performed
               against the exact proof.messageString returned by the API.
               Reconstructing payloads from JSON fields is not permitted and will
@@ -620,7 +620,7 @@ export default async function VerifyPage({
               </div>
               <ul className="mt-4 space-y-2 text-[14px] leading-6 text-black/70">
                 <li>/api/verify returns the canonical public record and proof.</li>
-                <li>proof.messageString is the exact signed payload.</li>
+                <li>proof.messageString is the exact canonical signed public payload.</li>
                 <li>proof.signature is the cryptographic signature.</li>
                 <li>Never reconstruct or verify from JSON fields.</li>
                 <li>/api/.well-known/gafaig-public-key exposes the verification key.</li>
@@ -647,7 +647,7 @@ export default async function VerifyPage({
 
             <div className="mt-5 flex flex-wrap gap-3">
               <ActionButton label="Copy Signature" copyValue={signature} />
-              <ActionButton label="Copy Canonical Signed Payload" copyValue={signedPayload} />
+              <ActionButton label="Copy Canonical Signed Public Payload" copyValue={signedPayload} />
               <ActionButton label="Copy Public Key URL" copyValue={verificationKeyUrl} />
               <ActionButton label="Copy Verification curl" copyValue={verifyCurl} />
               <ActionButton label="Copy Proof JSON" copyValue={rawVerifyJson} />
@@ -691,15 +691,15 @@ export default async function VerifyPage({
           className="scroll-mt-8 rounded-3xl border border-black/10 bg-white p-8"
         >
           <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
-            TRUST FLOW
+            VERIFICATION TRUST FLOW
           </div>
 
           <h2 className="mt-4 max-w-[860px] text-[26px] font-semibold tracking-tight text-black">
-            How this proof connects to the wider GAFAIG trust surface
+            How this verification proof connects to GAFAIG public trust surfaces
           </h2>
 
           <p className="mt-5 max-w-[980px] text-[15px] leading-7 text-black/75">
-            This page is one part of the full GAFAIG proof sequence. A record
+            This verification surface is one part of the full GAFAIG proof sequence. A record
             appears in the public registry, is verified through signed proof,
             exposes its machine-readable proof payload, and can then travel
             outside the platform through a portable widget, badge, SDK, or
@@ -714,18 +714,18 @@ export default async function VerifyPage({
             />
             <StepCard
               number="2"
-              title="Proof Page"
-              body="This page validates the signed proof behind that record."
+              title="Verification Proof"
+              body="This verification surface validates the signed proof behind that record."
             />
             <StepCard
               number="3"
-              title="Proof JSON"
-              body="The machine-readable proof makes the trust record portable."
+              title="Signed Proof JSON"
+              body="The machine-readable signed proof makes the public trust record portable."
             />
             <StepCard
               number="4"
               title="External Widget"
-              body="The same trust signal can appear outside GAFAIG."
+              body="The same public trust signal can appear outside GAFAIG."
             />
           </div>
         </section>
@@ -735,21 +735,21 @@ export default async function VerifyPage({
           className="scroll-mt-8 rounded-3xl border border-black/10 bg-white p-8"
         >
           <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
-            USE THIS PROOF
+            USE VERIFICATION PROOF
           </div>
 
           <h2 className="mt-4 max-w-[860px] text-[26px] font-semibold tracking-tight text-black">
-            This verification can be used outside GAFAIG
+            This verification proof can be used outside GAFAIG
           </h2>
 
           <div className="mt-7 grid gap-4 md:grid-cols-2">
             <StatementCard
-              title="For people"
-              body="The certification record and this proof page provide a readable public trust surface for customers, regulators, partners, and the public."
+              title="For public review"
+              body="The certification record and this verification proof provide a readable public trust surface for customers, regulators, partners, and the public."
             />
             <StatementCard
-              title="For systems"
-              body="The Proof JSON, signature, messageString, and public key allow external systems to inspect and consume the same trust result without relying on GAFAIG UI."
+              title="For external systems"
+              body="The Signed Proof JSON, signature, messageString, and public key allow external systems to inspect and consume the same trust result without relying on GAFAIG UI."
             />
           </div>
 
@@ -767,8 +767,8 @@ export default async function VerifyPage({
               cta="View Widget"
             />
             <FeatureCard
-              title="Proof JSON"
-              body="Open the machine-readable proof returned by the verification endpoint."
+              title="Signed Proof JSON"
+              body="Open the machine-readable signed proof returned by the verification endpoint."
               href={`/api/verify/${encodeURIComponent(registryId)}`}
               cta="View Proof JSON"
             />
@@ -787,10 +787,10 @@ export default async function VerifyPage({
         >
           <div className="space-y-4">
             <div className="text-xs font-semibold uppercase tracking-[0.24em] text-black/40">
-              Trust verification
+              Verification summary
             </div>
             <h2 className="text-[26px] font-semibold tracking-tight text-black">
-              Verification details
+              Technical verification reference
             </h2>
             <p className="mt-5 max-w-4xl text-[18px] leading-8 text-black/65">
               These fields are provided for reference and debugging. Trust must
@@ -824,15 +824,15 @@ export default async function VerifyPage({
         >
           <div className="space-y-4">
             <div className="text-xs font-semibold uppercase tracking-[0.24em] text-black/40">
-              Developer proof object
+              Developer verification proof
             </div>
             <h2 className="text-[26px] font-semibold tracking-tight text-black">
-              Copyable verification materials
+              Copyable public verification materials
             </h2>
             <p className="max-w-3xl text-[15px] leading-7 text-black/75">
               External systems MUST treat messageString as the canonical input
               to signature verification. The record object is for display only;
-              the proof object is the trust layer. Do not reconstruct the signed
+              the verification proof object is the trust layer. Do not reconstruct the canonical signed public
               payload from JSON fields.
             </p>
           </div>
@@ -849,8 +849,8 @@ export default async function VerifyPage({
 
           <div className="mt-6 grid gap-4">
             <CodePanel
-              label="Canonical signed payload"
-              language="CANONICAL MESSAGESTRING — EXACT SIGNED PAYLOAD — DO NOT MODIFY"
+              label="Canonical signed public payload"
+              language="CANONICAL MESSAGESTRING — EXACT CANONICAL SIGNED PUBLIC PAYLOAD — DO NOT MODIFY"
               value={signedPayload}
             />
             <CodePanel label="Signature" language="Ed25519 signature" value={signature} />
@@ -862,7 +862,7 @@ export default async function VerifyPage({
             <CodePanel label="Public key" language="PEM" value={publicKeyPem} />
             <CodePanel label="Verification curl" language="cURL" value={verifyCurl} />
             <CodePanel label="Badge curl" language="cURL" value={badgeCurl} />
-            <CodePanel label="Proof JSON" language="JSON" value={rawVerifyJson} />
+            <CodePanel label="Signed Proof JSON" language="JSON" value={rawVerifyJson} />
           </div>
         </section>
 
@@ -871,18 +871,18 @@ export default async function VerifyPage({
           className="scroll-mt-8 rounded-3xl border border-black/10 bg-white p-8"
         >
           <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
-            RELATED URLS
+            CONNECTED TRUST SURFACES
           </div>
 
           <h2 className="mt-4 max-w-[860px] text-[26px] font-semibold tracking-tight text-black">
-            Connected trust surfaces for this record
+            Connected public trust surfaces for this record
           </h2>
 
           <div className="mt-6 grid gap-4 md:grid-cols-2">
             <InfoCard label="Certification Record" value={registryUrl} />
-            <InfoCard label="Widget Preview" value={widgetUrl} />
-            <InfoCard label="Proof JSON" value={verifyJsonUrl} />
-            <InfoCard label="Badge JSON" value={badgeJsonUrl} />
+            <InfoCard label="Portable Widget Preview" value={widgetUrl} />
+            <InfoCard label="Signed Proof JSON" value={verifyJsonUrl} />
+            <InfoCard label="Badge API JSON" value={badgeJsonUrl} />
             <InfoCard label="Public Key Endpoint" value={verificationKeyUrl} />
             <InfoCard label="Demo Page" value={demoUrl} />
           </div>

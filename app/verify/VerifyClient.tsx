@@ -126,13 +126,13 @@ function getTrustState(
   if (certification === "CERTIFIED" || hasCertifiedAt) {
     return {
       label: "Certified",
-      description: "Published certification record",
+      description: "Published certification surface",
     };
   }
 
   return {
     label: "Not publicly certified",
-    description: "No published certification record resolved",
+    description: "No published certification surface resolved",
   };
 }
 
@@ -143,7 +143,7 @@ function getProofStateLabel(
   if (endpointVerified && signatureVerified) {
     return {
       title: "Signature Verified",
-      body: "The public certification record resolved successfully and the exact messageString validates against the published GAFAIG public key.",
+      body: "The public certification surface resolved successfully and the exact messageString validates against the published GAFAIG public key.",
       tone: "success" as const,
     };
   }
@@ -159,14 +159,14 @@ function getProofStateLabel(
   if (endpointVerified && !signatureVerified) {
     return {
       title: "Endpoint verified, payload integrity invalid",
-      body: "The public certification record resolved, but the signature did not validate against the exact messageString and published key.",
+      body: "The public certification surface resolved, but the signature did not validate against the exact messageString and published key.",
       tone: "danger" as const,
     };
   }
 
   return {
     title: "Proof not verified",
-    body: "Neither the endpoint response nor the client-side signature validation confirmed the record.",
+    body: "Neither the endpoint response nor the client-side signature validation confirmed the certification surface.",
     tone: "danger" as const,
   };
 }
@@ -341,7 +341,7 @@ export default function VerifyClient({
     if (!targetId) {
       setState({
         status: "error",
-        message: `Enter a valid GAFAIG registry ID${
+        message: `Enter a valid GAFAIG certification surface registry ID${
           latestId ? ` (e.g. ${latestId})` : ""
         }.`,
       });
@@ -436,14 +436,14 @@ export default function VerifyClient({
     <main className="mx-auto max-w-[1180px] px-6 py-10">
       <div className="space-y-8">
         <PublicPageHero
-          eyebrow="VERIFICATION TOOL"
-          title="Verify a GAFAIG public certification record"
-          description="Confirm whether a published GAFAIG certification record is valid by registry ID. Verification retrieves the live public record, signed proof, exact messageString, signature, and public key needed for independent validation."
-          secondaryDescription="Verification is deterministic and reproducible. Anyone can validate the same result independently using the exact proof.messageString, signature, and GAFAIG public key."
+          eyebrow="PUBLIC VERIFICATION SURFACE"
+          title="Verify a GAFAIG public certification surface"
+          description="Confirm whether a published GAFAIG certification surface is valid by registry ID. Verification retrieves the live public surface, signed proof, exact messageString, signature, and public key needed for independent validation."
+          secondaryDescription="Verification is deterministic, reproducible, and independently verifiable. Anyone can validate the same result independently using the exact proof.messageString, signature, and GAFAIG public key."
           actions={
             <>
               <PublicButtonLink href="/registry" variant="secondary">
-                Open Registry
+                Open Certification Registry
               </PublicButtonLink>
               <PublicButtonLink href="/developers" variant="secondary">
                 Developer Docs
@@ -453,7 +453,7 @@ export default function VerifyClient({
                   href={`/registry/${latestId}`}
                   variant="secondary"
                 >
-                  Open Latest Certification Record
+                  Open Latest Certification Surface
                 </PublicButtonLink>
               ) : null}
             </>
@@ -466,12 +466,12 @@ export default function VerifyClient({
           </div>
 
           <h2 className="mt-3 text-[26px] font-semibold tracking-tight text-black">
-            Verify by registry ID
+            Verify certification surface by registry ID
           </h2>
 
           <p className="mt-3 max-w-3xl text-[15px] leading-7 text-black/75">
             Enter a GAFAIG registry ID to retrieve the published certification
-            record and signed proof payload. The result appears directly below
+            surface and signed proof payload. The result appears directly below
             this input section.
           </p>
 
@@ -479,7 +479,9 @@ export default function VerifyClient({
             <input
               value={registryId}
               onChange={(e) => setRegistryId(e.target.value)}
-              placeholder={latestId ? `e.g. ${latestId}` : "Enter registry ID"}
+              placeholder={
+                latestId ? `e.g. ${latestId}` : "Enter certification surface registry ID"
+              }
               className="h-14 flex-1 rounded-2xl border border-black/10 bg-white px-4 text-[15px] outline-none transition focus:border-black/25"
             />
 
@@ -489,7 +491,9 @@ export default function VerifyClient({
               disabled={state.status === "loading"}
               className="inline-flex h-14 items-center justify-center rounded-full bg-black px-6 text-sm font-semibold text-white transition hover:bg-black/90 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {state.status === "loading" ? "Verifying…" : "Verify Record"}
+              {state.status === "loading"
+                ? "Verifying…"
+                : "Open Verification Surface"}
             </button>
 
             <button
@@ -498,13 +502,13 @@ export default function VerifyClient({
               disabled={state.status === "loading" || !latestId}
               className="inline-flex h-14 items-center justify-center rounded-full border border-black/15 px-6 text-sm font-semibold transition hover:bg-black/[0.04] disabled:cursor-not-allowed disabled:opacity-60"
             >
-              Load Latest Certified Record
+              Load Latest Certified Surface
             </button>
           </div>
 
           {latestId ? (
             <div className="mt-3 text-[13px] text-black/55">
-              Latest certified record:{" "}
+              Latest certified surface:{" "}
               <button
                 type="button"
                 onClick={() => setRegistryId(latestId)}
@@ -526,8 +530,8 @@ export default function VerifyClient({
           <>
             <section className="rounded-3xl border border-black/10 bg-white p-8">
               <div className="max-w-3xl text-[15px] leading-7 text-black/75">
-                This is the independent proof layer behind a published GAFAIG
-                certification record.
+                This is the independent verification proof layer behind a
+                published GAFAIG certification surface.
               </div>
 
               <div className="mt-8 text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
@@ -535,19 +539,20 @@ export default function VerifyClient({
               </div>
 
               <h2 className="mt-4 max-w-[860px] text-[26px] font-semibold tracking-tight text-black">
-                Independent verification of a public certification record
+                Independent verification of a public certification surface
               </h2>
 
               <p className="mt-5 max-w-[980px] text-[15px] leading-7 text-black/75">
-                This page proves that a public certification record exists, that
-                the disclosed signed proof is consistent with the registry, and
-                that the result can be independently verified outside GAFAIG.
+                This page proves that a public certification surface exists,
+                that the disclosed signed proof is consistent with the registry,
+                and that the result can be independently verified outside
+                GAFAIG.
               </p>
 
               <div className="mt-7 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
                 <ProofCard
-                  title="Record integrity"
-                  body="The signed proof resolves against the public certification record that represents the published outcome."
+                  title="Certification surface integrity"
+                  body="The Signed verification proof resolves against the public certification surface that represents the published outcome."
                 />
                 <ProofCard
                   title="Signed proof"
@@ -555,10 +560,10 @@ export default function VerifyClient({
                 />
                 <ProofCard
                   title="Independent verification"
-                  body="External parties can validate the record without access to private reviewer materials or internal evidence."
+                  body="External parties can validate the certification surface without access to private reviewer materials or internal evidence."
                 />
                 <ProofCard
-                  title="Portable trust"
+                  title="Portable governance trust"
                   body="The same result can be verified across registry, API, widget, badge, and SDK trust surfaces."
                 />
               </div>
@@ -577,7 +582,7 @@ export default function VerifyClient({
                       <span className="font-semibold text-black">
                         Verification
                       </span>{" "}
-                      confirms that the public record, signed proof, and
+                      confirms that the public surface, signed proof, and
                       published verification key are consistent with one another.
                     </div>
 
@@ -587,16 +592,16 @@ export default function VerifyClient({
                       </span>{" "}
                       means the evaluated outcome has been finalized and
                       published as an independently verifiable public
-                      certification record.
+                      certification surface.
                     </div>
                   </div>
                 </div>
 
                 <p className="text-black/70">
-                  This page does not expose private evidence, scoring, or
-                  internal assessment workflow details. It confirms the public
-                  certification outcome and the integrity of the disclosed proof
-                  materials.
+                  This page does not expose private governance evidence, scoring
+                  internals, or internal assessment workflow details. It
+                  confirms the public certification outcome and the integrity of
+                  the disclosed proof materials.
                 </p>
               </div>
             </section>
@@ -609,16 +614,16 @@ export default function VerifyClient({
               <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
                 <div className="max-w-3xl">
                   <div className="text-[12px] font-semibold uppercase tracking-[0.22em] text-black/55">
-                    Verification Result
+                    Verification Proof Result
                   </div>
 
                   <h2 className="mt-3 text-[26px] font-semibold tracking-tight text-black">
-                    Cryptographic proof dashboard
+                    Cryptographic verification proof dashboard
                   </h2>
 
                   <p className="mt-4 text-[15px] leading-7 text-black/75">
                     This is the result of the verification request. GAFAIG
-                    resolved the public certification record, retrieved the
+                    resolved the public certification surface, retrieved the
                     signed proof, and validated the exact messageString against
                     the published Ed25519 public key.
                   </p>
@@ -655,18 +660,18 @@ export default function VerifyClient({
 
               <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
                 <ProofMetricCard
-                  label="Trust State"
+                  label="Public Trust State"
                   value={trust.label}
                   body={
                     trust.label === "Certified"
-                      ? "Published certification record resolved from the public registry."
-                      : "No certified public certification record was resolved."
+                      ? "Published certification surface resolved from the public certification registry."
+                      : "No certified public certification surface was resolved."
                   }
                 />
                 <ProofMetricCard
                   label="Entity"
                   value={record.entityName ?? "—"}
-                  body="The organization associated with the public certification record."
+                  body="The governance organization associated with the public certification surface."
                 />
                 <ProofMetricCard
                   label="Signed At"
@@ -683,23 +688,26 @@ export default function VerifyClient({
 
             <section className="rounded-3xl border border-black/10 bg-white p-8">
               <div className="text-[12px] font-semibold uppercase tracking-[0.22em] text-black/55">
-                Verification Summary
+                Verification Proof Summary
               </div>
 
               <h2 className="mt-3 text-[26px] font-semibold tracking-tight text-black">
-                Human-readable proof status
+                Human-readable verification proof status
               </h2>
 
               <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
                 <DetailCard
-                  label="Registry ID"
+                  label="Certification Surface Registry ID"
                   value={record.registryId ?? "—"}
                 />
                 <DetailCard
                   label="Certification Status"
                   value={record.certificationStatus ?? trust.label}
                 />
-                <DetailCard label="Country" value={record.country ?? "—"} />
+                <DetailCard
+                  label="Governance Jurisdiction"
+                  value={record.country ?? "—"}
+                />
                 <DetailCard
                   label="Entity Type"
                   value={record.entityType ?? "—"}
@@ -729,14 +737,14 @@ export default function VerifyClient({
               </div>
 
               <h2 className="mt-3 text-[26px] font-semibold tracking-tight text-black">
-                The exact signed proof being verified
+                The exact signed verification proof being verified
               </h2>
 
               <p className="mt-4 max-w-3xl text-[15px] leading-7 text-black/75">
-                These are the exact public materials used to validate the trust
-                result. External parties can inspect them directly, validate the
-                messageString, and confirm that the signature matches the
-                published key.
+                These are the exact public materials used to validate the public
+                governance trust result. External parties can inspect them
+                directly, validate the messageString, and confirm that the
+                signature matches the published key.
               </p>
 
               <p className="mt-4 text-[14px] font-semibold leading-7 text-black">
@@ -799,11 +807,11 @@ export default function VerifyClient({
 
             <section className="rounded-3xl border border-black/10 bg-white p-8">
               <div className="text-[12px] font-semibold uppercase tracking-[0.22em] text-black/55">
-                External Validation
+                INDEPENDENT EXTERNAL VALIDATION
               </div>
 
               <h2 className="mt-3 text-[26px] font-semibold tracking-tight text-black">
-                Independent verification flow
+                Independent public verification flow
               </h2>
 
               <div className="mt-6 grid gap-4 md:grid-cols-2">
@@ -868,7 +876,7 @@ export default function VerifyClient({
                     href={`/registry/${encodeURIComponent(record.registryId)}`}
                     variant="secondary"
                   >
-                    Open Certification Record
+                    Open Certification Surface
                   </PublicButtonLink>
                 ) : null}
               </div>
@@ -882,15 +890,16 @@ export default function VerifyClient({
           </div>
 
           <h2 className="mt-3 text-[26px] font-semibold tracking-tight text-white">
-            Public trust without private evidence disclosure
+            Public governance trust without private evidence disclosure
           </h2>
 
           <p className="mt-4 max-w-3xl text-[15px] leading-7 text-white/72">
             GAFAIG verification confirms that a published public certification
-            record exists, that it is surfaced through the canonical registry
-            views, and that its signed proof is valid for independent
-            verification. The public layer does not disclose private reviewer
-            materials, internal evidence, or assessment workflow details.
+            surface exists, that it is surfaced through the canonical public
+            certification registry infrastructure views, and that its signed
+            proof is valid for independent verification. The public layer does
+            not disclose private reviewer materials, internal evidence, or
+            assessment workflow details.
           </p>
 
           <div className="mt-8 grid gap-4 md:grid-cols-3">
@@ -899,11 +908,12 @@ export default function VerifyClient({
                 Step 1
               </div>
               <div className="mt-3 text-[20px] font-semibold text-white">
-                Resolve public certification record
+                Resolve public certification surface
               </div>
               <p className="mt-3 text-[14px] leading-7 text-white/68">
                 The verification endpoint resolves the published certification
-                record from the canonical public registry view in Snowflake.
+                surface from the canonical public certification registry
+                infrastructure view in Snowflake.
               </p>
             </div>
 
@@ -929,7 +939,7 @@ export default function VerifyClient({
               </div>
               <p className="mt-3 text-[14px] leading-7 text-white/68">
                 External parties use the exact messageString, signature, and
-                public key to independently confirm the record.
+                public key to independently confirm the certification surface.
               </p>
             </div>
           </div>

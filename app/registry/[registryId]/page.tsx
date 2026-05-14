@@ -142,20 +142,20 @@ export default async function RegistryRecordPage({
     <main className="mx-auto max-w-[1180px] px-6 py-10">
       <div className="space-y-8">
         <PublicPageHero
-          eyebrow="PUBLIC CERTIFICATION RECORD"
-          title={`Public certification record for ${formatLabel(
+          eyebrow="PUBLIC CERTIFICATION SURFACE"
+          title={`Public certification surface for ${formatLabel(
             record.entityName
           )}`}
           description="This page displays a published GAFAIG certification record. Certification is evaluated privately, publication is explicit, and only organizations that elect publication appear in the public registry."
-          secondaryDescription="This record is a public trust surface only. Private evidence, findings, scoring internals, reviewer materials, governance telemetry, Application ID, and Case ID are not displayed publicly."
+          secondaryDescription="This certification record is a public trust surface only. Private evidence, findings, scoring internals, reviewer materials, governance telemetry, Application ID, and Case ID are not displayed publicly."
           actions={
             <>
               <PublicButtonLink href={verifyHref} variant="primary">
-                Verify This Record
+                Open Verification Surface
               </PublicButtonLink>
 
               <PublicButtonLink href={verifyJsonHref} variant="secondary">
-                View Proof JSON
+                View Signed Proof JSON
               </PublicButtonLink>
 
               <PublicButtonLink href="/registry" variant="secondary">
@@ -177,13 +177,13 @@ export default async function RegistryRecordPage({
 
             <div className="flex flex-wrap gap-3">
               <PublicButtonLink href={verifyHref} variant="secondary">
-                Open Full Proof Page
+                Open Verification Proof
               </PublicButtonLink>
               <PublicButtonLink href={verifyJsonHref} variant="secondary">
-                View Proof JSON
+                View Signed Proof JSON
               </PublicButtonLink>
               <PublicButtonLink href={widgetHref} variant="secondary">
-                Widget Preview
+                Portable Widget Preview
               </PublicButtonLink>
             </div>
           </div>
@@ -203,7 +203,7 @@ export default async function RegistryRecordPage({
 
         <section className="rounded-3xl border border-black/10 bg-white p-8">
           <h2 className="text-[26px] font-semibold tracking-tight text-black">
-            Certification record details
+            Public certification details
           </h2>
 
           <p className="mt-4 max-w-[900px] text-[15px] leading-7 text-black/75">
@@ -248,31 +248,33 @@ export default async function RegistryRecordPage({
 
         <section className="rounded-3xl border border-black/10 bg-white p-8">
           <h2 className="text-[26px] font-semibold tracking-tight text-black">
-            Trust surface
+            PUBLIC TRUST SURFACES
           </h2>
 
           <p className="mt-4 max-w-[900px] text-[15px] leading-7 text-black/75">
-            The registry distributes the public certification record. The verify
-            endpoint distributes the signed proof JSON. External systems should
-            verify the exact proof.messageString returned by the verification
-            endpoint and must never reconstruct the signed payload from JSON fields.
+            The registry distributes the public certification record across
+            connected public trust surfaces. The verification endpoint distributes
+            the signed verification proof payload. External systems should verify
+            the exact proof.messageString returned by the verification endpoint
+            and must never reconstruct the canonical signed public payload from
+            JSON fields.
           </p>
 
           <div className="mt-6 grid gap-4 md:grid-cols-3">
-            <DetailCard label="Proof API" value={verifyJsonHref} />
+            <DetailCard label="Verification Proof Endpoint" value={verifyJsonHref} />
             <DetailCard
               label="Certification Record"
               value={registryHref}
             />
-            <DetailCard label="Widget Preview" value={widgetHref} />
+            <DetailCard label="Portable Widget Preview" value={widgetHref} />
           </div>
 
           <div className="mt-6 flex flex-wrap gap-3">
             <PublicButtonLink href={verifyHref} variant="primary">
-              Verify This Record
+              Open Verification Surface
             </PublicButtonLink>
             <PublicButtonLink href={verifyJsonHref} variant="secondary">
-              View Proof JSON
+              View Signed Proof JSON
             </PublicButtonLink>
             <PublicButtonLink href="/registry" variant="secondary">
               Back to Registry
@@ -282,16 +284,16 @@ export default async function RegistryRecordPage({
 
         <section className="rounded-3xl border border-black/10 bg-white p-8">
           <h2 className="text-[26px] font-semibold tracking-tight text-black">
-            What this public record does and does not prove
+            What this public certification record establishes
           </h2>
 
           <div className="mt-6 grid gap-4 md:grid-cols-2">
             <ExplanationCard
-              title="What this record proves"
-              body="This record proves that GAFAIG has a published certification record for the listed entity and registry identifier, and that the record can be independently verified through the public proof endpoint."
+              title="What this certification record establishes"
+              body="This certification record establishes that GAFAIG has published a public certification outcome for the listed entity and registry identifier, and that the record can be independently verified through the public verification proof endpoint."
             />
             <ExplanationCard
-              title="What remains private"
+              title="What remains intentionally private"
               body="Private evidence, findings, reviewer notes, internal scoring details, governance telemetry, Application ID, and Case ID remain outside the public certification record."
             />
           </div>

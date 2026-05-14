@@ -10,10 +10,10 @@ export default function ApplyPage() {
     <main className="mx-auto max-w-[1180px] px-6 py-10">
       <div className="space-y-8">
         <PublicPageHero
-          eyebrow="APPLY"
-          title="Start the process that turns AI governance into verifiable proof"
-          description="GAFAIG certification is for organizations that want deterministic, independently verifiable AI governance outcomes. Verification is performed inside a controlled private review environment. Certification is evaluated privately. After certification is achieved, the organization may elect publication as a signed public certification record."
-          secondaryDescription="The public registry is not the application system. Intake, evidence review, findings, deterministic scoring, governance review, and certification decisions occur inside the private GAFAIG verification engine. Only explicitly published certification outcomes become public trust records."
+          eyebrow="PRIVATE GOVERNANCE INTAKE"
+          title="Start the process that turns AI governance into independently verifiable governance proof"
+          description="GAFAIG certification is for organizations that want deterministic, independently verifiable AI governance outcomes. Verification is performed inside a controlled private review environment. Certification is evaluated privately. After certification is achieved, the organization may elect publication as a signed public certification surface."
+          secondaryDescription="The public certification registry is not the application system. Intake, evidence review, findings, deterministic scoring, governance review, and certification decisions occur inside the private GAFAIG verification engine. Only explicitly published certification outcomes become public governance trust surfaces."
           actions={
             <>
               <PublicButtonLink href="/demo" variant="primary">
@@ -23,7 +23,7 @@ export default function ApplyPage() {
                 Review the Framework
               </PublicButtonLink>
               <PublicButtonLink href="/registry" variant="secondary">
-                View Public Records
+                Open Certification Registry
               </PublicButtonLink>
             </>
           }
@@ -33,13 +33,13 @@ export default function ApplyPage() {
           <div className="rounded-3xl border border-black/10 bg-white p-8">
             <SectionEyebrow>Who should apply</SectionEyebrow>
             <h2 className="mt-4 max-w-[760px] text-[26px] font-semibold tracking-tight text-black">
-              Teams that need credible external proof
+              Teams that need credible independently verifiable governance proof
             </h2>
 
             <div className="mt-8 grid gap-4">
               <AudienceCard
-                title="Organizations deploying AI systems in production"
-                body="Apply if AI systems influence products, services, infrastructure, internal workflows, governance operations, or material decisions."
+                title="Organizations deploying AI governance systems in production"
+                body="Apply if AI governance systems influence products, services, infrastructure, internal workflows, governance operations, or material decisions."
               />
               <AudienceCard
                 title="Teams responsible for oversight, compliance, or risk"
@@ -55,7 +55,7 @@ export default function ApplyPage() {
           <div className="rounded-3xl border border-black/10 bg-white p-8">
             <SectionEyebrow>What you receive</SectionEyebrow>
             <h2 className="mt-4 max-w-[760px] text-[26px] font-semibold tracking-tight text-black">
-              A public proof layer, not just an internal review
+              A public governance proof layer, not just an internal review
             </h2>
 
             <div className="mt-8 grid gap-4">
@@ -64,16 +64,16 @@ export default function ApplyPage() {
                 body="A formal GAFAIG certification outcome supported by structured review, findings, evidence, deterministic scoring, and Snowflake-originated governance execution."
               />
               <ChecklistCard
-                title="Optional public certification record"
-                body="A canonical public certification record may be published only after certification is achieved and the organization explicitly elects publication."
+                title="Optional public certification surface"
+                body="A canonical public certification surface may be published only after certification is achieved and the organization explicitly elects publication."
               />
               <ChecklistCard
                 title="Independent verification endpoint"
-                body="A signed public proof surface that can be validated outside GAFAIG using the exact proof.messageString, signature, and public key."
+                body="A signed public governance proof surface that can be validated outside GAFAIG using the exact proof.messageString, signature, and public key."
               />
               <ChecklistCard
-                title="Portable trust surfaces"
-                body="Widget, badge, SDK, and API trust surfaces allow a published certification outcome to travel across the web."
+                title="Portable governance trust surfaces"
+                body="Widget, badge, SDK, and API governance trust surfaces allow a published certification outcome to travel across the web."
               />
             </div>
           </div>
@@ -82,14 +82,14 @@ export default function ApplyPage() {
         <section className="rounded-3xl border border-black/10 bg-white p-8">
           <SectionEyebrow>What happens next</SectionEyebrow>
           <h2 className="mt-4 max-w-[860px] text-[26px] font-semibold tracking-tight text-black">
-            From application to certified public record
+            From application to certified public governance surface
           </h2>
 
           <p className="mt-4 max-w-[920px] text-[15px] leading-7 text-black/75">
             GAFAIG does not treat this as a generic contact form. Submitting an
             application initiates a structured private verification workflow that
             can lead to a certification outcome and, if publication is elected,
-            a signed public certification record.
+            a signed public certification surface.
           </p>
 
           <div className="mt-8 grid gap-4 md:grid-cols-3">
@@ -105,8 +105,8 @@ export default function ApplyPage() {
             />
             <PathCard
               number="3"
-              title="Optional public trust record"
-              body="Certified outcomes may be published as independently verifiable public certification records only if publication is elected."
+              title="Optional public governance trust surface"
+              body="Certified outcomes may be published as independently verifiable public certification surfaces only if publication is elected."
             />
           </div>
         </section>
@@ -114,18 +114,18 @@ export default function ApplyPage() {
         <section className="rounded-3xl border border-black/10 bg-white p-8">
           <SectionEyebrow>Submit application</SectionEyebrow>
           <h2 className="mt-4 max-w-[860px] text-[26px] font-semibold tracking-tight text-black">
-            Begin the process that can produce a certified public proof record
+            Begin the process that can produce a certified public governance proof surface
           </h2>
 
           <p className="mt-4 max-w-[900px] text-[15px] leading-7 text-black/75">
             Submit your organization details to begin the GAFAIG verification
             process. This creates an intake record for private review and routes
             your application into the verification workflow. Applying does not
-            place your organization in the public registry.
+            place your organization into the public certification registry.
           </p>
 
           <p className="mt-3 max-w-[900px] text-[15px] leading-7 text-black/70">
-            Certification is private. Publication is explicit. A public registry
+            Certification is private. Publication is explicit. A public certification registry
             listing occurs only after certification is achieved and the
             organization elects publication.
           </p>
@@ -139,7 +139,7 @@ export default function ApplyPage() {
           <div className="mt-6 flex flex-wrap gap-3 text-[12px] text-black/60">
             <span>• Structured verification process</span>
             <span>• Private governance evaluation</span>
-            <span>• Optional public proof after certification</span>
+            <span>• Optional public governance proof after certification</span>
           </div>
 
           <div className="mt-6 rounded-2xl border border-black/10 bg-black/[0.02] p-5">
@@ -168,7 +168,7 @@ export default function ApplyPage() {
                 <div>• Your submission is reviewed in a private verification environment</div>
                 <div>• You are contacted to continue the structured verification process</div>
                 <div>• Certification is only granted after full evaluation</div>
-                <div>• Public publication occurs only if the organization elects publication</div>
+                <div>• Public governance publication occurs only if the organization elects publication</div>
               </div>
             </div>
 
@@ -179,7 +179,7 @@ export default function ApplyPage() {
 
               <p className="mt-3 text-[14px] leading-7 text-black/70">
                 Submitting this form does not publish anything publicly.
-                Certification is evaluated privately. Public registry listing
+                Certification is evaluated privately. Public certification registry listing
                 occurs only if the organization chooses to publish the certified
                 record.
               </p>
@@ -236,9 +236,9 @@ export default function ApplyPage() {
               />
 
               <BoundaryCard
-                title="Published trust surfaces"
+                title="Published governance trust surfaces"
                 points={[
-                  "Canonical public certification record",
+                  "Canonical public certification surface",
                   "Signed verification proof",
                   "Public verification endpoint",
                   "Badge, widget, SDK, and portable trust signals",
@@ -254,22 +254,22 @@ export default function ApplyPage() {
           </div>
 
           <h2 className="mt-3 max-w-[860px] text-[26px] font-semibold tracking-tight text-black">
-            Certification can become a public proof layer
+            Certification can become a public governance proof layer
           </h2>
 
           <p className="mt-4 max-w-[860px] text-[15px] leading-7 text-black/75">
-            Organizations that complete the GAFAIG verification process receive
-            more than an internal review outcome. If publication is elected, the
-            certified outcome becomes a public certification record, signed
-            verification proof, portable trust surface, and canonical registry
-            presence that external parties can independently validate.
+            Organizations that complete the GAFAIG verification process receive more
+            than an internal review outcome. If publication is elected, the certified
+            outcome becomes a public certification surface, signed verification
+            proof, portable governance trust surface, and canonical public certification
+            registry presence that external parties can independently validate.
           </p>
 
           <div className="mt-8 grid gap-4 md:grid-cols-4">
             <InfoCard
-              label="Public record"
+              label="Public certification surface"
               value="Optional"
-              body="Canonical published certification record if publication is elected."
+              body="Canonical published certification surface if publication is elected."
             />
             <InfoCard
               label="Signed proof"
@@ -277,7 +277,7 @@ export default function ApplyPage() {
               body="Independent cryptographic verification."
             />
             <InfoCard
-              label="Trust surfaces"
+              label="Governance trust surfaces"
               value="Badge · Widget"
               body="Portable certification display across the web."
             />
@@ -292,19 +292,19 @@ export default function ApplyPage() {
         <section className="rounded-3xl border border-black/10 bg-white p-8">
           <SectionEyebrow>What happens after certification</SectionEyebrow>
           <h2 className="mt-4 max-w-[860px] text-[26px] font-semibold tracking-tight text-black">
-            Published outcomes are externally verifiable
+            Published governance outcomes are independently verifiable
           </h2>
 
           <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
             <InfoCard
               label="Registry"
-              value="Public record"
-              body="A canonical public certification record may be published to GAFAIG."
+              value="Public certification surface"
+              body="A canonical public certification surface may be published to GAFAIG."
             />
             <InfoCard
               label="Verification"
               value="Signed proof"
-              body="Third parties can independently validate published certification."
+              body="Third parties can independently validate published certification surfaces."
             />
             <InfoCard
               label="Distribution"
@@ -326,7 +326,7 @@ export default function ApplyPage() {
           </h2>
 
           <p className="mt-4 max-w-[860px] text-[15px] leading-7 text-black/70">
-            GAFAIG’s live demo and public trust surfaces show the type of
+            GAFAIG’s live demo and public governance trust surfaces show the type of
             outcome the certification process can produce after publication.
             Start there, then review the framework and trust interfaces before
             entering the verification workflow.
@@ -335,7 +335,7 @@ export default function ApplyPage() {
           <div className="mt-8 grid gap-4 md:grid-cols-3">
             <FeatureCard
               title="Demo"
-              body="Walk through the current live GAFAIG trust experience."
+              body="Walk through the current live GAFAIG governance trust experience."
               href="/demo"
               cta="Open Demo"
             />
@@ -364,7 +364,7 @@ export default function ApplyPage() {
           </h2>
 
           <p className="mt-4 max-w-[760px] text-[15px] leading-7 text-black/75">
-            Start by reviewing the mission, framework, and live trust surfaces.
+            Start by reviewing the mission, framework, and live governance trust surfaces.
             Then enter the private verification intake process to begin formal
             GAFAIG review.
           </p>

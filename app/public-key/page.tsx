@@ -81,13 +81,13 @@ export default function PublicKeyPage() {
           </div>
 
           <h1 className="mt-4 max-w-[920px] text-[42px] font-semibold tracking-tight text-black">
-            Public verification key for GAFAIG signed proof
+            Public verification key for GAFAIG signed verification proof
           </h1>
 
           <p className="mt-5 max-w-[920px] text-[16px] leading-8 text-black/75">
             GAFAIG uses a public verification key to allow external systems to
-            validate signed AI governance certification records. The public key
-            verifies that a GAFAIG proof payload was signed by GAFAIG and has not
+            validate signed AI governance certification surfaces. The public key
+            verifies that a GAFAIG signed verification proof payload was signed by GAFAIG and has not
             been altered.
           </p>
 
@@ -106,7 +106,7 @@ export default function PublicKeyPage() {
             </PublicButtonLink>
 
             <PublicButtonLink href="/verify" variant="secondary">
-              Verify a Record
+              Open Verification Surface
             </PublicButtonLink>
           </div>
         </section>
@@ -126,16 +126,16 @@ export default function PublicKeyPage() {
         <section className="rounded-3xl border border-black/10 bg-white p-8">
           <SectionHeading
             eyebrow="HOW VERIFICATION WORKS"
-            title="Signed proof makes certification independently verifiable"
-            body="Each GAFAIG verification response includes a canonical messageString and signature. External systems fetch the public key, verify the signature against the exact messageString, and then evaluate lifecycle and eligibility fields."
+            title="Signed verification proof makes certification independently verifiable"
+            body="Each GAFAIG verification surface response includes a canonical messageString and signature. External systems fetch the public key, verify the signature against the exact messageString, and then evaluate lifecycle and eligibility fields."
           />
 
           <div className="mt-6 grid gap-4 md:grid-cols-2">
-            <BulletCard text="Fetch the public verification response from /api/verify/{registryId}." />
+            <BulletCard text="Fetch the public verification surface response from /api/verify/{registryId}." />
             <BulletCard text="Read proof.messageString exactly as returned." />
             <BulletCard text="Read proof.signature and proof.verificationKeyUrl." />
             <BulletCard text="Fetch the GAFAIG public key and validate the signature." />
-            <BulletCard text="Trust only active, public, eligible certified records." />
+            <BulletCard text="Trust only active, public, eligible certified certification surfaces." />
             <BulletCard text="Never reconstruct messageString from JSON fields." />
           </div>
         </section>
@@ -156,7 +156,7 @@ export default function PublicKeyPage() {
           <SectionHeading
             eyebrow="VERIFY ENDPOINT"
             title="Fetch a signed verification payload"
-            body="The verify endpoint returns the public record, proof object, signature, messageString, and public key URL for a GAFAIG registry record."
+            body="The verify endpoint returns the public certification surface, proof object, signature, messageString, and public key URL for a GAFAIG certification surface."
           />
 
           <div className="mt-6">
@@ -179,8 +179,8 @@ export default function PublicKeyPage() {
         <section className="rounded-3xl border border-black/10 bg-white p-8">
           <SectionHeading
             eyebrow="TRUST CLAIM RULE"
-            title="When a GAFAIG record may be trusted"
-            body="A downstream system may display a trusted GAFAIG certification claim only when the signature validates and the record satisfies the public trust contract."
+            title="When a GAFAIG certification surface may be cryptographically trusted"
+            body="A downstream system may display a trusted GAFAIG certification surface claim only when the signature validates and the record satisfies the public governance trust contract."
           />
 
           <div className="mt-6 grid gap-4 md:grid-cols-2">
@@ -196,8 +196,8 @@ export default function PublicKeyPage() {
         <section className="rounded-3xl border border-black/10 bg-white p-8">
           <SectionHeading
             eyebrow="FAIL SAFE"
-            title="If verification fails, do not trust the record"
-            body="If messageString is missing, the signature is missing, the key is unavailable, or signature validation fails, external systems must treat the record as invalid or unavailable."
+            title="If verification fails, do not trust the certification surface"
+            body="If messageString is missing, the signature is missing, the key is unavailable, or signature validation fails, external systems must treat the certification surface as invalid or unavailable."
           />
 
           <div className="mt-6 grid gap-4 md:grid-cols-2">
@@ -205,8 +205,8 @@ export default function PublicKeyPage() {
             <BulletCard text="Missing signature means no cryptographic proof is available." />
             <BulletCard text="Public key failure means verification is unavailable." />
             <BulletCard text="Signature mismatch means payload integrity failed." />
-            <BulletCard text="Expired records must not be shown as currently active." />
-            <BulletCard text="Revoked records must not be shown as trusted." />
+            <BulletCard text="Expired certification surfaces must not be shown as currently active." />
+            <BulletCard text="Revoked certification surfaces must not be shown as cryptographically trusted." />
           </div>
         </section>
       </div>

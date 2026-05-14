@@ -88,9 +88,9 @@ export default async function SystemDetailPage({
     <main className="mx-auto max-w-[1180px] px-6 py-10">
       <div className="space-y-8">
         <PublicPageHero
-          eyebrow="PUBLIC AI GOVERNANCE RECORD"
+          eyebrow="PUBLIC AI GOVERNANCE SURFACE"
           title={safe(system.SYSTEM_NAME)}
-          description="This page surfaces the public AI governance observability record associated with a published GAFAIG certification record. It displays publication-safe governance metadata only."
+          description="This page surfaces the public AI governance observability surface associated with a published GAFAIG certification record. It displays publication-safe governance metadata only."
           secondaryDescription="Private governance evidence, findings, scoring internals, reviewer materials, and governance telemetry are not exposed on public AI governance observability pages."
           actions={
             <>
@@ -99,7 +99,7 @@ export default async function SystemDetailPage({
                   href={`/registry/${encodeURIComponent(registryId)}`}
                   variant="primary"
                 >
-                  Open Public Certification Record
+                  Open Certification Surface
                 </PublicButtonLink>
               ) : null}
 
@@ -162,14 +162,14 @@ export default async function SystemDetailPage({
                   href={`/registry/${encodeURIComponent(registryId)}`}
                   variant="primary"
                 >
-                  Open Public Certification Record
+                  Open Certification Surface
                 </PublicButtonLink>
 
                 <PublicButtonLink
                   href={`/verify/${encodeURIComponent(registryId)}`}
                   variant="secondary"
                 >
-                  Verify This Record
+                  Open Verification Surface
                 </PublicButtonLink>
               </>
             ) : null}
@@ -182,13 +182,11 @@ export default async function SystemDetailPage({
 
         <section className="rounded-3xl border border-black/10 bg-white p-8">
           <h2 className="text-[26px] font-semibold tracking-tight text-black">
-            Public AI governance observability record
+            Public AI governance observability surface
           </h2>
 
           <p className="mt-4 max-w-[900px] text-[15px] leading-7 text-black/75">
-            These fields describe the publication-safe AI governance
-            observability record associated with a published GAFAIG
-            certification record. This page does not expose private workflow
+            These fields describe the publication-safe AI governance observability surface associated with a published GAFAIG certification record. This page does not expose private workflow
             state, scoring internals, evidence, findings, or reviewer notes.
           </p>
 
@@ -241,13 +239,13 @@ export default async function SystemDetailPage({
 
         <section className="rounded-3xl border border-black/10 bg-white p-8">
           <h2 className="text-[26px] font-semibold tracking-tight text-black">
-            Connected governance intelligence
+            Connected governance trust surfaces
           </h2>
 
           <p className="mt-4 max-w-[900px] text-[15px] leading-7 text-black/75">
-            This published AI governance record participates in GAFAIG’s broader
-            publication-safe governance intelligence topology connecting
-            certification records, organizations, countries, and verification
+            This published AI governance surface participates in GAFAIG’s broader
+            publication-safe governance trust topology connecting
+            certification records, organizations, countries, and public verification
             trust surfaces.
           </p>
 
@@ -262,14 +260,14 @@ export default async function SystemDetailPage({
                   href={`/verify/${encodeURIComponent(registryId)}`}
                   variant="secondary"
                 >
-                  Verify Record
+                  Open Verification Surface
                 </PublicButtonLink>
 
                 <PublicButtonLink
                   href={`/registry/${encodeURIComponent(registryId)}`}
                   variant="secondary"
                 >
-                  Open Public Certification Record
+                  Open Certification Surface
                 </PublicButtonLink>
               </>
             ) : null}
@@ -278,17 +276,17 @@ export default async function SystemDetailPage({
 
         <section className="rounded-3xl border border-black/10 bg-white p-8">
           <h2 className="text-[26px] font-semibold tracking-tight text-black">
-            Certification and verification
+            Certification surfaces and verification proof
           </h2>
 
           <div className="mt-6 grid gap-4 md:grid-cols-2">
             <StatementCard
-              title="Certification record"
-              body="The associated certification record is the canonical public trust record. It represents a published certification outcome selected for public visibility."
+              title="Public certification record"
+              body="The associated public certification record is the canonical public trust surface. It represents a published certification outcome selected for public visibility."
             />
             <StatementCard
-              title="Verification proof"
-              body="External systems should verify the associated registry ID through the GAFAIG verification endpoint and exact proof.messageString from the canonical signed payload."
+              title="Verification proof surface"
+              body="External systems should verify the associated registry ID through the GAFAIG verification endpoint and exact proof.messageString from the canonical signed public payload."
             />
           </div>
 
@@ -298,21 +296,21 @@ export default async function SystemDetailPage({
                 href={`/registry/${encodeURIComponent(registryId)}`}
                 variant="primary"
               >
-                Open Public Certification Record
+                Open Certification Surface
               </PublicButtonLink>
 
               <PublicButtonLink
                 href={`/verify/${encodeURIComponent(registryId)}`}
                 variant="secondary"
               >
-                Verify This Record
+                Open Verification Surface
               </PublicButtonLink>
 
               <PublicButtonLink
                 href={`/api/verify/${encodeURIComponent(registryId)}`}
                 variant="secondary"
               >
-                View Proof JSON
+                Open Signed Verification Proof
               </PublicButtonLink>
             </div>
           ) : null}

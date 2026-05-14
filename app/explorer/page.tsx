@@ -99,18 +99,18 @@ function ExplorerUnavailableState() {
     <main className="mx-auto max-w-[1180px] px-6 py-10">
       <div className="space-y-8">
         <PublicPageHero
-          eyebrow="PUBLIC TRUST SURFACE"
-          title="Explore the public GAFAIG trust surface"
+          eyebrow="PUBLIC GOVERNANCE TRUST INFRASTRUCTURE"
+          title="Explore the GAFAIG public governance trust infrastructure"
           description="Explorer is temporarily unavailable."
-          secondaryDescription="The public trust surface depends on the canonical Snowflake public views. Please try again shortly."
+          secondaryDescription="The public governance trust infrastructure depends on canonical Snowflake public trust infrastructure views. Please try again shortly."
           actions={
             <>
               <PublicButtonLink href="/registry" variant="primary">
-                View Registry
+                Open Certification Registry
               </PublicButtonLink>
 
               <PublicButtonLink href="/verify" variant="secondary">
-                Verify a Record
+                Open Verification Surface
               </PublicButtonLink>
             </>
           }
@@ -123,8 +123,7 @@ function ExplorerUnavailableState() {
             </div>
 
             <p className="mt-2 text-sm leading-6 text-black/60">
-              GAFAIG could not load Explorer records from the canonical public
-              views.
+              GAFAIG could not load governance observability surfaces from canonical Snowflake public trust infrastructure views.
             </p>
           </div>
         </section>
@@ -137,12 +136,11 @@ function EmptyLatestRecordsState() {
   return (
     <div className="rounded-3xl border border-dashed border-black/10 bg-black/[0.02] px-6 py-14 text-center">
       <div className="text-lg font-semibold text-black">
-        No public records available
+        No public certification surfaces available
       </div>
 
       <p className="mt-2 text-sm leading-6 text-black/60">
-        Explorer did not receive any published public records from the canonical
-        public view.
+        Explorer did not receive published certification surfaces from the canonical public trust infrastructure view.
       </p>
     </div>
   );
@@ -181,35 +179,35 @@ export default async function ExplorerPage() {
     <main className="mx-auto max-w-[1180px] px-6 py-10">
       <div className="space-y-8">
         <PublicPageHero
-          eyebrow="PUBLIC TRUST SURFACE"
-          title="Explore the public GAFAIG trust surface"
-          description="Explorer shows the public governance footprint derived from GAFAIG certification records that organizations have explicitly chosen to publish."
-          secondaryDescription="Use Explorer when you want to browse the broader public trust surface across organizations, countries, and systems. Registry is the canonical record-by-record trust surface for inspecting a specific published certification record."
+          eyebrow="PUBLIC GOVERNANCE TRUST INFRASTRUCTURE"
+          title="Explore the GAFAIG public governance trust infrastructure"
+          description="Explorer surfaces publication-safe governance observability derived from GAFAIG certification surfaces that organizations have explicitly chosen to publish."
+          secondaryDescription="Use Explorer when you want to browse broader public governance trust infrastructure across organizations, governance jurisdictions, and AI governance surfaces. Registry is the canonical certification-by-certification public trust surface for inspecting a specific published certification surface."
           actions={
             <>
               <PublicButtonLink href="/registry" variant="primary">
-                View Registry
+                Open Certification Registry
               </PublicButtonLink>
 
               <PublicButtonLink
                 href="/explorer/organizations"
                 variant="secondary"
               >
-                Organizations
+                Governance Organizations
               </PublicButtonLink>
 
               <PublicButtonLink
                 href="/explorer/countries"
                 variant="secondary"
               >
-                Countries
+                Governance Jurisdictions
               </PublicButtonLink>
 
               <PublicButtonLink
                 href="/explorer/systems"
                 variant="secondary"
               >
-                AI Systems
+                AI Governance Surfaces
               </PublicButtonLink>
 
               <PublicButtonLink
@@ -243,19 +241,19 @@ export default async function ExplorerPage() {
             </div>
 
             <h2 className="text-[26px] font-semibold tracking-tight text-black">
-              Published certification records appear in the public trust surface
+              Published certification surfaces appear in public governance trust infrastructure
             </h2>
 
             <p className="text-[15px] leading-7 text-black/75">
-              Explorer is broader than a single certification record page, but
-              it still follows the public trust policy. Only certification
-              records that organizations explicitly choose to publish appear
+              Explorer is broader than a single certification surface page, but
+              it still follows the public governance trust policy. Only certification
+              surfaces that organizations explicitly choose to publish appear
               here.
             </p>
 
             <p className="text-[15px] leading-7 text-black/75">
               Explorer surfaces publication-controlled trust metadata across
-              organizations, countries, and systems without exposing private
+              governance organizations, governance jurisdictions, and AI governance surfaces without exposing private
               governance workflows, findings, reviewer materials, scoring
               internals, or operational telemetry.
             </p>
@@ -264,13 +262,12 @@ export default async function ExplorerPage() {
           <div className="mt-8 grid gap-4 md:grid-cols-2">
             <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
               <h3 className="text-[18px] font-semibold tracking-tight text-black">
-                Certification remains private until publication
+                Certification evaluation remains private until publication
               </h3>
 
               <p className="mt-3 text-[15px] leading-7 text-black/75">
                 Governance evaluation occurs inside the deterministic private
-                verification engine. Public trust surfaces expose only published
-                certification outcomes and verification proof infrastructure.
+                verification engine. Public governance trust surfaces expose only published certification outcomes and verification proof infrastructure.
               </p>
             </div>
 
@@ -280,8 +277,8 @@ export default async function ExplorerPage() {
               </h3>
 
               <p className="mt-3 text-[15px] leading-7 text-black/75">
-                Explorer does not recompute trust. It renders projection data
-                from canonical Snowflake public views and links users to the
+                Explorer does not recompute public trust. It renders projection data
+                from canonical Snowflake public trust infrastructure views and links users to the
                 registry and verification surfaces.
               </p>
             </div>
@@ -291,7 +288,7 @@ export default async function ExplorerPage() {
         <section className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
           <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
             <div className="text-xs font-semibold uppercase tracking-[0.24em] text-black/40">
-              Public Records
+              Certification Surfaces
             </div>
 
             <div className="mt-4 text-[40px] font-semibold tracking-tight text-black">
@@ -301,7 +298,7 @@ export default async function ExplorerPage() {
 
           <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
             <div className="text-xs font-semibold uppercase tracking-[0.24em] text-black/40">
-              Published Certifications
+              Published Certification Outcomes
             </div>
 
             <div className="mt-4 text-[40px] font-semibold tracking-tight text-black">
@@ -311,7 +308,7 @@ export default async function ExplorerPage() {
 
           <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
             <div className="text-xs font-semibold uppercase tracking-[0.24em] text-black/40">
-              Organizations
+              Governance Organizations
             </div>
 
             <div className="mt-4 text-[40px] font-semibold tracking-tight text-black">
@@ -321,7 +318,7 @@ export default async function ExplorerPage() {
 
           <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
             <div className="text-xs font-semibold uppercase tracking-[0.24em] text-black/40">
-              Countries
+              Governance Jurisdictions
             </div>
 
             <div className="mt-4 text-[40px] font-semibold tracking-tight text-black">
@@ -331,7 +328,7 @@ export default async function ExplorerPage() {
 
           <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
             <div className="text-xs font-semibold uppercase tracking-[0.24em] text-black/40">
-              Systems
+              AI Governance Surfaces
             </div>
 
             <div className="mt-4 text-[40px] font-semibold tracking-tight text-black">
@@ -347,7 +344,7 @@ export default async function ExplorerPage() {
             </p>
 
             <h2 className="mt-4 text-[22px] font-semibold tracking-tight text-black">
-              Certification Lifecycle
+              Certification Lifecycle Observability
             </h2>
 
             <p className="mt-3 text-[15px] leading-7 text-black/70">
@@ -371,7 +368,7 @@ export default async function ExplorerPage() {
             </h2>
 
             <p className="mt-3 text-[15px] leading-7 text-black/70">
-              Public renewal posture and certification continuity intelligence for certified registry records.
+              Public renewal posture and certification continuity observability for certified public certification surfaces.
             </p>
 
             <div className="mt-5">
@@ -391,7 +388,7 @@ export default async function ExplorerPage() {
             </h2>
 
             <p className="mt-3 text-[15px] leading-7 text-black/70">
-              Aggregated governance telemetry and publication-safe operational observability signals.
+              Aggregated governance observability and publication-safe operational governance signals.
             </p>
 
             <div className="mt-5">
@@ -406,17 +403,15 @@ export default async function ExplorerPage() {
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div className="max-w-4xl">
               <div className="text-xs font-semibold uppercase tracking-[0.24em] text-black/40">
-                Latest Published Records
+                Latest Published Certification Surfaces
               </div>
 
               <h2 className="mt-3 text-[26px] font-semibold tracking-tight text-black">
-                Recently published certification records
+                Recently published certification surfaces
               </h2>
 
               <p className="mt-4 text-[15px] leading-7 text-black/75">
-                Explorer surfaces metadata from published GAFAIG certification
-                records while preserving the boundary between public trust
-                surfaces and private governance execution infrastructure.
+                Explorer surfaces metadata from published GAFAIG certification surfaces while preserving the boundary between public governance trust infrastructure and private governance execution infrastructure.
               </p>
             </div>
 
@@ -459,14 +454,14 @@ export default async function ExplorerPage() {
                         href={`/registry/${record.registryId}`}
                         variant="secondary"
                       >
-                        Open Certification Record
+                        Open Certification Surface
                       </PublicButtonLink>
 
                       <PublicButtonLink
                         href={`/verify/${record.registryId}`}
                         variant="primary"
                       >
-                        Verify Record
+                        Open Verification Surface
                       </PublicButtonLink>
                     </div>
                   </div>

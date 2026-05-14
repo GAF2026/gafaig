@@ -44,10 +44,10 @@ export default async function ExplorerAiSystemsPage() {
     <main className="mx-auto max-w-[1180px] px-6 py-10">
       <div className="space-y-8">
         <PublicPageHero
-          eyebrow="EXPLORER / AI SYSTEM INTELLIGENCE"
-          title="Global public AI system governance intelligence"
-          description="This page surfaces publication-safe AI system governance observability derived from canonical Snowflake public registry views."
-          secondaryDescription="Only AI systems associated with explicitly published certification records appear here. Private governance evidence, findings, scoring internals, reviewer materials, and execution telemetry are not exposed."
+          eyebrow="EXPLORER / AI GOVERNANCE INTELLIGENCE"
+          title="Global public AI governance observability"
+          description="This page surfaces publication-safe AI governance observability derived from canonical Snowflake public trust infrastructure views."
+          secondaryDescription="Only AI governance surfaces associated with explicitly published certification surfaces appear here. Private governance evidence, findings, scoring internals, reviewer materials, and execution telemetry are not exposed."
           actions={
             <>
               <PublicButtonLink href="/explorer" variant="primary">
@@ -55,11 +55,11 @@ export default async function ExplorerAiSystemsPage() {
               </PublicButtonLink>
 
               <PublicButtonLink href="/explorer/systems" variant="secondary">
-                Open Systems
+                Open AI Governance Surfaces
               </PublicButtonLink>
 
               <PublicButtonLink href="/registry" variant="secondary">
-                Open Registry
+                Open Certification Registry
               </PublicButtonLink>
             </>
           }
@@ -67,17 +67,17 @@ export default async function ExplorerAiSystemsPage() {
 
         <section className="rounded-3xl border border-black/10 bg-white p-8">
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-            <MetricCard label="AI Systems" value={numberFormat(stats.systems)} />
+            <MetricCard label="AI Governance Surfaces" value={numberFormat(stats.systems)} />
             <MetricCard
-              label="Public Records"
+              label="Certification Surfaces"
               value={numberFormat(stats.publicRecords)}
             />
             <MetricCard
-              label="Organizations"
+              label="Governance Organizations"
               value={numberFormat(stats.organizations)}
             />
             <MetricCard
-              label="Countries"
+              label="Governance Jurisdictions"
               value={numberFormat(stats.countries)}
             />
           </div>
@@ -86,17 +86,16 @@ export default async function ExplorerAiSystemsPage() {
         <section className="rounded-3xl border border-black/10 bg-white p-8">
           <div className="max-w-4xl space-y-4">
             <p className="text-[12px] font-semibold uppercase tracking-[0.24em] text-black/40">
-              AI System Governance Intelligence
+              AI Governance Observability
             </p>
 
             <h2 className="text-[26px] font-semibold tracking-tight text-black">
-              Public AI system observability records
+              Public AI governance observability surfaces
             </h2>
 
             <p className="text-[15px] leading-7 text-black/75">
-              Each record represents publication-safe AI system metadata
-              associated with a published GAFAIG certification record. This page
-              does not compute trust and does not expose private governance
+              Each surface represents publication-safe AI governance metadata associated with a published GAFAIG certification surface. This page
+              does not compute public trust and does not expose private governance
               workflow data.
             </p>
           </div>
@@ -109,12 +108,11 @@ export default async function ExplorerAiSystemsPage() {
             {rows.length === 0 ? (
               <div className="rounded-3xl border border-dashed border-black/10 bg-black/[0.02] px-6 py-14 text-center">
                 <div className="text-lg font-semibold text-black">
-                  No public AI system intelligence records are currently
-                  available.
+                  No public AI governance observability surfaces are currently available.
                 </div>
                 <p className="mt-2 text-sm leading-6 text-black/60">
-                  GAFAIG did not receive AI system rows from the canonical
-                  Snowflake public explorer views.
+                  GAFAIG did not receive AI governance observability rows from the canonical
+                  Snowflake public governance explorer views.
                 </p>
               </div>
             ) : (
@@ -136,7 +134,7 @@ export default async function ExplorerAiSystemsPage() {
                     <div className="flex flex-wrap items-start justify-between gap-4">
                       <div>
                         <p className="text-[12px] font-semibold uppercase tracking-[0.24em] text-black/40">
-                          AI Governance Intelligence Record
+                          AI Governance Observability Surface
                         </p>
 
                         <h3 className="mt-3 text-[24px] font-semibold tracking-tight text-black">
@@ -155,25 +153,25 @@ export default async function ExplorerAiSystemsPage() {
                           )}${systemNameQuery}`}
                           variant="secondary"
                         >
-                          Open AI Governance Record
+                          Open AI Governance Surface
                         </PublicButtonLink>
 
                         <PublicButtonLink
                           href={`/verify/${encodeURIComponent(registryId)}`}
                           variant="primary"
                         >
-                          Verify Record
+                          Open Verification Surface
                         </PublicButtonLink>
                       </div>
                     </div>
 
                     <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
                       <MetricCard
-                        label="Organization"
+                        label="Governance Organization"
                         value={entityName}
                       />
                       <MetricCard
-                        label="Country"
+                        label="Governance Jurisdiction"
                         value={country}
                       />
                       <MetricCard
@@ -192,7 +190,7 @@ export default async function ExplorerAiSystemsPage() {
                         value={registryId}
                       />
                       <MetricCard
-                        label="System Type"
+                        label="AI Governance Type"
                         value={safe(field(row, "systemType"))}
                       />
                       <MetricCard
@@ -200,8 +198,8 @@ export default async function ExplorerAiSystemsPage() {
                         value={safe(field(row, "renewalStatus"))}
                       />
                       <MetricCard
-                        label="Governance Surface"
-                        value="Publication-safe"
+                        label="Public Trust Infrastructure"
+                        value="Deterministic"
                       />
                     </div>
                   </article>
@@ -214,16 +212,15 @@ export default async function ExplorerAiSystemsPage() {
         <section className="rounded-3xl border border-black/10 bg-white p-8">
           <div className="max-w-4xl space-y-4">
             <p className="text-[12px] font-semibold uppercase tracking-[0.24em] text-black/40">
-              Public Trust Boundary
+              PUBLIC TRUST BOUNDARY
             </p>
 
             <h2 className="text-[26px] font-semibold tracking-tight text-black">
-              This page surfaces publication-safe AI system telemetry only
+              This page surfaces publication-safe AI governance telemetry only
             </h2>
 
             <p className="text-[15px] leading-7 text-black/75">
-              AI system intelligence is derived exclusively from canonical
-              Snowflake public registry and AI system observability views.
+              AI governance observability is derived exclusively from canonical Snowflake public registry and AI governance observability views.
             </p>
 
             <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">

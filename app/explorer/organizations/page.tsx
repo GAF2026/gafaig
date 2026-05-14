@@ -76,10 +76,10 @@ export default async function ExplorerOrganizationsPage() {
     <main className="mx-auto max-w-[1180px] px-6 py-10">
       <div className="space-y-8">
         <PublicPageHero
-          eyebrow="EXPLORER / ORGANIZATIONS"
-          title="Browse public AI governance intelligence by organization"
-          description="This page summarizes organizations represented in GAFAIG’s public trust surface using publication-safe Snowflake governance intelligence views."
-          secondaryDescription="Only organizations associated with explicitly published certification records appear here. Private governance evidence, findings, reviewer materials, scoring internals, and execution telemetry are not exposed."
+          eyebrow="EXPLORER / ORGANIZATION GOVERNANCE INTELLIGENCE"
+          title="Browse public AI governance observability by organization"
+          description="This page summarizes organizations represented in GAFAIG deterministic public governance trust infrastructure using publication-safe Snowflake governance observability views."
+          secondaryDescription="Only organizations associated with explicitly published certification surfaces appear here. Private governance evidence, findings, reviewer materials, scoring internals, and execution telemetry are not exposed."
           actions={
             <>
               <PublicButtonLink href="/explorer" variant="primary">
@@ -87,11 +87,11 @@ export default async function ExplorerOrganizationsPage() {
               </PublicButtonLink>
 
               <PublicButtonLink href="/registry" variant="secondary">
-                Open Registry
+                Open Certification Registry
               </PublicButtonLink>
 
               <PublicButtonLink href="/explorer/countries" variant="secondary">
-                Browse Countries
+                Browse Governance Jurisdictions
               </PublicButtonLink>
             </>
           }
@@ -100,18 +100,21 @@ export default async function ExplorerOrganizationsPage() {
         <section className="rounded-3xl border border-black/10 bg-white p-8">
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
             <MetricCard
-              label="Organizations"
+              label="Governance Organizations"
               value={numberFormat(rows.length)}
             />
             <MetricCard
-              label="Public Records"
+              label="Certification Surfaces"
               value={numberFormat(totalPublicRecords)}
             />
             <MetricCard
-              label="AI Systems"
+              label="AI Governance Surfaces"
               value={numberFormat(totalAiSystems)}
             />
-            <MetricCard label="Countries" value={numberFormat(countries)} />
+            <MetricCard
+              label="Governance Jurisdictions"
+              value={numberFormat(countries)}
+            />
           </div>
 
           <div className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
@@ -120,15 +123,15 @@ export default async function ExplorerOrganizationsPage() {
               value={numberFormat(activeCertifications)}
             />
             <MetricCard
-              label="Validation Records"
+              label="Governance Validation Surfaces"
               value={numberFormat(validation?.totalOrganizations ?? rows.length)}
             />
             <MetricCard
-              label="Empty Organization Values"
+              label="Empty Governance Organization Values"
               value={numberFormat(validation?.emptyOrganizationValues ?? 0)}
             />
             <MetricCard
-              label="Null AI System Counts"
+              label="Null AI Governance Surface Counts"
               value={numberFormat(validation?.nullAiSystemCounts ?? 0)}
             />
           </div>
@@ -137,17 +140,18 @@ export default async function ExplorerOrganizationsPage() {
         <section className="rounded-3xl border border-black/10 bg-white p-8">
           <div className="max-w-4xl space-y-4">
             <p className="text-[12px] font-semibold uppercase tracking-[0.24em] text-black/40">
-              Organization Governance Intelligence
+              Organization Governance Observability
             </p>
 
             <h2 className="text-[26px] font-semibold tracking-tight text-black">
-              Public governance observability by organization
+              Publication-safe governance observability by organization
             </h2>
 
             <p className="text-[15px] leading-7 text-black/75">
-              Organization intelligence aggregates publication-safe lifecycle,
-              renewal, continuity, and AI system disclosure telemetry from
-              canonical Snowflake public views.
+              Organization governance observability aggregates publication-safe
+              lifecycle, renewal, continuity, and AI governance disclosure
+              observability from canonical Snowflake public trust infrastructure
+              views.
             </p>
           </div>
 
@@ -159,13 +163,13 @@ export default async function ExplorerOrganizationsPage() {
             {rows.length === 0 ? (
               <div className="rounded-3xl border border-dashed border-black/10 bg-black/[0.02] px-6 py-14 text-center">
                 <div className="text-lg font-semibold text-black">
-                  No published organization intelligence records are currently
-                  available.
+                  No published organization governance observability surfaces
+                  are currently available.
                 </div>
 
                 <p className="mt-2 text-sm leading-6 text-black/60">
                   GAFAIG did not receive organization rows from the canonical
-                  Snowflake public organization intelligence view.
+                  Snowflake public organization governance observability view.
                 </p>
               </div>
             ) : (
@@ -177,7 +181,7 @@ export default async function ExplorerOrganizationsPage() {
                   <div className="flex flex-wrap items-start justify-between gap-4">
                     <div>
                       <p className="text-[12px] font-semibold uppercase tracking-[0.24em] text-black/40">
-                        Organization Intelligence Profile
+                        Organization Governance Observability Surface
                       </p>
 
                       <h3 className="mt-3 text-[24px] font-semibold tracking-tight text-black">
@@ -187,7 +191,7 @@ export default async function ExplorerOrganizationsPage() {
                       <p className="mt-2 text-[14px] leading-6 text-black/70">
                         {safe(row.country)} · publication-safe governance
                         observability derived from canonical Snowflake public
-                        registry views.
+                        trust infrastructure views.
                       </p>
                     </div>
 
@@ -197,17 +201,17 @@ export default async function ExplorerOrganizationsPage() {
                       )}`}
                       variant="primary"
                     >
-                      Open Organization Intelligence
+                      Open Organization Governance Surface
                     </PublicButtonLink>
                   </div>
 
                   <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
                     <MetricCard
-                      label="Public Records"
+                      label="Certification Surfaces"
                       value={numberFormat(row.totalPublicRecords)}
                     />
                     <MetricCard
-                      label="AI Systems"
+                      label="AI Governance Surfaces"
                       value={numberFormat(row.totalAiSystems)}
                     />
                     <MetricCard
@@ -247,17 +251,17 @@ export default async function ExplorerOrganizationsPage() {
         <section className="rounded-3xl border border-black/10 bg-white p-8">
           <div className="max-w-4xl space-y-4">
             <p className="text-[12px] font-semibold uppercase tracking-[0.24em] text-black/40">
-              Public Trust Boundary
+              PUBLIC TRUST BOUNDARY
             </p>
 
             <h2 className="text-[26px] font-semibold tracking-tight text-black">
-              Organization intelligence is publication-safe only
+              Organization governance observability is publication-safe only
             </h2>
 
             <p className="text-[15px] leading-7 text-black/75">
-              This page does not compute trust and does not expose private
-              governance execution data. It renders only deterministic public
-              projections from Snowflake.
+              This page does not compute public trust and does not expose
+              private governance execution data. It renders only deterministic
+              public projections from Snowflake.
             </p>
 
             <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">

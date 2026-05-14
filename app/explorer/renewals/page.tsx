@@ -86,22 +86,22 @@ function RenewalRow({ row }: { row: RenewalRecord }) {
             href={`/registry/${encodeURIComponent(row.registryId)}`}
             variant="secondary"
           >
-            Open Certification Record
+            Open Certification Surface
           </PublicButtonLink>
 
           <PublicButtonLink
             href={`/verify/${encodeURIComponent(row.registryId)}`}
             variant="primary"
           >
-            Verify Record
+            Open Verification Surface
           </PublicButtonLink>
         </div>
       </div>
 
       <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <MetricCard label="Renewal Status" value={formatText(row.renewalStatus)} />
+        <MetricCard label="Certification Renewal Status" value={formatText(row.renewalStatus)} />
         <MetricCard label="Renewal Window" value={renewalLabel(row.renewalWindow)} />
-        <MetricCard label="Lifecycle" value={formatText(row.lifecycleStatus)} />
+        <MetricCard label="Lifecycle Status" value={formatText(row.lifecycleStatus)} />
         <MetricCard label="Valid To" value={formatDate(row.validTo)} />
       </div>
 
@@ -114,7 +114,7 @@ function RenewalRow({ row }: { row: RenewalRecord }) {
           label="Certification"
           value={formatText(row.certificationStatus)}
         />
-        <MetricCard label="Country" value={formatText(row.country)} />
+        <MetricCard label="Governance Jurisdiction" value={formatText(row.country)} />
         <MetricCard label="Registry ID" value={formatText(row.registryId)} />
       </div>
     </article>
@@ -125,11 +125,11 @@ function EmptyState() {
   return (
     <div className="rounded-3xl border border-dashed border-black/10 bg-black/[0.02] px-6 py-14 text-center">
       <div className="text-lg font-semibold text-black">
-        No renewal records available
+        No certification renewal observability surfaces available
       </div>
       <p className="mt-2 text-sm leading-6 text-black/60">
-        GAFAIG did not receive public renewal records from the canonical
-        Snowflake renewal view.
+        GAFAIG did not receive public certification renewal observability
+        surfaces from the canonical Snowflake renewal observability view.
       </p>
     </div>
   );
@@ -156,10 +156,10 @@ export default async function ExplorerRenewalsPage() {
     <main className="mx-auto max-w-[1180px] px-6 py-10">
       <div className="space-y-8">
         <PublicPageHero
-          eyebrow="EXPLORER / RENEWALS"
+          eyebrow="EXPLORER / CERTIFICATION RENEWAL OBSERVABILITY"
           title="Certification renewal observability"
-          description="Renewals Explorer shows publication-safe renewal posture and certification continuity signals derived from GAFAIG’s canonical Snowflake renewal view."
-          secondaryDescription="This page does not calculate renewal status. It displays Snowflake-originated renewal windows, lifecycle status, validity dates, and renewal posture for explicitly published certification records only."
+          description="Renewals Explorer surfaces publication-safe certification renewal continuity observability derived from GAFAIG’s canonical Snowflake renewal observability views."
+          secondaryDescription="This page does not compute certification renewal status. It displays Snowflake-originated renewal windows, lifecycle status, validity dates, and renewal posture for explicitly published certification surfaces only."
           actions={
             <>
               <PublicButtonLink href="/explorer" variant="primary">
@@ -169,7 +169,7 @@ export default async function ExplorerRenewalsPage() {
                 Lifecycle Observability
               </PublicButtonLink>
               <PublicButtonLink href="/registry" variant="secondary">
-                Open Registry
+                Open Certification Registry
               </PublicButtonLink>
             </>
           }
@@ -177,7 +177,7 @@ export default async function ExplorerRenewalsPage() {
 
         <section className="rounded-3xl border border-black/10 bg-white p-8">
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
-            <MetricCard label="Renewal Records" value={String(total)} />
+            <MetricCard label="Certification Renewal Surfaces" value={String(total)} />
             <MetricCard label="Active" value={String(active)} />
             <MetricCard label="Due 30 Days" value={String(due30)} />
             <MetricCard label="Due 90 Days" value={String(due90)} />
@@ -188,18 +188,19 @@ export default async function ExplorerRenewalsPage() {
         <section className="rounded-3xl border border-black/10 bg-white p-8">
           <div className="max-w-4xl space-y-4">
             <div className="text-[12px] font-semibold uppercase tracking-[0.24em] text-black/40">
-              Renewal directory
+              Certification Renewal Observatory
             </div>
 
             <h2 className="text-[26px] font-semibold tracking-tight text-black">
-              Public certification renewal posture
+              Public certification renewal observability surfaces
             </h2>
 
             <p className="text-[15px] leading-7 text-black/75">
-              Each row is projected from <strong>CORE.V_RENEWAL_PUBLIC</strong>.
-              The UI formats the data only. Renewal windows, expiration posture,
-              lifecycle status, and certification continuity are determined in
-              Snowflake.
+              Each observability surface is projected from{" "}
+              <strong>CORE.V_RENEWAL_PUBLIC</strong>. The UI formats the data
+              only. Certification renewal observability windows, expiration posture, lifecycle
+              observability status, and certification continuity observability
+              are determined in Snowflake.
             </p>
           </div>
 

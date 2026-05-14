@@ -91,8 +91,8 @@ export default async function HomePage() {
         <PublicPageHero
           eyebrow="GLOBAL AUTHORITY FOR AI GOVERNANCE"
           title="AI governance, independently verifiable."
-          description="GAFAIG is deterministic global AI governance infrastructure that enables organizations to certify AI governance outcomes privately and, after certification is achieved, elect publication of signed public certification records that anyone can independently verify using cryptographic proof."
-          secondaryDescription="Snowflake executes governance deterministically. The registry publishes only explicit public records. Verification uses signed proof.messageString payloads validated through GAFAIG’s public key infrastructure."
+          description="GAFAIG is deterministic global AI governance infrastructure that enables organizations to certify AI governance outcomes privately and, after certification is achieved, elect publication of signed public certification surfaces that anyone can independently verify using cryptographic proof."
+          secondaryDescription="Snowflake executes governance deterministically. The registry publishes only explicit public certification surfaces. Verification uses signed proof.messageString payloads validated through GAFAIG’s public key infrastructure."
           actions={
             <>
               <PublicButtonLink href="/certification" variant="primary">
@@ -100,11 +100,11 @@ export default async function HomePage() {
               </PublicButtonLink>
 
               <PublicButtonLink href="/verify" variant="secondary">
-                Verify a Public Record
+                Open Verification Surface
               </PublicButtonLink>
 
               <PublicButtonLink href="/registry" variant="secondary">
-                Explore Certified Systems
+                Explore Certification Surfaces
               </PublicButtonLink>
             </>
           }
@@ -114,10 +114,10 @@ export default async function HomePage() {
           <AudienceCard
             eyebrow="FOR ORGANIZATIONS"
             title="Operate with independently verifiable AI governance"
-            body="GAFAIG transforms internal governance oversight into deterministic certification infrastructure. Organizations can privately complete governance workflows and then elect publication of signed certification records that customers, regulators, partners, and external systems can independently verify."
+            body="GAFAIG transforms internal governance oversight into deterministic certification infrastructure. Organizations can privately complete governance workflows and then elect publication of signed certification surfaces that customers, regulators, partners, and external systems can independently verify."
             points={[
               "Deterministic governance execution",
-              "Publication-controlled certification records",
+              "Publication-controlled certification surfaces",
               "Cryptographic proof instead of trust claims",
             ]}
             href="/certification"
@@ -128,9 +128,9 @@ export default async function HomePage() {
           <AudienceCard
             eyebrow="FOR THE PUBLIC"
             title="Verify AI governance through signed public proof"
-            body="GAFAIG allows the public to inspect certification records, validate signed governance proof, and independently verify whether a published governance record is active, expired, or revoked without accessing private governance data."
+            body="GAFAIG allows the public to inspect certification surfaces, validate signed governance proof, and independently verify whether a published governance record is active, expired, or revoked without accessing private governance data."
             points={[
-              "Inspect published certification records",
+              "Inspect published certification surfaces",
               "Validate signed governance proof",
               "Verify lifecycle status independently",
             ]}
@@ -145,7 +145,7 @@ export default async function HomePage() {
           </div>
 
           <h2 className="mt-4 max-w-[860px] text-[26px] font-semibold tracking-tight text-black">
-            GAFAIG transforms AI governance into independently verifiable trust infrastructure
+            GAFAIG transforms AI governance into independently verifiable public governance trust infrastructure
           </h2>
 
           <p className="mt-5 max-w-[980px] text-[15px] leading-7 text-black/75">
@@ -153,7 +153,7 @@ export default async function HomePage() {
             governance observability, governance simulations, remediation orchestration,
             append-only publication infrastructure, and cryptographic verification into a
             unified deterministic governance architecture. Certification remains private.
-            Publication is explicit. Public trust records are independently verifiable.
+            Publication is explicit. Public governance trust surfaces are independently verifiable.
           </p>
 
           <div className="mt-8 grid gap-4 md:grid-cols-3">
@@ -173,23 +173,23 @@ export default async function HomePage() {
             <PillarCard
               eyebrow="Pillar 2"
               title="Publication-Controlled Certification"
-              body="Certification and publication are separate states. After certification is achieved, organizations may elect publication of a signed public certification record that exposes only bounded public trust information rather than private governance telemetry."
+              body="Certification and publication are separate states. After certification is achieved, organizations may elect publication of a signed public certification surface that exposes only bounded public trust information rather than private governance telemetry."
               points={[
                 "Explicit publication controls",
                 "Append-only public registry",
-                "Signed public proof records",
+                "Signed public verification proof surfaces",
               ]}
               href="/registry"
-              cta="View public records"
+              cta="View certification surfaces"
             />
 
             <PillarCard
               eyebrow="Pillar 3"
               title="Global Trust + Verification Layer"
-              body="Every public trust signal resolves to a verification endpoint, a signed proof.messageString payload, and a public key. External systems can independently validate trust without relying on screenshots, claims, or platform-controlled assertions."
+              body="Every public governance trust signal resolves to a verification endpoint, a signed proof.messageString payload, and a public key. External systems can independently validate trust without relying on screenshots, claims, or platform-controlled assertions."
               points={[
                 "Independent cryptographic verification",
-                "Portable external trust surfaces",
+                "Portable external governance trust surfaces",
                 "Verification-first architecture",
               ]}
               href="/explorer"
@@ -211,7 +211,7 @@ export default async function HomePage() {
             GAFAIG extends beyond registry publication into governance intelligence,
             governance observability, governance simulations, drift analysis,
             remediation orchestration, execution governance, and lifecycle monitoring.
-            These systems remain operational and advisory only. Deterministic trust
+            These systems remain operational and advisory only. Deterministic public governance trust
             continues to originate exclusively from Snowflake-executed certification
             and signed public proof.
           </p>
@@ -223,24 +223,24 @@ export default async function HomePage() {
             />
             <StatementCard
               title="Humans approve. Snowflake decides."
-              body="Human governance remains authoritative. Snowflake executes the deterministic certification and publication workflow. The registry publishes explicit public records. Proof verifies independently."
+              body="Human governance remains authoritative. Snowflake executes the deterministic certification and publication workflow. The registry publishes explicit public certification surfaces. Proof verifies independently."
             />
           </div>
         </section>
 
         <section className="rounded-3xl border border-black/10 bg-white p-8">
           <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
-            FEATURED PUBLIC CERTIFICATION RECORD
+            FEATURED PUBLIC CERTIFICATION SURFACE
           </div>
 
           <h2 className="mt-4 max-w-[860px] text-[26px] font-semibold tracking-tight text-black">
-            A signed public certification record backed by cryptographic proof
+            A signed public certification surface backed by cryptographic proof
           </h2>
 
           <p className="mt-5 max-w-[980px] text-[15px] leading-7 text-black/75">
-            Each public GAFAIG record includes a registry identifier, verification
+            Each public GAFAIG certification surface includes a registry identifier, verification
             endpoint, signed proof payload, and public-key validation path. The
-            registry distributes trust. The verify endpoint distributes proof.
+            registry distributes public governance trust. The verify endpoint distributes proof.
           </p>
 
           <div className="mt-7 max-w-xl">
@@ -254,10 +254,10 @@ export default async function HomePage() {
             ) : (
               <div className="rounded-2xl border border-dashed border-black/10 bg-black/[0.02] p-5">
                 <div className="text-[18px] font-semibold tracking-tight text-black">
-                  No certified record available
+                  No certified certification surface available
                 </div>
                 <p className="mt-3 text-[14px] leading-7 text-black/70">
-                  GAFAIG will display the latest published certification record here once one is available.
+                  GAFAIG will display the latest published certification surface here once one is available.
                 </p>
               </div>
             )}
@@ -276,7 +276,7 @@ export default async function HomePage() {
               }
               variant="secondary"
             >
-              Verify Featured Record
+              Open Featured Verification Surface
             </PublicButtonLink>
           </div>
         </section>
@@ -287,7 +287,7 @@ export default async function HomePage() {
           </div>
 
           <h2 className="mt-4 max-w-[860px] text-[26px] font-semibold tracking-tight text-black">
-            Trust is independently validated through signed proof infrastructure
+            Public governance trust is independently validated through signed verification proof infrastructure
           </h2>
 
           <p className="mt-5 max-w-[980px] text-[15px] leading-7 text-black/75">
@@ -300,8 +300,8 @@ export default async function HomePage() {
           <div className="mt-8 grid gap-4 md:grid-cols-4">
             <StepCard
               number="1"
-              title="Resolve certification record"
-              body="Locate a published certification record in the public registry."
+              title="Resolve certification surface"
+              body="Locate a published certification surface in the public registry."
             />
             <StepCard
               number="2"
@@ -315,8 +315,8 @@ export default async function HomePage() {
             />
             <StepCard
               number="4"
-              title="Render trust surface"
-              body="Display the verified trust state through APIs, widgets, badges, or UI surfaces."
+              title="Render public governance trust surface"
+              body="Display the verified public governance trust state through APIs, widgets, badges, or UI surfaces."
             />
           </div>
 
@@ -341,7 +341,7 @@ export default async function HomePage() {
           <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
             <div>
               <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
-                LIVE PUBLIC TRUST FOOTPRINT
+                LIVE PUBLIC GOVERNANCE TRUST FOOTPRINT
               </div>
 
               <h2 className="mt-4 max-w-[860px] text-[26px] font-semibold tracking-tight text-black">
@@ -350,7 +350,7 @@ export default async function HomePage() {
 
               <p className="mt-4 max-w-[760px] text-[14px] text-black/70">
                 Live metrics derived from GAFAIG&apos;s public registry. All values
-                reflect explicitly published certification records.
+                reflect explicitly published certification surfaces.
               </p>
             </div>
 
@@ -510,16 +510,16 @@ function VerifiedRecordCard({
       </div>
 
       <p className="mt-3 text-[14px] leading-7 text-black/70">
-        Public GAFAIG certification record with signed proof and independent verification.
+        Public GAFAIG certification surface with signed proof and independent verification.
       </p>
 
       <div className="mt-5 flex flex-wrap gap-3">
         <PublicButtonLink href={href} variant="secondary" size="sm">
-          Open Certification Record
+          Open Certification Surface
         </PublicButtonLink>
 
         <PublicButtonLink href={`/verify/${registryId}`} variant="ghost" size="sm">
-          Verify This Record →
+          Open Verification Surface →
         </PublicButtonLink>
 
         <PublicButtonLink

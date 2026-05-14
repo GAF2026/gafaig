@@ -139,8 +139,8 @@ function JumpNav() {
     ["#modal", "Modal"],
     ["#external-test", "External Test"],
     ["#public-contract", "Public Contract"],
-    ["#raw-api", "Raw API"],
-    ["#proof-object", "Proof Object"],
+    ["#raw-api", "Public API"],
+    ["#proof-object", "Verification Proof"],
     ["#failure-modes", "Failure Modes"],
     ["#integration-paths", "Integration Paths"],
   ];
@@ -393,12 +393,12 @@ export default function DevelopersPage() {
         <PublicPageHero
           eyebrow="DEVELOPERS"
           title="Integrate deterministic AI governance proof"
-          description="GAFAIG provides a verification-first trust surface for deterministic global AI governance infrastructure. Developers can fetch published certification records, inspect signed proof, and independently validate payload integrity using GAFAIG’s verification endpoint and public key."
-          secondaryDescription="The SDK is the canonical integration surface for GAFAIG public trust signals. Badges, widgets, and verification modals are render layers over the public verification endpoint. Internal governance records remain private; external systems validate only published certification outcomes, canonical messageString, signature, and public key."
+          description="GAFAIG provides a verification-first public governance trust surface for deterministic global AI governance infrastructure. Developers can fetch published certification surfaces, inspect signed proof, and independently validate payload integrity using GAFAIG’s verification endpoint and public key."
+          secondaryDescription="The SDK is the canonical integration surface for GAFAIG public governance trust signals. Badges, widgets, and verification modals are render layers over the public verification endpoint. Internal governance records remain private; external systems validate only published certification outcomes, canonical messageString, signature, and public key."
           actions={
             <>
               <PublicButtonLink href="/verify" variant="primary">
-                Open Verify
+                Open Verification Surface
               </PublicButtonLink>
               <PublicButtonLink href="/registry" variant="secondary">
                 Browse Registry
@@ -420,7 +420,7 @@ export default function DevelopersPage() {
           <SectionHeading
             eyebrow="FAST INSTALL"
             title="Add GAFAIG to your site in under 30 seconds"
-            body="Copy and paste this snippet to display a GAFAIG trust signal for a published certification record on your site."
+            body="Copy and paste this snippet to display a GAFAIG trust signal for a published certification surface on your site."
           />
 
           <div className="mt-6">
@@ -467,7 +467,7 @@ export default function DevelopersPage() {
             <StepCard
               number="3"
               title="Verify independently"
-              body="Use the verification endpoint, exact messageString, signature, and public key to validate the public certification record."
+              body="Use the verification endpoint, exact messageString, signature, and public key to validate the public certification surface."
             />
           </div>
 
@@ -500,7 +500,7 @@ export default function DevelopersPage() {
           <MetricCard
             label="Trust Source"
             value="/api/verify"
-            body="The verification endpoint remains the canonical public trust authority."
+            body="The verification endpoint remains the canonical public governance trust authority."
           />
           <MetricCard
             label="Stable SDK"
@@ -527,7 +527,7 @@ export default function DevelopersPage() {
           <SectionHeading
             eyebrow="LIVE PREVIEW"
             title="See the versioned embed working live"
-            body="This preview uses the production-stable versioned widget file. The widget renders the public verification response for the demo GAFAIG registry record and does not compute trust in the browser."
+            body="This preview uses the production-stable versioned widget file. The widget renders the public verification response for the demo GAFAIG certification surface and does not compute trust in the browser."
           />
 
           <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
@@ -544,7 +544,7 @@ export default function DevelopersPage() {
               </div>
 
               <h3 className="text-xl font-semibold tracking-[-0.02em] text-black">
-                What this live widget proves
+                What this live governance trust widget proves
               </h3>
 
               <p className="mt-3 text-sm leading-6 text-black/65">
@@ -558,7 +558,7 @@ export default function DevelopersPage() {
                     Certified (Published)
                   </div>
                   <p className="mt-1 text-sm leading-5 text-black/60">
-                    This record is published and valid in the GAFAIG registry.
+                    This certification surface is published and valid in the GAFAIG certification registry.
                   </p>
                 </div>
 
@@ -573,7 +573,7 @@ export default function DevelopersPage() {
 
                 <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-4">
                   <div className="text-sm font-semibold text-black">
-                    Payload Verified
+                    Canonical Payload Verified
                   </div>
                   <p className="mt-1 text-sm leading-5 text-black/60">
                     The signed payload has not been altered before display.
@@ -598,7 +598,7 @@ export default function DevelopersPage() {
 
                 <ul className="mt-3 space-y-2 text-sm leading-5 text-black/60">
                   <li>/api/verify returns the canonical record and proof.</li>
-                  <li>proof.messageString is the exact canonical signed payload.</li>
+                  <li>proof.messageString is the exact canonical signed public payload.</li>
                   <li>proof.signature is the cryptographic signature.</li>
                   <li>
                     /api/.well-known/gafaig-public-key exposes the verification
@@ -617,7 +617,7 @@ export default function DevelopersPage() {
                   href={`/verify/${DEMO_REGISTRY_ID}`}
                   className="rounded-full bg-black px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-black/80"
                 >
-                  Open verify page
+                  Open Verification Surface
                 </a>
 
                 <a
@@ -712,7 +712,7 @@ export default function DevelopersPage() {
           <SectionHeading
             eyebrow="BADGE"
             title="Render a GAFAIG badge"
-            body="The badge is a lightweight trust signal that links to the verification page. It respects lifecycle and badge eligibility from the public badge API."
+            body="The badge is a lightweight trust signal that links to the verification surface. It respects lifecycle and badge eligibility from the public badge API."
           />
 
           <div className="mt-8 grid gap-6">
@@ -741,7 +741,7 @@ export default function DevelopersPage() {
           <SectionHeading
             eyebrow="WIDGET"
             title="Render the full trust widget"
-            body="The widget is a richer trust surface. It fetches the verify endpoint, renders record status, signature state, payload integrity, and links to the registry and Proof JSON."
+            body="The widget is a richer trust surface. It fetches the verify endpoint, renders certification status, signature state, canonical payload integrity, and links to the registry and signed proof JSON."
           />
 
           <div className="mt-8 grid gap-6">
@@ -764,7 +764,7 @@ export default function DevelopersPage() {
         >
           <SectionHeading
             eyebrow="MODAL"
-            title="Open verification modal (SDK-controlled)"
+            title="Open Verification Surface Modal (SDK-controlled)"
             body="The verification modal allows third-party sites to show GAFAIG verification details without navigating away from the page."
           />
 
@@ -829,13 +829,13 @@ export default function DevelopersPage() {
         >
           <SectionHeading
             eyebrow="PUBLIC API"
-            title="Use the verify, badge, and public key endpoints directly"
+            title="Use the verification, badge, and public key endpoints directly"
             body="For advanced integrations, call the public API endpoints directly. The SDK and widget are convenience layers on top of the same public contracts."
           />
 
           <div className="mt-8 grid gap-6">
             <CodeCard
-              title="Fetch a verification record"
+              title="Fetch a verification surface"
               language="cURL"
               code={curlVerifyExample}
             />
@@ -862,8 +862,8 @@ export default function DevelopersPage() {
           className="scroll-mt-8 rounded-3xl border border-black/10 bg-white p-8"
         >
           <SectionHeading
-            eyebrow="PROOF OBJECT"
-            title="The canonical signed payload you verify"
+            eyebrow="VERIFICATION PROOF"
+            title="The canonical signed public payload you verify"
             body="The record object is for display. The proof object is the trust layer. Signature validation depends on messageString, signature, key ID, algorithm, and the public key endpoint."
           />
 
@@ -876,10 +876,10 @@ export default function DevelopersPage() {
           </div>
 
           <div className="mt-6 grid gap-4 md:grid-cols-2">
-            <BulletCard text="Trust depends on the proof object, not UI rendering." />
+            <BulletCard text="Trust depends on the verification proof object, not UI rendering." />
             <BulletCard text="The canonical signed payload is proof.messageString exactly as returned by the API." />
             <BulletCard text="External systems must treat messageString as the canonical input to signature verification." />
-            <BulletCard text="SDK, widget, badge, and modal bindings are thin consumers of verify and badge endpoints and never compute trust." />
+            <BulletCard text="SDK, widget, badge, and modal bindings are thin consumers of verification and badge endpoints and never compute trust." />
           </div>
         </section>
 
@@ -926,15 +926,15 @@ export default function DevelopersPage() {
             />
             <StatementCard
               title="Widget"
-              body="A richer public trust panel with record status, signature state, payload integrity, and verification links."
+              body="A richer public governance trust panel with certification surface status, signature state, payload integrity, and verification links."
             />
             <StatementCard
               title="Modal"
               body="Inline verification without sending users away from a third-party page."
             />
             <StatementCard
-              title="Verify API"
-              body="Raw machine-readable record and proof data for custom integrations."
+              title="Verification API"
+              body="Machine-readable certification surface and signed verification proof data for custom integrations."
             />
           </div>
 
@@ -958,12 +958,12 @@ export default function DevelopersPage() {
           <SectionHeading
             eyebrow="WHY THIS MATTERS"
             title="Verification without private disclosure"
-            body="GAFAIG enables organizations to prove certified AI governance without exposing internal systems. This makes trust portable while preserving confidentiality."
+            body="GAFAIG enables organizations to prove certified AI governance without exposing internal systems. This makes public trust portable while preserving confidentiality."
           />
 
           <div className="mt-6 grid gap-4 md:grid-cols-2">
             <BulletCard text="Internal governance review stays in the private verification engine." />
-            <BulletCard text="The public layer exposes only published certification outcomes and proof needed to verify them." />
+            <BulletCard text="The public governance trust layer exposes only published certification outcomes and proof needed to verify them." />
             <BulletCard text="Trust can be validated outside GAFAIG using the signed payload and public key." />
             <BulletCard text="The same public trust signal can appear on registry pages, APIs, badges, widgets, SDK integrations, and external websites." />
           </div>

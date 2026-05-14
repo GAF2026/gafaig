@@ -177,26 +177,24 @@ export default async function BadgePage({
       <div className="space-y-8">
         <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
           <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
-            LIVE BADGE PREVIEW
+            LIVE TRUST BADGE PREVIEW
           </div>
 
           <h1 className="mt-4 text-[40px] font-semibold leading-[1.08] tracking-tight text-black md:text-[52px]">
-            Public certification badge
+            Portable public certification badge
           </h1>
 
           <p className="mt-4 max-w-[900px] text-[16px] leading-8 text-black/68">
-            This page renders the same public-safe trust badge used across the
-            GAFAIG trust surface so organizations can preview what external users
-            will see.
+            This page renders the same portable public certification badge used across GAFAIG public trust surfaces so organizations can preview what external users will see.
           </p>
 
           <div className="mt-6 flex flex-wrap gap-3">
             <PublicButtonLink href={registryPath} variant="primary">
-              Open registry record
+              Open Certification Record
             </PublicButtonLink>
 
             <PublicButtonLink href={verifyPath} variant="secondary">
-              Open Proof JSON
+              Open Verification Proof
             </PublicButtonLink>
           </div>
         </section>
@@ -209,7 +207,7 @@ export default async function BadgePage({
               <div className="mt-5 flex items-start justify-between gap-4">
                 <div>
                   <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-black/50">
-                    GAFAIG Certification Badge
+                    GAFAIG Public Certification Badge
                   </div>
 
                   <div className="mt-3 flex flex-wrap gap-2">
@@ -247,8 +245,7 @@ export default async function BadgePage({
                 </h2>
 
                 <p className="mt-3 text-[14px] leading-7 text-black/62">
-                  Public certification record issued through the GAFAIG registry
-                  of record.
+                  Public certification record issued through GAFAIG public trust infrastructure.
                 </p>
               </div>
 
@@ -261,7 +258,7 @@ export default async function BadgePage({
 
               <div className="mt-4 rounded-2xl bg-[#071a49] px-5 py-4 text-white">
                 <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-white/70">
-                  Verification Endpoint
+                  Verification Surface Endpoint
                 </div>
                 <div className="mt-2 break-all text-[13px] leading-6 text-white">
                   {`${baseUrl}${verifyPath}`}
@@ -269,8 +266,7 @@ export default async function BadgePage({
               </div>
 
               <div className="mt-4 text-[12px] leading-6 text-black/45">
-                Issued via GAFAIG public trust infrastructure. Private review
-                materials not disclosed.
+                Issued via GAFAIG deterministic public trust infrastructure. Private review materials are not disclosed.
               </div>
             </div>
 
@@ -305,7 +301,7 @@ export default async function BadgePage({
 
               <div className="rounded-2xl border border-black/10 bg-white p-5">
                 <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-black/55">
-                  Widget Preview
+                  Portable Public Trust Widget
                 </div>
                 <div className="mt-2 break-all text-[14px] leading-7 text-black/72">
                   {`${baseUrl}/widget-preview/${encodeURIComponent(registryId)}`}
@@ -317,7 +313,7 @@ export default async function BadgePage({
                     variant="secondary"
                     size="sm"
                   >
-                    Open widget preview
+                    Open Public Trust Widget
                   </PublicButtonLink>
 
                   <PublicButtonLink
@@ -325,14 +321,14 @@ export default async function BadgePage({
                     variant="secondary"
                     size="sm"
                   >
-                    Open record
+                    Open Certification Record
                   </PublicButtonLink>
                 </div>
               </div>
 
               <div className="rounded-2xl border border-black/10 bg-white p-5">
                 <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-black/55">
-                  Basic Embed
+                  Portable Public Badge Embed
                 </div>
 
                 <pre className="mt-3 overflow-x-auto rounded-2xl bg-black/[0.03] p-4 text-[12px] leading-6 text-black/70">
@@ -348,23 +344,21 @@ export default async function BadgePage({
 
         <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
           <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
-            TRUST DISTRIBUTION
+            PUBLIC TRUST DISTRIBUTION
           </div>
 
           <h2 className="mt-4 text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
-            Embed this certification anywhere
+            Embed this certification record anywhere
           </h2>
 
           <p className="mt-3 max-w-[900px] text-[15px] leading-[1.8] text-black/68">
-            The same public-safe badge can be used in websites, procurement
-            documents, product pages, and other external trust surfaces without
-            exposing private evidence or controlled reviewer workflow details.
+            The same portable public certification badge can be used in websites, procurement documents, product pages, and other external trust surfaces without exposing private evidence or controlled reviewer workflow details.
           </p>
 
           <div className="mt-6 grid gap-3 md:grid-cols-3">
             <InfoCard label="Registry ID" value={registryId} />
-            <InfoCard label="Registry Record" value={`${baseUrl}${registryPath}`} />
-            <InfoCard label="Proof JSON" value={`${baseUrl}${verifyPath}`} />
+            <InfoCard label="Certification Record" value={`${baseUrl}${registryPath}`} />
+            <InfoCard label="Signed Proof JSON" value={`${baseUrl}${verifyPath}`} />
           </div>
         </section>
       </div>

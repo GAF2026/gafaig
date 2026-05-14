@@ -67,9 +67,9 @@ export default async function ExplorerAiSystemDetailPage({
     <main className="mx-auto max-w-[1180px] px-6 py-10">
       <div className="space-y-8">
         <PublicPageHero
-          eyebrow="EXPLORER / AI SYSTEM INTELLIGENCE"
+          eyebrow="EXPLORER / AI GOVERNANCE INTELLIGENCE"
           title={safe(system.SYSTEM_NAME)}
-          description="This AI system intelligence profile surfaces publication-safe governance observability metadata derived from GAFAIG’s canonical Snowflake public registry views."
+          description="This AI governance intelligence profile surfaces publication-safe governance observability metadata derived from GAFAIG’s canonical Snowflake public registry views."
           secondaryDescription="This page is projection-only. It does not expose findings, evidence, scoring internals, reviewer materials, governance execution telemetry, or private workflow state."
           actions={
             <>
@@ -132,13 +132,13 @@ export default async function ExplorerAiSystemDetailPage({
             </p>
 
             <h2 className="text-[26px] font-semibold tracking-tight text-black">
-              Connected public governance intelligence
+              Connected governance trust surfaces
             </h2>
 
             <p className="text-[15px] leading-7 text-black/75">
-              This AI system is part of a broader publication-safe governance
-              intelligence graph connecting systems, organizations, countries,
-              certification records, and verification proofs.
+              This AI governance surface is part of a broader publication-safe governance
+              trust topology connecting systems, organizations, countries,
+              certification surfaces, and public verification proof surfaces.
             </p>
           </div>
 
@@ -149,21 +149,21 @@ export default async function ExplorerAiSystemDetailPage({
               )}`}
               variant="primary"
             >
-              Open AI Governance Record
+              Open AI Governance Surface
             </PublicButtonLink>
 
             <PublicButtonLink
               href={`/registry/${encodeURIComponent(publicRegistryId)}`}
               variant="secondary"
             >
-              Open Certification Record
+              Open Certification Surface
             </PublicButtonLink>
 
             <PublicButtonLink
               href={`/verify/${encodeURIComponent(publicRegistryId)}`}
               variant="secondary"
             >
-              Verify Record
+              Open Verification Surface
             </PublicButtonLink>
 
             <PublicButtonLink
@@ -185,17 +185,17 @@ export default async function ExplorerAiSystemDetailPage({
         <section className="rounded-3xl border border-black/10 bg-white p-8">
           <div className="max-w-4xl space-y-4">
             <p className="text-[12px] font-semibold uppercase tracking-[0.24em] text-black/40">
-              AI System Governance Intelligence
+              AI Governance Intelligence
             </p>
 
             <h2 className="text-[26px] font-semibold tracking-tight text-black">
-              Publication-safe AI system observability
+              Publication-safe AI governance observability
             </h2>
 
             <p className="text-[15px] leading-7 text-black/75">
-              This profile represents a public AI governance intelligence object
-              associated with a published GAFAIG certification record. It
-              displays only public metadata projected from canonical Snowflake
+              This profile represents a public AI governance observability
+              surface associated with a published GAFAIG certification record.
+              It displays only public metadata projected from canonical Snowflake
               public views.
             </p>
           </div>
@@ -210,17 +210,17 @@ export default async function ExplorerAiSystemDetailPage({
         <section className="rounded-3xl border border-black/10 bg-white p-8">
           <div className="max-w-4xl space-y-4">
             <p className="text-[12px] font-semibold uppercase tracking-[0.24em] text-black/40">
-              Certification and Verification
+              Certification Surfaces and Verification Proof
             </p>
 
             <h2 className="text-[26px] font-semibold tracking-tight text-black">
-              Public trust is anchored to the certification record
+              Public trust is anchored to the certification surface
             </h2>
 
             <p className="text-[15px] leading-7 text-black/75">
               The registry ID is the canonical public trust identifier. External
               systems should verify the associated registry ID through the
-              GAFAIG verification endpoint and signed proof.
+              GAFAIG verification endpoint and signed verification proof payload.
             </p>
           </div>
 
@@ -229,21 +229,21 @@ export default async function ExplorerAiSystemDetailPage({
               href={`/registry/${encodeURIComponent(publicRegistryId)}`}
               variant="primary"
             >
-              Open Certification Record
+              Open Certification Surface
             </PublicButtonLink>
 
             <PublicButtonLink
               href={`/verify/${encodeURIComponent(publicRegistryId)}`}
               variant="secondary"
             >
-              Verify Record
+              Open Verification Surface
             </PublicButtonLink>
 
             <PublicButtonLink
               href={`/api/verify/${encodeURIComponent(publicRegistryId)}`}
               variant="secondary"
             >
-              View Proof JSON
+              Open Signed Verification Proof
             </PublicButtonLink>
           </div>
         </section>
@@ -251,16 +251,16 @@ export default async function ExplorerAiSystemDetailPage({
         <section className="rounded-3xl border border-black/10 bg-white p-8">
           <div className="max-w-4xl space-y-4">
             <p className="text-[12px] font-semibold uppercase tracking-[0.24em] text-black/40">
-              Public Trust Boundary
+              PUBLIC TRUST BOUNDARY
             </p>
 
             <h2 className="text-[26px] font-semibold tracking-tight text-black">
-              This page surfaces publication-safe AI system telemetry only
+              This page surfaces publication-safe AI governance telemetry only
             </h2>
 
             <p className="text-[15px] leading-7 text-black/75">
-              AI system intelligence is derived exclusively from canonical
-              Snowflake public registry and AI system observability views.
+              AI governance intelligence is derived exclusively from canonical
+              Snowflake public registry and AI governance observability views.
             </p>
 
             <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">

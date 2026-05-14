@@ -220,7 +220,7 @@ export default async function WidgetPreviewPage({
           eyebrow="WIDGET PREVIEW"
           title="From verified proof to portable trust"
           description="This page shows how a real GAFAIG record can be displayed on a third-party website through a live widget and verification modal."
-          secondaryDescription="The widget preview is part of the GAFAIG proof flow. A record is certified in GAFAIG, verified through signed public proof, and then surfaced as a portable trust signal that can appear outside the originating organization’s platform."
+          secondaryDescription="The widget preview is part of the GAFAIG proof flow. A record is certified in GAFAIG, verified through signed public proof, and then surfaced as a portable public trust signal that can appear outside the originating organization’s platform."
           actions={
             <>
               <PublicButtonLink
@@ -234,7 +234,7 @@ export default async function WidgetPreviewPage({
                 href={`/verify/${encodeURIComponent(registryId)}`}
                 variant="secondary"
               >
-                Open Verify Page
+                Open Verification Proof
               </PublicButtonLink>
 
               <PublicButtonLink href="/demo" variant="secondary">
@@ -246,7 +246,7 @@ export default async function WidgetPreviewPage({
 
         <section className="rounded-3xl border border-black/10 bg-white p-8">
           <p className="text-[15px] leading-[1.8] text-black/70">
-            The widget independently verifies the signed GAFAIG payload in the browser using the public verification key.
+            The widget independently verifies the canonical signed GAFAIG payload in the browser using the public verification key.
             No trust is assumed from the host system. The result is cryptographically validated against the canonical signed messageString returned by the verification endpoint.
           </p>
 
@@ -261,7 +261,7 @@ export default async function WidgetPreviewPage({
           </div>
 
           <h2 className="mt-4 max-w-[860px] text-[26px] font-semibold tracking-tight text-black">
-            A verified trust signal that can be displayed on any external system
+            A verified public trust signal that can be displayed on any external system
           </h2>
 
           <p className="mt-5 max-w-[980px] text-[16px] leading-[1.85] text-black/75">
@@ -294,11 +294,11 @@ export default async function WidgetPreviewPage({
 
         <section className="rounded-3xl border border-black/10 bg-white p-8">
           <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
-            THE WIDGET FLOW
+            TRUST DISTRIBUTION FLOW
           </div>
 
           <h2 className="mt-4 max-w-[860px] text-[26px] font-semibold tracking-tight text-black">
-            How external trust is delivered
+            How public trust is distributed externally
           </h2>
 
           <div className="mt-8 grid gap-4 md:grid-cols-4">
@@ -319,7 +319,7 @@ export default async function WidgetPreviewPage({
             />
             <StepCard
               number="4"
-              title="Portable trust surface"
+              title="Portable public trust surface"
               body="The site displays a current GAFAIG trust signal without running its own governance verification logic."
             />
           </div>
@@ -388,7 +388,7 @@ export default async function WidgetPreviewPage({
                 href={`/verify/${encodeURIComponent(registryId)}`}
                 variant="secondary"
               >
-                Open Verify Page
+                Open Verification Proof
               </PublicButtonLink>
             </div>
           </section>
@@ -447,7 +447,7 @@ export default async function WidgetPreviewPage({
 
         <section className="rounded-3xl border border-black/10 bg-white p-8">
           <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
-            MODAL EXPERIENCE
+            VERIFICATION MODAL
           </div>
 
           <h2 className="mt-4 max-w-[860px] text-[26px] font-semibold tracking-tight text-black">
@@ -476,7 +476,7 @@ export default async function WidgetPreviewPage({
 
         <section className="rounded-3xl border border-black/10 bg-white p-8">
           <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
-            PORTABLE VERIFICATION
+            PORTABLE PUBLIC VERIFICATION
           </div>
 
           <h2 className="mt-4 max-w-[860px] text-[26px] font-semibold tracking-tight text-black">
@@ -519,7 +519,7 @@ export default async function WidgetPreviewPage({
 
         <section className="rounded-3xl border border-black/10 bg-white p-8">
           <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
-            FAIL-CLOSED TRUST
+            FAIL-CLOSED VERIFICATION
           </div>
 
           <h2 className="mt-4 max-w-[860px] text-[26px] font-semibold tracking-tight text-black">
@@ -557,17 +557,17 @@ export default async function WidgetPreviewPage({
 
         <section className="rounded-3xl border border-black/10 bg-white p-8">
           <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
-            WHAT THIS ADDS TO THE DEMO
+            WHAT THIS DEMONSTRATES
           </div>
 
           <h2 className="mt-4 max-w-[860px] text-[26px] font-semibold tracking-tight text-black">
-            The proof does not stop at the verify page
+            The verification proof does not stop at the verification surface
           </h2>
 
           <div className="mt-7 grid gap-4 md:grid-cols-2">
             <BulletCard text="The registry page proves a public certification record exists." />
-            <BulletCard text="The verify page proves the record is backed by signed public proof." />
-            <BulletCard text="The widget preview proves the trust signal can travel outside GAFAIG." />
+            <BulletCard text="The verification surface proves the record is backed by signed public proof." />
+            <BulletCard text="The widget preview proves the public trust signal can travel outside GAFAIG." />
             <BulletCard text="The modal proves verification can be surfaced in third-party environments." />
           </div>
 
@@ -586,16 +586,16 @@ export default async function WidgetPreviewPage({
 
         <section className="rounded-3xl border border-black/10 bg-white p-8">
           <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
-            RELATED LINKS
+            CONNECTED TRUST SURFACES
           </div>
 
           <h2 className="mt-4 max-w-[860px] text-[26px] font-semibold tracking-tight text-black">
-            Open each connected trust surface
+            Open connected public trust surfaces
           </h2>
 
           <div className="mt-7 grid gap-4 md:grid-cols-4">
             <MetricCard label="Certification Record" value={registryUrl} />
-            <MetricCard label="Verify Page" value={verifyPageUrl} />
+            <MetricCard label="Verification Surface" value={verifyPageUrl} />
             <MetricCard label="Proof JSON" value={verifyJsonUrl} />
             <MetricCard label="Demo Page" value={demoUrl} />
           </div>
@@ -612,7 +612,7 @@ export default async function WidgetPreviewPage({
 
         <section className="rounded-3xl border border-black/10 bg-white p-8">
           <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
-            DOWNLOADABLE PROOF
+            PORTABLE PROOF MATERIALS
           </div>
 
           <h2 className="mt-4 max-w-[860px] text-[26px] font-semibold tracking-tight text-black">
@@ -628,7 +628,7 @@ export default async function WidgetPreviewPage({
           </p>
 
           <div className="mt-5 grid gap-4 md:grid-cols-2">
-            <BulletCard text="public signed proof JSON" />
+            <BulletCard text="public proof JSON" />
             <BulletCard text="canonical signed proof payloads" />
             <BulletCard text="detached signatures" />
             <BulletCard text="public verification keys" />
@@ -636,8 +636,8 @@ export default async function WidgetPreviewPage({
 
           <div className="mt-7 grid gap-4 md:grid-cols-3">
             <StatementCard
-              title="Proof JSON"
-              body="The verification endpoint exposes the canonical public trust payload used throughout the GAFAIG verification flow."
+              title="Signed Proof JSON"
+              body="The verification endpoint exposes the canonical signed public proof payload used throughout the GAFAIG verification flow."
             />
             <StatementCard
               title="Proof portability"
@@ -652,7 +652,7 @@ export default async function WidgetPreviewPage({
 
         <section className="rounded-3xl border border-black/10 bg-white p-8">
           <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
-            TRUST ORIGINS
+            CANONICAL TRUST ORIGINS
           </div>
 
           <h2 className="mt-4 max-w-[860px] text-[26px] font-semibold tracking-tight text-black">
@@ -676,7 +676,7 @@ export default async function WidgetPreviewPage({
           </div>
 
           <p className="mt-6 max-w-[960px] text-[16px] leading-[1.85] text-black/75">
-            The browser widget is a portable trust surface layered on top of the underlying signed verification architecture.
+            The browser widget is a portable public trust surface layered on top of the underlying signed verification architecture.
           </p>
         </section>
 

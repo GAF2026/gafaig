@@ -45,7 +45,7 @@ export default function RegistryTrustTools({
   absoluteVerifyUrl,
   absoluteBadgeUrl,
 }: Props) {
-  const safeEntityName = entityName?.trim() || "GAFAIG Certified Record";
+  const safeEntityName = entityName?.trim() || "GAFAIG Certified Public Record";
 
   const widgetScriptUrl = "https://www.gafaig.com/widget/gafaig-widget.js?v=1";
   const verifyScriptUrl = "https://www.gafaig.com/widget/gafaig-verify.js?v=1";
@@ -65,7 +65,7 @@ export default function RegistryTrustTools({
 
   const verifyButtonSnippet = useMemo(
     () => `<script src="${verifyScriptUrl}"></script>
-<button onclick="verifyGAFAIG('${registryId}')">Verify This AI System</button>`,
+<button onclick="verifyGAFAIG('${registryId}')">Open Verification Proof</button>`,
     [registryId, verifyScriptUrl]
   );
 
@@ -84,25 +84,25 @@ export default function RegistryTrustTools({
       <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
         <div className="max-w-2xl">
           <div className="text-xs font-semibold uppercase tracking-[0.18em] text-black/50">
-            Trust distribution
+            PUBLIC TRUST DISTRIBUTION
           </div>
 
           <h2 className="mt-3 text-2xl font-semibold text-black md:text-3xl">
-            Share and verify this certification
+            Distribute and verify this certification record
           </h2>
 
           <p className="mt-3 text-[15px] text-black/70 leading-relaxed">
-            Publish this certification across websites, documentation, and external systems.
-            Every surface is independently verifiable via GAFAIG.
+            Publish this certification record across websites, documentation, and external systems.
+            Every public trust surface is independently verifiable via GAFAIG.
           </p>
         </div>
 
         <div className="flex gap-3">
           <PublicButtonLink href={absoluteBadgeUrl} variant="primary">
-            Open Badge
+            Open Certification Badge
           </PublicButtonLink>
           <PublicButtonLink href={absoluteVerifyUrl} variant="secondary">
-            Proof JSON
+            Signed Proof JSON
           </PublicButtonLink>
         </div>
       </div>
@@ -113,7 +113,7 @@ export default function RegistryTrustTools({
         {/* BADGE */}
         <div className="rounded-xl border border-black/10 bg-white p-6">
           <div className="text-xs font-semibold uppercase tracking-[0.14em] text-black/50">
-            Live badge
+            Portable certification badge
           </div>
 
           <div className="mt-4 rounded-xl border border-black/10 bg-black/[0.02] p-5">
@@ -125,20 +125,20 @@ export default function RegistryTrustTools({
           </div>
 
           <div className="mt-4 text-center text-xs text-black/50">
-            Public trust surface • independently verifiable
+            Portable public trust surface • independently verifiable
           </div>
 
           {/* LINKS */}
           <div className="mt-6 space-y-4">
-            <InfoRow label="Registry URL" value={absoluteRegistryUrl} />
-            <InfoRow label="Verify URL" value={absoluteVerifyUrl} />
+            <InfoRow label="Certification Record URL" value={absoluteRegistryUrl} />
+            <InfoRow label="Verification Surface URL" value={absoluteVerifyUrl} />
           </div>
         </div>
 
         {/* QR */}
         <div className="rounded-xl border border-black/10 bg-white p-6">
           <div className="text-xs font-semibold uppercase tracking-[0.14em] text-black/50">
-            QR verification
+            Portable verification QR
           </div>
 
           <div className="mt-4 rounded-xl border border-black/10 bg-black/[0.02] p-5">
@@ -150,7 +150,7 @@ export default function RegistryTrustTools({
           </div>
 
           <p className="mt-4 text-sm text-black/70">
-            Scan to verify this certification instantly.
+            Scan to open the public verification surface instantly.
           </p>
 
           <div className="mt-3">
@@ -163,8 +163,8 @@ export default function RegistryTrustTools({
       <div className="mt-8 grid gap-6 lg:grid-cols-2">
         <Snippet title="HTML Embed" code={htmlEmbed} />
         <Snippet title="Markdown Embed" code={markdownEmbed} />
-        <Snippet title="Verify Button" code={verifyButtonSnippet} />
-        <Snippet title="Widget Embed" code={widgetSnippet} />
+        <Snippet title="Open Verification Surface Button" code={verifyButtonSnippet} />
+        <Snippet title="Portable Widget Embed" code={widgetSnippet} />
       </div>
     </section>
   );

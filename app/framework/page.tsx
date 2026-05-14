@@ -40,49 +40,51 @@ export default function FrameworkPage() {
     <main className="mx-auto max-w-[1180px] px-6 py-10">
       <div className="space-y-8">
         <PublicPageHero
-          eyebrow="FRAMEWORK"
-          title="How GAFAIG works"
+          eyebrow="DETERMINISTIC GOVERNANCE INFRASTRUCTURE"
+          title="How deterministic GAFAIG governance infrastructure works"
           description="GAFAIG operates as deterministic global AI governance infrastructure. It combines private governance execution, governed scoring, human oversight, publication-controlled certification, append-only registry publication, governance observability, and cryptographic verification."
-          secondaryDescription="The system separates a private verification engine from a public trust layer. Governance is evaluated privately, certification remains private, publication is explicit, and only published certification outcomes are exposed and validated through GAFAIG’s verification endpoint."
+          secondaryDescription="The system separates a private verification engine from a public governance trust infrastructure layer. Governance is evaluated privately, certification remains private, publication is explicit, and only published certification outcomes are exposed and validated through GAFAIG’s verification endpoint."
         />
 
         <section className="rounded-3xl border border-black/10 bg-white p-8">
           <h2 className="text-[26px] font-semibold tracking-tight text-black">
-            A deterministic system for AI governance certification
+            A deterministic governance infrastructure system for AI certification
           </h2>
 
           <p className="mt-4 text-[15px] leading-7 text-black/75">
             GAFAIG does not rely on self-declared policies, static disclosures,
-            or unverifiable trust claims. It introduces a structured governance
-            process that evaluates whether oversight is present, functioning, and
-            capable of producing a certification outcome.
+            or unverifiable trust claims. It introduces a structured deterministic
+            governance process that evaluates whether oversight is present, functioning,
+            and capable of producing a certification outcome.
           </p>
 
           <p className="mt-4 text-[15px] leading-7 text-black/75">
             The output is not a marketing claim. It is a deterministic
             certification outcome that may become a signed, independently
-            verifiable public trust record if the organization explicitly elects
-            publication.
+            verifiable public governance trust surface if the organization
+            explicitly elects publication.
           </p>
         </section>
 
         <section className="rounded-3xl border border-black/10 bg-white p-8">
           <h2 className="text-[26px] font-semibold tracking-tight text-black">
-            Execution model
+            Deterministic execution model
           </h2>
 
           <p className="mt-4 text-[15px] leading-7 text-black/75">
             GAFAIG runs as a deterministic governance engine with Snowflake as
             the system of execution. Governance records are processed privately,
-            certification outcomes are produced privately, and records may be
-            published only if the organization elects publication.
+            certification outcomes are produced privately, and certification
+            surfaces may be published only if the organization elects
+            publication.
           </p>
 
           <p className="mt-4 text-[15px] leading-7 text-black/75">
-            Public records are exposed through controlled public views, APIs,
-            widgets, SDKs, and verification surfaces. These downstream layers do
-            not compute trust. They project and distribute Snowflake-originated
-            public trust records.
+            Public certification surfaces are exposed through controlled public
+            governance trust infrastructure views, APIs, widgets, SDKs, and
+            verification surfaces. These downstream layers do not compute trust.
+            They project and distribute Snowflake-originated public governance
+            trust surfaces.
           </p>
 
           <div className="mt-6 grid gap-4 md:grid-cols-2">
@@ -91,7 +93,7 @@ export default function FrameworkPage() {
             </BulletCard>
             <BulletCard>
               Certification is private and does not automatically create a public
-              record.
+              certification surface.
             </BulletCard>
             <BulletCard>
               Publication is explicit, optional, append-only, and
@@ -106,7 +108,7 @@ export default function FrameworkPage() {
 
         <section className="rounded-3xl border border-black/10 bg-white p-8">
           <h2 className="text-[26px] font-semibold tracking-tight text-black">
-            Alignment with AI risk management frameworks
+            Alignment with AI governance and risk management frameworks
           </h2>
 
           <p className="mt-4 text-[15px] leading-7 text-black/75">
@@ -118,11 +120,11 @@ export default function FrameworkPage() {
           </p>
 
           <p className="mt-4 text-[15px] leading-7 text-black/75">
-            Frameworks define how organizations should govern AI systems across
-            areas such as govern, map, measure, and manage. GAFAIG creates a
-            verification and publication architecture for certification outcomes
-            without exposing private evidence, findings, reviewer notes, or
-            internal workflow materials.
+            Frameworks define how organizations should govern AI governance
+            systems across areas such as govern, map, measure, and manage.
+            GAFAIG creates a verification and publication infrastructure
+            architecture for certification outcomes without exposing private
+            evidence, findings, reviewer notes, or internal workflow materials.
           </p>
 
           <div className="mt-6 grid gap-4 md:grid-cols-2">
@@ -143,22 +145,22 @@ export default function FrameworkPage() {
               <p className="mt-2 text-[14px] leading-7 text-black/70">
                 Whether governance outcomes can be certified privately and, if
                 the organization elects publication, independently verified
-                through signed public proof.
+                through signed public governance verification proof.
               </p>
             </article>
           </div>
 
           <p className="mt-6 text-[15px] leading-7 text-black/75">
-            Each certification may be represented as a verifiable public record
-            only if the organization elects publication. External parties can
-            verify published certification outcomes without accessing private
-            internal materials.
+            Each certification may be represented as a verifiable public
+            certification surface only if the organization elects publication.
+            External parties can verify published certification outcomes without
+            accessing private internal materials.
           </p>
         </section>
 
         <section className="rounded-3xl border border-black/10 bg-white p-8">
           <h2 className="text-[26px] font-semibold tracking-tight text-black">
-            The GAFAIG governance pipeline
+            The deterministic GAFAIG governance pipeline
           </h2>
 
           <p className="mt-4 text-[15px] leading-7 text-black/75">
@@ -171,7 +173,7 @@ export default function FrameworkPage() {
           <p className="mt-4 max-w-[900px] text-[15px] leading-7 text-black/70">
             Application → Case → Findings → Evidence → Events → Scoring →
             Decision → Certification → Optional Publication → Registry Snapshot
-            → Public View → API → UI → Verification
+            → Public Governance Trust View → API → UI → Verification
           </p>
 
           <div className="mt-8 grid gap-4 md:grid-cols-6">
@@ -198,7 +200,7 @@ export default function FrameworkPage() {
             <Step
               number="5"
               title="Publication"
-              body="If certification is achieved, the organization may elect publication as a public trust record."
+              body="If certification is achieved, the organization may elect publication as a public governance trust surface."
             />
             <Step
               number="6"
@@ -210,7 +212,7 @@ export default function FrameworkPage() {
 
         <section className="rounded-3xl border border-black/10 bg-white p-8">
           <h2 className="text-[26px] font-semibold tracking-tight text-black">
-            What certification means
+            What deterministic certification means
           </h2>
 
           <p className="mt-4 text-[15px] leading-7 text-black/75">
@@ -220,9 +222,9 @@ export default function FrameworkPage() {
           </p>
 
           <p className="mt-4 text-[15px] leading-7 text-black/75">
-            Certification alone does not create a public record. A certification
-            may become a public trust record only if the organization explicitly
-            elects publication.
+            Certification alone does not create a public certification surface. A
+            certification may become a public governance trust surface only if the
+            organization explicitly elects publication.
           </p>
 
           <div className="mt-6 grid gap-4 md:grid-cols-2">
@@ -237,22 +239,22 @@ export default function FrameworkPage() {
               elected.
             </BulletCard>
             <BulletCard>
-              Published certification records can be independently verified using
-              signed proof.
+              Published certification surfaces can be independently verified
+              using signed verification proof.
             </BulletCard>
           </div>
         </section>
 
         <section className="rounded-3xl border border-black/10 bg-white p-8">
           <h2 className="text-[26px] font-semibold tracking-tight text-black">
-            Private verification, public trust
+            Private verification, public governance trust infrastructure
           </h2>
 
           <p className="mt-4 text-[15px] leading-7 text-black/75">
-            GAFAIG separates internal governance execution from public trust
-            distribution. This allows rigorous review without exposing private
-            evidence while still producing a clear, verifiable public outcome
-            when publication is elected.
+            GAFAIG separates internal governance execution from public governance
+            trust infrastructure distribution. This allows rigorous review
+            without exposing private evidence while still producing a clear,
+            verifiable public outcome when publication is elected.
           </p>
 
           <div className="mt-6 grid gap-4 md:grid-cols-2">
@@ -269,7 +271,7 @@ export default function FrameworkPage() {
 
             <article className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
               <div className="text-[18px] font-semibold tracking-tight text-black">
-                Public trust layer
+                Public governance trust infrastructure layer
               </div>
               <p className="mt-3 text-[14px] leading-7 text-black/70">
                 Only certification outcomes that are explicitly published are
@@ -282,14 +284,14 @@ export default function FrameworkPage() {
 
         <section className="rounded-3xl border border-black/10 bg-white p-8">
           <h2 className="text-[26px] font-semibold tracking-tight text-black">
-            Governance intelligence remains advisory
+            Governance intelligence infrastructure remains advisory
           </h2>
 
           <p className="mt-4 text-[15px] leading-7 text-black/75">
             GAFAIG includes governance intelligence, observability, simulations,
             remediation orchestration, timeline systems, and continuous
             monitoring. These systems support governance operations, but they do
-            not replace deterministic trust.
+            not replace deterministic public governance trust.
           </p>
 
           <div className="mt-6 grid gap-4 md:grid-cols-2">
@@ -312,46 +314,48 @@ export default function FrameworkPage() {
 
         <section className="rounded-3xl border border-black/10 bg-white p-8">
           <h2 className="text-[26px] font-semibold tracking-tight text-black">
-            Certification becomes verifiable trust
+            Certification becomes verifiable public governance trust
           </h2>
 
           <p className="mt-4 text-[15px] leading-7 text-black/75">
-            GAFAIG is both governance infrastructure and a trust distribution
-            layer. Once certification is finalized and publication is elected,
-            the outcome becomes a signed, independently verifiable public
-            certification record.
+            GAFAIG is both deterministic governance infrastructure and a public
+            governance trust distribution infrastructure layer. Once
+            certification is finalized and publication is elected, the outcome
+            becomes a signed, independently verifiable public certification
+            surface.
           </p>
 
           <p className="mt-4 max-w-[900px] text-[15px] leading-7 text-black/70">
-            Each published certification record is backed by a signed verification
-            payload. External systems validate records using the exact
-            proof.messageString and GAFAIG public key.
+            Each published certification surface is backed by a signed
+            verification proof payload. External systems validate records using
+            the exact proof.messageString and GAFAIG public key.
           </p>
 
           <div className="mt-6 grid gap-4 md:grid-cols-2">
             <BulletCard>
-              Registry records provide durable public certification references.
+              Registry certification surfaces provide durable public
+              certification references.
             </BulletCard>
             <BulletCard>
               The verify endpoint exposes signed proof for independent
               validation.
             </BulletCard>
             <BulletCard>
-              Signed proof enables cryptographic verification of published
-              certification records.
+              Signed verification proof enables cryptographic verification of
+              published certification surfaces.
             </BulletCard>
             <BulletCard>
-              Trust can be distributed across APIs, widgets, badges, and external
-              platforms.
+              Public governance trust can be distributed across APIs, widgets,
+              badges, and external platforms.
             </BulletCard>
           </div>
 
           <div className="mt-6 flex flex-wrap gap-3">
             <PublicButtonLink href="/registry" variant="primary">
-              View Public Records
+              Open Certification Registry
             </PublicButtonLink>
             <PublicButtonLink href="/verify" variant="secondary">
-              Verify a Record
+              Open Verification Surface
             </PublicButtonLink>
           </div>
         </section>

@@ -9,7 +9,7 @@ export default function MissionPage() {
         <PublicPageHero
           eyebrow="MISSION"
           title="Why GAFAIG exists"
-          description="GAFAIG exists to create deterministic, independently verifiable trust infrastructure for AI governance at global scale. It enables organizations to certify AI governance outcomes privately and, if they elect publication, publish signed public certification records that anyone can independently verify."
+          description="GAFAIG exists to create deterministic, independently verifiable public governance trust infrastructure for AI governance at global scale. It enables organizations to certify AI governance outcomes privately and, if they elect publication, publish signed public certification surfaces that anyone can independently verify."
           secondaryDescription="GAFAIG combines private governance execution, publication-controlled certification, append-only registry publication, governance observability, governance simulations, remediation orchestration, and cryptographic proof infrastructure into one deterministic global AI governance architecture."
         />
 
@@ -28,7 +28,7 @@ export default function MissionPage() {
           <p className="mt-4 max-w-[900px] text-[15px] leading-7 text-black/75">
             GAFAIG introduces deterministic global AI governance infrastructure:
             governance is executed privately, certification is controlled inside
-            Snowflake, publication is explicit, and public trust records are
+            Snowflake, publication is explicit, and public governance trust surfaces are
             backed by cryptographic proof.
           </p>
         </section>
@@ -45,14 +45,14 @@ export default function MissionPage() {
             />
             <StatementCard
               title="With GAFAIG"
-              body="Governance outcomes are produced through deterministic private execution. Certified outcomes may then be published as signed public certification records that external systems can independently verify."
+              body="Governance outcomes are produced through deterministic private execution. Certified outcomes may then be published as signed public certification surfaces that external systems can independently verify."
             />
           </div>
 
           <p className="mt-6 text-[15px] leading-7 text-black/75">
             GAFAIG does not replace governance frameworks. It adds deterministic
-            public trust infrastructure that makes certification outcomes
-            externally verifiable while preserving private governance data,
+            public governance trust infrastructure that makes certification outcomes
+            independently verifiable while preserving private governance data,
             internal evidence, and workflow confidentiality.
           </p>
         </section>
@@ -64,11 +64,11 @@ export default function MissionPage() {
           />
           <Pillar
             title="Separate certification from publication"
-            text="Certification is private and deterministic. Publication is explicit and optional. Only published certification records become public trust records."
+            text="Certification is private and deterministic. Publication is explicit and optional. Only published certification surfaces become public governance trust surfaces."
           />
           <Pillar
             title="Verify proof independently"
-            text="Published records are backed by signed proof.messageString payloads, Ed25519 signatures, public-key validation, and fail-closed verification behavior."
+            text="Published certification surfaces are backed by signed proof.messageString payloads, Ed25519 signatures, public-key validation, and fail-closed verification behavior."
           />
         </section>
 
@@ -83,7 +83,7 @@ export default function MissionPage() {
             <BulletCard text="Public verification uses proof.messageString only, never reconstructed JSON fields or UI-rendered values." />
             <BulletCard text="AI governance intelligence is advisory only and can never certify, publish, mutate registry state, or alter proof state." />
             <BulletCard text="Governance simulations are operational only and cannot modify certification, publication, registry, or proof state." />
-            <BulletCard text="Public trust records are append-only, publication-controlled, and independently verifiable." />
+            <BulletCard text="Public governance trust surfaces are append-only, publication-controlled, and independently verifiable." />
           </div>
         </section>
 
@@ -105,7 +105,7 @@ export default function MissionPage() {
           </p>
 
           <p className="mt-4 text-[15px] leading-7 text-black/75">
-            GAFAIG creates the foundation for portable, machine-verifiable trust
+            GAFAIG creates the foundation for portable, machine-verifiable public governance trust
             in AI governance across organizations, AI systems, regulators,
             enterprises, governments, research institutions, universities,
             laboratories, non-profits, technology providers, and governance

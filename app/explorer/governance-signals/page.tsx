@@ -83,8 +83,8 @@ export default async function GovernanceSignalsPage() {
     <main className="mx-auto w-full max-w-[1180px] px-6 py-10">
       <PublicPageHero
         eyebrow="EXPLORER / GOVERNANCE SIGNALS"
-        title="Global public governance intelligence signals"
-        description="Governance Signals surfaces publication-safe operational trust telemetry derived from GAFAIG’s canonical Snowflake observability infrastructure."
+        title="Global public governance observability signals"
+        description="Governance Signals surfaces publication-safe operational governance observability derived from GAFAIG’s canonical Snowflake observability infrastructure."
         secondaryDescription="Signals are aggregated projections only. This page does not expose findings, evidence, reviewer state, scoring internals, AI recommendation internals, governance execution telemetry, or private governance workflow state."
         actions={
           <>
@@ -98,7 +98,7 @@ export default async function GovernanceSignalsPage() {
               Renewal Observability
             </PublicButtonLink>
             <PublicButtonLink href="/explorer/ai-systems" variant="secondary">
-              AI Systems
+              AI Governance Surfaces
             </PublicButtonLink>
           </>
         }
@@ -106,30 +106,29 @@ export default async function GovernanceSignalsPage() {
 
       <section className="mt-8 rounded-3xl border border-black/10 bg-white p-8">
         <p className="text-[12px] font-semibold uppercase tracking-[0.28em] text-black/40">
-          Governance observability
+          Governance Observability Infrastructure
         </p>
 
         <h2 className="mt-3 text-[26px] font-semibold tracking-tight text-black">
-          Publication-safe governance telemetry
+          Publication-safe governance observability
         </h2>
 
         <p className="mt-3 max-w-4xl text-[15px] leading-7 text-black/70">
-          Every signal on this page is projected from canonical Snowflake public
-          views. Governance observability signals are generated from public
-          lifecycle, renewal, registry, and AI system disclosure views only.
+          Every signal on this page is projected from canonical Snowflake public trust infrastructure
+          views. Governance observability signals are generated from public lifecycle, renewal, registry, and AI governance disclosure observability views only.
         </p>
 
         <p className="mt-4 max-w-4xl text-[15px] leading-7 text-black/70">
           These signals help external stakeholders understand public
           certification continuity, lifecycle activity, renewal posture, and
-          public AI system disclosure activity without exposing private
+          public AI governance disclosure observability without exposing private
           governance execution infrastructure.
         </p>
       </section>
 
       <section className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <MetricCard
-          label="Public Records"
+          label="Certification Surfaces"
           value={summary.totalPublicRecords}
         />
         <MetricCard
@@ -137,22 +136,22 @@ export default async function GovernanceSignalsPage() {
           value={summary.totalActiveCertifications}
         />
         <MetricCard
-          label="Public AI Systems"
+          label="Public AI Governance Surfaces"
           value={aiSystems.totalPublicAiSystems}
         />
         <MetricCard
-          label="Signals"
+          label="Governance Signals"
           value={validation.totalSignals}
         />
       </section>
 
       <section className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <MetricCard
-          label="Countries"
+          label="Governance Jurisdictions"
           value={summary.totalActiveCountries}
         />
         <MetricCard
-          label="Organizations"
+          label="Governance Organizations"
           value={summary.totalActiveOrganizations}
         />
         <MetricCard
@@ -166,11 +165,11 @@ export default async function GovernanceSignalsPage() {
       </section>
 
       <section className="mt-8 grid gap-4 md:grid-cols-3">
-        <MetricCard label="Signal Types" value={validation.distinctSignalTypes} />
+        <MetricCard label="Governance Signal Types" value={validation.distinctSignalTypes} />
         <MetricCard label="Aggregate Signal Value" value={aggregateSignalValue} />
         <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
           <p className="text-[12px] font-semibold uppercase tracking-[0.24em] text-black/40">
-            Latest Signal Activity
+            Latest Governance Signal Activity
           </p>
           <p className="mt-3 text-[26px] font-semibold tracking-tight text-black">
             {formatDate(latestSignalActivity)}
@@ -182,15 +181,15 @@ export default async function GovernanceSignalsPage() {
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <p className="text-[12px] font-semibold uppercase tracking-[0.28em] text-black/40">
-              Signal validation
+              Governance Signal Validation
             </p>
 
             <h2 className="mt-3 text-[26px] font-semibold tracking-tight text-black">
-              Deterministic public signal validation
+              Deterministic public governance signal validation
             </h2>
 
             <p className="mt-3 max-w-4xl text-[15px] leading-7 text-black/70">
-              GAFAIG validates signal completeness through a canonical Snowflake
+              GAFAIG validates governance signal completeness through a canonical Snowflake
               validation view. Empty signal types and null signal values should
               remain zero.
             </p>
@@ -200,7 +199,7 @@ export default async function GovernanceSignalsPage() {
         <div className="mt-6 grid gap-4 md:grid-cols-4">
           <MetricCard label="Total Signals" value={validation.totalSignals} />
           <MetricCard
-            label="Distinct Signals"
+            label="Distinct Governance Signals"
             value={validation.distinctSignalTypes}
           />
           <MetricCard
@@ -218,16 +217,16 @@ export default async function GovernanceSignalsPage() {
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <p className="text-[12px] font-semibold uppercase tracking-[0.28em] text-black/40">
-              Governance signals
+              Governance Observability Signals
             </p>
 
             <h2 className="mt-3 text-[26px] font-semibold tracking-tight text-black">
-              Public governance observability signal layer
+              Public governance observability signal infrastructure
             </h2>
 
             <p className="mt-3 max-w-4xl text-[15px] leading-7 text-black/70">
-              Each card represents a publication-safe governance signal derived
-              from deterministic Snowflake public views.
+              Each card represents a publication-safe governance observability signal derived
+              from deterministic Snowflake public trust infrastructure views.
             </p>
           </div>
 
@@ -240,13 +239,11 @@ export default async function GovernanceSignalsPage() {
           {signals.length === 0 ? (
             <div className="rounded-3xl border border-dashed border-black/10 bg-black/[0.02] px-6 py-14 text-center">
               <div className="text-lg font-semibold text-black">
-                No public governance observability signals are currently
-                available.
+                No public governance observability signal surfaces are currently available.
               </div>
 
               <p className="mt-2 text-sm leading-6 text-black/60">
-                GAFAIG did not receive signal rows from the canonical Snowflake
-                public governance signal view.
+                GAFAIG did not receive governance observability signal surfaces from the canonical Snowflake public governance observability signal view.
               </p>
             </div>
           ) : (
@@ -262,7 +259,7 @@ export default async function GovernanceSignalsPage() {
                         signal.signalType
                       )}`}
                     >
-                      Governance Signal
+                      Governance Observability Signal
                     </span>
 
                     <h3 className="mt-3 text-[24px] font-semibold tracking-tight text-black">
@@ -276,7 +273,7 @@ export default async function GovernanceSignalsPage() {
 
                   <div className="rounded-2xl border border-black/10 bg-black/[0.02] px-8 py-6 text-center">
                     <p className="text-[12px] font-semibold uppercase tracking-[0.24em] text-black/40">
-                      Signal Value
+                      Governance Signal Value
                     </p>
                     <p className="mt-3 text-[34px] font-semibold tracking-tight text-black">
                       {numberFormat(signal.signalValue)}
@@ -311,16 +308,16 @@ export default async function GovernanceSignalsPage() {
 
       <section className="mt-8 rounded-3xl border border-black/10 bg-white p-8">
         <p className="text-[12px] font-semibold uppercase tracking-[0.28em] text-black/40">
-          Public trust boundary
+          PUBLIC TRUST BOUNDARY
         </p>
 
         <h2 className="mt-3 text-[26px] font-semibold tracking-tight text-black">
-          This page does not expose private governance execution
+          This page does not expose private governance execution infrastructure
         </h2>
 
         <p className="mt-3 max-w-4xl text-[15px] leading-7 text-black/70">
-          Governance Signals are projection-only, publication-controlled,
-          append-safe, and verification-safe. They support public governance
+          Governance observability signals are projection-only, publication-controlled,
+          append-safe, deterministic, and verification-safe. They support public governance
           observability without exposing private governance operations.
         </p>
 
@@ -333,7 +330,7 @@ export default async function GovernanceSignalsPage() {
             <li>recommendation systems</li>
             <li>governance execution telemetry</li>
             <li>private workflow state</li>
-            <li>unpublished certification records</li>
+            <li>unpublished certification surfaces</li>
           </ul>
         </div>
 
@@ -349,14 +346,14 @@ export default async function GovernanceSignalsPage() {
             href="/registry"
             className="rounded-full border border-neutral-300 px-5 py-3 text-sm font-semibold text-neutral-900 transition hover:bg-neutral-100"
           >
-            Open Registry
+            Open Certification Registry
           </Link>
 
           <Link
             href="/explorer/ai-systems"
             className="rounded-full border border-neutral-300 px-5 py-3 text-sm font-semibold text-neutral-900 transition hover:bg-neutral-100"
           >
-            Open AI Systems
+            Open AI Governance Surfaces
           </Link>
         </div>
       </section>

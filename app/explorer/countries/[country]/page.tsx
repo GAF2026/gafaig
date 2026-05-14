@@ -92,9 +92,9 @@ export default async function CountryGovernanceIntelligencePage({
     <main className="mx-auto max-w-[1180px] px-6 py-10">
       <div className="space-y-8">
         <PublicPageHero
-          eyebrow="EXPLORER / COUNTRY INTELLIGENCE"
-          title={`${safe(country.country)} governance intelligence`}
-          description="This country intelligence profile surfaces publication-safe governance observability derived from GAFAIG’s canonical Snowflake public registry and AI system intelligence views."
+          eyebrow="EXPLORER / COUNTRY GOVERNANCE INTELLIGENCE"
+          title={`${safe(country.country)} governance observability`}
+          description="This country governance observability profile surfaces publication-safe governance intelligence derived from GAFAIG’s canonical Snowflake public registry and AI governance observability views."
           secondaryDescription="This page exposes only publication-safe governance metadata projections. Findings, evidence, reviewer materials, scoring internals, recommendation systems, governance execution telemetry, and private workflow state are not exposed."
           actions={
             <>
@@ -107,7 +107,7 @@ export default async function CountryGovernanceIntelligencePage({
               </PublicButtonLink>
 
               <PublicButtonLink href="/registry" variant="secondary">
-                Open Registry
+                Open Certification Registry
               </PublicButtonLink>
             </>
           }
@@ -116,15 +116,15 @@ export default async function CountryGovernanceIntelligencePage({
         <section className="rounded-3xl border border-black/10 bg-white p-8">
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
             <MetricCard
-              label="Published Records"
+              label="Published Certification Surfaces"
               value={numberFormat(country.totalPublicRecords)}
             />
             <MetricCard
-              label="Organizations"
+              label="Governance Organizations"
               value={numberFormat(country.totalOrganizations)}
             />
             <MetricCard
-              label="AI Systems"
+              label="AI Governance Surfaces"
               value={numberFormat(country.totalAiSystems)}
             />
             <MetricCard
@@ -156,17 +156,17 @@ export default async function CountryGovernanceIntelligencePage({
         <section className="rounded-3xl border border-black/10 bg-white p-8">
           <div className="max-w-4xl space-y-4">
             <p className="text-[12px] font-semibold uppercase tracking-[0.24em] text-black/40">
-              Governance Intelligence Signals
+              Governance Observability Signals
             </p>
 
             <h2 className="text-[26px] font-semibold tracking-tight text-black">
-              Publication-safe country governance intelligence
+              Publication-safe country governance observability
             </h2>
 
             <p className="text-[15px] leading-7 text-black/75">
               Each signal is derived from canonical Snowflake public views and
               summarizes publication-safe lifecycle, renewal, continuity,
-              organization, and AI system disclosure intelligence.
+              organization, and AI governance disclosure observability.
             </p>
           </div>
 
@@ -219,16 +219,17 @@ export default async function CountryGovernanceIntelligencePage({
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div className="max-w-4xl space-y-4">
               <p className="text-[12px] font-semibold uppercase tracking-[0.24em] text-black/40">
-                Organizations
+                Governance Organizations
               </p>
 
               <h2 className="text-[26px] font-semibold tracking-tight text-black">
-                Published governance organizations in {safe(country.country)}
+                Published governance organizations and certification surfaces in{" "}
+                {safe(country.country)}
               </h2>
 
               <p className="text-[15px] leading-7 text-black/75">
                 These organizations are represented only through explicitly
-                published GAFAIG certification records.
+                published GAFAIG certification surfaces.
               </p>
             </div>
 
@@ -263,7 +264,7 @@ export default async function CountryGovernanceIntelligencePage({
 
                   <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
                     <MetricCard
-                      label="Public Records"
+                      label="Certification Surfaces"
                       value={numberFormat(organization.totalPublicRecords)}
                     />
                     <MetricCard
@@ -289,17 +290,17 @@ export default async function CountryGovernanceIntelligencePage({
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div className="max-w-4xl space-y-4">
               <p className="text-[12px] font-semibold uppercase tracking-[0.24em] text-black/40">
-                AI Systems
+                AI Governance Surfaces
               </p>
 
               <h2 className="text-[26px] font-semibold tracking-tight text-black">
-                Published AI governance systems disclosed in{" "}
+                Published AI governance surfaces disclosed in{" "}
                 {safe(country.country)}
               </h2>
 
               <p className="text-[15px] leading-7 text-black/75">
-                AI systems appear only when associated with explicitly published
-                GAFAIG certification records.
+                AI governance surfaces appear only when associated with
+                explicitly published GAFAIG certification surfaces.
               </p>
             </div>
 
@@ -312,7 +313,7 @@ export default async function CountryGovernanceIntelligencePage({
             {systems.length === 0 ? (
               <div className="rounded-3xl border border-dashed border-black/10 bg-black/[0.02] px-6 py-14 text-center">
                 <div className="text-lg font-semibold text-black">
-                  No public AI systems available
+                  No public AI governance surfaces available
                 </div>
               </div>
             ) : (
@@ -338,14 +339,14 @@ export default async function CountryGovernanceIntelligencePage({
                         )}`}
                         variant="secondary"
                       >
-                        Open AI Governance Record
+                        Open AI Governance Surface
                       </PublicButtonLink>
 
                       <PublicButtonLink
                         href={`/verify/${encodeURIComponent(system.registryId)}`}
                         variant="primary"
                       >
-                        Verify Record
+                        Open Verification Surface
                       </PublicButtonLink>
                     </div>
                   </div>
@@ -377,20 +378,20 @@ export default async function CountryGovernanceIntelligencePage({
         <section className="rounded-3xl border border-black/10 bg-white p-8">
           <div className="max-w-4xl space-y-4">
             <p className="text-[12px] font-semibold uppercase tracking-[0.24em] text-black/40">
-              Connected Governance Intelligence
+              Connected Governance Trust Surfaces
             </p>
 
             <h2 className="text-[26px] font-semibold tracking-tight text-black">
-              This country participates in GAFAIG’s broader governance
-              intelligence topology
+              This country participates in GAFAIG’s broader governance trust
+              topology
             </h2>
 
             <p className="text-[15px] leading-7 text-black/75">
-              Connected governance intelligence links countries, organizations,
-              certification records, AI systems, lifecycle observability,
-              renewal continuity, and verification trust surfaces into a
-              deterministic publication-safe global governance intelligence
-              framework.
+              Connected governance trust surfaces link countries,
+              organizations, certification surfaces, AI governance
+              observability, lifecycle observability, renewal continuity, and
+              public verification trust surfaces into deterministic
+              publication-safe global governance infrastructure.
             </p>
 
             <div className="flex flex-wrap gap-3 pt-2">
@@ -406,11 +407,11 @@ export default async function CountryGovernanceIntelligencePage({
               </PublicButtonLink>
 
               <PublicButtonLink href="/explorer/ai-systems" variant="secondary">
-                View AI Systems
+                View AI Governance Surfaces
               </PublicButtonLink>
 
               <PublicButtonLink href="/registry" variant="secondary">
-                Open Public Certification Records
+                Open Certification Surfaces
               </PublicButtonLink>
             </div>
           </div>
@@ -419,7 +420,7 @@ export default async function CountryGovernanceIntelligencePage({
         <section className="rounded-3xl border border-black/10 bg-white p-8">
           <div className="max-w-4xl space-y-4">
             <p className="text-[12px] font-semibold uppercase tracking-[0.24em] text-black/40">
-              Public Trust Boundary
+              PUBLIC TRUST BOUNDARY
             </p>
 
             <h2 className="text-[26px] font-semibold tracking-tight text-black">
@@ -427,9 +428,9 @@ export default async function CountryGovernanceIntelligencePage({
             </h2>
 
             <p className="text-[15px] leading-7 text-black/75">
-              Country intelligence is derived exclusively from canonical
-              Snowflake public registry, lifecycle, renewal, certification, and
-              AI system observability projections.
+              Country governance observability is derived exclusively from
+              canonical Snowflake public registry, lifecycle, renewal,
+              certification, and AI governance observability projections.
             </p>
 
             <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">

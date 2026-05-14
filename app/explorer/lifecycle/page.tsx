@@ -78,11 +78,11 @@ function EmptyState() {
   return (
     <div className="rounded-3xl border border-dashed border-black/10 bg-black/[0.02] px-6 py-14 text-center">
       <div className="text-lg font-semibold text-black">
-        No lifecycle records available
+        No certification lifecycle observability surfaces available
       </div>
       <p className="mt-2 text-sm leading-6 text-black/60">
-        GAFAIG did not receive public lifecycle records from the canonical
-        Snowflake lifecycle view.
+        GAFAIG did not receive public certification lifecycle observability
+        surfaces from the canonical Snowflake lifecycle observability view.
       </p>
     </div>
   );
@@ -116,21 +116,21 @@ function LifecycleRow({ row }: { row: LifecycleRecord }) {
             href={`/registry/${encodeURIComponent(row.registryId)}`}
             variant="secondary"
           >
-            Open Certification Record
+            Open Certification Surface
           </PublicButtonLink>
 
           <PublicButtonLink
             href={`/verify/${encodeURIComponent(row.registryId)}`}
             variant="primary"
           >
-            Verify Record
+            Open Verification Surface
           </PublicButtonLink>
         </div>
       </div>
 
       <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <MetricCard
-          label="Lifecycle"
+          label="Lifecycle Status"
           value={formatText(row.lifecycleStatus)}
         />
         <MetricCard label="Renewal" value={formatText(row.renewalStatus)} />
@@ -148,7 +148,10 @@ function LifecycleRow({ row }: { row: LifecycleRecord }) {
           value={formatText(row.certificationStatus)}
         />
         <MetricCard label="Entity Type" value={formatText(row.entityType)} />
-        <MetricCard label="Country" value={formatText(row.country)} />
+        <MetricCard
+          label="Governance Jurisdiction"
+          value={formatText(row.country)}
+        />
       </div>
     </article>
   );
@@ -172,10 +175,10 @@ export default async function ExplorerLifecyclePage() {
     <main className="mx-auto max-w-[1180px] px-6 py-10">
       <div className="space-y-8">
         <PublicPageHero
-          eyebrow="EXPLORER / LIFECYCLE"
+          eyebrow="EXPLORER / CERTIFICATION LIFECYCLE OBSERVABILITY"
           title="Certification lifecycle observability"
-          description="Lifecycle Explorer shows publication-safe certification continuity signals derived from GAFAIG’s canonical Snowflake public lifecycle view."
-          secondaryDescription="This page does not compute trust. It displays Snowflake-originated lifecycle status, renewal status, validity windows, and expiration posture for explicitly published certification records only."
+          description="Lifecycle Explorer surfaces publication-safe certification lifecycle continuity observability derived from GAFAIG’s canonical Snowflake public lifecycle observability views."
+          secondaryDescription="This page does not compute public trust. It displays Snowflake-originated lifecycle status, renewal status, validity windows, and expiration posture for explicitly published certification surfaces only."
           actions={
             <>
               <PublicButtonLink href="/explorer" variant="primary">
@@ -185,7 +188,7 @@ export default async function ExplorerLifecyclePage() {
                 Renewal Observability
               </PublicButtonLink>
               <PublicButtonLink href="/registry" variant="secondary">
-                Open Registry
+                Open Certification Registry
               </PublicButtonLink>
             </>
           }
@@ -193,7 +196,10 @@ export default async function ExplorerLifecyclePage() {
 
         <section className="rounded-3xl border border-black/10 bg-white p-8">
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-            <MetricCard label="Lifecycle Records" value={String(total)} />
+            <MetricCard
+              label="Published Certification Lifecycle Surfaces"
+              value={String(total)}
+            />
             <MetricCard label="Active" value={String(active)} />
             <MetricCard label="Expiring 30 Days" value={String(expiring30)} />
             <MetricCard label="Expired" value={String(expired)} />
@@ -203,17 +209,19 @@ export default async function ExplorerLifecyclePage() {
         <section className="rounded-3xl border border-black/10 bg-white p-8">
           <div className="max-w-4xl space-y-4">
             <div className="text-[12px] font-semibold uppercase tracking-[0.24em] text-black/40">
-              Lifecycle directory
+              Certification Lifecycle Observatory
             </div>
 
             <h2 className="text-[26px] font-semibold tracking-tight text-black">
-              Public certification continuity records
+              Public certification continuity observability surfaces
             </h2>
 
             <p className="text-[15px] leading-7 text-black/75">
-              Each row is projected from <strong>CORE.V_LIFECYCLE_PUBLIC</strong>.
-              The UI formats the data only. Lifecycle state, expiration windows,
-              and certification continuity are determined in Snowflake.
+              Each observability surface is projected from{" "}
+              <strong>CORE.V_LIFECYCLE_PUBLIC</strong>. The UI formats the data
+              only. Lifecycle observability state, expiration windows, and
+              certification continuity observability are determined in
+              Snowflake.
             </p>
           </div>
 

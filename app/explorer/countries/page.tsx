@@ -26,10 +26,10 @@ export default async function ExplorerCountriesPage() {
     <main className="mx-auto max-w-[1180px] px-6 py-10">
       <div className="space-y-8">
         <PublicPageHero
-          eyebrow="EXPLORER / COUNTRIES"
-          title="Browse the GAFAIG public trust surface by country"
-          description="This page summarizes countries represented in the GAFAIG public trust surface using publication-controlled Snowflake-backed explorer data."
-          secondaryDescription="Only organizations and systems associated with explicitly published certification records appear in Explorer country views."
+          eyebrow="EXPLORER / COUNTRY GOVERNANCE INTELLIGENCE"
+          title="Browse GAFAIG public governance trust surfaces by country"
+          description="This page summarizes countries represented in GAFAIG public governance trust surfaces using publication-controlled deterministic Snowflake-backed explorer data."
+          secondaryDescription="Only organizations and AI governance surfaces associated with explicitly published certification surfaces appear in Explorer country views."
           actions={
             <>
               <PublicButtonLink href="/explorer" variant="primary">
@@ -37,7 +37,7 @@ export default async function ExplorerCountriesPage() {
               </PublicButtonLink>
 
               <PublicButtonLink href="/registry" variant="secondary">
-                Open Registry
+                Open Public Certification Registry
               </PublicButtonLink>
             </>
           }
@@ -47,7 +47,7 @@ export default async function ExplorerCountriesPage() {
           <div className="grid gap-4 md:grid-cols-2">
             <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
               <div className="text-[12px] font-semibold uppercase tracking-[0.24em] text-black/40">
-                Countries
+                Governance Jurisdictions
               </div>
 
               <div className="mt-3 text-[26px] font-semibold tracking-tight text-black">
@@ -70,18 +70,18 @@ export default async function ExplorerCountriesPage() {
         <section className="rounded-3xl border border-black/10 bg-white p-8">
           <div className="max-w-4xl space-y-4">
             <div className="text-[12px] font-semibold uppercase tracking-[0.24em] text-black/40">
-              Country Governance Intelligence
+              Country Governance Observability
             </div>
 
             <h2 className="text-[26px] font-semibold tracking-tight text-black">
-              Public governance observability by country
+              Publication-safe governance observability by jurisdiction
             </h2>
 
             <p className="text-[15px] leading-7 text-black/75">
               Explorer country views aggregate publicly visible certification
-              metadata from organizations that explicitly elected publication.
-              Select a country to open its country-level governance intelligence
-              profile.
+              surface metadata from organizations that explicitly elected
+              publication. Select a country to open its country-level governance
+              observability surface.
             </p>
           </div>
 
@@ -93,7 +93,8 @@ export default async function ExplorerCountriesPage() {
             {rows.length === 0 ? (
               <div className="rounded-3xl border border-dashed border-black/10 bg-black/[0.02] px-6 py-14 text-center">
                 <div className="text-lg font-semibold text-black">
-                  No published country records are currently available.
+                  No published country governance surfaces are currently
+                  available.
                 </div>
 
                 <p className="mt-2 text-sm leading-6 text-black/60">
@@ -110,7 +111,7 @@ export default async function ExplorerCountriesPage() {
                   <div className="flex flex-wrap items-start justify-between gap-4">
                     <div>
                       <p className="text-[12px] font-semibold uppercase tracking-[0.24em] text-black/40">
-                        Country Intelligence Profile
+                        Country Governance Observability Surface
                       </p>
 
                       <h3 className="mt-3 text-[24px] font-semibold tracking-tight text-black">
@@ -119,7 +120,8 @@ export default async function ExplorerCountriesPage() {
 
                       <p className="mt-2 text-[14px] leading-6 text-black/70">
                         Publication-safe country-level governance observability
-                        derived from canonical Snowflake public registry views.
+                        derived from canonical Snowflake public trust
+                        infrastructure views.
                       </p>
                     </div>
 
@@ -129,7 +131,7 @@ export default async function ExplorerCountriesPage() {
                       )}`}
                       variant="primary"
                     >
-                      Open Country Intelligence
+                      Open Country Governance Surface
                     </PublicButtonLink>
                   </div>
 
@@ -146,7 +148,7 @@ export default async function ExplorerCountriesPage() {
 
                     <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
                       <div className="text-[12px] font-semibold uppercase tracking-[0.24em] text-black/40">
-                        Public Records
+                        Certification Surfaces
                       </div>
 
                       <div className="mt-3 text-[18px] font-semibold text-black">
@@ -156,7 +158,7 @@ export default async function ExplorerCountriesPage() {
 
                     <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
                       <div className="text-[12px] font-semibold uppercase tracking-[0.24em] text-black/40">
-                        Systems
+                        AI Governance Surfaces
                       </div>
 
                       <div className="mt-3 text-[18px] font-semibold text-black">
@@ -166,11 +168,11 @@ export default async function ExplorerCountriesPage() {
 
                     <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
                       <div className="text-[12px] font-semibold uppercase tracking-[0.24em] text-black/40">
-                        Governance Surface
+                        Public Trust Infrastructure
                       </div>
 
                       <div className="mt-3 text-[18px] font-semibold text-black">
-                        Publication-safe
+                        Deterministic
                       </div>
                     </div>
                   </div>

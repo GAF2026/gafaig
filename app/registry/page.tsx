@@ -104,8 +104,9 @@ function EmptyState() {
   return (
     <div className="rounded-3xl border border-dashed border-black/10 bg-black/[0.02] px-6 py-14 text-center">
       <div className="text-lg font-semibold text-black">
-        No published records available. Certification is evaluated privately, and
-        records only appear here if organizations choose to publish them.
+        No published certification surfaces available. Certification is
+        evaluated privately, and certification surfaces only appear here if
+        organizations choose to publish them.
       </div>
       <div className="mt-6">
         <PublicButtonLink href="/registry" variant="secondary">
@@ -122,13 +123,13 @@ function RegistryUnavailableState() {
       <div className="space-y-8">
         <PublicPageHero
           eyebrow="PUBLIC CERTIFICATION REGISTRY"
-          title="Browse published GAFAIG certification records"
+          title="Browse published GAFAIG certification surfaces"
           description="The public registry is temporarily unavailable."
-          secondaryDescription="The registry surface is read-only and depends on the canonical Snowflake public view. Please try again shortly."
+          secondaryDescription="The public certification registry infrastructure surface is read-only and depends on the canonical Snowflake public trust infrastructure view. Please try again shortly."
           actions={
             <>
               <PublicButtonLink href="/verify" variant="primary">
-                Verify a Record
+                Open Verification Surface
               </PublicButtonLink>
               <PublicButtonLink href="/explorer" variant="secondary">
                 Open Explorer
@@ -143,8 +144,8 @@ function RegistryUnavailableState() {
               Registry unavailable
             </div>
             <p className="mt-2 text-sm leading-6 text-black/60">
-              GAFAIG could not load the public registry records from the
-              canonical public view.
+              GAFAIG could not load public certification surfaces from canonical
+              Snowflake public trust infrastructure views.
             </p>
           </div>
         </section>
@@ -224,7 +225,7 @@ function RegistryCard({ row }: { row: RegistryPageRow }) {
 
           <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
             <div className="text-[12px] font-semibold uppercase tracking-[0.24em] text-black/40">
-              Country
+              Governance Jurisdiction
             </div>
             <div className="mt-3 text-[15px] leading-7 text-black">
               {row.country ?? "—"}
@@ -237,14 +238,14 @@ function RegistryCard({ row }: { row: RegistryPageRow }) {
             href={`/verify/${encodeURIComponent(row.registryId)}`}
             variant="primary"
           >
-            Verify This Record
+            Open Verification Surface
           </PublicButtonLink>
 
           <PublicButtonLink
             href={`/registry/${encodeURIComponent(row.registryId)}`}
             variant="secondary"
           >
-            Open Certification Record
+            Open Certification Surface
           </PublicButtonLink>
 
           <PublicButtonLink
@@ -321,8 +322,8 @@ export default async function RegistryPage({
 
   const activeFilters = [
     q ? { label: "Search", value: q } : null,
-    country ? { label: "Country", value: country } : null,
-    organization ? { label: "Organization", value: organization } : null,
+    country ? { label: "Governance Jurisdiction", value: country } : null,
+    organization ? { label: "Governance Organization", value: organization } : null,
   ].filter(Boolean) as Array<{ label: string; value: string }>;
 
   return (
@@ -330,16 +331,16 @@ export default async function RegistryPage({
       <div className="space-y-8">
         <PublicPageHero
           eyebrow="PUBLIC CERTIFICATION REGISTRY"
-          title="Browse published GAFAIG certification records"
-          description="The public registry is the publication-controlled trust surface of GAFAIG’s deterministic global AI governance infrastructure. Certification is evaluated privately, and only records that organizations explicitly choose to publish appear here."
-          secondaryDescription="Each published certification record can be independently verified through GAFAIG’s verification endpoint, signed proof.messageString payload, and public key infrastructure."
+          title="Browse published GAFAIG certification surfaces"
+          description="The public certification registry is the publication-controlled public governance trust infrastructure surface of GAFAIG’s deterministic global AI governance infrastructure. Certification is evaluated privately, and only certification surfaces that organizations explicitly choose to publish appear here."
+          secondaryDescription="Each published certification surface can be independently verified through GAFAIG’s verification endpoint, signed proof.messageString payload, and public key infrastructure."
           actions={
             <>
               <PublicButtonLink href="/explorer" variant="primary">
                 Open Explorer
               </PublicButtonLink>
               <PublicButtonLink href="/verify" variant="secondary">
-                Verify a Record
+                Open Verification Surface
               </PublicButtonLink>
             </>
           }
@@ -348,23 +349,23 @@ export default async function RegistryPage({
         <section className="rounded-3xl border border-black/10 bg-white p-8">
           <div className="max-w-4xl space-y-4">
             <div className="text-xs font-semibold uppercase tracking-[0.24em] text-black/40">
-              How to read the registry
+              How to read the public certification registry
             </div>
             <h2 className="text-[26px] font-semibold tracking-tight text-black">
-              The registry is the public index of explicitly published
-              certification records
+              The certification registry is the public index of explicitly published
+              certification surfaces
             </h2>
             <p className="text-[15px] leading-7 text-black/75">
-              Each entry represents a GAFAIG certification record that an
+              Each entry represents a GAFAIG certification surface that an
               organization has chosen to publish. Private governance data,
               evidence, findings, scoring internals, reviewer materials, and
               governance telemetry are not exposed in the public registry.
             </p>
             <p className="text-[15px] leading-7 text-black/75">
-              Public certification records are projection-only trust surfaces.
-              They are not recomputed in the UI. Verification depends on the
-              canonical verify endpoint, exact proof.messageString payload,
-              signature, and GAFAIG public key.
+              Public certification surfaces are projection-only public
+              governance trust surfaces. Public trust is not recomputed in the
+              UI. Verification depends on the canonical verify endpoint, exact
+              proof.messageString payload, signature, and GAFAIG public key.
             </p>
 
             {hasAnyFilters && activeFilters.length > 0 ? (
