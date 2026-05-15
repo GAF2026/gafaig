@@ -86,8 +86,8 @@ export default async function HomePage() {
   const featuredRegistryId = latest?.registryId ?? "";
 
   return (
-    <main className="mx-auto max-w-[1180px] px-6 py-10">
-      <div className="space-y-8">
+    <main className="mx-auto max-w-[1180px] px-5 py-8 sm:px-6 sm:py-10">
+      <div className="space-y-7 sm:space-y-8">
         <PublicPageHero
           eyebrow="GLOBAL AUTHORITY FOR AI GOVERNANCE"
           title="AI governance, independently verifiable."
@@ -110,24 +110,24 @@ export default async function HomePage() {
           }
         />
 
-        <section className="rounded-3xl border border-black/10 bg-white p-8">
+        <section className="rounded-3xl border border-black/10 bg-white p-6 sm:p-8">
           <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
             HUMAN ACCOUNTABILITY FOR AI
           </div>
 
-          <h2 className="mt-4 max-w-[900px] text-[30px] font-semibold tracking-tight text-black">
+          <h2 className="mt-4 max-w-[900px] text-[26px] sm:text-[30px] font-semibold tracking-tight text-black">
             Artificial intelligence systems should not operate without visible
             human accountability
           </h2>
 
-          <p className="mt-5 max-w-[980px] text-[16px] leading-7 text-black/75">
+          <p className="mt-5 max-w-[980px] text-[15px] leading-8 sm:text-[16px] text-black/75">
             As AI systems become more powerful and more widely deployed, the
             public needs a reliable way to understand whether those systems are
             governed responsibly. Governance claims should not depend on blind
             trust, marketing language, screenshots, or unverifiable disclosures.
           </p>
 
-          <div className="mt-7 grid gap-4 md:grid-cols-3">
+          <div className="mt-7 grid gap-4 sm:gap-5 md:grid-cols-3">
             <LegitimacyCard
               title="Governance should be visible"
               body="AI governance should not remain hidden inside private documents, internal processes, or unsupported public claims."
@@ -172,24 +172,24 @@ export default async function HomePage() {
           />
         </section>
 
-        <section className="rounded-3xl border border-black/10 bg-white p-8">
+        <section className="rounded-3xl border border-black/10 bg-white p-6 sm:p-8">
           <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
             WHY GAFAIG EXISTS
           </div>
 
-          <h2 className="mt-4 max-w-[860px] text-[26px] font-semibold tracking-tight text-black">
+          <h2 className="mt-4 max-w-[860px] text-[24px] sm:text-[26px] font-semibold tracking-tight text-black">
             GAFAIG turns AI governance from private claims into independently
             verifiable public accountability
           </h2>
 
-          <p className="mt-5 max-w-[980px] text-[15px] leading-7 text-black/75">
+          <p className="mt-5 max-w-[980px] text-[15px] leading-8 text-black/75">
             Organizations may claim that AI systems are responsible, safe,
             ethical, governed, or aligned. But without independently verifiable
             governance infrastructure, external stakeholders often cannot
             determine whether those claims reflect real oversight.
           </p>
 
-          <p className="mt-4 max-w-[980px] text-[15px] leading-7 text-black/75">
+          <p className="mt-4 max-w-[980px] text-[15px] leading-8 text-black/75">
             GAFAIG creates a deterministic path from private governance
             execution to optional public certification surfaces. Certification
             remains private until publication is explicitly elected. Once
@@ -209,17 +209,17 @@ export default async function HomePage() {
           </div>
         </section>
 
-        <section className="rounded-3xl border border-black/10 bg-white p-8">
+        <section className="rounded-3xl border border-black/10 bg-white p-6 sm:p-8">
           <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
             DETERMINISTIC GOVERNANCE INFRASTRUCTURE
           </div>
 
-          <h2 className="mt-4 max-w-[860px] text-[26px] font-semibold tracking-tight text-black">
+          <h2 className="mt-4 max-w-[860px] text-[24px] sm:text-[26px] font-semibold tracking-tight text-black">
             GAFAIG transforms AI governance into independently verifiable public
             governance trust infrastructure
           </h2>
 
-          <p className="mt-5 max-w-[980px] text-[15px] leading-7 text-black/75">
+          <p className="mt-5 max-w-[980px] text-[15px] leading-8 text-black/75">
             GAFAIG combines governance execution, certification lifecycle
             management, governance observability, governance simulations,
             remediation orchestration, append-only publication infrastructure,
@@ -271,17 +271,17 @@ export default async function HomePage() {
           </div>
         </section>
 
-        <section className="rounded-3xl border border-black/10 bg-white p-8">
+        <section className="rounded-3xl border border-black/10 bg-white p-6 sm:p-8">
           <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
             GOVERNANCE INTELLIGENCE + OBSERVABILITY
           </div>
 
-          <h2 className="mt-4 max-w-[860px] text-[26px] font-semibold tracking-tight text-black">
+          <h2 className="mt-4 max-w-[860px] text-[24px] sm:text-[26px] font-semibold tracking-tight text-black">
             Governance execution, observability, simulations, and remediation
             operate together
           </h2>
 
-          <p className="mt-5 max-w-[980px] text-[15px] leading-7 text-black/75">
+          <p className="mt-5 max-w-[980px] text-[15px] leading-8 text-black/75">
             GAFAIG extends beyond registry publication into governance
             intelligence, governance observability, governance simulations, drift
             analysis, remediation orchestration, execution governance, and
@@ -303,16 +303,16 @@ export default async function HomePage() {
           </div>
         </section>
 
-        <section className="rounded-3xl border border-black/10 bg-white p-8">
+        <section className="rounded-3xl border border-black/10 bg-white p-6 sm:p-8">
           <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
             FEATURED PUBLIC CERTIFICATION SURFACE
           </div>
 
-          <h2 className="mt-4 max-w-[860px] text-[26px] font-semibold tracking-tight text-black">
+          <h2 className="mt-4 max-w-[860px] text-[24px] sm:text-[26px] font-semibold tracking-tight text-black">
             A signed public certification surface backed by cryptographic proof
           </h2>
 
-          <p className="mt-5 max-w-[980px] text-[15px] leading-7 text-black/75">
+          <p className="mt-5 max-w-[980px] text-[15px] leading-8 text-black/75">
             Each public GAFAIG certification surface includes a registry
             identifier, verification endpoint, signed proof payload, and
             public-key validation path. The registry distributes public
@@ -340,7 +340,7 @@ export default async function HomePage() {
             )}
           </div>
 
-          <div className="mt-6 flex flex-wrap gap-3">
+          <div className="mt-7 flex flex-wrap gap-3 sm:gap-4">
             <PublicButtonLink href="/registry" variant="primary">
               Explore Registry
             </PublicButtonLink>
@@ -358,17 +358,17 @@ export default async function HomePage() {
           </div>
         </section>
 
-        <section className="rounded-3xl border border-black/10 bg-white p-8">
+        <section className="rounded-3xl border border-black/10 bg-white p-6 sm:p-8">
           <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
             PROOF + VERIFICATION FLOW
           </div>
 
-          <h2 className="mt-4 max-w-[860px] text-[26px] font-semibold tracking-tight text-black">
+          <h2 className="mt-4 max-w-[860px] text-[24px] sm:text-[26px] font-semibold tracking-tight text-black">
             Public governance trust is independently validated through signed
             verification proof infrastructure
           </h2>
 
-          <p className="mt-5 max-w-[980px] text-[15px] leading-7 text-black/75">
+          <p className="mt-5 max-w-[980px] text-[15px] leading-8 text-black/75">
             GAFAIG verification does not rely on screenshots, UI rendering, or
             reconstructed payloads. Verification uses the exact
             proof.messageString payload returned by the verification endpoint
@@ -376,7 +376,7 @@ export default async function HomePage() {
             infrastructure.
           </p>
 
-          <div className="mt-8 grid gap-4 md:grid-cols-4">
+          <div className="mt-8 grid gap-4 sm:gap-5 md:grid-cols-4">
             <StepCard
               number="1"
               title="Resolve certification surface"
@@ -399,7 +399,7 @@ export default async function HomePage() {
             />
           </div>
 
-          <div className="mt-6 flex flex-wrap gap-3">
+          <div className="mt-6 flex flex-wrap gap-3 sm:gap-4">
             <PublicButtonLink href="/demo" variant="primary">
               Walk Through the Demo
             </PublicButtonLink>
@@ -416,14 +416,14 @@ export default async function HomePage() {
           </div>
         </section>
 
-        <section className="rounded-3xl border border-black/10 bg-white p-8">
+        <section className="rounded-3xl border border-black/10 bg-white p-6 sm:p-8">
           <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
             <div>
               <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
                 LIVE PUBLIC GOVERNANCE TRUST FOOTPRINT
               </div>
 
-              <h2 className="mt-4 max-w-[860px] text-[26px] font-semibold tracking-tight text-black">
+              <h2 className="mt-4 max-w-[860px] text-[24px] sm:text-[26px] font-semibold tracking-tight text-black">
                 Current published GAFAIG certification footprint
               </h2>
 
@@ -436,7 +436,7 @@ export default async function HomePage() {
             <div className="text-[14px] text-black/70">Public metrics</div>
           </div>
 
-          <div className="mt-7 grid gap-4 md:grid-cols-3">
+          <div className="mt-8 grid gap-4 sm:gap-5 md:grid-cols-3">
             <MetricCard
               label="Certified organizations"
               value={fmt(metrics?.certifiedOrganizations)}
@@ -474,18 +474,18 @@ function AudienceCard({
   primary?: boolean;
 }) {
   return (
-    <div className="rounded-3xl border border-black/10 bg-white p-6">
+    <div className="rounded-3xl border border-black/10 bg-white p-6 sm:p-7">
       <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-black/45">
         {eyebrow}
       </div>
 
-      <h2 className="mt-3 text-[26px] font-semibold leading-[1.2] tracking-tight text-black">
+      <h2 className="mt-3 text-[23px] sm:text-[26px] font-semibold leading-[1.2] tracking-tight text-black">
         {title}
       </h2>
 
-      <p className="mt-4 text-[15px] leading-7 text-black/75">{body}</p>
+      <p className="mt-4 text-[15px] leading-8 text-black/75">{body}</p>
 
-      <ul className="mt-5 space-y-3 text-[14px] leading-7 text-black/70">
+      <ul className="mt-5 space-y-3.5 text-[14px] leading-7 text-black/70">
         {points.map((item) => (
           <li key={item} className="flex gap-3">
             <span className="mt-[8px] h-1.5 w-1.5 shrink-0 rounded-full bg-black" />
@@ -505,22 +505,22 @@ function AudienceCard({
 
 function LegitimacyCard({ title, body }: { title: string; body: string }) {
   return (
-    <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
+    <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5 sm:p-6">
       <div className="text-[18px] font-semibold tracking-tight text-black">
         {title}
       </div>
-      <p className="mt-3 text-[15px] leading-7 text-black/75">{body}</p>
+      <p className="mt-3 text-[15px] leading-8 text-black/75">{body}</p>
     </div>
   );
 }
 
 function MetricCard({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
+    <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5 sm:p-6">
       <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/55">
         {label}
       </div>
-      <div className="mt-3 text-[36px] font-semibold leading-none tracking-tight text-black">
+      <div className="mt-3 text-[32px] sm:text-[36px] font-semibold leading-none tracking-tight text-black">
         {value}
       </div>
     </div>
@@ -543,18 +543,18 @@ function PillarCard({
   cta: string;
 }) {
   return (
-    <div className="rounded-3xl border border-black/10 bg-white p-6">
+    <div className="rounded-3xl border border-black/10 bg-white p-6 sm:p-7">
       <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-black/45">
         {eyebrow}
       </div>
 
-      <h2 className="mt-3 text-[24px] font-semibold leading-[1.25] tracking-tight text-black">
+      <h2 className="mt-3 text-[22px] sm:text-[24px] font-semibold leading-[1.25] tracking-tight text-black">
         {title}
       </h2>
 
-      <p className="mt-4 text-[15px] leading-7 text-black/75">{body}</p>
+      <p className="mt-4 text-[15px] leading-8 text-black/75">{body}</p>
 
-      <ul className="mt-5 space-y-3 text-[14px] leading-7 text-black/70">
+      <ul className="mt-5 space-y-3.5 text-[14px] leading-7 text-black/70">
         {points.map((item) => (
           <li key={item} className="flex gap-3">
             <span className="mt-[8px] h-1.5 w-1.5 shrink-0 rounded-full bg-black" />
@@ -584,7 +584,7 @@ function VerifiedRecordCard({
   href: string;
 }) {
   return (
-    <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
+    <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5 sm:p-6">
       <div className="flex flex-wrap gap-2">
         <div className="inline-flex rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-sm font-semibold text-emerald-700">
           {status}
@@ -604,7 +604,7 @@ function VerifiedRecordCard({
         verification.
       </p>
 
-      <div className="mt-5 flex flex-wrap gap-3">
+      <div className="mt-6 flex flex-wrap gap-3">
         <PublicButtonLink href={href} variant="secondary" size="sm">
           Open Certification Surface
         </PublicButtonLink>
@@ -627,11 +627,11 @@ function VerifiedRecordCard({
 
 function StatementCard({ title, body }: { title: string; body: string }) {
   return (
-    <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
+    <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5 sm:p-6">
       <div className="text-[18px] font-semibold tracking-tight text-black">
         {title}
       </div>
-      <p className="mt-3 text-[15px] leading-7 text-black/75">{body}</p>
+      <p className="mt-3 text-[15px] leading-8 text-black/75">{body}</p>
     </div>
   );
 }
@@ -646,12 +646,12 @@ function StepCard({
   body: string;
 }) {
   return (
-    <div className="rounded-2xl border border-black/10 bg-white p-4">
+    <div className="rounded-2xl border border-black/10 bg-white p-5">
       <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/55">
         {number}
       </div>
-      <div className="mt-2 text-[16px] font-semibold text-black">{title}</div>
-      <p className="mt-2 text-[14px] leading-7 text-black/70">{body}</p>
+      <div className="mt-3 text-[16px] font-semibold text-black">{title}</div>
+      <p className="mt-3 text-[14px] leading-7 text-black/70">{body}</p>
     </div>
   );
 }

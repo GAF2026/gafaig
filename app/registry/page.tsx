@@ -93,7 +93,7 @@ function getStatusLabel(row: RegistryPageRow): string {
 
 function FilterChip({ label, value }: { label: string; value: string }) {
   return (
-    <span className="inline-flex items-center justify-center rounded-full border border-black/10 bg-black/[0.02] px-3 py-1 text-sm font-medium text-black/70">
+    <span className="inline-flex items-center justify-center rounded-full border border-black/10 bg-black/[0.02] px-3.5 py-1.5 text-sm font-medium text-black/70">
       <span className="mr-2 text-black/40">{label}</span>
       <span className="text-black">{value}</span>
     </span>
@@ -102,13 +102,13 @@ function FilterChip({ label, value }: { label: string; value: string }) {
 
 function EmptyState() {
   return (
-    <div className="rounded-3xl border border-dashed border-black/10 bg-black/[0.02] px-6 py-14 text-center">
+    <div className="rounded-3xl border border-dashed border-black/10 bg-black/[0.02] px-6 py-14 text-center sm:px-10">
       <div className="text-lg font-semibold text-black">
         No published certification surfaces available. Certification is
         evaluated privately, and certification surfaces only appear here if
         organizations choose to publish them.
       </div>
-      <div className="mt-6">
+      <div className="mt-7">
         <PublicButtonLink href="/registry" variant="secondary">
           Clear all filters
         </PublicButtonLink>
@@ -119,8 +119,8 @@ function EmptyState() {
 
 function RegistryUnavailableState() {
   return (
-    <main className="mx-auto max-w-[1180px] px-6 py-10">
-      <div className="space-y-8">
+    <main className="mx-auto max-w-[1180px] px-5 py-8 sm:px-6 sm:py-10">
+      <div className="space-y-8 sm:space-y-9">
         <PublicPageHero
           eyebrow="PUBLIC CERTIFICATION REGISTRY"
           title="Browse published GAFAIG certification surfaces"
@@ -138,7 +138,7 @@ function RegistryUnavailableState() {
           }
         />
 
-        <section className="rounded-3xl border border-black/10 bg-white p-8">
+        <section className="rounded-3xl border border-black/10 bg-white p-6 sm:p-8">
           <div className="rounded-3xl border border-dashed border-black/10 bg-black/[0.02] px-6 py-14 text-center">
             <div className="text-lg font-semibold text-black">
               Registry unavailable
@@ -156,8 +156,8 @@ function RegistryUnavailableState() {
 
 function RegistryCard({ row }: { row: RegistryPageRow }) {
   return (
-    <article className="rounded-3xl border border-black/10 bg-white p-6 shadow-sm">
-      <div className="space-y-5">
+    <article className="rounded-3xl border border-black/10 bg-white p-6 shadow-sm sm:p-7">
+      <div className="space-y-6">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="space-y-3">
             <div className="inline-flex rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-sm font-semibold text-emerald-700">
@@ -165,10 +165,10 @@ function RegistryCard({ row }: { row: RegistryPageRow }) {
             </div>
 
             <div>
-              <h2 className="text-[26px] font-semibold tracking-tight text-black">
+              <h2 className="text-[22px] font-semibold tracking-tight text-black sm:text-[24px]">
                 {formatLabel(row.entityName)}
               </h2>
-              <p className="mt-2 text-[14px] text-black/70">
+              <p className="mt-4 text-[14px] leading-8 text-black/70">
                 {row.entityType ? row.entityType : ""}
                 {row.entityType && row.country ? " · " : ""}
                 {row.country ? row.country : ""}
@@ -176,64 +176,64 @@ function RegistryCard({ row }: { row: RegistryPageRow }) {
             </div>
           </div>
 
-          <div className="min-w-[220px] rounded-2xl border border-black/10 bg-black/[0.02] p-5">
+          <div className="min-w-[220px] rounded-2xl border border-black/10 bg-black/[0.02] p-5 sm:p-6">
             <div className="text-[12px] font-semibold uppercase tracking-[0.24em] text-black/40">
               Registry ID
             </div>
-            <div className="mt-3 break-all text-[15px] leading-7 text-black">
+            <div className="mt-5 break-all text-[15px] leading-8 text-black">
               {row.registryId}
             </div>
           </div>
         </div>
 
-        <div className="mt-5 grid gap-3 md:grid-cols-3">
-          <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
+        <div className="mt-8 grid gap-4 sm:gap-5 md:grid-cols-3">
+          <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5 sm:p-6">
             <div className="text-[12px] font-semibold uppercase tracking-[0.24em] text-black/40">
               Certified
             </div>
-            <div className="mt-3 text-[15px] leading-7 text-black">
+            <div className="mt-4 text-[15px] leading-8 text-black">
               {formatDate(row.certifiedAt)}
             </div>
           </div>
 
-          <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
+          <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5 sm:p-6">
             <div className="text-[12px] font-semibold uppercase tracking-[0.24em] text-black/40">
               Valid From
             </div>
-            <div className="mt-3 text-[15px] leading-7 text-black">
+            <div className="mt-4 text-[15px] leading-8 text-black">
               {formatDate(row.validFrom)}
             </div>
           </div>
 
-          <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
+          <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5 sm:p-6">
             <div className="text-[12px] font-semibold uppercase tracking-[0.24em] text-black/40">
               Valid To
             </div>
-            <div className="mt-3 text-[15px] leading-7 text-black">
+            <div className="mt-4 text-[15px] leading-8 text-black">
               {formatDate(row.validTo)}
             </div>
           </div>
 
-          <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
+          <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5 sm:p-6">
             <div className="text-[12px] font-semibold uppercase tracking-[0.24em] text-black/40">
               Published
             </div>
-            <div className="mt-3 text-[15px] leading-7 text-black">
+            <div className="mt-4 text-[15px] leading-8 text-black">
               {formatDate(row.publishedAt)}
             </div>
           </div>
 
-          <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
+          <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5 sm:p-6">
             <div className="text-[12px] font-semibold uppercase tracking-[0.24em] text-black/40">
               Governance Jurisdiction
             </div>
-            <div className="mt-3 text-[15px] leading-7 text-black">
+            <div className="mt-4 text-[15px] leading-8 text-black">
               {row.country ?? "—"}
             </div>
           </div>
         </div>
 
-        <div className="flex flex-wrap gap-3 pt-1">
+        <div className="flex flex-wrap gap-3 pt-4 sm:gap-4">
           <PublicButtonLink
             href={`/verify/${encodeURIComponent(row.registryId)}`}
             variant="primary"
@@ -252,7 +252,7 @@ function RegistryCard({ row }: { row: RegistryPageRow }) {
             href={`/api/verify/${encodeURIComponent(row.registryId)}`}
             variant="secondary"
           >
-            View Proof JSON
+            View Signed Proof JSON
           </PublicButtonLink>
         </div>
       </div>
@@ -327,8 +327,8 @@ export default async function RegistryPage({
   ].filter(Boolean) as Array<{ label: string; value: string }>;
 
   return (
-    <main className="mx-auto max-w-[1180px] px-6 py-10">
-      <div className="space-y-8">
+    <main className="mx-auto max-w-[1180px] px-5 py-8 sm:px-6 sm:py-10">
+      <div className="space-y-7 sm:space-y-8">
         <PublicPageHero
           eyebrow="PUBLIC CERTIFICATION REGISTRY"
           title="Browse published GAFAIG certification surfaces"
@@ -346,22 +346,22 @@ export default async function RegistryPage({
           }
         />
 
-        <section className="rounded-3xl border border-black/10 bg-white p-8">
-          <div className="max-w-4xl space-y-4">
+        <section className="rounded-3xl border border-black/10 bg-white p-6 sm:p-8">
+          <div className="max-w-4xl space-y-5 sm:space-y-6">
             <div className="text-xs font-semibold uppercase tracking-[0.24em] text-black/40">
               How to read the public certification registry
             </div>
-            <h2 className="text-[26px] font-semibold tracking-tight text-black">
+            <h2 className="text-[24px] font-semibold tracking-tight text-black sm:text-[26px]">
               The certification registry is the public index of explicitly published
               certification surfaces
             </h2>
-            <p className="text-[15px] leading-7 text-black/75">
+            <p className="text-[15px] leading-8 text-black/75">
               Each entry represents a GAFAIG certification surface that an
               organization has chosen to publish. Private governance data,
               evidence, findings, scoring internals, reviewer materials, and
               governance telemetry are not exposed in the public registry.
             </p>
-            <p className="text-[15px] leading-7 text-black/75">
+            <p className="text-[15px] leading-8 text-black/75">
               Public certification surfaces are projection-only public
               governance trust surfaces. Public trust is not recomputed in the
               UI. Verification depends on the canonical verify endpoint, exact
@@ -369,7 +369,7 @@ export default async function RegistryPage({
             </p>
 
             {hasAnyFilters && activeFilters.length > 0 ? (
-              <div className="flex flex-wrap gap-2 pt-2">
+              <div className="mt-7 flex flex-wrap gap-3 sm:gap-4">
                 {activeFilters.map((filter) => (
                   <FilterChip
                     key={`${filter.label}-${filter.value}`}
@@ -382,7 +382,7 @@ export default async function RegistryPage({
           </div>
         </section>
 
-        <section className="rounded-3xl border border-black/10 bg-white p-8">
+        <section className="rounded-3xl border border-black/10 bg-white p-6 sm:p-8 md:p-10">
           {rows.length === 0 ? (
             <EmptyState />
           ) : (

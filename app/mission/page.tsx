@@ -4,8 +4,8 @@ export const dynamic = "force-dynamic";
 
 export default function MissionPage() {
   return (
-    <main className="mx-auto max-w-[1180px] px-6 py-10">
-      <div className="space-y-8">
+    <main className="mx-auto max-w-[1180px] px-5 py-8 sm:px-6 sm:py-10">
+      <div className="space-y-7 sm:space-y-8">
         <PublicPageHero
           eyebrow="MISSION"
           title="Why GAFAIG exists"
@@ -13,12 +13,12 @@ export default function MissionPage() {
           secondaryDescription="The GAFAIG mission is to transform AI governance from private assertions into deterministic certification outcomes that can remain private or, when publication is elected, become signed public certification surfaces backed by independent verification."
         />
 
-        <section className="rounded-3xl border border-black/10 bg-white p-8">
-          <h2 className="text-[30px] font-semibold tracking-tight text-black">
+        <section className="rounded-3xl border border-black/10 bg-white p-6 sm:p-8">
+          <h2 className="text-[26px] sm:text-[30px] font-semibold tracking-tight text-black">
             AI systems should not operate without visible human accountability
           </h2>
 
-          <p className="mt-5 text-[16px] leading-7 text-black/75">
+          <p className="mt-5 text-[15px] leading-8 sm:text-[16px] text-black/75">
             As artificial intelligence becomes more powerful and more widely
             deployed, society needs a reliable way to understand whether AI
             systems are governed responsibly. Governance claims should not depend
@@ -26,7 +26,7 @@ export default function MissionPage() {
             disclosures.
           </p>
 
-          <p className="mt-4 max-w-[940px] text-[15px] leading-7 text-black/75">
+          <p className="mt-4 max-w-[940px] text-[15px] leading-8 text-black/75">
             GAFAIG exists because AI governance must become visible,
             inspectable, independently verifiable, and publicly accountable.
             The mission is not merely to display certification information. The
@@ -35,19 +35,19 @@ export default function MissionPage() {
           </p>
         </section>
 
-        <section className="rounded-3xl border border-black/10 bg-white p-8">
-          <h2 className="text-[26px] font-semibold tracking-tight text-black">
+        <section className="rounded-3xl border border-black/10 bg-white p-6 sm:p-8">
+          <h2 className="text-[24px] sm:text-[26px] font-semibold tracking-tight text-black">
             The problem GAFAIG solves
           </h2>
 
-          <p className="mt-4 text-[15px] leading-7 text-black/75">
+          <p className="mt-4 text-[15px] leading-8 text-black/75">
             AI governance is increasingly required, but most systems still rely
             on internal attestations, opaque audits, unverifiable disclosures, or
             trust claims that cannot be independently validated by customers,
             regulators, partners, or the public.
           </p>
 
-          <p className="mt-4 max-w-[900px] text-[15px] leading-7 text-black/75">
+          <p className="mt-4 max-w-[900px] text-[15px] leading-8 text-black/75">
             Without independently verifiable governance infrastructure, external
             stakeholders often cannot determine whether an organization&apos;s
             responsible AI claims reflect real oversight, completed governance
@@ -55,12 +55,12 @@ export default function MissionPage() {
           </p>
         </section>
 
-        <section className="rounded-3xl border border-black/10 bg-white p-8">
-          <h2 className="text-[26px] font-semibold tracking-tight text-black">
+        <section className="rounded-3xl border border-black/10 bg-white p-6 sm:p-8">
+          <h2 className="text-[24px] sm:text-[26px] font-semibold tracking-tight text-black">
             A shift from governance claims to verifiable accountability
           </h2>
 
-          <div className="mt-6 grid gap-4 md:grid-cols-2">
+          <div className="mt-7 grid gap-4 sm:gap-5 md:grid-cols-2">
             <StatementCard
               title="Before GAFAIG"
               body="Organizations describe AI governance through policies, frameworks, reports, and disclosures. Oversight may be asserted, but external stakeholders cannot independently verify whether a certified governance outcome exists."
@@ -71,7 +71,7 @@ export default function MissionPage() {
             />
           </div>
 
-          <p className="mt-6 text-[15px] leading-7 text-black/75">
+          <p className="mt-6 text-[15px] leading-8 text-black/75">
             GAFAIG does not replace governance frameworks. It adds deterministic
             public governance trust infrastructure that makes certification
             outcomes independently verifiable while preserving private
@@ -79,16 +79,16 @@ export default function MissionPage() {
           </p>
         </section>
 
-        <section className="rounded-3xl border border-black/10 bg-white p-8">
+        <section className="rounded-3xl border border-black/10 bg-white p-6 sm:p-8">
           <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
             PRIVATE VS PUBLIC GOVERNANCE ARCHITECTURE
           </div>
 
-          <h2 className="mt-4 text-[26px] font-semibold tracking-tight text-black">
+          <h2 className="mt-4 text-[24px] sm:text-[26px] font-semibold tracking-tight text-black">
             Visible accountability without exposing private governance materials
           </h2>
 
-          <p className="mt-4 max-w-[980px] text-[15px] leading-7 text-black/75">
+          <p className="mt-4 max-w-[980px] text-[15px] leading-8 text-black/75">
             GAFAIG separates private governance execution from public governance
             trust. Organizations can complete governance review, evidence
             evaluation, findings, remediation, and certification privately.
@@ -96,20 +96,20 @@ export default function MissionPage() {
             publication is explicitly elected.
           </p>
 
-          <div className="mt-8 grid gap-5 lg:grid-cols-3">
-            <article className="rounded-3xl border border-black/10 bg-black/[0.02] p-6">
+          <div className="mt-9 grid gap-5 sm:gap-6 lg:grid-cols-3">
+            <article className="rounded-3xl border border-black/10 bg-black/[0.02] p-6 sm:p-7">
               <h3 className="text-[20px] font-semibold tracking-tight text-black">
                 Private Governance Execution
               </h3>
 
-              <p className="mt-3 text-[14px] leading-7 text-black/70">
+              <p className="mt-4 text-[14px] leading-8 text-black/70">
                 Private governance execution remains non-public. Evidence,
                 findings, reviewer materials, scoring inputs, workflows,
                 remediation activity, telemetry, and simulations are protected
                 inside the private governance environment.
               </p>
 
-              <div className="mt-5 grid gap-3">
+              <div className="mt-6 grid gap-3.5">
                 <ArchitectureStageCard>Evidence</ArchitectureStageCard>
                 <ArchitectureStageCard>Findings</ArchitectureStageCard>
                 <ArchitectureStageCard>Reviewer Materials</ArchitectureStageCard>
@@ -121,34 +121,34 @@ export default function MissionPage() {
               </div>
             </article>
 
-            <article className="rounded-3xl border border-black/10 bg-black/[0.02] p-6">
+            <article className="rounded-3xl border border-black/10 bg-black/[0.02] p-6 sm:p-7">
               <h3 className="text-[20px] font-semibold tracking-tight text-black">
                 Explicit Publication Boundary
               </h3>
 
-              <p className="mt-3 text-[14px] leading-7 text-black/70">
+              <p className="mt-4 text-[14px] leading-8 text-black/70">
                 Certification does not automatically create public visibility.
                 Publication is explicit and controlled.
               </p>
 
-              <div className="mt-5 rounded-2xl border border-black/10 bg-white p-5 text-[18px] font-semibold tracking-tight text-black">
+              <div className="mt-6 rounded-2xl border border-black/10 bg-white p-6 text-[18px] font-semibold leading-8 tracking-tight text-black">
                 Private evaluation remains private. Published accountability
                 becomes verifiable.
               </div>
             </article>
 
-            <article className="rounded-3xl border border-black/10 bg-black/[0.02] p-6">
+            <article className="rounded-3xl border border-black/10 bg-black/[0.02] p-6 sm:p-7">
               <h3 className="text-[20px] font-semibold tracking-tight text-black">
                 Public Governance Trust
               </h3>
 
-              <p className="mt-3 text-[14px] leading-7 text-black/70">
+              <p className="mt-4 text-[14px] leading-8 text-black/70">
                 Only publication-safe governance trust surfaces become public.
                 Published certification surfaces can be inspected, referenced,
                 distributed, and independently verified.
               </p>
 
-              <div className="mt-5 grid gap-3">
+              <div className="mt-6 grid gap-3.5">
                 <ArchitectureStageCard>Certification Surface</ArchitectureStageCard>
                 <ArchitectureStageCard>Registry ID</ArchitectureStageCard>
                 <ArchitectureStageCard>Lifecycle State</ArchitectureStageCard>
@@ -161,12 +161,12 @@ export default function MissionPage() {
             </article>
           </div>
 
-          <div className="mt-6 rounded-3xl border border-black/10 bg-black/[0.02] p-6">
+          <div className="mt-7 rounded-3xl border border-black/10 bg-black/[0.02] p-6 sm:p-7">
             <div className="text-[18px] font-semibold tracking-tight text-black">
               Public verification rule
             </div>
 
-            <p className="mt-3 text-[15px] leading-7 text-black/75">
+            <p className="mt-4 text-[15px] leading-8 text-black/75">
               Verification uses the exact proof.messageString returned by the
               verification endpoint. Public verification does not require
               disclosure of private evidence, reviewer materials, scoring
@@ -174,13 +174,13 @@ export default function MissionPage() {
             </p>
           </div>
 
-          <p className="mt-6 text-[15px] leading-7 text-black/75">
+          <p className="mt-6 text-[15px] leading-8 text-black/75">
             This separation allows GAFAIG to make AI governance publicly
             accountable while preserving private governance execution.
           </p>
         </section>
 
-        <section className="grid gap-4 md:grid-cols-3">
+        <section className="grid gap-4 sm:gap-5 md:grid-cols-3">
           <Pillar
             title="Make governance visible"
             text="GAFAIG helps transform AI governance from private claims into publication-controlled certification surfaces that can be inspected publicly when organizations elect publication."
@@ -195,8 +195,8 @@ export default function MissionPage() {
           />
         </section>
 
-        <section className="rounded-3xl border border-black/10 bg-white p-8">
-          <h2 className="text-[26px] font-semibold tracking-tight text-black">
+        <section className="rounded-3xl border border-black/10 bg-white p-6 sm:p-8">
+          <h2 className="text-[24px] sm:text-[26px] font-semibold tracking-tight text-black">
             What makes GAFAIG different
           </h2>
 
@@ -210,24 +210,24 @@ export default function MissionPage() {
           </div>
         </section>
 
-        <section className="rounded-3xl border border-black/10 bg-white p-8">
-          <h2 className="text-[26px] font-semibold tracking-tight text-black">
+        <section className="rounded-3xl border border-black/10 bg-white p-6 sm:p-8">
+          <h2 className="text-[24px] sm:text-[26px] font-semibold tracking-tight text-black">
             The GAFAIG mission
           </h2>
 
-          <p className="mt-4 text-[16px] leading-7 text-black/75">
+          <p className="mt-4 text-[15px] leading-8 sm:text-[16px] text-black/75">
             Our mission is to make AI governance visible, deterministic,
             observable, certifiable, publishable, and independently verifiable.
           </p>
 
-          <p className="mt-4 text-[15px] leading-7 text-black/75">
+          <p className="mt-4 text-[15px] leading-8 text-black/75">
             GAFAIG gives organizations a structured way to manage governance
             execution privately while giving external stakeholders a reliable way
             to verify published certification outcomes through cryptographic
             proof.
           </p>
 
-          <p className="mt-4 text-[15px] leading-7 text-black/75">
+          <p className="mt-4 text-[15px] leading-8 text-black/75">
             GAFAIG creates the foundation for portable, machine-verifiable public
             governance trust in AI governance across organizations, AI systems,
             regulators, enterprises, governments, research institutions,
@@ -242,11 +242,11 @@ export default function MissionPage() {
 
 function Pillar({ title, text }: { title: string; text: string }) {
   return (
-    <div className="rounded-3xl border border-black/10 bg-white p-6">
+    <div className="rounded-3xl border border-black/10 bg-white p-6 sm:p-7">
       <div className="text-[18px] font-semibold tracking-tight text-black">
         {title}
       </div>
-      <p className="mt-3 text-[15px] leading-7 text-black/75">{text}</p>
+      <p className="mt-4 text-[15px] leading-8 text-black/75">{text}</p>
     </div>
   );
 }
@@ -259,27 +259,27 @@ function StatementCard({
   body: string;
 }) {
   return (
-    <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
+    <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5 sm:p-6">
       <div className="text-[18px] font-semibold tracking-tight text-black">
         {title}
       </div>
-      <p className="mt-3 text-[15px] leading-7 text-black/75">{body}</p>
+      <p className="mt-4 text-[15px] leading-8 text-black/75">{body}</p>
     </div>
   );
 }
 
 function BulletCard({ text }: { text: string }) {
   return (
-    <div className="flex gap-3 rounded-2xl border border-black/10 bg-white p-4">
+    <div className="flex gap-3 rounded-2xl border border-black/10 bg-white p-5">
       <span className="mt-[8px] h-1.5 w-1.5 shrink-0 rounded-full bg-black" />
-      <span className="text-[15px] leading-7 text-black/75">{text}</span>
+      <span className="text-[15px] leading-8 text-black/75">{text}</span>
     </div>
   );
 }
 
 function ArchitectureStageCard({ children }: { children: React.ReactNode }) {
   return (
-    <div className="rounded-2xl border border-black/10 bg-white px-4 py-3 text-[14px] font-semibold tracking-tight text-black">
+    <div className="rounded-2xl border border-black/10 bg-white px-4 py-3.5 text-[14px] font-semibold tracking-tight text-black">
       {children}
     </div>
   );

@@ -97,7 +97,7 @@ function normalizeRecord(
 function ExplorerUnavailableState() {
   return (
     <main className="mx-auto max-w-[1180px] px-6 py-10">
-      <div className="space-y-8">
+      <div className="space-y-9">
         <PublicPageHero
           eyebrow="PUBLIC GOVERNANCE TRUST INFRASTRUCTURE"
           title="Explore the GAFAIG public governance trust infrastructure"
@@ -235,7 +235,7 @@ export default async function ExplorerPage() {
         />
 
         <section className="rounded-3xl border border-black/10 bg-white p-8">
-          <div className="max-w-4xl space-y-4">
+          <div className="max-w-4xl space-y-5">
             <div className="text-xs font-semibold uppercase tracking-[0.24em] text-black/40">
               How to read Explorer
             </div>
@@ -244,14 +244,14 @@ export default async function ExplorerPage() {
               Published certification surfaces appear in public governance trust infrastructure
             </h2>
 
-            <p className="text-[15px] leading-7 text-black/75">
+            <p className="text-[15px] leading-8 text-black/75">
               Explorer is broader than a single certification surface page, but
               it still follows the public governance trust policy. Only certification
               surfaces that organizations explicitly choose to publish appear
               here.
             </p>
 
-            <p className="text-[15px] leading-7 text-black/75">
+            <p className="text-[15px] leading-8 text-black/75">
               Explorer surfaces publication-controlled trust metadata across
               governance organizations, governance jurisdictions, and AI governance surfaces without exposing private
               governance workflows, findings, reviewer materials, scoring
@@ -259,13 +259,13 @@ export default async function ExplorerPage() {
             </p>
           </div>
 
-          <div className="mt-8 grid gap-4 md:grid-cols-2">
+          <div className="mt-10 grid gap-5 md:grid-cols-2">
             <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
               <h3 className="text-[18px] font-semibold tracking-tight text-black">
                 Certification evaluation remains private until publication
               </h3>
 
-              <p className="mt-3 text-[15px] leading-7 text-black/75">
+              <p className="mt-4 text-[15px] leading-8 text-black/75">
                 Governance evaluation occurs inside the deterministic private
                 verification engine. Public governance trust surfaces expose only published certification outcomes and verification proof infrastructure.
               </p>
@@ -276,7 +276,7 @@ export default async function ExplorerPage() {
                 Explorer is projection-only
               </h3>
 
-              <p className="mt-3 text-[15px] leading-7 text-black/75">
+              <p className="mt-4 text-[15px] leading-8 text-black/75">
                 Explorer does not recompute public trust. It renders projection data
                 from canonical Snowflake public trust infrastructure views and links users to the
                 registry and verification surfaces.
@@ -285,13 +285,13 @@ export default async function ExplorerPage() {
           </div>
         </section>
 
-        <section className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
+        <section className="grid gap-5 md:grid-cols-2 lg:grid-cols-5">
           <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
             <div className="text-xs font-semibold uppercase tracking-[0.24em] text-black/40">
               Certification Surfaces
             </div>
 
-            <div className="mt-4 text-[40px] font-semibold tracking-tight text-black">
+            <div className="mt-5 text-[40px] font-semibold tracking-tight text-black">
               {formatNumber(stats.publicRecords)}
             </div>
           </div>
@@ -301,7 +301,7 @@ export default async function ExplorerPage() {
               Published Certification Outcomes
             </div>
 
-            <div className="mt-4 text-[40px] font-semibold tracking-tight text-black">
+            <div className="mt-5 text-[40px] font-semibold tracking-tight text-black">
               {formatNumber(stats.certified)}
             </div>
           </div>
@@ -311,7 +311,7 @@ export default async function ExplorerPage() {
               Governance Organizations
             </div>
 
-            <div className="mt-4 text-[40px] font-semibold tracking-tight text-black">
+            <div className="mt-5 text-[40px] font-semibold tracking-tight text-black">
               {formatNumber(stats.organizations)}
             </div>
           </div>
@@ -321,7 +321,7 @@ export default async function ExplorerPage() {
               Governance Jurisdictions
             </div>
 
-            <div className="mt-4 text-[40px] font-semibold tracking-tight text-black">
+            <div className="mt-5 text-[40px] font-semibold tracking-tight text-black">
               {formatNumber(stats.countries)}
             </div>
           </div>
@@ -331,13 +331,13 @@ export default async function ExplorerPage() {
               AI Governance Surfaces
             </div>
 
-            <div className="mt-4 text-[40px] font-semibold tracking-tight text-black">
+            <div className="mt-5 text-[40px] font-semibold tracking-tight text-black">
               {formatNumber(stats.systems)}
             </div>
           </div>
         </section>
 
-        <section className="mt-10 grid gap-4 md:grid-cols-3">
+        <section className="mt-12 grid gap-5 md:grid-cols-3">
           <article className="rounded-3xl border border-neutral-200 bg-white p-6 transition hover:border-neutral-400">
             <p className="text-xs font-semibold uppercase tracking-[0.24em] text-black/40">
               Lifecycle
@@ -347,11 +347,11 @@ export default async function ExplorerPage() {
               Certification Lifecycle Observability
             </h2>
 
-            <p className="mt-3 text-[15px] leading-7 text-black/70">
+            <p className="mt-4 text-[15px] leading-8 text-black/70">
               Publication-safe certification lifecycle visibility derived from canonical Snowflake registry views.
             </p>
 
-            <div className="mt-5">
+            <div className="mt-6">
               <PublicButtonLink href="/explorer/lifecycle" variant="secondary">
                 Open Lifecycle
               </PublicButtonLink>
@@ -367,11 +367,11 @@ export default async function ExplorerPage() {
               Renewal Observability
             </h2>
 
-            <p className="mt-3 text-[15px] leading-7 text-black/70">
+            <p className="mt-4 text-[15px] leading-8 text-black/70">
               Public renewal posture and certification continuity observability for certified public certification surfaces.
             </p>
 
-            <div className="mt-5">
+            <div className="mt-6">
               <PublicButtonLink href="/explorer/renewals" variant="secondary">
                 Open Renewals
               </PublicButtonLink>
@@ -387,11 +387,11 @@ export default async function ExplorerPage() {
               Governance Signals
             </h2>
 
-            <p className="mt-3 text-[15px] leading-7 text-black/70">
+            <p className="mt-4 text-[15px] leading-8 text-black/70">
               Aggregated governance observability and publication-safe operational governance signals.
             </p>
 
-            <div className="mt-5">
+            <div className="mt-6">
               <PublicButtonLink href="/explorer/governance-signals" variant="secondary">
                 Open Signals
               </PublicButtonLink>
@@ -399,7 +399,7 @@ export default async function ExplorerPage() {
           </article>
         </section>
 
-        <section className="rounded-3xl border border-black/10 bg-white p-8">
+        <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div className="max-w-4xl">
               <div className="text-xs font-semibold uppercase tracking-[0.24em] text-black/40">
@@ -410,7 +410,7 @@ export default async function ExplorerPage() {
                 Recently published certification surfaces
               </h2>
 
-              <p className="mt-4 text-[15px] leading-7 text-black/75">
+              <p className="mt-5 text-[15px] leading-8 text-black/75">
                 Explorer surfaces metadata from published GAFAIG certification surfaces while preserving the boundary between public governance trust infrastructure and private governance execution infrastructure.
               </p>
             </div>
@@ -420,18 +420,18 @@ export default async function ExplorerPage() {
             </div>
           </div>
 
-          <div className="mt-8 space-y-4">
+          <div className="mt-10 space-y-5">
             {latestRecords.length === 0 ? (
               <EmptyLatestRecordsState />
             ) : (
               latestRecords.map((record) => (
                 <article
                   key={record.registryId}
-                  className="rounded-3xl border border-black/10 bg-white p-6"
+                  className="rounded-3xl border border-black/10 bg-white p-7"
                 >
                   <div className="flex flex-wrap items-start justify-between gap-4">
-                    <div className="space-y-4">
-                      <div className="flex flex-wrap gap-3">
+                    <div className="space-y-5">
+                      <div className="flex flex-wrap gap-3 pt-1">
                         <span className="inline-flex items-center rounded-full bg-emerald-100 px-4 py-2 text-[14px] font-semibold text-emerald-800">
                           {formatText(record.certificationStatus)}
                         </span>
@@ -442,14 +442,14 @@ export default async function ExplorerPage() {
                           {formatText(record.entityName)}
                         </h3>
 
-                        <p className="mt-2 text-[14px] text-black/70">
+                        <p className="mt-3 text-[14px] leading-7 text-black/70">
                           {formatText(record.country)} ·{" "}
                           {record.registryId}
                         </p>
                       </div>
                     </div>
 
-                    <div className="flex flex-wrap gap-3">
+                    <div className="flex flex-wrap gap-3 pt-1">
                       <PublicButtonLink
                         href={`/registry/${record.registryId}`}
                         variant="secondary"
@@ -466,13 +466,13 @@ export default async function ExplorerPage() {
                     </div>
                   </div>
 
-                  <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                  <div className="mt-7 grid gap-5 md:grid-cols-2 xl:grid-cols-4">
                     <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
                       <div className="text-xs font-semibold uppercase tracking-[0.24em] text-black/40">
                         Certification
                       </div>
 
-                      <div className="mt-3 text-[18px] font-semibold text-black">
+                      <div className="mt-4 text-[18px] leading-8 font-semibold text-black">
                         {formatText(record.certificationStatus)}
                       </div>
                     </div>
@@ -482,7 +482,7 @@ export default async function ExplorerPage() {
                         Certified
                       </div>
 
-                      <div className="mt-3 text-[18px] font-semibold text-black">
+                      <div className="mt-4 text-[18px] leading-8 font-semibold text-black">
                         {formatDate(record.certifiedAt)}
                       </div>
                     </div>
@@ -492,7 +492,7 @@ export default async function ExplorerPage() {
                         Valid From
                       </div>
 
-                      <div className="mt-3 text-[18px] font-semibold text-black">
+                      <div className="mt-4 text-[18px] leading-8 font-semibold text-black">
                         {formatDate(record.validFrom)}
                       </div>
                     </div>
@@ -502,7 +502,7 @@ export default async function ExplorerPage() {
                         Valid To
                       </div>
 
-                      <div className="mt-3 text-[18px] font-semibold text-black">
+                      <div className="mt-4 text-[18px] leading-8 font-semibold text-black">
                         {formatDate(record.validTo)}
                       </div>
                     </div>

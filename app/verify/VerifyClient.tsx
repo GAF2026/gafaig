@@ -194,11 +194,11 @@ function VerificationBadge({
 
 function ProofCard({ title, body }: { title: string; body: string }) {
   return (
-    <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
+    <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5 sm:p-6">
       <div className="text-[18px] font-semibold tracking-tight text-black">
         {title}
       </div>
-      <p className="mt-3 text-[15px] leading-7 text-black/75">{body}</p>
+      <p className="mt-4 text-[15px] leading-8 text-black/75">{body}</p>
     </div>
   );
 }
@@ -213,25 +213,25 @@ function ProofMetricCard({
   body: string;
 }) {
   return (
-    <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
+    <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5 sm:p-6">
       <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-black/45">
         {label}
       </div>
-      <div className="mt-3 text-[18px] font-semibold tracking-tight text-black">
+      <div className="mt-4 text-[18px] font-semibold leading-8 tracking-tight text-black">
         {value}
       </div>
-      <p className="mt-2 text-[14px] leading-7 text-black/70">{body}</p>
+      <p className="mt-3 text-[14px] leading-8 text-black/70">{body}</p>
     </div>
   );
 }
 
 function DetailCard({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
+    <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5 sm:p-6">
       <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-black/45">
         {label}
       </div>
-      <div className="mt-3 break-all text-[14px] font-medium text-black/85">
+      <div className="mt-4 break-all text-[14px] leading-7 font-medium text-black/85">
         {value}
       </div>
     </div>
@@ -269,7 +269,7 @@ function ProofStateBanner({
         : "text-red-700";
 
   return (
-    <div className={cn("rounded-2xl border p-5", toneClasses)}>
+    <div className={cn("rounded-2xl border p-5 sm:p-6", toneClasses)}>
       <div
         className={cn(
           "text-[18px] font-semibold tracking-tight",
@@ -278,7 +278,7 @@ function ProofStateBanner({
       >
         {title}
       </div>
-      <p className={cn("mt-2 text-[14px] leading-7", bodyClasses)}>{body}</p>
+      <p className={cn("mt-3 text-[14px] leading-8", bodyClasses)}>{body}</p>
     </div>
   );
 }
@@ -433,8 +433,8 @@ export default function VerifyClient({
       : null;
 
   return (
-    <main className="mx-auto max-w-[1180px] px-6 py-10">
-      <div className="space-y-8">
+    <main className="mx-auto max-w-[1180px] px-5 py-8 sm:px-6 sm:py-10">
+      <div className="space-y-7 sm:space-y-8">
         <PublicPageHero
           eyebrow="PUBLIC VERIFICATION SURFACE"
           title="Verify a GAFAIG public certification surface"
@@ -460,23 +460,23 @@ export default function VerifyClient({
           }
         />
 
-        <section className="rounded-3xl border border-black/10 bg-white p-8">
+        <section className="rounded-3xl border border-black/10 bg-white p-6 sm:p-8">
           <div className="text-[12px] font-semibold uppercase tracking-[0.22em] text-black/55">
             Live Verification
           </div>
 
-          <h2 className="mt-3 text-[26px] font-semibold tracking-tight text-black">
+          <h2 className="mt-3 text-[24px] font-semibold tracking-tight text-black sm:text-[26px]">
             Verify certification surface by registry ID
           </h2>
 
-          <p className="mt-3 max-w-3xl text-[15px] leading-7 text-black/75">
+          <p className="mt-3 max-w-3xl text-[15px] leading-8 text-black/75">
             Enter a GAFAIG registry ID to retrieve the published certification
             surface and signed proof payload. This verifies the public
             certification outcome without exposing private evidence, reviewer
             materials, internal scoring, or workflow details.
           </p>
 
-          <div className="mt-6 flex flex-col gap-3 lg:flex-row">
+          <div className="mt-7 flex flex-col gap-3 sm:gap-4 lg:flex-row">
             <input
               value={registryId}
               onChange={(e) => setRegistryId(e.target.value)}
@@ -529,8 +529,8 @@ export default function VerifyClient({
 
         {state.status === "idle" ? (
           <>
-            <section className="rounded-3xl border border-black/10 bg-white p-8">
-              <div className="max-w-3xl text-[15px] leading-7 text-black/75">
+            <section className="rounded-3xl border border-black/10 bg-white p-6 sm:p-8">
+              <div className="max-w-3xl text-[15px] leading-8 text-black/75">
                 This is the independent verification layer behind a published
                 GAFAIG certification surface. It exists so public governance
                 trust can be validated externally rather than accepted on faith.
@@ -540,11 +540,11 @@ export default function VerifyClient({
                 WHAT PUBLIC VERIFICATION PROVES
               </div>
 
-              <h2 className="mt-4 max-w-[860px] text-[26px] font-semibold tracking-tight text-black">
+              <h2 className="mt-4 max-w-[860px] text-[24px] font-semibold tracking-tight text-black sm:text-[26px]">
                 Independent verification of public AI governance accountability
               </h2>
 
-              <p className="mt-5 max-w-[980px] text-[15px] leading-7 text-black/75">
+              <p className="mt-5 max-w-[980px] text-[15px] leading-8 text-black/75">
                 This page proves that a public certification surface exists,
                 that the disclosed signed proof is consistent with the registry,
                 and that the result can be independently verified outside GAFAIG
@@ -552,7 +552,7 @@ export default function VerifyClient({
                 payloads.
               </p>
 
-              <div className="mt-7 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+              <div className="mt-8 grid gap-4 sm:gap-5 md:grid-cols-2 xl:grid-cols-4">
                 <ProofCard
                   title="Certification surface integrity"
                   body="The signed verification proof resolves against the public certification surface that represents the published governance outcome."
@@ -572,15 +572,15 @@ export default function VerifyClient({
               </div>
             </section>
 
-            <section className="rounded-3xl border border-black/10 bg-white p-8">
-              <div className="max-w-[980px] space-y-3 text-[15px] leading-7 text-black/75">
+            <section className="rounded-3xl border border-black/10 bg-white p-6 sm:p-8">
+              <div className="max-w-[980px] space-y-4 text-[15px] leading-8 text-black/75">
                 <p>
                   GAFAIG verification focuses on the published certification
                   stage rather than internal workflow stages.
                 </p>
 
-                <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
-                  <div className="grid gap-3 text-[15px] leading-7 text-black/75">
+                <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5 sm:p-6">
+                  <div className="grid gap-4 text-[15px] leading-8 text-black/75">
                     <div>
                       <span className="font-semibold text-black">
                         Verification
@@ -614,18 +614,18 @@ export default function VerifyClient({
 
         {state.status === "success" && result && proof && record && proofState ? (
           <>
-            <section className="rounded-3xl border border-black/10 bg-white p-8">
-              <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+            <section className="rounded-3xl border border-black/10 bg-white p-6 sm:p-8">
+              <div className="flex flex-col gap-6 sm:gap-7 lg:flex-row lg:items-start lg:justify-between">
                 <div className="max-w-3xl">
                   <div className="text-[12px] font-semibold uppercase tracking-[0.22em] text-black/55">
                     Verification Proof Result
                   </div>
 
-                  <h2 className="mt-3 text-[26px] font-semibold tracking-tight text-black">
+                  <h2 className="mt-3 text-[24px] font-semibold tracking-tight text-black sm:text-[26px]">
                     Cryptographic verification proof dashboard
                   </h2>
 
-                  <p className="mt-4 text-[15px] leading-7 text-black/75">
+                  <p className="mt-4 text-[15px] leading-8 text-black/75">
                     This is the result of the verification request. GAFAIG resolved
                     the public certification surface, retrieved the signed proof,
                     and validated the exact proof.messageString against the
@@ -634,7 +634,7 @@ export default function VerifyClient({
                   </p>
                 </div>
 
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-2.5">
                   <VerificationBadge
                     verified={Boolean(state.endpointVerified)}
                     label={
@@ -663,7 +663,7 @@ export default function VerifyClient({
                 />
               </div>
 
-              <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+              <div className="mt-8 grid gap-4 sm:gap-5 md:grid-cols-2 xl:grid-cols-4">
                 <ProofMetricCard
                   label="Public Governance Trust State"
                   value={trust.label}
@@ -691,16 +691,16 @@ export default function VerifyClient({
               </div>
             </section>
 
-            <section className="rounded-3xl border border-black/10 bg-white p-8">
+            <section className="rounded-3xl border border-black/10 bg-white p-6 sm:p-8">
               <div className="text-[12px] font-semibold uppercase tracking-[0.22em] text-black/55">
                 Verification Proof Summary
               </div>
 
-              <h2 className="mt-3 text-[26px] font-semibold tracking-tight text-black">
+              <h2 className="mt-3 text-[24px] font-semibold tracking-tight text-black sm:text-[26px]">
                 Human-readable verification proof status
               </h2>
 
-              <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+              <div className="mt-8 grid gap-4 sm:gap-5 md:grid-cols-2 xl:grid-cols-4">
                 <DetailCard
                   label="Certification Surface Registry ID"
                   value={record.registryId ?? "—"}
@@ -719,7 +719,7 @@ export default function VerifyClient({
                 />
               </div>
 
-              <div className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+              <div className="mt-5 grid gap-4 sm:gap-5 md:grid-cols-2 xl:grid-cols-4">
                 <DetailCard
                   label="Certified At"
                   value={formatDate(record.certifiedAt)}
@@ -736,16 +736,16 @@ export default function VerifyClient({
               </div>
             </section>
 
-            <section className="rounded-3xl border border-black/10 bg-white p-8">
+            <section className="rounded-3xl border border-black/10 bg-white p-6 sm:p-8">
               <div className="text-[12px] font-semibold uppercase tracking-[0.22em] text-black/55">
                 Proof Materials
               </div>
 
-              <h2 className="mt-3 text-[26px] font-semibold tracking-tight text-black">
+              <h2 className="mt-3 text-[24px] font-semibold tracking-tight text-black sm:text-[26px]">
                 The exact signed verification proof being verified
               </h2>
 
-              <p className="mt-4 max-w-3xl text-[15px] leading-7 text-black/75">
+              <p className="mt-4 max-w-3xl text-[15px] leading-8 text-black/75">
                 These are the exact public materials used to validate the public
                 governance trust result. External parties can inspect them
                 directly, validate the exact proof.messageString, and confirm
@@ -760,7 +760,7 @@ export default function VerifyClient({
                 invalid verification behavior.
               </p>
 
-              <div className="mt-8 grid gap-4 md:grid-cols-2">
+              <div className="mt-8 grid gap-4 sm:gap-5 md:grid-cols-2">
                 <DetailCard
                   label="Verification Key URL"
                   value={proof.verificationKeyUrl ?? "—"}
@@ -771,7 +771,7 @@ export default function VerifyClient({
                 />
               </div>
 
-              <div className="mt-4 grid gap-4 md:grid-cols-2">
+              <div className="mt-5 grid gap-4 sm:gap-5 md:grid-cols-2">
                 <DetailCard
                   label="Signature"
                   value={truncateMiddle(proof.signature ?? "", 28, 18)}
@@ -782,7 +782,7 @@ export default function VerifyClient({
                 />
               </div>
 
-              <div className="mt-4 rounded-2xl border border-black/10 bg-black/[0.02] p-5">
+              <div className="mt-5 rounded-2xl border border-black/10 bg-black/[0.02] p-5 sm:p-6">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-black/45">
                     Full signed messageString
@@ -797,36 +797,36 @@ export default function VerifyClient({
                   </button>
                 </div>
 
-                <pre className="mt-3 overflow-x-auto rounded-2xl border border-black/10 bg-white p-4 text-[12px] leading-6 text-black/75">
+                <pre className="mt-4 max-w-full overflow-x-auto rounded-2xl border border-black/10 bg-white p-4 text-[12px] leading-6 text-black/75">
                   {proof.messageString ?? "—"}
                 </pre>
               </div>
 
-              <div className="mt-4 rounded-2xl border border-black/10 bg-black/[0.02] p-5">
+              <div className="mt-5 rounded-2xl border border-black/10 bg-black/[0.02] p-5 sm:p-6">
                 <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-black/45">
                   Full signed message object
                 </div>
-                <pre className="mt-3 overflow-x-auto rounded-2xl border border-black/10 bg-white p-4 text-[12px] leading-6 text-black/75">
+                <pre className="mt-4 max-w-full overflow-x-auto rounded-2xl border border-black/10 bg-white p-4 text-[12px] leading-6 text-black/75">
                   {prettyJson(proof.message)}
                 </pre>
               </div>
             </section>
 
-            <section className="rounded-3xl border border-black/10 bg-white p-8">
+            <section className="rounded-3xl border border-black/10 bg-white p-6 sm:p-8">
               <div className="text-[12px] font-semibold uppercase tracking-[0.22em] text-black/55">
                 INDEPENDENT EXTERNAL VALIDATION
               </div>
 
-              <h2 className="mt-3 text-[26px] font-semibold tracking-tight text-black">
+              <h2 className="mt-3 text-[24px] font-semibold tracking-tight text-black sm:text-[26px]">
                 Independent public verification flow
               </h2>
 
-              <div className="mt-6 grid gap-4 md:grid-cols-2">
-                <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
+              <div className="mt-7 grid gap-4 sm:gap-5 md:grid-cols-2">
+                <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5 sm:p-6">
                   <div className="text-[18px] font-semibold text-black">
                     What was checked
                   </div>
-                  <ul className="mt-4 space-y-3 text-[14px] leading-7 text-black/70">
+                  <ul className="mt-5 space-y-3.5 text-[14px] leading-8 text-black/70">
                     <li>• Live GAFAIG verification endpoint response</li>
                     <li>• Public key fetched from published key URL</li>
                     <li>• Exact proof.messageString returned by the verification endpoint</li>
@@ -834,11 +834,11 @@ export default function VerifyClient({
                   </ul>
                 </div>
 
-                <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
+                <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5 sm:p-6">
                   <div className="text-[18px] font-semibold text-black">
                     Technical details
                   </div>
-                  <ul className="mt-4 space-y-3 text-[14px] leading-7 text-black/70">
+                  <ul className="mt-5 space-y-3.5 text-[14px] leading-8 text-black/70">
                     <li>• Algorithm: {proof.alg ?? "—"}</li>
                     <li>• Key ID: {proof.kid ?? "—"}</li>
                     <li>
@@ -855,7 +855,7 @@ export default function VerifyClient({
                 </div>
               </div>
 
-              <div className="mt-8 flex flex-wrap gap-3">
+              <div className="mt-8 flex flex-wrap gap-3 sm:gap-4">
                 {record.registryId ? (
                   <PublicButtonLink
                     href={`/verify/${encodeURIComponent(record.registryId)}`}
@@ -891,16 +891,16 @@ export default function VerifyClient({
           </>
         ) : null}
 
-        <section className="rounded-3xl border border-black/10 bg-black p-8 text-white">
+        <section className="rounded-3xl border border-black/10 bg-black p-6 text-white sm:p-8">
           <div className="text-[12px] font-semibold uppercase tracking-[0.22em] text-white/55">
             PUBLIC VERIFICATION INFRASTRUCTURE
           </div>
 
-          <h2 className="mt-3 text-[26px] font-semibold tracking-tight text-white">
+          <h2 className="mt-4 text-[24px] font-semibold tracking-tight text-white sm:text-[26px]">
             Public verification without private governance disclosure
           </h2>
 
-          <p className="mt-4 max-w-3xl text-[15px] leading-7 text-white/72">
+          <p className="mt-5 max-w-3xl text-[15px] leading-8 text-white/72">
             GAFAIG verification confirms that a published public certification surface
             exists, that it is surfaced through canonical public certification
             registry infrastructure views, and that its signed verification proof
@@ -909,15 +909,15 @@ export default function VerifyClient({
             details, or assessment workflow data.
           </p>
 
-          <div className="mt-8 grid gap-4 md:grid-cols-3">
-            <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-5">
+          <div className="mt-8 grid gap-4 sm:gap-5 md:grid-cols-3">
+            <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-5 sm:p-6">
               <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/45">
                 Step 1
               </div>
-              <div className="mt-3 text-[20px] font-semibold text-white">
+              <div className="mt-4 text-[20px] font-semibold text-white">
                 Resolve public certification surface
               </div>
-              <p className="mt-3 text-[14px] leading-7 text-white/68">
+              <p className="mt-4 text-[14px] leading-8 text-white/68">
                 The verification endpoint resolves the published certification
                 surface from the canonical public certification registry
                 infrastructure view generated from Snowflake-originated
@@ -925,28 +925,28 @@ export default function VerifyClient({
               </p>
             </div>
 
-            <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-5">
+            <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-5 sm:p-6">
               <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/45">
                 Step 2
               </div>
-              <div className="mt-3 text-[20px] font-semibold text-white">
+              <div className="mt-4 text-[20px] font-semibold text-white">
                 Return signed verification proof
               </div>
-              <p className="mt-3 text-[14px] leading-7 text-white/68">
+              <p className="mt-4 text-[14px] leading-8 text-white/68">
                 GAFAIG returns the exact proof.messageString and signature needed for
                 independent verification. External systems must not reconstruct
                 the signed payload.
               </p>
             </div>
 
-            <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-5">
+            <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-5 sm:p-6">
               <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/45">
                 Step 3
               </div>
-              <div className="mt-3 text-[20px] font-semibold text-white">
+              <div className="mt-4 text-[20px] font-semibold text-white">
                 Verify signature externally
               </div>
-              <p className="mt-3 text-[14px] leading-7 text-white/68">
+              <p className="mt-4 text-[14px] leading-8 text-white/68">
                 External parties use the exact proof.messageString, signature, and
                 public key to independently confirm the published certification
                 surface.
