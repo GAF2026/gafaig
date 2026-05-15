@@ -35,6 +35,14 @@ function BulletCard({ children }: { children: React.ReactNode }) {
   );
 }
 
+function FlowStageCard({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="rounded-2xl border border-black/10 bg-white px-4 py-3 text-[14px] font-semibold tracking-tight text-black">
+      {children}
+    </div>
+  );
+}
+
 export default function FrameworkPage() {
   return (
     <main className="mx-auto max-w-[1180px] px-6 py-10">
@@ -208,6 +216,116 @@ export default function FrameworkPage() {
               body="A signed proof.messageString payload enables independent cryptographic verification."
             />
           </div>
+        </section>
+
+        <section className="rounded-3xl border border-black/10 bg-white p-8">
+          <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
+            DETERMINISTIC GOVERNANCE FLOW
+          </div>
+
+          <h2 className="mt-4 text-[26px] font-semibold tracking-tight text-black">
+            Private governance execution becomes public verification infrastructure
+          </h2>
+
+          <p className="mt-4 max-w-[980px] text-[15px] leading-7 text-black/75">
+            GAFAIG separates private governance execution from public governance
+            trust distribution. Governance review, evidence, findings, scoring,
+            and certification decisions remain inside the deterministic private
+            execution layer. Public visibility occurs only after certification is
+            achieved and publication is explicitly elected.
+          </p>
+
+          <div className="mt-8 grid gap-5 lg:grid-cols-3">
+            <article className="rounded-3xl border border-black/10 bg-black/[0.02] p-6">
+              <h3 className="text-[20px] font-semibold tracking-tight text-black">
+                Private Governance Execution
+              </h3>
+
+              <p className="mt-3 text-[14px] leading-7 text-black/70">
+                Applications, evidence, findings, governance events, reviewer
+                workflows, remediation activity, and scoring inputs remain
+                private and controlled.
+              </p>
+
+              <div className="mt-5 grid gap-3">
+                <FlowStageCard>Application</FlowStageCard>
+                <FlowStageCard>Case</FlowStageCard>
+                <FlowStageCard>Evidence</FlowStageCard>
+                <FlowStageCard>Findings</FlowStageCard>
+                <FlowStageCard>Governance Review</FlowStageCard>
+                <FlowStageCard>Scoring</FlowStageCard>
+                <FlowStageCard>Decision</FlowStageCard>
+              </div>
+            </article>
+
+            <article className="rounded-3xl border border-black/10 bg-black/[0.02] p-6">
+              <h3 className="text-[20px] font-semibold tracking-tight text-black">
+                Snowflake Deterministic Governance Authority
+              </h3>
+
+              <p className="mt-3 text-[14px] leading-7 text-black/70">
+                Certification decisions originate only from deterministic
+                Snowflake governance execution. API, SDK, widget, and UI layers
+                do not certify, score, or compute governance trust.
+              </p>
+
+              <div className="mt-5 rounded-2xl border border-black/10 bg-white p-5 text-[18px] font-semibold tracking-tight text-black">
+                Humans approve. Snowflake decides.
+              </div>
+
+              <div className="mt-5 rounded-2xl border border-black/10 bg-white p-5">
+                <div className="text-[13px] font-semibold uppercase tracking-[0.18em] text-black/50">
+                  Explicit Publication Gate
+                </div>
+                <p className="mt-3 text-[14px] leading-7 text-black/70">
+                  Certification does not automatically create public visibility.
+                  A certification outcome becomes public only when publication is
+                  explicitly elected.
+                </p>
+              </div>
+            </article>
+
+            <article className="rounded-3xl border border-black/10 bg-black/[0.02] p-6">
+              <h3 className="text-[20px] font-semibold tracking-tight text-black">
+                Public Governance Trust Infrastructure
+              </h3>
+
+              <p className="mt-3 text-[14px] leading-7 text-black/70">
+                Published certification surfaces are projected into public
+                registry, verification, explorer, API, widget, badge, and SDK
+                surfaces.
+              </p>
+
+              <div className="mt-5 grid gap-3">
+                <FlowStageCard>Registry Snapshot</FlowStageCard>
+                <FlowStageCard>Certification Surface</FlowStageCard>
+                <FlowStageCard>proof.messageString</FlowStageCard>
+                <FlowStageCard>Verification Endpoint</FlowStageCard>
+                <FlowStageCard>Public Key</FlowStageCard>
+                <FlowStageCard>SDK / Widget / Badge / API</FlowStageCard>
+                <FlowStageCard>Explorer / Registry / Verify</FlowStageCard>
+              </div>
+            </article>
+          </div>
+
+          <div className="mt-6 rounded-3xl border border-black/10 bg-black/[0.02] p-6">
+            <div className="text-[18px] font-semibold tracking-tight text-black">
+              Canonical verification rule
+            </div>
+
+            <p className="mt-3 text-[15px] leading-7 text-black/75">
+              Verification MUST use the exact proof.messageString returned by
+              the verification endpoint. Do NOT reconstruct signed payloads from
+              JSON fields, proof.message, UI-rendered values, or reordered JSON.
+            </p>
+          </div>
+
+          <p className="mt-6 text-[15px] leading-7 text-black/75">
+            The visual flow preserves the GAFAIG authority chain: private
+            governance execution → deterministic certification → explicit
+            publication → signed proof → independent verification → public
+            governance trust distribution.
+          </p>
         </section>
 
         <section className="rounded-3xl border border-black/10 bg-white p-8">

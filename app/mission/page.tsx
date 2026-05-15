@@ -79,6 +79,107 @@ export default function MissionPage() {
           </p>
         </section>
 
+        <section className="rounded-3xl border border-black/10 bg-white p-8">
+          <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
+            PRIVATE VS PUBLIC GOVERNANCE ARCHITECTURE
+          </div>
+
+          <h2 className="mt-4 text-[26px] font-semibold tracking-tight text-black">
+            Visible accountability without exposing private governance materials
+          </h2>
+
+          <p className="mt-4 max-w-[980px] text-[15px] leading-7 text-black/75">
+            GAFAIG separates private governance execution from public governance
+            trust. Organizations can complete governance review, evidence
+            evaluation, findings, remediation, and certification privately.
+            Public accountability begins only when certification is achieved and
+            publication is explicitly elected.
+          </p>
+
+          <div className="mt-8 grid gap-5 lg:grid-cols-3">
+            <article className="rounded-3xl border border-black/10 bg-black/[0.02] p-6">
+              <h3 className="text-[20px] font-semibold tracking-tight text-black">
+                Private Governance Execution
+              </h3>
+
+              <p className="mt-3 text-[14px] leading-7 text-black/70">
+                Private governance execution remains non-public. Evidence,
+                findings, reviewer materials, scoring inputs, workflows,
+                remediation activity, telemetry, and simulations are protected
+                inside the private governance environment.
+              </p>
+
+              <div className="mt-5 grid gap-3">
+                <ArchitectureStageCard>Evidence</ArchitectureStageCard>
+                <ArchitectureStageCard>Findings</ArchitectureStageCard>
+                <ArchitectureStageCard>Reviewer Materials</ArchitectureStageCard>
+                <ArchitectureStageCard>Governance Workflows</ArchitectureStageCard>
+                <ArchitectureStageCard>Internal Scoring</ArchitectureStageCard>
+                <ArchitectureStageCard>Remediation</ArchitectureStageCard>
+                <ArchitectureStageCard>Governance Telemetry</ArchitectureStageCard>
+                <ArchitectureStageCard>Simulations</ArchitectureStageCard>
+              </div>
+            </article>
+
+            <article className="rounded-3xl border border-black/10 bg-black/[0.02] p-6">
+              <h3 className="text-[20px] font-semibold tracking-tight text-black">
+                Explicit Publication Boundary
+              </h3>
+
+              <p className="mt-3 text-[14px] leading-7 text-black/70">
+                Certification does not automatically create public visibility.
+                Publication is explicit and controlled.
+              </p>
+
+              <div className="mt-5 rounded-2xl border border-black/10 bg-white p-5 text-[18px] font-semibold tracking-tight text-black">
+                Private evaluation remains private. Published accountability
+                becomes verifiable.
+              </div>
+            </article>
+
+            <article className="rounded-3xl border border-black/10 bg-black/[0.02] p-6">
+              <h3 className="text-[20px] font-semibold tracking-tight text-black">
+                Public Governance Trust
+              </h3>
+
+              <p className="mt-3 text-[14px] leading-7 text-black/70">
+                Only publication-safe governance trust surfaces become public.
+                Published certification surfaces can be inspected, referenced,
+                distributed, and independently verified.
+              </p>
+
+              <div className="mt-5 grid gap-3">
+                <ArchitectureStageCard>Certification Surface</ArchitectureStageCard>
+                <ArchitectureStageCard>Registry ID</ArchitectureStageCard>
+                <ArchitectureStageCard>Lifecycle State</ArchitectureStageCard>
+                <ArchitectureStageCard>Signed Proof</ArchitectureStageCard>
+                <ArchitectureStageCard>Verification Endpoint</ArchitectureStageCard>
+                <ArchitectureStageCard>Public Key</ArchitectureStageCard>
+                <ArchitectureStageCard>Badge / Widget / SDK</ArchitectureStageCard>
+                <ArchitectureStageCard>Explorer / Registry / Verify</ArchitectureStageCard>
+              </div>
+            </article>
+          </div>
+
+          <div className="mt-6 rounded-3xl border border-black/10 bg-black/[0.02] p-6">
+            <div className="text-[18px] font-semibold tracking-tight text-black">
+              Public verification rule
+            </div>
+
+            <p className="mt-3 text-[15px] leading-7 text-black/75">
+              Verification uses the exact proof.messageString returned by the
+              verification endpoint. Public verification does not require
+              disclosure of private evidence, reviewer materials, scoring
+              internals, or governance workflow details.
+            </p>
+          </div>
+
+          <p className="mt-6 text-[15px] leading-7 text-black/75">
+            This separation allows GAFAIG to make AI governance publicly
+            accountable while preserving private governance execution.
+          </p>
+        </section>
+
         <section className="grid gap-4 md:grid-cols-3">
           <Pillar
             title="Make governance visible"
@@ -172,6 +273,14 @@ function BulletCard({ text }: { text: string }) {
     <div className="flex gap-3 rounded-2xl border border-black/10 bg-white p-4">
       <span className="mt-[8px] h-1.5 w-1.5 shrink-0 rounded-full bg-black" />
       <span className="text-[15px] leading-7 text-black/75">{text}</span>
+    </div>
+  );
+}
+
+function ArchitectureStageCard({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="rounded-2xl border border-black/10 bg-white px-4 py-3 text-[14px] font-semibold tracking-tight text-black">
+      {children}
     </div>
   );
 }
