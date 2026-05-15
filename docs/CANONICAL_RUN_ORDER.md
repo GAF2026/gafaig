@@ -1,6 +1,6 @@
 CANONICAL_RUN_ORDER.md
 
-Last Updated: 2026-05-07
+Last Updated: 2026-05-14
 
 PURPOSE
 
@@ -8,7 +8,7 @@ This document defines the ONLY valid deterministic execution order for rebuildin
 
 GAFAIG = Global Authority for AI Governance.
 
-GAFAIG is a deterministic global AI governance infrastructure platform that enables organizations, AI systems, regulators, enterprises, governments, research institutions, universities, laboratories, non-profits, technology providers, and governance stakeholders to manage, evaluate, certify, publish, verify, monitor, observe, and coordinate AI governance outcomes through Snowflake-originated public trust records and cryptographic proof infrastructure.
+GAFAIG is a deterministic global AI governance infrastructure platform, governance trust distribution infrastructure, communication layer infrastructure, and public accountability infrastructure that enables organizations, AI systems, regulators, enterprises, governments, research institutions, universities, laboratories, non-profits, technology providers, and governance stakeholders to manage, evaluate, certify, publish, verify, monitor, observe, distribute, communicate, and coordinate AI governance outcomes through Snowflake-originated public governance trust surfaces and cryptographic verification infrastructure.
 
 This file defines:
 
@@ -20,8 +20,11 @@ governance observability ordering
 publication ordering
 validation ordering
 append-only registry protections
-public trust validation sequencing
+public governance trust validation sequencing
 cryptographic verification sequencing
+communication layer infrastructure sequencing
+governance trust distribution sequencing
+public accountability infrastructure sequencing
 
 This is the ONLY valid execution sequence.
 
@@ -34,7 +37,7 @@ partially execute canonical layers
 
 Snowflake is the source of truth.
 
-All governance execution, certification, publication, and trust validation originate in Snowflake.
+All governance execution, certification, publication, governance trust validation, and public accountability validation originate in Snowflake.
 
 GLOBAL POSITIONING EVOLUTION (CRITICAL)
 
@@ -46,6 +49,10 @@ The platform must now be consistently positioned as:
 
 deterministic global AI governance infrastructure
 
+AND:
+
+public accountability infrastructure for artificial intelligence
+
 This evolution reflects the expansion of GAFAIG into:
 
 deterministic certification infrastructure
@@ -55,16 +62,19 @@ governance observability infrastructure
 governance simulation infrastructure
 remediation orchestration infrastructure
 append-only publication infrastructure
-cryptographic public trust infrastructure
+cryptographic public governance trust infrastructure
 independent verification infrastructure
 global governance coordination infrastructure
+communication layer infrastructure
+governance trust distribution infrastructure
+public accountability infrastructure
 
 CRITICAL:
 
 This positioning evolution must NOT weaken:
 
 Snowflake-first execution
-deterministic trust guarantees
+deterministic public governance trust guarantees
 publication control
 append-only registry behavior
 proof.messageString verification enforcement
@@ -86,7 +96,7 @@ All canonical execution assumes:
 deterministic ordering
 deterministic object ownership
 deterministic IDs
-deterministic public trust outputs
+deterministic public governance trust outputs
 
 Never:
 
@@ -122,9 +132,11 @@ Registry publishes.
 
 Proof verifies.
 
+Verification portability distributes deterministic public governance trust.
+
 Simulation is operational only.
 
-Governance intelligence must NEVER override deterministic trust.
+Governance intelligence must NEVER override deterministic public governance trust.
 
 VERIFICATION CONTRACT RULES
 
@@ -180,7 +192,7 @@ Public visibility requires:
 
 PUBLISHED = TRUE
 
-All public trust surfaces MUST enforce:
+All public governance trust surfaces MUST enforce:
 
 WHERE PUBLISHED = TRUE
 
@@ -195,6 +207,8 @@ Humans approve.
 Snowflake decides.
 Registry publishes.
 Proof verifies.
+
+Verification portability distributes deterministic public governance trust.
 
 AI governance systems may:
 
@@ -233,9 +247,12 @@ governance intelligence
 governance simulations
 governance observability
 remediation orchestration
-public trust infrastructure
+public governance trust infrastructure
 cryptographic verification hardening
 global AI governance infrastructure expansion
+communication layer infrastructure
+governance trust distribution infrastructure
+public accountability infrastructure
 
 Future canonical rebuild validation remains important before major infrastructure expansion, but these files should NOT be treated as unresolved blockers unless active compile/runtime failures reappear during Snowflake validation.
 
@@ -318,11 +335,11 @@ CALL CORE.SP_PUBLISH_CASE_TO_REGISTRY_V4(...)
 
 PUBLIC VIEW LAYER
 
-20 — PUBLIC TRUST VIEWS
+20 — PUBLIC GOVERNANCE TRUST VIEWS
 
 Purpose:
 
-canonical public trust projections
+canonical public governance trust projections
 verification-safe public contracts
 
 Files:
@@ -347,7 +364,7 @@ All public views MUST enforce:
 
 WHERE PUBLISHED = TRUE
 
-Canonical public trust view:
+Canonical public governance trust view:
 
 CORE.V_REGISTRY_PUBLIC
 
@@ -488,7 +505,7 @@ Rules:
 
 private only
 Snowflake-only
-no public trust exposure unless future public-safe contracts explicitly allow it
+no public governance trust exposure unless future public-safe contracts explicitly allow it
 
 CONSENSUS + POLICY GOVERNANCE
 
@@ -581,7 +598,7 @@ Purpose:
 
 operational governance simulation
 governance stress testing
-trust decay analysis
+governance trust decay analysis
 
 Files:
 
@@ -635,7 +652,7 @@ PUBLICATION LAYER
 Purpose:
 
 append-only publication
-public trust distribution
+public governance trust distribution
 
 Files:
 
@@ -684,8 +701,8 @@ VALIDATION + DIAGNOSTICS
 Purpose:
 
 deterministic diagnostics
-public trust validation
-registry validation
+public governance trust validation
+public governance trust registry validation
 
 Files:
 
@@ -723,6 +740,9 @@ governance timeline validation
 cryptographic verification integrity
 append-only registry enforcement
 operational governance integrity
+communication layer architecture validation
+governance trust distribution validation
+public accountability infrastructure validation
 
 Final validation marker:
 
@@ -739,7 +759,7 @@ DELETE
 TRUNCATE
 destructive rebuild logic
 
-PUBLIC TRUST API CONTRACTS
+PUBLIC GOVERNANCE TRUST API CONTRACTS
 
 Operational APIs:
 
@@ -776,6 +796,93 @@ Unless explicitly controlled through deterministic Snowflake procedures.
 
 Violation = system corruption.
 
+COMMUNICATION LAYER ARCHITECTURE
+
+GAFAIG now operates simultaneously across:
+
+Layer 1:
+Public Human Narrative
+
+Audience:
+
+* citizens
+* consumers
+* workers
+* humanity
+
+Focus:
+
+* accountability
+* governance visibility
+* public understanding
+* public legitimacy
+
+Future domain:
+theglobalauthorityforaigovernance.com
+
+Layer 2:
+Institutional Governance Infrastructure
+
+Audience:
+
+* enterprises
+* regulators
+* governments
+* governance professionals
+
+Focus:
+
+* governance operations
+* certification surfaces
+* governance observability
+* public governance trust infrastructure
+
+Primary domain:
+gafaig.com
+
+Layer 3:
+Developer / Verification Infrastructure
+
+Audience:
+
+* developers
+* integrators
+* auditors
+
+Focus:
+
+* proof.messageString
+* Ed25519
+* SDKs
+* APIs
+* cryptographic verification
+
+Narrative legitimacy is now considered:
+critical infrastructure.
+
+PUBLIC ACCOUNTABILITY INFRASTRUCTURE
+
+GAFAIG is evolving into public accountability infrastructure for artificial intelligence.
+
+The registry is NOT the platform itself.
+
+The registry is:
+the visible public governance trust manifestation layer.
+
+The long-term objective is:
+machine-verifiable human accountability for artificial intelligence systems.
+
+Public accountability infrastructure requires:
+
+* deterministic source-of-truth governance records
+* publication-controlled certification surfaces
+* append-only registry behavior
+* cryptographic verification
+* public governance legitimacy
+* governance visibility
+* verification portability
+* governance trust distribution
+
 CURRENT EXECUTION STATE
 
 WORKING
@@ -794,12 +901,17 @@ operational governance analytics
 cryptographic verification
 fail-closed verification
 canonical validation runner
+communication layer architecture
+narrative infrastructure stabilization
+governance trust distribution infrastructure
+public accountability infrastructure
+governance legitimacy infrastructure
 
 Validated successfully in Snowflake.
 
 CURRENT PHASE
 
-GLOBAL AI GOVERNANCE INFRASTRUCTURE EXPANSION
+NARRATIVE STABILIZATION + EXTERNAL GOVERNANCE TRUST DISTRIBUTION
 
 Focus:
 
@@ -808,7 +920,12 @@ simulations
 observability
 remediation
 operational governance
-deterministic public trust infrastructure
+deterministic public governance trust infrastructure
+communication layer stabilization
+governance legitimacy stabilization
+governance trust distribution
+governance visibility infrastructure
+public accountability infrastructure
 
 WITHOUT weakening:
 
@@ -816,7 +933,7 @@ Snowflake-first execution
 publication control
 append-only registry behavior
 cryptographic verification
-deterministic trust
+deterministic public governance trust
 
 FINAL EXECUTION PRINCIPLE
 
@@ -826,8 +943,10 @@ API projects.
 
 UI displays.
 
-Registry publishes only explicit public records.
+Registry publishes only explicit public governance trust surfaces.
 
 Proof verifies.
+
+Verification portability distributes deterministic public governance trust.
 
 END OF FILE

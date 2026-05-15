@@ -91,8 +91,8 @@ export default async function HomePage() {
         <PublicPageHero
           eyebrow="GLOBAL AUTHORITY FOR AI GOVERNANCE"
           title="AI governance, independently verifiable."
-          description="GAFAIG is deterministic global AI governance infrastructure that enables organizations to certify AI governance outcomes privately and, after certification is achieved, elect publication of signed public certification surfaces that anyone can independently verify using cryptographic proof."
-          secondaryDescription="Snowflake executes governance deterministically. The registry publishes only explicit public certification surfaces. Verification uses signed proof.messageString payloads validated through GAFAIG’s public key infrastructure."
+          description="Artificial intelligence systems increasingly influence economies, healthcare, education, infrastructure, governments, finance, media, and daily human life. Yet most AI governance remains invisible, difficult to verify, and inaccessible to ordinary people."
+          secondaryDescription="GAFAIG exists to help make AI governance visible, independently verifiable, and publicly accountable through deterministic governance infrastructure, publication-controlled certification, and signed public verification proof."
           actions={
             <>
               <PublicButtonLink href="/certification" variant="primary">
@@ -109,6 +109,39 @@ export default async function HomePage() {
             </>
           }
         />
+
+        <section className="rounded-3xl border border-black/10 bg-white p-8">
+          <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
+            HUMAN ACCOUNTABILITY FOR AI
+          </div>
+
+          <h2 className="mt-4 max-w-[900px] text-[30px] font-semibold tracking-tight text-black">
+            Artificial intelligence systems should not operate without visible
+            human accountability
+          </h2>
+
+          <p className="mt-5 max-w-[980px] text-[16px] leading-7 text-black/75">
+            As AI systems become more powerful and more widely deployed, the
+            public needs a reliable way to understand whether those systems are
+            governed responsibly. Governance claims should not depend on blind
+            trust, marketing language, screenshots, or unverifiable disclosures.
+          </p>
+
+          <div className="mt-7 grid gap-4 md:grid-cols-3">
+            <LegitimacyCard
+              title="Governance should be visible"
+              body="AI governance should not remain hidden inside private documents, internal processes, or unsupported public claims."
+            />
+            <LegitimacyCard
+              title="Claims should be verifiable"
+              body="Customers, partners, regulators, researchers, and the public should be able to verify published governance outcomes independently."
+            />
+            <LegitimacyCard
+              title="Accountability should be public"
+              body="When organizations elect publication, governance legitimacy should become inspectable, portable, and independently validated."
+            />
+          </div>
+        </section>
 
         <section className="grid gap-4 md:grid-cols-2">
           <AudienceCard
@@ -141,19 +174,59 @@ export default async function HomePage() {
 
         <section className="rounded-3xl border border-black/10 bg-white p-8">
           <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
+            WHY GAFAIG EXISTS
+          </div>
+
+          <h2 className="mt-4 max-w-[860px] text-[26px] font-semibold tracking-tight text-black">
+            GAFAIG turns AI governance from private claims into independently
+            verifiable public accountability
+          </h2>
+
+          <p className="mt-5 max-w-[980px] text-[15px] leading-7 text-black/75">
+            Organizations may claim that AI systems are responsible, safe,
+            ethical, governed, or aligned. But without independently verifiable
+            governance infrastructure, external stakeholders often cannot
+            determine whether those claims reflect real oversight.
+          </p>
+
+          <p className="mt-4 max-w-[980px] text-[15px] leading-7 text-black/75">
+            GAFAIG creates a deterministic path from private governance
+            execution to optional public certification surfaces. Certification
+            remains private until publication is explicitly elected. Once
+            published, a certification surface can be independently verified
+            through signed proof.
+          </p>
+
+          <div className="mt-7 grid gap-4 md:grid-cols-2">
+            <StatementCard
+              title="Before GAFAIG"
+              body="AI governance often depends on policy statements, public claims, internal reports, and trust signals that external stakeholders cannot independently verify."
+            />
+            <StatementCard
+              title="With GAFAIG"
+              body="Governance outcomes can be produced through deterministic infrastructure and, when published, distributed as signed public certification surfaces that anyone can verify."
+            />
+          </div>
+        </section>
+
+        <section className="rounded-3xl border border-black/10 bg-white p-8">
+          <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
             DETERMINISTIC GOVERNANCE INFRASTRUCTURE
           </div>
 
           <h2 className="mt-4 max-w-[860px] text-[26px] font-semibold tracking-tight text-black">
-            GAFAIG transforms AI governance into independently verifiable public governance trust infrastructure
+            GAFAIG transforms AI governance into independently verifiable public
+            governance trust infrastructure
           </h2>
 
           <p className="mt-5 max-w-[980px] text-[15px] leading-7 text-black/75">
-            GAFAIG combines governance execution, certification lifecycle management,
-            governance observability, governance simulations, remediation orchestration,
-            append-only publication infrastructure, and cryptographic verification into a
-            unified deterministic governance architecture. Certification remains private.
-            Publication is explicit. Public governance trust surfaces are independently verifiable.
+            GAFAIG combines governance execution, certification lifecycle
+            management, governance observability, governance simulations,
+            remediation orchestration, append-only publication infrastructure,
+            and cryptographic verification into a unified deterministic
+            governance architecture. Certification remains private. Publication
+            is explicit. Public governance trust surfaces are independently
+            verifiable.
           </p>
 
           <div className="mt-8 grid gap-4 md:grid-cols-3">
@@ -204,16 +277,18 @@ export default async function HomePage() {
           </div>
 
           <h2 className="mt-4 max-w-[860px] text-[26px] font-semibold tracking-tight text-black">
-            Governance execution, observability, simulations, and remediation operate together
+            Governance execution, observability, simulations, and remediation
+            operate together
           </h2>
 
           <p className="mt-5 max-w-[980px] text-[15px] leading-7 text-black/75">
-            GAFAIG extends beyond registry publication into governance intelligence,
-            governance observability, governance simulations, drift analysis,
-            remediation orchestration, execution governance, and lifecycle monitoring.
-            These systems remain operational and advisory only. Deterministic public governance trust
-            continues to originate exclusively from Snowflake-executed certification
-            and signed public proof.
+            GAFAIG extends beyond registry publication into governance
+            intelligence, governance observability, governance simulations, drift
+            analysis, remediation orchestration, execution governance, and
+            lifecycle monitoring. These systems remain operational and advisory
+            only. Deterministic public governance trust continues to originate
+            exclusively from Snowflake-executed certification and signed public
+            proof.
           </p>
 
           <div className="mt-7 grid gap-4 md:grid-cols-2">
@@ -238,9 +313,10 @@ export default async function HomePage() {
           </h2>
 
           <p className="mt-5 max-w-[980px] text-[15px] leading-7 text-black/75">
-            Each public GAFAIG certification surface includes a registry identifier, verification
-            endpoint, signed proof payload, and public-key validation path. The
-            registry distributes public governance trust. The verify endpoint distributes proof.
+            Each public GAFAIG certification surface includes a registry
+            identifier, verification endpoint, signed proof payload, and
+            public-key validation path. The registry distributes public
+            governance trust. The verify endpoint distributes proof.
           </p>
 
           <div className="mt-7 max-w-xl">
@@ -257,7 +333,8 @@ export default async function HomePage() {
                   No certified certification surface available
                 </div>
                 <p className="mt-3 text-[14px] leading-7 text-black/70">
-                  GAFAIG will display the latest published certification surface here once one is available.
+                  GAFAIG will display the latest published certification surface
+                  here once one is available.
                 </p>
               </div>
             )}
@@ -287,14 +364,16 @@ export default async function HomePage() {
           </div>
 
           <h2 className="mt-4 max-w-[860px] text-[26px] font-semibold tracking-tight text-black">
-            Public governance trust is independently validated through signed verification proof infrastructure
+            Public governance trust is independently validated through signed
+            verification proof infrastructure
           </h2>
 
           <p className="mt-5 max-w-[980px] text-[15px] leading-7 text-black/75">
             GAFAIG verification does not rely on screenshots, UI rendering, or
-            reconstructed payloads. Verification uses the exact proof.messageString
-            payload returned by the verification endpoint together with an Ed25519
-            signature and GAFAIG’s public key infrastructure.
+            reconstructed payloads. Verification uses the exact
+            proof.messageString payload returned by the verification endpoint
+            together with an Ed25519 signature and GAFAIG’s public key
+            infrastructure.
           </p>
 
           <div className="mt-8 grid gap-4 md:grid-cols-4">
@@ -349,8 +428,8 @@ export default async function HomePage() {
               </h2>
 
               <p className="mt-4 max-w-[760px] text-[14px] text-black/70">
-                Live metrics derived from GAFAIG&apos;s public registry. All values
-                reflect explicitly published certification surfaces.
+                Live metrics derived from GAFAIG&apos;s public registry. All
+                values reflect explicitly published certification surfaces.
               </p>
             </div>
 
@@ -420,6 +499,17 @@ function AudienceCard({
           {cta}
         </PublicButtonLink>
       </div>
+    </div>
+  );
+}
+
+function LegitimacyCard({ title, body }: { title: string; body: string }) {
+  return (
+    <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
+      <div className="text-[18px] font-semibold tracking-tight text-black">
+        {title}
+      </div>
+      <p className="mt-3 text-[15px] leading-7 text-black/75">{body}</p>
     </div>
   );
 }
@@ -510,7 +600,8 @@ function VerifiedRecordCard({
       </div>
 
       <p className="mt-3 text-[14px] leading-7 text-black/70">
-        Public GAFAIG certification surface with signed proof and independent verification.
+        Public GAFAIG certification surface with signed proof and independent
+        verification.
       </p>
 
       <div className="mt-5 flex flex-wrap gap-3">

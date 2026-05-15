@@ -1,8 +1,22 @@
 -- =========================================================
 -- 99_RUN_CANONICAL_PIPELINE.sql
 -- GAFAIG — NON-DESTRUCTIVE CANONICAL VALIDATION RUNNER
--- Last Updated: 2026-05-07
+-- Last Updated: 2026-05-14
 -- =========================================================
+
+-- Canonical doctrine:
+-- Snowflake is the source of truth.
+-- API is pass-through only.
+-- UI is display only.
+-- Registry is append-only.
+-- Certification is private.
+-- Publication is explicit.
+-- Verification uses proof.messageString only.
+-- AI is advisory only.
+-- Simulation is operational only.
+-- Governance intelligence must NEVER override deterministic trust.
+-- Public governance trust surfaces must remain publication-controlled.
+-- This runner is non-destructive and validation-only.
 
 USE ROLE ACCOUNTADMIN;
 USE DATABASE GAFAIG_DB;
@@ -183,11 +197,11 @@ SHOW PROCEDURES LIKE 'SP_AI_CREATE_SIMULATION_SCENARIO' IN SCHEMA GAFAIG_DB.CORE
 SHOW PROCEDURES LIKE 'SP_AI_RUN_GOVERNANCE_SIMULATION' IN SCHEMA GAFAIG_DB.CORE;
 
 -- =========================================================
--- 07. PUBLIC REGISTRY SURFACE CHECK
+-- 07. PUBLIC GOVERNANCE TRUST SURFACE CHECK
 -- =========================================================
 
 SELECT
-  COUNT(*) AS PUBLIC_RECORDS
+  COUNT(*) AS PUBLIC_GOVERNANCE_TRUST_SURFACES
 FROM CORE.V_REGISTRY_PUBLIC;
 
 SELECT
@@ -200,6 +214,13 @@ FROM CORE.V_REGISTRY_PUBLIC
 ORDER BY PUBLISHED_AT DESC
 LIMIT 10;
 
+SELECT
+  'PUBLIC_GOVERNANCE_TRUST_CONTRACT_CHECK' AS VALIDATION_NAME,
+  COUNT(*) AS PUBLIC_GOVERNANCE_TRUST_SURFACES
+FROM CORE.V_REGISTRY_PUBLIC
+WHERE COALESCE(VISIBILITY_STATUS, '') = 'public'
+  AND PUBLISHED_AT IS NOT NULL;
+
 -- =========================================================
 -- 08. PUBLICATION STATE CHECKS
 -- =========================================================
@@ -211,7 +232,7 @@ SELECT
 FROM CORE.REGISTRY_SNAPSHOTS;
 
 -- =========================================================
--- 09. PUBLIC VISIBILITY ENFORCEMENT CHECKS
+-- 09. PUBLIC GOVERNANCE TRUST VISIBILITY ENFORCEMENT CHECKS
 -- =========================================================
 
 SELECT
@@ -232,6 +253,13 @@ SELECT
 FROM CORE.REGISTRY_SNAPSHOTS
 WHERE PUBLISHED = FALSE
   AND PUBLISHED_AT IS NOT NULL;
+
+SELECT
+  'PUBLIC_GOVERNANCE_TRUST_SURFACE_STATUS_CHECK' AS VALIDATION_NAME,
+  COUNT(*) AS BAD_ROWS
+FROM CORE.V_REGISTRY_PUBLIC
+WHERE COALESCE(VISIBILITY_STATUS, '') <> 'public'
+   OR PUBLISHED_AT IS NULL;
 
 -- =========================================================
 -- 10. PRIVATE SNAPSHOT SUPPORT CHECK
@@ -507,6 +535,27 @@ FROM CORE.V_AI_GOVERNANCE_TIMELINE
 WHERE CASE_ID = 'CASE-1001'
 ORDER BY EVENT_AT DESC
 LIMIT 25;
+
+-- =========================================================
+-- 23A. PUBLIC GOVERNANCE TRUST DOCTRINE CHECKS
+-- =========================================================
+-- These checks validate publication-safe public governance trust surfaces.
+-- They do not mutate data and do not alter verification logic.
+
+SELECT
+  'PUBLIC_GOVERNANCE_TRUST_SURFACE_COUNT' AS VALIDATION_NAME,
+  COUNT(*) AS PUBLIC_GOVERNANCE_TRUST_SURFACES
+FROM CORE.V_REGISTRY_PUBLIC;
+
+SELECT
+  'PUBLIC_GOVERNANCE_TRUST_SURFACE_REQUIRED_FIELDS_CHECK' AS VALIDATION_NAME,
+  COUNT(*) AS BAD_ROWS
+FROM CORE.V_REGISTRY_PUBLIC
+WHERE REGISTRY_ID IS NULL
+   OR ENTITY_NAME IS NULL
+   OR CERTIFICATION_STATUS IS NULL
+   OR VISIBILITY_STATUS IS NULL
+   OR PUBLISHED_AT IS NULL;
 
 -- =========================================================
 -- 23. AI / CERTIFICATION ISOLATION CHECK
@@ -909,6 +958,27 @@ WITH CHECKS AS (
   FROM CORE.V_AI_GOVERNANCE_TIMELINE
   WHERE CASE_ID IS NULL
 
+  UNION ALL
+
+  SELECT
+    'PUBLIC_GOVERNANCE_TRUST_SURFACE_STATUS' AS CHECK_NAME,
+    COUNT(*) AS BAD_ROWS
+  FROM CORE.V_REGISTRY_PUBLIC
+  WHERE COALESCE(VISIBILITY_STATUS, '') <> 'public'
+     OR PUBLISHED_AT IS NULL
+
+  UNION ALL
+
+  SELECT
+    'PUBLIC_GOVERNANCE_TRUST_SURFACE_REQUIRED_FIELDS' AS CHECK_NAME,
+    COUNT(*) AS BAD_ROWS
+  FROM CORE.V_REGISTRY_PUBLIC
+  WHERE REGISTRY_ID IS NULL
+     OR ENTITY_NAME IS NULL
+     OR CERTIFICATION_STATUS IS NULL
+     OR VISIBILITY_STATUS IS NULL
+     OR PUBLISHED_AT IS NULL
+
 )
 
 SELECT
@@ -926,4 +996,12 @@ FROM CHECKS;
 
 SELECT
   'GAFAIG_CANONICAL_PIPELINE_VALIDATION_COMPLETE' AS STATUS,
+  CURRENT_TIMESTAMP() AS COMPLETED_AT;
+
+SELECT
+  'GAFAIG_PUBLIC_GOVERNANCE_TRUST_VALIDATION_COMPLETE' AS STATUS,
+  CURRENT_TIMESTAMP() AS COMPLETED_AT;
+
+SELECT
+  'GAFAIG_NARRATIVE_STABILIZATION_ALIGNMENT_VALIDATION_COMPLETE' AS STATUS,
   CURRENT_TIMESTAMP() AS COMPLETED_AT;

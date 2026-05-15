@@ -1,204 +1,433 @@
-# PUBLIC_PAGE_TEMPLATE_MAP.md
-Last Updated: 2026-04-22
+PUBLIC_PAGE_TEMPLATE_MAP.md
 
-## PURPOSE
+Last Updated: 2026-05-14
 
-This document assigns every GAFAIG public-facing page to a canonical page template.
+PURPOSE
 
-It removes ambiguity by ensuring:
-- Every page has a defined structure type
-- Pages are only compared to valid peers
-- Layout reviews follow the correct standard
-- No cross-template drift occurs
+This document defines the canonical public page template system for GAFAIG.
 
-This document works together with:
-- PAGE_LAYOUT_SYSTEM.md (visual shell + template rules)
+The purpose of the template system is to:
 
----
+enforce deterministic public presentation consistency
+preserve communication layer separation
+preserve canonical shell alignment
+standardize public governance trust surfaces
+standardize certification surfaces
+standardize verification surfaces
+stabilize typography, spacing, layout behavior, and visual hierarchy
+prevent uncontrolled UI drift
+preserve Snowflake-first governance architecture visibility
+maintain consistent public governance trust distribution behavior
 
-# CORE RULE
+This document does NOT define business logic.
 
-Every public page MUST be assigned to exactly ONE template.
+This document does NOT define verification logic.
 
-Pages must ONLY be evaluated against:
-1. The global visual shell (PAGE_LAYOUT_SYSTEM.md)
-2. Their assigned template (this document)
+This document does NOT define scoring logic.
 
----
+This document defines ONLY the public presentation layer structure and template classification system.
 
-# TEMPLATE DEFINITIONS
+CORE DOCTRINE
 
-## TEMPLATE 1 — INFORMATIONAL
+GAFAIG uses a deterministic public presentation architecture.
 
-Purpose:
-Explain concepts, systems, or mission.
+Public pages are NOT independently designed page-by-page.
 
-Characteristics:
-- Narrative-driven
-- Structured sections
-- Concept cards and bullets
-- Minimal data density
+All pages must inherit from canonical templates.
 
----
+Templates exist to preserve:
 
-## TEMPLATE 2 — INDEX / LIST
+communication layer separation
+public governance trust distribution consistency
+verification surface consistency
+certification surface consistency
+deterministic layout behavior
+canonical shell alignment
+visual governance legitimacy
+institutional presentation stability
 
-Purpose:
-Display collections of records or aggregated data.
+The template system prevents:
 
-Characteristics:
-- Filters and controls
-- Summary stats (optional)
-- Lists or grids of items
-- Structured scanning layout
+ad hoc page creation
+uncontrolled spacing drift
+typography inconsistency
+shell width inconsistency
+public governance trust surface fragmentation
+certification surface fragmentation
+verification surface fragmentation
+communication layer contamination
+UI-level governance interpretation
 
----
+COMMUNICATION LAYER SEPARATION
 
-## TEMPLATE 3 — DETAIL / RECORD
+GAFAIG operates through distinct communication layers.
 
-Purpose:
-Display a single record or entity.
+The template system must preserve these layers.
 
-Characteristics:
-- Entity-level hero
-- Structured data presentation
-- Field/value layouts
-- Verification and trust panels
-
----
-
-## TEMPLATE 4 — POLICY / DOCUMENT
+Layer 1 — Human Narrative Layer
 
 Purpose:
-Present structured documentation or governance text.
 
-Characteristics:
-- Text-heavy
-- Sectioned content
-- Minimal visual density
-- Formal structure
+public comprehension
+onboarding
+mission explanation
+institutional positioning
+governance education
+public communication
 
----
+Examples:
 
-# PAGE ASSIGNMENTS
+homepage
+mission
+framework
+developers
+methodology
+governance education pages
 
-## INFORMATIONAL PAGES
+This layer may use simplified human-readable explanations.
 
-These pages must follow the INFORMATIONAL template.
+This layer must NEVER:
 
-- /
-- /mission
-- /framework
-- /developers
+calculate governance outcomes
+simulate verification
+reinterpret Snowflake decisions
+expose private certification logic
+Layer 2 — Certification Surface Layer
 
-Rules:
-- Must prioritize narrative clarity
-- Must not introduce registry-style layouts
-- Must not include dense record grids
+Purpose:
 
----
+display certified public records
+display public certification surfaces
+display registry publication outputs
+display deterministic registry state
 
-## INDEX / LIST PAGES
+Examples:
 
-These pages must follow the INDEX / LIST template.
+registry pages
+explorer detail pages
+organization records
+AI system records
+lifecycle records
 
-- /registry
-- /explorer
-- /explorer/countries
-- /explorer/organizations
-- /explorer/systems
+This layer displays canonical Snowflake-originated outputs only.
 
-Rules:
-- Must prioritize scanability
-- Must support structured listing of records
-- Must not include long narrative sections
+The UI is display-only.
 
----
+No certification logic may exist in UI components.
 
-## DETAIL / RECORD PAGES
+Layer 3 — Verification Surface Layer
 
-These pages must follow the DETAIL / RECORD template.
+Purpose:
 
-- /registry/[registryId]
-- /verify/[registryId]
-- /registry/ai-systems/[systemId]
+display verification surfaces
+display messageString verification outputs
+display proof validation results
+display cryptographic verification state
+distribute public governance trust externally
 
-Rules:
-- Must present structured entity data
-- Must include verification or trust elements where applicable
-- Must not use informational narrative layouts
+Examples:
 
----
+/verify
+badge APIs
+widgets
+SDK surfaces
+public verification endpoints
 
-## POLICY / DOCUMENT PAGES
+This layer must preserve fail-closed verification behavior.
 
-These pages must follow the POLICY / DOCUMENT template.
+Verification MUST use:
 
-- /policy/*
-- /standards/*
-- /governance/*
-- /docs/*
+proof.messageString only
 
-Rules:
-- Must prioritize structured readability
-- Must not include registry-style layouts
-- Must minimize visual noise
+Verification must NEVER:
 
----
+reconstruct signed payloads
+verify from JSON fields
+infer canonical payload structure
+reinterpret signatures
+GLOBAL SHELL REQUIREMENTS
 
-# WHAT IS NOT ALLOWED
+All public pages must inherit canonical shell behavior.
 
-- Assigning a page to multiple templates
-- Mixing templates within a single page
-- Comparing pages across different templates
-- Changing a page’s template without updating this file
-- Using one page as a visual reference for a different template type
+This includes:
 
----
+canonical width system
+typography system
+spacing system
+navigation system
+footer system
+responsive behavior
+public governance trust presentation consistency
 
-# REVIEW RULES
+Canonical shell width target:
 
-When reviewing any page:
+~1180px effective content alignment
 
-1. Identify the page’s template (from this file)
-2. Validate global visual shell compliance
-3. Validate composition against the template
-4. Ignore pages from other templates during comparison
+The shell must remain visually consistent across:
 
----
+informational pages
+registry pages
+explorer pages
+verification pages
+certification surfaces
+verification surfaces
+TEMPLATE CLASSIFICATION SYSTEM
 
-# CHANGE MANAGEMENT
+GAFAIG currently uses three canonical public page templates.
 
-If a new public page is created:
+No additional template types may be introduced without canonical approval.
 
-1. It MUST be added to this file
-2. It MUST be assigned a template
-3. It MUST follow PAGE_LAYOUT_SYSTEM.md
+TEMPLATE 1 — INFORMATIONAL TEMPLATE
+PURPOSE
 
-If a page’s purpose changes:
+Narrative-driven institutional communication.
 
-1. Update its template assignment here
-2. Then update the page to match the new template
+This template exists for:
 
----
+public education
+governance explanation
+onboarding
+positioning
+institutional communication
+methodology explanation
 
-# OBJECTIVE
+This template belongs primarily to:
 
-This mapping ensures:
+Layer 1 — Human Narrative Layer
+CHARACTERISTICS
+narrative-first
+large typography hierarchy
+sectional storytelling
+explanatory blocks
+institutional framing
+governance education
+human-readable structure
 
-- No ambiguity in layout decisions
-- No cross-page comparison errors
-- Clean separation between page types
-- Scalable system for future pages
+May contain:
 
----
+diagrams
+educational graphics
+governance explanations
+architecture explanations
+certification explanations
+verification explanations
 
-# FINAL PRINCIPLE
+Must NOT contain:
 
-A page is correct when:
+active governance calculations
+verification execution logic
+certification scoring logic
+trust derivation logic
+INFORMATIONAL TEMPLATE PAGES
+Core Informational Pages
+/
+/mission
+/framework
+/developers
+/methodology
+/about
+/contact
+Extended Informational Surfaces
+educational governance pages
+public architecture explanation pages
+standards explanation pages
+institutional positioning pages
+TEMPLATE 2 — INDEX / LIST TEMPLATE
+PURPOSE
 
-- It follows the global visual shell
-- It matches its assigned template
-- Its content supports its purpose
+Structured discovery surfaces.
 
-Not when it visually matches another page.
+This template exists for:
+
+registry exploration
+public discovery
+searchable governance visibility
+index-based navigation
+public governance trust exploration
+certification surface discovery
+
+This template primarily spans:
+
+Layer 2 — Certification Surface Layer
+portions of Layer 3 — Verification Surface Layer
+CHARACTERISTICS
+card/grid/list structure
+searchable interfaces
+filter systems
+sortable records
+structured public discovery
+deterministic listing behavior
+registry visibility surfaces
+
+May contain:
+
+registry cards
+lifecycle cards
+governance signal cards
+verification and public governance trust panels
+certification summaries
+public publication metadata
+
+Must NOT contain:
+
+hidden logic
+client-side certification calculations
+trust derivation
+governance reinterpretation
+independent verification generation
+INDEX / LIST TEMPLATE PAGES
+Registry Discovery Surfaces
+/registry
+/explorer
+/explorer/systems
+/explorer/lifecycle
+/explorer/renewals
+/explorer/governance-signals
+Search and Listing Surfaces
+public search pages
+registry listing pages
+lifecycle listing pages
+AI systems discovery pages
+TEMPLATE 3 — DETAIL / RECORD TEMPLATE
+PURPOSE
+
+Canonical public record presentation.
+
+This template exists for:
+
+registry detail records
+certification surfaces
+verification surfaces
+public governance trust surfaces
+deterministic public record presentation
+public verification visibility
+
+This template spans:
+
+Layer 2 — Certification Surface Layer
+Layer 3 — Verification Surface Layer
+CHARACTERISTICS
+single-record focus
+deterministic record presentation
+structured metadata sections
+verification and public governance trust panels
+certification visibility
+verification visibility
+public publication visibility
+append-only public record presentation
+
+May contain:
+
+verification status
+certification status
+registry identifiers
+publication metadata
+lifecycle state
+AI system metadata
+cryptographic verification surfaces
+verification and public governance trust panels
+
+Must NOT contain:
+
+mutable governance interpretation
+UI-generated certification decisions
+client-side verification derivation
+reconstructed proof payloads
+trust calculations outside Snowflake
+DETAIL / RECORD TEMPLATE PAGES
+Registry Detail Pages
+/registry/[registryId]
+/registry/ai-systems/[systemId]
+Verification Surfaces
+/verify/[registryId]
+widget preview pages
+badge preview pages
+Public Record Detail Surfaces
+organization certification records
+AI system certification records
+lifecycle detail records
+verification detail records
+TEMPLATE ENFORCEMENT RULES
+TEMPLATE ASSIGNMENTS ARE CANONICAL
+
+Pages must NOT change templates arbitrarily.
+
+Template assignment drift creates:
+
+layout inconsistency
+governance presentation inconsistency
+public governance trust fragmentation
+communication layer contamination
+institutional instability
+PAGES MUST FOLLOW THEIR ASSIGNED TEMPLATE
+
+Evaluation criteria must be template-specific.
+
+Example:
+
+A registry detail page must NOT be evaluated against informational narrative standards.
+
+An informational page must NOT be evaluated against registry record standards.
+
+SHELL CONSISTENCY IS MANDATORY
+
+All templates must preserve:
+
+canonical width behavior
+typography consistency
+spacing consistency
+navigation consistency
+footer consistency
+public governance trust presentation consistency
+COMMUNICATION LAYER SEPARATION IS MANDATORY
+
+Templates must preserve:
+
+narrative layer separation
+certification surface separation
+verification surface separation
+Snowflake authority boundaries
+
+UI must NEVER:
+
+become a governance engine
+become a verification engine
+reinterpret Snowflake outputs
+derive governance legitimacy independently
+TEMPLATE SYSTEM + SNOWFLAKE AUTHORITY
+
+The template system exists ABOVE the data layer.
+
+Snowflake remains the sole governance authority.
+
+The UI:
+
+displays
+formats
+organizes
+distributes public governance trust surfaces
+
+The UI does NOT:
+
+govern
+verify independently
+certify independently
+calculate trust independently
+
+All governance authority originates from deterministic Snowflake execution.
+
+CANONICAL STATUS
+
+This document is canonical.
+
+The following are locked unless explicitly updated canonically:
+
+template definitions
+template classifications
+communication layer separation
+
+shell alignment doctrine
+public governance trust surface doctrine
+certification surface doctrine
+verification surface doctrine
+deterministic UI presentation doctrine

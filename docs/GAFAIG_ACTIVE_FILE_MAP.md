@@ -2,7 +2,7 @@ GAFAIG_ACTIVE_FILE_MAP.md
 Last Updated: 2026-05-07
 PURPOSE
 This document defines the authoritative active file map for GAFAIG (Global Authority for AI Governance).
-GAFAIG is a deterministic global AI governance infrastructure platform that enables organizations, AI systems, regulators, enterprises, governments, research institutions, universities, laboratories, non-profits, technology providers, and governance stakeholders to manage, evaluate, certify, publish, verify, monitor, observe, and coordinate AI governance outcomes through Snowflake-originated public trust records and cryptographic proof infrastructure.
+GAFAIG is a deterministic global AI governance infrastructure platform, governance trust distribution infrastructure, communication layer infrastructure, and public accountability infrastructure that enables organizations, AI systems, regulators, enterprises, governments, research institutions, universities, laboratories, non-profits, technology providers, and governance stakeholders to manage, evaluate, certify, publish, verify, monitor, observe, and coordinate AI governance outcomes through Snowflake-originated public governance trust surfaces and cryptographic verification infrastructure.
 This file establishes:
 
 
@@ -30,7 +30,7 @@ governance simulation ownership
 remediation orchestration ownership
 
 
-public trust layer ownership
+public governance trust layer ownership
 
 
 publication enforcement ownership
@@ -67,6 +67,8 @@ GAFAIG has evolved beyond the earlier framing of:
 "registry platform"
 The platform must now be consistently positioned as:
 deterministic global AI governance infrastructure
+AND:
+public accountability infrastructure for artificial intelligence
 This evolution reflects the expansion of GAFAIG into:
 
 
@@ -91,13 +93,22 @@ remediation orchestration infrastructure
 append-only publication infrastructure
 
 
-cryptographic public trust infrastructure
+cryptographic public governance trust infrastructure
 
 
 independent verification infrastructure
 
 
 global governance coordination infrastructure
+
+
+communication layer infrastructure
+
+
+governance trust distribution infrastructure
+
+
+public accountability infrastructure
 
 
 CRITICAL:
@@ -513,7 +524,7 @@ governance observability
 remediation orchestration
 
 
-public trust infrastructure
+public governance trust infrastructure
 
 
 cryptographic verification hardening
@@ -1871,7 +1882,7 @@ public view diagnostics
 
 
 
-PUBLIC TRUST LAYER
+PUBLIC GOVERNANCE TRUST LAYER
 PUBLIC API CONTRACTS
 Operational APIs:
 
@@ -2009,7 +2020,7 @@ public/sdk/gafaig.v1.js
 Rules:
 
 
-external trust signal display only
+external governance trust signal display only
 
 
 verification must call canonical verify endpoint
@@ -2188,8 +2199,102 @@ verification signature system
 Unless an explicit canonical Snowflake procedure is built to bridge states, AI must not mutate certification, publication, registry, or proof state.
 Violation = system corruption
 
+COMMUNICATION LAYER ARCHITECTURE
+GAFAIG now operates simultaneously across:
+
+Layer 1:
+Public Human Narrative
+
+Audience:
+- citizens
+- consumers
+- workers
+- humanity
+
+Focus:
+- accountability
+- governance visibility
+- public understanding
+- public legitimacy
+
+Future domain:
+theglobalauthorityforaigovernance.com
+
+Layer 2:
+Institutional Governance Infrastructure
+
+Audience:
+- enterprises
+- regulators
+- governments
+- governance professionals
+
+Focus:
+- governance operations
+- certification surfaces
+- governance observability
+- public governance trust infrastructure
+
+Primary domain:
+gafaig.com
+
+Layer 3:
+Developer / Verification Infrastructure
+
+Audience:
+- developers
+- integrators
+- auditors
+
+Focus:
+- proof.messageString
+- Ed25519
+- SDKs
+- APIs
+- cryptographic verification
+
+Narrative legitimacy is now considered:
+critical infrastructure.
+
+PUBLIC ACCOUNTABILITY INFRASTRUCTURE
+
+GAFAIG is evolving into public accountability infrastructure for artificial intelligence.
+
+The registry is NOT the platform itself.
+
+The registry is:
+the visible public governance trust manifestation layer.
+
+The long-term objective is:
+machine-verifiable human accountability for artificial intelligence systems.
+
+Public accountability infrastructure requires:
+- deterministic source-of-truth governance records
+- publication-controlled certification surfaces
+- append-only registry behavior
+- cryptographic verification
+- public governance legitimacy
+- governance visibility
+- verification portability
+- governance trust distribution
+
 CURRENT SYSTEM STATE
 WORKING:
+
+
+communication layer architecture
+
+
+narrative infrastructure stabilization
+
+
+governance trust distribution infrastructure
+
+
+public accountability infrastructure
+
+
+governance legitimacy infrastructure
 
 
 deterministic Snowflake pipeline
@@ -2280,7 +2385,7 @@ canonical validation runner with AI governance layer coverage
 
 
 CURRENT PHASE:
-GLOBAL AI GOVERNANCE INFRASTRUCTURE EXPANSION + DOCUMENTATION ALIGNMENT
+NARRATIVE STABILIZATION + EXTERNAL GOVERNANCE TRUST DISTRIBUTION
 RECENTLY VALIDATED:
 
 
@@ -2306,6 +2411,30 @@ GAFAIG_CANONICAL_SUMMARY.md
 
 
 NEXT BUILD PHASE OPTIONS:
+
+
+communication layer architecture refinement
+
+
+governance legitimacy infrastructure refinement
+
+
+governance trust distribution expansion
+
+
+consumer/public governance narrative infrastructure
+
+
+governance visibility UX
+
+
+governance observability UI
+
+
+governance simulation UI
+
+
+public accountability UX
 
 
 AI governance graph

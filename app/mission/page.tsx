@@ -9,9 +9,31 @@ export default function MissionPage() {
         <PublicPageHero
           eyebrow="MISSION"
           title="Why GAFAIG exists"
-          description="GAFAIG exists to create deterministic, independently verifiable public governance trust infrastructure for AI governance at global scale. It enables organizations to certify AI governance outcomes privately and, if they elect publication, publish signed public certification surfaces that anyone can independently verify."
-          secondaryDescription="GAFAIG combines private governance execution, publication-controlled certification, append-only registry publication, governance observability, governance simulations, remediation orchestration, and cryptographic proof infrastructure into one deterministic global AI governance architecture."
+          description="GAFAIG exists because AI governance claims should be visible, accountable, and independently verifiable. As artificial intelligence becomes more powerful, society needs a reliable way to know whether meaningful human oversight exists."
+          secondaryDescription="The GAFAIG mission is to transform AI governance from private assertions into deterministic certification outcomes that can remain private or, when publication is elected, become signed public certification surfaces backed by independent verification."
         />
+
+        <section className="rounded-3xl border border-black/10 bg-white p-8">
+          <h2 className="text-[30px] font-semibold tracking-tight text-black">
+            AI systems should not operate without visible human accountability
+          </h2>
+
+          <p className="mt-5 text-[16px] leading-7 text-black/75">
+            As artificial intelligence becomes more powerful and more widely
+            deployed, society needs a reliable way to understand whether AI
+            systems are governed responsibly. Governance claims should not depend
+            on blind trust, marketing language, screenshots, or unverifiable
+            disclosures.
+          </p>
+
+          <p className="mt-4 max-w-[940px] text-[15px] leading-7 text-black/75">
+            GAFAIG exists because AI governance must become visible,
+            inspectable, independently verifiable, and publicly accountable.
+            The mission is not merely to display certification information. The
+            mission is to help create human accountability infrastructure for
+            artificial intelligence.
+          </p>
+        </section>
 
         <section className="rounded-3xl border border-black/10 bg-white p-8">
           <h2 className="text-[26px] font-semibold tracking-tight text-black">
@@ -26,45 +48,45 @@ export default function MissionPage() {
           </p>
 
           <p className="mt-4 max-w-[900px] text-[15px] leading-7 text-black/75">
-            GAFAIG introduces deterministic global AI governance infrastructure:
-            governance is executed privately, certification is controlled inside
-            Snowflake, publication is explicit, and public governance trust surfaces are
-            backed by cryptographic proof.
+            Without independently verifiable governance infrastructure, external
+            stakeholders often cannot determine whether an organization&apos;s
+            responsible AI claims reflect real oversight, completed governance
+            processes, or publication-controlled certification outcomes.
           </p>
         </section>
 
         <section className="rounded-3xl border border-black/10 bg-white p-8">
           <h2 className="text-[26px] font-semibold tracking-tight text-black">
-            A shift from governance claims to verifiable infrastructure
+            A shift from governance claims to verifiable accountability
           </h2>
 
           <div className="mt-6 grid gap-4 md:grid-cols-2">
             <StatementCard
               title="Before GAFAIG"
-              body="Organizations describe AI governance through policies, frameworks, reports, and disclosures. Oversight may be asserted, but external stakeholders cannot independently verify the certified governance outcome."
+              body="Organizations describe AI governance through policies, frameworks, reports, and disclosures. Oversight may be asserted, but external stakeholders cannot independently verify whether a certified governance outcome exists."
             />
             <StatementCard
               title="With GAFAIG"
-              body="Governance outcomes are produced through deterministic private execution. Certified outcomes may then be published as signed public certification surfaces that external systems can independently verify."
+              body="Governance outcomes are produced through deterministic private execution. Certified outcomes may then be published as signed public certification surfaces that external systems and the public can independently verify."
             />
           </div>
 
           <p className="mt-6 text-[15px] leading-7 text-black/75">
             GAFAIG does not replace governance frameworks. It adds deterministic
-            public governance trust infrastructure that makes certification outcomes
-            independently verifiable while preserving private governance data,
-            internal evidence, and workflow confidentiality.
+            public governance trust infrastructure that makes certification
+            outcomes independently verifiable while preserving private
+            governance data, internal evidence, and workflow confidentiality.
           </p>
         </section>
 
         <section className="grid gap-4 md:grid-cols-3">
           <Pillar
-            title="Execute governance deterministically"
-            text="GAFAIG structures AI governance certification through Snowflake-controlled workflows, deterministic scoring, bounded lifecycle states, human oversight, and controlled publication."
+            title="Make governance visible"
+            text="GAFAIG helps transform AI governance from private claims into publication-controlled certification surfaces that can be inspected publicly when organizations elect publication."
           />
           <Pillar
-            title="Separate certification from publication"
-            text="Certification is private and deterministic. Publication is explicit and optional. Only published certification surfaces become public governance trust surfaces."
+            title="Preserve private evaluation"
+            text="Certification workflows remain private. Evidence, findings, internal materials, and governance review details are not exposed through public certification surfaces."
           />
           <Pillar
             title="Verify proof independently"
@@ -93,8 +115,8 @@ export default function MissionPage() {
           </h2>
 
           <p className="mt-4 text-[16px] leading-7 text-black/75">
-            Our mission is to make AI governance deterministic, observable,
-            certifiable, publishable, and independently verifiable.
+            Our mission is to make AI governance visible, deterministic,
+            observable, certifiable, publishable, and independently verifiable.
           </p>
 
           <p className="mt-4 text-[15px] leading-7 text-black/75">
@@ -105,11 +127,11 @@ export default function MissionPage() {
           </p>
 
           <p className="mt-4 text-[15px] leading-7 text-black/75">
-            GAFAIG creates the foundation for portable, machine-verifiable public governance trust
-            in AI governance across organizations, AI systems, regulators,
-            enterprises, governments, research institutions, universities,
-            laboratories, non-profits, technology providers, and governance
-            stakeholders.
+            GAFAIG creates the foundation for portable, machine-verifiable public
+            governance trust in AI governance across organizations, AI systems,
+            regulators, enterprises, governments, research institutions,
+            universities, laboratories, non-profits, technology providers, and
+            governance stakeholders.
           </p>
         </section>
       </div>

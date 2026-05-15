@@ -42,8 +42,8 @@ export default function FrameworkPage() {
         <PublicPageHero
           eyebrow="DETERMINISTIC GOVERNANCE INFRASTRUCTURE"
           title="How deterministic GAFAIG governance infrastructure works"
-          description="GAFAIG operates as deterministic global AI governance infrastructure. It combines private governance execution, governed scoring, human oversight, publication-controlled certification, append-only registry publication, governance observability, and cryptographic verification."
-          secondaryDescription="The system separates a private verification engine from a public governance trust infrastructure layer. Governance is evaluated privately, certification remains private, publication is explicit, and only published certification outcomes are exposed and validated through GAFAIG’s verification endpoint."
+          description="GAFAIG creates deterministic governance infrastructure that allows AI governance outcomes to become independently verifiable without exposing private governance materials."
+          secondaryDescription="The system separates private governance execution from public governance trust distribution. Governance is evaluated privately, certification remains private, publication is explicit, and only published certification outcomes are exposed and validated through GAFAIG’s verification infrastructure."
         />
 
         <section className="rounded-3xl border border-black/10 bg-white p-8">
@@ -54,8 +54,8 @@ export default function FrameworkPage() {
           <p className="mt-4 text-[15px] leading-7 text-black/75">
             GAFAIG does not rely on self-declared policies, static disclosures,
             or unverifiable trust claims. It introduces a structured deterministic
-            governance process that evaluates whether oversight is present, functioning,
-            and capable of producing a certification outcome.
+            governance process that evaluates whether oversight is present,
+            functioning, and capable of producing a certification outcome.
           </p>
 
           <p className="mt-4 text-[15px] leading-7 text-black/75">
@@ -120,11 +120,11 @@ export default function FrameworkPage() {
           </p>
 
           <p className="mt-4 text-[15px] leading-7 text-black/75">
-            Frameworks define how organizations should govern AI governance
-            systems across areas such as govern, map, measure, and manage.
-            GAFAIG creates a verification and publication infrastructure
-            architecture for certification outcomes without exposing private
-            evidence, findings, reviewer notes, or internal workflow materials.
+            Frameworks define how organizations should govern AI systems across
+            areas such as govern, map, measure, and manage. GAFAIG creates a
+            verification and publication infrastructure architecture for
+            certification outcomes without exposing private evidence, findings,
+            reviewer notes, or internal workflow materials.
           </p>
 
           <div className="mt-6 grid gap-4 md:grid-cols-2">
@@ -247,7 +247,7 @@ export default function FrameworkPage() {
 
         <section className="rounded-3xl border border-black/10 bg-white p-8">
           <h2 className="text-[26px] font-semibold tracking-tight text-black">
-            Private verification, public governance trust infrastructure
+            Private governance execution, public governance trust infrastructure
           </h2>
 
           <p className="mt-4 text-[15px] leading-7 text-black/75">
@@ -260,7 +260,7 @@ export default function FrameworkPage() {
           <div className="mt-6 grid gap-4 md:grid-cols-2">
             <article className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
               <div className="text-[18px] font-semibold tracking-tight text-black">
-                Private verification engine
+                Private governance execution
               </div>
               <p className="mt-3 text-[14px] leading-7 text-black/70">
                 Applications, evidence, findings, events, scoring, governance

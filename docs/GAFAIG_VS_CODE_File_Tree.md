@@ -1,19 +1,25 @@
-GAFAIG_VS_CODE_File_Tree.md
+# GAFAIG_VS_CODE_File_Tree.md
 
-Last Updated: 2026-05-07
+Last Updated: 2026-05-14
 
 PURPOSE
 
-This document defines the canonical VS Code repository structure and public trust architecture layout for GAFAIG (Global Authority for AI Governance).
+This document defines the canonical VS Code repository structure and public governance trust architecture layout for GAFAIG (Global Authority for AI Governance).
 
-GAFAIG is a deterministic global AI governance infrastructure platform that enables organizations, AI systems, regulators, enterprises, governments, research institutions, universities, laboratories, non-profits, technology providers, and governance stakeholders to manage, evaluate, certify, publish, verify, monitor, observe, and coordinate AI governance outcomes through Snowflake-originated public trust records and cryptographic proof infrastructure.
+GAFAIG is a deterministic global AI governance infrastructure platform and governance trust distribution infrastructure that enables organizations, AI systems, regulators, enterprises, governments, research institutions, universities, laboratories, non-profits, technology providers, and governance stakeholders to manage, evaluate, certify, publish, verify, monitor, observe, and coordinate AI governance outcomes through Snowflake-originated public governance trust surfaces and cryptographic verification infrastructure.
+
+GAFAIG additionally operates as:
+
+* communication layer infrastructure
+* governance trust distribution infrastructure
+* public accountability infrastructure
 
 This document defines:
 
 canonical VS Code architecture
 Next.js structure
 API structure
-public trust surfaces
+public governance trust surfaces
 SDK/widget structure
 governance infrastructure surfaces
 verification surfaces
@@ -36,6 +42,10 @@ The platform must now be consistently positioned as:
 
 deterministic global AI governance infrastructure
 
+AND:
+
+public accountability infrastructure for artificial intelligence
+
 This evolution reflects the expansion of GAFAIG into:
 
 deterministic certification infrastructure
@@ -45,9 +55,12 @@ governance observability infrastructure
 governance simulation infrastructure
 remediation orchestration infrastructure
 append-only publication infrastructure
-cryptographic public trust infrastructure
+cryptographic public governance trust infrastructure
 independent verification infrastructure
 global governance coordination infrastructure
+communication layer infrastructure
+governance trust distribution infrastructure
+public accountability infrastructure
 
 CRITICAL:
 
@@ -61,6 +74,7 @@ proof.messageString verification enforcement
 cryptographic verification integrity
 fail-closed verification behavior
 AI advisory-only boundaries
+
 CORE SYSTEM RULES
 
 Snowflake is the source of truth.
@@ -104,8 +118,10 @@ GAF2026/gafaig
 Production deployment:
 
 Vercel
-https://www.gafaig.com
+[https://www.gafaig.com](https://www.gafaig.com)
+
 CANONICAL APPLICATION STRUCTURE
+
 gafaig/
 ├── app/
 ├── lib/
@@ -118,11 +134,12 @@ gafaig/
 ├── tsconfig.json
 ├── next.config.js
 └── README.md
+
 APP DIRECTORY
 
 Purpose:
 
-public trust surfaces
+public governance trust surfaces
 verification surfaces
 informational pages
 governance presentation surfaces
@@ -133,7 +150,9 @@ UI only
 no trust computation
 no certification logic
 no proof reconstruction
+
 APP ROUTES
+
 HOMEPAGE
 app/page.tsx
 
@@ -141,22 +160,24 @@ Purpose:
 
 public positioning
 governance infrastructure presentation
-trust infrastructure messaging
+public governance trust infrastructure messaging
 
 Template:
 
 INFORMATIONAL
+
 MISSION PAGE
 app/mission/page.tsx
 
 Purpose:
 
 governance mission presentation
-deterministic trust positioning
+deterministic public governance trust positioning
 
 Template:
 
 INFORMATIONAL
+
 FRAMEWORK PAGE
 app/framework/page.tsx
 
@@ -169,6 +190,7 @@ trust lifecycle explanation
 Template:
 
 INFORMATIONAL
+
 DEVELOPERS PAGE
 app/developers/page.tsx
 
@@ -186,6 +208,7 @@ Rules:
 
 no trust computation examples
 verification must use messageString only
+
 APPLY PAGE
 app/apply/page.tsx
 
@@ -198,6 +221,7 @@ Rules:
 intake only
 no scoring logic
 no certification logic
+
 REGISTRY INDEX
 app/registry/page.tsx
 
@@ -211,16 +235,17 @@ INDEX / LIST
 
 Rules:
 
-public records only
+public governance trust surfaces only
 no unpublished records
 no governance telemetry
+
 REGISTRY DETAIL PAGE
 app/registry/[registryId]/page.tsx
 
 Purpose:
 
-public certification record display
-proof/trust display
+public certification surface display
+public governance trust + verification display
 
 Template:
 
@@ -232,6 +257,7 @@ no internal workflow leakage
 no Application ID display
 no Case ID display
 verification uses proof.messageString only
+
 VERIFY PAGE
 app/verify/[registryId]/page.tsx
 
@@ -251,7 +277,7 @@ no reconstructed payload verification
 
 Operational UI terminology:
 
-Public Certification Record
+Public Certification Surface
 View Proof JSON
 Verify This Record
 Open Full Proof Page
@@ -261,6 +287,7 @@ Deprecated terminology:
 Raw Verification JSON
 Registry Record
 Open JSON
+
 EXPLORER INDEX
 app/explorer/page.tsx
 
@@ -277,6 +304,7 @@ Rules:
 
 public-safe only
 no governance telemetry leakage
+
 EXPLORER COUNTRIES
 app/explorer/countries/page.tsx
 
@@ -287,6 +315,7 @@ country-level governance aggregation
 Template:
 
 INDEX / LIST
+
 EXPLORER ORGANIZATIONS
 app/explorer/organizations/page.tsx
 
@@ -297,6 +326,7 @@ organization-level governance exploration
 Template:
 
 INDEX / LIST
+
 EXPLORER SYSTEMS
 app/explorer/systems/page.tsx
 
@@ -312,6 +342,7 @@ Rules:
 
 public-safe only
 publication-controlled only
+
 AI SYSTEM DETAIL PAGE
 app/registry/ai-systems/[systemId]/page.tsx
 
@@ -327,7 +358,9 @@ Rules:
 
 no private telemetry
 no unpublished records
+
 PUBLIC COMPONENTS
+
 PUBLIC HERO
 app/_components/PublicPageHero.tsx
 
@@ -339,6 +372,7 @@ Rules:
 
 required for all public pages
 no custom hero implementations
+
 PUBLIC BUTTONS
 app/_components/PublicButtonLink.tsx
 
@@ -349,12 +383,13 @@ canonical public button system
 Rules:
 
 required for public CTA consistency
+
 API DIRECTORY
 
 Purpose:
 
 deterministic projection layer
-public trust distribution
+public governance trust distribution
 cryptographic verification
 
 Rules:
@@ -364,6 +399,7 @@ no trust recomputation
 no certification logic
 no publication logic
 no ID generation
+
 REGISTRY API
 app/api/registry/route.ts
 
@@ -379,6 +415,7 @@ publication-controlled only
 Data source:
 
 CORE.V_REGISTRY_PUBLIC
+
 VERIFY API
 app/api/verify/[registryId]/route.ts
 
@@ -399,6 +436,7 @@ canonical proof object
 signature
 messageString
 verification metadata
+
 BADGE API
 app/api/badge/[registryId]/route.ts
 
@@ -410,6 +448,7 @@ Rules:
 
 public-safe only
 verification-backed only
+
 PUBLIC KEY API
 app/api/.well-known/gafaig-public-key/route.ts
 
@@ -426,6 +465,7 @@ Current active contract:
 
 alg: Ed25519
 kid: gafaig-ed25519-2026-01
+
 LIB DIRECTORY
 
 Purpose:
@@ -438,6 +478,7 @@ Rules:
 
 no trust authority
 no scoring logic outside Snowflake
+
 LIB QUERIES
 lib/queries/
 
@@ -449,6 +490,7 @@ Rules:
 
 read-only projections
 public-safe only where applicable
+
 LIB VERIFICATION
 lib/verification/
 
@@ -461,6 +503,7 @@ Rules:
 no payload reconstruction
 no alternate verification logic
 must use messageString only
+
 TYPES DIRECTORY
 
 Purpose:
@@ -472,6 +515,7 @@ Rules:
 type contracts must mirror Snowflake public views
 no fabricated fields
 no UI-only trust fields
+
 PUBLIC DIRECTORY
 
 Purpose:
@@ -480,6 +524,7 @@ SDKs
 widgets
 public assets
 verification scripts
+
 SDK STRUCTURE
 public/sdk/
 
@@ -494,10 +539,19 @@ fail-closed
 no local trust computation
 no reconstructed payload verification
 
+SDKs are part of the governance trust distribution infrastructure.
+
+They function as:
+
+* portable governance verification surfaces
+* governance trust distribution surfaces
+* external governance trust signaling infrastructure
+
 SDK verification MUST use:
 
 /api/verify/[registryId]
 proof.messageString
+
 WIDGET STRUCTURE
 public/widget/
 
@@ -515,19 +569,29 @@ verification-backed only
 no trust inference from host page
 no reconstructed payload verification
 
+Widgets are part of the governance trust distribution infrastructure.
+
+They function as:
+
+* portable governance verification surfaces
+* governance trust distribution surfaces
+* external governance trust signaling infrastructure
+
 Widgets MUST:
 
 call verify API
 use proof.messageString
 display lifecycle state correctly
+
 DOCUMENTATION DIRECTORY
+
 docs/
 
 Purpose:
 
 canonical governance documentation
 architecture governance
-trust contract governance
+verification + governance trust contract governance
 
 Operational files:
 
@@ -550,6 +614,7 @@ Rules:
 
 canonical synchronization required
 no conflicting operational definitions
+
 PAGE LAYOUT GOVERNANCE
 
 Canonical visual governance defined by:
@@ -563,6 +628,7 @@ All public pages MUST:
 share canonical visual shell
 use assigned template only
 avoid cross-template drift
+
 CANONICAL VISUAL SHELL
 
 Required shell:
@@ -574,9 +640,10 @@ Rules:
 
 required globally
 no custom shell systems
-PUBLIC TRUST DATA SOURCES
 
-Public trust surfaces may ONLY derive from:
+PUBLIC GOVERNANCE TRUST DATA SOURCES
+
+Public governance trust surfaces may ONLY derive from:
 
 CORE.V_REGISTRY_PUBLIC
 CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC
@@ -588,6 +655,7 @@ compute trust
 compute certification
 compute lifecycle
 fabricate public fields
+
 AI GOVERNANCE UI RULES
 
 AI governance systems may:
@@ -605,6 +673,7 @@ publish
 mutate proof state
 override deterministic trust
 expose private governance telemetry publicly
+
 GOVERNANCE OBSERVABILITY SURFACES
 
 Future observability surfaces may include:
@@ -621,6 +690,7 @@ operational only
 no trust authority
 no certification authority
 no publication authority
+
 GOVERNANCE SIMULATION SURFACES
 
 Future simulation surfaces may include:
@@ -642,6 +712,94 @@ mutate certification
 mutate publication
 mutate registry state
 mutate proof state
+
+COMMUNICATION LAYER ARCHITECTURE
+
+GAFAIG now operates simultaneously across:
+
+Layer 1:
+Public Human Narrative
+
+Audience:
+
+* citizens
+* consumers
+* workers
+* humanity
+
+Focus:
+
+* accountability
+* governance visibility
+* public understanding
+* public legitimacy
+
+Future domain:
+theglobalauthorityforaigovernance.com
+
+Layer 2:
+Institutional Governance Infrastructure
+
+Audience:
+
+* enterprises
+* regulators
+* governments
+* governance professionals
+
+Focus:
+
+* governance operations
+* certification surfaces
+* governance observability
+* public governance trust infrastructure
+
+Primary domain:
+gafaig.com
+
+Layer 3:
+Developer / Verification Infrastructure
+
+Audience:
+
+* developers
+* integrators
+* auditors
+
+Focus:
+
+* proof.messageString
+* Ed25519
+* SDKs
+* APIs
+* cryptographic verification
+
+Narrative legitimacy is now considered:
+critical infrastructure.
+
+PUBLIC ACCOUNTABILITY INFRASTRUCTURE
+
+GAFAIG is evolving into public accountability infrastructure for artificial intelligence.
+
+The registry is NOT the platform itself.
+
+The registry is:
+the visible public governance trust manifestation layer.
+
+The long-term objective is:
+machine-verifiable human accountability for artificial intelligence systems.
+
+Public accountability infrastructure requires:
+
+* deterministic source-of-truth governance records
+* publication-controlled certification surfaces
+* append-only registry behavior
+* cryptographic verification
+* public governance legitimacy
+* governance visibility
+* verification portability
+* governance trust distribution
+
 CURRENT EXECUTION STATE
 
 WORKING
@@ -658,6 +816,11 @@ remediation orchestration
 public proof infrastructure
 verification SDKs/widgets
 fail-closed verification
+communication layer architecture
+narrative infrastructure stabilization
+governance trust distribution infrastructure
+public accountability infrastructure
+governance legitimacy infrastructure
 
 Validated successfully in Snowflake and Vercel deployment flows.
 
@@ -680,7 +843,7 @@ governance intelligence
 governance simulations
 governance observability
 remediation orchestration
-public trust infrastructure
+public governance trust infrastructure
 cryptographic verification hardening
 global AI governance infrastructure expansion
 
@@ -706,6 +869,7 @@ Rules:
 production reflects main branch only
 no deployment-side trust logic
 no deployment-side scoring logic
+
 FINAL PRINCIPLE
 
 Snowflake decides.
@@ -714,10 +878,10 @@ API projects.
 
 UI displays.
 
-Registry publishes only explicit public records.
+Registry publishes only explicit public governance trust surfaces.
 
 Proof verifies.
 
-Everything else is projection.
+Everything else is deterministic projection.
 
 END OF FILE
