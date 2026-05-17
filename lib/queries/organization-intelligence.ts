@@ -92,9 +92,22 @@ export type OrganizationIntelligenceValidationRow = {
   nullAiSystemCounts: number;
 };
 
-export async function getOrganizationIntelligence(): Promise<
+export async function getOrganizationIntelligence(
+  limit = 50,
+  offset = 0
+): Promise<
   OrganizationIntelligenceRow[]
 > {
+  const safeLimit = Math.min(
+    Math.max(Math.trunc(Number(limit) || 50), 1),
+    100
+  );
+
+  const safeOffset = Math.max(
+    Math.trunc(Number(offset) || 0),
+    0
+  );
+
   return sfQuery<OrganizationIntelligenceRow>(`
     SELECT
       ORGANIZATION_NAME AS "organizationName",
@@ -121,6 +134,8 @@ export async function getOrganizationIntelligence(): Promise<
       LATEST_PUBLICATION_ACTIVITY AS "latestPublicationActivity"
     FROM CORE.V_ORGANIZATION_INTELLIGENCE_PUBLIC
     ORDER BY TOTAL_PUBLIC_RECORDS DESC, ORGANIZATION_NAME ASC, COUNTRY ASC
+    LIMIT ${safeLimit}
+    OFFSET ${safeOffset}
   `);
 }
 

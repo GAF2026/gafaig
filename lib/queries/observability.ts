@@ -38,12 +38,30 @@ export type GovernanceSignalValidation = {
   distinctSignalTypes: number;
 };
 
+const DEFAULT_GOVERNANCE_SIGNAL_LIMIT = 24;
+const MAX_GOVERNANCE_SIGNAL_LIMIT = 100;
+
+function clampLimit(value: number | null | undefined): number {
+  const n = Number(value ?? DEFAULT_GOVERNANCE_SIGNAL_LIMIT);
+
+  if (!Number.isFinite(n)) {
+    return DEFAULT_GOVERNANCE_SIGNAL_LIMIT;
+  }
+
+  return Math.min(Math.max(Math.trunc(n), 1), MAX_GOVERNANCE_SIGNAL_LIMIT);
+}
+
 function toNumber(value: unknown): number {
   const n = Number(value ?? 0);
   return Number.isFinite(n) ? n : 0;
 }
 
-export async function getGovernanceSignals(): Promise<GovernanceSignal[]> {
+export async function getGovernanceSignals(
+  limit = DEFAULT_GOVERNANCE_SIGNAL_LIMIT
+): Promise<GovernanceSignal[]> {
+  const safeLimit = clampLimit(limit);
+  const normalizedLimit = Math.trunc(safeLimit);
+
   return sfQuery<GovernanceSignal>(`
     SELECT
       SIGNAL_TYPE AS "signalType",
@@ -51,7 +69,10 @@ export async function getGovernanceSignals(): Promise<GovernanceSignal[]> {
       SIGNAL_DESCRIPTION AS "signalDescription",
       LAST_ACTIVITY_AT AS "lastActivityAt"
     FROM CORE.V_GOVERNANCE_SIGNALS_PUBLIC
-    ORDER BY SIGNAL_TYPE ASC
+    ORDER BY
+      SIGNAL_TYPE ASC,
+      LAST_ACTIVITY_AT DESC NULLS LAST
+    LIMIT ${normalizedLimit}
   `);
 }
 

@@ -27,6 +27,9 @@ type ExplorerRecord = {
   validTo: string | null;
 };
 
+const EXPLORER_LATEST_RECORD_LIMIT = 8;
+const EXPLORER_MAX_SAFE_OFFSET = 10000;
+
 function formatNumber(value: number | null | undefined): string {
   const safeValue = Number(value ?? 0);
 
@@ -55,6 +58,19 @@ function formatText(value: string | null | undefined): string {
   const clean = String(value ?? "").trim();
 
   return clean.length > 0 ? clean : "—";
+}
+
+function toOffset(value?: string): number {
+  const n = Number(value ?? 0);
+
+  if (!Number.isFinite(n)) {
+    return 0;
+  }
+
+  return Math.min(
+    Math.max(Math.trunc(n), 0),
+    EXPLORER_MAX_SAFE_OFFSET
+  );
 }
 
 function normalizeStats(
@@ -92,6 +108,28 @@ function normalizeRecord(
     validFrom: row.validFrom ?? null,
     validTo: row.validTo ?? null,
   };
+}
+
+function classifyExplorerRecord(
+  record: ExplorerRecord
+): string {
+  const certification = String(
+    record.certificationStatus ?? ""
+  ).toLowerCase();
+
+  if (certification.includes("expired")) {
+    return "Expired Certification Surfaces";
+  }
+
+  if (certification.includes("renewal")) {
+    return "Renewal Certification Surfaces";
+  }
+
+  if (certification.includes("active")) {
+    return "Active Certification Surfaces";
+  }
+
+  return "Published Certification Surfaces";
 }
 
 function ExplorerUnavailableState() {
@@ -146,14 +184,25 @@ function EmptyLatestRecordsState() {
   );
 }
 
-export default async function ExplorerPage() {
+export default async function ExplorerPage({
+  searchParams,
+}: {
+  searchParams?: {
+    offset?: string;
+  };
+}) {
+  const offset = toOffset(searchParams?.offset);
+
   let rawStats: unknown = null;
   let rawLatestRecords: unknown = [];
 
   try {
     [rawStats, rawLatestRecords] = await Promise.all([
       getExplorerStats(),
-      getLatestExplorerRecords(8),
+      getLatestExplorerRecords(
+        EXPLORER_LATEST_RECORD_LIMIT,
+        offset
+      ),
     ]);
   } catch (error) {
     console.error("Explorer page failed to load:", error);
@@ -171,9 +220,36 @@ export default async function ExplorerPage() {
           normalizeRecord(record as Partial<ExplorerRecord>)
         )
         .filter(
-          (record): record is ExplorerRecord => record !== null
+          (record): record is ExplorerRecord =>
+            record !== null
         )
     : [];
+
+  const groupedLatestRecords = latestRecords.reduce<
+    Record<string, ExplorerRecord[]>
+  >((groups, record) => {
+    const category = classifyExplorerRecord(record);
+
+    return {
+      ...groups,
+      [category]: [...(groups[category] ?? []), record],
+    };
+  }, {});
+
+  const orderedLatestRecordGroups = Object.entries(
+    groupedLatestRecords
+  ).sort(([a], [b]) => a.localeCompare(b));
+
+  const hasNextPage =
+    latestRecords.length >= EXPLORER_LATEST_RECORD_LIMIT;
+
+  const previousOffset = Math.max(
+    offset - EXPLORER_LATEST_RECORD_LIMIT,
+    0
+  );
+
+  const nextOffset =
+    offset + EXPLORER_LATEST_RECORD_LIMIT;
 
   return (
     <main className="mx-auto max-w-[1180px] px-6 py-10">
@@ -338,69 +414,173 @@ export default async function ExplorerPage() {
         </section>
 
         <section className="mt-12 grid gap-5 md:grid-cols-3">
-          <article className="rounded-3xl border border-neutral-200 bg-white p-6 transition hover:border-neutral-400">
-            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-black/40">
-              Lifecycle
-            </p>
+          <article className="rounded-3xl border border-neutral-200 bg-white p-7">
+            <div className="text-xs font-semibold uppercase tracking-[0.24em] text-black/40">
+              Organizations
+            </div>
 
-            <h2 className="mt-4 text-[22px] font-semibold tracking-tight text-black">
-              Certification Lifecycle Observability
+            <h2 className="mt-4 text-[24px] font-semibold tracking-tight text-black">
+              Governance organizations
             </h2>
 
             <p className="mt-4 text-[15px] leading-8 text-black/70">
-              Publication-safe certification lifecycle visibility derived from canonical Snowflake registry views.
+              Browse organizations with published GAFAIG certification surfaces
+              while preserving the public/private governance boundary.
             </p>
 
-            <div className="mt-6">
-              <PublicButtonLink href="/explorer/lifecycle" variant="secondary">
-                Open Lifecycle
+            <div className="mt-7">
+              <PublicButtonLink
+                href="/explorer/organizations"
+                variant="secondary"
+              >
+                Open Organizations
               </PublicButtonLink>
             </div>
           </article>
 
-          <article className="rounded-3xl border border-neutral-200 bg-white p-6 transition hover:border-neutral-400">
-            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-black/40">
-              Renewals
-            </p>
+          <article className="rounded-3xl border border-neutral-200 bg-white p-7">
+            <div className="text-xs font-semibold uppercase tracking-[0.24em] text-black/40">
+              Jurisdictions
+            </div>
 
-            <h2 className="mt-4 text-[22px] font-semibold tracking-tight text-black">
-              Renewal Observability
+            <h2 className="mt-4 text-[24px] font-semibold tracking-tight text-black">
+              Governance jurisdictions
             </h2>
 
             <p className="mt-4 text-[15px] leading-8 text-black/70">
-              Public renewal posture and certification continuity observability for certified public certification surfaces.
+              Review jurisdiction-level public governance trust observability
+              based only on publication-safe certification metadata.
             </p>
 
-            <div className="mt-6">
-              <PublicButtonLink href="/explorer/renewals" variant="secondary">
-                Open Renewals
+            <div className="mt-7">
+              <PublicButtonLink
+                href="/explorer/countries"
+                variant="secondary"
+              >
+                Open Jurisdictions
               </PublicButtonLink>
             </div>
           </article>
 
-          <article className="rounded-3xl border border-neutral-200 bg-white p-6 transition hover:border-neutral-400">
-            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-black/40">
-              Signals
-            </p>
+          <article className="rounded-3xl border border-neutral-200 bg-white p-7">
+            <div className="text-xs font-semibold uppercase tracking-[0.24em] text-black/40">
+              AI Systems
+            </div>
 
-            <h2 className="mt-4 text-[22px] font-semibold tracking-tight text-black">
-              Governance Signals
+            <h2 className="mt-4 text-[24px] font-semibold tracking-tight text-black">
+              AI governance surfaces
             </h2>
 
             <p className="mt-4 text-[15px] leading-8 text-black/70">
-              Aggregated governance observability and publication-safe operational governance signals.
+              Inspect public AI governance surfaces connected to published
+              certification outcomes without exposing private system evidence.
             </p>
 
-            <div className="mt-6">
-              <PublicButtonLink href="/explorer/governance-signals" variant="secondary">
-                Open Signals
+            <div className="mt-7">
+              <PublicButtonLink
+                href="/explorer/systems"
+                variant="secondary"
+              >
+                Open AI Governance Surfaces
               </PublicButtonLink>
             </div>
           </article>
         </section>
 
-        <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
-          <div className="flex flex-wrap items-end justify-between gap-4">
+        <section className="mt-12 rounded-3xl border border-black/10 bg-white p-8">
+          <div className="max-w-4xl">
+            <div className="text-xs font-semibold uppercase tracking-[0.24em] text-black/40">
+              Public Governance Observability
+            </div>
+
+            <h2 className="mt-3 text-[26px] font-semibold tracking-tight text-black">
+              Operational governance signals remain publication-safe
+            </h2>
+
+            <p className="mt-5 text-[15px] leading-8 text-black/75">
+              GAFAIG separates private governance execution infrastructure from
+              public governance trust infrastructure. Explorer exposes aggregated
+              and publication-controlled observability surfaces so users can understand public governance posture without accessing private governance materials.
+            </p>
+          </div>
+
+          <div className="mt-10 grid gap-5 md:grid-cols-3">
+            <article className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
+              <div className="text-xs font-semibold uppercase tracking-[0.24em] text-black/40">
+                Lifecycle
+              </div>
+
+              <h3 className="mt-4 text-[18px] font-semibold tracking-tight text-black">
+                Certification lifecycle posture
+              </h3>
+
+              <p className="mt-4 text-[15px] leading-8 text-black/70">
+                Review publication-safe certification lifecycle categories across
+                published certification surfaces.
+              </p>
+
+              <div className="mt-7">
+                <PublicButtonLink
+                  href="/explorer/lifecycle"
+                  variant="secondary"
+                >
+                  Open Lifecycle
+                </PublicButtonLink>
+              </div>
+            </article>
+
+            <article className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
+              <div className="text-xs font-semibold uppercase tracking-[0.24em] text-black/40">
+                Renewals
+              </div>
+
+              <h3 className="mt-4 text-[18px] font-semibold tracking-tight text-black">
+                Renewal continuity intelligence
+              </h3>
+
+              <p className="mt-4 text-[15px] leading-8 text-black/70">
+                Inspect renewal posture using public governance trust metadata
+                without exposing private renewal workflows.
+              </p>
+
+              <div className="mt-7">
+                <PublicButtonLink
+                  href="/explorer/renewals"
+                  variant="secondary"
+                >
+                  Open Renewals
+                </PublicButtonLink>
+              </div>
+            </article>
+
+            <article className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
+              <div className="text-xs font-semibold uppercase tracking-[0.24em] text-black/40">
+                Governance Signals
+              </div>
+
+              <h3 className="mt-4 text-[18px] font-semibold tracking-tight text-black">
+                Aggregated governance telemetry
+              </h3>
+
+              <p className="mt-4 text-[15px] leading-8 text-black/70">
+                View high-level public governance signals derived only from
+                published certification surfaces and publication-safe projections.
+              </p>
+
+              <div className="mt-7">
+                <PublicButtonLink
+                  href="/explorer/governance-signals"
+                  variant="secondary"
+                >
+                  Open Governance Signals
+                </PublicButtonLink>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <section className="mt-12 rounded-3xl border border-black/10 bg-white p-8">
+          <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="max-w-4xl">
               <div className="text-xs font-semibold uppercase tracking-[0.24em] text-black/40">
                 Latest Published Certification Surfaces
@@ -415,8 +595,28 @@ export default async function ExplorerPage() {
               </p>
             </div>
 
-            <div className="text-[14px] text-black/70">
-              {latestRecords.length} shown
+            <div className="flex flex-wrap items-center gap-3">
+              <span className="text-[14px] text-black/70">
+                {latestRecords.length} shown
+              </span>
+
+              {offset > 0 ? (
+                <PublicButtonLink
+                  href={`/explorer?offset=${previousOffset}`}
+                  variant="secondary"
+                >
+                  Previous
+                </PublicButtonLink>
+              ) : null}
+
+              {hasNextPage ? (
+                <PublicButtonLink
+                  href={`/explorer?offset=${nextOffset}`}
+                  variant="secondary"
+                >
+                  Next
+                </PublicButtonLink>
+              ) : null}
             </div>
           </div>
 
@@ -424,91 +624,107 @@ export default async function ExplorerPage() {
             {latestRecords.length === 0 ? (
               <EmptyLatestRecordsState />
             ) : (
-              latestRecords.map((record) => (
-                <article
-                  key={record.registryId}
-                  className="rounded-3xl border border-black/10 bg-white p-7"
-                >
-                  <div className="flex flex-wrap items-start justify-between gap-4">
-                    <div className="space-y-5">
-                      <div className="flex flex-wrap gap-3 pt-1">
-                        <span className="inline-flex items-center rounded-full bg-emerald-100 px-4 py-2 text-[14px] font-semibold text-emerald-800">
-                          {formatText(record.certificationStatus)}
-                        </span>
-                      </div>
+              orderedLatestRecordGroups.map(
+                ([category, categoryRecords]) => (
+                  <div key={category} className="space-y-5">
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                      <h3 className="text-[18px] font-semibold tracking-tight text-black">
+                        {category}
+                      </h3>
 
-                      <div>
-                        <h3 className="text-[26px] font-semibold tracking-tight text-black">
-                          {formatText(record.entityName)}
-                        </h3>
-
-                        <p className="mt-3 text-[14px] leading-7 text-black/70">
-                          {formatText(record.country)} ·{" "}
-                          {record.registryId}
-                        </p>
+                      <div className="text-[13px] text-black/60">
+                        {formatNumber(categoryRecords.length)} shown
                       </div>
                     </div>
 
-                    <div className="flex flex-wrap gap-3 pt-1">
-                      <PublicButtonLink
-                        href={`/registry/${record.registryId}`}
-                        variant="secondary"
+                    {categoryRecords.map((record) => (
+                      <article
+                        key={record.registryId}
+                        className="rounded-3xl border border-black/10 bg-white p-7"
                       >
-                        Open Certification Surface
-                      </PublicButtonLink>
+                        <div className="flex flex-wrap items-start justify-between gap-4">
+                          <div className="space-y-5">
+                            <div className="flex flex-wrap gap-3 pt-1">
+                              <span className="inline-flex items-center rounded-full bg-emerald-100 px-4 py-2 text-[14px] font-semibold text-emerald-800">
+                                {formatText(record.certificationStatus)}
+                              </span>
+                            </div>
 
-                      <PublicButtonLink
-                        href={`/verify/${record.registryId}`}
-                        variant="primary"
-                      >
-                        Open Verification Surface
-                      </PublicButtonLink>
-                    </div>
+                            <div>
+                              <h3 className="text-[26px] font-semibold tracking-tight text-black">
+                                {formatText(record.entityName)}
+                              </h3>
+
+                              <p className="mt-3 text-[14px] leading-7 text-black/70">
+                                {formatText(record.country)} ·{" "}
+                                {record.registryId}
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="flex flex-wrap gap-3 pt-1">
+                            <PublicButtonLink
+                              href={`/registry/${record.registryId}`}
+                              variant="secondary"
+                            >
+                              Open Certification Surface
+                            </PublicButtonLink>
+
+                            <PublicButtonLink
+                              href={`/verify/${record.registryId}`}
+                              variant="primary"
+                            >
+                              Open Verification Surface
+                            </PublicButtonLink>
+                          </div>
+                        </div>
+
+                        <div className="mt-7 grid gap-5 md:grid-cols-2 xl:grid-cols-4">
+                          <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
+                            <div className="text-xs font-semibold uppercase tracking-[0.24em] text-black/40">
+                              Certification
+                            </div>
+
+                            <div className="mt-4 text-[18px] leading-8 font-semibold text-black">
+                              {formatText(record.certificationStatus)}
+                            </div>
+                          </div>
+
+                          <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
+                            <div className="text-xs font-semibold uppercase tracking-[0.24em] text-black/40">
+                              Certified
+                            </div>
+
+                            <div className="mt-4 text-[18px] leading-8 font-semibold text-black">
+                              {formatDate(record.certifiedAt)}
+                            </div>
+                          </div>
+
+                          <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
+                            <div className="text-xs font-semibold uppercase tracking-[0.24em] text-black/40">
+                              Valid From
+                            </div>
+
+                            <div className="mt-4 text-[18px] leading-8 font-semibold text-black">
+                              {formatDate(record.validFrom)}
+                            </div>
+                          </div>
+
+                          <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
+                            <div className="text-xs font-semibold uppercase tracking-[0.24em] text-black/40">
+                              Valid To
+                            </div>
+
+                            <div className="mt-4 text-[18px] leading-8 font-semibold text-black">
+                              {formatDate(record.validTo)}
+                            </div>
+                          </div>
+                        </div>
+                      </article>
+                    ))}
                   </div>
-
-                  <div className="mt-7 grid gap-5 md:grid-cols-2 xl:grid-cols-4">
-                    <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
-                      <div className="text-xs font-semibold uppercase tracking-[0.24em] text-black/40">
-                        Certification
-                      </div>
-
-                      <div className="mt-4 text-[18px] leading-8 font-semibold text-black">
-                        {formatText(record.certificationStatus)}
-                      </div>
-                    </div>
-
-                    <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
-                      <div className="text-xs font-semibold uppercase tracking-[0.24em] text-black/40">
-                        Certified
-                      </div>
-
-                      <div className="mt-4 text-[18px] leading-8 font-semibold text-black">
-                        {formatDate(record.certifiedAt)}
-                      </div>
-                    </div>
-
-                    <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
-                      <div className="text-xs font-semibold uppercase tracking-[0.24em] text-black/40">
-                        Valid From
-                      </div>
-
-                      <div className="mt-4 text-[18px] leading-8 font-semibold text-black">
-                        {formatDate(record.validFrom)}
-                      </div>
-                    </div>
-
-                    <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
-                      <div className="text-xs font-semibold uppercase tracking-[0.24em] text-black/40">
-                        Valid To
-                      </div>
-
-                      <div className="mt-4 text-[18px] leading-8 font-semibold text-black">
-                        {formatDate(record.validTo)}
-                      </div>
-                    </div>
-                  </div>
-                </article>
-              ))
+                )
+              )
             )}
           </div>
         </section>

@@ -8,6 +8,9 @@ import {
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
+const LIFECYCLE_PAGE_LIMIT = 50;
+const LIFECYCLE_MAX_SAFE_OFFSET = 10000;
+
 function formatText(value: string | null | undefined): string {
   const clean = String(value ?? "").trim();
   return clean.length > 0 ? clean : "—";
@@ -32,6 +35,19 @@ function formatDate(value: string | null | undefined): string {
 function formatDays(value: number | null | undefined): string {
   if (value === null || value === undefined) return "—";
   return new Intl.NumberFormat("en-US").format(Number(value));
+}
+
+function toOffset(value?: string): number {
+  const n = Number(value ?? 0);
+
+  if (!Number.isFinite(n)) {
+    return 0;
+  }
+
+  return Math.min(
+    Math.max(Math.trunc(n), 0),
+    LIFECYCLE_MAX_SAFE_OFFSET
+  );
 }
 
 function lifecycleLabel(value: string | null | undefined): string {
@@ -59,6 +75,41 @@ function lifecycleTone(value: string | null | undefined): string {
   }
 
   return "border-black/10 bg-black/[0.02] text-black/70";
+}
+
+function classifyLifecycleRow(row: LifecycleRecord): string {
+  const lifecycleStatus = String(
+    row.lifecycleStatus ?? ""
+  ).toLowerCase();
+
+  const lifecycleWindow = String(
+    row.lifecycleWindow ?? ""
+  ).toLowerCase();
+
+  const renewalStatus = String(
+    row.renewalStatus ?? ""
+  ).toLowerCase();
+
+  if (lifecycleStatus === "expired") {
+    return "Expired Certifications";
+  }
+
+  if (lifecycleWindow.includes("30")) {
+    return "Expiring Within 30 Days";
+  }
+
+  if (lifecycleWindow.includes("90")) {
+    return "Expiring Within 90 Days";
+  }
+
+  if (
+    renewalStatus.includes("attention") ||
+    renewalStatus.includes("review")
+  ) {
+    return "Renewal Attention Required";
+  }
+
+  return "Active Certifications";
 }
 
 function MetricCard({ label, value }: { label: string; value: string }) {
@@ -157,8 +208,19 @@ function LifecycleRow({ row }: { row: LifecycleRecord }) {
   );
 }
 
-export default async function ExplorerLifecyclePage() {
-  const rows = await getLifecycleRecords(200);
+export default async function ExplorerLifecyclePage({
+  searchParams,
+}: {
+  searchParams?: {
+    offset?: string;
+  };
+}) {
+  const offset = toOffset(searchParams?.offset);
+
+  const rows = await getLifecycleRecords(
+    LIFECYCLE_PAGE_LIMIT,
+    offset
+  );
 
   const total = rows.length;
   const active = rows.filter(
@@ -170,6 +232,33 @@ export default async function ExplorerLifecyclePage() {
   const expiring30 = rows.filter((row) =>
     String(row.lifecycleWindow ?? "").toLowerCase().includes("30")
   ).length;
+
+  const groupedLifecycleRows = rows.reduce<Record<string, LifecycleRecord[]>>(
+    (groups, row) => {
+      const category = classifyLifecycleRow(row);
+
+      return {
+        ...groups,
+        [category]: [...(groups[category] ?? []), row],
+      };
+    },
+    {}
+  );
+
+  const orderedLifecycleGroups = Object.entries(
+    groupedLifecycleRows
+  ).sort(([a], [b]) => a.localeCompare(b));
+
+  const hasNextPage =
+    rows.length >= LIFECYCLE_PAGE_LIMIT;
+
+  const previousOffset = Math.max(
+    offset - LIFECYCLE_PAGE_LIMIT,
+    0
+  );
+
+  const nextOffset =
+    offset + LIFECYCLE_PAGE_LIMIT;
 
   return (
     <main className="mx-auto max-w-[1180px] px-6 py-10">
@@ -225,12 +314,52 @@ export default async function ExplorerLifecyclePage() {
             </p>
           </div>
 
-          <div className="mt-6 grid gap-4">
+          <div className="mt-6 flex flex-wrap items-center justify-between gap-4">
+            <p className="text-[14px] text-black/70">
+              {rows.length} shown
+            </p>
+
+            <div className="flex flex-wrap gap-3">
+              {offset > 0 ? (
+                <PublicButtonLink
+                  href={`/explorer/lifecycle?offset=${previousOffset}`}
+                  variant="secondary"
+                >
+                  Previous
+                </PublicButtonLink>
+              ) : null}
+
+              {hasNextPage ? (
+                <PublicButtonLink
+                  href={`/explorer/lifecycle?offset=${nextOffset}`}
+                  variant="secondary"
+                >
+                  Next
+                </PublicButtonLink>
+              ) : null}
+            </div>
+          </div>
+
+          <div className="mt-6 grid gap-6">
             {rows.length === 0 ? (
               <EmptyState />
             ) : (
-              rows.map((row) => (
-                <LifecycleRow key={row.registryId} row={row} />
+              orderedLifecycleGroups.map(([category, categoryRows]) => (
+                <div key={category} className="grid gap-4">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <h3 className="text-[18px] font-semibold tracking-tight text-black">
+                      {category}
+                    </h3>
+
+                    <p className="text-[13px] font-medium text-black/50">
+                      {formatDays(categoryRows.length)} surfaces
+                    </p>
+                  </div>
+
+                  {categoryRows.map((row) => (
+                    <LifecycleRow key={row.registryId} row={row} />
+                  ))}
+                </div>
               ))
             )}
           </div>

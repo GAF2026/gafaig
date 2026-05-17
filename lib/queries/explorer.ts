@@ -118,10 +118,42 @@ export type GovernanceSignal = {
   lastActivityAt: string | null;
 };
 
+const DEFAULT_EXPLORER_LIMIT = 25;
+const MAX_EXPLORER_LIMIT = 500;
+const DEFAULT_EXPLORER_OFFSET = 0;
+const MAX_EXPLORER_OFFSET = 10000;
+
+const DEFAULT_OBSERVABILITY_LIMIT = 24;
+const MAX_OBSERVABILITY_LIMIT = 100;
+
 function toLimit(value?: number): number {
-  const n = Number(value ?? 25);
-  if (!Number.isFinite(n)) return 25;
-  return Math.min(Math.max(Math.trunc(n), 1), 500);
+  const n = Number(value ?? DEFAULT_EXPLORER_LIMIT);
+
+  if (!Number.isFinite(n)) {
+    return DEFAULT_EXPLORER_LIMIT;
+  }
+
+  return Math.min(Math.max(Math.trunc(n), 1), MAX_EXPLORER_LIMIT);
+}
+
+function toObservabilityLimit(value?: number): number {
+  const n = Number(value ?? DEFAULT_OBSERVABILITY_LIMIT);
+
+  if (!Number.isFinite(n)) {
+    return DEFAULT_OBSERVABILITY_LIMIT;
+  }
+
+  return Math.min(Math.max(Math.trunc(n), 1), MAX_OBSERVABILITY_LIMIT);
+}
+
+function toOffset(value?: number): number {
+  const n = Number(value ?? DEFAULT_EXPLORER_OFFSET);
+
+  if (!Number.isFinite(n)) {
+    return DEFAULT_EXPLORER_OFFSET;
+  }
+
+  return Math.min(Math.max(Math.trunc(n), 0), MAX_EXPLORER_OFFSET);
 }
 
 function toNumber(value: unknown): number {
@@ -191,9 +223,11 @@ export async function getExplorerStats(): Promise<ExplorerStats> {
 }
 
 export async function getLatestExplorerRecords(
-  limit = 25
+  limit = 25,
+  offset = DEFAULT_EXPLORER_OFFSET
 ): Promise<ExplorerRecord[]> {
   const safeLimit = toLimit(limit);
+  const safeOffset = toOffset(offset);
 
   return sfQuery<ExplorerRecord>(`
     SELECT
@@ -217,6 +251,7 @@ export async function getLatestExplorerRecords(
     FROM CORE.V_REGISTRY_PUBLIC
     ORDER BY PUBLISHED_AT DESC, REGISTRY_ID ASC
     LIMIT ${safeLimit}
+    OFFSET ${safeOffset}
   `);
 }
 
@@ -233,9 +268,11 @@ export async function getExplorerData(): Promise<{
 }
 
 export async function getExplorerOrganizations(
-  limit = 100
+  limit = 100,
+  offset = DEFAULT_EXPLORER_OFFSET
 ): Promise<ExplorerOrganization[]> {
   const safeLimit = toLimit(limit);
+  const safeOffset = toOffset(offset);
 
   return sfQuery<ExplorerOrganization>(`
     SELECT
@@ -254,13 +291,16 @@ export async function getExplorerOrganizations(
     GROUP BY ENTITY_NAME
     ORDER BY "recordCount" DESC, ENTITY_NAME ASC
     LIMIT ${safeLimit}
+    OFFSET ${safeOffset}
   `);
 }
 
 export async function getExplorerCountries(
-  limit = 100
+  limit = 100,
+  offset = DEFAULT_EXPLORER_OFFSET
 ): Promise<ExplorerCountry[]> {
   const safeLimit = toLimit(limit);
+  const safeOffset = toOffset(offset);
 
   return sfQuery<ExplorerCountry>(`
     SELECT
@@ -277,13 +317,16 @@ export async function getExplorerCountries(
     GROUP BY COUNTRY
     ORDER BY "recordCount" DESC, COUNTRY ASC
     LIMIT ${safeLimit}
+    OFFSET ${safeOffset}
   `);
 }
 
 export async function getExplorerSystems(
-  limit = 100
+  limit = 100,
+  offset = DEFAULT_EXPLORER_OFFSET
 ): Promise<ExplorerSystem[]> {
   const safeLimit = toLimit(limit);
+  const safeOffset = toOffset(offset);
 
   return sfQuery<ExplorerSystem>(`
     SELECT
@@ -302,6 +345,7 @@ export async function getExplorerSystems(
     FROM CORE.V_REGISTRY_AI_SYSTEMS_PUBLIC
     ORDER BY REGISTRY_ID ASC, SYSTEM_NAME ASC
     LIMIT ${safeLimit}
+    OFFSET ${safeOffset}
   `);
 }
 
@@ -345,9 +389,11 @@ export async function getExplorerSystemByRegistryId(
 }
 
 export async function getLifecycleRecords(
-  limit = 100
+  limit = 100,
+  offset = DEFAULT_EXPLORER_OFFSET
 ): Promise<LifecycleRecord[]> {
   const safeLimit = toLimit(limit);
+  const safeOffset = toOffset(offset);
 
   return sfQuery<LifecycleRecord>(`
     SELECT
@@ -369,13 +415,16 @@ export async function getLifecycleRecords(
       DAYS_UNTIL_EXPIRATION ASC,
       REGISTRY_ID ASC
     LIMIT ${safeLimit}
+    OFFSET ${safeOffset}
   `);
 }
 
 export async function getRenewalRecords(
-  limit = 100
+  limit = 100,
+  offset = DEFAULT_EXPLORER_OFFSET
 ): Promise<RenewalRecord[]> {
   const safeLimit = toLimit(limit);
+  const safeOffset = toOffset(offset);
 
   return sfQuery<RenewalRecord>(`
     SELECT
@@ -393,12 +442,15 @@ export async function getRenewalRecords(
       DAYS_UNTIL_EXPIRATION ASC,
       REGISTRY_ID ASC
     LIMIT ${safeLimit}
+    OFFSET ${safeOffset}
   `);
 }
 
-export async function getGovernanceSignals(): Promise<
-  GovernanceSignal[]
-> {
+export async function getGovernanceSignals(
+  limit = DEFAULT_OBSERVABILITY_LIMIT
+): Promise<GovernanceSignal[]> {
+  const safeLimit = toObservabilityLimit(limit);
+
   return sfQuery<GovernanceSignal>(`
     SELECT
       SIGNAL_TYPE AS "signalType",
@@ -406,6 +458,9 @@ export async function getGovernanceSignals(): Promise<
       SIGNAL_DESCRIPTION AS "signalDescription",
       LAST_ACTIVITY_AT AS "lastActivityAt"
     FROM CORE.V_GOVERNANCE_SIGNALS_PUBLIC
-    ORDER BY SIGNAL_TYPE ASC
+    ORDER BY
+      SIGNAL_TYPE ASC,
+      LAST_ACTIVITY_AT DESC NULLS LAST
+    LIMIT ${safeLimit}
   `);
 }

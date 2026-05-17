@@ -8,6 +8,9 @@ import {
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
+const RENEWAL_PAGE_LIMIT = 50;
+const RENEWAL_MAX_SAFE_OFFSET = 10000;
+
 function formatText(value: string | null | undefined): string {
   const clean = String(value ?? "").trim();
   return clean.length > 0 ? clean : "—";
@@ -30,6 +33,19 @@ function formatDays(value: number | null | undefined): string {
   return new Intl.NumberFormat("en-US").format(Number(value));
 }
 
+function toOffset(value?: string): number {
+  const n = Number(value ?? 0);
+
+  if (!Number.isFinite(n)) {
+    return 0;
+  }
+
+  return Math.min(
+    Math.max(Math.trunc(n), 0),
+    RENEWAL_MAX_SAFE_OFFSET
+  );
+}
+
 function renewalLabel(value: string | null | undefined): string {
   return formatText(value).replace(/_/g, " ");
 }
@@ -43,6 +59,37 @@ function renewalTone(value: string | null | undefined): string {
   if (clean === "expired") return "border-red-200 bg-red-50 text-red-700";
 
   return "border-black/10 bg-black/[0.02] text-black/70";
+}
+
+function classifyRenewalRow(row: RenewalRecord): string {
+  const renewalWindow = String(
+    row.renewalWindow ?? ""
+  ).toLowerCase();
+
+  const renewalStatus = String(
+    row.renewalStatus ?? ""
+  ).toLowerCase();
+
+  if (renewalWindow === "expired") {
+    return "Renewal Expired";
+  }
+
+  if (renewalWindow.includes("30")) {
+    return "Renewal Due Within 30 Days";
+  }
+
+  if (renewalWindow.includes("90")) {
+    return "Renewal Due Within 90 Days";
+  }
+
+  if (
+    renewalStatus.includes("attention") ||
+    renewalStatus.includes("review")
+  ) {
+    return "Renewal Attention Required";
+  }
+
+  return "Renewal Active";
 }
 
 function MetricCard({ label, value }: { label: string; value: string }) {
@@ -135,8 +182,19 @@ function EmptyState() {
   );
 }
 
-export default async function ExplorerRenewalsPage() {
-  const rows = await getRenewalRecords(200);
+export default async function ExplorerRenewalsPage({
+  searchParams,
+}: {
+  searchParams?: {
+    offset?: string;
+  };
+}) {
+  const offset = toOffset(searchParams?.offset);
+
+  const rows = await getRenewalRecords(
+    RENEWAL_PAGE_LIMIT,
+    offset
+  );
 
   const total = rows.length;
   const active = rows.filter(
@@ -151,6 +209,33 @@ export default async function ExplorerRenewalsPage() {
   const expired = rows.filter(
     (row) => String(row.renewalWindow ?? "").toLowerCase() === "expired"
   ).length;
+
+  const groupedRenewalRows = rows.reduce<Record<string, RenewalRecord[]>>(
+    (groups, row) => {
+      const category = classifyRenewalRow(row);
+
+      return {
+        ...groups,
+        [category]: [...(groups[category] ?? []), row],
+      };
+    },
+    {}
+  );
+
+  const orderedRenewalGroups = Object.entries(
+    groupedRenewalRows
+  ).sort(([a], [b]) => a.localeCompare(b));
+
+  const hasNextPage =
+    rows.length >= RENEWAL_PAGE_LIMIT;
+
+  const previousOffset = Math.max(
+    offset - RENEWAL_PAGE_LIMIT,
+    0
+  );
+
+  const nextOffset =
+    offset + RENEWAL_PAGE_LIMIT;
 
   return (
     <main className="mx-auto max-w-[1180px] px-6 py-10">
@@ -204,11 +289,53 @@ export default async function ExplorerRenewalsPage() {
             </p>
           </div>
 
-          <div className="mt-6 grid gap-4">
+          <div className="mt-6 flex flex-wrap items-center justify-between gap-4">
+            <p className="text-[14px] text-black/70">
+              {rows.length} shown
+            </p>
+
+            <div className="flex flex-wrap gap-3">
+              {offset > 0 ? (
+                <PublicButtonLink
+                  href={`/explorer/renewals?offset=${previousOffset}`}
+                  variant="secondary"
+                >
+                  Previous
+                </PublicButtonLink>
+              ) : null}
+
+              {hasNextPage ? (
+                <PublicButtonLink
+                  href={`/explorer/renewals?offset=${nextOffset}`}
+                  variant="secondary"
+                >
+                  Next
+                </PublicButtonLink>
+              ) : null}
+            </div>
+          </div>
+
+          <div className="mt-6 grid gap-6">
             {rows.length === 0 ? (
               <EmptyState />
             ) : (
-              rows.map((row) => <RenewalRow key={row.registryId} row={row} />)
+              orderedRenewalGroups.map(([category, categoryRows]) => (
+                <div key={category} className="grid gap-4">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <h3 className="text-[18px] font-semibold tracking-tight text-black">
+                      {category}
+                    </h3>
+
+                    <p className="text-[13px] font-medium text-black/50">
+                      {formatDays(categoryRows.length)} surfaces
+                    </p>
+                  </div>
+
+                  {categoryRows.map((row) => (
+                    <RenewalRow key={row.registryId} row={row} />
+                  ))}
+                </div>
+              ))
             )}
           </div>
         </section>

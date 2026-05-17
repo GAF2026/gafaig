@@ -63,6 +63,37 @@ function signalTone(signalType: string) {
   return "border-blue-200 bg-blue-50 text-blue-700";
 }
 
+function classifySignal(signalType: string): string {
+  if (
+    signalType.includes("renewal") ||
+    signalType.includes("expiring") ||
+    signalType.includes("expired")
+  ) {
+    return "Renewal Signals";
+  }
+
+  if (
+    signalType.includes("continuity") ||
+    signalType.includes("lifecycle")
+  ) {
+    return "Lifecycle Signals";
+  }
+
+  if (signalType.includes("ai_system")) {
+    return "AI Governance Signals";
+  }
+
+  if (signalType.includes("country")) {
+    return "Jurisdiction Signals";
+  }
+
+  if (signalType.includes("organization")) {
+    return "Organization Signals";
+  }
+
+  return "Governance Signals";
+}
+
 export default async function GovernanceSignalsPage() {
   const { signals, summary, aiSystems, validation } =
     await getGovernanceObservabilityData();
@@ -78,6 +109,22 @@ export default async function GovernanceSignalsPage() {
       .filter(Boolean)
       .sort()
       .reverse()[0] ?? null;
+
+  const groupedSignals = signals.reduce<Record<string, typeof signals>>(
+    (groups, signal) => {
+      const category = classifySignal(signal.signalType);
+
+      return {
+        ...groups,
+        [category]: [...(groups[category] ?? []), signal],
+      };
+    },
+    {}
+  );
+
+  const orderedSignalGroups = Object.entries(groupedSignals).sort(
+    ([a], [b]) => a.localeCompare(b)
+  );
 
   return (
     <main className="mx-auto w-full max-w-[1180px] px-6 py-10">
@@ -235,7 +282,7 @@ export default async function GovernanceSignalsPage() {
           </p>
         </div>
 
-        <div className="mt-6 grid gap-4">
+        <div className="mt-6 grid gap-6">
           {signals.length === 0 ? (
             <div className="rounded-3xl border border-dashed border-black/10 bg-black/[0.02] px-6 py-14 text-center">
               <div className="text-lg font-semibold text-black">
@@ -247,60 +294,74 @@ export default async function GovernanceSignalsPage() {
               </p>
             </div>
           ) : (
-            signals.map((signal) => (
-              <article
-                key={signal.signalType}
-                className="rounded-3xl border border-black/10 bg-white p-6"
-              >
-                <div className="flex flex-wrap items-start justify-between gap-4">
-                  <div className="max-w-3xl">
-                    <span
-                      className={`inline-flex rounded-full border px-3 py-1 text-[12px] font-semibold ${signalTone(
-                        signal.signalType
-                      )}`}
-                    >
-                      Governance Observability Signal
-                    </span>
+            orderedSignalGroups.map(([category, categorySignals]) => (
+              <div key={category} className="grid gap-4">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <h3 className="text-[18px] font-semibold tracking-tight text-black">
+                    {category}
+                  </h3>
 
-                    <h3 className="mt-3 text-[24px] font-semibold tracking-tight text-black">
-                      {formatSignalTitle(signal.signalType)}
-                    </h3>
-
-                    <p className="mt-2 text-[14px] leading-6 text-black/70">
-                      {formatText(signal.signalDescription)}
-                    </p>
-                  </div>
-
-                  <div className="rounded-2xl border border-black/10 bg-black/[0.02] px-8 py-6 text-center">
-                    <p className="text-[12px] font-semibold uppercase tracking-[0.24em] text-black/40">
-                      Governance Signal Value
-                    </p>
-                    <p className="mt-3 text-[34px] font-semibold tracking-tight text-black">
-                      {numberFormat(signal.signalValue)}
-                    </p>
-                  </div>
+                  <p className="text-[13px] font-medium text-black/50">
+                    {numberFormat(categorySignals.length)} signals
+                  </p>
                 </div>
 
-                <div className="mt-6 grid gap-4 md:grid-cols-2">
-                  <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
-                    <p className="text-[12px] font-semibold uppercase tracking-[0.24em] text-black/40">
-                      Signal Type
-                    </p>
-                    <p className="mt-3 break-words text-[16px] font-semibold text-black">
-                      {formatSignalTitle(signal.signalType)}
-                    </p>
-                  </div>
+                {categorySignals.map((signal) => (
+                  <article
+                    key={signal.signalType}
+                    className="rounded-3xl border border-black/10 bg-white p-6"
+                  >
+                    <div className="flex flex-wrap items-start justify-between gap-4">
+                      <div className="max-w-3xl">
+                        <span
+                          className={`inline-flex rounded-full border px-3 py-1 text-[12px] font-semibold ${signalTone(
+                            signal.signalType
+                          )}`}
+                        >
+                          Governance Observability Signal
+                        </span>
 
-                  <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
-                    <p className="text-[12px] font-semibold uppercase tracking-[0.24em] text-black/40">
-                      Last Activity
-                    </p>
-                    <p className="mt-3 text-[16px] font-semibold text-black">
-                      {formatDate(signal.lastActivityAt)}
-                    </p>
-                  </div>
-                </div>
-              </article>
+                        <h3 className="mt-3 text-[24px] font-semibold tracking-tight text-black">
+                          {formatSignalTitle(signal.signalType)}
+                        </h3>
+
+                        <p className="mt-2 text-[14px] leading-6 text-black/70">
+                          {formatText(signal.signalDescription)}
+                        </p>
+                      </div>
+
+                      <div className="rounded-2xl border border-black/10 bg-black/[0.02] px-8 py-6 text-center">
+                        <p className="text-[12px] font-semibold uppercase tracking-[0.24em] text-black/40">
+                          Governance Signal Value
+                        </p>
+                        <p className="mt-3 text-[34px] font-semibold tracking-tight text-black">
+                          {numberFormat(signal.signalValue)}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="mt-6 grid gap-4 md:grid-cols-2">
+                      <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
+                        <p className="text-[12px] font-semibold uppercase tracking-[0.24em] text-black/40">
+                          Signal Type
+                        </p>
+                        <p className="mt-3 break-words text-[16px] font-semibold text-black">
+                          {formatSignalTitle(signal.signalType)}
+                        </p>
+                      </div>
+
+                      <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
+                        <p className="text-[12px] font-semibold uppercase tracking-[0.24em] text-black/40">
+                          Last Activity
+                        </p>
+                        <p className="mt-3 text-[16px] font-semibold text-black">
+                          {formatDate(signal.lastActivityAt)}
+                        </p>
+                      </div>
+                    </div>
+                  </article>
+                ))}
+              </div>
             ))
           )}
         </div>
