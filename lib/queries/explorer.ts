@@ -118,6 +118,19 @@ export type GovernanceSignal = {
   lastActivityAt: string | null;
 };
 
+export type ContinuationMetadata = {
+  limit: number;
+  offset: number;
+  hasNextPage: boolean;
+  nextOffset: number | null;
+  previousOffset: number | null;
+};
+
+export type ContinuationResult<T> = {
+  rows: T[];
+  continuation: ContinuationMetadata;
+};
+
 const DEFAULT_EXPLORER_LIMIT = 25;
 const MAX_EXPLORER_LIMIT = 500;
 const DEFAULT_EXPLORER_OFFSET = 0;
@@ -159,6 +172,30 @@ function toOffset(value?: number): number {
 function toNumber(value: unknown): number {
   const n = Number(value ?? 0);
   return Number.isFinite(n) ? n : 0;
+}
+
+export function buildContinuationMetadata(
+  limit: number,
+  offset: number,
+  rowCount: number
+): ContinuationMetadata {
+  const safeLimit = toLimit(limit);
+  const safeOffset = toOffset(offset);
+
+  const hasNextPage = rowCount >= safeLimit;
+
+  return {
+    limit: safeLimit,
+    offset: safeOffset,
+    hasNextPage,
+    nextOffset: hasNextPage
+      ? safeOffset + safeLimit
+      : null,
+    previousOffset:
+      safeOffset > 0
+        ? Math.max(safeOffset - safeLimit, 0)
+        : null,
+  };
 }
 
 export async function getLatestCertifiedRecord(): Promise<ExplorerRecord | null> {
@@ -463,4 +500,128 @@ export async function getGovernanceSignals(
       LAST_ACTIVITY_AT DESC NULLS LAST
     LIMIT ${safeLimit}
   `);
+}
+
+export async function getLatestExplorerRecordsWithContinuation(
+  limit = 25,
+  offset = DEFAULT_EXPLORER_OFFSET
+): Promise<ContinuationResult<ExplorerRecord>> {
+  const rows = await getLatestExplorerRecords(
+    limit,
+    offset
+  );
+
+  return {
+    rows,
+    continuation: buildContinuationMetadata(
+      limit,
+      offset,
+      rows.length
+    ),
+  };
+}
+
+export async function getExplorerOrganizationsWithContinuation(
+  limit = 100,
+  offset = DEFAULT_EXPLORER_OFFSET
+): Promise<
+  ContinuationResult<ExplorerOrganization>
+> {
+  const rows = await getExplorerOrganizations(
+    limit,
+    offset
+  );
+
+  return {
+    rows,
+    continuation: buildContinuationMetadata(
+      limit,
+      offset,
+      rows.length
+    ),
+  };
+}
+
+export async function getExplorerCountriesWithContinuation(
+  limit = 100,
+  offset = DEFAULT_EXPLORER_OFFSET
+): Promise<
+  ContinuationResult<ExplorerCountry>
+> {
+  const rows = await getExplorerCountries(
+    limit,
+    offset
+  );
+
+  return {
+    rows,
+    continuation: buildContinuationMetadata(
+      limit,
+      offset,
+      rows.length
+    ),
+  };
+}
+
+export async function getExplorerSystemsWithContinuation(
+  limit = 100,
+  offset = DEFAULT_EXPLORER_OFFSET
+): Promise<
+  ContinuationResult<ExplorerSystem>
+> {
+  const rows = await getExplorerSystems(
+    limit,
+    offset
+  );
+
+  return {
+    rows,
+    continuation: buildContinuationMetadata(
+      limit,
+      offset,
+      rows.length
+    ),
+  };
+}
+
+export async function getLifecycleRecordsWithContinuation(
+  limit = 100,
+  offset = DEFAULT_EXPLORER_OFFSET
+): Promise<
+  ContinuationResult<LifecycleRecord>
+> {
+  const rows = await getLifecycleRecords(
+    limit,
+    offset
+  );
+
+  return {
+    rows,
+    continuation: buildContinuationMetadata(
+      limit,
+      offset,
+      rows.length
+    ),
+  };
+}
+
+export async function getRenewalRecordsWithContinuation(
+  limit = 100,
+  offset = DEFAULT_EXPLORER_OFFSET
+): Promise<
+  ContinuationResult<RenewalRecord>
+> {
+  const rows = await getRenewalRecords(
+    limit,
+    offset
+  );
+
+  return {
+    rows,
+    continuation: buildContinuationMetadata(
+      limit,
+      offset,
+      rows.length
+    ),
+  };
 }
