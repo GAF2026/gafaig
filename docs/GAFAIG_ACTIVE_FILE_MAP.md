@@ -1,5 +1,5 @@
 GAFAIG_ACTIVE_FILE_MAP.md
-Last Updated: 2026-05-07
+Last Updated: 2026-05-15
 PURPOSE
 This document defines the authoritative active file map for GAFAIG (Global Authority for AI Governance).
 GAFAIG is a deterministic global AI governance infrastructure platform, governance trust distribution infrastructure, communication layer infrastructure, and public accountability infrastructure that enables organizations, AI systems, regulators, enterprises, governments, research institutions, universities, laboratories, non-profits, technology providers, and governance stakeholders to manage, evaluate, certify, publish, verify, monitor, observe, and coordinate AI governance outcomes through Snowflake-originated public governance trust surfaces and cryptographic verification infrastructure.
@@ -40,6 +40,24 @@ AI operational governance ownership
 
 
 Snowflake ↔ VS Code parity expectations
+
+
+canonical operational layering
+
+
+deterministic operational governance validation
+
+
+operational dependency discipline
+
+
+publication enforcement infrastructure
+
+
+verification enforcement infrastructure
+
+
+and adaptive governance infrastructure preparation
 
 
 Only files listed here are considered ACTIVE and CANONICAL.
@@ -109,6 +127,21 @@ governance trust distribution infrastructure
 
 
 public accountability infrastructure
+
+
+deterministic operational governance infrastructure
+
+
+canonical operational validation infrastructure
+
+
+publication enforcement infrastructure
+
+
+verification enforcement infrastructure
+
+
+and adaptive governance infrastructure preparation
 
 
 CRITICAL:
@@ -236,6 +269,12 @@ MUST use proof.messageString only
 
 
 Never reconstruct signed payloads from JSON fields.
+
+Operational simplicity must remain protected.
+
+Enterprise scalability must evolve progressively.
+
+Adaptive governance infrastructure must remain deterministic.
 
 PUBLICATION RULE (CRITICAL)
 Certification and publication are separate states.
@@ -433,6 +472,78 @@ AI_SIMULATION_EVENT_ID
 
 Violation = system corruption
 
+CANONICAL OPERATIONAL LAYERING
+
+GAFAIG now operates through canonical operational layers.
+
+Operational layers exist to preserve:
+
+deterministic rebuild integrity
+operational dependency discipline
+publication enforcement integrity
+verification enforcement integrity
+governance lifecycle integrity
+institutional auditability
+enterprise scalability preparation
+and adaptive governance infrastructure preparation
+
+Operational layers include:
+
+Layer 1 — Deterministic Schema Build
+
+Purpose:
+- canonical tables
+- canonical views
+- deterministic procedures
+- append-only registry structures
+- publication-safe projections
+
+Layer 2 — Governance Workflow Infrastructure
+
+Purpose:
+- AI governance workflows
+- remediation orchestration
+- governance execution
+- governance monitoring
+- governance simulations
+- governance observability
+
+Layer 3 — Publication + Verification Infrastructure
+
+Purpose:
+- publication enforcement
+- verification infrastructure
+- public governance trust distribution
+- widgets
+- SDKs
+- public verification surfaces
+
+Layer 4 — Operational Validation Infrastructure
+
+Purpose:
+- deterministic validation
+- operational dependency validation
+- publication enforcement validation
+- verification enforcement validation
+- lifecycle integrity validation
+
+Canonical operational authority is now anchored by:
+
+CANONICAL_OPERATIONAL_MAP.md
+
+and:
+
+99_RUN_CANONICAL_PIPELINE.sql
+
+Operational layering must remain:
+
+deterministic
+publication-safe
+verification-safe
+append-safe
+institutionally auditable
+and progressively scalable
+
 CANONICAL SYSTEM FLOW
 APPLICATION
 → CASE
@@ -461,8 +572,39 @@ APPLICATION
 → API
 → UI
 → VERIFICATION
+→ OPERATIONAL VALIDATION
 
 ACTIVE CANONICAL FILES
+CANONICAL OPERATIONAL AUTHORITY
+
+CANONICAL_OPERATIONAL_MAP.md
+
+Purpose:
+
+canonical operational layering authority
+
+deterministic operational governance doctrine
+
+operational dependency doctrine
+
+publication enforcement doctrine
+
+verification enforcement doctrine
+
+adaptive governance preparation doctrine
+
+Rules:
+
+must remain deterministic
+
+must preserve operational simplicity
+
+must preserve publication-safe governance scaling
+
+must preserve verification-safe operational integrity
+
+must preserve progressive enterprise scalability boundaries
+
 00 — ENVIRONMENT
 00_CORE_SETUP.sql
 Purpose:
@@ -1790,6 +1932,18 @@ AI governance layer validation
 publication enforcement validation
 
 
+operational dependency validation
+
+
+verification enforcement validation
+
+
+deterministic governance integrity validation
+
+
+canonical operational layering validation
+
+
 Validates:
 
 
@@ -1844,10 +1998,37 @@ verification integrity
 Current status:
 
 
-ran successfully on 2026-05-07
+evolving into canonical deterministic governance validation authority infrastructure
 
 
-returned GAFAIG_CANONICAL_PIPELINE_VALIDATION_COMPLETE
+Current validation scope includes:
+
+
+publication enforcement validation
+
+
+verification enforcement validation
+
+
+operational dependency validation
+
+
+deterministic governance integrity validation
+
+
+canonical operational layering validation
+
+
+AI governance operational validation
+
+
+governance observability validation
+
+
+Current validation marker:
+
+
+GAFAIG_CANONICAL_PIPELINE_VALIDATION_COMPLETE
 
 
 98_SMOKE_TEST_REGISTRY_PUBLIC_SURFACE.sql
@@ -1930,6 +2111,15 @@ no publication logic in API
 
 
 no ID generation in API
+
+
+publication-bound verification enforcement
+
+
+verification-safe trust distribution
+
+
+append-only public governance trust projection enforcement
 
 
 
@@ -2075,6 +2265,15 @@ public key
 fail-closed verification behavior
 
 
+publication-bound verification enforcement
+
+
+deterministic verification enforcement
+
+
+verification infrastructure hardening
+
+
 
 AI LAYER SYSTEM RULES
 AI is advisory and operational unless explicitly handled by Snowflake governance procedures.
@@ -2145,6 +2344,8 @@ mutate proof state
 
 
 AI outputs require human review and/or controlled Snowflake governance processes before any downstream governance usage.
+
+AI governance infrastructure remains operationally subordinate to deterministic governance authority.
 
 AI LAYER DATA FLOW
 Verification Pipeline (Snowflake)
@@ -2278,6 +2479,16 @@ Public accountability infrastructure requires:
 - verification portability
 - governance trust distribution
 
+deterministic operational governance integrity
+
+publication enforcement integrity
+
+verification enforcement integrity
+
+operational governance auditability
+
+and adaptive governance infrastructure preparation
+
 CURRENT SYSTEM STATE
 WORKING:
 
@@ -2384,8 +2595,23 @@ unified AI governance timeline
 canonical validation runner with AI governance layer coverage
 
 
+canonical operational layering
+
+
+operational dependency stabilization
+
+
+publication enforcement hardening
+
+
+verification enforcement hardening
+
+
+deterministic governance operational validation
+
+
 CURRENT PHASE:
-NARRATIVE STABILIZATION + EXTERNAL GOVERNANCE TRUST DISTRIBUTION
+PHASE 11A — DETERMINISTIC OPERATIONAL HARDENING
 RECENTLY VALIDATED:
 
 
@@ -2410,56 +2636,92 @@ GAFAIG_VS_CODE_File_Tree.md
 GAFAIG_CANONICAL_SUMMARY.md
 
 
-NEXT BUILD PHASE OPTIONS:
+NEXT BUILD PHASE PRIORITIES:
 
 
-communication layer architecture refinement
+canonical rebuild stabilization
 
 
-governance legitimacy infrastructure refinement
+operational dependency stabilization
 
 
-governance trust distribution expansion
+publication enforcement hardening
 
 
-consumer/public governance narrative infrastructure
+verification infrastructure hardening
 
 
-governance visibility UX
+lifecycle propagation stabilization
 
 
-governance observability UI
+governance observability stabilization
 
 
-governance simulation UI
+operational governance workflow depth
 
 
-public accountability UX
+adaptive governance preparation
 
 
-AI governance graph
+enterprise scalability preparation
 
 
-AI governance replay
+operational simplicity preservation
 
 
-agentic governance planning layer
+deterministic governance operational maturity
 
 
-enterprise oversight API design
+and progressive governance infrastructure scaling
 
 
-internal admin UI/dashboard integration
+CANONICAL OPERATIONAL STATUS
 
+ACTIVE
 
-governance observability UI
+GAFAIG now operates as:
 
+deterministic governance operating infrastructure
 
-governance simulation UI
+with:
 
+canonical operational layering
 
-documentation lock-in and run-order parity
+deterministic operational validation
 
+publication enforcement infrastructure
+
+verification enforcement infrastructure
+
+operational dependency discipline
+
+governance observability infrastructure
+
+public governance trust infrastructure
+
+and adaptive governance infrastructure preparation
+
+The platform is evolving from:
+
+deterministic certification infrastructure
+
+toward:
+
+deterministic adaptive governance infrastructure
+
+while preserving:
+
+Snowflake-first authority
+
+append-only registry integrity
+
+publication separation
+
+proof.messageString verification doctrine
+
+AI advisory-only boundaries
+
+and operational simplicity during enterprise scalability expansion
 
 
 FINAL RULE

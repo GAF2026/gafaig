@@ -1,6 +1,6 @@
 ENGINEERING_RULES.md
 
-Last Updated: 2026-05-14
+Last Updated: 2026-05-15
 
 PURPOSE
 
@@ -125,6 +125,7 @@ proof.messageString verification enforcement
 cryptographic verification integrity
 fail-closed verification behavior
 AI advisory-only boundaries
+
 CORE SYSTEM PRINCIPLE
 
 Snowflake is the ONLY source of truth.
@@ -266,6 +267,7 @@ no mutation allowed
 no reconstruction allowed
 no field reordering allowed
 no reserialization allowed
+
 SIGNATURE VS LIFECYCLE SEPARATION
 
 Signature = authenticity
@@ -287,6 +289,7 @@ malformed proof
 missing public key
 verification failure
 unpublished record
+
 WIDGETS MUST FAIL CLOSED
 
 Widgets MUST display:
@@ -298,6 +301,32 @@ EXPIRED
 REVOKED
 
 when verification or lifecycle fails.
+
+OPERATIONAL VALIDATION RULE
+
+Operational validation infrastructure exists to validate:
+
+* governance integrity
+* operational sequencing integrity
+* publication enforcement integrity
+* verification enforcement integrity
+* governance continuity integrity
+* AI governance isolation integrity
+
+Operational validation infrastructure is NOT:
+
+deployment infrastructure
+migration infrastructure
+mutation infrastructure
+governance execution infrastructure
+
+Sectional execution validation is considered valid operational hardening methodology.
+
+Full worksheet start-to-finish execution may exceed Snowflake worksheet/result-rendering limits due to validation result volume and operational observability outputs.
+
+This does NOT indicate governance instability.
+
+The architecture itself must remain operationally coherent under deterministic sectional execution validation.
 
 CANONICAL ARCHITECTURE (LOCKED)
 
@@ -323,6 +352,49 @@ bypass
 duplicate
 simulate outside Snowflake
 split authority across layers
+
+DETERMINISTIC OPERATIONAL GOVERNANCE LAYERING RULE
+
+GAFAIG now operates through deterministic operational governance layers.
+
+Operational governance layers include:
+
+Layer 1 — Deterministic Governance Infrastructure
+
+Layer 2 — Governance Workflow Infrastructure
+
+Layer 3 — Public Governance Trust Infrastructure
+
+Layer 4 — Operational Validation Infrastructure
+
+Operational validation infrastructure is canonical governance authority infrastructure.
+
+Operational validation exists to preserve:
+
+* deterministic governance sequencing integrity
+* operational dependency integrity
+* publication enforcement integrity
+* verification enforcement integrity
+* governance continuity integrity
+* AI governance isolation integrity
+
+Operational validation infrastructure must remain:
+
+* non-destructive
+* validation-only
+* deterministic
+* append-safe
+* operationally auditable
+
+Operational validation infrastructure MUST NOT:
+
+mutate governance state
+mutate publication state
+mutate registry state
+mutate proof state
+perform hidden orchestration
+perform implicit execution logic
+
 DATA AUTHORITY RULE
 
 All authoritative data originates in Snowflake.
@@ -582,6 +654,7 @@ Rules:
 no record is public unless published
 no API/UI layer may expose unpublished records
 verification operates ONLY on published records
+
 PUBLIC VISIBILITY ENFORCEMENT
 
 All public governance trust surfaces MUST enforce:
@@ -619,6 +692,7 @@ a UI state
 a boolean guess
 based on lifecycle alone
 based on eligibility flags alone
+
 SIGNATURE RULE
 
 Verification payload must:
@@ -682,6 +756,7 @@ compute publication
 generate IDs
 reconstruct signed payloads
 expose private governance state
+
 VERIFY API RULES
 
 Endpoint:
@@ -709,6 +784,7 @@ CRITICAL:
 verify API is the protocol contract
 verification MUST use messageString only
 failure MUST result in NOT TRUSTED state
+
 BADGE RULES
 
 Badges are visual only.
@@ -731,6 +807,7 @@ Badges must:
 fail safely
 link to verification
 never override API truth
+
 SDK RULES
 
 SDK must:
@@ -774,6 +851,7 @@ Case ID
 score
 private workflow state
 governance telemetry
+
 WIDGET RULE
 
 Widgets are rendering layers.
@@ -849,6 +927,7 @@ Rules:
 certification is scoped
 no over-claiming trust
 record defines what is verified
+
 NO UI HACKS RULE
 
 Do NOT:
@@ -887,6 +966,7 @@ Rules:
 preserve structure
 preserve content
 standardize shell only
+
 VERSIONING RULE
 
 All breaking changes must be versioned.
@@ -919,6 +999,7 @@ do not deploy broken builds
 test locally first
 preserve deterministic behavior
 preserve public governance trust behavior
+
 TESTING RULE
 
 Always validate:
@@ -934,6 +1015,7 @@ External verification tests must pass:
 Node verification
 Python verification
 tamper verification
+
 SEED DATA RULE (CRITICAL)
 
 GAFAIG must use exactly ONE canonical seed file.
@@ -1042,6 +1124,7 @@ mutate publication
 mutate registry snapshots
 mutate proof state
 affect public governance trust
+
 GOVERNANCE TIMELINE RULE
 
 Governance timeline systems are read-only observability systems.
@@ -1060,6 +1143,7 @@ publish
 mutate trust state
 mutate proof state
 expose private governance records publicly
+
 GOVERNANCE OBSERVABILITY RULE
 
 Governance observability systems are intelligence visibility layers only.
@@ -1081,6 +1165,7 @@ mutate registry state
 mutate proof state
 recompute trust
 override Snowflake outputs
+
 CURRENT ACTIVE CONTRACT
 
 Algorithm:
@@ -1132,7 +1217,16 @@ governance observability isolated from proof
 communication layer architecture active
 narrative infrastructure stabilization active
 public accountability infrastructure active
-canonical validation runner passed
+deterministic operational governance validation infrastructure operationally validated through sectional execution validation
+deterministic operational governance layering operational
+operational dependency validation operational
+publication enforcement validation operational
+verification enforcement validation operational
+AI governance isolation validation operational
+governance continuity validation operational
+governance observability validation operational
+governance simulation validation operational
+deterministic operational validation authority operational
 
 Active work:
 
@@ -1146,7 +1240,13 @@ governance observability distribution
 governance trust distribution
 communication layer refinement
 public legitimacy architecture
+operational validation batching
+layered operational execution optimization
+reduced informational result pressure
+operational execution scalability hardening
+operational governance resilience hardening
 and governance coordination infrastructure expansion
+
 FINAL RULE
 
 If a change introduces:

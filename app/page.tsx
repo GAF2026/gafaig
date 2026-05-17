@@ -143,7 +143,7 @@ export default async function HomePage() {
           </div>
         </section>
 
-        <section className="grid gap-4 md:grid-cols-2">
+        <section className="grid gap-4 sm:gap-5 md:grid-cols-2">
           <AudienceCard
             eyebrow="FOR ORGANIZATIONS"
             title="Operate with independently verifiable AI governance"
@@ -197,7 +197,7 @@ export default async function HomePage() {
             through signed proof.
           </p>
 
-          <div className="mt-7 grid gap-4 md:grid-cols-2">
+          <div className="mt-7 grid gap-4 sm:gap-5 md:grid-cols-2">
             <StatementCard
               title="Before GAFAIG"
               body="AI governance often depends on policy statements, public claims, internal reports, and trust signals that external stakeholders cannot independently verify."
@@ -229,7 +229,7 @@ export default async function HomePage() {
             verifiable.
           </p>
 
-          <div className="mt-8 grid gap-4 md:grid-cols-3">
+          <div className="mt-8 grid gap-4 sm:gap-5 md:grid-cols-3">
             <PillarCard
               eyebrow="Pillar 1"
               title="Private Governance Execution"
@@ -291,7 +291,7 @@ export default async function HomePage() {
             proof.
           </p>
 
-          <div className="mt-7 grid gap-4 md:grid-cols-2">
+          <div className="mt-7 grid gap-4 sm:gap-5 md:grid-cols-2">
             <StatementCard
               title="AI is advisory only"
               body="AI systems may observe, recommend, simulate, monitor, and coordinate governance workflows, but AI never certifies, publishes, mutates proof state, or overrides deterministic Snowflake trust outputs."
@@ -332,7 +332,7 @@ export default async function HomePage() {
                 <div className="text-[18px] font-semibold tracking-tight text-black">
                   No certified certification surface available
                 </div>
-                <p className="mt-3 text-[14px] leading-7 text-black/70">
+                <p className="mt-3 text-[14px] leading-8 text-black/70">
                   GAFAIG will display the latest published certification surface
                   here once one is available.
                 </p>
@@ -427,7 +427,7 @@ export default async function HomePage() {
                 Current published GAFAIG certification footprint
               </h2>
 
-              <p className="mt-4 max-w-[760px] text-[14px] text-black/70">
+              <p className="mt-4 max-w-[760px] text-[14px] leading-7 text-black/70">
                 Live metrics derived from GAFAIG&apos;s public registry. All
                 values reflect explicitly published certification surfaces.
               </p>
@@ -494,7 +494,7 @@ function AudienceCard({
         ))}
       </ul>
 
-      <div className="mt-6">
+      <div className="mt-7">
         <PublicButtonLink href={href} variant={primary ? "primary" : "secondary"}>
           {cta}
         </PublicButtonLink>
@@ -520,7 +520,7 @@ function MetricCard({ label, value }: { label: string; value: string }) {
       <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/55">
         {label}
       </div>
-      <div className="mt-3 text-[32px] sm:text-[36px] font-semibold leading-none tracking-tight text-black">
+      <div className="mt-4 text-[32px] sm:text-[36px] font-semibold leading-none tracking-tight text-black">
         {value}
       </div>
     </div>
@@ -563,7 +563,7 @@ function PillarCard({
         ))}
       </ul>
 
-      <div className="mt-6">
+      <div className="mt-7">
         <PublicButtonLink href={href} variant="ghost" size="sm">
           {cta} →
         </PublicButtonLink>
@@ -599,12 +599,12 @@ function VerifiedRecordCard({
         {registryId}
       </div>
 
-      <p className="mt-3 text-[14px] leading-7 text-black/70">
+      <p className="mt-4 text-[14px] leading-8 text-black/70">
         Public GAFAIG certification surface with signed proof and independent
         verification.
       </p>
 
-      <div className="mt-6 flex flex-wrap gap-3">
+      <div className="mt-6 flex flex-wrap gap-3 sm:gap-4">
         <PublicButtonLink href={href} variant="secondary" size="sm">
           Open Certification Surface
         </PublicButtonLink>
@@ -646,12 +646,12 @@ function StepCard({
   body: string;
 }) {
   return (
-    <div className="rounded-2xl border border-black/10 bg-white p-5">
+    <div className="rounded-2xl border border-black/10 bg-white p-5 sm:p-6">
       <div className="text-[12px] font-semibold uppercase tracking-[0.16em] text-black/55">
         {number}
       </div>
       <div className="mt-3 text-[16px] font-semibold text-black">{title}</div>
-      <p className="mt-3 text-[14px] leading-7 text-black/70">{body}</p>
+      <p className="mt-4 text-[14px] leading-8 text-black/70">{body}</p>
     </div>
   );
 }
