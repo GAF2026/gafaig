@@ -11,6 +11,8 @@ type ApplyPayload = {
   country?: string;
   systemName?: string;
   systemType?: string;
+  systemDescription?: string;
+  deploymentStage?: string;
 };
 
 function clean(value: unknown): string {
@@ -43,6 +45,14 @@ export async function POST(req: Request) {
   const country = limitLength(clean(body.country), 100);
   const systemName = limitLength(clean(body.systemName), 200);
   const systemType = limitLength(clean(body.systemType), 100);
+  const systemDescription = limitLength(
+    clean(body.systemDescription),
+    2000
+  );
+  const deploymentStage = limitLength(
+    clean(body.deploymentStage),
+    100
+  );
 
   if (!orgName) {
     return NextResponse.json(
@@ -76,7 +86,7 @@ export async function POST(req: Request) {
     const result = await sfQuery(
       `
       CALL GAFAIG_DB.CORE.SP_CREATE_APPLICATION(
-        ?, ?, ?, ?, ?
+        ?, ?, ?, ?, ?, ?, ?, ?, ?
       )
       `,
       [
@@ -85,6 +95,10 @@ export async function POST(req: Request) {
         email,
         systemType || "Organization",
         country || null,
+        systemName || null,
+        systemType || null,
+        systemDescription || null,
+        deploymentStage || null,
       ]
     );
 
@@ -104,6 +118,9 @@ export async function POST(req: Request) {
         ok: true,
         requestId: payload.REQUEST_ID,
         applicationId: payload.APPLICATION_ID,
+        intakeStage: payload.INTAKE_STAGE ?? "APPLICATION_RECEIVED",
+        intakeStatus: payload.INTAKE_STATUS ?? "PRIVATE_REVIEW_QUEUED",
+        reviewStatus: payload.REVIEW_STATUS ?? "PENDING",
         message: "Application received.",
       },
       { headers: noStoreHeaders() }
