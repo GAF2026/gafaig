@@ -161,14 +161,14 @@ function ProgressCard({
     <div
       className={
         active
-          ? "rounded-2xl border border-neutral-950 bg-neutral-950 p-4 text-white"
+          ? "rounded-2xl border border-neutral-300 bg-neutral-100 p-4 text-neutral-950"
           : "rounded-2xl border border-neutral-200 bg-white p-4 text-neutral-950"
       }
     >
       <p
         className={
           active
-            ? "text-[10px] font-semibold uppercase tracking-[0.22em] text-white/60"
+            ? "text-[10px] font-semibold uppercase tracking-[0.22em] text-neutral-500"
             : "text-[10px] font-semibold uppercase tracking-[0.22em] text-neutral-500"
         }
       >
