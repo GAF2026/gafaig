@@ -43,8 +43,23 @@ export default function ApplySuccessPage({ params, searchParams }: PageProps) {
         <div className="mt-8 grid gap-4 md:grid-cols-2">
           <InfoCard label="Application ID" value={applicationId} />
           <InfoCard label="Request ID" value={requestId ?? "Pending"} />
-          <InfoCard label="Current status" value="INTAKE RECEIVED" />
+          <InfoCard label="Current status" value="PRIVATE REVIEW QUEUED" />
           <InfoCard label="Public visibility" value="Not public" />
+        </div>
+
+        <div className="mt-8 rounded-2xl border border-neutral-200 bg-neutral-50 p-5">
+          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-neutral-500">
+            Governance workflow progression
+          </p>
+
+          <div className="mt-5 grid gap-3 md:grid-cols-3 xl:grid-cols-6">
+            <ProgressCard number="1" title="Intake Received" active />
+            <ProgressCard number="2" title="Review Queued" active />
+            <ProgressCard number="3" title="Governance Review" />
+            <ProgressCard number="4" title="Evidence Evaluation" />
+            <ProgressCard number="5" title="Certification Decision" />
+            <ProgressCard number="6" title="Optional Publication" />
+          </div>
         </div>
 
         <div className="mt-8 rounded-2xl border border-neutral-200 bg-neutral-50 p-5">
@@ -62,15 +77,20 @@ export default function ApplySuccessPage({ params, searchParams }: PageProps) {
               verification.
             </li>
             <li>
-              3. Certification is only granted after evaluation, scoring, and
+              3. GAFAIG may request additional governance materials, evidence
+              artifacts, or operational clarification during the private review
+              process.
+            </li>
+            <li>
+              4. Certification is only granted after evaluation, scoring, and
               approval.
             </li>
             <li>
-              4. If certified, the organization may choose whether to publish
+              5. If certified, the organization may choose whether to publish
               the record to the public registry.
             </li>
             <li>
-              5. Published certification records can be independently verified
+              6. Published certification records can be independently verified
               through signed proof and GAFAIG public key infrastructure.
             </li>
           </ol>
@@ -124,6 +144,37 @@ function InfoCard({ label, value }: { label: string; value: string }) {
       <p className="mt-3 break-words text-base font-semibold text-neutral-950">
         {value}
       </p>
+    </div>
+  );
+}
+
+function ProgressCard({
+  number,
+  title,
+  active = false,
+}: {
+  number: string;
+  title: string;
+  active?: boolean;
+}) {
+  return (
+    <div
+      className={
+        active
+          ? "rounded-2xl border border-neutral-950 bg-neutral-950 p-4 text-white"
+          : "rounded-2xl border border-neutral-200 bg-white p-4 text-neutral-950"
+      }
+    >
+      <p
+        className={
+          active
+            ? "text-[10px] font-semibold uppercase tracking-[0.22em] text-white/60"
+            : "text-[10px] font-semibold uppercase tracking-[0.22em] text-neutral-500"
+        }
+      >
+        {number}
+      </p>
+      <p className="mt-2 text-sm font-semibold leading-5">{title}</p>
     </div>
   );
 }

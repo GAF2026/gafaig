@@ -16,7 +16,10 @@ export default function ApplyPage() {
           secondaryDescription="The public certification registry is not the application system. Intake, evidence review, findings, deterministic scoring, governance review, and certification decisions occur inside the private GAFAIG verification engine. Only explicitly published certification outcomes become public governance trust surfaces."
           actions={
             <>
-              <PublicButtonLink href="/demo" variant="primary">
+              <PublicButtonLink href="/apply/intake" variant="primary">
+                Begin Enterprise Intake
+              </PublicButtonLink>
+              <PublicButtonLink href="/demo" variant="secondary">
                 Start with the Demo
               </PublicButtonLink>
               <PublicButtonLink href="/framework" variant="secondary">
@@ -28,6 +31,66 @@ export default function ApplyPage() {
             </>
           }
         />
+
+        <section className="rounded-3xl border border-black/10 bg-white p-8">
+          <SectionEyebrow>Enterprise intake pathway</SectionEyebrow>
+
+          <h2 className="mt-4 max-w-[860px] text-[26px] font-semibold tracking-tight text-black">
+            GAFAIG intake establishes the organization’s private governance review pathway
+          </h2>
+
+          <p className="mt-4 max-w-[920px] text-[15px] leading-7 text-black/75">
+            Enterprise intake organizes organization identity, AI governance scope,
+            governance controls, evidence readiness, and review posture before private
+            verification begins. This staged pathway helps organizations understand how
+            GAFAIG moves from intake to private review and, only after certification
+            approval and explicit publication election, to public governance trust
+            surfaces.
+          </p>
+
+          <div className="mt-8 grid gap-4 md:grid-cols-3 xl:grid-cols-6">
+            <PathCard
+              number="1"
+              title="Organization Identity"
+              body="Establish the organization, jurisdiction, governance lead, and operating context."
+            />
+            <PathCard
+              number="2"
+              title="AI Governance Scope"
+              body="Identify systems, intended uses, risk domains, deployment scale, and oversight posture."
+            />
+            <PathCard
+              number="3"
+              title="Governance Controls"
+              body="Describe human oversight, escalation, audit controls, and review processes."
+            />
+            <PathCard
+              number="4"
+              title="Evidence Readiness"
+              body="Prepare governance policies, audit materials, attestations, and evidence references."
+            />
+            <PathCard
+              number="5"
+              title="Review Checkpoint"
+              body="Review the intake posture before private verification workflow continuation."
+            />
+            <PathCard
+              number="6"
+              title="Private Verification"
+              body="GAFAIG evaluates governance privately before any certification or publication."
+            />
+          </div>
+
+          <div className="mt-8 flex flex-wrap gap-3">
+            <PublicButtonLink href="/apply/intake" variant="primary">
+              Begin Enterprise Intake
+            </PublicButtonLink>
+
+            <PublicButtonLink href="/apply/review" variant="secondary">
+              Preview Review Checkpoint
+            </PublicButtonLink>
+          </div>
+        </section>
 
         <section className="grid gap-4 lg:grid-cols-2">
           <div className="rounded-3xl border border-black/10 bg-white p-8">
@@ -370,6 +433,10 @@ export default function ApplyPage() {
           </p>
 
           <div className="mt-6 flex flex-wrap gap-3">
+            <PublicButtonLink href="/apply/intake" variant="primary">
+              Begin Enterprise Intake
+            </PublicButtonLink>
+
             <PublicButtonLink href="/demo" variant="secondary">
               Start with the Demo
             </PublicButtonLink>
