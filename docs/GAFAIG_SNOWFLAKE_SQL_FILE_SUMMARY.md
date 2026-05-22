@@ -1,12 +1,12 @@
 # GAFAIG_SNOWFLAKE_SQL_FILE_SUMMARY.md
 
-Last Updated: 2026-05-16
+Last Updated: 2026-05-19
 
 PURPOSE
 
 This document defines the canonical Snowflake SQL infrastructure map for GAFAIG (Global Authority for AI Governance).
 
-GAFAIG is a deterministic global AI governance infrastructure platform and governance trust distribution infrastructure that enables organizations, AI systems, regulators, enterprises, governments, research institutions, universities, laboratories, non-profits, technology providers, and governance stakeholders to manage, evaluate, certify, publish, verify, monitor, observe, and coordinate AI governance outcomes through Snowflake-originated public governance trust surfaces and cryptographic verification infrastructure.
+GAFAIG is a deterministic global AI governance authority infrastructure platform and governance trust distribution infrastructure that enables organizations, AI systems, regulators, enterprises, governments, research institutions, universities, laboratories, non-profits, technology providers, and governance stakeholders to manage, evaluate, certify, publish, verify, monitor, observe, and coordinate AI governance outcomes through Snowflake-originated public governance trust surfaces and cryptographic verification infrastructure.
 
 GAFAIG additionally operates as:
 
@@ -18,7 +18,7 @@ This document explains:
 
 canonical Snowflake file ownership
 deterministic execution responsibilities
-governance infrastructure layers
+deterministic governance authority infrastructure layers
 publication infrastructure
 AI governance infrastructure
 governance simulation infrastructure
@@ -180,6 +180,32 @@ WHERE PUBLISHED = TRUE
 
 No unpublished records may appear publicly.
 
+# GOVERNANCE LAYERING ARCHITECTURE (CANONICAL)
+
+GAFAIG now operates through canonical governance infrastructure layers.
+
+These layers are intentionally separated to preserve:
+
+* deterministic governance authority
+* governance auditability
+* publication integrity
+* verification integrity
+* registry integrity
+* institutional trust continuity
+* international governance defensibility
+
+The platform now operates through:
+
+* Layer 1 — Deterministic Governance Authority Infrastructure
+* Layer 2 — Adaptive Governance Intelligence Infrastructure
+* Layer 3 — Governance Observability Infrastructure
+* Layer 4 — Public Governance Trust Infrastructure
+
+Adaptive governance intelligence may influence governance workflows,
+but may never directly mutate governance authority.
+
+Deterministic governance authority remains permanently authoritative.
+
 CANONICAL SNOWFLAKE DATABASE CONTEXT
 
 Required canonical context:
@@ -219,6 +245,261 @@ APPLICATION
 → API
 → UI
 → VERIFICATION
+
+# LAYER 1 — DETERMINISTIC GOVERNANCE AUTHORITY INFRASTRUCTURE
+
+Layer 1 contains the canonical deterministic governance authority infrastructure responsible for intake, case creation, findings, evidence, scoring, decisioning, publication gating, registry eligibility, lifecycle observability, and deterministic validation.
+
+Layer 1 is authoritative.
+
+Layer 1 is Snowflake-owned.
+
+Layer 1 may be observed by adaptive governance intelligence, but it may not be overridden by adaptive governance intelligence.
+
+## Application Intake Infrastructure
+
+11_TABLES_APPLICATIONS.sql
+
+Purpose:
+
+deterministic application lifecycle tracking
+deterministic application persistence
+application review-state continuity
+canonical Snowflake-owned identifiers
+
+Primary tables:
+
+CORE.APPLICATIONS
+
+24_PROCEDURES_APPLICATION_INTAKE.sql
+
+Purpose:
+
+application intake orchestration
+deterministic intake lifecycle continuity
+canonical intake execution
+
+Responsibilities:
+
+deterministic application persistence
+deterministic intake lifecycle continuity
+canonical Snowflake-owned identifiers
+application review-state continuity
+
+## Deterministic Governance Workflow Infrastructure
+
+23_SP_CREATE_CASE_FROM_APPLICATION.sql
+
+Purpose:
+
+deterministic application → case creation
+
+Canonical procedure:
+
+CORE.SP_CREATE_CASE_FROM_APPLICATION
+
+26_PROCEDURES_FINDINGS.sql
+
+Purpose:
+
+deterministic governance finding creation
+
+Canonical procedure:
+
+CORE.SP_CREATE_FINDING
+
+27_PROCEDURES_EVIDENCE.sql
+
+Purpose:
+
+deterministic evidence storage
+evidence management
+
+24_SP_SCORE_CASE_ENTERPRISE.sql
+
+Purpose:
+
+deterministic governance scoring
+
+Canonical procedure:
+
+CORE.SP_SCORE_CASE_ENTERPRISE
+
+25_PROCEDURES_DECISION.sql
+
+Purpose:
+
+deterministic decision mutation
+decision lifecycle continuity
+governance decision authority
+
+Responsibilities:
+
+deterministic governance execution
+deterministic scoring continuity
+deterministic decision mutation
+append-only governance lineage
+governance continuity enforcement
+
+## Governance Lifecycle Observability Infrastructure
+
+26_VIEWS_CASE_LIFECYCLE.sql
+
+Purpose:
+
+case lifecycle telemetry
+governance workflow continuity visibility
+
+26_VIEWS_DECISION_LIFECYCLE.sql
+
+Purpose:
+
+decision lifecycle telemetry
+deterministic decision continuity visibility
+
+26_VIEWS_APPLICATION_STATUS.sql
+
+Purpose:
+
+application status telemetry
+applicant lifecycle visibility
+
+26_VIEWS_GOVERNANCE_TIMELINE.sql
+
+Purpose:
+
+governance timeline observability
+workflow continuity visibility
+
+Responsibilities:
+
+lifecycle telemetry
+governance observability
+workflow continuity visibility
+operational governance intelligence
+governance lineage observability
+
+## Publication Governance Infrastructure
+
+27_VIEWS_PUBLICATION_GATING.sql
+
+Purpose:
+
+publication gating visibility
+explicit publication governance enforcement
+
+27_VIEWS_REGISTRY_PUBLICATION_ELIGIBILITY.sql
+
+Purpose:
+
+registry publication eligibility projection
+publication-safe eligibility enforcement
+
+Responsibilities:
+
+publication eligibility enforcement
+private certification separation
+explicit publication governance
+registry publication hardening
+publication-safe governance projection
+
+## Deterministic Validation Infrastructure
+
+97B_SMOKE_TEST_APPLICATION_TO_CASE_BRIDGE.sql
+
+Purpose:
+
+deterministic application-to-case bridge validation
+
+97C_SMOKE_TEST_FINDINGS_EVIDENCE_SCORING.sql
+
+Purpose:
+
+findings, evidence, and scoring continuity validation
+
+97D_SMOKE_TEST_DECISION_LIFECYCLE.sql
+
+Purpose:
+
+decision lifecycle validation
+
+97E_SMOKE_TEST_LIFECYCLE_OBSERVABILITY.sql
+
+Purpose:
+
+lifecycle observability validation
+
+Responsibilities:
+
+deterministic workflow validation
+governance continuity validation
+observability validation
+publication governance validation
+operational governance integrity validation
+
+# LAYER 2 — ADAPTIVE GOVERNANCE INTELLIGENCE INFRASTRUCTURE (PLANNED)
+
+Future adaptive governance intelligence infrastructure will include SQL observability and intelligence layers for:
+
+* governance drift detection
+* AI evolution monitoring
+* autonomy escalation monitoring
+* oversight degradation detection
+* governance anomaly detection
+* governance forecasting
+* continuous governance reassessment
+* recertification intelligence
+
+Adaptive governance intelligence may influence governance workflows,
+but may never directly mutate governance authority.
+
+Deterministic governance authority remains permanently authoritative.
+
+## Governance Drift Intelligence
+
+* V_GOVERNANCE_DRIFT_SIGNALS.sql
+* V_GOVERNANCE_DRIFT_ANALYTICS.sql
+
+## AI Evolution Monitoring
+
+* V_AI_EVOLUTION_MONITORING.sql
+* V_AUTONOMY_ESCALATION.sql
+
+## Continuous Governance Intelligence
+
+* V_CONTINUOUS_GOVERNANCE_MONITORING.sql
+* V_RECERTIFICATION_INTELLIGENCE.sql
+
+# GOVERNANCE OBSERVABILITY INFRASTRUCTURE
+
+GAFAIG governance observability now operates through:
+
+* V_APPLICATION_STATUS
+* V_CASE_LIFECYCLE
+* V_DECISION_LIFECYCLE
+* V_GOVERNANCE_TIMELINE
+* V_PUBLICATION_GATING
+* V_REGISTRY_PUBLICATION_ELIGIBILITY
+
+This infrastructure establishes deterministic governance telemetry continuity across the platform.
+
+# APPLICANT STATUS + PORTAL INFRASTRUCTURE (PLANNED)
+
+Future applicant infrastructure will incorporate deterministic operational access infrastructure including:
+
+* applicant authentication
+* organization identity continuity
+* lifecycle visibility
+* certification continuity visibility
+* publication election workflows
+* governance communication continuity
+* recertification continuity
+
+Future SQL examples:
+
+* V_APPLICANT_STATUS.sql
+* V_APPLICANT_LIFECYCLE.sql
+* V_PORTAL_GOVERNANCE_ACTIVITY.sql
 
 00 — ENVIRONMENT FOUNDATION
 
@@ -663,6 +944,118 @@ Rules:
 lifecycle-only
 no trust recomputation
 
+26_VIEWS_APPLICATION_STATUS.sql
+
+Purpose:
+
+deterministic application status observability
+applicant lifecycle telemetry
+application review-state visibility
+
+Operational views:
+
+CORE.V_APPLICATION_STATUS
+
+Rules:
+
+projection-only
+operational observability only
+no certification mutation
+no publication mutation
+
+26_VIEWS_CASE_LIFECYCLE.sql
+
+Purpose:
+
+case lifecycle observability
+deterministic governance workflow telemetry
+case continuity visibility
+
+Operational views:
+
+CORE.V_CASE_LIFECYCLE
+
+Rules:
+
+projection-only
+operational observability only
+no trust recomputation
+
+26_VIEWS_DECISION_LIFECYCLE.sql
+
+Purpose:
+
+decision lifecycle observability
+deterministic decision continuity telemetry
+certification state visibility for operational governance
+
+Operational views:
+
+CORE.V_DECISION_LIFECYCLE
+
+Rules:
+
+projection-only
+operational observability only
+no publication mutation
+
+26_VIEWS_GOVERNANCE_TIMELINE.sql
+
+Purpose:
+
+governance timeline observability
+workflow continuity visibility
+deterministic governance lineage telemetry
+
+Operational views:
+
+CORE.V_GOVERNANCE_TIMELINE
+
+Rules:
+
+projection-only
+operational observability only
+no trust recomputation
+no publication mutation
+
+27_VIEWS_PUBLICATION_GATING.sql
+
+Purpose:
+
+publication gating observability
+explicit publication governance enforcement
+private certification/publication separation visibility
+
+Operational views:
+
+CORE.V_PUBLICATION_GATING
+
+Rules:
+
+projection-only
+publication-safe governance projection
+no certification mutation
+no registry mutation
+
+27_VIEWS_REGISTRY_PUBLICATION_ELIGIBILITY.sql
+
+Purpose:
+
+registry publication eligibility observability
+publication-safe eligibility projection
+registry publication hardening
+
+Operational views:
+
+CORE.V_REGISTRY_PUBLICATION_ELIGIBILITY
+
+Rules:
+
+projection-only
+publication-safe governance projection
+no registry mutation
+no proof mutation
+
 CORE PROCEDURE LAYER
 
 23_SP_CREATE_CASE_FROM_APPLICATION.sql
@@ -726,6 +1119,25 @@ governance approval workflows
 Responsibilities:
 
 deterministic governance approvals
+
+25_PROCEDURES_DECISION.sql
+
+Purpose:
+
+deterministic governance decision mutation
+decision lifecycle continuity
+governance decision authority
+
+Responsibilities:
+
+deterministic decision mutation
+private certification continuity
+governance continuity enforcement
+
+Rules:
+
+Snowflake-only decision mutation
+private certification state remains separate from publication state
 
 26_PROCEDURES_FINDINGS.sql
 
@@ -1241,6 +1653,39 @@ Public accountability infrastructure requires:
 * governance trust distribution
 
 VALIDATION + DIAGNOSTICS
+
+97B_SMOKE_TEST_APPLICATION_TO_CASE_BRIDGE.sql
+
+Purpose:
+
+deterministic application-to-case bridge validation
+application intake continuity validation
+case creation integrity validation
+
+97C_SMOKE_TEST_FINDINGS_EVIDENCE_SCORING.sql
+
+Purpose:
+
+findings, evidence, and scoring continuity validation
+deterministic workflow validation
+private scoring integrity validation
+
+97D_SMOKE_TEST_DECISION_LIFECYCLE.sql
+
+Purpose:
+
+decision lifecycle validation
+deterministic decision mutation validation
+private certification continuity validation
+
+97E_SMOKE_TEST_LIFECYCLE_OBSERVABILITY.sql
+
+Purpose:
+
+lifecycle observability validation
+governance timeline validation
+publication governance validation
+operational governance integrity validation
 
 98_SMOKE_TEST_REGISTRY_PUBLIC_SURFACE.sql
 

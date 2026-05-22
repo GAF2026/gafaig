@@ -1,6 +1,6 @@
 CANONICAL_RUN_ORDER.md
 
-Last Updated: 2026-05-15
+Last Updated: 2026-05-19
 
 PURPOSE
 
@@ -92,6 +92,79 @@ proof.messageString verification enforcement
 cryptographic verification integrity
 fail-closed verification behavior
 AI advisory-only boundaries
+
+GOVERNANCE LAYERING EXECUTION MODEL (CANONICAL)
+
+GAFAIG now operates through canonical governance infrastructure layers.
+
+Execution order matters because deterministic governance authority must remain authoritative relative to adaptive governance intelligence infrastructure.
+
+The platform now operates through:
+
+* Layer 1 — Deterministic Governance Authority Infrastructure
+* Layer 2 — Adaptive Governance Intelligence Infrastructure
+* Layer 3 — Governance Observability Infrastructure
+* Layer 4 — Public Governance Trust Infrastructure
+
+Execution ordering intentionally preserves:
+
+* deterministic governance authority
+* governance auditability
+* publication integrity
+* verification integrity
+* registry integrity
+* institutional trust continuity
+
+Layer 1 canonical governance authority execution
+must complete before Layer 2 intelligence processing.
+
+Adaptive governance intelligence may influence governance workflows,
+but may never directly mutate governance authority.
+
+Deterministic governance authority remains permanently authoritative.
+
+FOUNDATION GOVERNANCE BASELINE
+
+↓
+
+GOVERNANCE COORDINATION INTELLIGENCE
+
+↓
+
+GOVERNANCE DISTRIBUTION INTELLIGENCE
+
+↓
+
+GOVERNANCE NETWORK INTELLIGENCE
+
+↓
+
+GOVERNANCE TELEMETRY INTELLIGENCE
+
+↓
+
+GOVERNANCE RESILIENCE INTELLIGENCE
+
+↓
+
+GOVERNANCE STABILITY INTELLIGENCE
+
+↓
+
+GOVERNANCE CONTINUITY INTELLIGENCE
+
+↓
+
+GLOBAL GOVERNANCE ORCHESTRATION
+
+↓
+
+GLOBAL GOVERNANCE PUBLIC INTELLIGENCE
+
+↓
+
+GLOBAL GOVERNANCE TRUST SURFACE
+
 
 GLOBAL EXECUTION RULES
 
@@ -343,6 +416,11 @@ CANONICAL_OPERATIONAL_MAP.md
 and:
 
 99_RUN_CANONICAL_PIPELINE.sql
+99A_RUN_CORE_VALIDATION.sql
+99B_RUN_GOVERNANCE_CONTINUITY_VALIDATION.sql
+99C_RUN_GOVERNANCE_SIMULATION_VALIDATION.sql
+99D_RUN_PUBLIC_SURFACE_VALIDATION.sql
+100_CANONICAL_SYSTEM_CHECKPOINT.sql
 
 Operational layering must remain:
 
@@ -352,6 +430,157 @@ verification-safe
 append-safe
 institutionally auditable
 and progressively scalable
+
+LAYER 1 — DETERMINISTIC GOVERNANCE AUTHORITY EXECUTION ORDER
+
+## Phase 1 — Application Intake Infrastructure
+
+Files:
+
+* 11_TABLES_APPLICATIONS.sql
+* 24_PROCEDURES_APPLICATION_INTAKE.sql
+
+Purpose:
+
+* deterministic intake persistence
+* deterministic intake continuity
+* canonical application identifiers
+* review-state continuity
+
+## Phase 2 — Deterministic Workflow Infrastructure
+
+Files:
+
+* 23_SP_CREATE_CASE_FROM_APPLICATION.sql
+* 26_PROCEDURES_FINDINGS.sql
+* 27_PROCEDURES_EVIDENCE.sql
+* 24_SP_SCORE_CASE_ENTERPRISE.sql
+* 25_PROCEDURES_DECISION.sql
+
+Purpose:
+
+* deterministic governance execution
+* deterministic scoring continuity
+* deterministic decision mutation
+* append-only governance lineage
+
+## Phase 3 — Governance Observability Infrastructure
+
+Files:
+
+* 26_VIEWS_CASE_LIFECYCLE.sql
+* 26_VIEWS_DECISION_LIFECYCLE.sql
+* 26_VIEWS_APPLICATION_STATUS.sql
+* 26_VIEWS_GOVERNANCE_TIMELINE.sql
+
+Purpose:
+
+* lifecycle telemetry
+* governance continuity visibility
+* operational governance observability
+* governance lineage continuity
+
+## Phase 4 — Publication Governance Infrastructure
+
+Files:
+
+* 27_VIEWS_PUBLICATION_GATING.sql
+* 27_VIEWS_REGISTRY_PUBLICATION_ELIGIBILITY.sql
+
+Purpose:
+
+* private certification separation
+* publication eligibility enforcement
+* registry publication hardening
+* publication-safe governance projection
+
+## Phase 5 — Deterministic Validation Infrastructure
+
+Files:
+
+* 97B_SMOKE_TEST_APPLICATION_TO_CASE_BRIDGE.sql
+* 97C_SMOKE_TEST_FINDINGS_EVIDENCE_SCORING.sql
+* 97D_SMOKE_TEST_DECISION_LIFECYCLE.sql
+* 97E_SMOKE_TEST_LIFECYCLE_OBSERVABILITY.sql
+
+Purpose:
+
+* deterministic workflow validation
+* governance continuity validation
+* observability validation
+* publication governance validation
+* operational governance integrity validation
+
+LAYER 2 — ADAPTIVE GOVERNANCE INTELLIGENCE EXECUTION ORDER (PLANNED)
+
+Layer 2 execution occurs only AFTER deterministic governance authority infrastructure stabilizes.
+
+Future execution areas include:
+
+## Governance Drift Intelligence
+
+Future files:
+
+* V_GOVERNANCE_DRIFT_SIGNALS.sql
+* V_GOVERNANCE_DRIFT_ANALYTICS.sql
+
+## AI Evolution Monitoring
+
+Future files:
+
+* V_AI_EVOLUTION_MONITORING.sql
+* V_AUTONOMY_ESCALATION.sql
+
+## Continuous Governance Intelligence
+
+Future files:
+
+* V_CONTINUOUS_GOVERNANCE_MONITORING.sql
+* V_RECERTIFICATION_INTELLIGENCE.sql
+
+Layer 2 intelligence infrastructure is observational and advisory-only relative to deterministic governance authority execution.
+
+GOVERNANCE OBSERVABILITY EXECUTION ORDER
+
+Lifecycle observability infrastructure now operates through:
+
+* V_APPLICATION_STATUS
+* V_CASE_LIFECYCLE
+* V_DECISION_LIFECYCLE
+* V_GOVERNANCE_TIMELINE
+* V_PUBLICATION_GATING
+* V_REGISTRY_PUBLICATION_ELIGIBILITY
+
+Observability infrastructure executes after deterministic workflow mutation infrastructure.
+
+Observability infrastructure remains projection-only.
+
+PUBLIC GOVERNANCE TRUST EXECUTION ORDER
+
+Public governance trust infrastructure may only execute AFTER:
+
+* deterministic governance execution
+* deterministic decision mutation
+* publication eligibility enforcement
+* explicit publication execution
+* registry snapshot creation
+
+Verification infrastructure must remain publication-gated and fail-closed.
+
+APPLICANT STATUS + PORTAL EXECUTION ORDER (PLANNED)
+
+Future applicant infrastructure execution will include:
+
+* applicant authentication
+* organization identity continuity
+* lifecycle visibility
+* publication election workflows
+* recertification continuity
+* governance communication continuity
+
+Applicant infrastructure executes beneath deterministic governance authority infrastructure.
+
+Applicant infrastructure may never directly mutate governance authority.
 
 CANONICAL EXECUTION ORDER
 
@@ -851,6 +1080,11 @@ full deterministic operational validation
 Files:
 
 99_RUN_CANONICAL_PIPELINE.sql
+99A_RUN_CORE_VALIDATION.sql
+99B_RUN_GOVERNANCE_CONTINUITY_VALIDATION.sql
+99C_RUN_GOVERNANCE_SIMULATION_VALIDATION.sql
+99D_RUN_PUBLIC_SURFACE_VALIDATION.sql
+100_CANONICAL_SYSTEM_CHECKPOINT.sql
 
 Validation coverage:
 
@@ -879,6 +1113,11 @@ GAFAIG_CANONICAL_PIPELINE_VALIDATION_COMPLETE
 CRITICAL RULE:
 
 99_RUN_CANONICAL_PIPELINE.sql
+99A_RUN_CORE_VALIDATION.sql
+99B_RUN_GOVERNANCE_CONTINUITY_VALIDATION.sql
+99C_RUN_GOVERNANCE_SIMULATION_VALIDATION.sql
+99D_RUN_PUBLIC_SURFACE_VALIDATION.sql
+100_CANONICAL_SYSTEM_CHECKPOINT.sql
 
 MUST NEVER contain:
 
@@ -894,6 +1133,83 @@ deterministic governance integrity validation infrastructure
 and:
 
 canonical operational validation authority infrastructure
+
+GOVERNANCE INTELLIGENCE INFRASTRUCTURE LAYER
+
+101A–110 — GOVERNANCE INTELLIGENCE INFRASTRUCTURE LAYER
+
+Purpose:
+
+governance intelligence synchronization
+
+governance telemetry synchronization
+
+governance orchestration synchronization
+
+public governance intelligence propagation
+
+governance trust surface infrastructure
+
+governance intelligence synchronization infrastructure
+
+global governance orchestration infrastructure
+
+global governance public intelligence infrastructure
+
+global governance trust surface infrastructure
+
+governance intelligence freeze-lock infrastructure
+
+Files:
+
+101A_FOUNDATION_GOVERNANCE_BASELINE.sql
+
+101_VIEWS_GOVERNANCE_COORDINATION_INTELLIGENCE.sql
+
+102_VIEWS_GOVERNANCE_DISTRIBUTION_INTELLIGENCE.sql
+
+103_VIEWS_GOVERNANCE_NETWORK_INTELLIGENCE.sql
+
+104_VIEWS_GOVERNANCE_TELEMETRY_INTELLIGENCE.sql
+
+105_VIEWS_GOVERNANCE_RESILIENCE_INTELLIGENCE.sql
+
+106_VIEWS_GOVERNANCE_STABILITY_INTELLIGENCE.sql
+
+107_VIEWS_GOVERNANCE_CONTINUITY_INTELLIGENCE.sql
+
+108_VIEWS_GLOBAL_GOVERNANCE_ORCHESTRATION.sql
+
+109_VIEWS_GLOBAL_GOVERNANCE_PUBLIC_INTELLIGENCE.sql
+
+110_VIEWS_GLOBAL_GOVERNANCE_TRUST_SURFACE.sql
+
+Rules:
+
+projection-only
+
+deterministic synchronization only
+
+publication-safe governance intelligence projection only
+
+no governance authority mutation
+
+Validation + Freeze-Lock Files:
+
+109A_SMOKE_TEST_GOVERNANCE_INTELLIGENCE_STACK.sql
+
+109B_CANONICAL_GOVERNANCE_INTELLIGENCE_FREEZE.sql
+
+Validation Coverage:
+
+orchestration propagation validation
+
+governance intelligence synchronization validation
+
+governance trust surface propagation validation
+
+governance intelligence freeze-lock validation
+
 
 PUBLIC GOVERNANCE TRUST API CONTRACTS
 
@@ -1058,11 +1374,35 @@ verification enforcement hardening
 deterministic governance operational validation
 governance legitimacy infrastructure
 
+governance telemetry synchronization maturity
+governance telemetry distribution continuity
+governance coordination intelligence synchronization
+governance distribution intelligence synchronization
+canonical checkpoint synchronization maturity
+canonical freeze-lock synchronization maturity
+governance observability synchronization maturity
+deterministic orchestration continuity
+operational synchronization continuity
+governance-layer execution coordination
+operational governance execution topology coordination
+canonical operational synchronization maturity
+governance continuity orchestration synchronization
+
+governance network intelligence synchronization
+governance telemetry intelligence synchronization
+governance resilience intelligence synchronization
+governance stability intelligence synchronization
+governance continuity intelligence synchronization
+global governance orchestration synchronization
+global governance public intelligence synchronization
+global governance trust surface synchronization
+governance intelligence freeze-lock infrastructure
+
 Validated successfully in Snowflake.
 
 CURRENT PHASE
 
-PHASE 11A — DETERMINISTIC OPERATIONAL HARDENING
+PHASE 11B — GOVERNANCE INTELLIGENCE EXPANSION + OPERATIONAL OBSERVABILITY SYNCHRONIZATION + GLOBAL GOVERNANCE ORCHESTRATION STABILIZATION
 
 Focus:
 

@@ -1,6 +1,6 @@
 # VERIFIED_DEFINITION.md
 
-Last Updated: 2026-05-14
+Last Updated: 2026-05-19
 
 ## PURPOSE
 
@@ -60,6 +60,9 @@ This evolution reflects the expansion of GAFAIG into:
 * communication layer infrastructure
 * governance trust distribution infrastructure
 * public accountability infrastructure
+* adaptive governance intelligence infrastructure
+* applicant lifecycle infrastructure
+* identity continuity infrastructure
 
 This updated positioning must now be standardized across:
 
@@ -89,6 +92,136 @@ This positioning evolution must NOT weaken:
 * cryptographic verification integrity
 * fail-closed verification behavior
 * AI advisory-only boundaries
+
+---
+
+# GOVERNANCE AUTHORITY + VERIFICATION LAYERING
+
+GAFAIG verification authority originates exclusively from deterministic governance authority infrastructure.
+
+Verification authority is derived from:
+
+* canonical Snowflake execution infrastructure
+* deterministic governance workflows
+* canonical registry snapshots
+* proof.messageString verification infrastructure
+* append-only governance lineage
+
+Verification authority is NOT derived from:
+
+* AI-generated analysis
+* AI-generated recommendations
+* adaptive governance intelligence
+* UI rendering
+* API interpretation
+* client-side logic
+* runtime reconstruction
+
+---
+
+# GOVERNANCE LAYERING MODEL
+
+GAFAIG operates through intentionally separated governance layers.
+
+## Layer 1 — Deterministic Governance Authority Infrastructure
+
+Layer 1 governs authoritative governance state including:
+
+* certification
+* publication eligibility
+* registry authority
+* verification authority
+* trust enforcement
+* canonical governance lineage
+
+Layer 1 remains permanently authoritative.
+
+## Layer 2 — Adaptive Governance Intelligence Infrastructure
+
+Layer 2 governs adaptive governance intelligence including:
+
+* AI evolution monitoring
+* governance drift detection
+* autonomy escalation monitoring
+* governance anomaly detection
+* governance observability
+* continuous governance reassessment
+
+Layer 2 is advisory-only relative to verification authority.
+
+Adaptive governance intelligence may influence governance workflows,
+but may never directly mutate verification authority.
+
+Verification authority remains permanently deterministic.
+
+---
+
+# AUTHORITATIVE VERIFICATION STATE
+
+Authoritative verification state may originate ONLY from:
+
+application
+→ case
+→ findings
+→ evidence
+→ scoring
+→ decision
+→ publication eligibility
+→ registry snapshot
+→ public verification distribution
+
+Verification authority may NEVER originate from:
+
+* AI-generated certification
+* AI-generated publication
+* AI-generated verification
+* adaptive governance intelligence
+* non-canonical registry mutation
+* UI-generated state
+* API-generated state
+
+---
+
+# PUBLICATION + VERIFICATION ENFORCEMENT
+
+Verification remains publication-gated.
+
+Certification alone does NOT create public verification eligibility.
+
+Public verification may only originate from:
+
+approved decision
+→ publication eligibility
+→ explicit publication
+→ registry snapshot creation
+→ public registry projection
+→ verification distribution
+
+Verification infrastructure must fail closed if publication-safe registry state does not exist.
+
+---
+
+# AI ADVISORY-ONLY RULE
+
+AI systems may assist governance observability and governance intelligence workflows.
+
+AI systems may:
+
+* monitor governance drift
+* monitor AI evolution
+* monitor autonomy escalation
+* generate governance recommendations
+* trigger governance review workflows
+
+AI systems may NEVER directly:
+
+* certify organizations
+* publish registry records
+* generate authoritative verification state
+* mutate canonical registry authority
+* alter proof.messageString verification outputs
+
+without deterministic Layer 1 governance execution.
 
 ---
 
@@ -495,6 +628,7 @@ Public governance trust does NOT originate from:
 * AI governance analytics
 * simulations
 * governance timelines
+* adaptive governance intelligence infrastructure
 
 ---
 
@@ -1135,34 +1269,6 @@ Seed data is not production public governance trust data.
 
 ---
 
-## VERSIONING
-
-Controlled by:
-
-* kid
-* algorithm
-
-Breaking changes include:
-
-* changing signed fields
-* changing field order
-* changing algorithm
-* changing messageString construction
-* changing canonical serialization
-* changing public contract
-* changing lifecycle semantics
-* changing public key format
-
-Breaking changes require:
-
-* updated kid
-* updated SDK support
-* updated widget support
-* updated documentation
-* backward compatibility review
-
----
-
 ## AI GOVERNANCE RULE
 
 AI governance is advisory only.
@@ -1426,6 +1532,10 @@ Working:
 * governance trust distribution infrastructure
 * public accountability infrastructure
 * governance legitimacy infrastructure
+* adaptive governance intelligence infrastructure active
+* deterministic governance authority infrastructure active
+* publication-gated verification enforcement active
+* canonical verification authority layering operational
 * canonical validation runner passed
 
 ---
@@ -1445,6 +1555,9 @@ Current active work:
 * widget fail-closed validation at scale
 * SDK failure handling validation at scale
 * governance dashboard distribution planning
+* adaptive governance intelligence infrastructure expansion
+* continuous governance reassessment infrastructure
+* deterministic governance authority hardening
 
 ---
 
@@ -1480,6 +1593,7 @@ Verified = true means:
 The GAFAIG certification surface:
 
 * originates from Snowflake
+* originates from deterministic governance authority infrastructure
 * is publicly published
 * is exposed through the public contract
 * has a canonical signed payload
