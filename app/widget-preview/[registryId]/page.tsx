@@ -202,14 +202,16 @@ export default async function WidgetPreviewPage({
   Verify this GAFAIG record
 </button>`;
 
+  const safeRegistryId = String(record.registryId ?? registryId);
+
   const registryHref =
-    `/registry/${encodeURIComponent(record.registryId)}`;
+    `/registry/${encodeURIComponent(safeRegistryId)}`;
   const verificationHref =
-    `/verify/${encodeURIComponent(record.registryId)}`;
+    `/verify/${encodeURIComponent(safeRegistryId)}`;
   const badgeHref =
-    `/badge/${encodeURIComponent(record.registryId)}`;
+    `/badge/${encodeURIComponent(safeRegistryId)}`;
   const badgePreviewHref =
-    `/badge-preview/${encodeURIComponent(record.registryId)}`;
+    `/badge-preview/${encodeURIComponent(safeRegistryId)}`;
 
   const verifyJsonUrl = `${productionBaseUrl}/api/verify/${encodeURIComponent(
     registryId
