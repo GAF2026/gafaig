@@ -136,6 +136,7 @@ export default async function RegistryRecordPage({
   const verifyHref = `/verify/${encodeURIComponent(record.registryId)}`;
   const verifyJsonHref = `/api/verify/${encodeURIComponent(record.registryId)}`;
   const widgetHref = `/widget-preview/${encodeURIComponent(record.registryId)}`;
+  const badgeHref = `/badge/${encodeURIComponent(record.registryId)}`;
   const registryHref = `/registry/${encodeURIComponent(record.registryId)}`;
 
   return (
@@ -184,6 +185,9 @@ export default async function RegistryRecordPage({
               </PublicButtonLink>
               <PublicButtonLink href={widgetHref} variant="secondary">
                 Portable Widget Preview
+              </PublicButtonLink>
+              <PublicButtonLink href={badgeHref} variant="secondary">
+                Open Badge
               </PublicButtonLink>
             </div>
           </div>
@@ -260,13 +264,17 @@ export default async function RegistryRecordPage({
             JSON fields.
           </p>
 
-          <div className="mt-6 grid gap-4 md:grid-cols-3">
+          <div className="mt-6 grid gap-4 md:grid-cols-4">
             <DetailCard label="Verification Proof Endpoint" value={verifyJsonHref} />
             <DetailCard
               label="Certification Record"
               value={registryHref}
             />
             <DetailCard label="Portable Widget Preview" value={widgetHref} />
+            <DetailCard
+              label="Portable Badge"
+              value={badgeHref}
+            />
           </div>
 
           <div className="mt-6 flex flex-wrap gap-3">
@@ -275,6 +283,9 @@ export default async function RegistryRecordPage({
             </PublicButtonLink>
             <PublicButtonLink href={verifyJsonHref} variant="secondary">
               View Signed Proof JSON
+            </PublicButtonLink>
+            <PublicButtonLink href={badgeHref} variant="secondary">
+              Open Badge
             </PublicButtonLink>
             <PublicButtonLink href="/registry" variant="secondary">
               Back to Registry

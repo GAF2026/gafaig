@@ -167,6 +167,10 @@ export default async function BadgePage({
   const validTo = formatDate(record?.validTo ?? row?.validTo ?? null);
   const verifyPath = `/api/verify/${encodeURIComponent(registryId)}`;
   const registryPath = `/registry/${encodeURIComponent(registryId)}`;
+  const verificationProofPath = `/verify/${encodeURIComponent(registryId)}`;
+  const widgetPreviewPath = `/widget-preview/${encodeURIComponent(registryId)}`;
+  const badgePath = `/badge/${encodeURIComponent(registryId)}`;
+  const registryIndexPath = `/registry`;
   const tierBand = formatTierBand(
     certifiedTier === "—" ? null : certifiedTier,
     certifiedBand === "—" ? null : certifiedBand
@@ -193,8 +197,20 @@ export default async function BadgePage({
               Open Certification Record
             </PublicButtonLink>
 
-            <PublicButtonLink href={verifyPath} variant="secondary">
+            <PublicButtonLink href={verificationProofPath} variant="secondary">
               Open Verification Proof
+            </PublicButtonLink>
+
+            <PublicButtonLink href={widgetPreviewPath} variant="secondary">
+              Open Widget Preview
+            </PublicButtonLink>
+
+            <PublicButtonLink href={badgePath} variant="secondary">
+              Open Badge
+            </PublicButtonLink>
+
+            <PublicButtonLink href={registryIndexPath} variant="secondary">
+              Browse Registry
             </PublicButtonLink>
           </div>
         </section>

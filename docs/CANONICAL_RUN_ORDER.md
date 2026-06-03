@@ -1,6 +1,6 @@
 CANONICAL_RUN_ORDER.md
 
-Last Updated: 2026-05-19
+Last Updated: 2026-06-01
 
 PURPOSE
 
@@ -31,6 +31,30 @@ publication enforcement sequencing
 verification enforcement sequencing
 deterministic operational governance validation sequencing
 and adaptive governance infrastructure preparation
+canonical governance public contract freeze infrastructure
+governance survivability intelligence infrastructure
+governance containment intelligence infrastructure
+governance reconstitution intelligence infrastructure
+governance sovereignty preservation intelligence infrastructure
+governance human authority preservation intelligence infrastructure
+recursive civilization governance continuity infrastructure
+verification-safe survivability continuity
+survivability checkpoint synchronization infrastructure
+survivability freeze-lock continuity infrastructure
+deterministic Snowflake authority supremacy
+human governance authority supremacy
+canonical governance public contract freeze infrastructure sequencing
+governance survivability intelligence infrastructure sequencing
+governance containment intelligence infrastructure sequencing
+governance reconstitution intelligence infrastructure sequencing
+governance sovereignty preservation intelligence infrastructure sequencing
+governance human authority preservation intelligence infrastructure sequencing
+recursive civilization governance continuity infrastructure sequencing
+verification-safe survivability continuity sequencing
+survivability checkpoint synchronization sequencing
+survivability freeze-lock continuity sequencing
+deterministic Snowflake authority supremacy sequencing
+human governance authority supremacy sequencing
 
 This is the ONLY valid execution sequence.
 
@@ -92,6 +116,10 @@ proof.messageString verification enforcement
 cryptographic verification integrity
 fail-closed verification behavior
 AI advisory-only boundaries
+deterministic Snowflake authority supremacy
+verification-safe survivability continuity
+recursive civilization governance continuity
+human governance authority supremacy
 
 GOVERNANCE LAYERING EXECUTION MODEL (CANONICAL)
 
@@ -105,6 +133,7 @@ The platform now operates through:
 * Layer 2 — Adaptive Governance Intelligence Infrastructure
 * Layer 3 — Governance Observability Infrastructure
 * Layer 4 — Public Governance Trust Infrastructure
+* Layer 5 — Governance Survivability Infrastructure
 
 Execution ordering intentionally preserves:
 
@@ -123,7 +152,59 @@ but may never directly mutate governance authority.
 
 Deterministic governance authority remains permanently authoritative.
 
+Layer 5 — Governance Survivability Infrastructure provides:
+
+population continuity intelligence
+
+civilization continuity intelligence
+
+recursive civilization resilience intelligence
+
+recursive civilization adaptation intelligence
+
+recursive civilization recovery intelligence
+
+recursive civilization regeneration intelligence
+
+recursive civilization renewal intelligence
+
+recursive civilization stewardship intelligence
+
+recursive civilization self-preservation intelligence
+
+long-horizon civilization survivability intelligence
+
+civilization survivability validation
+
+civilization survivability freeze-lock infrastructure
+
+Layer 5 remains:
+
+projection-only
+
+observability-only
+
+advisory-only
+
+non-authoritative
+
+Layer 5 may never mutate:
+
+certification authority
+
+publication authority
+
+registry authority
+
+verification authority
+
+Layer 1 deterministic governance authority remains permanently authoritative.
+
 FOUNDATION GOVERNANCE BASELINE
+
+↓
+
+GOVERNANCE PUBLIC CONTRACT FREEZE
 
 ↓
 
@@ -165,6 +246,85 @@ GLOBAL GOVERNANCE PUBLIC INTELLIGENCE
 
 GLOBAL GOVERNANCE TRUST SURFACE
 
+↓
+
+CANONICAL GOVERNANCE PUBLIC CONTRACT FREEZE
+
+↓
+
+PUBLIC GOVERNANCE TRUST DISTRIBUTION
+
+↓
+
+GOVERNANCE SURVIVABILITY INTELLIGENCE
+
+↓
+
+GOVERNANCE CONTAINMENT INTELLIGENCE
+
+↓
+
+GOVERNANCE RECONSTITUTION INTELLIGENCE
+
+↓
+
+GOVERNANCE SOVEREIGNTY PRESERVATION INTELLIGENCE
+
+↓
+
+GOVERNANCE HUMAN AUTHORITY PRESERVATION INTELLIGENCE
+
+↓
+
+RECURSIVE CIVILIZATION GOVERNANCE CONTINUITY
+
+↓
+
+POPULATION CONTINUITY
+
+↓
+
+CIVILIZATION CONTINUITY
+
+↓
+
+RECURSIVE CIVILIZATION RESILIENCE
+
+↓
+
+RECURSIVE CIVILIZATION ADAPTATION
+
+↓
+
+RECURSIVE CIVILIZATION RECOVERY
+
+↓
+
+RECURSIVE CIVILIZATION REGENERATION
+
+↓
+
+RECURSIVE CIVILIZATION RENEWAL
+
+↓
+
+RECURSIVE CIVILIZATION STEWARDSHIP
+
+↓
+
+RECURSIVE CIVILIZATION SELF PRESERVATION
+
+↓
+
+LONG HORIZON CIVILIZATION SURVIVABILITY
+
+↓
+
+CIVILIZATION SURVIVABILITY VALIDATION
+
+↓
+
+CIVILIZATION SURVIVABILITY FREEZE
 
 GLOBAL EXECUTION RULES
 
@@ -1209,8 +1369,6 @@ governance intelligence synchronization validation
 governance trust surface propagation validation
 
 governance intelligence freeze-lock validation
-
-
 PUBLIC GOVERNANCE TRUST API CONTRACTS
 
 Operational APIs:
@@ -1345,6 +1503,48 @@ verification enforcement integrity
 operational governance auditability
 and adaptive governance infrastructure preparation
 
+PLATFORM POSITIONING SYNCHRONIZATION
+
+GAFAIG now possesses operational infrastructure spanning:
+
+deterministic governance authority
+
+governance intelligence
+
+governance observability
+
+governance orchestration
+
+public governance trust
+
+governance survivability
+
+population continuity
+
+civilization continuity
+
+recursive civilization continuity
+
+civilization survivability
+
+long-horizon governance survivability
+
+while preserving:
+
+Snowflake authority supremacy
+
+human authority supremacy
+
+AI advisory-only boundaries
+
+append-only registry doctrine
+
+proof.messageString doctrine
+
+publication governance doctrine
+
+verification governance doctrine
+
 CURRENT EXECUTION STATE
 
 WORKING
@@ -1402,7 +1602,15 @@ Validated successfully in Snowflake.
 
 CURRENT PHASE
 
-PHASE 11B — GOVERNANCE INTELLIGENCE EXPANSION + OPERATIONAL OBSERVABILITY SYNCHRONIZATION + GLOBAL GOVERNANCE ORCHESTRATION STABILIZATION
+PHASE 11D — GOVERNANCE SURVIVABILITY EXPANSION +
+CIVILIZATION CONTINUITY INFRASTRUCTURE +
+CIVILIZATION SURVIVABILITY INFRASTRUCTURE +
+LONG-HORIZON GOVERNANCE SURVIVABILITY MATURITY
+
+Phase 11D represents the first operational expansion of GAFAIG beyond governance continuity into civilization continuity and civilization survivability infrastructure.
+
+This maturity phase extends governance survivability into population continuity, civilization continuity, recursive civilization survivability, and long-horizon governance survivability while preserving deterministic governance authority.
+
 
 Focus:
 
@@ -1418,6 +1626,30 @@ adaptive governance preparation
 enterprise scalability preparation
 operational simplicity preservation
 and progressive governance infrastructure scaling
+canonical governance public contract freeze maturity
+governance survivability intelligence maturity
+governance containment intelligence maturity
+governance reconstitution intelligence maturity
+governance sovereignty preservation intelligence maturity
+governance human authority preservation intelligence maturity
+recursive civilization governance continuity maturity
+verification-safe survivability continuity
+survivability checkpoint synchronization
+survivability freeze-lock continuity
+deterministic Snowflake authority supremacy
+human governance authority supremacy
+population continuity maturity
+civilization continuity maturity
+recursive civilization resilience maturity
+recursive civilization adaptation maturity
+recursive civilization recovery maturity
+recursive civilization regeneration maturity
+recursive civilization renewal maturity
+recursive civilization stewardship maturity
+recursive civilization self-preservation maturity
+long-horizon civilization survivability maturity
+civilization survivability validation maturity
+civilization survivability freeze-lock maturity
 
 WITHOUT weakening:
 
@@ -1490,5 +1722,636 @@ Registry publishes only explicit public governance trust surfaces.
 Proof verifies.
 
 Verification portability distributes deterministic public governance trust.
+
+111 — CANONICAL GOVERNANCE PUBLIC CONTRACT FREEZE LAYER
+
+Purpose:
+
+canonical governance public contract freeze infrastructure
+
+deterministic governance contract snapshot sequencing
+
+recursive governance projection stabilization sequencing
+
+public governance observability contract stabilization sequencing
+
+public governance distribution stabilization sequencing
+
+deterministic governance snapshot propagation sequencing
+
+Snowflake recursive expansion stabilization sequencing
+
+governance distribution snapshot contract sequencing
+
+deterministic public governance contract propagation sequencing
+
+Files:
+
+111_CANONICAL_GOVERNANCE_PUBLIC_CONTRACTS.sql
+
+Canonical governance public contract freeze infrastructure MUST execute AFTER:
+
+110_VIEWS_GLOBAL_GOVERNANCE_TRUST_SURFACE.sql
+
+AND AFTER:
+
+109B_CANONICAL_GOVERNANCE_INTELLIGENCE_FREEZE.sql
+
+Deep governance intelligence propagation chains and public governance trust projection chains must terminate into deterministic canonical snapshot contract tables when Snowflake recursive expansion depth threatens operational stability.
+
+Canonical snapshot contract tables preserve:
+
+deterministic Snowflake authority
+governance observability stability
+API stability
+SDK stability
+widget stability
+explorer stability
+public governance trust distribution stability
+
+WITHOUT transferring governance authority outside Snowflake.
+
+Public governance trust distribution infrastructure MUST source from canonical snapshot contract infrastructure rather than recursively expanding governance intelligence projection chains.
+
+Snowflake nested governance view expansion limits are now considered a canonical production-hardening constraint.
+
+Deterministic snapshot contract freeze infrastructure is the approved canonical stabilization mechanism.
+
+Snapshot contract infrastructure rules:
+
+deterministic
+append-safe
+projection-only
+publication-safe
+verification-safe
+no governance authority transfer
+
+Operational governance execution topology extension:
+
+FOUNDATION GOVERNANCE BASELINE
+
+↓
+
+GOVERNANCE PUBLIC CONTRACT FREEZE
+
+↓
+
+GOVERNANCE COORDINATION INTELLIGENCE
+
+↓
+
+GOVERNANCE DISTRIBUTION INTELLIGENCE
+
+↓
+
+GOVERNANCE NETWORK INTELLIGENCE
+
+↓
+
+GOVERNANCE TELEMETRY INTELLIGENCE
+
+↓
+
+GOVERNANCE RESILIENCE INTELLIGENCE
+
+↓
+
+GOVERNANCE STABILITY INTELLIGENCE
+
+↓
+
+GOVERNANCE CONTINUITY INTELLIGENCE
+
+↓
+
+GLOBAL GOVERNANCE ORCHESTRATION
+
+↓
+
+GLOBAL GOVERNANCE PUBLIC INTELLIGENCE
+
+↓
+
+GLOBAL GOVERNANCE TRUST SURFACE
+
+↓
+
+CANONICAL GOVERNANCE PUBLIC CONTRACT FREEZE
+
+↓
+
+PUBLIC GOVERNANCE TRUST DISTRIBUTION
+
+↓
+
+GOVERNANCE SURVIVABILITY INTELLIGENCE
+
+↓
+
+GOVERNANCE CONTAINMENT INTELLIGENCE
+
+↓
+
+GOVERNANCE RECONSTITUTION INTELLIGENCE
+
+↓
+
+GOVERNANCE SOVEREIGNTY PRESERVATION INTELLIGENCE
+
+↓
+
+GOVERNANCE HUMAN AUTHORITY PRESERVATION INTELLIGENCE
+
+↓
+
+RECURSIVE CIVILIZATION GOVERNANCE CONTINUITY
+
+↓
+
+POPULATION CONTINUITY
+
+↓
+
+CIVILIZATION CONTINUITY
+
+↓
+
+RECURSIVE CIVILIZATION RESILIENCE
+
+↓
+
+RECURSIVE CIVILIZATION ADAPTATION
+
+↓
+
+RECURSIVE CIVILIZATION RECOVERY
+
+↓
+
+RECURSIVE CIVILIZATION REGENERATION
+
+↓
+
+RECURSIVE CIVILIZATION RENEWAL
+
+↓
+
+RECURSIVE CIVILIZATION STEWARDSHIP
+
+↓
+
+RECURSIVE CIVILIZATION SELF PRESERVATION
+
+↓
+
+LONG HORIZON CIVILIZATION SURVIVABILITY
+
+↓
+
+CIVILIZATION SURVIVABILITY VALIDATION
+
+↓
+
+CIVILIZATION SURVIVABILITY FREEZE
+
+115A–116A — GOVERNANCE SURVIVABILITY + RECURSIVE CIVILIZATION GOVERNANCE CONTINUITY LAYER
+
+Purpose:
+
+governance survivability intelligence
+
+governance containment intelligence
+
+governance reconstitution intelligence
+
+governance sovereignty preservation intelligence
+
+governance human authority preservation intelligence
+
+recursive civilization governance continuity infrastructure
+
+verification-safe survivability continuity
+
+survivability checkpoint synchronization
+
+survivability freeze-lock continuity
+
+deterministic Snowflake authority supremacy preservation
+
+human governance authority supremacy preservation
+
+Files:
+
+115A_VIEWS_AI_SYSTEM_GOVERNANCE_META_STABILITY_INTELLIGENCE.sql
+
+115B_CANONICAL_AI_GOVERNANCE_META_STABILITY_SNAPSHOT.sql
+
+115C_VIEWS_AI_SYSTEM_GOVERNANCE_RECURSIVE_STABILITY_INTELLIGENCE.sql
+
+115D_VIEWS_AI_SYSTEM_GOVERNANCE_TERMINAL_FAILURE_INTELLIGENCE.sql
+
+115E_CANONICAL_AI_GOVERNANCE_RECURSIVE_STABILITY_SNAPSHOT.sql
+
+115F_VIEWS_AI_SYSTEM_GOVERNANCE_TERMINAL_FAILURE_INTELLIGENCE.sql
+
+115G_CANONICAL_AI_GOVERNANCE_TERMINAL_FAILURE_SNAPSHOT.sql
+
+115H_VIEWS_AI_SYSTEM_GOVERNANCE_RECOVERY_VIABILITY_INTELLIGENCE.sql
+
+115I_CANONICAL_AI_GOVERNANCE_RECOVERY_VIABILITY_SNAPSHOT.sql
+
+115J_VIEWS_AI_SYSTEM_GOVERNANCE_RECOVERY_STABILIZATION_INTELLIGENCE.sql
+
+115K_CANONICAL_AI_GOVERNANCE_RECOVERY_STABILIZATION_SNAPSHOT.sql
+
+115L_VIEWS_AI_SYSTEM_GOVERNANCE_RESILIENCE_CONTINUITY_INTELLIGENCE.sql
+
+115M_CANONICAL_AI_GOVERNANCE_RESILIENCE_CONTINUITY_SNAPSHOT.sql
+
+115N_VIEWS_AI_SYSTEM_GOVERNANCE_EVOLUTIONARY_ADAPTATION_INTELLIGENCE.sql
+
+115O_CANONICAL_AI_GOVERNANCE_EVOLUTIONARY_ADAPTATION_SNAPSHOT.sql
+
+115P_VIEWS_AI_SYSTEM_GOVERNANCE_SURVIVABILITY_FORECAST_INTELLIGENCE.sql
+
+115Q_CANONICAL_AI_GOVERNANCE_SURVIVABILITY_FORECAST_SNAPSHOT.sql
+
+115R_VIEWS_AI_SYSTEM_GOVERNANCE_CIVILIZATIONAL_RISK_INTELLIGENCE.sql
+
+115S_CANONICAL_AI_GOVERNANCE_CIVILIZATIONAL_RISK_SNAPSHOT.sql
+
+115T_VIEWS_AI_SYSTEM_GOVERNANCE_CONTAINMENT_INTELLIGENCE.sql
+
+115U_CANONICAL_AI_GOVERNANCE_CONTAINMENT_SNAPSHOT.sql
+
+115V_VIEWS_AI_SYSTEM_GOVERNANCE_RECONSTITUTION_INTELLIGENCE.sql
+
+115W_CANONICAL_AI_GOVERNANCE_RECONSTITUTION_SNAPSHOT.sql
+
+115X_VIEWS_AI_SYSTEM_GOVERNANCE_SOVEREIGNTY_PRESERVATION_INTELLIGENCE.sql
+
+115Y_CANONICAL_AI_GOVERNANCE_SOVEREIGNTY_PRESERVATION_SNAPSHOT.sql
+
+115Z_VIEWS_AI_SYSTEM_GOVERNANCE_HUMAN_AUTHORITY_PRESERVATION_INTELLIGENCE.sql
+
+116A_CANONICAL_AI_GOVERNANCE_HUMAN_AUTHORITY_PRESERVATION_SNAPSHOT.sql
+
+Rules:
+
+projection-only
+
+deterministic survivability synchronization only
+
+verification-safe survivability continuity only
+
+no governance authority transfer
+
+no verification authority mutation
+
+no proof mutation
+
+no recursive governance authority mutation
+
+no Snowflake authority override
+
+no human governance authority override
+
+No survivability continuity layer may create signature authority.
+
+No survivability continuity layer may mutate proof state.
+
+No recursive governance continuity layer may override deterministic verification authority.
+
+All survivability continuity layers remain:
+
+projection-only
+
+verification-safe
+
+append-safe
+
+publication-safe
+
+non-authoritative relative to Snowflake Layer 1 governance authority
+
+No public governance trust distribution surface may bypass the canonical governance public contract freeze layer when recursive governance projection depth threatens operational stability.
+
+
+117O–129 — CIVILIZATION CONTINUITY + CIVILIZATION SURVIVABILITY INFRASTRUCTURE LAYER
+
+Purpose:
+
+population continuity infrastructure
+
+civilization continuity infrastructure
+
+recursive civilization resilience infrastructure
+
+recursive civilization adaptation infrastructure
+
+recursive civilization recovery infrastructure
+
+recursive civilization regeneration infrastructure
+
+recursive civilization renewal infrastructure
+
+recursive civilization stewardship infrastructure
+
+recursive civilization self-preservation infrastructure
+
+long-horizon civilization survivability infrastructure
+
+civilization survivability validation infrastructure
+
+civilization survivability freeze-lock infrastructure
+
+Files:
+
+117O_REPAIR_AI_SYSTEM_GOVERNANCE_POPULATION_BRIDGE.sql
+
+118_CIVILIZATION_CONTINUITY_STACK_VALIDATION.sql
+
+119_CANONICAL_CIVILIZATION_CONTINUITY_FREEZE.sql
+
+120_AI_SYSTEM_GOVERNANCE_RECURSIVE_CIVILIZATION_RESILIENCE.sql
+
+121_AI_SYSTEM_GOVERNANCE_RECURSIVE_CIVILIZATION_ADAPTATION.sql
+
+122_AI_SYSTEM_GOVERNANCE_RECURSIVE_CIVILIZATION_RECOVERY.sql
+
+123_AI_SYSTEM_GOVERNANCE_RECURSIVE_CIVILIZATION_REGENERATION.sql
+
+124_AI_SYSTEM_GOVERNANCE_RECURSIVE_CIVILIZATION_RENEWAL.sql
+
+125_AI_SYSTEM_GOVERNANCE_RECURSIVE_CIVILIZATION_STEWARDSHIP.sql
+
+126_AI_SYSTEM_GOVERNANCE_RECURSIVE_CIVILIZATION_SELF_PRESERVATION.sql
+
+127_AI_SYSTEM_GOVERNANCE_LONG_HORIZON_CIVILIZATION_SURVIVABILITY.sql
+
+128_AI_SYSTEM_GOVERNANCE_CIVILIZATION_SURVIVABILITY_STACK_VALIDATION.sql
+
+129_CANONICAL_CIVILIZATION_SURVIVABILITY_FREEZE.sql
+
+Validation Authorities
+
+* 118_CIVILIZATION_CONTINUITY_STACK_VALIDATION.sql
+* 128_AI_SYSTEM_GOVERNANCE_CIVILIZATION_SURVIVABILITY_STACK_VALIDATION.sql
+
+These files serve as the validation authority for civilization continuity and civilization survivability infrastructure.
+
+Constitutional Checkpoints
+
+* 119_CANONICAL_CIVILIZATION_CONTINUITY_FREEZE.sql
+* 129_CANONICAL_CIVILIZATION_SURVIVABILITY_FREEZE.sql
+
+These files serve as constitutional checkpoint freeze infrastructure.
+
+Validation files establish validation authority.
+
+Freeze files establish constitutional checkpoint authority.
+
+Rules:
+
+projection-only
+
+observability-only
+
+advisory-only
+
+verification-safe
+
+publication-safe
+
+append-safe
+
+non-authoritative
+
+No survivability layer may create governance authority.
+
+No survivability layer may override Layer 1 authority.
+
+No survivability layer may mutate proof state.
+
+No survivability layer may mutate publication state.
+
+LAYER EXECUTION DOCTRINE
+
+Build Layer
+
+↓
+
+Validate Layer
+
+↓
+
+Freeze Layer
+
+↓
+
+Synchronize Documentation
+
+↓
+
+Proceed To Next Layer
+
+Stack validation files are the validation authority.
+
+Freeze files are constitutional checkpoints.
+
+Documentation synchronization is the official phase transition mechanism.
+
+Pointer files are no longer required.
+
+Pointer checkpoints are no longer required.
+
+Six-step validation workflow files are no longer required.
+
+IMMEDIATE PHASE 11D HARDENING PRIORITIES
+
+governance extinction prevention infrastructure
+
+recursive survivability hardening
+
+civilization survivability telemetry infrastructure
+
+sovereign human authority continuity infrastructure
+
+publication enforcement hardening
+
+verification infrastructure hardening
+
+FUTURE PHASE 12+ PREPARATION DOMAINS
+
+cognitive sovereignty intelligence
+
+epistemic integrity intelligence
+
+democratic survivability intelligence
+
+species governance continuity intelligence
+
+post-human governance divergence intelligence
+
+FINAL HISTORICAL MATURITY CONTINUITY SYNCHRONIZATION
+
+GAFAIG maturity progression is documented as:
+
+30-series deterministic governance authority
+
+35–49 governance workflow expansion
+
+50–74 observability, telemetry, coordination, distribution
+
+75–96 resilience, stability, continuity, orchestration
+
+97–100 validation and operational maturity
+
+101–110 governance intelligence synchronization maturity
+
+111–116A survivability and recursive civilization continuity maturity
+
+117O–129 civilization continuity and civilization survivability maturity
+
+Phase 11D extends all prior maturity layers.
+
+RUN-ORDER DOES NOT ESTABLISH IMPLEMENTATION READINESS
+
+Canonical run-order placement establishes:
+
+* sequencing
+* dependency ordering
+* execution ordering
+
+Canonical run-order placement does NOT establish:
+
+* implementation readiness
+* contract readiness
+* schema readiness
+* compile readiness
+* production readiness
+
+A file may exist in the canonical run order and still be:
+
+* unimplemented
+* partially designed
+* awaiting contract validation
+* awaiting Snowflake validation
+* awaiting compilation
+
+Run-order presence alone is insufficient authorization for SQL generation.
+
+Before any canonical SQL file is generated:
+
+Contract Validation
+
+→ Source Contract Declaration
+
+→ Compile Validation Path
+
+→ SQL Generation
+
+must be completed.
+
+Sequencing authority is not implementation authority.
+
+Snowflake remains authoritative.
+
+
+
+
+CONTRACT FIELD NAME SUBSTITUTION PROHIBITION
+
+Contract field substitution is prohibited.
+
+SQL generation may NEVER substitute:
+
+assumed field names
+legacy field names
+UI field names
+API field names
+TypeScript field names
+documentation field names
+
+for active Snowflake contract fields.
+
+Examples:
+
+ORGANIZATION_NAME
+↔ ORGANIZATION
+
+SYSTEM_NAME
+↔ AI_SYSTEM_NAME
+
+PUBLICATION_STATUS
+↔ PUBLISHED
+
+unless explicitly validated from Snowflake contract evidence.
+
+Field similarity is not contract evidence.
+
+Field intent is not contract evidence.
+
+Field naming conventions are not contract evidence.
+
+Only validated Snowflake field names may be referenced.
+
+SQL generation must reference fields exactly as exposed by the active Snowflake contract.
+
+If contract evidence is unavailable:
+
+generation must stop.
+
+Compile-first validation remains mandatory.
+
+Snowflake remains the sole source of truth.
+
+
+
+
+CONTRACT SOURCE ASSUMPTION PROHIBITION
+
+SQL generation may NEVER assume:
+
+- table structures
+- view structures
+- alias structures
+- join paths
+- relationship paths
+- source contracts
+- public contract exposure
+
+without validated Snowflake evidence.
+
+Examples:
+
+FROM CORE.V_REGISTRY_PUBLIC R
+
+does NOT authorize use of:
+
+R.ORGANIZATION_NAME
+R.SCORE
+R.TIER
+R.RISK_LEVEL
+
+unless those fields are explicitly validated.
+
+View existence is not contract evidence.
+
+Alias existence is not contract evidence.
+
+Joinability is not contract evidence.
+
+Relationship similarity is not contract evidence.
+
+Only validated Snowflake contract exposure may be referenced.
+
+If source-contract evidence is unavailable:
+
+generation must stop.
+
+Compile-first validation remains mandatory.
+
+Snowflake remains the sole source of truth.
 
 END OF FILE

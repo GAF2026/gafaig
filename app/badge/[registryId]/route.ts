@@ -98,6 +98,11 @@ function htmlPage(input: {
   status: string;
   decision: string;
   recordUrl: string;
+  verificationProofUrl: string;
+  proofJsonUrl: string;
+  widgetPreviewUrl: string;
+  badgePreviewUrl: string;
+  registryUrl: string;
   accentClass: string;
 }) {
   const entityName = escapeHtml(input.entityName);
@@ -110,6 +115,11 @@ function htmlPage(input: {
   const status = escapeHtml(input.status);
   const decision = escapeHtml(input.decision);
   const recordUrl = escapeHtml(input.recordUrl);
+  const verificationProofUrl = escapeHtml(input.verificationProofUrl);
+  const proofJsonUrl = escapeHtml(input.proofJsonUrl);
+  const widgetPreviewUrl = escapeHtml(input.widgetPreviewUrl);
+  const badgePreviewUrl = escapeHtml(input.badgePreviewUrl);
+  const registryUrl = escapeHtml(input.registryUrl);
   const accentClass = input.accentClass;
 
   return `<!DOCTYPE html>
@@ -399,8 +409,12 @@ function htmlPage(input: {
         </div>
 
         <div class="actions">
-          <a class="button primary" href="${recordUrl}">Open record</a>
-          <a class="button" href="${verificationUrl}">Proof JSON</a>
+          <a class="button primary" href="${recordUrl}">Open Certification Record</a>
+          <a class="button" href="${verificationProofUrl}">Open Verification Proof</a>
+          <a class="button" href="${proofJsonUrl}">Proof JSON</a>
+          <a class="button" href="${widgetPreviewUrl}">Open Widget Preview</a>
+          <a class="button" href="${badgePreviewUrl}">Open Badge Preview</a>
+          <a class="button" href="${registryUrl}">Browse Registry</a>
         </div>
 
         <div class="footer">
@@ -475,6 +489,11 @@ export async function GET(
     status,
     decision,
     recordUrl: `${origin}/registry/${encodeURIComponent(registryId)}`,
+    verificationProofUrl: `${origin}/verify/${encodeURIComponent(registryId)}`,
+    proofJsonUrl: `${origin}/api/verify/${encodeURIComponent(registryId)}`,
+    widgetPreviewUrl: `${origin}/widget-preview/${encodeURIComponent(registryId)}`,
+    badgePreviewUrl: `${origin}/badge-preview/${encodeURIComponent(registryId)}`,
+    registryUrl: `${origin}/registry`,
     accentClass: "success",
   });
 

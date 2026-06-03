@@ -202,15 +202,20 @@ export default async function WidgetPreviewPage({
   Verify this GAFAIG record
 </button>`;
 
+  const registryHref =
+    `/registry/${encodeURIComponent(record.registryId)}`;
+  const verificationHref =
+    `/verify/${encodeURIComponent(record.registryId)}`;
+  const badgeHref =
+    `/badge/${encodeURIComponent(record.registryId)}`;
+  const badgePreviewHref =
+    `/badge-preview/${encodeURIComponent(record.registryId)}`;
+
   const verifyJsonUrl = `${productionBaseUrl}/api/verify/${encodeURIComponent(
     registryId
   )}`;
-  const registryUrl = `${productionBaseUrl}/registry/${encodeURIComponent(
-    registryId
-  )}`;
-  const verifyPageUrl = `${productionBaseUrl}/verify/${encodeURIComponent(
-    registryId
-  )}`;
+  const registryUrl = `${productionBaseUrl}${registryHref}`;
+  const verifyPageUrl = `${productionBaseUrl}${verificationHref}`;
   const demoUrl = `${productionBaseUrl}/demo`;
 
   return (
@@ -224,17 +229,25 @@ export default async function WidgetPreviewPage({
           actions={
             <>
               <PublicButtonLink
-                href={`/registry/${encodeURIComponent(registryId)}`}
+                href={registryHref}
                 variant="primary"
               >
                 Open Certification Record
               </PublicButtonLink>
 
               <PublicButtonLink
-                href={`/verify/${encodeURIComponent(registryId)}`}
+                href={verificationHref}
                 variant="secondary"
               >
                 Open Verification Proof
+              </PublicButtonLink>
+
+              <PublicButtonLink href={badgeHref} variant="secondary">
+                Open Portable Badge
+              </PublicButtonLink>
+
+              <PublicButtonLink href={badgePreviewHref} variant="secondary">
+                Open Badge Preview
               </PublicButtonLink>
 
               <PublicButtonLink href="/demo" variant="secondary">
@@ -378,17 +391,25 @@ export default async function WidgetPreviewPage({
 
             <div className="mt-6 flex flex-wrap gap-3">
               <PublicButtonLink
-                href={`/registry/${encodeURIComponent(registryId)}`}
+                href={registryHref}
                 variant="secondary"
               >
                 Open Certification Record
               </PublicButtonLink>
 
               <PublicButtonLink
-                href={`/verify/${encodeURIComponent(registryId)}`}
+                href={verificationHref}
                 variant="secondary"
               >
                 Open Verification Proof
+              </PublicButtonLink>
+
+              <PublicButtonLink href={badgeHref} variant="secondary">
+                Open Portable Badge
+              </PublicButtonLink>
+
+              <PublicButtonLink href={badgePreviewHref} variant="secondary">
+                Open Badge Preview
               </PublicButtonLink>
             </div>
           </section>
@@ -593,11 +614,13 @@ export default async function WidgetPreviewPage({
             Open connected public trust surfaces
           </h2>
 
-          <div className="mt-7 grid gap-4 md:grid-cols-4">
+          <div className="mt-7 grid gap-4 md:grid-cols-6">
             <MetricCard label="Certification Record" value={registryUrl} />
             <MetricCard label="Verification Surface" value={verifyPageUrl} />
             <MetricCard label="Proof JSON" value={verifyJsonUrl} />
             <MetricCard label="Demo Page" value={demoUrl} />
+            <MetricCard label="Portable Badge" value={badgeHref} />
+            <MetricCard label="Badge Preview" value={badgePreviewHref} />
           </div>
 
           <div className="mt-6 flex flex-wrap gap-3">
@@ -606,6 +629,12 @@ export default async function WidgetPreviewPage({
             </PublicButtonLink>
             <PublicButtonLink href="/registry" variant="secondary">
               Browse Registry
+            </PublicButtonLink>
+            <PublicButtonLink href={badgeHref} variant="secondary">
+              Open Portable Badge
+            </PublicButtonLink>
+            <PublicButtonLink href={badgePreviewHref} variant="secondary">
+              Open Badge Preview
             </PublicButtonLink>
           </div>
         </section>

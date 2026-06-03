@@ -19,6 +19,11 @@ function firstString(...values: unknown[]): string | null {
   return null;
 }
 
+function sqlString(value: string): string {
+  return `'${value.replace(/'/g, "''")}'`;
+}
+
+
 const VIEW_NAME = "GAFAIG_DB.CORE.V_ADMIN_SUBMISSIONS";
 
 type Ctx = {
@@ -129,14 +134,15 @@ export async function POST(req: NextRequest, ctx: Ctx) {
       return json({ ok: false, error: "Missing participantId" }, 400);
     }
 
-    const callSql =
-      "CALL GAFAIG_DB.CORE.SP_CREATE_CASE_FROM_APPLICATION(?, ?, ?)";
+    const callSql = `CALL GAFAIG_DB.CORE.SP_APPLICATION_TO_CASE(${sqlString(
+      requestId
+    )}, ${sqlString(participantId)})`;
 
-    const rows = await sfQuery<Record<string, unknown>>(callSql, [
-      requestId,
-      participantId,
-      actor,
-    ]);
+    const debugRole = await sfQuery<Record<string, unknown>>(
+      "SELECT CURRENT_ROLE() AS ROLE_NAME, CURRENT_DATABASE() AS DB_NAME, CURRENT_SCHEMA() AS SCHEMA_NAME, CURRENT_USER() AS USER_NAME"
+    );
+
+    const rows = await sfQuery<Record<string, unknown>>(callSql);
 
     const procRow = rows?.[0];
     const procValue = procRow ? Object.values(procRow)[0] : null;

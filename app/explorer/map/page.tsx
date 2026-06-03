@@ -29,15 +29,15 @@ function valueOrDash(value: string | null | undefined) {
 
 export default async function ExplorerMapPage() {
   const rows = await sfQuery<MapRow>(`
-    SELECT
-      COUNTRY,
-      TOTAL_RECORDS,
-      TOTAL_CERTIFIED,
-      TOTAL_NOT_CERTIFIED,
-      LAST_ACTIVITY_AT
-    FROM GAFAIG_DB.CORE.V_REGISTRY_STATS_BY_COUNTRY
-    ORDER BY TOTAL_RECORDS DESC, COUNTRY ASC
-  `);
+  SELECT
+    COUNTRY,
+    TOTAL_RECORDS,
+    TOTAL_CERTIFIED,
+    TOTAL_NOT_CERTIFIED,
+    NULL AS LAST_ACTIVITY_AT
+  FROM GAFAIG_DB.CORE.V_REGISTRY_STATS_BY_COUNTRY
+  ORDER BY TOTAL_RECORDS DESC, COUNTRY ASC
+`);
 
   const totalCountries = rows.length;
   const totalRecords = rows.reduce((sum, row) => sum + Number(row.TOTAL_RECORDS || 0), 0);

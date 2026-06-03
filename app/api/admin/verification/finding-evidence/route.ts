@@ -23,23 +23,37 @@ export async function GET(req: NextRequest) {
 
   try {
     const { searchParams } = new URL(req.url);
+    const caseId = searchParams.get("caseId")?.trim();
     const findingId = searchParams.get("findingId")?.trim();
 
-    if (!findingId) {
-      return jsonError("Missing findingId", 400);
+    if (!caseId && !findingId) {
+      return jsonError("Missing caseId or findingId", 400);
     }
 
-    const sql = `
-      SELECT
-        FINDING_ID  AS "findingId",
-        EVIDENCE_ID AS "evidenceId",
-        CREATED_AT  AS "createdAt"
-      FROM GAFAIG_DB.CORE.VERIFICATION_FINDING_EVIDENCE
-      WHERE FINDING_ID = ?
-      ORDER BY CREATED_AT DESC
-    `;
+    const sql = findingId
+      ? `
+        SELECT
+          FINDING_ID  AS "findingId",
+          EVIDENCE_ID AS "evidenceId",
+          CREATED_AT  AS "createdAt"
+        FROM GAFAIG_DB.CORE.VERIFICATION_FINDING_EVIDENCE
+        WHERE FINDING_ID = ?
+        ORDER BY CREATED_AT DESC
+      `
+      : `
+        SELECT
+          L.FINDING_ID  AS "findingId",
+          L.EVIDENCE_ID AS "evidenceId",
+          L.CREATED_AT  AS "createdAt"
+        FROM GAFAIG_DB.CORE.VERIFICATION_FINDING_EVIDENCE L
+        JOIN GAFAIG_DB.CORE.VERIFICATION_FINDINGS F
+          ON L.FINDING_ID = F.FINDING_ID
+        WHERE F.CASE_ID = ?
+        ORDER BY L.CREATED_AT DESC
+      `;
 
-    const result = await executeQuery(sql, [findingId]);
+    const bindValue = findingId || caseId || "";
+    const result = await executeQuery(sql, [bindValue]);
     const rows = normalizeRows(result);
 
     return NextResponse.json({
@@ -50,37 +64,6 @@ export async function GET(req: NextRequest) {
     });
   } catch (e: any) {
     return jsonError(e?.message ?? "Failed to load links");
-  }
-}
-
-export async function POST(req: NextRequest) {
-  if (!requireAdmin(req, true)) {
-    return jsonError("Unauthorized", 401);
-  }
-
-  try {
-    const body = await req.json().catch(() => ({}));
-
-    const caseId = String(body?.caseId || "").trim();
-    const findingId = String(body?.findingId || "").trim();
-    const evidenceId = String(body?.evidenceId || "").trim();
-
-    if (!caseId || !findingId || !evidenceId) {
-      return jsonError("Missing required fields: caseId, findingId, evidenceId", 400);
-    }
-
-    const result = await executeQuery(
-      `CALL GAFAIG_DB.CORE.SP_LINK_FINDING_EVIDENCE(?, ?, ?)`,
-      [caseId, findingId, evidenceId]
-    );
-
-    return NextResponse.json({
-      ok: true,
-      row: normalizeRows(result)[0] ?? null,
-      source: "snowflake",
-    });
-  } catch (e: any) {
-    return jsonError(e?.message ?? "Failed to link evidence");
   }
 }
 

@@ -1,6 +1,6 @@
 # PUBLIC_OBSERVABILITY_RULES.md
 
-Last Updated: 2026-05-14
+Last Updated: 2026-06-01
 
 ## PURPOSE
 
@@ -13,11 +13,11 @@ GAFAIG now also operates as:
 * governance trust distribution infrastructure
 * communication layer infrastructure
 * public accountability infrastructure
-* governance legitimacy infrastructure
+* public governance trust legitimacy infrastructure
 
-Public observability surfaces must help external stakeholders understand published governance footprint, certification lifecycle, renewal posture, public AI system disclosures, governance continuity, governance legitimacy posture, and public accountability posture without exposing private governance execution.
+Public observability surfaces must help external stakeholders understand published governance footprint, certification lifecycle, renewal posture, public AI system disclosures, governance continuity, public governance trust legitimacy posture, public accountability posture, population continuity posture, civilization continuity posture, civilization survivability posture, civilization survivability validation posture, and civilization survivability freeze-lock posture without exposing private governance execution.
 
-GAFAIG observability surfaces are public governance trust surfaces.
+GAFAIG observability surfaces are public governance trust surface infrastructure.
 
 GAFAIG observability architecture is part of the broader cryptographic verification infrastructure.
 
@@ -35,7 +35,7 @@ This document governs future public observability pages, views, APIs, SDKs, widg
 * /verify
 * public widgets
 * public badges
-* SDK/API public governance trust surfaces
+* SDK/API public governance trust surface infrastructure
 
 ---
 
@@ -64,8 +64,13 @@ This evolution reflects the expansion of GAFAIG into:
 * communication layer infrastructure
 * governance trust distribution infrastructure
 * public accountability infrastructure
-* governance legitimacy infrastructure
+* public governance trust legitimacy infrastructure
 * global governance coordination infrastructure
+* population continuity infrastructure
+* civilization continuity infrastructure
+* civilization survivability continuity infrastructure
+* civilization survivability validation infrastructure
+* civilization survivability freeze-lock infrastructure
 
 Public observability surfaces must now consistently communicate GAFAIG as:
 
@@ -77,7 +82,7 @@ Public observability surfaces must now consistently communicate GAFAIG as:
 * communication layer infrastructure
 * governance trust distribution infrastructure
 * public accountability infrastructure
-* governance legitimacy infrastructure
+* public governance trust legitimacy infrastructure
 
 and NOT merely:
 
@@ -153,21 +158,41 @@ Allowed public observability includes:
 * public proof availability
 * public AI system metadata marked public
 * governance continuity posture
-* governance legitimacy posture
-* governance visibility posture
+* public governance trust legitimacy posture
+* public governance trust visibility posture
+* population continuity posture
+* civilization continuity posture
+* civilization survivability posture
+* civilization survivability validation posture
+* civilization survivability freeze-lock posture
 * public accountability posture
 * publication continuity posture
-* governance trust distribution posture
+* public governance trust distribution posture
+
 
 Public observability does NOT mean exposing private governance execution.
 
 Public observability does NOT mean exposing internal governance intelligence.
 
-Public observability does NOT mean exposing private remediation orchestration.
+Public observability does NOT mean exposing private remediation orchestration visibility.
 
 Public observability does NOT mean exposing private governance telemetry.
 
 Public observability does NOT replace cryptographic verification.
+
+
+Observability infrastructure must remain projection-only.
+
+Observability infrastructure must remain publication-controlled.
+
+Observability infrastructure must remain append-only compatible.
+
+Observability infrastructure must remain deterministic-source aligned.
+
+Observability infrastructure must remain verification-safe.
+
+Observability infrastructure must remain governance legitimacy-safe.
+
 
 ---
 
@@ -265,10 +290,15 @@ Allowed public-safe signals:
 * organization-level public governance trust density
 * certification continuity indicators
 * governance continuity indicators
-* governance visibility indicators
-* governance legitimacy indicators
-* governance trust distribution indicators
+* public governance trust visibility indicators
+* public governance trust legitimacy indicators
+* population continuity indicators
+* civilization continuity indicators
+* civilization survivability indicators
+* public governance trust distribution indicators
 * public accountability indicators
+* civilization survivability validation indicators
+* civilization survivability freeze-lock indicators
 
 ---
 
@@ -303,10 +333,15 @@ The following must never be exposed on public observability surfaces:
 * unpublished AI systems
 * non-public registry snapshots
 * internal governance simulation outputs
-* internal governance orchestration state
+* internal governance orchestration visibility state
 * private governance legitimacy calculations
 * private governance coordination outputs
 * private remediation coordination state
+* private population continuity calculations
+* private civilization continuity calculations
+* private civilization survivability calculations
+* private civilization survivability validation calculations
+* private civilization survivability freeze-lock calculations
 
 ---
 
@@ -362,6 +397,8 @@ Lifecycle observability must remain governance legitimacy-safe.
 
 Lifecycle observability must remain public governance trust-safe.
 
+Lifecycle observability must remain survivability continuity-aligned where Snowflake-originated public certification surfaces expose publication-safe continuity posture.
+
 ---
 
 # RENEWAL RULE
@@ -391,6 +428,8 @@ Renewal observability must remain publication-controlled.
 
 Renewal observability must remain governance legitimacy-safe.
 
+Renewal observability must remain survivability continuity-aligned where Snowflake-originated public certification surfaces expose publication-safe continuity posture.
+
 ---
 
 # GOVERNANCE SIGNAL RULE
@@ -406,9 +445,9 @@ Allowed:
 * public country-level footprint
 * public organization-level footprint
 * governance continuity posture
-* governance legitimacy posture
-* governance trust distribution posture
-* governance visibility posture
+* public governance trust legitimacy posture
+* public governance trust distribution posture
+* public governance trust visibility posture
 
 Not allowed:
 
@@ -418,7 +457,7 @@ Not allowed:
 * private remediation details
 * private monitoring outputs
 * internal operational logs
-* internal governance orchestration telemetry
+* internal governance orchestration visibility telemetry
 * internal governance intelligence outputs
 
 Governance observability must remain deterministic.
@@ -490,8 +529,8 @@ UI may format:
 * table layout
 * cards
 * navigation
-* governance visibility presentation
-* governance legitimacy presentation
+* public governance trust visibility presentation
+* public governance trust legitimacy presentation
 
 UI must not compute:
 
@@ -519,10 +558,10 @@ Public observability surfaces are part of the governance trust distribution infr
 
 They function as:
 
-* governance visibility infrastructure
-* governance legitimacy infrastructure
+* public governance trust visibility infrastructure
+* public governance trust legitimacy infrastructure
 * portable governance verification infrastructure
-* external governance trust signaling infrastructure
+* external public governance trust signaling infrastructure
 
 Any public trust claim must resolve to:
 
@@ -552,8 +591,8 @@ Main public governance trust surface.
 
 Explorer surfaces now also function as:
 
-* governance visibility infrastructure
-* governance legitimacy infrastructure
+* public governance trust visibility infrastructure
+* public governance trust legitimacy infrastructure
 * governance trust distribution infrastructure
 
 May show:
@@ -565,7 +604,7 @@ May show:
 * public AI system count
 * latest published records
 * governance continuity indicators
-* governance legitimacy indicators
+* public governance trust legitimacy indicators
 
 ---
 
@@ -575,8 +614,8 @@ Geographic public observability surface.
 
 This surface also functions as:
 
-* geographic governance visibility infrastructure
-* geographic governance legitimacy infrastructure
+* geographic public governance trust visibility infrastructure
+* geographic public governance trust legitimacy infrastructure
 
 May show:
 
@@ -595,7 +634,7 @@ Public AI system disclosure surface.
 
 This surface also functions as:
 
-* public AI governance visibility infrastructure
+* public AI public governance trust visibility infrastructure
 * portable governance verification infrastructure
 
 May show:
@@ -620,7 +659,7 @@ Future lifecycle observability surface.
 Lifecycle observability surfaces also function as:
 
 * governance continuity infrastructure
-* governance legitimacy infrastructure
+* public governance trust legitimacy infrastructure
 
 May show:
 
@@ -662,8 +701,8 @@ Future public governance visibility and signaling surface.
 
 This surface also functions as:
 
-* governance legitimacy infrastructure
-* governance trust signaling infrastructure
+* public governance trust legitimacy infrastructure
+* public governance trust signaling infrastructure
 * public accountability infrastructure
 
 May show:
@@ -673,9 +712,9 @@ May show:
 * lifecycle activity
 * renewal posture
 * public AI system disclosure density
-* governance legitimacy posture
-* governance visibility posture
-* governance trust distribution posture
+* public governance trust legitimacy posture
+* public governance trust visibility posture
+* public governance trust distribution posture
 
 Must not show private governance intelligence.
 
@@ -722,6 +761,11 @@ Before exposing a new observability field publicly:
 * Confirm governance legitimacy alignment.
 * Confirm public accountability alignment.
 * Confirm governance trust distribution alignment.
+* Confirm population continuity alignment.
+* Confirm civilization continuity alignment.
+* Confirm civilization survivability alignment.
+* Confirm civilization survivability validation alignment.
+* Confirm civilization survivability freeze-lock alignment.
 
 Change management must preserve deterministic governance trust guarantees.
 
@@ -837,6 +881,11 @@ Public accountability infrastructure requires:
 * governance visibility
 * verification portability
 * governance trust distribution
+* population continuity
+* civilization continuity
+* civilization survivability continuity
+* civilization survivability validation
+* civilization survivability freeze-lock
 
 Public accountability infrastructure must remain:
 
@@ -872,6 +921,11 @@ GAFAIG public observability exists to show:
 * what is publicly accountable
 * what is governance-visible
 * what is legitimacy-visible
+* what is population-continuity-visible
+* what is civilization-continuity-visible
+* what is survivability-visible
+* what is survivability-validation-visible
+* what is survivability-freeze-lock-visible
 
 It must never expose:
 
@@ -880,7 +934,7 @@ It must never expose:
 * how scoring internals were calculated
 * how reviewers worked
 * how private governance intelligence operated
-* how internal governance orchestration operated
+* how internal governance orchestration visibility operated
 * how private governance remediation operated
 
 The public sees published public governance trust.
@@ -898,5 +952,151 @@ Governance legitimacy must remain cryptographically anchored.
 Governance visibility must remain publication-controlled.
 
 Public accountability must remain machine-verifiable.
+
+---
+
+
+# PHASE 11D SURVIVABILITY CONTINUITY SYNCHRONIZATION
+
+PUBLIC_OBSERVABILITY_RULES.md is synchronized to the Phase 11D constitutional survivability continuity maturity chain.
+
+This synchronization does not create new observability categories.
+
+This synchronization does not create new authority boundaries.
+
+This synchronization does not create new public exposure categories.
+
+This synchronization preserves publication-controlled observability.
+
+This synchronization preserves projection-only observability.
+
+This synchronization preserves Snowflake-originated deterministic governance authority.
+
+This synchronization preserves public/private boundary doctrine.
+
+Phase 11D survivability continuity observability alignment includes:
+
+* population continuity posture
+* civilization continuity posture
+* civilization survivability posture
+* civilization survivability validation posture
+* civilization survivability freeze-lock posture
+
+These postures may appear publicly only as publication-safe, projection-only continuity signals derived from canonical Snowflake public certification surfaces.
+
+They must never expose private governance execution, private evidence, private findings, private scoring, private reviewer material, private governance intelligence, private remediation orchestration, or private survivability calculations.
+
+## Phase 11D Completed Maturity Synchronization
+
+The Phase 11D maturity chain was successfully validated in Snowflake.
+
+The completed maturity chain is:
+
+* 117O Population Continuity
+* 118–119 Civilization Continuity
+* 120 Civilization Resilience
+* 121 Civilization Adaptation
+* 122 Civilization Recovery
+* 123 Civilization Regeneration
+* 124 Civilization Renewal
+* 125 Civilization Stewardship
+* 126 Civilization Self-Preservation
+* 127 Long-Horizon Civilization Survivability
+* 128 Civilization Survivability Validation
+* 129 Civilization Survivability Freeze-Lock
+
+## Phase 11D Validation Authorities
+
+Validation authorities:
+
+* 118_CIVILIZATION_CONTINUITY_STACK_VALIDATION.sql
+* 128_AI_SYSTEM_GOVERNANCE_CIVILIZATION_SURVIVABILITY_STACK_VALIDATION.sql
+
+Validation authority must precede freeze authority.
+
+## Phase 11D Constitutional Checkpoints
+
+Constitutional checkpoint authorities:
+
+* 119_CANONICAL_CIVILIZATION_CONTINUITY_FREEZE.sql
+* 129_CANONICAL_CIVILIZATION_SURVIVABILITY_FREEZE.sql
+
+Freeze authority must precede documentation synchronization authority.
+
+## Phase 11D Documentation Synchronization Authorities
+
+Documentation synchronization authorities:
+
+* MASTER_STATE.md
+* CURRENT_FOCUS.md
+* CANONICAL_RUN_ORDER.md
+* GAFAIG_ACTIVE_FILE_MAP.md
+* GAFAIG_SNOWFLAKE_SQL_FILE_SUMMARY.md
+* GAFAIG_CANONICAL_SUMMARY.md
+* ENGINEERING_RULES.md
+* VERIFIED_DEFINITION.md
+* VERIFICATION_SIGNATURE_CONTRACT.md
+* VERSIONING.md
+* GAFAIG_VS_CODE_File_Tree.md
+* PUBLIC_PAGE_AUDIT.md
+* PUBLIC_PAGE_TEMPLATE_MAP.md
+* PAGE_LAYOUT_SYSTEM.md
+* GAFAIG_POSITIONING_ARCHITECTURE.md
+* AUTHORITATIVE_GOVERNANCE_BOUNDARIES.md
+* ADAPTIVE_GOVERNANCE_INTELLIGENCE.md
+
+Documentation synchronization authority supersedes pointer authority and six-step workflow authority.
+
+## Pointer Doctrine Retirement
+
+Pointer files are no longer required.
+
+Pointer checkpoints are no longer required.
+
+Six-step validation workflow files are no longer required.
+
+This doctrine is retired.
+
+## Phase 11D Execution Doctrine
+
+```text
+Build Layer
+↓
+Validate Layer
+↓
+Freeze Layer
+↓
+Synchronize Documentation
+↓
+Proceed To Next Layer
+```
+
+Validation authority must precede freeze authority.
+
+Freeze authority must precede documentation synchronization authority.
+
+Documentation synchronization authority must precede phase-transition authority.
+
+Documentation synchronization is the official phase-transition mechanism.
+
+
+# FINAL CONSTITUTIONAL VALIDATION
+
+Validated:
+
+* no authority leakage
+* no publication-control drift
+* no governance legitimacy drift
+* no verification doctrine drift
+* no proof.messageString doctrine drift
+* no append-only doctrine drift
+* no projection-only doctrine drift
+* no deterministic-authority drift
+* no observability exposure drift
+* no public/private boundary drift
+* no survivability continuity doctrine drift
+
+LOCK STATUS:
+CANONICAL — CONSTITUTIONALLY FROZEN
 
 END OF FILE

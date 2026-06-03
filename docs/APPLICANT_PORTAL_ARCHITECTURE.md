@@ -1,6 +1,6 @@
 # APPLICANT_PORTAL_ARCHITECTURE.md
 # GAFAIG — Applicant Portal Architecture
-# Last Updated: 2026-05-19
+# Last Updated: 2026-06-02
 
 ---
 
@@ -24,6 +24,10 @@ Applicant infrastructure exists to support:
 Applicant infrastructure operates beneath deterministic governance authority infrastructure.
 
 Applicant infrastructure is NOT authoritative governance infrastructure.
+
+Applicant infrastructure now operates as a controlled operational continuity layer beneath deterministic governance authority infrastructure and alongside governance synchronization, orchestration, observability, public governance intelligence, and governance trust distribution infrastructure.
+
+Applicant infrastructure remains projection-only relative to deterministic governance authority infrastructure.
 
 ---
 
@@ -51,13 +55,6 @@ without canonical Layer 1 execution paths.
 
 The Applicant Portal Architecture operates beneath:
 
-```text
-Layer 1 — Deterministic Governance Authority Infrastructure
-
-and alongside:
-
-Layer 3 — Governance Observability Infrastructure
-
 The Applicant Portal Architecture is an operational access layer.
 
 It is not a governance authority layer.
@@ -65,11 +62,16 @@ It is not a governance authority layer.
 The platform now operates through:
 
 Layer 1 — Deterministic Governance Authority Infrastructure
-Layer 2 — Adaptive Governance Intelligence Infrastructure
-Layer 3 — Governance Observability Infrastructure
-Layer 4 — Public Governance Trust Infrastructure
+Layer 2 — Governance Intelligence Synchronization Infrastructure
+Layer 3 — Global Governance Orchestration Infrastructure
+Layer 4 — Governance Observability + Public Governance Intelligence Infrastructure
+Layer 5 — Global Governance Trust Surface + External Governance Trust Distribution Infrastructure
+Layer 6 — Developer / Verification Infrastructure
+Layer 7 — Governance Survivability Infrastructure
 
 Applicant infrastructure exists beneath these governance layers to provide controlled organizational access.
+
+## 
 
 PRIMARY OBJECTIVES
 
@@ -86,7 +88,12 @@ long-term governance relationship continuity
 
 The applicant portal is intended to become the operational interface between organizations and GAFAIG governance infrastructure.
 
+## 
+
 APPLICANT IDENTITY MODEL
+
+## 
+
 ORGANIZATION-CENTRIC IDENTITY
 
 GAFAIG applicant infrastructure is organization-centric.
@@ -104,6 +111,8 @@ governance telemetry continuity
 governance communication continuity
 
 over time.
+
+## 
 
 APPLICANT AUTHENTICATION
 
@@ -124,6 +133,8 @@ Authentication infrastructure remains operational-only.
 
 Authentication infrastructure is not authoritative governance infrastructure.
 
+## 
+
 FUTURE APPLICANT ROUTES
 
 Future applicant portal routes may include:
@@ -141,6 +152,8 @@ Future applicant portal routes may include:
 These routes are operational visibility surfaces only.
 
 These routes may not directly mutate authoritative governance state.
+
+## 
 
 APPLICATION STATUS VISIBILITY
 
@@ -164,6 +177,8 @@ Status visibility must remain projection-only.
 
 Status visibility may never directly mutate governance authority.
 
+## 
+
 GOVERNANCE LIFECYCLE VISIBILITY
 
 Applicants may eventually view governance lifecycle continuity including:
@@ -174,12 +189,20 @@ APPLICATION
 → EVIDENCE
 → SCORE SNAPSHOT
 → DECISION
+→ GOVERNANCE SYNCHRONIZATION
+→ GOVERNANCE ORCHESTRATION
+→ GOVERNANCE OBSERVABILITY
+→ PUBLIC GOVERNANCE INTELLIGENCE
+→ GOVERNANCE TRUST DISTRIBUTION
 → PUBLICATION ELIGIBILITY
 → REGISTRY STATUS
+→ VERIFICATION DISTRIBUTION
 
 Lifecycle visibility must originate exclusively from deterministic governance observability infrastructure.
 
 Applicant infrastructure may not independently generate governance lifecycle state.
+
+## 
 
 PUBLICATION ELECTION WORKFLOWS
 
@@ -205,6 +228,8 @@ approved decision
 
 Applicant infrastructure may never bypass publication governance enforcement.
 
+## 
+
 GOVERNANCE COMMUNICATION CONTINUITY
 
 Future applicant infrastructure may include governance communication continuity such as:
@@ -217,13 +242,22 @@ governance continuity alerts
 governance reassessment notices
 publication election notifications
 
+governance synchronization notifications
+governance orchestration notifications
+governance observability notifications
+governance continuity notifications
+governance trust surface notifications
+public governance intelligence notifications
+
 Communication infrastructure remains operational-only.
 
 Communication infrastructure is not governance authority infrastructure.
 
+## 
+
 FUTURE CONTINUOUS GOVERNANCE ACCESS
 
-As GAFAIG evolves into adaptive governance intelligence infrastructure, applicants may eventually receive access to:
+As GAFAIG evolves into governance intelligence synchronization infrastructure, applicants may eventually receive access to:
 
 governance telemetry
 governance drift alerts
@@ -232,16 +266,38 @@ governance reassessment recommendations
 governance continuity analytics
 governance observability dashboards
 governance maturity analytics
+governance synchronization intelligence
+governance orchestration intelligence
+governance observability intelligence
+governance trust surface intelligence
+public governance intelligence visibility
+governance continuity intelligence
+governance resilience intelligence
+governance stability intelligence
+population continuity intelligence
+civilization continuity intelligence
+recursive civilization resilience intelligence
+recursive civilization adaptation intelligence
+recursive civilization recovery intelligence
+recursive civilization regeneration intelligence
+recursive civilization renewal intelligence
+recursive civilization stewardship intelligence
+recursive civilization self-preservation intelligence
+long-horizon civilization survivability intelligence
+civilization survivability validation intelligence
+civilization survivability freeze-lock intelligence
 
 These capabilities remain advisory-only.
 
 They are not authoritative governance outcomes.
 
-APPLICANT PORTAL + ADAPTIVE GOVERNANCE INTELLIGENCE
+## 
+
+APPLICANT PORTAL + GOVERNANCE INTELLIGENCE SYNCHRONIZATION
 
 Applicant infrastructure may eventually expose operational governance intelligence generated by:
 
-Layer 2 — Adaptive Governance Intelligence Infrastructure
+Layer 2 — Governance Intelligence Synchronization Infrastructure
 
 including:
 
@@ -258,6 +314,60 @@ advisory
 non-authoritative
 
 until deterministic governance workflows execute.
+
+Applicant infrastructure may eventually expose operational survivability intelligence generated by:
+
+Layer 7 — Governance Survivability Infrastructure
+
+including:
+
+population continuity signals
+civilization continuity signals
+recursive civilization resilience signals
+recursive civilization adaptation signals
+recursive civilization recovery signals
+recursive civilization regeneration signals
+recursive civilization renewal signals
+recursive civilization stewardship signals
+recursive civilization self-preservation signals
+long-horizon civilization survivability signals
+civilization survivability validation signals
+civilization survivability freeze-lock signals
+
+These survivability signals remain:
+
+observational
+advisory
+non-authoritative
+
+until deterministic governance workflows execute.
+
+Applicant infrastructure remains:
+
+projection-only
+visibility-only
+operational-only
+non-authoritative
+
+Applicant infrastructure may NEVER:
+
+originate governance authority
+originate verification authority
+originate publication authority
+originate certification authority
+originate survivability authority
+
+Applicant infrastructure may ONLY:
+
+observe
+display
+communicate
+coordinate
+provide continuity visibility
+
+for survivability-related projections.
+
+## 
 
 APPLICANT PORTAL SECURITY MODEL
 
@@ -281,6 +391,8 @@ non-public verification infrastructure
 
 without canonical authorization enforcement.
 
+## 
+
 GOVERNANCE OBSERVABILITY INTEGRATION
 
 Applicant infrastructure will eventually integrate with:
@@ -292,9 +404,48 @@ V_GOVERNANCE_TIMELINE
 V_PUBLICATION_GATING
 V_REGISTRY_PUBLICATION_ELIGIBILITY
 
+V_GOVERNANCE_COORDINATION_INTELLIGENCE
+V_GOVERNANCE_DISTRIBUTION_INTELLIGENCE
+V_GOVERNANCE_NETWORK_INTELLIGENCE
+V_GOVERNANCE_TELEMETRY_INTELLIGENCE
+V_GOVERNANCE_RESILIENCE_INTELLIGENCE
+V_GOVERNANCE_STABILITY_INTELLIGENCE
+V_GOVERNANCE_CONTINUITY_INTELLIGENCE
+V_GLOBAL_GOVERNANCE_ORCHESTRATION
+V_GLOBAL_GOVERNANCE_PUBLIC_INTELLIGENCE
+V_GLOBAL_GOVERNANCE_TRUST_SURFACE
+
+Phase 11D survivability observability infrastructure derived from:
+
+117O_AI_SYSTEM_GOVERNANCE_POPULATION_CONTINUITY.sql
+
+118_AI_SYSTEM_GOVERNANCE_CIVILIZATION_CONTINUITY.sql
+
+120_AI_SYSTEM_GOVERNANCE_RECURSIVE_CIVILIZATION_RESILIENCE.sql
+
+121_AI_SYSTEM_GOVERNANCE_RECURSIVE_CIVILIZATION_ADAPTATION.sql
+
+122_AI_SYSTEM_GOVERNANCE_RECURSIVE_CIVILIZATION_RECOVERY.sql
+
+123_AI_SYSTEM_GOVERNANCE_RECURSIVE_CIVILIZATION_REGENERATION.sql
+
+124_AI_SYSTEM_GOVERNANCE_RECURSIVE_CIVILIZATION_RENEWAL.sql
+
+125_AI_SYSTEM_GOVERNANCE_RECURSIVE_CIVILIZATION_STEWARDSHIP.sql
+
+126_AI_SYSTEM_GOVERNANCE_RECURSIVE_CIVILIZATION_SELF_PRESERVATION.sql
+
+127_AI_SYSTEM_GOVERNANCE_LONG_HORIZON_CIVILIZATION_SURVIVABILITY.sql
+
+128_AI_SYSTEM_GOVERNANCE_CIVILIZATION_SURVIVABILITY_STACK_VALIDATION.sql
+
+129_CANONICAL_CIVILIZATION_SURVIVABILITY_FREEZE.sql
+
 These views remain authoritative observability infrastructure.
 
 Applicant infrastructure remains a controlled visibility layer above them.
+
+## 
 
 FUTURE APPLICANT SQL INFRASTRUCTURE
 
@@ -310,6 +461,8 @@ These views remain projection-only.
 
 They may not independently generate governance authority.
 
+## 
+
 APPLICANT PORTAL GOVERNANCE RULES
 
 Applicant infrastructure may:
@@ -320,6 +473,8 @@ facilitate workflow continuity
 facilitate governance communication
 facilitate publication elections
 facilitate recertification continuity
+display survivability-related projections
+provide survivability continuity visibility
 
 Applicant infrastructure may NEVER directly:
 
@@ -328,8 +483,11 @@ publish registry records
 mutate registry authority
 mutate verification authority
 alter deterministic governance state
+originate survivability authority
 
 without deterministic Layer 1 governance execution.
+
+## 
 
 LONG-TERM PLATFORM ROLE
 
@@ -345,11 +503,13 @@ continuous governance communication
 
 The applicant portal provides the operational access layer for this long-term governance continuity model.
 
+## 
+
 RELATIONSHIP TO PUBLIC TRUST INFRASTRUCTURE
 
 Applicant infrastructure is separate from:
 
-Layer 4 — Public Governance Trust Infrastructure
+Layer 5 — Global Governance Trust Surface + External Governance Trust Distribution Infrastructure
 
 Applicant infrastructure governs:
 
@@ -363,12 +523,22 @@ public verification infrastructure
 
 These infrastructures must remain intentionally separated.
 
+## 
+
 FINAL ARCHITECTURAL PRINCIPLE
 
 GAFAIG intentionally separates:
 
 operational applicant infrastructure
-from
+governance synchronization visibility
+governance orchestration visibility
+governance observability visibility
+governance trust surface visibility
+public governance intelligence visibility
+governance survivability visibility
+
+from:
+
 deterministic governance authority
 
 This separation preserves:
@@ -379,7 +549,21 @@ publication integrity
 verification integrity
 registry integrity
 institutional trust continuity
+international governance defensibility
+public governance trust continuity
 
-Applicant infrastructure is operational infrastructure.
+Applicant infrastructure distributes operational continuity visibility.
 
-Deterministic governance authority remains permanently authoritative.
+Governance intelligence synchronization distributes visibility.
+
+Governance orchestration distributes coordination.
+
+Public governance intelligence distributes governance observability.
+
+Governance trust surfaces distribute public governance trust.
+
+Governance survivability infrastructure distributes survivability continuity visibility.
+
+Snowflake alone retains deterministic governance authority.
+
+END OF FILE
