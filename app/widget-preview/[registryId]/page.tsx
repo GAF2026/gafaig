@@ -189,9 +189,8 @@ export default async function WidgetPreviewPage({
 
   const record = verifyData.record;
   const entityName = record.entityName || "Unknown Entity";
-  const trustState = String(record.certifiedAt ?? "").trim()
-    ? "Certified"
-    : "Not Certified";
+  const certificationStatus = valueOrDash(record.certificationStatus);
+  const trustState = certificationStatus;
 
   const widgetSnippet = `<script src="${productionBaseUrl}/widget/gafaig-widget.v1.js"></script>
 <div data-gafaig-id="${registryId}"></div>`;

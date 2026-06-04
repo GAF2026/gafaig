@@ -17,6 +17,7 @@ type RegistryApiRow = {
   certifiedTier?: string | null;
   certifiedBand?: string | null;
   decisionStatus?: string | null;
+  certificationStatus?: string | null;
   validFrom?: string | null;
   validTo?: string | null;
   certifiedAt?: string | null;
@@ -162,7 +163,7 @@ export default async function BadgePage({
   const decisionStatus = infoValue([record?.decisionStatus, row?.decisionStatus]);
   const certificationStatus = infoValue([
     record?.certificationStatus,
-    row?.certifiedAt ? "Certified" : null,
+    row?.certificationStatus,
   ]);
   const validTo = formatDate(record?.validTo ?? row?.validTo ?? null);
   const verifyPath = `/api/verify/${encodeURIComponent(registryId)}`;

@@ -13,6 +13,7 @@ type RegistryApiRow = {
   certifiedScore?: string | null;
   certifiedTier?: string | null;
   certifiedBand?: string | null;
+  certificationStatus?: string | null;
   decisionStatus?: string | null;
   validFrom?: string | null;
   validTo?: string | null;
@@ -467,7 +468,7 @@ export async function GET(
   const decision = infoValue([record?.decisionStatus, row?.decisionStatus]);
   const status = infoValue([
     record?.certificationStatus,
-    row?.certifiedAt ? "Certified" : null,
+    row?.certificationStatus,
   ]);
   const certifiedTier = infoValue([record?.certifiedTier, row?.certifiedTier]);
   const certifiedBand = infoValue([record?.certifiedBand, row?.certifiedBand]);
