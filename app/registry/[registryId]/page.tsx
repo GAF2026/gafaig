@@ -148,7 +148,7 @@ export default async function RegistryRecordPage({
             record.entityName
           )}`}
           description="This page displays a published GAFAIG certification record. Certification is evaluated privately, publication is explicit, and only organizations that elect publication appear in the public registry."
-          secondaryDescription="This certification record is a public trust surface only. Private evidence, findings, scoring internals, reviewer materials, governance telemetry, Application ID, and Case ID are not displayed publicly."
+          secondaryDescription="This certification record is a public governance trust surface only. Private evidence, findings, scoring internals, reviewer materials, governance telemetry, Application ID, and Case ID are not displayed publicly."
           actions={
             <>
               <PublicButtonLink href={verifyHref} variant="primary">
@@ -252,12 +252,12 @@ export default async function RegistryRecordPage({
 
         <section className="rounded-3xl border border-black/10 bg-white p-8">
           <h2 className="text-[26px] font-semibold tracking-tight text-black">
-            PUBLIC TRUST SURFACES
+            PUBLIC GOVERNANCE TRUST SURFACES
           </h2>
 
           <p className="mt-4 max-w-[900px] text-[15px] leading-7 text-black/75">
             The registry distributes the public certification record across
-            connected public trust surfaces. The verification endpoint distributes
+            connected public governance trust surfaces. The verification endpoint distributes
             the signed verification proof payload. External systems should verify
             the exact proof.messageString returned by the verification endpoint
             and must never reconstruct the canonical signed public payload from

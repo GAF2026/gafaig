@@ -446,7 +446,7 @@ function htmlPage(input: {
         </div>
 
         <div class="footer">
-          Issued ${certifiedAt} • Public trust surface only • Private review materials not disclosed
+          Issued ${certifiedAt} • Public governance trust surface only • Private review materials not disclosed
         </div>
       </div>
     </div>

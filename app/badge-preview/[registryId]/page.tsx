@@ -204,7 +204,7 @@ export default async function BadgePage({
       <div className="space-y-8">
         <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
           <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
-            LIVE TRUST BADGE PREVIEW
+            LIVE PUBLIC GOVERNANCE TRUST BADGE PREVIEW
           </div>
 
           <h1 className="mt-4 text-[40px] font-semibold leading-[1.08] tracking-tight text-black md:text-[52px]">
@@ -212,7 +212,7 @@ export default async function BadgePage({
           </h1>
 
           <p className="mt-4 max-w-[900px] text-[16px] leading-8 text-black/68">
-            This page renders the same portable public certification badge used across GAFAIG public trust surfaces so organizations can preview what external users will see.
+            This page renders the same portable public certification badge used across GAFAIG public governance trust surfaces so organizations can preview what external users will see.
           </p>
 
           <div className="mt-6 flex flex-wrap gap-3">
@@ -295,7 +295,7 @@ export default async function BadgePage({
                 </h2>
 
                 <p className="mt-3 text-[14px] leading-7 text-black/62">
-                  Public certification record issued through GAFAIG public trust infrastructure.
+                  Public certification record issued through GAFAIG public governance trust infrastructure.
                 </p>
               </div>
 
@@ -351,7 +351,7 @@ export default async function BadgePage({
 
               <div className="rounded-2xl border border-black/10 bg-white p-5">
                 <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-black/55">
-                  Portable Public Trust Widget
+                  Portable Public Governance Trust Widget
                 </div>
                 <div className="mt-2 break-all text-[14px] leading-7 text-black/72">
                   {`${baseUrl}/widget-preview/${encodeURIComponent(registryId)}`}
@@ -363,7 +363,7 @@ export default async function BadgePage({
                     variant="secondary"
                     size="sm"
                   >
-                    Open Public Trust Widget
+                    Open Public Governance Trust Widget
                   </PublicButtonLink>
 
                   <PublicButtonLink
@@ -394,7 +394,7 @@ export default async function BadgePage({
 
         <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
           <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
-            PUBLIC TRUST DISTRIBUTION
+            PUBLIC GOVERNANCE TRUST DISTRIBUTION
           </div>
 
           <h2 className="mt-4 text-[32px] font-semibold leading-[1.18] tracking-tight text-black md:text-[38px]">
@@ -402,7 +402,7 @@ export default async function BadgePage({
           </h2>
 
           <p className="mt-3 max-w-[900px] text-[15px] leading-[1.8] text-black/68">
-            The same portable public certification badge can be used in websites, procurement documents, product pages, and other external trust surfaces without exposing private evidence or controlled reviewer workflow details.
+            The same portable public certification badge can be used in websites, procurement documents, product pages, and other external public governance trust surfaces without exposing private evidence or controlled reviewer workflow details.
           </p>
 
           <div className="mt-6 grid gap-3 md:grid-cols-3">

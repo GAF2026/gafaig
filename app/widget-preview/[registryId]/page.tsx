@@ -177,7 +177,7 @@ export default async function WidgetPreviewPage({
 
           <section className="rounded-3xl border border-black/10 bg-white p-8">
             <p className="max-w-[900px] text-[15px] leading-[1.85] text-black/72">
-              This preview uses the same public trust surfaces that external
+              This preview uses the same public governance trust surfaces that external
               sites use. If a live verification record is not available, the
               widget cannot show a trust result.
             </p>
@@ -224,9 +224,9 @@ export default async function WidgetPreviewPage({
       <div className="space-y-8">
         <PublicPageHero
           eyebrow="WIDGET PREVIEW"
-          title="From verified proof to portable trust"
+          title="From verified proof to portable public governance trust"
           description="This page shows how a real GAFAIG record can be displayed on a third-party website through a live widget and verification modal."
-          secondaryDescription="The widget preview is part of the GAFAIG proof flow. A record is certified in GAFAIG, verified through signed public proof, and then surfaced as a portable public trust signal that can appear outside the originating organization’s platform."
+          secondaryDescription="The widget preview is part of the GAFAIG proof flow. A record is certified in GAFAIG, verified through signed public proof, and then surfaced as a portable public governance trust signal that can appear outside the originating organization’s platform."
           actions={
             <>
               <PublicButtonLink
@@ -275,7 +275,7 @@ export default async function WidgetPreviewPage({
           </div>
 
           <h2 className="mt-4 max-w-[860px] text-[26px] font-semibold tracking-tight text-black">
-            A verified public trust signal that can be displayed on any external system
+            A verified public governance trust signal that can be displayed on any external system
           </h2>
 
           <p className="mt-5 max-w-[980px] text-[16px] leading-[1.85] text-black/75">
@@ -290,7 +290,7 @@ export default async function WidgetPreviewPage({
           <div className="mt-7 grid gap-4 md:grid-cols-2">
             <StatementCard
               title="What it proves"
-              body="A certified GAFAIG record can be surfaced outside the GAFAIG website while preserving the same public trust outcome."
+              body="A certified GAFAIG record can be surfaced outside the GAFAIG website while preserving the same public governance trust outcome."
             />
             <StatementCard
               title="Why it matters"
@@ -312,14 +312,14 @@ export default async function WidgetPreviewPage({
           </div>
 
           <h2 className="mt-4 max-w-[860px] text-[26px] font-semibold tracking-tight text-black">
-            How public trust is distributed externally
+            How public governance trust is distributed externally
           </h2>
 
           <div className="mt-8 grid gap-4 md:grid-cols-4">
             <StepCard
               number="1"
               title="Certified registry record"
-              body="A GAFAIG record exists in the public registry and can be verified through the public trust surface."
+              body="A GAFAIG record exists in the public registry and can be verified through the public governance trust surface."
             />
             <StepCard
               number="2"
@@ -333,7 +333,7 @@ export default async function WidgetPreviewPage({
             />
             <StepCard
               number="4"
-              title="Portable public trust surface"
+              title="Portable public governance trust surface"
               body="The site displays a current GAFAIG trust signal without running its own governance verification logic."
             />
           </div>
@@ -351,7 +351,7 @@ export default async function WidgetPreviewPage({
 
             <p className="mt-4 max-w-[820px] text-[15px] leading-[1.8] text-black/72">
               This is the live widget rendering for the selected record. It is
-              the same trust surface that can be embedded on an external website.
+              the same public governance trust surface that can be embedded on an external website.
             </p>
 
             <div className="mt-6 rounded-2xl border border-black/10 bg-black/[0.02] p-6">
@@ -564,7 +564,7 @@ export default async function WidgetPreviewPage({
           </div>
 
           <p className="mt-6 max-w-[960px] text-[16px] leading-[1.85] text-black/75">
-            the trust surface intentionally refuses to display a verified state.
+            the public governance trust surface intentionally refuses to display a verified state.
           </p>
 
           <div className="mt-6 rounded-2xl border border-black/10 bg-black/[0.02] p-5">
@@ -589,7 +589,7 @@ export default async function WidgetPreviewPage({
           <div className="mt-7 grid gap-4 md:grid-cols-2">
             <BulletCard text="The registry page proves a public certification record exists." />
             <BulletCard text="The verification surface proves the record is backed by signed public proof." />
-            <BulletCard text="The widget preview proves the public trust signal can travel outside GAFAIG." />
+            <BulletCard text="The widget preview proves the public governance trust signal can travel outside GAFAIG." />
             <BulletCard text="The modal proves verification can be surfaced in third-party environments." />
           </div>
 
@@ -598,8 +598,8 @@ export default async function WidgetPreviewPage({
               Why this matters
             </div>
             <p className="mt-3 text-[15px] leading-[1.85] text-black/75">
-              GAFAIG turns verified AI governance into a portable public trust
-              signal. It is a public trust infrastructure layer that allows
+              GAFAIG turns verified AI governance into a portable public governance trust
+              signal. It is a public governance trust infrastructure layer that allows
               verified governance outcomes to appear, be reviewed, and be trusted
               outside the originating organization’s platform.
             </p>
@@ -608,11 +608,11 @@ export default async function WidgetPreviewPage({
 
         <section className="rounded-3xl border border-black/10 bg-white p-8">
           <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
-            CONNECTED TRUST SURFACES
+            CONNECTED PUBLIC GOVERNANCE TRUST SURFACES
           </div>
 
           <h2 className="mt-4 max-w-[860px] text-[26px] font-semibold tracking-tight text-black">
-            Open connected public trust surfaces
+            Open connected public governance trust surfaces
           </h2>
 
           <div className="mt-7 grid gap-4 md:grid-cols-6">
@@ -682,7 +682,7 @@ export default async function WidgetPreviewPage({
 
         <section className="rounded-3xl border border-black/10 bg-white p-8">
           <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
-            CANONICAL TRUST ORIGINS
+            CANONICAL PUBLIC GOVERNANCE TRUST ORIGINS
           </div>
 
           <h2 className="mt-4 max-w-[860px] text-[26px] font-semibold tracking-tight text-black">
@@ -706,7 +706,7 @@ export default async function WidgetPreviewPage({
           </div>
 
           <p className="mt-6 max-w-[960px] text-[16px] leading-[1.85] text-black/75">
-            The browser widget is a portable public trust surface layered on top of the underlying signed verification architecture.
+            The browser widget is a portable public governance trust surface layered on top of the underlying signed verification architecture.
           </p>
         </section>
 

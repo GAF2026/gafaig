@@ -246,7 +246,7 @@ function JumpNav() {
   const links = [
     ["#signature-validation", "Signature Validation"],
     ["#record-identity", "Record Identity"],
-    ["#trust-flow", "Trust Flow"],
+    ["#trust-flow", "Governance Trust Flow"],
     ["#use-proof", "Use Verification Proof"],
     ["#trust-verification", "Technical Summary"],
     ["#developer-proof", "Developer Proof"],
@@ -693,11 +693,11 @@ export default async function VerifyPage({
           className="scroll-mt-8 rounded-3xl border border-black/10 bg-white p-8"
         >
           <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
-            VERIFICATION TRUST FLOW
+            VERIFICATION GOVERNANCE TRUST FLOW
           </div>
 
           <h2 className="mt-4 max-w-[860px] text-[26px] font-semibold tracking-tight text-black">
-            How this verification proof connects to GAFAIG public trust surfaces
+            How this verification proof connects to GAFAIG public governance trust surfaces
           </h2>
 
           <p className="mt-5 max-w-[980px] text-[15px] leading-7 text-black/75">
@@ -712,7 +712,7 @@ export default async function VerifyPage({
             <StepCard
               number="1"
               title="Certification Record"
-              body="The published certification record establishes the public trust outcome."
+              body="The published certification record establishes the public governance trust outcome."
             />
             <StepCard
               number="2"
@@ -722,12 +722,12 @@ export default async function VerifyPage({
             <StepCard
               number="3"
               title="Signed Proof JSON"
-              body="The machine-readable signed proof makes the public trust record portable."
+              body="The machine-readable signed proof makes the public governance trust record portable."
             />
             <StepCard
               number="4"
               title="External Widget"
-              body="The same public trust signal can appear outside GAFAIG."
+              body="The same public governance trust signal can appear outside GAFAIG."
             />
           </div>
         </section>
@@ -747,7 +747,7 @@ export default async function VerifyPage({
           <div className="mt-7 grid gap-4 md:grid-cols-2">
             <StatementCard
               title="For public review"
-              body="The certification record and this verification proof provide a readable public trust surface for customers, regulators, partners, and the public."
+              body="The certification record and this verification proof provide a readable public governance trust surface for customers, regulators, partners, and the public."
             />
             <StatementCard
               title="For external systems"
@@ -764,7 +764,7 @@ export default async function VerifyPage({
             />
             <FeatureCard
               title="Widget Preview"
-              body="See how the same trust signal appears on an external site."
+              body="See how the same public governance trust signal appears on an external site."
               href={`/widget-preview/${encodeURIComponent(registryId)}`}
               cta="View Widget"
             />
@@ -795,7 +795,7 @@ export default async function VerifyPage({
               Technical verification reference
             </h2>
             <p className="mt-5 max-w-4xl text-[18px] leading-8 text-black/65">
-              These fields are provided for reference and debugging. Trust must
+              These fields are provided for reference and debugging. Public governance trust must
               be established using the exact proof.messageString returned by the
               API, the signature, and the public key.
             </p>
@@ -834,7 +834,7 @@ export default async function VerifyPage({
             <p className="max-w-3xl text-[15px] leading-7 text-black/75">
               External systems MUST treat messageString as the canonical input
               to signature verification. The record object is for display only;
-              the verification proof object is the trust layer. Do not reconstruct the canonical signed public
+              the verification proof object is the public governance trust layer. Do not reconstruct the canonical signed public
               payload from JSON fields.
             </p>
           </div>
@@ -873,11 +873,11 @@ export default async function VerifyPage({
           className="scroll-mt-8 rounded-3xl border border-black/10 bg-white p-8"
         >
           <div className="text-[13px] font-semibold uppercase tracking-[0.22em] text-black/60">
-            CONNECTED TRUST SURFACES
+            CONNECTED PUBLIC GOVERNANCE TRUST SURFACES
           </div>
 
           <h2 className="mt-4 max-w-[860px] text-[26px] font-semibold tracking-tight text-black">
-            Connected public trust surfaces for this record
+            Connected public governance trust surfaces for this record
           </h2>
 
           <div className="mt-6 grid gap-4 md:grid-cols-2">
