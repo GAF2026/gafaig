@@ -451,7 +451,8 @@ export default async function VerifyPage({
   const algorithm = safe(keyData.algorithm || proof.alg || null);
   const keyId = safe(keyData.keyId || proof.kid || null);
 
-  const registryUrl = `${baseUrl}/registry/${encodeURIComponent(registryId)}`;
+  const registryHref = `/registry/${encodeURIComponent(registryId)}`;
+  const registryUrl = `${baseUrl}${registryHref}`;
   const widgetUrl = `${baseUrl}/widget-preview/${encodeURIComponent(registryId)}`;
   const demoUrl = `${baseUrl}/demo`;
   const verifyJsonUrl = `${baseUrl}/api/verify/${encodeURIComponent(registryId)}`;
@@ -551,6 +552,10 @@ export default async function VerifyPage({
               variant="primary"
             >
               Verify Certification Record
+            </PublicButtonLink>
+
+            <PublicButtonLink href={registryHref} variant="secondary">
+              Open Certification Record
             </PublicButtonLink>
 
             <a
@@ -885,6 +890,28 @@ export default async function VerifyPage({
             <InfoCard label="Badge API JSON" value={badgeJsonUrl} />
             <InfoCard label="Public Key Endpoint" value={verificationKeyUrl} />
             <InfoCard label="Demo Page" value={demoUrl} />
+          </div>
+
+          <div className="mt-6 flex flex-wrap gap-3">
+            <PublicButtonLink href={registryHref} variant="secondary">
+              Open Certification Record
+            </PublicButtonLink>
+
+            <PublicButtonLink
+              href={`/widget-preview/${encodeURIComponent(registryId)}`}
+              variant="secondary"
+            >
+              View Widget
+            </PublicButtonLink>
+
+            <a
+              href={`/api/verify/${encodeURIComponent(registryId)}`}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex min-h-[42px] items-center justify-center rounded-full border border-black/20 bg-white px-5 text-sm font-semibold text-black transition hover:bg-black hover:text-white"
+            >
+              View Proof JSON
+            </a>
           </div>
         </section>
 
