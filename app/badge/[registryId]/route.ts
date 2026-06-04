@@ -88,6 +88,11 @@ function formatTierBand(tier?: string | null, band?: string | null): string {
   return "—";
 }
 
+function certificationAccentClass(certificationStatus?: string | null): "success" | "warning" {
+  const normalized = String(certificationStatus ?? "").trim().toLowerCase();
+  return normalized === "certified" ? "success" : "warning";
+}
+
 function htmlPage(input: {
   entityName: string;
   country: string;
@@ -104,7 +109,7 @@ function htmlPage(input: {
   widgetPreviewUrl: string;
   badgePreviewUrl: string;
   registryUrl: string;
-  accentClass: string;
+  accentClass: "success" | "warning";
 }) {
   const entityName = escapeHtml(input.entityName);
   const country = escapeHtml(input.country);
@@ -146,6 +151,16 @@ function htmlPage(input: {
     --green-text:#138a52;
     --green-line:#9fe0bb;
     --navy:#071a49;
+    --warning-bg:#eef4ff;
+    --warning-text:#2457d6;
+    --warning-line:#c9d9ff;
+    --success-bg:#e9f8ef;
+    --success-text:#138a52;
+    --success-line:#9fe0bb;
+    --success-highlight:#c9eed5;
+    --success-highlight-line:#91dfb2;
+    --warning-highlight:#eef4ff;
+    --warning-highlight-line:#c9d9ff;
   }
   *{box-sizing:border-box}
   html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
@@ -160,7 +175,7 @@ function htmlPage(input: {
   }
   .topbar{
     height:10px;
-    background:${accentClass === "warning" ? "#1d4ed8" : "#0f9d58"};
+    background:${accentClass === "success" ? "#0f9d58" : "#1d4ed8"};
   }
   .content{padding:34px 38px 28px}
   .eyebrow{
@@ -197,7 +212,8 @@ function htmlPage(input: {
     line-height:1;
     white-space:nowrap;
   }
-  .chip.green{background:var(--green-bg);color:var(--green-text);border-color:var(--green-line)}
+  .chip.success{background:var(--success-bg);color:var(--success-text);border-color:var(--success-line)}
+  .chip.warning{background:var(--warning-bg);color:var(--warning-text);border-color:var(--warning-line)}
   .chip.blue{background:var(--blue-bg);color:var(--blue-text);border-color:var(--blue-line)}
   .title{
     margin:0;
@@ -223,8 +239,8 @@ function htmlPage(input: {
     width:154px;
     height:154px;
     border-radius:999px;
-    background:#d8f3e2;
-    border:6px solid #91dfb2;
+    background:${accentClass === "success" ? "#d8f3e2" : "#eef4ff"};
+    border:6px solid ${accentClass === "success" ? "#91dfb2" : "#c9d9ff"};
     display:flex;
     align-items:center;
     justify-content:center;
@@ -234,12 +250,12 @@ function htmlPage(input: {
     width:104px;
     height:104px;
     border-radius:999px;
-    background:#b7e9cb;
+    background:${accentClass === "success" ? "#b7e9cb" : "#dbe8ff"};
     display:flex;
     align-items:center;
     justify-content:center;
   }
-  .mark svg{width:54px;height:54px;color:#0f9d58}
+  .mark svg{width:54px;height:54px;color:${accentClass === "success" ? "#0f9d58" : "#2457d6"}}
   .metrics{
     display:grid;
     grid-template-columns:2fr 1.2fr 1.2fr .95fr;
@@ -256,9 +272,13 @@ function htmlPage(input: {
     flex-direction:column;
     justify-content:flex-start;
   }
-  .metric.highlight{
-    background:#c9eed5;
-    border-color:#91dfb2;
+  .metric.highlight.success{
+    background:var(--success-highlight);
+    border-color:var(--success-highlight-line);
+  }
+  .metric.highlight.warning{
+    background:var(--warning-highlight);
+    border-color:var(--warning-highlight-line);
   }
   .metricLabel{
     font-size:12px;
@@ -360,7 +380,7 @@ function htmlPage(input: {
         <div class="header">
           <div>
             <div class="chips">
-              <span class="chip green">${status}</span>
+              <span class="chip ${accentClass}">${status}</span>
               <span class="chip blue">${decision}</span>
             </div>
 
@@ -374,9 +394,16 @@ function htmlPage(input: {
           <div class="markWrap">
             <div class="mark" aria-hidden="true">
               <div class="markInner">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+                ${
+                  accentClass === "success"
+                    ? `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M20 6 9 17l-5-5"></path>
-                </svg>
+                </svg>`
+                    : `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 8v5"></path>
+                  <path d="M12 17h.01"></path>
+                </svg>`
+                }
               </div>
             </div>
           </div>
@@ -398,7 +425,7 @@ function htmlPage(input: {
             <div class="metricValue compact">${tierBand}</div>
           </div>
 
-          <div class="metric highlight">
+          <div class="metric highlight ${accentClass}">
             <div class="metricLabel">Valid To</div>
             <div class="metricValue compact">${validTo}</div>
           </div>
@@ -466,10 +493,13 @@ export async function GET(
   const entityName = infoValue([record?.entityName, row?.entityName]);
   const country = infoValue([record?.country, row?.country]);
   const decision = infoValue([record?.decisionStatus, row?.decisionStatus]);
-  const status = infoValue([
+  const certificationStatus = infoValue([
     record?.certificationStatus,
     row?.certificationStatus,
   ]);
+  const accentClass = certificationAccentClass(
+    certificationStatus === "—" ? null : certificationStatus
+  );
   const certifiedTier = infoValue([record?.certifiedTier, row?.certifiedTier]);
   const certifiedBand = infoValue([record?.certifiedBand, row?.certifiedBand]);
   const validTo = formatDate(record?.validTo ?? row?.validTo ?? null);
@@ -487,7 +517,7 @@ export async function GET(
     validTo,
     verificationUrl: `${origin}/api/verify/${encodeURIComponent(registryId)}`,
     certifiedAt,
-    status,
+    status: certificationStatus,
     decision,
     recordUrl: `${origin}/registry/${encodeURIComponent(registryId)}`,
     verificationProofUrl: `${origin}/verify/${encodeURIComponent(registryId)}`,
@@ -495,7 +525,7 @@ export async function GET(
     widgetPreviewUrl: `${origin}/widget-preview/${encodeURIComponent(registryId)}`,
     badgePreviewUrl: `${origin}/badge-preview/${encodeURIComponent(registryId)}`,
     registryUrl: `${origin}/registry`,
-    accentClass: "success",
+    accentClass,
   });
 
   return new NextResponse(html, {
