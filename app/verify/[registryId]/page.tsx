@@ -547,10 +547,7 @@ export default async function VerifyPage({
           </div>
 
           <div className="mt-6 flex flex-wrap gap-3">
-            <PublicButtonLink
-              href={`/verify/${encodeURIComponent(registryId)}`}
-              variant="primary"
-            >
+            <PublicButtonLink href="#signature-validation" variant="primary">
               Verify Certification Record
             </PublicButtonLink>
 
