@@ -548,7 +548,7 @@ export default async function VerifyPage({
 
           <div className="mt-6 flex flex-wrap gap-3">
             <PublicButtonLink href="#signature-validation" variant="primary">
-              Verify Certification Record
+              Validate Signature
             </PublicButtonLink>
 
             <PublicButtonLink href={registryHref} variant="secondary">
