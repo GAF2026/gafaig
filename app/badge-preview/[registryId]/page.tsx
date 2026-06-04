@@ -165,6 +165,28 @@ export default async function BadgePage({
     record?.certificationStatus,
     row?.certificationStatus,
   ]);
+  const normalizedStatus = certificationStatus.toUpperCase();
+
+  const isCertified =
+    normalizedStatus === "CERTIFIED";
+
+  const statusColorClasses = isCertified
+    ? {
+        bar: "bg-emerald-500",
+        badge:
+          "bg-emerald-50 text-emerald-700 ring-emerald-200",
+        iconContainer:
+          "bg-emerald-100 ring-emerald-200",
+        iconColor: "text-emerald-600",
+      }
+    : {
+        bar: "bg-blue-500",
+        badge:
+          "bg-blue-50 text-blue-700 ring-blue-200",
+        iconContainer:
+          "bg-blue-100 ring-blue-200",
+        iconColor: "text-blue-600",
+      };
   const validTo = formatDate(record?.validTo ?? row?.validTo ?? null);
   const verifyPath = `/api/verify/${encodeURIComponent(registryId)}`;
   const registryPath = `/registry/${encodeURIComponent(registryId)}`;
@@ -219,7 +241,7 @@ export default async function BadgePage({
         <section className="rounded-3xl border border-black/10 bg-white p-8 md:p-10">
           <div className="grid gap-8 lg:grid-cols-[minmax(0,540px)_minmax(0,1fr)] lg:items-start">
             <div className="rounded-[28px] border border-black/10 bg-white p-6 shadow-[0_12px_40px_rgba(0,0,0,0.04)]">
-              <div className="h-1 rounded-full bg-emerald-500" />
+              <div className={`h-1 rounded-full ${statusColorClasses.bar}`} />
 
               <div className="mt-5 flex items-start justify-between gap-4">
                 <div>
@@ -228,7 +250,9 @@ export default async function BadgePage({
                   </div>
 
                   <div className="mt-3 flex flex-wrap gap-2">
-                    <span className="inline-flex rounded-full bg-emerald-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-emerald-700 ring-1 ring-emerald-200">
+                    <span
+                      className={`inline-flex rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] ring-1 ${statusColorClasses.badge}`}
+                    >
                       {certificationStatus}
                     </span>
 
@@ -240,10 +264,12 @@ export default async function BadgePage({
                   </div>
                 </div>
 
-                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100 ring-1 ring-emerald-200">
+                <div
+                  className={`flex h-16 w-16 items-center justify-center rounded-full ring-1 ${statusColorClasses.iconContainer}`}
+                >
                   <svg
                     viewBox="0 0 24 24"
-                    className="h-8 w-8 text-emerald-600"
+                    className={`h-8 w-8 ${statusColorClasses.iconColor}`}
                     fill="none"
                     stroke="currentColor"
                     strokeWidth="2.5"
@@ -251,7 +277,14 @@ export default async function BadgePage({
                     strokeLinejoin="round"
                     aria-hidden="true"
                   >
-                    <path d="M20 6 9 17l-5-5" />
+                    {isCertified ? (
+                      <path d="M20 6 9 17l-5-5" />
+                    ) : (
+                      <>
+                        <path d="M12 7v6" />
+                        <path d="M12 17h.01" />
+                      </>
+                    )}
                   </svg>
                 </div>
               </div>
