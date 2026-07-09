@@ -1,5 +1,5 @@
 # PAGE_LAYOUT_SYSTEM.md
-Last Updated: 2026-06-01
+Last Updated: 2026-06-21
 
 ## PURPOSE
 
@@ -55,6 +55,11 @@ Layer 8 governs:
 - long-horizon civilization survivability visibility
 - civilization survivability validation visibility
 - civilization survivability freeze-lock visibility
+- post-freeze governance validation visibility
+- public surface continuity validation visibility
+- public governance trust surface freeze visibility
+- constitutional governance stack visibility
+- constitutional closure certification visibility
 
 Layer 8 remains:
 
@@ -146,6 +151,303 @@ This synchronization reflects the completed governance intelligence infrastructu
 - 109B_CANONICAL_GOVERNANCE_INTELLIGENCE_FREEZE.sql
 
 The shell, templates, and public-facing layout structures may communicate governance intelligence synchronization, governance orchestration, global public governance intelligence, governance trust surfaces, governance observability, governance telemetry, and portable governance verification infrastructure, but they may never originate governance authority.
+
+
+---
+
+# IMPLEMENTATION-COMPLETE PUBLIC PAGE PATTERN (MANDATORY)
+
+This section exists because doctrine-only layout instructions are insufficient for code generation.
+
+PAGE_LAYOUT_SYSTEM.md is both:
+
+1. layout doctrine authority
+2. implementation pattern authority
+
+A new chat must not generate a public-facing page from abstract doctrine alone.
+
+A public-facing page file must follow the canonical implementation structure below unless the user explicitly authorizes a layout-system change.
+
+## Public Page Classification Rule
+
+Before generating or updating any page file, classify the route.
+
+Public-facing routes include:
+
+- `/`
+- `/mission`
+- `/framework`
+- `/governance`
+- `/participate`
+- `/contact`
+- `/architecture`
+- `/standards/*`
+- `/policy/*`
+- `/registry`
+- `/registry/*`
+- `/verify/*`
+- `/explorer`
+- `/explorer/*`
+- `/developers`
+- `/public-key`
+- `/demo`
+- `/demo-script`
+
+Public-facing routes MUST use this public page layout system.
+
+Applicant routes such as:
+
+- `/applicant/*`
+
+must use Applicant Portal layout conventions, not the public page layout system.
+
+Admin routes such as:
+
+- `/admin/*`
+
+must use Admin layout conventions, not the public page layout system.
+
+## Approved Executable Layout Exemplars
+
+The canonical executable public layout pattern is preserved by approved working public pages.
+
+Approved public layout exemplars include:
+
+- `app/page.tsx`
+- `app/mission/page.tsx`
+- `app/framework/page.tsx`
+- `app/developers/page.tsx`
+- `app/registry/page.tsx`
+
+When generating a new public-facing page, use this document first.
+
+If exact import paths, component props, or component signatures are uncertain, inspect:
+
+1. `app/page.tsx`
+2. the closest approved public page by route type
+
+Do not request unrelated files.
+
+Do not request the homepage merely to rediscover visual doctrine if this implementation pattern is sufficient.
+
+Do request `app/page.tsx` and the closest approved peer page only when the exact component import paths or prop signatures are unavailable.
+
+## Required Public Page Imports
+
+Public-facing pages must use the existing canonical public components already used by approved exemplar pages.
+
+Required components:
+
+- `PublicPageHero`
+- `PublicButtonLink` when links are styled as public CTAs
+
+Do not invent alternative hero components.
+
+Do not invent alternative button components.
+
+Do not create page-local hero implementations.
+
+Do not create page-local CTA button styles.
+
+If import paths are unknown, copy the import paths from an approved executable public page.
+
+## Canonical Public Page Skeleton
+
+All new public-facing pages must follow this structural skeleton:
+
+```tsx
+export default function PageName() {
+  return (
+    <main className="mx-auto max-w-[1180px] px-6 py-10">
+      <div className="space-y-8">
+        <PublicPageHero
+          eyebrow="..."
+          title="..."
+          description="..."
+        />
+
+        <section className="rounded-3xl border border-black/10 bg-white p-8">
+          <div className="space-y-4">
+            <h2 className="text-[26px] font-semibold tracking-tight">
+              ...
+            </h2>
+
+            <p className="text-[15px] leading-7 text-black/75">
+              ...
+            </p>
+          </div>
+        </section>
+
+        <section className="rounded-3xl border border-black/10 bg-white p-8">
+          <div className="grid gap-4 md:grid-cols-3">
+            <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
+              <h3 className="text-[18px] font-semibold tracking-tight">
+                ...
+              </h3>
+
+              <p className="mt-3 text-[14px] leading-7 text-black/70">
+                ...
+              </p>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+  );
+}
+```
+
+The skeleton is mandatory unless the route-specific template below requires a controlled variation.
+
+Controlled variation may change:
+
+- number of sections
+- grid column count
+- whether filters appear
+- whether field/value rows appear
+- whether verification panels appear
+- whether CTA section appears
+
+Controlled variation may not change:
+
+- page container
+- top-level spacing wrapper
+- `PublicPageHero`
+- section shell class
+- card class system
+- typography system
+- spacing rhythm
+- public CTA component pattern
+
+## Canonical Section Pattern
+
+Every major public page section must use:
+
+```tsx
+<section className="rounded-3xl border border-black/10 bg-white p-8">
+  ...
+</section>
+```
+
+Do not replace this with:
+
+- `bg-slate-*`
+- `bg-zinc-*`
+- gradients
+- shadow-heavy cards
+- custom max widths
+- page-specific border systems
+- page-specific padding systems
+
+## Canonical Card Pattern
+
+Use only these card classes.
+
+Primary section card:
+
+```tsx
+rounded-3xl border border-black/10 bg-white p-8
+```
+
+Secondary content card:
+
+```tsx
+rounded-2xl border border-black/10 bg-black/[0.02] p-5
+```
+
+Inline/bullet card:
+
+```tsx
+rounded-2xl border border-black/10 bg-white p-4
+```
+
+Do not use custom cards for new public pages.
+
+## Canonical Typography Pattern
+
+Use only these typography patterns for public pages.
+
+H1:
+
+Hero only through `PublicPageHero`.
+
+H2:
+
+```tsx
+text-[26px] font-semibold tracking-tight
+```
+
+H3:
+
+```tsx
+text-[18px] font-semibold tracking-tight
+```
+
+Primary body:
+
+```tsx
+text-[15px] leading-7 text-black/75
+```
+
+Secondary body:
+
+```tsx
+text-[14px] leading-7 text-black/70
+```
+
+Do not introduce new public typography scales unless the layout system itself is explicitly updated.
+
+## Canonical CTA Pattern
+
+All public CTA links must use:
+
+```tsx
+<PublicButtonLink href="...">
+  ...
+</PublicButtonLink>
+```
+
+Do not use ad hoc button classes.
+
+Do not use page-local CTA styling.
+
+Do not use arbitrary rounded button styling.
+
+## Public Page Generation Checklist
+
+Before returning a generated public-facing page file, confirm internally:
+
+1. The route is public-facing.
+2. The file uses the canonical `main` container.
+3. The file uses the `space-y-8` page wrapper.
+4. The file uses `PublicPageHero`.
+5. Every major section uses the canonical section shell.
+6. Every content card uses an approved card class.
+7. Typography uses the approved type scale.
+8. CTA links use `PublicButtonLink`.
+9. The page does not invent layout, spacing, typography, or component systems.
+10. The page preserves deterministic Snowflake authority separation.
+11. The page does not imply UI creates verification, certification, publication, registry, proof, lifecycle, scoring, decision, renewal, or governance authority.
+
+If any item fails, the generated public page is invalid and must be corrected before delivery.
+
+## Anti-Drift Rule for New Chats
+
+A new chat must not generate a public-facing page using only general Tailwind knowledge.
+
+A new chat must not generate a public-facing page using a generic SaaS landing-page layout.
+
+A new chat must not generate a public-facing page using an admin/applicant layout.
+
+A new chat must not generate a public-facing page by approximating the GAFAIG brand from memory.
+
+A new chat must use:
+
+1. this implementation-complete layout pattern
+2. the approved executable exemplar pages when exact imports or component signatures are uncertain
+
+This rule supersedes any weaker interpretation of PAGE_LAYOUT_SYSTEM.md as doctrine-only documentation.
+
 
 ---
 
@@ -748,13 +1050,17 @@ No layout, template, component, page, card, hero, button, typography decision, s
 Visual alignment must be based on:
 
 1. This document (PRIMARY)
-2. Canonical components (PublicPageHero, PublicButtonLink)
-3. Approved template structure
+2. The implementation-complete public page pattern in this document
+3. Canonical components (PublicPageHero, PublicButtonLink)
+4. Approved template structure
+5. Approved executable public page exemplars when exact imports, props, or component signatures are uncertain
 
 NOT:
 - screenshots
-- individual page appearance
 - subjective comparison
+- generic Tailwind page patterns
+- unrelated individual page appearance
+- admin or applicant page layouts
 
 Governance authority alignment must be based on:
 1. Snowflake-first canonical governance infrastructure
@@ -913,7 +1219,7 @@ Governance trust surfaces distribute public governance trust.
 
 ---
 
-# PHASE 11D COMPLETED MATURITY SYNCHRONIZATION
+# PHASE 11E CONSTITUTIONAL MATURITY SYNCHRONIZATION STATUS
 
 - 117O population continuity maturity
 - 118–119 civilization continuity maturity
@@ -927,6 +1233,13 @@ Governance trust surfaces distribute public governance trust.
 - 127 long-horizon civilization survivability maturity
 - 128 civilization survivability validation maturity
 - 129 civilization survivability freeze-lock maturity
+- 130 post-freeze governance validation maturity
+- 131 public surface continuity validation maturity
+- 132 public governance trust surface freeze maturity
+- 133 constitutional governance stack maturity
+- 134 constitutional closure certification maturity
+
+- constitutional maturity completion operational
 
 Successfully validated in Snowflake.
 
@@ -946,11 +1259,39 @@ Validation authority must precede freeze authority.
 - 119_CANONICAL_CIVILIZATION_CONTINUITY_FREEZE.sql
 - 129_CANONICAL_CIVILIZATION_SURVIVABILITY_FREEZE.sql
 
-Freeze authority must precede documentation synchronization authority.
+Freeze authority must precede constitutional completion authority.
+
+Constitutional completion authority must precede constitutional documentation synchronization authority.
 
 ---
 
-# PHASE 11D DOCUMENTATION SYNCHRONIZATION AUTHORITIES
+
+# PHASE 11E CONSTITUTIONAL COMPLETION AUTHORITIES
+
+130_CANONICAL_POST_FREEZE_GOVERNANCE_LAYER_VALIDATION.sql
+
+131_CANONICAL_PUBLIC_SURFACE_AND_VERIFICATION_CONTINUITY_VALIDATION.sql
+
+132_CANONICAL_PUBLIC_GOVERNANCE_TRUST_SURFACE_FREEZE.sql
+
+133_CANONICAL_GAFAIG_CONSTITUTIONAL_STACK_FREEZE.sql
+
+134_CANONICAL_GAFAIG_CONSTITUTIONAL_CLOSURE_CERTIFICATE.sql
+
+These files constitute the constitutional completion authority chain.
+
+Phase 11E constitutional maturity completion is established only after successful execution and synchronization of all five constitutional completion authorities.
+
+Constitutional completion authority must follow freeze authority.
+
+Constitutional completion authority must precede constitutional documentation synchronization authority.
+
+Deterministic Snowflake authority supremacy remains permanent.
+
+Human governance authority supremacy remains permanent.
+
+
+# PHASE 11E DOCUMENTATION SYNCHRONIZATION AUTHORITIES
 
 - MASTER_STATE.md
 - CURRENT_FOCUS.md
@@ -965,16 +1306,21 @@ Freeze authority must precede documentation synchronization authority.
 - GAFAIG_VS_CODE_File_Tree.md
 - PUBLIC_PAGE_AUDIT.md
 - PUBLIC_PAGE_TEMPLATE_MAP.md
+- PAGE_LAYOUT_SYSTEM.md
+
+These files constitute the constitutional documentation synchronization authority chain for Phase 11E constitutional maturity completion.
+
+No phase-transition checkpoint may be considered complete until constitutional maturity completion is synchronized across the full documentation authority chain.
 
 Documentation synchronization authority supersedes pointer authority.
 
-Documentation synchronization is not complete until the full constitutional authority chain is synchronized.
 
-These files constitute the full constitutional documentation synchronization authority chain.
 
-These files remain the full constitutional documentation synchronization authority chain for Phase 11D maturity.
 
-No phase-transition checkpoint may be considered complete until the full constitutional authority chain is synchronized.
+
+
+
+
 
 ---
 
@@ -990,7 +1336,7 @@ This doctrine is retired.
 
 ---
 
-# PHASE 11D EXECUTION DOCTRINE
+# PHASE 11E EXECUTION DOCTRINE
 
 Build Layer
 
@@ -1004,6 +1350,10 @@ Freeze Layer
 
 ↓
 
+Constitutional Completion Layer
+
+↓
+
 Synchronize Documentation
 
 ↓
@@ -1012,7 +1362,9 @@ Proceed To Next Layer
 
 Validation authority must precede freeze authority.
 
-Freeze authority must precede documentation synchronization authority.
+Freeze authority must precede constitutional completion authority.
+
+Constitutional completion authority must precede constitutional documentation synchronization authority.
 
 Documentation synchronization authority must precede phase-transition authority.
 
@@ -1020,7 +1372,7 @@ Documentation synchronization is the official phase-transition mechanism.
 
 ---
 
-# PHASE 11D LAYOUT SYNCHRONIZATION STATUS
+# PHASE 11E LAYOUT SYNCHRONIZATION STATUS
 
 Layer 8 Governance Survivability Infrastructure operational.
 
@@ -1030,12 +1382,59 @@ Civilization continuity operational.
 
 Civilization survivability operational.
 
-117O–129 maturity chain operational.
+117O–134 maturity chain operational.
 
 Deterministic Snowflake authority supremacy preserved.
 
 Human governance authority supremacy preserved.
 
+130–134 constitutional maturity chain operational.
+
+Constitutional maturity completion operational.
+
+Constitutional closure certification operational.
+
+
+
+# CURRENT PHASE
+
+PHASE 11E — CONSTITUTIONAL GOVERNANCE MATURITY + CONSTITUTIONAL CLOSURE CERTIFICATION
+
+Primary objectives:
+
+* constitutional governance maturity
+* public governance trust surface maturity
+* constitutional governance stack maturity
+* constitutional closure authority maturity
+* constitutional closure certification maturity
+* constitutional maturity completion
+
+Phase 11D remains preserved as historical maturity continuity.
+
+Phase 11E is the active constitutional maturity authority state.
+
+# FINAL VERIFICATION STATUS
+
+The final document contains:
+
+- Public Layout System
+- Global Visual Shell
+- Page Composition Templates
+- Governance Authority Boundary Protection
+- Governance Survivability Infrastructure
+- Phase 11E Constitutional Maturity Synchronization
+- Phase 11E Constitutional Completion Authorities
+- Phase 11E Documentation Synchronization Authorities
+- Constitutional Completion Authority Hierarchy
+- Constitutional Documentation Synchronization Authority
+- Constitutional Maturity Completion Synchronization
+- Current Phase Authority State
+- 130–134 Constitutional Maturity Chain
+- Constitutional Closure Certification
+
+# LOCK STATUS
+
+CANONICAL — CONSTITUTIONALLY FROZEN
 
 Snowflake alone retains deterministic governance authority.
 END OF FILE

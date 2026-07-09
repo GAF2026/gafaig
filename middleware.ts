@@ -17,46 +17,58 @@ function hasAdminCookie(req: NextRequest) {
   return req.cookies.get(ADMIN_COOKIE_NAME)?.value === ADMIN_COOKIE_VALUE;
 }
 
+function isApplicantPage(pathname: string) {
+  return pathname.startsWith("/applicant");
+}
+
+function isApplicantApi(pathname: string) {
+  return pathname.startsWith("/api/applicant");
+}
+
 export function middleware(req: NextRequest) {
   const { pathname, search } = req.nextUrl;
 
   const isAdminPage = pathname.startsWith("/admin");
   const isAdminApi = pathname.startsWith("/api/admin");
 
-  if (!isAdminPage && !isAdminApi) {
+  const applicantPage = isApplicantPage(pathname);
+  const applicantApi = isApplicantApi(pathname);
+
+  if (!isAdminPage && !isAdminApi && !applicantPage && !applicantApi) {
     return NextResponse.next();
   }
 
-  // Public admin entry point
   if (pathname === "/admin/login") {
     return NextResponse.next();
   }
 
-  // Public admin API endpoints needed for login/logout/status
   if (isAdminApi && isPublicAdminApi(pathname)) {
     return NextResponse.next();
   }
 
-  // Allow all guarded admin surfaces when demo cookie is present
   if (hasAdminCookie(req)) {
     return NextResponse.next();
   }
 
-  // API requests should receive JSON instead of redirects
-  if (isAdminApi) {
+  if (isAdminApi || applicantApi) {
     return NextResponse.json(
       { ok: false, error: "Unauthorized" },
-      { status: 401 }
+      { status: 401 },
     );
   }
 
-  // Page requests redirect to login and preserve intended destination
   const loginUrl = req.nextUrl.clone();
   loginUrl.pathname = "/admin/login";
   loginUrl.searchParams.set("next", pathname + search);
+
   return NextResponse.redirect(loginUrl);
 }
 
 export const config = {
-  matcher: ["/admin/:path*", "/api/admin/:path*"],
+  matcher: [
+    "/admin/:path*",
+    "/api/admin/:path*",
+    "/applicant/:path*",
+    "/api/applicant/:path*",
+  ],
 };
