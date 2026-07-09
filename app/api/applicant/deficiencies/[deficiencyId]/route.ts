@@ -64,6 +64,53 @@ function deriveDeficiencyStatus(status: string, hasRemediation: boolean) {
   return "NO_DEFICIENCY_IDENTIFIED";
 }
 
+function ageDays(value: string | null) {
+  if (!value) return null;
+
+  const timestamp = Date.parse(value);
+  if (Number.isNaN(timestamp)) return null;
+
+  return Math.max(
+    0,
+    Math.floor((Date.now() - timestamp) / (1000 * 60 * 60 * 24)),
+  );
+}
+
+function workflowStage(status: string, deficiencyStatus: string) {
+  const normalizedStatus = status.toUpperCase();
+
+  if (deficiencyStatus === "REMEDIATION_SUBMITTED") return "REMEDIATION";
+  if (deficiencyStatus === "REMEDIATION_PENDING") return "REMEDIATION";
+  if (deficiencyStatus === "UNDER_REVIEW") return "REVIEW";
+  if (deficiencyStatus === "RESOLVED") return "COMPLETE";
+  if (deficiencyStatus === "NO_DEFICIENCY_IDENTIFIED") return "NO_DEFICIENCY";
+  if (normalizedStatus.includes("DEFICIENCY")) return "DEFICIENCY";
+  if (normalizedStatus.includes("PENDING")) return "PENDING";
+
+  return "DEFICIENCY";
+}
+
+function remediationReadiness(deficiencyStatus: string, hasRemediation: boolean) {
+  if (deficiencyStatus === "RESOLVED") return "REMEDIATION_COMPLETE";
+  if (hasRemediation) return "REMEDIATION_SUBMITTED";
+  if (deficiencyStatus === "UNDER_REVIEW") return "PENDING_REVIEW";
+  if (deficiencyStatus === "REMEDIATION_PENDING") return "REMEDIATION_PENDING";
+  if (deficiencyStatus === "OPEN") return "RESPONSE_REQUIRED";
+
+  return "NO_REMEDIATION_REQUIRED";
+}
+
+function repositoryHealth(deficiencyStatus: string, updatedAt: string | null) {
+  if (!updatedAt) return "MISSING_TIMESTAMP";
+  if (deficiencyStatus === "RESOLVED") return "RESOLVED";
+  if (deficiencyStatus === "REMEDIATION_SUBMITTED") return "REMEDIATION_SUBMITTED";
+  if (deficiencyStatus === "UNDER_REVIEW") return "UNDER_REVIEW";
+  if (deficiencyStatus === "REMEDIATION_PENDING") return "REMEDIATION_PENDING";
+  if (deficiencyStatus === "OPEN") return "OPEN";
+
+  return "NO_DEFICIENCY_IDENTIFIED";
+}
+
 function isRemediationType(value: string) {
   const normalized = value.trim().toLowerCase();
 
@@ -238,6 +285,21 @@ export async function GET(
     const evidenceId =
       first(remediation || {}, ["EVIDENCE_ID", "ID", "RECORD_ID"]) || null;
 
+    const source = hasRemediation
+      ? first(remediation || {}, ["SOURCE", "SOURCE_TABLE"]) ||
+        "Applicant Remediation Submission"
+      : clean(row.SOURCE) || "Applicant Intake";
+
+    const updatedAt =
+      first(remediation || {}, ["UPDATED_AT", "MODIFIED_AT", "CREATED_AT"]) ||
+      clean(row.UPDATED_AT) ||
+      null;
+
+    const isResolved = deficiencyStatus === "RESOLVED";
+    const isResponseRequired =
+      !hasRemediation &&
+      ["OPEN", "REMEDIATION_PENDING"].includes(deficiencyStatus);
+
     return json({
       ok: true,
 
@@ -259,11 +321,7 @@ export async function GET(
 
         deficiencyStatus,
         caseStatus,
-
-        source: hasRemediation
-          ? first(remediation || {}, ["SOURCE", "SOURCE_TABLE"]) ||
-            "Applicant Remediation Submission"
-          : clean(row.SOURCE) || "Applicant Intake",
+        source,
 
         description: hasRemediation
           ? first(remediation || {}, ["DESCRIPTION", "EVIDENCE_DESCRIPTION"]) ||
@@ -273,16 +331,9 @@ export async function GET(
             ? "No applicant deficiency has been identified for this case in the current visibility layer."
             : "Applicant deficiency visibility derived from current workflow status.",
 
-        responseRequired:
-          !hasRemediation &&
-          ["OPEN", "REMEDIATION_PENDING"].includes(deficiencyStatus),
-
+        responseRequired: isResponseRequired,
         dueDate: null,
-
-        updatedAt:
-          first(remediation || {}, ["UPDATED_AT", "MODIFIED_AT", "CREATED_AT"]) ||
-          clean(row.UPDATED_AT) ||
-          null,
+        updatedAt,
 
         remediationId: evidenceId
           ? remediationIdFromEvidenceId(evidenceId)
@@ -301,6 +352,23 @@ export async function GET(
             "CREATED_BY",
             "EMAIL",
           ]) || null,
+
+        repositoryCategory: "Deficiency Repository",
+        workflowOrigin: source,
+        workflowStage: workflowStage(caseStatus, deficiencyStatus),
+        remediationReadiness: remediationReadiness(
+          deficiencyStatus,
+          hasRemediation,
+        ),
+        repositoryHealth: repositoryHealth(deficiencyStatus, updatedAt),
+        ageDays: ageDays(updatedAt),
+        isOpen: !isResolved,
+        isResolved,
+        isResponseRequired,
+        isRemediationPending: deficiencyStatus === "REMEDIATION_PENDING",
+        isUnderReview: deficiencyStatus === "UNDER_REVIEW",
+        authorityBoundaryText:
+          "Operational deficiency repository visibility only. No governance authority, certification authority, publication authority, registry authority, scoring authority, decision authority, findings authority, evidence authority, or verification authority is created.",
       },
 
       workflow: [

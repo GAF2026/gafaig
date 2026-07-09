@@ -26,6 +26,18 @@ type ApplicantDeficiencyDetailResponse = {
     remediationEvidenceId?: string | null;
     remediationSubmittedAt?: string | null;
     remediationSubmittedBy?: string | null;
+    repositoryCategory?: string;
+    workflowOrigin?: string;
+    workflowStage?: string;
+    remediationReadiness?: string;
+    repositoryHealth?: string;
+    ageDays?: number | null;
+    isOpen?: boolean;
+    isResolved?: boolean;
+    isResponseRequired?: boolean;
+    isRemediationPending?: boolean;
+    isUnderReview?: boolean;
+    authorityBoundaryText?: string;
   };
   workflow?: Array<{
     stage: string;
@@ -46,7 +58,7 @@ type ApplicantDeficiencyDetailResponse = {
 };
 
 async function getBaseUrl() {
-  const h = headers();
+  const h = await headers();
   const host = h.get("x-forwarded-host") ?? h.get("host");
   const proto = h.get("x-forwarded-proto") ?? "http";
 
@@ -151,6 +163,15 @@ function BoundaryCard({ label, allowed }: { label: string; allowed: boolean }) {
   );
 }
 
+function yesNo(value: boolean | undefined) {
+  return value ? "Yes" : "No";
+}
+
+function ageLabel(value: number | null | undefined) {
+  if (typeof value !== "number") return "Unavailable";
+  return `${value} day${value === 1 ? "" : "s"}`;
+}
+
 export default async function ApplicantDeficiencyDetailPage({
   params,
 }: {
@@ -192,7 +213,7 @@ export default async function ApplicantDeficiencyDetailPage({
           eyebrow="GAFAIG DEFICIENCY NOTICE"
           title={deficiency.deficiencyId}
           description={`Deficiency visibility for ${deficiency.organizationName}.`}
-          secondaryDescription="Deficiency detail pages provide applicant visibility only and do not grant deficiency authority, findings authority, scoring authority, decision authority, certification authority, publication authority, registry authority, or governance authority."
+          secondaryDescription="Deficiency detail pages provide applicant visibility only and do not grant deficiency authority, findings authority, evidence authority, scoring authority, decision authority, certification authority, publication authority, registry authority, verification authority, or governance authority."
           actions={
             <>
               <PublicButtonLink href="/applicant/deficiencies" variant="primary">
@@ -253,6 +274,67 @@ export default async function ApplicantDeficiencyDetailPage({
             <SummaryCard label="Due Date" value={display(deficiency.dueDate)} />
             <SummaryCard label="Updated At" value={display(deficiency.updatedAt)} />
           </div>
+        </section>
+
+        <section className="rounded-2xl border border-black/10 bg-white p-6 sm:p-8">
+          <div className="text-[12px] font-semibold uppercase tracking-[0.24em] text-black/50">
+            Repository Metadata
+          </div>
+
+          <h2 className="mt-3 text-[24px] font-semibold tracking-tight text-black">
+            Derived deficiency repository metadata
+          </h2>
+
+          <p className="mt-5 max-w-[980px] text-[15px] leading-8 text-black/75">
+            Derived metadata improves operational visibility, lifecycle review,
+            remediation coordination, and repository health awareness. These
+            values do not alter Snowflake authority or create governance,
+            findings, evidence, scoring, decision, certification, publication,
+            registry, or verification authority.
+          </p>
+
+          <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <SummaryCard
+              label="Repository Category"
+              value={deficiency.repositoryCategory || "Deficiency Repository"}
+            />
+            <SummaryCard
+              label="Workflow Origin"
+              value={deficiency.workflowOrigin || "Applicant Workflow"}
+            />
+            <SummaryCard
+              label="Workflow Stage"
+              value={deficiency.workflowStage || "Deficiency"}
+            />
+            <SummaryCard
+              label="Remediation Readiness"
+              value={deficiency.remediationReadiness || "Not classified"}
+            />
+            <SummaryCard
+              label="Repository Health"
+              value={deficiency.repositoryHealth || "Not classified"}
+            />
+            <SummaryCard label="Age" value={ageLabel(deficiency.ageDays)} />
+            <SummaryCard label="Open" value={yesNo(deficiency.isOpen)} />
+            <SummaryCard label="Resolved" value={yesNo(deficiency.isResolved)} />
+            <SummaryCard
+              label="Response Required"
+              value={yesNo(deficiency.isResponseRequired)}
+            />
+            <SummaryCard
+              label="Remediation Pending"
+              value={yesNo(deficiency.isRemediationPending)}
+            />
+            <SummaryCard
+              label="Under Review"
+              value={yesNo(deficiency.isUnderReview)}
+            />
+          </div>
+
+          <p className="mt-6 rounded-2xl border border-black/10 bg-black/[0.02] p-4 text-[13px] leading-6 text-black/65">
+            {deficiency.authorityBoundaryText ||
+              "Operational deficiency repository visibility only. No governance authority, certification authority, publication authority, registry authority, scoring authority, decision authority, findings authority, evidence authority, or verification authority is created."}
+          </p>
         </section>
 
         <section className="rounded-2xl border border-black/10 bg-white p-6 sm:p-8">
