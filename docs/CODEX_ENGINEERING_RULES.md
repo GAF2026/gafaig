@@ -1,6 +1,6 @@
 # CODEX_ENGINEERING_RULES.md
 
-Last Updated: 2026-07-09
+Last Updated: 2026-07-10
 
 # PURPOSE
 
@@ -67,7 +67,7 @@ The application does not create registry authority.
 
 The application does not create verification authority.
 
-Repository expansion extends operational capability only.
+Repository Feature Expansion extends operational capability only.
 
 ------------------------------------------------------------------------
 
@@ -204,6 +204,97 @@ After implementation:
 
 ------------------------------------------------------------------------
 
+# GIT WORKFLOW
+
+Git commits remain under human approval.
+
+Codex shall not perform Git commits unless explicitly instructed.
+
+Each Repository Feature Expansion implementation shall follow this
+sequence:
+
+1. Architecture Review
+
+2. Gap Analysis
+
+3. Scoped Implementation
+
+4. TypeScript Validation
+
+5. Human Review
+
+6. Human Git Commit
+
+7. Clean Working Tree Verification
+
+A Repository Feature Expansion task is not considered complete until:
+
+- TypeScript validation succeeds.
+
+- Human review is complete.
+
+- The implementation has been committed.
+
+- Git reports a clean working tree.
+
+This workflow governs implementation discipline only.
+
+It does not modify constitutional authority.
+
+It does not modify governance authority.
+
+It does not modify certification authority.
+
+It does not modify publication authority.
+
+It does not alter Snowflake authority.
+
+Snowflake remains the source of truth.
+
+Human governance authority remains supreme.
+
+------------------------------------------------------------------------
+
+# LOCAL DEVELOPMENT SAFETY
+
+Codex shall use the normal local workspace tools provided by its
+execution environment to inspect, edit, and validate files inside the
+selected GAFAIG repository.
+
+Normal non-elevated repository commands are permitted when required for
+implementation.
+
+Prefer direct repository editing through the workspace.
+
+Do not use elevated PowerShell.
+
+Do not use encoded PowerShell commands.
+
+Do not use ACL bypasses.
+
+Do not modify Windows permissions.
+
+Do not use alternate filesystem workarounds.
+
+Do not access files outside the selected repository.
+
+Do not attempt shell-based workarounds when normal workspace access
+fails.
+
+If normal workspace access is unavailable, stop and report the failure.
+
+If any command requests elevation, triggers endpoint-security software,
+or attempts access outside the repository, stop and request approval.
+
+Validation commands should use the least-privileged execution method
+available.
+
+Codex shall report any endpoint-security warning, blocked command,
+quarantined process, or unexpected security prompt before continuing
+implementation.
+
+------------------------------------------------------------------------
+
 # CODE REVIEW EXPECTATIONS
 
 When completing work, Codex should summarize:
@@ -259,18 +350,20 @@ Documentation updates should be limited to the requested scope.
 
 # COLLABORATION MODEL
 
-GAFAIG development follows a two-agent workflow.
+GAFAIG development follows a collaborative engineering workflow.
+
+The Project Owner serves as the final approval authority.
 
 ChatGPT serves as the architectural planning and review authority.
 
 Codex serves as the implementation and engineering assistant.
 
-Architectural decisions originate from ChatGPT review and project owner
+Architectural decisions originate from ChatGPT review and Project Owner
 approval.
 
 Codex implements approved engineering work.
 
-The project owner remains the final approval authority.
+Git commits remain under Project Owner approval.
 
 ------------------------------------------------------------------------
 
