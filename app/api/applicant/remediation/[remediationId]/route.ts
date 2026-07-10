@@ -12,6 +12,9 @@ export const revalidate = 0;
 const APPLICATION_VIEW_NAME = "GAFAIG_DB.CORE.V_ADMIN_SUBMISSIONS";
 const EVIDENCE_TABLE_NAME = "GAFAIG_DB.CORE.VERIFICATION_EVIDENCE";
 
+const AUTHORITY_BOUNDARY_TEXT =
+  "Operational remediation repository visibility and applicant remediation submission only. No findings, scoring, decision, certification, registry, publication, verification, or governance authority is created.";
+
 type ApplicationRow = {
   REQUEST_ID: string | null;
   ORG: string | null;
@@ -34,7 +37,10 @@ function clean(value: unknown): string {
 function first(row: EvidenceRow, keys: string[]): string {
   for (const key of keys) {
     const value = clean(row[key]);
-    if (value) return value;
+
+    if (value) {
+      return value;
+    }
   }
 
   return "";
@@ -43,7 +49,9 @@ function first(row: EvidenceRow, keys: string[]): string {
 function submittedRemediationId(evidenceId: string) {
   const value = clean(evidenceId);
 
-  if (!value) return "REM-UNKNOWN";
+  if (!value) {
+    return "REM-UNKNOWN";
+  }
 
   return value.startsWith("EVD-")
     ? value.replace(/^EVD-/, "REM-EVD-")
@@ -74,16 +82,35 @@ function caseIdFromRemediationId(remediationId: string) {
   return "";
 }
 
-function deriveRemediationStatus(status: string, hasSubmittedRemediation: boolean) {
-  if (hasSubmittedRemediation) return "SUBMITTED";
+function deriveRemediationStatus(
+  status: string,
+  hasSubmittedRemediation: boolean,
+) {
+  if (hasSubmittedRemediation) {
+    return "SUBMITTED";
+  }
 
-  const normalized = status.trim().toUpperCase();
+  const normalized = clean(status).toUpperCase();
 
-  if (normalized.includes("REMEDIATION")) return "REMEDIATION_IN_PROGRESS";
-  if (normalized.includes("REVIEW")) return "AWAITING_GOVERNANCE_REVIEW";
-  if (normalized.includes("APPROVED")) return "REMEDIATION_ACCEPTED";
-  if (normalized.includes("COMPLETE")) return "REMEDIATION_COMPLETED";
-  if (normalized.includes("DEFICIENCY")) return "REMEDIATION_REQUIRED";
+  if (normalized.includes("REMEDIATION")) {
+    return "REMEDIATION_IN_PROGRESS";
+  }
+
+  if (normalized.includes("REVIEW")) {
+    return "AWAITING_GOVERNANCE_REVIEW";
+  }
+
+  if (normalized.includes("APPROVED")) {
+    return "REMEDIATION_ACCEPTED";
+  }
+
+  if (normalized.includes("COMPLETE")) {
+    return "REMEDIATION_COMPLETED";
+  }
+
+  if (normalized.includes("DEFICIENCY")) {
+    return "REMEDIATION_REQUIRED";
+  }
 
   return "NOT_REQUIRED";
 }
@@ -91,9 +118,107 @@ function deriveRemediationStatus(status: string, hasSubmittedRemediation: boolea
 function deriveDeficiencyId(storageRef: string | null, caseId: string) {
   const value = clean(storageRef);
 
-  if (value.startsWith("DEF-")) return value;
+  if (value.startsWith("DEF-")) {
+    return value;
+  }
 
   return `DEF-${caseId}`;
+}
+
+function deriveAgeDays(value: string | null) {
+  const normalized = clean(value);
+
+  if (!normalized) {
+    return null;
+  }
+
+  const timestamp = Date.parse(normalized);
+
+  if (Number.isNaN(timestamp)) {
+    return null;
+  }
+
+  return Math.floor(Math.max(0, Date.now() - timestamp) / 86_400_000);
+}
+
+function deriveWorkflowStage(status: string) {
+  const normalized = clean(status).toUpperCase();
+
+  if (
+    normalized.includes("REQUIRED") ||
+    normalized.includes("DEFICIENCY")
+  ) {
+    return "REMEDIATION_REQUIRED";
+  }
+
+  if (normalized.includes("IN_PROGRESS")) {
+    return "REMEDIATION_IN_PROGRESS";
+  }
+
+  if (normalized.includes("SUBMITTED")) {
+    return "REMEDIATION_SUBMITTED";
+  }
+
+  if (normalized.includes("REVIEW")) {
+    return "GOVERNANCE_REVIEW";
+  }
+
+  if (
+    normalized.includes("ACCEPTED") ||
+    normalized.includes("COMPLETED")
+  ) {
+    return "REMEDIATION_COMPLETE";
+  }
+
+  return "REMEDIATION";
+}
+
+function deriveRemediationReadiness(
+  status: string,
+  responseSubmitted: boolean,
+  reviewPending: boolean,
+) {
+  const normalized = clean(status).toUpperCase();
+
+  if (!responseSubmitted && normalized === "REMEDIATION_REQUIRED") {
+    return "AWAITING_APPLICANT_RESPONSE";
+  }
+
+  if (!responseSubmitted && normalized === "REMEDIATION_IN_PROGRESS") {
+    return "RESPONSE_IN_PROGRESS";
+  }
+
+  if (responseSubmitted && reviewPending) {
+    return "READY_FOR_REVIEW";
+  }
+
+  if (normalized === "AWAITING_GOVERNANCE_REVIEW") {
+    return "UNDER_REVIEW";
+  }
+
+  if (
+    normalized === "REMEDIATION_ACCEPTED" ||
+    normalized === "REMEDIATION_COMPLETED"
+  ) {
+    return "COMPLETE";
+  }
+
+  return "NOT_REQUIRED";
+}
+
+function deriveRepositoryHealth(
+  hasSubmittedRemediation: boolean,
+  updatedAt: string | null,
+) {
+  if (!hasSubmittedRemediation) {
+    return "PENDING_SUBMISSION";
+  }
+
+  if (!clean(updatedAt)) {
+    return "MISSING_TIMESTAMP";
+  }
+
+  return "AVAILABLE";
 }
 
 export async function GET(
@@ -157,7 +282,10 @@ export async function GET(
     );
 
     const submittedRows = evidenceRows.filter((row) => {
-      const evidenceType = first(row, ["EVIDENCE_TYPE", "TYPE"]).toLowerCase();
+      const evidenceType = first(row, [
+        "EVIDENCE_TYPE",
+        "TYPE",
+      ]).toLowerCase();
 
       return [
         "remediation_submission",
@@ -168,7 +296,12 @@ export async function GET(
     });
 
     const matchedSubmittedRow = submittedRows.find((row) => {
-      const evidenceId = first(row, ["EVIDENCE_ID", "ID", "RECORD_ID"]);
+      const evidenceId = first(row, [
+        "EVIDENCE_ID",
+        "ID",
+        "RECORD_ID",
+      ]);
+
       const caseId = first(row, [
         "CASE_ID",
         "REQUEST_ID",
@@ -231,15 +364,25 @@ export async function GET(
       ]) ||
       session.organizationName;
 
+    const normalizedSessionOrg = clean(
+      session.organizationName,
+    ).toLowerCase();
+
+    const normalizedSessionOrgId = clean(
+      session.organizationId,
+    ).toLowerCase();
+
+    const normalizedSessionEmail = clean(session.email).toLowerCase();
+
     const orgMatches =
-      organizationName.toLowerCase() === session.organizationName.toLowerCase();
+      clean(organizationName).toLowerCase() === normalizedSessionOrg;
 
     const orgIdMatches =
       first(matchedSubmittedRow || {}, [
         "ORG_ID",
         "ORGANIZATION_ID",
         "APPLICANT_ORG_ID",
-      ]).toLowerCase() === session.organizationId.toLowerCase();
+      ]).toLowerCase() === normalizedSessionOrgId;
 
     const submittedByMatches =
       first(matchedSubmittedRow || {}, [
@@ -247,7 +390,7 @@ export async function GET(
         "UPLOADED_BY",
         "CREATED_BY",
         "EMAIL",
-      ]).toLowerCase() === session.email.toLowerCase();
+      ]).toLowerCase() === normalizedSessionEmail;
 
     if (!orgMatches && !orgIdMatches && !submittedByMatches) {
       return json(
@@ -261,6 +404,7 @@ export async function GET(
 
     const caseStatus = clean(applicationRow?.STATUS) || "UNKNOWN";
     const hasSubmittedRemediation = Boolean(matchedSubmittedRow);
+
     const remediationStatus = deriveRemediationStatus(
       caseStatus,
       hasSubmittedRemediation,
@@ -272,11 +416,62 @@ export async function GET(
       "RECORD_ID",
     ]);
 
-    const submittedAt = first(matchedSubmittedRow || {}, [
-      "SUBMITTED_AT",
-      "UPLOADED_AT",
-      "CREATED_AT",
-    ]);
+    const submittedAt =
+      first(matchedSubmittedRow || {}, [
+        "SUBMITTED_AT",
+        "UPLOADED_AT",
+        "CREATED_AT",
+      ]) || null;
+
+    const updatedAt =
+      first(matchedSubmittedRow || {}, [
+        "UPDATED_AT",
+        "MODIFIED_AT",
+        "CREATED_AT",
+      ]) ||
+      clean(applicationRow?.UPDATED_AT) ||
+      null;
+
+    const responseSubmitted = hasSubmittedRemediation;
+
+    const reviewPending =
+      remediationStatus === "SUBMITTED" ||
+      remediationStatus === "AWAITING_GOVERNANCE_REVIEW";
+
+    const governanceDecisionPending =
+      remediationStatus === "AWAITING_GOVERNANCE_REVIEW";
+
+    const workflowStage = deriveWorkflowStage(remediationStatus);
+
+    const remediationReadiness = deriveRemediationReadiness(
+      remediationStatus,
+      responseSubmitted,
+      reviewPending,
+    );
+
+    const repositoryHealth = deriveRepositoryHealth(
+      hasSubmittedRemediation,
+      updatedAt,
+    );
+
+    const isOpen = [
+      "REMEDIATION_REQUIRED",
+      "REMEDIATION_IN_PROGRESS",
+      "SUBMITTED",
+      "AWAITING_GOVERNANCE_REVIEW",
+    ].includes(remediationStatus);
+
+    const isCompleted = [
+      "REMEDIATION_ACCEPTED",
+      "REMEDIATION_COMPLETED",
+    ].includes(remediationStatus);
+
+    const isPendingApplicant =
+      !responseSubmitted &&
+      [
+        "REMEDIATION_REQUIRED",
+        "REMEDIATION_IN_PROGRESS",
+      ].includes(remediationStatus);
 
     return json({
       ok: true,
@@ -290,15 +485,22 @@ export async function GET(
         remediationId: hasSubmittedRemediation
           ? submittedRemediationId(evidenceId)
           : `REM-${caseId}`,
+
         evidenceId: evidenceId || null,
+
         deficiencyId: deriveDeficiencyId(
           first(matchedSubmittedRow || {}, ["STORAGE_REF"]),
           caseId,
         ),
+
         caseId,
+
         requestId: caseId,
+
         organizationName,
+
         email: clean(applicationRow?.EMAIL) || session.email || null,
+
         submittedBy:
           first(matchedSubmittedRow || {}, [
             "SUBMITTED_BY",
@@ -306,46 +508,79 @@ export async function GET(
             "CREATED_BY",
             "EMAIL",
           ]) || null,
+
         remediationType: hasSubmittedRemediation
           ? "Applicant Remediation Submission"
           : "Applicant Remediation Placeholder",
+
         remediationStatus,
+
         caseStatus,
+
         source:
-          first(matchedSubmittedRow || {}, ["SOURCE", "SOURCE_TABLE"]) ||
+          first(matchedSubmittedRow || {}, [
+            "SOURCE",
+            "SOURCE_TABLE",
+          ]) ||
           clean(applicationRow?.SOURCE) ||
           "Applicant Intake",
+
         title:
           first(matchedSubmittedRow || {}, [
             "TITLE",
             "EVIDENCE_TITLE",
             "NAME",
           ]) || "Applicant remediation record",
+
         description:
           first(matchedSubmittedRow || {}, [
             "DESCRIPTION",
             "EVIDENCE_DESCRIPTION",
             "NOTES",
           ]) || null,
+
         sourceUrl:
-          first(matchedSubmittedRow || {}, ["SOURCE_URL", "URL", "LINK"]) ||
-          null,
-        responseSubmitted: hasSubmittedRemediation,
-        reviewPending:
-          remediationStatus === "SUBMITTED" ||
-          remediationStatus === "AWAITING_GOVERNANCE_REVIEW",
-        governanceDecisionPending:
-          remediationStatus === "AWAITING_GOVERNANCE_REVIEW",
-        submittedAt: submittedAt || null,
-        reviewedAt: null,
-        updatedAt:
           first(matchedSubmittedRow || {}, [
-            "UPDATED_AT",
-            "MODIFIED_AT",
-            "CREATED_AT",
-          ]) ||
-          clean(applicationRow?.UPDATED_AT) ||
-          null,
+            "SOURCE_URL",
+            "URL",
+            "LINK",
+          ]) || null,
+
+        responseSubmitted,
+
+        reviewPending,
+
+        governanceDecisionPending,
+
+        submittedAt,
+
+        reviewedAt: null,
+
+        updatedAt,
+
+        repositoryCategory: "Remediation Repository",
+
+        workflowOrigin: hasSubmittedRemediation
+          ? "Applicant Remediation Submission"
+          : "Applicant Workflow",
+
+        workflowStage,
+
+        remediationReadiness,
+
+        repositoryHealth,
+
+        ageDays: deriveAgeDays(updatedAt || submittedAt),
+
+        isOpen,
+
+        isCompleted,
+
+        isPendingApplicant,
+
+        isPendingReview: reviewPending,
+
+        authorityBoundaryText: AUTHORITY_BOUNDARY_TEXT,
       },
 
       workflow: [
@@ -356,7 +591,9 @@ export async function GET(
         {
           stage: "Remediation Required",
           status:
-            remediationStatus === "NOT_REQUIRED" ? "NOT_REQUIRED" : "COMPLETE",
+            remediationStatus === "NOT_REQUIRED"
+              ? "NOT_REQUIRED"
+              : "COMPLETE",
         },
         {
           stage: "Applicant Remediation Submitted",
@@ -364,17 +601,26 @@ export async function GET(
         },
         {
           stage: "Governance Review",
-          status: hasSubmittedRemediation ? "PENDING" : "WAITING_ON_APPLICANT",
+          status: hasSubmittedRemediation
+            ? "PENDING"
+            : "WAITING_ON_APPLICANT",
         },
         {
           stage: "Remediation Decision",
-          status:
-            remediationStatus === "REMEDIATION_ACCEPTED" ||
-            remediationStatus === "REMEDIATION_COMPLETED"
-              ? "COMPLETE"
-              : "PENDING",
+          status: isCompleted ? "COMPLETE" : "PENDING",
         },
       ],
+
+      authorityBoundaries: {
+        applicantMayViewRemediation: true,
+        applicantMaySubmitRemediation: true,
+        applicantMayModifyFindings: false,
+        applicantMayModifyScoring: false,
+        applicantMayModifyDecision: false,
+        applicantMayModifyCertification: false,
+        applicantMayModifyRegistry: false,
+        applicantMayPublish: false,
+      },
     });
   } catch (error) {
     return json(
