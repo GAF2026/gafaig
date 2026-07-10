@@ -23,6 +23,9 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
+const AUTHORITY_BOUNDARY_TEXT =
+  "Operational progress repository visibility only. No evidence, findings, scoring, decision, certification, publication, registry, verification, or governance authority is created.";
+
 type ProgressRow = {
   REQUEST_ID: string | null;
   ORG: string | null;
@@ -40,19 +43,47 @@ function deriveLifecycleStage(
   status: string,
   counts?: ApplicantRepositoryCounts,
 ) {
-  if (counts?.certificationRecords) return "Certification Active";
-  if (counts?.remediationRecords) return "Remediation Submitted";
-  if (counts?.requestResponseRecords) return "Applicant Response Submitted";
-  if (counts?.artifactRecords) return "Artifact Preserved";
-  if (counts?.evidenceRecords) return "Evidence Submitted";
+  if (counts?.certificationRecords) {
+    return "Certification Active";
+  }
+
+  if (counts?.remediationRecords) {
+    return "Remediation Submitted";
+  }
+
+  if (counts?.requestResponseRecords) {
+    return "Applicant Response Submitted";
+  }
+
+  if (counts?.artifactRecords) {
+    return "Artifact Preserved";
+  }
+
+  if (counts?.evidenceRecords) {
+    return "Evidence Submitted";
+  }
 
   const normalized = cleanApplicantValue(status).toUpperCase();
 
-  if (normalized.includes("CERTIFIED")) return "Certification Active";
-  if (normalized.includes("APPROVED")) return "Certification Ready";
-  if (normalized.includes("REVIEW")) return "Governance Review";
-  if (normalized.includes("PENDING")) return "Applicant Action Pending";
-  if (normalized.includes("RECEIVED")) return "Submission Received";
+  if (normalized.includes("CERTIFIED")) {
+    return "Certification Active";
+  }
+
+  if (normalized.includes("APPROVED")) {
+    return "Certification Ready";
+  }
+
+  if (normalized.includes("REVIEW")) {
+    return "Governance Review";
+  }
+
+  if (normalized.includes("PENDING")) {
+    return "Applicant Action Pending";
+  }
+
+  if (normalized.includes("RECEIVED")) {
+    return "Submission Received";
+  }
 
   return "Applicant Intake";
 }
@@ -61,21 +92,106 @@ function deriveCompletionPercent(
   status: string,
   counts?: ApplicantRepositoryCounts,
 ) {
-  if (counts?.certificationRecords) return 100;
-  if (counts?.remediationRecords) return 85;
-  if (counts?.requestResponseRecords) return 70;
-  if (counts?.artifactRecords) return 60;
-  if (counts?.evidenceRecords) return 50;
+  if (counts?.certificationRecords) {
+    return 100;
+  }
+
+  if (counts?.remediationRecords) {
+    return 85;
+  }
+
+  if (counts?.requestResponseRecords) {
+    return 70;
+  }
+
+  if (counts?.artifactRecords) {
+    return 60;
+  }
+
+  if (counts?.evidenceRecords) {
+    return 50;
+  }
 
   const normalized = cleanApplicantValue(status).toUpperCase();
 
-  if (normalized.includes("CERTIFIED")) return 100;
-  if (normalized.includes("APPROVED")) return 85;
-  if (normalized.includes("REVIEW")) return 60;
-  if (normalized.includes("PENDING")) return 40;
-  if (normalized.includes("RECEIVED")) return 25;
+  if (normalized.includes("CERTIFIED")) {
+    return 100;
+  }
+
+  if (normalized.includes("APPROVED")) {
+    return 85;
+  }
+
+  if (normalized.includes("REVIEW")) {
+    return 60;
+  }
+
+  if (normalized.includes("PENDING")) {
+    return 40;
+  }
+
+  if (normalized.includes("RECEIVED")) {
+    return 25;
+  }
 
   return 15;
+}
+
+function deriveAgeDays(value: string | null) {
+  const normalized = cleanApplicantValue(value);
+
+  if (!normalized) {
+    return null;
+  }
+
+  const timestamp = Date.parse(normalized);
+
+  if (Number.isNaN(timestamp)) {
+    return null;
+  }
+
+  return Math.floor(
+    Math.max(0, Date.now() - timestamp) / 86_400_000,
+  );
+}
+
+function deriveProgressReadiness(completionPercent: number) {
+  if (completionPercent >= 100) {
+    return "COMPLETE";
+  }
+
+  if (completionPercent >= 85) {
+    return "CERTIFICATION_READY";
+  }
+
+  if (completionPercent >= 70) {
+    return "REMEDIATION_COMPLETE";
+  }
+
+  if (completionPercent >= 50) {
+    return "EVIDENCE_COMPLETE";
+  }
+
+  if (completionPercent >= 25) {
+    return "IN_PROGRESS";
+  }
+
+  return "APPLICANT_INTAKE";
+}
+
+function deriveRepositoryHealth(
+  hasRepositoryActivity: boolean,
+  updatedAt: string | null,
+) {
+  if (!hasRepositoryActivity) {
+    return "WORKFLOW_ONLY";
+  }
+
+  if (!cleanApplicantValue(updatedAt)) {
+    return "MISSING_TIMESTAMP";
+  }
+
+  return "AVAILABLE";
 }
 
 export async function GET(req: NextRequest) {
@@ -84,7 +200,12 @@ export async function GET(req: NextRequest) {
 
     if (!auth.ok) {
       return json(
-        { ok: false, error: auth.error ?? "Applicant authentication required." },
+        {
+          ok: false,
+          error:
+            auth.error ??
+            "Applicant authentication required.",
+        },
         auth.status ?? 401,
       );
     }
@@ -92,7 +213,13 @@ export async function GET(req: NextRequest) {
     const session = await getApplicantSession();
 
     if (!session) {
-      return json({ ok: false, error: "Applicant session unavailable." }, 401);
+      return json(
+        {
+          ok: false,
+          error: "Applicant session unavailable.",
+        },
+        401,
+      );
     }
 
     const rows = await snowflakeQuery<ProgressRow>(
@@ -113,28 +240,45 @@ export async function GET(req: NextRequest) {
     );
 
     const workflowCaseIds = new Set(
-      rows.map((row) => cleanApplicantValue(row.REQUEST_ID)).filter(Boolean),
+      rows
+        .map((row) =>
+          cleanApplicantValue(row.REQUEST_ID),
+        )
+        .filter(Boolean),
     );
 
-    const persistedRows = await snowflakeQuery<PersistedApplicantRepositoryRow>(
-      `
-      SELECT *
-      FROM ${APPLICANT_EVIDENCE_TABLE}
-      ORDER BY CREATED_AT DESC NULLS LAST
-      LIMIT 500
-      `,
-      [],
+    const persistedRows =
+      await snowflakeQuery<PersistedApplicantRepositoryRow>(
+        `
+        SELECT *
+        FROM ${APPLICANT_EVIDENCE_TABLE}
+        ORDER BY CREATED_AT DESC NULLS LAST
+        LIMIT 500
+        `,
+        [],
+      );
+
+    const scope = repositoryScopeFromSession(
+      session,
+      workflowCaseIds,
     );
 
-    const scope = repositoryScopeFromSession(session, workflowCaseIds);
-    const countsByCaseId = new Map<string, ApplicantRepositoryCounts>();
-    const latestRecordByCaseId = new Map<
-      string,
-      PersistedApplicantRepositoryRow
-    >();
+    const countsByCaseId =
+      new Map<string, ApplicantRepositoryCounts>();
+
+    const latestRecordByCaseId =
+      new Map<
+        string,
+        PersistedApplicantRepositoryRow
+      >();
 
     for (const row of persistedRows) {
-      if (!applicantRepositoryRowBelongsToScope(row, scope)) {
+      if (
+        !applicantRepositoryRowBelongsToScope(
+          row,
+          scope,
+        )
+      ) {
         continue;
       }
 
@@ -150,13 +294,19 @@ export async function GET(req: NextRequest) {
       }
 
       const counts =
-        countsByCaseId.get(caseId) || emptyApplicantRepositoryCounts();
+        countsByCaseId.get(caseId) ||
+        emptyApplicantRepositoryCounts();
 
-      const bucket = classifyApplicantEvidenceType(
-        firstApplicantValue(row, ["EVIDENCE_TYPE", "TYPE"]),
-      );
+      const bucket =
+        classifyApplicantEvidenceType(
+          firstApplicantValue(row, [
+            "EVIDENCE_TYPE",
+            "TYPE",
+          ]),
+        );
 
       counts[bucket] += 1;
+
       countsByCaseId.set(caseId, counts);
 
       if (!latestRecordByCaseId.has(caseId)) {
@@ -165,17 +315,33 @@ export async function GET(req: NextRequest) {
     }
 
     const items = rows.map((row) => {
-      const caseId = cleanApplicantValue(row.REQUEST_ID);
-      const status = cleanApplicantValue(row.STATUS) || "UNKNOWN";
-      const source = cleanApplicantValue(row.SOURCE) || "Applicant Intake";
-      const counts =
-        countsByCaseId.get(caseId) || emptyApplicantRepositoryCounts();
-      const latestRecord = latestRecordByCaseId.get(caseId);
+      const caseId =
+        cleanApplicantValue(row.REQUEST_ID);
 
-      const completionPercent = deriveCompletionPercent(status, counts);
+      const status =
+        cleanApplicantValue(row.STATUS) ||
+        "UNKNOWN";
+
+      const source =
+        cleanApplicantValue(row.SOURCE) ||
+        "Applicant Intake";
+
+      const counts =
+        countsByCaseId.get(caseId) ||
+        emptyApplicantRepositoryCounts();
+
+      const latestRecord =
+        latestRecordByCaseId.get(caseId);
+
+      const completionPercent =
+        deriveCompletionPercent(status, counts);
+
+      const lifecycleStage =
+        deriveLifecycleStage(status, counts);
 
       const evidenceId =
-        latestRecord && counts.evidenceRecords > 0
+        latestRecord &&
+        counts.evidenceRecords > 0
           ? firstApplicantValue(latestRecord, [
               "EVIDENCE_ID",
               "ID",
@@ -183,64 +349,179 @@ export async function GET(req: NextRequest) {
             ]) || `EV-${caseId}`
           : `EV-${caseId}`;
 
-      const repositoryRecord = applicantRepositoryActivity(counts) > 0;
+      const repositoryActivityCount =
+        applicantRepositoryActivity(counts);
 
-      return {
-        caseId,
-        requestId: caseId,
-        evidenceId,
-        artifactId: `ART-${caseId}`,
-        certificationId: `CERT-${caseId}`,
-        organizationName:
-          cleanApplicantValue(row.ORG) || session.organizationName,
-        email: cleanApplicantValue(row.EMAIL) || null,
-        status,
-        source,
-        lifecycleStage: deriveLifecycleStage(status, counts),
-        completionPercent,
-        openRequests:
-          counts.requestResponseRecords > 0
-            ? 0
-            : isApplicantActiveStatus(status)
-              ? 1
-              : 0,
-        pendingEvidence: counts.evidenceRecords > 0 ? 0 : 1,
-        pendingArtifacts: counts.artifactRecords > 0 ? 0 : 1,
-        certificationStatus:
-          counts.certificationRecords > 0 || completionPercent >= 85
-            ? "CERTIFICATION_READY"
-            : "NOT_CERTIFIED",
-        evidenceRecords: counts.evidenceRecords,
-        artifactRecords: counts.artifactRecords,
-        requestResponseRecords: counts.requestResponseRecords,
-        remediationRecords: counts.remediationRecords,
-        certificationRecords: counts.certificationRecords,
-        updatedAt:
-          firstApplicantValue(latestRecord || {}, [
+      const repositoryRecord =
+        repositoryActivityCount > 0;
+
+      const updatedAt =
+        firstApplicantValue(
+          latestRecord || {},
+          [
             "UPDATED_AT",
             "MODIFIED_AT",
             "CREATED_AT",
-          ]) ||
-          cleanApplicantValue(row.UPDATED_AT) ||
+          ],
+        ) ||
+        cleanApplicantValue(row.UPDATED_AT) ||
+        null;
+
+      const openRequests =
+        counts.requestResponseRecords > 0
+          ? 0
+          : isApplicantActiveStatus(status)
+            ? 1
+            : 0;
+
+      const pendingEvidence =
+        counts.evidenceRecords > 0 ? 0 : 1;
+
+      const pendingArtifacts =
+        counts.artifactRecords > 0 ? 0 : 1;
+
+      const certificationStatus =
+        counts.certificationRecords > 0 ||
+        completionPercent >= 85
+          ? "CERTIFICATION_READY"
+          : "NOT_CERTIFIED";
+
+      const isActive =
+        isApplicantActiveStatus(status);
+
+      const isComplete =
+        completionPercent >= 100;
+
+      const isCertificationReady =
+        certificationStatus ===
+        "CERTIFICATION_READY";
+
+      const isEvidencePending =
+        pendingEvidence > 0;
+
+      const isArtifactPending =
+        pendingArtifacts > 0;
+
+      const hasRepositoryActivity =
+        repositoryActivityCount > 0;
+
+      return {
+        caseId,
+
+        requestId: caseId,
+
+        evidenceId,
+
+        artifactId: `ART-${caseId}`,
+
+        certificationId: `CERT-${caseId}`,
+
+        organizationName:
+          cleanApplicantValue(row.ORG) ||
+          session.organizationName,
+
+        email:
+          cleanApplicantValue(row.EMAIL) ||
           null,
+
+        status,
+
+        source,
+
+        lifecycleStage,
+
+        completionPercent,
+
+        openRequests,
+
+        pendingEvidence,
+
+        pendingArtifacts,
+
+        certificationStatus,
+
+        evidenceRecords:
+          counts.evidenceRecords,
+
+        artifactRecords:
+          counts.artifactRecords,
+
+        requestResponseRecords:
+          counts.requestResponseRecords,
+
+        remediationRecords:
+          counts.remediationRecords,
+
+        certificationRecords:
+          counts.certificationRecords,
+
+        updatedAt,
+
         repositoryRecord,
+
+        repositoryCategory:
+          "Progress Repository",
+
+        workflowOrigin:
+          repositoryRecord
+            ? "Persisted Repository Activity"
+            : "Applicant Workflow",
+
+        workflowStage:
+          lifecycleStage,
+
+        progressReadiness:
+          deriveProgressReadiness(
+            completionPercent,
+          ),
+
+        repositoryHealth:
+          deriveRepositoryHealth(
+            hasRepositoryActivity,
+            updatedAt,
+          ),
+
+        ageDays:
+          deriveAgeDays(updatedAt),
+
+        isActive,
+
+        isComplete,
+
+        isCertificationReady,
+
+        isEvidencePending,
+
+        isArtifactPending,
+
+        hasRepositoryActivity,
+
+        authorityBoundaryText:
+          AUTHORITY_BOUNDARY_TEXT,
       };
     });
 
     const totalCases = items.length;
-    const activeCases = items.filter((item) =>
-      isApplicantActiveStatus(item.status),
+
+    const activeCases = items.filter(
+      (item) => item.isActive,
     ).length;
 
-    const openRequests = items.reduce((sum, item) => sum + item.openRequests, 0);
+    const openRequests = items.reduce(
+      (sum, item) =>
+        sum + item.openRequests,
+      0,
+    );
 
     const pendingEvidence = items.reduce(
-      (sum, item) => sum + item.pendingEvidence,
+      (sum, item) =>
+        sum + item.pendingEvidence,
       0,
     );
 
     const pendingArtifacts = items.reduce(
-      (sum, item) => sum + item.pendingArtifacts,
+      (sum, item) =>
+        sum + item.pendingArtifacts,
       0,
     );
 
@@ -248,16 +529,24 @@ export async function GET(req: NextRequest) {
       totalCases === 0
         ? 0
         : Math.round(
-            items.reduce((sum, item) => sum + item.completionPercent, 0) /
-              totalCases,
+            items.reduce(
+              (sum, item) =>
+                sum +
+                item.completionPercent,
+              0,
+            ) / totalCases,
           );
 
     return json({
       ok: true,
+
       organization: {
-        organizationId: session.organizationId,
-        organizationName: session.organizationName,
+        organizationId:
+          session.organizationId,
+        organizationName:
+          session.organizationName,
       },
+
       summary: {
         totalCases,
         activeCases,
@@ -266,42 +555,68 @@ export async function GET(req: NextRequest) {
         pendingArtifacts,
         averageCompletion,
       },
+
       stages: [
         {
           stage: "Applicant Intake",
-          status: totalCases > 0 ? "ACTIVE" : "PENDING",
+          status:
+            totalCases > 0
+              ? "ACTIVE"
+              : "PENDING",
           description:
             "Applicant case records are visible for the authenticated organization.",
         },
         {
           stage: "Information Requests",
-          status: openRequests > 0 ? "ACTIVE" : "PENDING",
+          status:
+            openRequests > 0
+              ? "ACTIVE"
+              : "PENDING",
           description:
-            "Applicant request visibility is available through the request workflow.",
+            "Information Request Repository visibility reflects applicant request and response activity.",
         },
         {
-          stage: "Evidence Visibility",
-          status: pendingEvidence > 0 ? "ACTIVE" : "COMPLETE",
+          stage: "Evidence Repository",
+          status:
+            pendingEvidence > 0
+              ? "ACTIVE"
+              : "COMPLETE",
           description:
-            "Evidence repository state is enriched with persisted applicant evidence records where available.",
+            "Evidence Repository visibility reflects persisted applicant evidence records and pending evidence state.",
         },
         {
           stage: "Artifact Repository",
-          status: pendingArtifacts > 0 ? "ACTIVE" : "COMPLETE",
+          status:
+            pendingArtifacts > 0
+              ? "ACTIVE"
+              : "COMPLETE",
           description:
-            "Artifact repository state is enriched with persisted applicant artifact records where available.",
+            "Artifact Repository visibility reflects persisted applicant artifact records and pending artifact state.",
         },
         {
-          stage: "Certification Repository",
+          stage: "Deficiency and Remediation",
           status: items.some(
-            (item) => item.certificationStatus === "CERTIFICATION_READY",
+            (item) =>
+              item.remediationRecords > 0,
           )
             ? "ACTIVE"
             : "PENDING",
           description:
-            "Certification repository visibility is available for applicant lifecycle records.",
+            "Deficiency and Remediation Repository visibility reflects applicant remediation activity without modifying governance authority.",
+        },
+        {
+          stage: "Certification Repository",
+          status: items.some(
+            (item) =>
+              item.isCertificationReady,
+          )
+            ? "ACTIVE"
+            : "PENDING",
+          description:
+            "Certification Repository visibility reflects certification lifecycle state without creating certification or publication authority.",
         },
       ],
+
       progress: items,
     });
   } catch (error) {
