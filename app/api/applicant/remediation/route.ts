@@ -87,6 +87,107 @@ function submittedRemediationId(evidenceId: string) {
     : `REM-${value}`;
 }
 
+function deriveAgeDays(value: string | null) {
+  const normalized = cleanApplicantValue(value);
+
+  if (!normalized) {
+    return null;
+  }
+
+  const timestamp = Date.parse(normalized);
+
+  if (Number.isNaN(timestamp)) {
+    return null;
+  }
+
+  const elapsedMilliseconds = Math.max(0, Date.now() - timestamp);
+
+  return Math.floor(elapsedMilliseconds / 86_400_000);
+}
+
+function deriveWorkflowStage(status: string) {
+  const normalized = cleanApplicantValue(status).toUpperCase();
+
+  if (
+    normalized.includes("REQUIRED") ||
+    normalized.includes("DEFICIENCY")
+  ) {
+    return "REMEDIATION_REQUIRED";
+  }
+
+  if (normalized.includes("IN_PROGRESS")) {
+    return "REMEDIATION_IN_PROGRESS";
+  }
+
+  if (normalized.includes("SUBMITTED")) {
+    return "REMEDIATION_SUBMITTED";
+  }
+
+  if (normalized.includes("REVIEW")) {
+    return "GOVERNANCE_REVIEW";
+  }
+
+  if (
+    normalized.includes("ACCEPTED") ||
+    normalized.includes("COMPLETED")
+  ) {
+    return "REMEDIATION_COMPLETE";
+  }
+
+  return "REMEDIATION";
+}
+
+function deriveRemediationReadiness(
+  status: string,
+  responseSubmitted: boolean,
+  reviewPending: boolean,
+) {
+  const normalized = cleanApplicantValue(status).toUpperCase();
+
+  if (!responseSubmitted && normalized === "REMEDIATION_REQUIRED") {
+    return "AWAITING_APPLICANT_RESPONSE";
+  }
+
+  if (!responseSubmitted && normalized === "REMEDIATION_IN_PROGRESS") {
+    return "RESPONSE_IN_PROGRESS";
+  }
+
+  if (responseSubmitted && reviewPending) {
+    return "READY_FOR_REVIEW";
+  }
+
+  if (normalized === "AWAITING_GOVERNANCE_REVIEW") {
+    return "UNDER_REVIEW";
+  }
+
+  if (
+    normalized === "REMEDIATION_ACCEPTED" ||
+    normalized === "REMEDIATION_COMPLETED"
+  ) {
+    return "COMPLETE";
+  }
+
+  return "NOT_REQUIRED";
+}
+
+function deriveRepositoryHealth(
+  hasSubmission: boolean,
+  updatedAt: string | null,
+) {
+  if (!hasSubmission) {
+    return "PENDING_SUBMISSION";
+  }
+
+  if (!cleanApplicantValue(updatedAt)) {
+    return "MISSING_TIMESTAMP";
+  }
+
+  return "AVAILABLE";
+}
+
+const AUTHORITY_BOUNDARY_TEXT =
+  "Operational remediation repository visibility and applicant remediation submission only. No findings, scoring, decision, certification, registry, publication, verification, or governance authority is created.";
+
 export async function GET(req: NextRequest) {
   try {
     const auth = await requireAdmin(req);
@@ -173,9 +274,69 @@ export async function GET(req: NextRequest) {
         ? "SUBMITTED"
         : derivedStatus;
 
+      const responseSubmitted =
+        hasSubmittedRemediation ||
+        [
+          "REMEDIATION_IN_PROGRESS",
+          "AWAITING_GOVERNANCE_REVIEW",
+          "REMEDIATION_ACCEPTED",
+          "REMEDIATION_COMPLETED",
+        ].includes(remediationStatus);
+
+      const reviewPending =
+        hasSubmittedRemediation ||
+        remediationStatus === "AWAITING_GOVERNANCE_REVIEW";
+
+      const governanceDecisionPending =
+        remediationStatus === "AWAITING_GOVERNANCE_REVIEW";
+
+      const submittedAt = hasSubmittedRemediation
+        ? cleanApplicantValue(submitted?.CREATED_AT) || null
+        : null;
+
+      const updatedAt = hasSubmittedRemediation
+        ? cleanApplicantValue(submitted?.CREATED_AT) ||
+          cleanApplicantValue(row.UPDATED_AT) ||
+          null
+        : cleanApplicantValue(row.UPDATED_AT) || null;
+
+      const workflowStage = deriveWorkflowStage(remediationStatus);
+
+      const remediationReadiness = deriveRemediationReadiness(
+        remediationStatus,
+        responseSubmitted,
+        reviewPending,
+      );
+
+      const repositoryHealth = deriveRepositoryHealth(
+        hasSubmittedRemediation,
+        updatedAt,
+      );
+
+      const isOpen = [
+        "REMEDIATION_REQUIRED",
+        "REMEDIATION_IN_PROGRESS",
+        "SUBMITTED",
+        "AWAITING_GOVERNANCE_REVIEW",
+      ].includes(remediationStatus);
+
+      const isCompleted = [
+        "REMEDIATION_ACCEPTED",
+        "REMEDIATION_COMPLETED",
+      ].includes(remediationStatus);
+
+      const isPendingApplicant =
+        !responseSubmitted &&
+        [
+          "REMEDIATION_REQUIRED",
+          "REMEDIATION_IN_PROGRESS",
+        ].includes(remediationStatus);
+
       return {
         remediationId: hasSubmittedRemediation
-          ? submittedRemediationId(cleanApplicantValue(submitted?.EVIDENCE_ID))
+          ? submittedRemediationId(
+              cleanApplicantValue(submitted?.EVIDENCE_ID),
+            )
           : `REM-${caseId}`,
 
         evidenceId: hasSubmittedRemediation
@@ -225,34 +386,41 @@ export async function GET(req: NextRequest) {
           ? cleanApplicantValue(submitted?.SOURCE_URL) || null
           : null,
 
-        responseSubmitted:
-          hasSubmittedRemediation ||
-          [
-            "REMEDIATION_IN_PROGRESS",
-            "AWAITING_GOVERNANCE_REVIEW",
-            "REMEDIATION_ACCEPTED",
-            "REMEDIATION_COMPLETED",
-          ].includes(remediationStatus),
+        responseSubmitted,
 
-        reviewPending:
-          hasSubmittedRemediation ||
-          ["AWAITING_GOVERNANCE_REVIEW"].includes(remediationStatus),
+        reviewPending,
 
-        governanceDecisionPending: ["AWAITING_GOVERNANCE_REVIEW"].includes(
-          remediationStatus,
-        ),
+        governanceDecisionPending,
 
-        submittedAt: hasSubmittedRemediation
-          ? cleanApplicantValue(submitted?.CREATED_AT) || null
-          : null,
+        submittedAt,
 
         reviewedAt: null,
 
-        updatedAt: hasSubmittedRemediation
-          ? cleanApplicantValue(submitted?.CREATED_AT) ||
-            cleanApplicantValue(row.UPDATED_AT) ||
-            null
-          : cleanApplicantValue(row.UPDATED_AT) || null,
+        updatedAt,
+
+        repositoryCategory: "Remediation Repository",
+
+        workflowOrigin: hasSubmittedRemediation
+          ? "Applicant Remediation Submission"
+          : "Applicant Workflow",
+
+        workflowStage,
+
+        remediationReadiness,
+
+        repositoryHealth,
+
+        ageDays: deriveAgeDays(updatedAt || submittedAt),
+
+        isOpen,
+
+        isCompleted,
+
+        isPendingApplicant,
+
+        isPendingReview: reviewPending,
+
+        authorityBoundaryText: AUTHORITY_BOUNDARY_TEXT,
       };
     });
 
@@ -264,6 +432,9 @@ export async function GET(req: NextRequest) {
       if (!caseId || knownCaseIds.has(caseId)) {
         continue;
       }
+
+      const submittedAt =
+        cleanApplicantValue(submitted.CREATED_AT) || null;
 
       remediation.push({
         remediationId: submittedRemediationId(
@@ -278,7 +449,8 @@ export async function GET(req: NextRequest) {
         requestId: caseId,
         organizationName: session.organizationName,
         email: session.email,
-        submittedBy: cleanApplicantValue(submitted.SUBMITTED_BY) || session.email,
+        submittedBy:
+          cleanApplicantValue(submitted.SUBMITTED_BY) || session.email,
         remediationType: "Applicant Remediation Submission",
         remediationStatus: "SUBMITTED",
         caseStatus: "UNKNOWN",
@@ -291,9 +463,33 @@ export async function GET(req: NextRequest) {
         responseSubmitted: true,
         reviewPending: true,
         governanceDecisionPending: false,
-        submittedAt: cleanApplicantValue(submitted.CREATED_AT) || null,
+        submittedAt,
         reviewedAt: null,
-        updatedAt: cleanApplicantValue(submitted.CREATED_AT) || null,
+        updatedAt: submittedAt,
+
+        repositoryCategory: "Remediation Repository",
+
+        workflowOrigin: "Applicant Remediation Submission",
+
+        workflowStage: "REMEDIATION_SUBMITTED",
+
+        remediationReadiness: "READY_FOR_REVIEW",
+
+        repositoryHealth: submittedAt
+          ? "AVAILABLE"
+          : "MISSING_TIMESTAMP",
+
+        ageDays: deriveAgeDays(submittedAt),
+
+        isOpen: true,
+
+        isCompleted: false,
+
+        isPendingApplicant: false,
+
+        isPendingReview: true,
+
+        authorityBoundaryText: AUTHORITY_BOUNDARY_TEXT,
       });
     }
 
@@ -319,7 +515,9 @@ export async function GET(req: NextRequest) {
         item.remediationStatus === "REMEDIATION_ACCEPTED",
     ).length;
 
-    const submitted = remediation.filter((item) => item.responseSubmitted).length;
+    const submitted = remediation.filter(
+      (item) => item.responseSubmitted,
+    ).length;
 
     return json({
       ok: true,
