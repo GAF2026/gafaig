@@ -6,7 +6,7 @@
 // Snowflake remains the source of truth.
 // These helpers perform no governance computation.
 
-import type { PersistedApplicantRepositoryRow } from "./repository";
+export type PersistedApplicantRepositoryRow = Record<string, unknown>;
 
 export function cleanApplicantValue(value: unknown): string {
   return String(value ?? "").trim();

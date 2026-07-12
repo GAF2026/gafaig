@@ -18,9 +18,8 @@ import {
 import {
   cleanApplicantValue,
   firstApplicantValue,
+  type PersistedApplicantRepositoryRow,
 } from "./helpers";
-
-export type PersistedApplicantRepositoryRow = Record<string, unknown>;
 
 export type ApplicantRepositoryScope = {
   organizationId: string;
