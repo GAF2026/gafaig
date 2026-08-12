@@ -1,67 +1,212 @@
-// middleware.ts
-import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
+import {
+  NextResponse,
+} from "next/server";
 
-const ADMIN_COOKIE_NAME = "gafaig_admin_demo";
-const ADMIN_COOKIE_VALUE = "1";
+import type {
+  NextRequest,
+} from "next/server";
 
-function isPublicAdminApi(pathname: string) {
+const SESSION_COOKIE_NAME =
+  "gafaig_session";
+
+const ADMIN_DEMO_COOKIE_NAME =
+  "gafaig_admin_demo";
+
+const ADMIN_DEMO_COOKIE_VALUE =
+  "1";
+
+function isPublicAdminApi(
+  pathname: string,
+): boolean {
   return (
-    pathname === "/api/admin/login" ||
-    pathname === "/api/admin/logout" ||
-    pathname === "/api/admin/status"
+    pathname ===
+      "/api/admin/login" ||
+    pathname ===
+      "/api/admin/logout" ||
+    pathname ===
+      "/api/admin/status"
   );
 }
 
-function hasAdminCookie(req: NextRequest) {
-  return req.cookies.get(ADMIN_COOKIE_NAME)?.value === ADMIN_COOKIE_VALUE;
+function isPublicApplicantApi(
+  pathname: string,
+): boolean {
+  return (
+    pathname ===
+    "/api/applicant/login"
+  );
 }
 
-function isApplicantPage(pathname: string) {
-  return pathname.startsWith("/applicant");
+function isApplicantPage(
+  pathname: string,
+): boolean {
+  return pathname.startsWith(
+    "/applicant",
+  );
 }
 
-function isApplicantApi(pathname: string) {
-  return pathname.startsWith("/api/applicant");
+function isApplicantApi(
+  pathname: string,
+): boolean {
+  return pathname.startsWith(
+    "/api/applicant",
+  );
 }
 
-export function middleware(req: NextRequest) {
-  const { pathname, search } = req.nextUrl;
+function hasSignedSessionCookie(
+  req: NextRequest,
+): boolean {
+  return Boolean(
+    req.cookies.get(
+      SESSION_COOKIE_NAME,
+    )?.value,
+  );
+}
 
-  const isAdminPage = pathname.startsWith("/admin");
-  const isAdminApi = pathname.startsWith("/api/admin");
+function legacyDemoAllowed():
+  boolean {
+  if (
+    process.env.NODE_ENV ===
+    "production"
+  ) {
+    return false;
+  }
 
-  const applicantPage = isApplicantPage(pathname);
-  const applicantApi = isApplicantApi(pathname);
+  return (
+    String(
+      process.env
+        .GAFAIG_ALLOW_LEGACY_DEMO_AUTH ??
+        "true",
+    )
+      .trim()
+      .toLowerCase() !==
+    "false"
+  );
+}
 
-  if (!isAdminPage && !isAdminApi && !applicantPage && !applicantApi) {
+function hasLegacyDemoCookie(
+  req: NextRequest,
+): boolean {
+  if (
+    !legacyDemoAllowed()
+  ) {
+    return false;
+  }
+
+  return (
+    req.cookies.get(
+      ADMIN_DEMO_COOKIE_NAME,
+    )?.value ===
+    ADMIN_DEMO_COOKIE_VALUE
+  );
+}
+
+export function middleware(
+  req: NextRequest,
+) {
+  const {
+    pathname,
+    search,
+  } = req.nextUrl;
+
+  const isAdminPage =
+    pathname.startsWith(
+      "/admin",
+    );
+
+  const isAdminApi =
+    pathname.startsWith(
+      "/api/admin",
+    );
+
+  const applicantPage =
+    isApplicantPage(
+      pathname,
+    );
+
+  const applicantApi =
+    isApplicantApi(
+      pathname,
+    );
+
+  if (
+    !isAdminPage &&
+    !isAdminApi &&
+    !applicantPage &&
+    !applicantApi
+  ) {
     return NextResponse.next();
   }
 
-  if (pathname === "/admin/login") {
+  if (
+    pathname ===
+    "/admin/login"
+  ) {
     return NextResponse.next();
   }
 
-  if (isAdminApi && isPublicAdminApi(pathname)) {
+  if (
+    isAdminApi &&
+    isPublicAdminApi(
+      pathname,
+    )
+  ) {
     return NextResponse.next();
   }
 
-  if (hasAdminCookie(req)) {
+  if (
+    applicantApi &&
+    isPublicApplicantApi(
+      pathname,
+    )
+  ) {
     return NextResponse.next();
   }
 
-  if (isAdminApi || applicantApi) {
+  if (
+    hasSignedSessionCookie(
+      req,
+    ) ||
+    hasLegacyDemoCookie(
+      req,
+    )
+  ) {
+    return NextResponse.next();
+  }
+
+  if (
+    isAdminApi ||
+    applicantApi
+  ) {
     return NextResponse.json(
-      { ok: false, error: "Unauthorized" },
-      { status: 401 },
+      {
+        ok:
+          false,
+
+        error:
+          "Unauthorized",
+      },
+      {
+        status:
+          401,
+      },
     );
   }
 
-  const loginUrl = req.nextUrl.clone();
-  loginUrl.pathname = "/admin/login";
-  loginUrl.searchParams.set("next", pathname + search);
+  const loginUrl =
+    req.nextUrl.clone();
 
-  return NextResponse.redirect(loginUrl);
+  loginUrl.pathname =
+    "/admin/login";
+
+  loginUrl.searchParams.set(
+    "next",
+    pathname + search,
+  );
+
+  return NextResponse.redirect(
+    loginUrl,
+  );
 }
 
 export const config = {

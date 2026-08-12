@@ -8,8 +8,6 @@ import {
   buildSession,
   SESSION_COOKIE_NAME,
   signSession,
-  type Role,
-  type SessionMode,
 } from "@/lib/auth/session";
 
 export const runtime =
@@ -21,13 +19,12 @@ export const dynamic =
 const COOKIE_MAX_AGE_SECONDS =
   60 * 60 * 8;
 
-function safeString(
+function clean(
   value: unknown,
 ): string {
-  return typeof value ===
-    "string"
-    ? value
-    : "";
+  return String(
+    value ?? "",
+  ).trim();
 }
 
 function timingSafeEqual(
@@ -53,45 +50,41 @@ function timingSafeEqual(
   );
 }
 
-function passwordMatches(
-  provided: string,
-  expected: string,
-): boolean {
-  return Boolean(
-    expected &&
-      timingSafeEqual(
-        provided,
-        expected,
-      ),
-  );
-}
-
 export async function POST(
-  req: Request,
+  request: Request,
 ) {
   try {
     const body =
-      (await req
+      (await request
         .json()
         .catch(
           () => ({}),
         )) as {
+        email?: unknown;
         password?: unknown;
       };
 
-    const provided =
-      safeString(
-        body.password,
-      ).trim();
+    const providedEmail =
+      clean(
+        body.email,
+      ).toLowerCase();
 
-    if (!provided) {
+    const providedPassword =
+      clean(
+        body.password,
+      );
+
+    if (
+      !providedEmail ||
+      !providedPassword
+    ) {
       return NextResponse.json(
         {
           ok:
             false,
 
           error:
-            "Missing password",
+            "Email and password are required.",
         },
         {
           status:
@@ -100,28 +93,35 @@ export async function POST(
       );
     }
 
-    const adminPassword =
-      safeString(
+    const expectedEmail =
+      clean(
         process.env
-          .GAFAIG_ADMIN_PASSWORD,
-      ).trim();
+          .GAFAIG_APPLICANT_LOGIN_EMAIL,
+      ).toLowerCase();
 
-    const demoPassword =
-      safeString(
+    const expectedPassword =
+      clean(
         process.env
-          .GAFAIG_ADMIN_DEMO_PASSWORD,
-      ).trim();
+          .GAFAIG_APPLICANT_LOGIN_PASSWORD,
+      );
 
-    const publicDemoPassword =
-      safeString(
+    const organizationId =
+      clean(
         process.env
-          .NEXT_PUBLIC_DEMO_PASSWORD,
-      ).trim();
+          .GAFAIG_APPLICANT_ORG_ID,
+      );
+
+    const organizationName =
+      clean(
+        process.env
+          .GAFAIG_APPLICANT_ORG_NAME,
+      );
 
     if (
-      !adminPassword &&
-      !demoPassword &&
-      !publicDemoPassword
+      !expectedEmail ||
+      !expectedPassword ||
+      !organizationId ||
+      !organizationName
     ) {
       return NextResponse.json(
         {
@@ -129,7 +129,7 @@ export async function POST(
             false,
 
           error:
-            "Server misconfigured: no admin/demo password env var is set",
+            "Applicant authentication is not configured.",
         },
         {
           status:
@@ -138,58 +138,29 @@ export async function POST(
       );
     }
 
-    let role:
-      Role | null =
-      null;
+    const emailMatches =
+      timingSafeEqual(
+        providedEmail,
+        expectedEmail,
+      );
 
-    let mode:
-      SessionMode | undefined;
-
-    let subject =
-      "";
+    const passwordMatches =
+      timingSafeEqual(
+        providedPassword,
+        expectedPassword,
+      );
 
     if (
-      passwordMatches(
-        provided,
-        adminPassword,
-      )
+      !emailMatches ||
+      !passwordMatches
     ) {
-      role =
-        "SUPER_ADMIN";
-
-      mode =
-        "admin";
-
-      subject =
-        "admin";
-    } else if (
-      passwordMatches(
-        provided,
-        demoPassword,
-      ) ||
-      passwordMatches(
-        provided,
-        publicDemoPassword,
-      )
-    ) {
-      role =
-        "DEMO";
-
-      mode =
-        "demo";
-
-      subject =
-        "demo";
-    }
-
-    if (!role) {
       return NextResponse.json(
         {
           ok:
             false,
 
           error:
-            "Invalid password",
+            "Invalid credentials.",
         },
         {
           status:
@@ -201,11 +172,20 @@ export async function POST(
     const session =
       buildSession({
         sub:
-          subject,
+          `APPLICANT-${organizationId}`,
 
-        role,
+        role:
+          "ORG_USER",
 
-        mode,
+        mode:
+          "applicant",
+
+        organizationId,
+
+        organizationName,
+
+        email:
+          expectedEmail,
 
         ttlSeconds:
           COOKIE_MAX_AGE_SECONDS,
@@ -224,6 +204,15 @@ export async function POST(
       NextResponse.json({
         ok:
           true,
+
+        applicant: {
+          email:
+            expectedEmail,
+
+          organizationId,
+
+          organizationName,
+        },
       });
 
     response.cookies.set({
