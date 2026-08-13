@@ -37,6 +37,15 @@ function isPublicApplicantApi(
   );
 }
 
+function isPublicApplicantPage(
+  pathname: string,
+): boolean {
+  return (
+    pathname ===
+    "/applicant/login"
+  );
+}
+
 function isApplicantPage(
   pathname: string,
 ): boolean {
@@ -99,6 +108,28 @@ function hasLegacyDemoCookie(
     )?.value ===
     ADMIN_DEMO_COOKIE_VALUE
   );
+}
+
+function nextWithApplicantPathname(
+  req: NextRequest,
+  pathname: string,
+) {
+  const requestHeaders =
+    new Headers(
+      req.headers,
+    );
+
+  requestHeaders.set(
+    "x-gafaig-pathname",
+    pathname,
+  );
+
+  return NextResponse.next({
+    request: {
+      headers:
+        requestHeaders,
+    },
+  });
 }
 
 export function middleware(
@@ -164,6 +195,18 @@ export function middleware(
   }
 
   if (
+    applicantPage &&
+    isPublicApplicantPage(
+      pathname,
+    )
+  ) {
+    return nextWithApplicantPathname(
+      req,
+      pathname,
+    );
+  }
+
+  if (
     hasSignedSessionCookie(
       req,
     ) ||
@@ -171,6 +214,15 @@ export function middleware(
       req,
     )
   ) {
+    if (
+      applicantPage
+    ) {
+      return nextWithApplicantPathname(
+        req,
+        pathname,
+      );
+    }
+
     return NextResponse.next();
   }
 
@@ -196,8 +248,15 @@ export function middleware(
   const loginUrl =
     req.nextUrl.clone();
 
-  loginUrl.pathname =
-    "/admin/login";
+  if (
+    applicantPage
+  ) {
+    loginUrl.pathname =
+      "/applicant/login";
+  } else {
+    loginUrl.pathname =
+      "/admin/login";
+  }
 
   loginUrl.searchParams.set(
     "next",
