@@ -1,6 +1,4 @@
 import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
-import { requireAdmin } from "@/lib/auth/require";
 import { snowflakeQuery } from "@/lib/snowflake";
 import { getApplicantSession } from "@/lib/applicant-auth";
 
@@ -176,23 +174,20 @@ function deriveDecisionStatus(
 }
 
 export async function GET(
-  req: NextRequest,
+  _request: Request,
   { params }: { params: { caseId: string } },
 ) {
   try {
-    const auth = await requireAdmin(req);
-
-    if (!auth.ok) {
-      return json(
-        { ok: false, error: auth.error ?? "Applicant authentication required." },
-        auth.status ?? 401,
-      );
-    }
-
     const session = await getApplicantSession();
 
     if (!session) {
-      return json({ ok: false, error: "Applicant session unavailable." }, 401);
+      return json(
+        {
+          ok: false,
+          error: "Applicant authentication required.",
+        },
+        401,
+      );
     }
 
     const caseId = clean(params.caseId);
