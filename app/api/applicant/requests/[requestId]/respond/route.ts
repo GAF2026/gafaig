@@ -1,8 +1,6 @@
 import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
 import crypto from "crypto";
 
-import { requireAdmin } from "@/lib/auth/require";
 import { getApplicantSession } from "@/lib/applicant-auth";
 import { executeQuery, snowflakeQuery } from "@/lib/snowflake";
 
@@ -60,7 +58,7 @@ async function verifyApplicantRequestScope(
 }
 
 export async function POST(
-  req: NextRequest,
+  req: Request,
   {
     params,
   }: {
@@ -70,25 +68,13 @@ export async function POST(
   },
 ) {
   try {
-    const auth = await requireAdmin(req);
-
-    if (!auth.ok) {
-      return json(
-        {
-          ok: false,
-          error: auth.error ?? "Applicant authentication required.",
-        },
-        auth.status ?? 401,
-      );
-    }
-
     const session = await getApplicantSession();
 
     if (!session) {
       return json(
         {
           ok: false,
-          error: "Applicant session unavailable.",
+          error: "Applicant authentication required.",
         },
         401,
       );
@@ -168,7 +154,7 @@ export async function POST(
       [
         evidenceId,
         requestId,
-        `response:${responseType}`,
+        "applicant_response",
         responseTitle,
         responseBody,
         sourceUrl,
