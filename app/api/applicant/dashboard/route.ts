@@ -1,7 +1,5 @@
 import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
 
-import { requireAdmin } from "@/lib/auth/require";
 import { getApplicantSession } from "@/lib/applicant-auth";
 import { snowflakeQuery } from "@/lib/snowflake";
 import {
@@ -35,21 +33,18 @@ function json(data: unknown, status = 200) {
   return NextResponse.json(data, { status });
 }
 
-export async function GET(req: NextRequest) {
+export async function GET() {
   try {
-    const auth = await requireAdmin(req);
-
-    if (!auth.ok) {
-      return json(
-        { ok: false, error: auth.error ?? "Applicant authentication required." },
-        auth.status ?? 401,
-      );
-    }
-
     const session = await getApplicantSession();
 
     if (!session) {
-      return json({ ok: false, error: "Applicant session unavailable." }, 401);
+      return json(
+        {
+          ok: false,
+          error: "Applicant authentication required.",
+        },
+        401,
+      );
     }
 
     const rows = await snowflakeQuery<SubmissionRow>(
