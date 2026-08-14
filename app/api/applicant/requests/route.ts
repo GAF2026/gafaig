@@ -1,7 +1,5 @@
 import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
 
-import { requireAdmin } from "@/lib/auth/require";
 import { getApplicantSession } from "@/lib/applicant-auth";
 import { snowflakeQuery } from "@/lib/snowflake";
 import {
@@ -43,21 +41,18 @@ function deriveRequestStatus(status: string) {
   return normalized || "OPEN";
 }
 
-export async function GET(req: NextRequest) {
+export async function GET() {
   try {
-    const auth = await requireAdmin(req);
-
-    if (!auth.ok) {
-      return json(
-        { ok: false, error: auth.error ?? "Applicant authentication required." },
-        auth.status ?? 401,
-      );
-    }
-
     const session = await getApplicantSession();
 
     if (!session) {
-      return json({ ok: false, error: "Applicant session unavailable." }, 401);
+      return json(
+        {
+          ok: false,
+          error: "Applicant authentication required.",
+        },
+        401,
+      );
     }
 
     const workflowRows = await snowflakeQuery<WorkflowRow>(
@@ -134,7 +129,11 @@ export async function GET(req: NextRequest) {
         : "";
 
       const responseSubmittedAt = response
-        ? firstApplicantValue(response, ["SUBMITTED_AT", "UPLOADED_AT", "CREATED_AT"])
+        ? firstApplicantValue(response, [
+            "SUBMITTED_AT",
+            "UPLOADED_AT",
+            "CREATED_AT",
+          ])
         : "";
 
       const responseSubmittedBy = response
@@ -165,7 +164,10 @@ export async function GET(req: NextRequest) {
         caseStatus: status,
         source: cleanApplicantValue(row.SOURCE) || "Applicant Intake",
         dueDate: null,
-        updatedAt: cleanApplicantValue(row.UPDATED_AT) || responseSubmittedAt || null,
+        updatedAt:
+          cleanApplicantValue(row.UPDATED_AT) ||
+          responseSubmittedAt ||
+          null,
         responseId: responseId || null,
         responseStatus,
         responseSubmittedAt: responseSubmittedAt || null,
