@@ -163,18 +163,22 @@ export async function POST(
       ],
     );
 
-    return json({
-      ok: true,
-      responseId,
-      evidenceId,
-      requestId,
-      caseId: requestId,
-      responseType,
-      title: responseTitle,
-      submittedBy: session.email,
-      organizationName: session.organizationName,
-      status: "SUBMITTED",
-    });
+    const redirectUrl = new URL(
+      `/applicant/requests/${encodeURIComponent(requestId)}`,
+      req.url,
+    );
+
+    redirectUrl.searchParams.set(
+      "response",
+      "submitted",
+    );
+
+    return NextResponse.redirect(
+      redirectUrl,
+      {
+        status: 303,
+      },
+    );
   } catch (error) {
     return json(
       {
