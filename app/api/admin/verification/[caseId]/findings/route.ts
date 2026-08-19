@@ -1,23 +1,46 @@
 import { NextRequest, NextResponse } from "next/server";
+
 import { executeQuery } from "@/lib/snowflake";
-import { requireAdmin } from "@/lib/auth/admin";
+import { requireAdmin as requireAdminCookie } from "@/lib/auth/admin";
+import { requireAdmin as requireAdminSession } from "@/lib/auth/require";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 function jsonError(message: string, status = 500) {
-  return NextResponse.json({ ok: false, error: message }, { status });
+  return NextResponse.json(
+    {
+      ok: false,
+      error: message,
+    },
+    {
+      status,
+    },
+  );
 }
 
 function normalizeRows<T = any>(result: any): T[] {
   if (!result) return [];
-  if (Array.isArray(result)) return result as T[];
-  if (Array.isArray((result as any).rows)) return (result as any).rows as T[];
+
+  if (Array.isArray(result)) {
+    return result as T[];
+  }
+
+  if (Array.isArray((result as any).rows)) {
+    return (result as any).rows as T[];
+  }
+
   return [];
 }
 
 function pickStr(v: any) {
-  if (v === null || v === undefined) return "";
+  if (
+    v === null ||
+    v === undefined
+  ) {
+    return "";
+  }
+
   return String(v);
 }
 
@@ -25,23 +48,90 @@ function extractProcedurePayload(result: any): any | null {
   const rows = normalizeRows<any>(result);
   const row = rows?.[0];
 
-  if (!row) return null;
+  if (!row) {
+    return null;
+  }
 
   const values = Object.values(row);
-  return values.length > 0 ? values[0] : null;
+
+  return values.length > 0
+    ? values[0]
+    : null;
+}
+
+function authorizeAdmin(
+  req: NextRequest,
+):
+  | {
+      ok: true;
+    }
+  | {
+      ok: false;
+      status: number;
+      error: string;
+    } {
+  const sessionAuth =
+    requireAdminSession(req);
+
+  const cookieAuth =
+    requireAdminCookie(
+      req,
+      true,
+    );
+
+  if (
+    !sessionAuth.ok &&
+    !cookieAuth
+  ) {
+    return {
+      ok: false,
+      status:
+        sessionAuth.status ??
+        401,
+      error:
+        sessionAuth.error ??
+        "Unauthorized",
+    };
+  }
+
+  return {
+    ok: true,
+  };
 }
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { caseId: string } }
+  {
+    params,
+  }: {
+    params: {
+      caseId: string;
+    };
+  },
 ) {
-  if (!requireAdmin(req, true)) {
-    return jsonError("Unauthorized", 401);
+  const auth =
+    authorizeAdmin(req);
+
+  if (!auth.ok) {
+    return jsonError(
+      auth.error,
+      auth.status,
+    );
   }
 
   try {
-    const caseId = String(params?.caseId || "").trim();
-    if (!caseId) return jsonError("Missing caseId", 400);
+    const caseId =
+      String(
+        params?.caseId ||
+          "",
+      ).trim();
+
+    if (!caseId) {
+      return jsonError(
+        "Missing caseId",
+        400,
+      );
+    }
 
     const sql = `
       SELECT
@@ -58,114 +148,260 @@ export async function GET(
       ORDER BY CREATED_AT DESC
     `;
 
-    const result = await executeQuery(sql, [caseId]);
-    const rows = normalizeRows<any>(result);
+    const result =
+      await executeQuery(
+        sql,
+        [
+          caseId,
+        ],
+      );
+
+    const rows =
+      normalizeRows<any>(
+        result,
+      );
 
     return NextResponse.json({
       ok: true,
       rows,
-      total: rows.length,
-      source: "snowflake",
+      total:
+        rows.length,
+      source:
+        "snowflake",
     });
   } catch (e: any) {
-    return jsonError(e?.message ?? "Failed to load findings");
+    return jsonError(
+      e?.message ??
+        "Failed to load findings",
+    );
   }
 }
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: { caseId: string } }
+  {
+    params,
+  }: {
+    params: {
+      caseId: string;
+    };
+  },
 ) {
-  if (!requireAdmin(req, true)) {
-    return jsonError("Unauthorized", 401);
+  const auth =
+    authorizeAdmin(req);
+
+  if (!auth.ok) {
+    return jsonError(
+      auth.error,
+      auth.status,
+    );
   }
 
   try {
-    const caseId = String(params?.caseId || "").trim();
-    if (!caseId) return jsonError("Missing caseId", 400);
+    const caseId =
+      String(
+        params?.caseId ||
+          "",
+      ).trim();
 
-    const body = await req.json().catch(() => ({}));
+    if (!caseId) {
+      return jsonError(
+        "Missing caseId",
+        400,
+      );
+    }
 
-    const title = pickStr(body?.title).trim();
-    const severity = pickStr(body?.severity).trim() || null;
-    const status = pickStr(body?.status).trim() || "open";
-    const category = pickStr(body?.category).trim() || null;
+    const body =
+      await req
+        .json()
+        .catch(
+          () => ({}),
+        );
 
-    if (!title) return jsonError("Missing required field: title", 400);
+    const title =
+      pickStr(
+        body?.title,
+      ).trim();
 
-    const result = await executeQuery(
-      `
-      CALL GAFAIG_DB.CORE.SP_CREATE_FINDING(
-        ?, ?, ?, ?, ?
-      )
-      `,
-      [caseId, title, severity, status, category]
-    );
+    const severity =
+      pickStr(
+        body?.severity,
+      ).trim() ||
+      null;
 
-    const payload = extractProcedurePayload(result);
+    const status =
+      pickStr(
+        body?.status,
+      ).trim() ||
+      "open";
 
-    if (!payload?.findingId) {
-      return jsonError("Invalid finding procedure response", 500);
+    const category =
+      pickStr(
+        body?.category,
+      ).trim() ||
+      null;
+
+    if (!title) {
+      return jsonError(
+        "Missing required field: title",
+        400,
+      );
+    }
+
+    const result =
+      await executeQuery(
+        `
+        CALL GAFAIG_DB.CORE.SP_CREATE_FINDING(
+          ?, ?, ?, ?, ?
+        )
+        `,
+        [
+          caseId,
+          title,
+          severity,
+          status,
+          category,
+        ],
+      );
+
+    const payload =
+      extractProcedurePayload(
+        result,
+      );
+
+    if (
+      !payload?.findingId
+    ) {
+      return jsonError(
+        "Invalid finding procedure response",
+        500,
+      );
     }
 
     return NextResponse.json({
       ok: true,
       row: {
-        findingId: payload.findingId,
-        caseId: payload.caseId ?? caseId,
+        findingId:
+          payload.findingId,
+
+        caseId:
+          payload.caseId ??
+          caseId,
+
         title,
         severity,
         status,
         category,
       },
-      source: "snowflake",
+      source:
+        "snowflake",
     });
   } catch (e: any) {
-    return jsonError(e?.message ?? "Failed to create finding");
+    return jsonError(
+      e?.message ??
+        "Failed to create finding",
+    );
   }
 }
 
 export async function PUT(
   req: NextRequest,
-  { params }: { params: { caseId: string } }
+  {
+    params,
+  }: {
+    params: {
+      caseId: string;
+    };
+  },
 ) {
-  if (!requireAdmin(req, true)) {
-    return jsonError("Unauthorized", 401);
+  const auth =
+    authorizeAdmin(req);
+
+  if (!auth.ok) {
+    return jsonError(
+      auth.error,
+      auth.status,
+    );
   }
 
   try {
-    const body = await req.json().catch(() => ({}));
+    const body =
+      await req
+        .json()
+        .catch(
+          () => ({}),
+        );
 
-    const findingId = pickStr(body?.findingId).trim();
-    const severity = pickStr(body?.severity).trim() || null;
-    const status = pickStr(body?.status).trim() || null;
-    const category = pickStr(body?.category).trim() || null;
+    const findingId =
+      pickStr(
+        body?.findingId,
+      ).trim();
+
+    const severity =
+      pickStr(
+        body?.severity,
+      ).trim() ||
+      null;
+
+    const status =
+      pickStr(
+        body?.status,
+      ).trim() ||
+      null;
+
+    const category =
+      pickStr(
+        body?.category,
+      ).trim() ||
+      null;
 
     if (!findingId) {
-      return jsonError("Missing required field: findingId", 400);
+      return jsonError(
+        "Missing required field: findingId",
+        400,
+      );
     }
 
-    const result = await executeQuery(
-      `
-      CALL GAFAIG_DB.CORE.SP_UPDATE_FINDING(
-        ?, ?, ?, ?
-      )
-      `,
-      [findingId, severity, status, category]
-    );
+    const result =
+      await executeQuery(
+        `
+        CALL GAFAIG_DB.CORE.SP_UPDATE_FINDING(
+          ?, ?, ?, ?
+        )
+        `,
+        [
+          findingId,
+          severity,
+          status,
+          category,
+        ],
+      );
 
-    const payload = extractProcedurePayload(result);
+    const payload =
+      extractProcedurePayload(
+        result,
+      );
 
-    if (!payload?.findingId) {
-      return jsonError("Invalid update response", 500);
+    if (
+      !payload?.findingId
+    ) {
+      return jsonError(
+        "Invalid update response",
+        500,
+      );
     }
 
     return NextResponse.json({
       ok: true,
-      row: payload,
-      source: "snowflake",
+      row:
+        payload,
+      source:
+        "snowflake",
     });
   } catch (e: any) {
-    return jsonError(e?.message ?? "Failed to update finding");
+    return jsonError(
+      e?.message ??
+        "Failed to update finding",
+    );
   }
 }

@@ -10,7 +10,10 @@ import {
 } from "@/lib/applicant/repository";
 import { snowflakeQuery } from "@/lib/snowflake";
 
-import { isApplicantRuntimeSession } from "./participant";
+import {
+  isAdminRuntimeSession,
+  isApplicantRuntimeSession,
+} from "./participant";
 import { loadGuidanceRelationshipContext } from "./relationshipContext";
 import type {
   GuidanceRepositoryName,
@@ -32,6 +35,14 @@ type WorkflowRow = {
   REQUEST_ID: string | null;
   STATUS: string | null;
   SOURCE: string | null;
+};
+
+type AdministrativeCaseScopeRow = {
+  CASE_ID: string | null;
+  ORG_ID: string | null;
+  PARTICIPANT_ID: string | null;
+  APPLICATION_ID: string | null;
+  REQUEST_ID: string | null;
 };
 
 const ORDERED_REPOSITORIES: readonly GuidanceRepositoryName[] = [
@@ -117,6 +128,15 @@ function buildSummaries(
   });
 }
 
+function administrativeParticipantAllowed(
+  context: GuidanceContext,
+): boolean {
+  return (
+    context.participant === "GAFAIG_OPERATIONS_REVIEWER" ||
+    context.participant === "PLATFORM_ADMINISTRATOR"
+  );
+}
+
 export async function loadRepositoryContext(
   context: GuidanceContext,
 ): Promise<RepositoryContextLoadResult> {
@@ -131,12 +151,47 @@ export async function loadRepositoryContext(
     };
   }
 
-  if (!isApplicantRuntimeSession(context.session)) {
+  const applicantSession =
+    isApplicantRuntimeSession(context.session);
+
+  const administrativeSession =
+    isAdminRuntimeSession(context.session);
+
+  if (
+    !applicantSession &&
+    !administrativeSession
+  ) {
     return {
       ok: false,
       code: "PARTICIPANT_SCOPE_INVALID",
       message:
-        "Phase 2A repository loading currently requires an applicant organization session.",
+        "Repository context requires a recognized applicant or administrative guidance session.",
+      retryable: false,
+    };
+  }
+
+  if (
+    administrativeSession &&
+    !administrativeParticipantAllowed(context)
+  ) {
+    return {
+      ok: false,
+      code: "PARTICIPANT_SCOPE_INVALID",
+      message:
+        "Administrative repository context is not available to this guidance participant.",
+      retryable: false,
+    };
+  }
+
+  const organizationId =
+    cleanApplicantValue(context.organizationId);
+
+  if (!organizationId) {
+    return {
+      ok: false,
+      code: "SOURCE_INCONSISTENT",
+      message:
+        "Repository context requires explicit organization scope.",
       retryable: false,
     };
   }
@@ -144,26 +199,144 @@ export async function loadRepositoryContext(
   const observedAt = new Date().toISOString();
 
   try {
-    const workflowRows = await snowflakeQuery<WorkflowRow>(
-      `
-      SELECT
-        REQUEST_ID::STRING AS REQUEST_ID,
-        STATUS::STRING AS STATUS,
-        COALESCE(SOURCE_TABLE, SOURCE)::STRING AS SOURCE
-      FROM ${APPLICANT_WORKFLOW_VIEW}
-      WHERE REQUEST_ID::STRING = ?
-        AND COALESCE(ORG_NAME, ORGANIZATION_NAME)::STRING ILIKE ?
-      LIMIT 2
-      `,
-      [caseId, context.session.organizationName],
-    );
+    /*
+     * Administrative guidance resolves the canonical operational identity
+     * chain from the verification case:
+     *
+     * VERIFICATION_CASES.CASE_ID
+     *   -> VERIFICATION_CASES.PARTICIPANT_ID
+     *   -> PARTICIPANTS.APPLICATION_ID
+     *   -> APPLICATIONS.REQUEST_ID
+     *   -> V_ADMIN_SUBMISSIONS.REQUEST_ID
+     *
+     * Organization scope is independently preserved by requiring the
+     * VERIFICATION_CASES CASE_ID / ORG_ID relationship supplied by the
+     * administrative Guidance context.
+     *
+     * Applicant behavior remains unchanged.
+     */
+    let administrativeCaseRow:
+      AdministrativeCaseScopeRow | null = null;
+
+    if (administrativeSession) {
+      const administrativeCaseRows =
+        await snowflakeQuery<AdministrativeCaseScopeRow>(
+          `
+          SELECT
+            vc.CASE_ID::STRING AS CASE_ID,
+            vc.ORG_ID::STRING AS ORG_ID,
+            vc.PARTICIPANT_ID::STRING AS PARTICIPANT_ID,
+            p.APPLICATION_ID::STRING AS APPLICATION_ID,
+            a.REQUEST_ID::STRING AS REQUEST_ID
+          FROM GAFAIG_DB.CORE.VERIFICATION_CASES vc
+          INNER JOIN GAFAIG_DB.CORE.PARTICIPANTS p
+            ON TRIM(UPPER(p.PARTICIPANT_ID::STRING)) =
+               TRIM(UPPER(vc.PARTICIPANT_ID::STRING))
+          INNER JOIN GAFAIG_DB.CORE.APPLICATIONS a
+            ON TRIM(UPPER(a.APPLICATION_ID::STRING)) =
+               TRIM(UPPER(p.APPLICATION_ID::STRING))
+          WHERE TRIM(UPPER(vc.CASE_ID::STRING)) = TRIM(UPPER(?))
+            AND TRIM(UPPER(vc.ORG_ID::STRING)) = TRIM(UPPER(?))
+          LIMIT 2
+          `,
+          [caseId, organizationId],
+        );
+
+      if (administrativeCaseRows.length === 0) {
+        return {
+          ok: false,
+          code: "CASE_NOT_VISIBLE",
+          message:
+            "The requested case could not be resolved through the canonical administrative case, participant, application, and organization scope.",
+          retryable: false,
+        };
+      }
+
+      if (administrativeCaseRows.length > 1) {
+        return {
+          ok: false,
+          code: "SOURCE_INCONSISTENT",
+          message:
+            "Multiple canonical administrative identity chains were returned for the same case and organization scope.",
+          retryable: false,
+        };
+      }
+
+      administrativeCaseRow =
+        administrativeCaseRows[0];
+
+      if (
+        !cleanApplicantValue(
+          administrativeCaseRow.REQUEST_ID,
+        )
+      ) {
+        return {
+          ok: false,
+          code: "SOURCE_INCONSISTENT",
+          message:
+            "The canonical administrative case does not resolve to an application request identifier.",
+          retryable: false,
+        };
+      }
+    }
+
+    /*
+     * Applicant sessions retain the existing organization-name-scoped
+     * workflow lookup.
+     *
+     * Administrative sessions use the REQUEST_ID resolved through the
+     * authoritative CASE -> PARTICIPANT -> APPLICATION chain above.
+     * No applicant organization name or applicant identity is fabricated.
+     */
+    const workflowRequestId =
+      applicantSession
+        ? caseId
+        : cleanApplicantValue(
+            administrativeCaseRow?.REQUEST_ID,
+          );
+
+    const workflowRows =
+      applicantSession
+        ? await snowflakeQuery<WorkflowRow>(
+            `
+            SELECT
+              REQUEST_ID::STRING AS REQUEST_ID,
+              STATUS::STRING AS STATUS,
+              COALESCE(SOURCE_TABLE, SOURCE)::STRING AS SOURCE
+            FROM ${APPLICANT_WORKFLOW_VIEW}
+            WHERE REQUEST_ID::STRING = ?
+              AND COALESCE(ORG_NAME, ORGANIZATION_NAME)::STRING ILIKE ?
+            LIMIT 2
+            `,
+            [
+              workflowRequestId,
+              context.session.organizationName,
+            ],
+          )
+        : await snowflakeQuery<WorkflowRow>(
+    `
+            SELECT
+              REQUEST_ID::STRING AS REQUEST_ID,
+              STATUS::STRING AS STATUS,
+              COALESCE(SOURCE_TABLE, SOURCE)::STRING AS SOURCE
+            FROM ${APPLICANT_WORKFLOW_VIEW}
+            WHERE TRIM(UPPER(REQUEST_ID::STRING)) = TRIM(UPPER(?))
+            ORDER BY
+              UPDATED_AT DESC NULLS LAST,
+              CREATED_AT DESC NULLS LAST
+            LIMIT 1
+            `,
+            [workflowRequestId],
+          );
 
     if (workflowRows.length === 0) {
       return {
         ok: false,
         code: "CASE_NOT_VISIBLE",
         message:
-          "The requested case is not visible within the authenticated organization scope.",
+          applicantSession
+            ? "The requested case is not visible within the authenticated organization scope."
+            : "The canonical administrative case request does not resolve in the authoritative operational workflow view.",
         retryable: false,
       };
     }
@@ -173,7 +346,7 @@ export async function loadRepositoryContext(
         ok: false,
         code: "SOURCE_INCONSISTENT",
         message:
-          "Multiple workflow rows were returned for the same scoped case.",
+          "Multiple workflow rows were returned for the same scoped request.",
         retryable: false,
       };
     }
@@ -190,40 +363,138 @@ export async function loadRepositoryContext(
         [caseId],
       );
 
-    const scope = repositoryScopeFromSession(
-      context.session,
-      new Set([caseId]),
-    );
+    /*
+     * Applicant repository visibility retains the existing applicant
+     * organization/session scope evaluation.
+     *
+     * Administrative guidance does not use applicant identity fields.
+     * Its repository rows are constrained by verification CASE_ID after
+     * the canonical administrative case and organization relationship was
+     * independently verified.
+     */
+    let visibleRows:
+      PersistedApplicantRepositoryRow[];
 
-    const visibleRows = persistedRows.filter((row) =>
-      applicantRepositoryRowBelongsToScope(row, scope),
-    );
+    if (
+      isApplicantRuntimeSession(
+        context.session,
+      )
+    ) {
+      const scope =
+        repositoryScopeFromSession(
+          context.session,
+          new Set([caseId]),
+        );
 
-    const repositories = buildSummaries(visibleRows, observedAt);
+      visibleRows =
+        persistedRows.filter(
+          (row) =>
+            applicantRepositoryRowBelongsToScope(
+              row,
+              scope,
+            ),
+        );
+    } else {
+      visibleRows =
+        persistedRows;
+    }
 
-    const workflowReference = createSnowflakeSourceReference({
-      database: "GAFAIG_DB",
-      schema: "CORE",
-      objectName: "V_ADMIN_SUBMISSIONS",
-      recordId: caseId,
-      observedAt,
-    });
+    const repositories =
+      buildSummaries(
+        visibleRows,
+        observedAt,
+      );
+
+    const workflowReference =
+      createSnowflakeSourceReference({
+        database: "GAFAIG_DB",
+        schema: "CORE",
+        objectName: "V_ADMIN_SUBMISSIONS",
+        recordId:
+          applicantSession
+            ? caseId
+            : workflowRequestId,
+        observedAt,
+      });
+
+    const administrativeCaseReference =
+      administrativeSession
+        ? createSnowflakeSourceReference({
+            database: "GAFAIG_DB",
+            schema: "CORE",
+            objectName: "VERIFICATION_CASES",
+            recordId: caseId,
+            observedAt,
+          })
+        : null;
+
+    const administrativeParticipantReference =
+      administrativeSession &&
+      cleanApplicantValue(
+        administrativeCaseRow?.PARTICIPANT_ID,
+      )
+        ? createSnowflakeSourceReference({
+            database: "GAFAIG_DB",
+            schema: "CORE",
+            objectName: "PARTICIPANTS",
+            recordId:
+              cleanApplicantValue(
+                administrativeCaseRow?.PARTICIPANT_ID,
+              ),
+            observedAt,
+          })
+        : null;
+
+    const administrativeApplicationReference =
+      administrativeSession &&
+      cleanApplicantValue(
+        administrativeCaseRow?.APPLICATION_ID,
+      )
+        ? createSnowflakeSourceReference({
+            database: "GAFAIG_DB",
+            schema: "CORE",
+            objectName: "APPLICATIONS",
+            recordId:
+              cleanApplicantValue(
+                administrativeCaseRow?.APPLICATION_ID,
+              ),
+            observedAt,
+          })
+        : null;
 
     return {
       ok: true,
       context: {
-        organizationId: context.organizationId,
+        organizationId,
         caseId,
         workflowStatus:
-          cleanApplicantValue(workflowRows[0].STATUS) || null,
+          cleanApplicantValue(
+            workflowRows[0].STATUS,
+          ) || null,
         workflowStage:
-          cleanApplicantValue(workflowRows[0].SOURCE) || null,
+          cleanApplicantValue(
+            workflowRows[0].SOURCE,
+          ) || null,
         repositories,
-        relationships: loadGuidanceRelationshipContext(),
-        sourceReferences: uniqueSourceReferences([
-          workflowReference,
-          ...repositories.flatMap((item) => item.sourceReferences),
-        ]),
+        relationships:
+          loadGuidanceRelationshipContext(),
+        sourceReferences:
+          uniqueSourceReferences([
+            workflowReference,
+            ...(administrativeCaseReference
+              ? [administrativeCaseReference]
+              : []),
+            ...(administrativeParticipantReference
+              ? [administrativeParticipantReference]
+              : []),
+            ...(administrativeApplicationReference
+              ? [administrativeApplicationReference]
+              : []),
+            ...repositories.flatMap(
+              (item) =>
+                item.sourceReferences,
+            ),
+          ]),
         observedAt,
       },
     };

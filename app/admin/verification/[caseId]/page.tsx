@@ -7,6 +7,7 @@ import AdminNav from "../../_components/AdminNav";
 import AdminPageHeader from "../../_components/AdminPageHeader";
 import PublicButton from "../../../_components/PublicButton";
 import PublicButtonLink from "../../../_components/PublicButtonLink";
+import ReviewerGuidancePanel from "../../../../components/admin/guidance/ReviewerGuidancePanel";
 
 type DecisionRow = {
   decisionId?: string | null;
@@ -493,6 +494,10 @@ export default function CaseOverviewPage() {
               Publish the approved case to the public registry and AI systems surfaces.
             </div>
           </Link>
+        </section>
+
+        <section className="mt-10">
+          <ReviewerGuidancePanel caseId={caseId} />
         </section>
 
         <section className="mt-10 rounded-3xl border border-black/10 bg-white p-8">
