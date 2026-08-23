@@ -3469,3 +3469,394 @@ test(
     );
   },
 );
+
+test(
+  "blocking guidance preserves authoritative conditions and resolves highest severity deterministically",
+  async () => {
+    const {
+      blockingEngine,
+    } =
+      await import(
+        "../lib/guidance/blockingEngine"
+      );
+
+    const repositoryContext = {
+      organizationId:
+        "ORG-PHASE-11",
+
+      caseId:
+        "CASE-PHASE-11",
+
+      workflowStatus:
+        "UNDER_REVIEW",
+
+      workflowStage:
+        "EVIDENCE_REVIEW",
+
+      repositoryCount:
+        0,
+
+      repositoriesWithRecords: [],
+
+      emptyRepositories: [],
+
+      repositories: [],
+
+      relationshipAvailability:
+        "UNRESOLVED",
+
+      observedAt:
+        FIXED_GENERATED_AT,
+    } as any;
+
+    const informationalCondition = {
+      conditionId:
+        "NO_BLOCKING_CONDITION_RESOLVED",
+
+      title:
+        "Informational Condition",
+
+      description:
+        "Participant-visible informational condition.",
+
+      severity:
+        "INFORMATIONAL",
+
+      responsibleParticipant:
+        "APPLICANT",
+
+      relatedRepository:
+        null,
+
+      relatedStage:
+        "EVIDENCE_REVIEW",
+
+      participantExplanation:
+        "Informational guidance only.",
+    } as any;
+
+    const progressionBlockedCondition = {
+      conditionId:
+        "EVIDENCE_REQUIRED",
+
+      title:
+        "Evidence Required",
+
+      description:
+        "Supporting evidence is required before progression.",
+
+      severity:
+        "PROGRESSION_BLOCKED",
+
+      responsibleParticipant:
+        "APPLICANT",
+
+      relatedRepository:
+        "EVIDENCE",
+
+      relatedStage:
+        "EVIDENCE_REVIEW",
+
+      participantExplanation:
+        "Upload the required supporting evidence.",
+    } as any;
+
+    const result =
+      await blockingEngine.execute({
+        context:
+          phase11CompositeContext(),
+
+        input: {
+          repositoryContext,
+
+          authoritativeConditions: [
+            informationalCondition,
+            progressionBlockedCondition,
+          ],
+
+          sourceReferences: [],
+        },
+      });
+
+    assert.equal(
+      result.status,
+      "BLOCKED",
+    );
+
+    assert.ok(
+      result.payload,
+    );
+
+    assert.equal(
+      result.payload
+        ?.availability,
+      "AVAILABLE",
+    );
+
+    assert.equal(
+      result.payload
+        ?.blocked,
+      true,
+    );
+
+    assert.equal(
+      result.payload
+        ?.highestSeverity,
+      "PROGRESSION_BLOCKED",
+    );
+
+    assert.equal(
+      result.payload
+        ?.blockingConditions[0],
+      progressionBlockedCondition,
+    );
+
+    assert.equal(
+      result.payload
+        ?.blockingConditions[1],
+      informationalCondition,
+    );
+
+    assert.ok(
+      result.explanation
+        .ruleIds
+        .includes(
+          "OG-BLOCKING-EXPLICIT-AUTHORITATIVE-CONDITIONS-PRESERVED",
+        ),
+    );
+
+    assert.ok(
+      result.explanation
+        .ruleIds
+        .includes(
+          "OG-BLOCKING-NO-AUTOMATIC-RESOLUTION",
+        ),
+    );
+  },
+);
+
+test(
+  "blocking guidance fails closed while canonical relationship context is unresolved",
+  async () => {
+    const {
+      blockingEngine,
+    } =
+      await import(
+        "../lib/guidance/blockingEngine"
+      );
+
+    const repositoryContext = {
+      organizationId:
+        "ORG-PHASE-11",
+
+      caseId:
+        "CASE-PHASE-11",
+
+      workflowStatus:
+        "UNDER_REVIEW",
+
+      workflowStage:
+        "REVIEW_PENDING",
+
+      repositoryCount:
+        0,
+
+      repositoriesWithRecords: [],
+
+      emptyRepositories: [],
+
+      repositories: [],
+
+      relationshipAvailability:
+        "UNRESOLVED",
+
+      observedAt:
+        FIXED_GENERATED_AT,
+    } as any;
+
+    const result =
+      await blockingEngine.execute({
+        context:
+          phase11CompositeContext(),
+
+        input: {
+          repositoryContext,
+          sourceReferences: [],
+        },
+      });
+
+    assert.equal(
+      result.status,
+      "UNRESOLVED",
+    );
+
+    assert.ok(
+      result.payload,
+    );
+
+    assert.equal(
+      result.payload
+        ?.availability,
+      "UNRESOLVED",
+    );
+
+    assert.equal(
+      result.payload
+        ?.blocked,
+      null,
+    );
+
+    assert.deepEqual(
+      result.payload
+        ?.blockingConditions,
+      [],
+    );
+
+    assert.equal(
+      result.payload
+        ?.highestSeverity,
+      null,
+    );
+
+    assert.ok(
+      result.explanation
+        .ruleIds
+        .includes(
+          "OG-BLOCKING-RELATIONSHIP-CONTEXT-REQUIRED",
+        ),
+    );
+
+    assert.ok(
+      result.explanation
+        .ruleIds
+        .includes(
+          "OG-BLOCKING-NO-RELATIONSHIP-INFERENCE",
+        ),
+    );
+
+    assert.ok(
+      result.explanation
+        .ruleIds
+        .includes(
+          "OG-BLOCKING-NO-BLOCKER-INFERENCE",
+        ),
+    );
+
+    assert.ok(
+      result.explanation
+        .unresolvedConditions
+        .includes(
+          "The Blocking Engine cannot deterministically certify that no blocking condition exists.",
+        ),
+    );
+  },
+);
+
+test(
+  "blocking guidance returns available only when no authorized blocking rule is satisfied",
+  async () => {
+    const {
+      blockingEngine,
+    } =
+      await import(
+        "../lib/guidance/blockingEngine"
+      );
+
+    const repositoryContext = {
+      organizationId:
+        "ORG-PHASE-11",
+
+      caseId:
+        "CASE-PHASE-11",
+
+      workflowStatus:
+        "COMPLETE",
+
+      workflowStage:
+        "COMPLETE",
+
+      repositoryCount:
+        0,
+
+      repositoriesWithRecords: [],
+
+      emptyRepositories: [],
+
+      repositories: [],
+
+      relationshipAvailability:
+        "AVAILABLE",
+
+      observedAt:
+        FIXED_GENERATED_AT,
+    } as any;
+
+    const result =
+      await blockingEngine.execute({
+        context:
+          phase11CompositeContext(),
+
+        input: {
+          repositoryContext,
+          sourceReferences: [],
+        },
+      });
+
+    assert.equal(
+      result.status,
+      "AVAILABLE",
+    );
+
+    assert.ok(
+      result.payload,
+    );
+
+    assert.equal(
+      result.payload
+        ?.availability,
+      "AVAILABLE",
+    );
+
+    assert.equal(
+      result.payload
+        ?.blocked,
+      false,
+    );
+
+    assert.deepEqual(
+      result.payload
+        ?.blockingConditions,
+      [],
+    );
+
+    assert.equal(
+      result.payload
+        ?.highestSeverity,
+      null,
+    );
+
+    assert.ok(
+      result.explanation
+        .ruleIds
+        .includes(
+          "OG-BLOCKING-NO-AUTHORIZED-BLOCKING-RULE-SATISFIED",
+        ),
+    );
+
+    assert.ok(
+      result.explanation
+        .ruleIds
+        .includes(
+          "OG-BLOCKING-NO-AUTOMATIC-RESOLUTION",
+        ),
+    );
+
+    assert.ok(
+      result.explanation
+        .ruleIds
+        .includes(
+          "OG-BLOCKING-NO-AUTHORITY-CREATION",
+        ),
+    );
+  },
+);
