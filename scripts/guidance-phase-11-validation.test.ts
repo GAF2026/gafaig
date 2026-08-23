@@ -3087,3 +3087,385 @@ test(
     );
   },
 );
+
+test(
+  "next action guidance resolves the first satisfied deterministic rule from authoritative repository context",
+  async () => {
+    const {
+      nextActionEngine,
+    } =
+      await import(
+        "../lib/guidance/nextActionEngine"
+      );
+
+    const repositoryContext = {
+      organizationId:
+        "ORG-PHASE-11",
+
+      caseId:
+        "CASE-PHASE-11",
+
+      workflowStatus:
+        "INFORMATION_REQUEST",
+
+      workflowStage:
+        "DEFICIENCY",
+
+      repositoryCount:
+        0,
+
+      repositoriesWithRecords: [],
+
+      emptyRepositories: [
+        "EVIDENCE",
+        "ARTIFACT",
+        "INFORMATION_REQUEST",
+        "DEFICIENCY",
+        "REMEDIATION",
+        "CERTIFICATION",
+        "PROGRESS",
+      ],
+
+      repositories: [
+        {
+          repository:
+            "EVIDENCE",
+          recordCount:
+            0,
+          visibleRecordIds: [],
+          sourceReferences: [],
+        },
+        {
+          repository:
+            "ARTIFACT",
+          recordCount:
+            0,
+          visibleRecordIds: [],
+          sourceReferences: [],
+        },
+        {
+          repository:
+            "INFORMATION_REQUEST",
+          recordCount:
+            0,
+          visibleRecordIds: [],
+          sourceReferences: [],
+        },
+        {
+          repository:
+            "DEFICIENCY",
+          recordCount:
+            0,
+          visibleRecordIds: [],
+          sourceReferences: [],
+        },
+        {
+          repository:
+            "REMEDIATION",
+          recordCount:
+            0,
+          visibleRecordIds: [],
+          sourceReferences: [],
+        },
+        {
+          repository:
+            "CERTIFICATION",
+          recordCount:
+            0,
+          visibleRecordIds: [],
+          sourceReferences: [],
+        },
+        {
+          repository:
+            "PROGRESS",
+          recordCount:
+            0,
+          visibleRecordIds: [],
+          sourceReferences: [],
+        },
+      ],
+
+      relationshipAvailability:
+        "UNRESOLVED",
+
+      observedAt:
+        FIXED_GENERATED_AT,
+    } as any;
+
+    const sourceReferences = [
+      {
+        sourceSystem:
+          "SNOWFLAKE",
+
+        database:
+          "GAFAIG_DB",
+
+        schema:
+          "CORE",
+
+        objectName:
+          "V_VERIFICATION_CASES",
+
+        recordId:
+          "CASE-PHASE-11",
+
+        observedAt:
+          FIXED_GENERATED_AT,
+      },
+    ] as any;
+
+    const result =
+      await nextActionEngine.execute({
+        context:
+          phase11CompositeContext(),
+
+        input: {
+          repositoryContext,
+          sourceReferences,
+        },
+      });
+
+    assert.equal(
+      result.status,
+      "AVAILABLE",
+    );
+
+    assert.ok(
+      result.payload,
+    );
+
+    assert.equal(
+      result.payload
+        ?.availability,
+      "AVAILABLE",
+    );
+
+    assert.equal(
+      result.payload
+        ?.action
+        ?.actionId,
+      "RESPOND_TO_INFORMATION_REQUEST",
+    );
+
+    assert.equal(
+      result.payload
+        ?.action
+        ?.owner,
+      "APPLICANT",
+    );
+
+    assert.equal(
+      result.payload
+        ?.waitingOn,
+      "APPLICANT",
+    );
+
+    assert.deepEqual(
+      result.sourceReferences,
+      sourceReferences,
+    );
+
+    assert.ok(
+      result.explanation
+        .ruleIds
+        .includes(
+          "OG-NEXT-ACTION-INFORMATION-REQUEST-RESPONSE-REQUIRED",
+        ),
+    );
+
+    assert.ok(
+      result.explanation
+        .ruleIds
+        .includes(
+          "OG-NEXT-ACTION-FIRST-SATISFIED-RULE-WINS",
+        ),
+    );
+
+    assert.ok(
+      result.explanation
+        .ruleIds
+        .includes(
+          "OG-NEXT-ACTION-SINGLE-ACTION-ONLY",
+        ),
+    );
+  },
+);
+
+test(
+  "next action guidance fails closed when no authorized deterministic rule is satisfied",
+  async () => {
+    const {
+      nextActionEngine,
+    } =
+      await import(
+        "../lib/guidance/nextActionEngine"
+      );
+
+    const repositoryContext = {
+      organizationId:
+        "ORG-PHASE-11",
+
+      caseId:
+        "CASE-PHASE-11",
+
+      workflowStatus:
+        "UNKNOWN",
+
+      workflowStage:
+        "UNKNOWN",
+
+      repositoryCount:
+        0,
+
+      repositoriesWithRecords: [],
+
+      emptyRepositories: [
+        "EVIDENCE",
+        "ARTIFACT",
+        "INFORMATION_REQUEST",
+        "DEFICIENCY",
+        "REMEDIATION",
+        "CERTIFICATION",
+        "PROGRESS",
+      ],
+
+      repositories: [
+        {
+          repository:
+            "EVIDENCE",
+          recordCount:
+            0,
+          visibleRecordIds: [],
+          sourceReferences: [],
+        },
+        {
+          repository:
+            "ARTIFACT",
+          recordCount:
+            0,
+          visibleRecordIds: [],
+          sourceReferences: [],
+        },
+        {
+          repository:
+            "INFORMATION_REQUEST",
+          recordCount:
+            0,
+          visibleRecordIds: [],
+          sourceReferences: [],
+        },
+        {
+          repository:
+            "DEFICIENCY",
+          recordCount:
+            0,
+          visibleRecordIds: [],
+          sourceReferences: [],
+        },
+        {
+          repository:
+            "REMEDIATION",
+          recordCount:
+            0,
+          visibleRecordIds: [],
+          sourceReferences: [],
+        },
+        {
+          repository:
+            "CERTIFICATION",
+          recordCount:
+            0,
+          visibleRecordIds: [],
+          sourceReferences: [],
+        },
+        {
+          repository:
+            "PROGRESS",
+          recordCount:
+            0,
+          visibleRecordIds: [],
+          sourceReferences: [],
+        },
+      ],
+
+      relationshipAvailability:
+        "AVAILABLE",
+
+      observedAt:
+        FIXED_GENERATED_AT,
+    } as any;
+
+    const result =
+      await nextActionEngine.execute({
+        context:
+          phase11CompositeContext(),
+
+        input: {
+          repositoryContext,
+          sourceReferences: [],
+        },
+      });
+
+    assert.equal(
+      result.status,
+      "UNRESOLVED",
+    );
+
+    assert.ok(
+      result.payload,
+    );
+
+    assert.equal(
+      result.payload
+        ?.availability,
+      "UNRESOLVED",
+    );
+
+    assert.equal(
+      result.payload
+        ?.action,
+      null,
+    );
+
+    assert.equal(
+      result.payload
+        ?.waitingOn,
+      null,
+    );
+
+    assert.deepEqual(
+      result.payload
+        ?.blockingItems,
+      [],
+    );
+
+    assert.ok(
+      result.explanation
+        .ruleIds
+        .includes(
+          "OG-NEXT-ACTION-NO-AUTHORIZED-RULE-SATISFIED",
+        ),
+    );
+
+    assert.ok(
+      result.explanation
+        .ruleIds
+        .includes(
+          "OG-NEXT-ACTION-DETERMINISTIC-PRIORITY-REQUIRED",
+        ),
+    );
+
+    assert.ok(
+      result.explanation
+        .unresolvedConditions
+        .includes(
+          "No authorized deterministic Next Action rule is satisfied by the current workflow and repository context.",
+        ),
+    );
+
+    assert.equal(
+      result.failure,
+      undefined,
+    );
+  },
+);
