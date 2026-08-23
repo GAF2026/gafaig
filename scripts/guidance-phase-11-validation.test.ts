@@ -2334,3 +2334,328 @@ test(
     );
   },
 );
+
+test(
+  "composite guidance applies implemented status precedence across competing component statuses",
+  async () => {
+    const {
+      compositeGuidanceEngine,
+    } =
+      await import(
+        "../lib/guidance/compositeGuidanceEngine"
+      );
+
+    const precedenceCases = [
+      {
+        higher:
+          "ERROR",
+        lower:
+          "UNAUTHORIZED",
+        expected:
+          "ERROR",
+      },
+      {
+        higher:
+          "UNAUTHORIZED",
+        lower:
+          "NOT_VISIBLE",
+        expected:
+          "UNAUTHORIZED",
+      },
+      {
+        higher:
+          "NOT_VISIBLE",
+        lower:
+          "INCONSISTENT",
+        expected:
+          "NOT_VISIBLE",
+      },
+      {
+        higher:
+          "INCONSISTENT",
+        lower:
+          "STALE",
+        expected:
+          "INCONSISTENT",
+      },
+      {
+        higher:
+          "STALE",
+        lower:
+          "UNAVAILABLE",
+        expected:
+          "STALE",
+      },
+      {
+        higher:
+          "UNAVAILABLE",
+        lower:
+          "UNRESOLVED",
+        expected:
+          "UNAVAILABLE",
+      },
+      {
+        higher:
+          "UNRESOLVED",
+        lower:
+          "BLOCKED",
+        expected:
+          "INCOMPLETE",
+      },
+      {
+        higher:
+          "BLOCKED",
+        lower:
+          "WAITING",
+        expected:
+          "BLOCKED",
+      },
+      {
+        higher:
+          "WAITING",
+        lower:
+          "INCOMPLETE",
+        expected:
+          "WAITING",
+      },
+      {
+        higher:
+          "INCOMPLETE",
+        lower:
+          "READY",
+        expected:
+          "INCOMPLETE",
+      },
+    ] as const;
+
+    for (
+      const precedenceCase of
+      precedenceCases
+    ) {
+      const result =
+        await compositeGuidanceEngine.execute({
+          context:
+            phase11CompositeContext(),
+
+          input: {
+            repositoryContext:
+              phase11CompositeResult(
+                "AVAILABLE",
+                phase11RepositoryPayload(),
+              ),
+
+            nextAction:
+              phase11CompositeResult(
+                precedenceCase.higher,
+              ),
+
+            blocking:
+              phase11CompositeResult(
+                precedenceCase.lower,
+              ),
+
+            waitingOn:
+              phase11CompositeResult(
+                "AVAILABLE",
+              ),
+
+            sourceReferences: [],
+          } as any,
+        });
+
+      assert.equal(
+        result.status,
+        precedenceCase.expected,
+      );
+
+      assert.ok(
+        result.payload,
+      );
+
+      assert.equal(
+        result.payload
+          ?.nextAction.status,
+        precedenceCase.higher,
+      );
+
+      assert.equal(
+        result.payload
+          ?.blocking.status,
+        precedenceCase.lower,
+      );
+    }
+  },
+);
+
+test(
+  "composite guidance converts UNRESOLVED dependency input to INCOMPLETE without producing positive guidance",
+  async () => {
+    const {
+      compositeGuidanceEngine,
+    } =
+      await import(
+        "../lib/guidance/compositeGuidanceEngine"
+      );
+
+    const result =
+      await compositeGuidanceEngine.execute({
+        context:
+          phase11CompositeContext(),
+
+        input: {
+          repositoryContext:
+            phase11CompositeResult(
+              "AVAILABLE",
+              phase11RepositoryPayload(),
+            ),
+
+          nextAction:
+            phase11CompositeResult(
+              "UNRESOLVED",
+            ),
+
+          blocking:
+            phase11CompositeResult(
+              "AVAILABLE",
+            ),
+
+          waitingOn:
+            phase11CompositeResult(
+              "AVAILABLE",
+            ),
+
+          sourceReferences: [],
+        } as any,
+      });
+
+    assert.equal(
+      result.status,
+      "INCOMPLETE",
+    );
+
+    assert.notEqual(
+      result.status,
+      "AVAILABLE",
+    );
+
+    assert.ok(
+      result.payload,
+    );
+
+    assert.equal(
+      result.payload
+        ?.nextAction.status,
+      "UNRESOLVED",
+    );
+
+    assert.deepEqual(
+      result.explanation
+        .unresolvedConditions,
+      [
+        "One or more component Guidance results remain unresolved or incomplete.",
+      ],
+    );
+  },
+);
+
+test(
+  "composite guidance preserves current READY and NOT_ELIGIBLE fallthrough behavior",
+  async () => {
+    const {
+      compositeGuidanceEngine,
+    } =
+      await import(
+        "../lib/guidance/compositeGuidanceEngine"
+      );
+
+    const fallthroughCases = [
+      {
+        nextAction:
+          "READY",
+        blocking:
+          "AVAILABLE",
+        waitingOn:
+          "AVAILABLE",
+      },
+      {
+        nextAction:
+          "NOT_ELIGIBLE",
+        blocking:
+          "AVAILABLE",
+        waitingOn:
+          "AVAILABLE",
+      },
+      {
+        nextAction:
+          "READY",
+        blocking:
+          "NOT_ELIGIBLE",
+        waitingOn:
+          "AVAILABLE",
+      },
+    ] as const;
+
+    for (
+      const fallthroughCase of
+      fallthroughCases
+    ) {
+      const result =
+        await compositeGuidanceEngine.execute({
+          context:
+            phase11CompositeContext(),
+
+          input: {
+            repositoryContext:
+              phase11CompositeResult(
+                "AVAILABLE",
+                phase11RepositoryPayload(),
+              ),
+
+            nextAction:
+              phase11CompositeResult(
+                fallthroughCase.nextAction,
+              ),
+
+            blocking:
+              phase11CompositeResult(
+                fallthroughCase.blocking,
+              ),
+
+            waitingOn:
+              phase11CompositeResult(
+                fallthroughCase.waitingOn,
+              ),
+
+            sourceReferences: [],
+          } as any,
+        });
+
+      assert.equal(
+        result.status,
+        "AVAILABLE",
+      );
+
+      assert.ok(
+        result.payload,
+      );
+
+      assert.equal(
+        result.payload
+          ?.nextAction.status,
+        fallthroughCase.nextAction,
+      );
+
+      assert.equal(
+        result.payload
+          ?.blocking.status,
+        fallthroughCase.blocking,
+      );
+
+      assert.equal(
+        result.payload
+          ?.waitingOn.status,
+        fallthroughCase.waitingOn,
+      );
+    }
+  },
+);
