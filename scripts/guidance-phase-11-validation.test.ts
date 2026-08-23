@@ -2895,3 +2895,195 @@ test(
     );
   },
 );
+
+test(
+  "composite guidance preserves all dependency results and source references on successful aggregation",
+  async () => {
+    const {
+      compositeGuidanceEngine,
+    } =
+      await import(
+        "../lib/guidance/compositeGuidanceEngine"
+      );
+
+    const repositoryContext =
+      phase11CompositeResult(
+        "AVAILABLE",
+        phase11RepositoryPayload(),
+      );
+
+    const nextAction =
+      phase11CompositeResult(
+        "READY",
+      );
+
+    const blocking =
+      phase11CompositeResult(
+        "AVAILABLE",
+      );
+
+    const waitingOn =
+      phase11CompositeResult(
+        "WAITING",
+      );
+
+    const sourceReferences = [
+      {
+        sourceSystem:
+          "SNOWFLAKE",
+
+        database:
+          "GAFAIG_DB",
+
+        schema:
+          "CORE",
+
+        objectName:
+          "V_VERIFICATION_CASES",
+
+        recordId:
+          "CASE-PHASE-11",
+
+        observedAt:
+          FIXED_GENERATED_AT,
+      },
+    ] as any;
+
+    const result =
+      await compositeGuidanceEngine.execute({
+        context:
+          phase11CompositeContext(),
+
+        input: {
+          repositoryContext,
+          nextAction,
+          blocking,
+          waitingOn,
+          sourceReferences,
+        } as any,
+      });
+
+    assert.equal(
+      result.status,
+      "WAITING",
+    );
+
+    assert.ok(
+      result.payload,
+    );
+
+    assert.equal(
+      result.payload
+        ?.repositoryContext,
+      repositoryContext,
+    );
+
+    assert.equal(
+      result.payload
+        ?.nextAction,
+      nextAction,
+    );
+
+    assert.equal(
+      result.payload
+        ?.blocking,
+      blocking,
+    );
+
+    assert.equal(
+      result.payload
+        ?.waitingOn,
+      waitingOn,
+    );
+
+    assert.deepEqual(
+      result.sourceReferences,
+      sourceReferences,
+    );
+
+    assert.equal(
+      result.failure,
+      undefined,
+    );
+  },
+);
+
+test(
+  "composite guidance exposes successful-path preservation and authority-boundary rules",
+  async () => {
+    const {
+      compositeGuidanceEngine,
+    } =
+      await import(
+        "../lib/guidance/compositeGuidanceEngine"
+      );
+
+    const result =
+      await compositeGuidanceEngine.execute({
+        context:
+          phase11CompositeContext(),
+
+        input: {
+          repositoryContext:
+            phase11CompositeResult(
+              "AVAILABLE",
+              phase11RepositoryPayload(),
+            ),
+
+          nextAction:
+            phase11CompositeResult(
+              "AVAILABLE",
+            ),
+
+          blocking:
+            phase11CompositeResult(
+              "AVAILABLE",
+            ),
+
+          waitingOn:
+            phase11CompositeResult(
+              "AVAILABLE",
+            ),
+
+          sourceReferences: [],
+        } as any,
+      });
+
+    const expectedRuleIds = [
+      "OG-COMPOSITE-ORGANIZATION-SCOPE-PRESERVED",
+      "OG-COMPOSITE-SOURCE-REFERENCES-PRESERVED",
+      "OG-COMPOSITE-DEPENDENCY-RESULTS-PRESERVED",
+      "OG-COMPOSITE-NO-RESULT-RECOMPUTATION",
+      "OG-COMPOSITE-NO-INDEPENDENT-SOURCE-QUERY",
+      "OG-COMPOSITE-NO-RELATIONSHIP-INFERENCE",
+      "OG-COMPOSITE-NO-WORKFLOW-MUTATION",
+      "OG-COMPOSITE-NO-GOVERNANCE-RECOMPUTATION",
+      "OG-COMPOSITE-NO-AUTHORITY-CREATION",
+    ] as const;
+
+    assert.equal(
+      result.status,
+      "AVAILABLE",
+    );
+
+    assert.ok(
+      result.payload,
+    );
+
+    for (
+      const ruleId of
+      expectedRuleIds
+    ) {
+      assert.ok(
+        result.explanation
+          .ruleIds
+          .includes(ruleId),
+      );
+    }
+
+    assert.equal(
+      result.failure,
+      undefined,
+    );
+  },
+);
