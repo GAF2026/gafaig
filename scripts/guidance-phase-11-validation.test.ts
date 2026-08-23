@@ -1784,3 +1784,125 @@ test(
     );
   },
 );
+
+test(
+  "guidance API view contract preserves canonical supported views and deterministic normalization",
+  async () => {
+    const {
+      GUIDANCE_API_VIEWS,
+      isGuidanceApiView,
+      parseGuidanceApiView,
+    } =
+      await import(
+        "../lib/guidance/guidanceApiTypes"
+      );
+
+    assert.deepEqual(
+      GUIDANCE_API_VIEWS,
+      [
+        "composite",
+        "operational-summary",
+        "repository-context",
+        "next-action",
+        "blocking",
+        "waiting-on",
+      ],
+    );
+
+    for (
+      const view of
+      GUIDANCE_API_VIEWS
+    ) {
+      assert.equal(
+        isGuidanceApiView(view),
+        true,
+      );
+
+      assert.equal(
+        parseGuidanceApiView(view),
+        view,
+      );
+    }
+
+    assert.equal(
+      parseGuidanceApiView(
+        "OPERATIONAL_SUMMARY",
+      ),
+      "operational-summary",
+    );
+
+    assert.equal(
+      parseGuidanceApiView(
+        " repository context ",
+      ),
+      "repository-context",
+    );
+
+    assert.equal(
+      parseGuidanceApiView(
+        "NEXT_ACTION",
+      ),
+      "next-action",
+    );
+
+    assert.equal(
+      parseGuidanceApiView(null),
+      "composite",
+    );
+
+    assert.equal(
+      parseGuidanceApiView(
+        "unsupported-guidance-view",
+      ),
+      "composite",
+    );
+
+    assert.equal(
+      isGuidanceApiView(
+        "unsupported-guidance-view",
+      ),
+      false,
+    );
+  },
+);
+
+test(
+  "guidance API view contract does not admit authority-bearing mutation views",
+  async () => {
+    const {
+      isGuidanceApiView,
+      parseGuidanceApiView,
+    } =
+      await import(
+        "../lib/guidance/guidanceApiTypes"
+      );
+
+    const prohibitedViews = [
+      "approve",
+      "deny",
+      "publish",
+      "certify",
+      "score",
+      "reassign",
+      "resolve-blocker",
+      "resolve-waiting",
+      "mutate-workflow",
+      "mutate-repository",
+    ];
+
+    for (
+      const view of
+      prohibitedViews
+    ) {
+      assert.equal(
+        isGuidanceApiView(view),
+        false,
+      );
+
+      assert.equal(
+        parseGuidanceApiView(view),
+        "composite",
+      );
+    }
+  },
+);
