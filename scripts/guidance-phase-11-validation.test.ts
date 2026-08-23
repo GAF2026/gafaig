@@ -1906,3 +1906,431 @@ test(
     }
   },
 );
+
+function phase11CompositeContext() {
+  return {
+    session:
+      applicantSession,
+
+    participant:
+      "APPLICANT",
+
+    organizationId:
+      "ORG-PHASE-11",
+
+    caseId:
+      "CASE-PHASE-11",
+
+    requestedAt:
+      FIXED_GENERATED_AT,
+
+    correlationId:
+      CORRELATION_ID,
+  } as any;
+}
+
+function phase11CompositeResult(
+  status: string,
+  payload?: unknown,
+) {
+  return {
+    status,
+
+    ...(payload === undefined
+      ? {}
+      : {
+          payload,
+        }),
+
+    explanation: {
+      summary:
+        `Phase 11 ${status} dependency fixture.`,
+
+      ruleIds: [],
+
+      facts: [],
+
+      unresolvedConditions: [],
+    },
+
+    sourceReferences: [],
+
+    metadata,
+  } as any;
+}
+
+function phase11RepositoryPayload(input?: {
+  readonly organizationId?: string;
+  readonly caseId?: string;
+}) {
+  return {
+    organizationId:
+      input?.organizationId ??
+      "ORG-PHASE-11",
+
+    caseId:
+      input?.caseId ??
+      "CASE-PHASE-11",
+
+    observedAt:
+      FIXED_GENERATED_AT,
+  } as any;
+}
+
+test(
+  "composite guidance fails closed when authoritative repository context payload is unavailable",
+  async () => {
+    const {
+      compositeGuidanceEngine,
+    } =
+      await import(
+        "../lib/guidance/compositeGuidanceEngine"
+      );
+
+    const sourceReferences = [
+      {
+        sourceSystem:
+          "SNOWFLAKE",
+
+        database:
+          "GAFAIG_DB",
+
+        schema:
+          "CORE",
+
+        objectName:
+          "V_VERIFICATION_CASES",
+
+        recordId:
+          "CASE-PHASE-11",
+
+        observedAt:
+          FIXED_GENERATED_AT,
+      },
+    ] as any;
+
+    const result =
+      await compositeGuidanceEngine.execute({
+        context:
+          phase11CompositeContext(),
+
+        input: {
+          repositoryContext:
+            phase11CompositeResult(
+              "UNAVAILABLE",
+            ),
+
+          nextAction:
+            phase11CompositeResult(
+              "AVAILABLE",
+            ),
+
+          blocking:
+            phase11CompositeResult(
+              "AVAILABLE",
+            ),
+
+          waitingOn:
+            phase11CompositeResult(
+              "AVAILABLE",
+            ),
+
+          sourceReferences,
+        } as any,
+      });
+
+    assert.equal(
+      result.status,
+      "UNRESOLVED",
+    );
+
+    assert.equal(
+      result.failure?.code,
+      "DEPENDENCY_FAILURE",
+    );
+
+    assert.equal(
+      result.payload,
+      undefined,
+    );
+
+    assert.deepEqual(
+      result.sourceReferences,
+      sourceReferences,
+    );
+
+    assert.ok(
+      result.explanation
+        .unresolvedConditions
+        .includes(
+          "No authoritative Repository Context payload is available.",
+        ),
+    );
+  },
+);
+
+test(
+  "composite guidance preserves dependency ERROR status without recomputing it",
+  async () => {
+    const {
+      compositeGuidanceEngine,
+    } =
+      await import(
+        "../lib/guidance/compositeGuidanceEngine"
+      );
+
+    const repositoryContext =
+      phase11CompositeResult(
+        "AVAILABLE",
+        phase11RepositoryPayload(),
+      );
+
+    const nextAction =
+      phase11CompositeResult(
+        "ERROR",
+      );
+
+    const blocking =
+      phase11CompositeResult(
+        "AVAILABLE",
+      );
+
+    const waitingOn =
+      phase11CompositeResult(
+        "AVAILABLE",
+      );
+
+    const result =
+      await compositeGuidanceEngine.execute({
+        context:
+          phase11CompositeContext(),
+
+        input: {
+          repositoryContext,
+          nextAction,
+          blocking,
+          waitingOn,
+          sourceReferences: [],
+        } as any,
+      });
+
+    assert.equal(
+      result.status,
+      "ERROR",
+    );
+
+    assert.ok(
+      result.payload,
+    );
+
+    assert.equal(
+      result.payload
+        ?.nextAction,
+      nextAction,
+    );
+
+    assert.equal(
+      result.failure,
+      undefined,
+    );
+  },
+);
+
+test(
+  "composite guidance rejects inconsistent organization scope before positive aggregation",
+  async () => {
+    const {
+      compositeGuidanceEngine,
+    } =
+      await import(
+        "../lib/guidance/compositeGuidanceEngine"
+      );
+
+    const result =
+      await compositeGuidanceEngine.execute({
+        context:
+          phase11CompositeContext(),
+
+        input: {
+          repositoryContext:
+            phase11CompositeResult(
+              "AVAILABLE",
+              phase11RepositoryPayload({
+                organizationId:
+                  "ORG-FOREIGN",
+              }),
+            ),
+
+          nextAction:
+            phase11CompositeResult(
+              "AVAILABLE",
+            ),
+
+          blocking:
+            phase11CompositeResult(
+              "AVAILABLE",
+            ),
+
+          waitingOn:
+            phase11CompositeResult(
+              "AVAILABLE",
+            ),
+
+          sourceReferences: [],
+        } as any,
+      });
+
+    assert.equal(
+      result.status,
+      "INCONSISTENT",
+    );
+
+    assert.equal(
+      result.failure?.code,
+      "SOURCE_INCONSISTENT",
+    );
+
+    assert.equal(
+      result.payload,
+      undefined,
+    );
+
+    assert.ok(
+      result.explanation
+        .unresolvedConditions
+        .includes(
+          "The Guidance organization and Repository Context organization do not match.",
+        ),
+    );
+  },
+);
+
+test(
+  "composite guidance recovers deterministically after dependency restoration without stale failure state",
+  async () => {
+    const {
+      compositeGuidanceEngine,
+    } =
+      await import(
+        "../lib/guidance/compositeGuidanceEngine"
+      );
+
+    const context =
+      phase11CompositeContext();
+
+    const failed =
+      await compositeGuidanceEngine.execute({
+        context,
+
+        input: {
+          repositoryContext:
+            phase11CompositeResult(
+              "UNAVAILABLE",
+            ),
+
+          nextAction:
+            phase11CompositeResult(
+              "AVAILABLE",
+            ),
+
+          blocking:
+            phase11CompositeResult(
+              "AVAILABLE",
+            ),
+
+          waitingOn:
+            phase11CompositeResult(
+              "AVAILABLE",
+            ),
+
+          sourceReferences: [],
+        } as any,
+      });
+
+    assert.equal(
+      failed.status,
+      "UNRESOLVED",
+    );
+
+    assert.equal(
+      failed.failure?.code,
+      "DEPENDENCY_FAILURE",
+    );
+
+    const restoredInput = {
+      repositoryContext:
+        phase11CompositeResult(
+          "AVAILABLE",
+          phase11RepositoryPayload(),
+        ),
+
+      nextAction:
+        phase11CompositeResult(
+          "AVAILABLE",
+        ),
+
+      blocking:
+        phase11CompositeResult(
+          "AVAILABLE",
+        ),
+
+      waitingOn:
+        phase11CompositeResult(
+          "AVAILABLE",
+        ),
+
+      sourceReferences: [],
+    } as any;
+
+    const recovered =
+      await compositeGuidanceEngine.execute({
+        context,
+        input:
+          restoredInput,
+      });
+
+    const repeated =
+      await compositeGuidanceEngine.execute({
+        context,
+        input:
+          restoredInput,
+      });
+
+    assert.equal(
+      recovered.status,
+      "AVAILABLE",
+    );
+
+    assert.equal(
+      recovered.failure,
+      undefined,
+    );
+
+    assert.deepEqual(
+      recovered.explanation
+        .unresolvedConditions,
+      [],
+    );
+
+    assert.ok(
+      recovered.payload,
+    );
+
+    assert.equal(
+      recovered.payload
+        ?.organizationId,
+      "ORG-PHASE-11",
+    );
+
+    assert.equal(
+      recovered.payload
+        ?.caseId,
+      "CASE-PHASE-11",
+    );
+
+    assert.deepEqual(
+      recovered,
+      repeated,
+    );
+  },
+);
