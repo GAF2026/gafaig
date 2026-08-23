@@ -2659,3 +2659,239 @@ test(
     }
   },
 );
+
+test(
+  "composite guidance fails closed when explicit case scope is missing",
+  async () => {
+    const {
+      compositeGuidanceEngine,
+    } =
+      await import(
+        "../lib/guidance/compositeGuidanceEngine"
+      );
+
+    const sourceReferences = [
+      {
+        sourceSystem:
+          "SNOWFLAKE",
+
+        database:
+          "GAFAIG_DB",
+
+        schema:
+          "CORE",
+
+        objectName:
+          "V_VERIFICATION_CASES",
+
+        recordId:
+          "CASE-PHASE-11",
+
+        observedAt:
+          FIXED_GENERATED_AT,
+      },
+    ] as any;
+
+    const context = {
+      ...phase11CompositeContext(),
+      caseId:
+        undefined,
+    } as any;
+
+    const result =
+      await compositeGuidanceEngine.execute({
+        context,
+
+        input: {
+          repositoryContext:
+            phase11CompositeResult(
+              "AVAILABLE",
+              phase11RepositoryPayload(),
+            ),
+
+          nextAction:
+            phase11CompositeResult(
+              "AVAILABLE",
+            ),
+
+          blocking:
+            phase11CompositeResult(
+              "AVAILABLE",
+            ),
+
+          waitingOn:
+            phase11CompositeResult(
+              "AVAILABLE",
+            ),
+
+          sourceReferences,
+        } as any,
+      });
+
+    assert.equal(
+      result.status,
+      "UNRESOLVED",
+    );
+
+    assert.equal(
+      result.failure?.code,
+      "VALIDATION_FAILURE",
+    );
+
+    assert.equal(
+      result.failure?.retryable,
+      false,
+    );
+
+    assert.equal(
+      result.payload,
+      undefined,
+    );
+
+    assert.deepEqual(
+      result.sourceReferences,
+      sourceReferences,
+    );
+
+    assert.ok(
+      result.explanation
+        .ruleIds
+        .includes(
+          "OG-COMPOSITE-CASE-SCOPE-REQUIRED",
+        ),
+    );
+
+    assert.ok(
+      result.explanation
+        .ruleIds
+        .includes(
+          "OG-COMPOSITE-FAIL-CLOSED",
+        ),
+    );
+
+    assert.ok(
+      result.explanation
+        .unresolvedConditions
+        .includes(
+          "A case identifier is required.",
+        ),
+    );
+  },
+);
+
+test(
+  "composite guidance rejects inconsistent case scope before aggregation",
+  async () => {
+    const {
+      compositeGuidanceEngine,
+    } =
+      await import(
+        "../lib/guidance/compositeGuidanceEngine"
+      );
+
+    const sourceReferences = [
+      {
+        sourceSystem:
+          "SNOWFLAKE",
+
+        database:
+          "GAFAIG_DB",
+
+        schema:
+          "CORE",
+
+        objectName:
+          "V_VERIFICATION_CASES",
+
+        recordId:
+          "CASE-FOREIGN",
+
+        observedAt:
+          FIXED_GENERATED_AT,
+      },
+    ] as any;
+
+    const result =
+      await compositeGuidanceEngine.execute({
+        context:
+          phase11CompositeContext(),
+
+        input: {
+          repositoryContext:
+            phase11CompositeResult(
+              "AVAILABLE",
+              phase11RepositoryPayload({
+                caseId:
+                  "CASE-FOREIGN",
+              }),
+            ),
+
+          nextAction:
+            phase11CompositeResult(
+              "ERROR",
+            ),
+
+          blocking:
+            phase11CompositeResult(
+              "BLOCKED",
+            ),
+
+          waitingOn:
+            phase11CompositeResult(
+              "WAITING",
+            ),
+
+          sourceReferences,
+        } as any,
+      });
+
+    assert.equal(
+      result.status,
+      "INCONSISTENT",
+    );
+
+    assert.equal(
+      result.failure?.code,
+      "SOURCE_INCONSISTENT",
+    );
+
+    assert.equal(
+      result.failure?.retryable,
+      false,
+    );
+
+    assert.equal(
+      result.payload,
+      undefined,
+    );
+
+    assert.deepEqual(
+      result.sourceReferences,
+      sourceReferences,
+    );
+
+    assert.ok(
+      result.explanation
+        .ruleIds
+        .includes(
+          "OG-COMPOSITE-CASE-SCOPE-REQUIRED",
+        ),
+    );
+
+    assert.ok(
+      result.explanation
+        .ruleIds
+        .includes(
+          "OG-COMPOSITE-SOURCE-CONSISTENCY-REQUIRED",
+        ),
+    );
+
+    assert.ok(
+      result.explanation
+        .unresolvedConditions
+        .includes(
+          "The Guidance case and Repository Context case do not match.",
+        ),
+    );
+  },
+);
