@@ -6,6 +6,10 @@ import {
 } from "../lib/guidance/workspaceGuidance";
 
 import {
+  operationalSummaryEngine,
+} from "../lib/guidance/operationalSummaryEngine";
+
+import {
   errorGuidance,
   inconsistentGuidance,
   notVisibleGuidance,
@@ -997,6 +1001,786 @@ test(
         scope,
       ),
       false,
+    );
+  },
+);
+
+test(
+  "operational summary exposes participant explanations without protected blocking or waiting detail fields",
+  async () => {
+    const protectedBlockingTitle =
+      "PROTECTED BLOCKING TITLE";
+
+    const protectedBlockingDescription =
+      "CONFIDENTIAL REVIEWER BLOCKING DETAIL";
+
+    const protectedWaitingTitle =
+      "PROTECTED WAITING TITLE";
+
+    const protectedWaitingDescription =
+      "INTERNAL DECISION DELIBERATION DETAIL";
+
+    const blockingParticipantExplanation =
+      "Participant-visible blocking explanation.";
+
+    const waitingParticipantExplanation =
+      "Participant-visible waiting explanation.";
+
+    const repositoryContext = {
+      status:
+        "AVAILABLE",
+
+      payload: {
+        organizationId:
+          "ORG-PHASE-11",
+
+        caseId:
+          "CASE-PHASE-11",
+
+        workflowStatus:
+          "approved",
+
+        workflowStage:
+          "APPLICATIONS",
+
+        repositoryCount:
+          1,
+
+        repositoriesWithRecords: [
+          "EVIDENCE",
+        ],
+
+        emptyRepositories: [
+          "ARTIFACT",
+          "INFORMATION_REQUEST",
+          "DEFICIENCY",
+          "REMEDIATION",
+          "CERTIFICATION",
+          "PROGRESS",
+        ],
+
+        repositories: [],
+
+        relationshipAvailability:
+          "AVAILABLE",
+
+        observedAt:
+          FIXED_GENERATED_AT,
+      },
+
+      explanation: {
+        summary:
+          "Repository context is available.",
+
+        ruleIds: [],
+
+        facts: [],
+
+        unresolvedConditions: [],
+      },
+
+      sourceReferences: [],
+
+      metadata,
+    } as any;
+
+    const nextAction = {
+      status:
+        "AVAILABLE",
+
+      payload: {
+        organizationId:
+          "ORG-PHASE-11",
+
+        caseId:
+          "CASE-PHASE-11",
+
+        action: {
+          actionId:
+            "REVIEW_CERTIFICATION_STATUS",
+
+          title:
+            "Review Certification Status",
+
+          description:
+            "Review the authoritative certification status.",
+
+          owner:
+            "CERTIFICATION_AUTHORITY",
+
+          availability:
+            "AVAILABLE",
+
+          relatedStage:
+            "APPLICATIONS",
+
+          relatedRepository:
+            "CERTIFICATION",
+        },
+      },
+
+      explanation: {
+        summary:
+          "Next action is available.",
+
+        ruleIds: [],
+
+        facts: [],
+
+        unresolvedConditions: [],
+      },
+
+      sourceReferences: [],
+
+      metadata,
+    } as any;
+
+    const blocking = {
+      status:
+        "BLOCKED",
+
+      payload: {
+        organizationId:
+          "ORG-PHASE-11",
+
+        caseId:
+          "CASE-PHASE-11",
+
+        workflowStatus:
+          "approved",
+
+        workflowStage:
+          "APPLICATIONS",
+
+        availability:
+          "AVAILABLE",
+
+        blocked:
+          true,
+
+        blockingConditions: [
+          {
+            conditionId:
+              "EVIDENCE_REQUIRED",
+
+            title:
+              protectedBlockingTitle,
+
+            description:
+              protectedBlockingDescription,
+
+            severity:
+              "PROGRESSION_BLOCKED",
+
+            responsibleParticipant:
+              "APPLICANT",
+
+            relatedRepository:
+              "EVIDENCE",
+
+            relatedStage:
+              "APPLICATIONS",
+
+            participantExplanation:
+              blockingParticipantExplanation,
+          },
+        ],
+
+        highestSeverity:
+          "PROGRESSION_BLOCKED",
+
+        relationshipAvailability:
+          "AVAILABLE",
+
+        observedAt:
+          FIXED_GENERATED_AT,
+      },
+
+      explanation: {
+        summary:
+          "Participant-visible blocking condition is active.",
+
+        ruleIds: [],
+
+        facts: [],
+
+        unresolvedConditions: [],
+      },
+
+      sourceReferences: [],
+
+      metadata,
+    } as any;
+
+    const waitingOn = {
+      status:
+        "WAITING",
+
+      payload: {
+        organizationId:
+          "ORG-PHASE-11",
+
+        caseId:
+          "CASE-PHASE-11",
+
+        workflowStatus:
+          "approved",
+
+        workflowStage:
+          "APPLICATIONS",
+
+        availability:
+          "AVAILABLE",
+
+        waiting:
+          true,
+
+        waitingOn:
+          "CERTIFICATION_AUTHORITY",
+
+        currentOwner:
+          "CERTIFICATION_AUTHORITY",
+
+        conditions: [
+          {
+            conditionId:
+              "WAITING_ON_CERTIFICATION_AUTHORITY",
+
+            title:
+              protectedWaitingTitle,
+
+            description:
+              protectedWaitingDescription,
+
+            state:
+              "REVIEW_PENDING",
+
+            waitingOn:
+              "CERTIFICATION_AUTHORITY",
+
+            currentOwner:
+              "CERTIFICATION_AUTHORITY",
+
+            relatedRepository:
+              "CERTIFICATION",
+
+            relatedStage:
+              "APPLICATIONS",
+
+            participantExplanation:
+              waitingParticipantExplanation,
+          },
+        ],
+
+        relationshipAvailability:
+          "AVAILABLE",
+
+        observedAt:
+          FIXED_GENERATED_AT,
+      },
+
+      explanation: {
+        summary:
+          "Waiting on Certification Authority.",
+
+        ruleIds: [],
+
+        facts: [],
+
+        unresolvedConditions: [],
+      },
+
+      sourceReferences: [],
+
+      metadata,
+    } as any;
+
+    const components = {
+      repositoryContext,
+      nextAction,
+      blocking,
+      waitingOn,
+    } as any;
+
+    const composite = {
+      status:
+        "BLOCKED",
+
+      payload: {
+        organizationId:
+          "ORG-PHASE-11",
+
+        caseId:
+          "CASE-PHASE-11",
+
+        repositoryContext,
+        nextAction,
+        blocking,
+        waitingOn,
+
+        observedAt:
+          FIXED_GENERATED_AT,
+      },
+
+      explanation: {
+        summary:
+          "Composite guidance is blocked.",
+
+        ruleIds: [],
+
+        facts: [],
+
+        unresolvedConditions: [],
+      },
+
+      sourceReferences: [],
+
+      metadata,
+    } as any;
+
+    const context = {
+      session:
+        applicantSession,
+
+      participant:
+        "APPLICANT",
+
+      organizationId:
+        "ORG-PHASE-11",
+
+      caseId:
+        "CASE-PHASE-11",
+
+      requestedAt:
+        FIXED_GENERATED_AT,
+
+      correlationId:
+        CORRELATION_ID,
+    } as any;
+
+    const result =
+      await operationalSummaryEngine.execute({
+        context,
+        input: {
+          composite,
+          components,
+          sourceReferences: [],
+        },
+      });
+
+    assert.ok(
+      result.payload,
+    );
+
+    assert.deepEqual(
+      result.payload
+        ?.blockingSummary
+        .participantVisibleConditions,
+      [
+        blockingParticipantExplanation,
+      ],
+    );
+
+    assert.deepEqual(
+      result.payload
+        ?.waitingSummary
+        .participantVisibleConditions,
+      [
+        waitingParticipantExplanation,
+      ],
+    );
+
+    const serializedPayload =
+      JSON.stringify(
+        result.payload,
+      );
+
+    assert.equal(
+      serializedPayload.includes(
+        protectedBlockingTitle,
+      ),
+      false,
+    );
+
+    assert.equal(
+      serializedPayload.includes(
+        protectedBlockingDescription,
+      ),
+      false,
+    );
+
+    assert.equal(
+      serializedPayload.includes(
+        protectedWaitingTitle,
+      ),
+      false,
+    );
+
+    assert.equal(
+      serializedPayload.includes(
+        protectedWaitingDescription,
+      ),
+      false,
+    );
+
+    assert.equal(
+      serializedPayload.includes(
+        blockingParticipantExplanation,
+      ),
+      true,
+    );
+
+    assert.equal(
+      serializedPayload.includes(
+        waitingParticipantExplanation,
+      ),
+      true,
+    );
+  },
+);
+
+test(
+  "operational summary participant narrative omits protected condition details",
+  async () => {
+    const protectedConditionDetail =
+      "CONFIDENTIAL INTERNAL GOVERNANCE REASONING";
+
+    const participantExplanation =
+      "Participant-visible evidence action is required.";
+
+    const repositoryContext = {
+      status:
+        "AVAILABLE",
+
+      payload: {
+        organizationId:
+          "ORG-PHASE-11",
+
+        caseId:
+          "CASE-PHASE-11",
+
+        workflowStatus:
+          "approved",
+
+        workflowStage:
+          "APPLICATIONS",
+
+        repositoryCount:
+          1,
+
+        repositoriesWithRecords: [
+          "EVIDENCE",
+        ],
+
+        emptyRepositories: [],
+
+        repositories: [],
+
+        relationshipAvailability:
+          "AVAILABLE",
+
+        observedAt:
+          FIXED_GENERATED_AT,
+      },
+
+      explanation: {
+        summary:
+          "Repository context is available.",
+
+        ruleIds: [],
+
+        facts: [],
+
+        unresolvedConditions: [],
+      },
+
+      sourceReferences: [],
+
+      metadata,
+    } as any;
+
+    const nextAction = {
+      status:
+        "AVAILABLE",
+
+      payload: {
+        organizationId:
+          "ORG-PHASE-11",
+
+        caseId:
+          "CASE-PHASE-11",
+
+        action: {
+          actionId:
+            "REVIEW_EVIDENCE",
+
+          title:
+            "Review Evidence",
+
+          description:
+            "Review participant-visible evidence status.",
+
+          owner:
+            "GAFAIG_OPERATIONS_REVIEWER",
+
+          availability:
+            "AVAILABLE",
+
+          relatedStage:
+            "APPLICATIONS",
+
+          relatedRepository:
+            "EVIDENCE",
+        },
+      },
+
+      explanation: {
+        summary:
+          "Next action is available.",
+
+        ruleIds: [],
+
+        facts: [],
+
+        unresolvedConditions: [],
+      },
+
+      sourceReferences: [],
+
+      metadata,
+    } as any;
+
+    const blocking = {
+      status:
+        "BLOCKED",
+
+      payload: {
+        organizationId:
+          "ORG-PHASE-11",
+
+        caseId:
+          "CASE-PHASE-11",
+
+        workflowStatus:
+          "approved",
+
+        workflowStage:
+          "APPLICATIONS",
+
+        availability:
+          "AVAILABLE",
+
+        blocked:
+          true,
+
+        blockingConditions: [
+          {
+            conditionId:
+              "EVIDENCE_REQUIRED",
+
+            title:
+              "Internal evidence blocker",
+
+            description:
+              protectedConditionDetail,
+
+            severity:
+              "ACTION_REQUIRED",
+
+            responsibleParticipant:
+              "APPLICANT",
+
+            relatedRepository:
+              "EVIDENCE",
+
+            relatedStage:
+              "APPLICATIONS",
+
+            participantExplanation:
+              participantExplanation,
+          },
+        ],
+
+        highestSeverity:
+          "ACTION_REQUIRED",
+
+        relationshipAvailability:
+          "AVAILABLE",
+
+        observedAt:
+          FIXED_GENERATED_AT,
+      },
+
+      explanation: {
+        summary:
+          "Blocking condition is active.",
+
+        ruleIds: [],
+
+        facts: [],
+
+        unresolvedConditions: [],
+      },
+
+      sourceReferences: [],
+
+      metadata,
+    } as any;
+
+    const waitingOn = {
+      status:
+        "AVAILABLE",
+
+      payload: {
+        organizationId:
+          "ORG-PHASE-11",
+
+        caseId:
+          "CASE-PHASE-11",
+
+        workflowStatus:
+          "approved",
+
+        workflowStage:
+          "APPLICATIONS",
+
+        availability:
+          "AVAILABLE",
+
+        waiting:
+          false,
+
+        waitingOn:
+          null,
+
+        currentOwner:
+          "GAFAIG_OPERATIONS_REVIEWER",
+
+        conditions: [],
+
+        relationshipAvailability:
+          "AVAILABLE",
+
+        observedAt:
+          FIXED_GENERATED_AT,
+      },
+
+      explanation: {
+        summary:
+          "No waiting condition is active.",
+
+        ruleIds: [],
+
+        facts: [],
+
+        unresolvedConditions: [],
+      },
+
+      sourceReferences: [],
+
+      metadata,
+    } as any;
+
+    const components = {
+      repositoryContext,
+      nextAction,
+      blocking,
+      waitingOn,
+    } as any;
+
+    const composite = {
+      status:
+        "BLOCKED",
+
+      payload: {
+        organizationId:
+          "ORG-PHASE-11",
+
+        caseId:
+          "CASE-PHASE-11",
+
+        repositoryContext,
+        nextAction,
+        blocking,
+        waitingOn,
+
+        observedAt:
+          FIXED_GENERATED_AT,
+      },
+
+      explanation: {
+        summary:
+          "Composite guidance is blocked.",
+
+        ruleIds: [],
+
+        facts: [],
+
+        unresolvedConditions: [],
+      },
+
+      sourceReferences: [],
+
+      metadata,
+    } as any;
+
+    const context = {
+      session:
+        applicantSession,
+
+      participant:
+        "APPLICANT",
+
+      organizationId:
+        "ORG-PHASE-11",
+
+      caseId:
+        "CASE-PHASE-11",
+
+      requestedAt:
+        FIXED_GENERATED_AT,
+
+      correlationId:
+        CORRELATION_ID,
+    } as any;
+
+    const result =
+      await operationalSummaryEngine.execute({
+        context,
+        input: {
+          composite,
+          components,
+          sourceReferences: [],
+        },
+      });
+
+    assert.ok(
+      result.payload,
+    );
+
+    assert.equal(
+      result.payload
+        ?.participantSummary
+        .includes(
+          protectedConditionDetail,
+        ),
+      false,
+    );
+
+    assert.equal(
+      result.explanation
+        .summary
+        .includes(
+          protectedConditionDetail,
+        ),
+      false,
+    );
+
+    assert.equal(
+      result.payload
+        ?.blockingSummary
+        .participantVisibleConditions[0],
+      participantExplanation,
     );
   },
 );
