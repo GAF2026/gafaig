@@ -26,6 +26,11 @@ import type {
   GuidanceRuntimeSession,
 } from "../lib/guidance/types";
 
+import {
+  applicantRepositoryRowBelongsToScope,
+  repositoryScopeFromSession,
+} from "../lib/applicant/scope";
+
 const FIXED_GENERATED_AT =
   "2026-08-23T16:00:00.000Z";
 
@@ -771,6 +776,227 @@ test(
     assert.equal(
       snapshot.observedAt,
       null,
+    );
+  },
+);
+
+test(
+  "repository scope accepts a row belonging to the authenticated organization by organization name",
+  () => {
+    const scope =
+      repositoryScopeFromSession({
+        organizationId:
+          "ORG-PHASE-11",
+        organizationName:
+          "GAFAIG Phase 11",
+        email:
+          "phase-11-applicant@gafaig.test",
+      });
+
+    const row = {
+      CASE_ID:
+        "CASE-PHASE-11",
+
+      ORG_NAME:
+        "GAFAIG Phase 11",
+
+      ORG_ID:
+        "ORG-OTHER",
+
+      SUBMITTED_BY:
+        "other@gafaig.test",
+    };
+
+    assert.equal(
+      applicantRepositoryRowBelongsToScope(
+        row,
+        scope,
+      ),
+      true,
+    );
+  },
+);
+
+test(
+  "repository scope accepts normalized organization identifier matching",
+  () => {
+    const scope =
+      repositoryScopeFromSession({
+        organizationId:
+          "ORG-PHASE-11",
+        organizationName:
+          "GAFAIG Phase 11",
+        email:
+          "phase-11-applicant@gafaig.test",
+      });
+
+    const row = {
+      CASE_ID:
+        "CASE-PHASE-11",
+
+      ORG_NAME:
+        "Different Organization",
+
+      ORG_ID:
+        "  org-phase-11  ",
+
+      SUBMITTED_BY:
+        "other@gafaig.test",
+    };
+
+    assert.equal(
+      applicantRepositoryRowBelongsToScope(
+        row,
+        scope,
+      ),
+      true,
+    );
+  },
+);
+
+test(
+  "repository scope accepts a row submitted by the authenticated applicant identity",
+  () => {
+    const scope =
+      repositoryScopeFromSession({
+        organizationId:
+          "ORG-PHASE-11",
+        organizationName:
+          "GAFAIG Phase 11",
+        email:
+          "phase-11-applicant@gafaig.test",
+      });
+
+    const row = {
+      CASE_ID:
+        "CASE-OTHER",
+
+      ORG_NAME:
+        "Different Organization",
+
+      ORG_ID:
+        "ORG-OTHER",
+
+      SUBMITTED_BY:
+        "  PHASE-11-APPLICANT@GAFAIG.TEST  ",
+    };
+
+    assert.equal(
+      applicantRepositoryRowBelongsToScope(
+        row,
+        scope,
+      ),
+      true,
+    );
+  },
+);
+
+test(
+  "repository scope accepts only explicitly supplied workflow case membership",
+  () => {
+    const scope =
+      repositoryScopeFromSession(
+        {
+          organizationId:
+            "ORG-PHASE-11",
+
+          organizationName:
+            "GAFAIG Phase 11",
+
+          email:
+            "phase-11-applicant@gafaig.test",
+        },
+        new Set([
+          "CASE-SCOPED-WORKFLOW",
+        ]),
+      );
+
+    const scopedRow = {
+      CASE_ID:
+        "CASE-SCOPED-WORKFLOW",
+
+      ORG_NAME:
+        "Different Organization",
+
+      ORG_ID:
+        "ORG-OTHER",
+
+      SUBMITTED_BY:
+        "other@gafaig.test",
+    };
+
+    const unscopedRow = {
+      CASE_ID:
+        "CASE-NOT-SCOPED",
+
+      ORG_NAME:
+        "Different Organization",
+
+      ORG_ID:
+        "ORG-OTHER",
+
+      SUBMITTED_BY:
+        "other@gafaig.test",
+    };
+
+    assert.equal(
+      applicantRepositoryRowBelongsToScope(
+        scopedRow,
+        scope,
+      ),
+      true,
+    );
+
+    assert.equal(
+      applicantRepositoryRowBelongsToScope(
+        unscopedRow,
+        scope,
+      ),
+      false,
+    );
+  },
+);
+
+test(
+  "repository scope rejects a completely foreign organization row",
+  () => {
+    const scope =
+      repositoryScopeFromSession(
+        {
+          organizationId:
+            "ORG-PHASE-11",
+
+          organizationName:
+            "GAFAIG Phase 11",
+
+          email:
+            "phase-11-applicant@gafaig.test",
+        },
+        new Set([
+          "CASE-PHASE-11",
+        ]),
+      );
+
+    const foreignRow = {
+      CASE_ID:
+        "CASE-FOREIGN",
+
+      ORG_NAME:
+        "Foreign Organization",
+
+      ORG_ID:
+        "ORG-FOREIGN",
+
+      SUBMITTED_BY:
+        "foreign@gafaig.test",
+    };
+
+    assert.equal(
+      applicantRepositoryRowBelongsToScope(
+        foreignRow,
+        scope,
+      ),
+      false,
     );
   },
 );
