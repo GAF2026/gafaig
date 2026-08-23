@@ -8,7 +8,8 @@
     "start": "next start -p 3000",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
-    "guidance:smoke": "tsx --test scripts/guidance-phase-2d-smoke.test.ts"
+    "guidance:smoke": "tsx --test scripts/guidance-phase-2d-smoke.test.ts",
+    "guidance:phase11": "tsx --test scripts/guidance-phase-11-validation.test.ts"
   },
   "dependencies": {
     "next": "14.2.5",
