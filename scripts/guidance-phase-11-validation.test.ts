@@ -5294,3 +5294,792 @@ test(
     );
   },
 );
+
+test(
+  "blocked workflow scenario preserves deterministic state through composite operational summary and workspace projection",
+  async () => {
+    const {
+      compositeGuidanceEngine,
+    } =
+      await import(
+        "../lib/guidance/compositeGuidanceEngine"
+      );
+
+    const repositoryContext = {
+      status:
+        "AVAILABLE",
+
+      payload: {
+        organizationId:
+          "ORG-PHASE-11",
+
+        caseId:
+          "CASE-PHASE-11",
+
+        workflowStatus:
+          "UNDER_REVIEW",
+
+        workflowStage:
+          "EVIDENCE_REVIEW",
+
+        repositoryCount:
+          1,
+
+        repositoriesWithRecords: [
+          "EVIDENCE",
+        ],
+
+        emptyRepositories: [
+          "ARTIFACT",
+          "INFORMATION_REQUEST",
+          "DEFICIENCY",
+          "REMEDIATION",
+          "CERTIFICATION",
+          "PROGRESS",
+        ],
+
+        repositories: [],
+
+        relationshipAvailability:
+          "AVAILABLE",
+
+        observedAt:
+          FIXED_GENERATED_AT,
+      },
+
+      explanation: {
+        summary:
+          "Repository context is available.",
+
+        ruleIds: [
+          "OG-PHASE-11-WORKFLOW-REPOSITORY",
+        ],
+
+        facts: [],
+
+        unresolvedConditions: [],
+      },
+
+      sourceReferences: [],
+
+      metadata,
+    } as any;
+
+    const nextAction = {
+      status:
+        "AVAILABLE",
+
+      payload: {
+        organizationId:
+          "ORG-PHASE-11",
+
+        caseId:
+          "CASE-PHASE-11",
+
+        workflowStatus:
+          "UNDER_REVIEW",
+
+        workflowStage:
+          "EVIDENCE_REVIEW",
+
+        availability:
+          "AVAILABLE",
+
+        action: {
+          actionId:
+            "SUBMIT_EVIDENCE",
+
+          title:
+            "Submit Evidence",
+
+          description:
+            "Submit the required participant-visible evidence.",
+
+          owner:
+            "APPLICANT",
+
+          relatedStage:
+            "EVIDENCE_REVIEW",
+
+          relatedRepository:
+            "EVIDENCE",
+        },
+
+        blockingItems: [
+          "Required evidence remains outstanding.",
+        ],
+
+        waitingOn:
+          "APPLICANT",
+
+        repositoryCount:
+          1,
+
+        repositoriesWithRecords: [
+          "EVIDENCE",
+        ],
+
+        emptyRepositories: [
+          "ARTIFACT",
+          "INFORMATION_REQUEST",
+          "DEFICIENCY",
+          "REMEDIATION",
+          "CERTIFICATION",
+          "PROGRESS",
+        ],
+
+        relationshipAvailability:
+          "AVAILABLE",
+
+        observedAt:
+          FIXED_GENERATED_AT,
+      },
+
+      explanation: {
+        summary:
+          "Evidence submission is the current deterministic next action.",
+
+        ruleIds: [
+          "OG-PHASE-11-WORKFLOW-NEXT-ACTION",
+        ],
+
+        facts: [],
+
+        unresolvedConditions: [],
+      },
+
+      sourceReferences: [],
+
+      metadata,
+    } as any;
+
+    const blocking = {
+      status:
+        "BLOCKED",
+
+      payload: {
+        organizationId:
+          "ORG-PHASE-11",
+
+        caseId:
+          "CASE-PHASE-11",
+
+        workflowStatus:
+          "UNDER_REVIEW",
+
+        workflowStage:
+          "EVIDENCE_REVIEW",
+
+        availability:
+          "AVAILABLE",
+
+        blocked:
+          true,
+
+        blockingConditions: [
+          {
+            conditionId:
+              "EVIDENCE_REQUIRED",
+
+            title:
+              "Evidence Required",
+
+            description:
+              "Required evidence remains outstanding.",
+
+            severity:
+              "PROGRESSION_BLOCKED",
+
+            responsibleParticipant:
+              "APPLICANT",
+
+            relatedRepository:
+              "EVIDENCE",
+
+            relatedStage:
+              "EVIDENCE_REVIEW",
+
+            participantExplanation:
+              "Required evidence must be submitted before progression.",
+          },
+        ],
+
+        highestSeverity:
+          "PROGRESSION_BLOCKED",
+
+        relationshipAvailability:
+          "AVAILABLE",
+
+        observedAt:
+          FIXED_GENERATED_AT,
+      },
+
+      explanation: {
+        summary:
+          "A deterministic blocking condition is active.",
+
+        ruleIds: [
+          "OG-PHASE-11-WORKFLOW-BLOCKING",
+        ],
+
+        facts: [],
+
+        unresolvedConditions: [],
+      },
+
+      sourceReferences: [],
+
+      metadata,
+    } as any;
+
+    const waitingOn = {
+      status:
+        "WAITING",
+
+      payload: {
+        organizationId:
+          "ORG-PHASE-11",
+
+        caseId:
+          "CASE-PHASE-11",
+
+        workflowStatus:
+          "UNDER_REVIEW",
+
+        workflowStage:
+          "EVIDENCE_REVIEW",
+
+        availability:
+          "AVAILABLE",
+
+        waiting:
+          true,
+
+        waitingOn:
+          "APPLICANT",
+
+        currentOwner:
+          "APPLICANT",
+
+        conditions: [
+          {
+            conditionId:
+              "WAITING_ON_APPLICANT_EVIDENCE",
+
+            title:
+              "Waiting on Applicant Evidence",
+
+            description:
+              "Required evidence remains outstanding.",
+
+            state:
+              "ACTION_REQUIRED",
+
+            waitingOn:
+              "APPLICANT",
+
+            currentOwner:
+              "APPLICANT",
+
+            relatedRepository:
+              "EVIDENCE",
+
+            relatedStage:
+              "EVIDENCE_REVIEW",
+
+            participantExplanation:
+              "The case is waiting for required applicant evidence.",
+          },
+        ],
+
+        relationshipAvailability:
+          "AVAILABLE",
+
+        observedAt:
+          FIXED_GENERATED_AT,
+      },
+
+      explanation: {
+        summary:
+          "The case is waiting on the applicant.",
+
+        ruleIds: [
+          "OG-PHASE-11-WORKFLOW-WAITING",
+        ],
+
+        facts: [],
+
+        unresolvedConditions: [],
+      },
+
+      sourceReferences: [],
+
+      metadata,
+    } as any;
+
+    const components = {
+      repositoryContext,
+      nextAction,
+      blocking,
+      waitingOn,
+    } as any;
+
+    const composite =
+      await compositeGuidanceEngine.execute({
+        context:
+          phase11CompositeContext(),
+
+        input: {
+          repositoryContext,
+          nextAction,
+          blocking,
+          waitingOn,
+          sourceReferences: [],
+        },
+      });
+
+    assert.equal(
+      composite.status,
+      "BLOCKED",
+    );
+
+    assert.ok(
+      composite.payload,
+    );
+
+    const operationalSummary =
+      await operationalSummaryEngine.execute({
+        context:
+          phase11CompositeContext(),
+
+        input: {
+          composite,
+          components,
+          sourceReferences: [],
+        },
+      });
+
+    assert.equal(
+      operationalSummary.status,
+      "BLOCKED",
+    );
+
+    assert.ok(
+      operationalSummary.payload,
+    );
+
+    assert.equal(
+      operationalSummary.payload
+        ?.aggregatedStatus,
+      "BLOCKED",
+    );
+
+    assert.equal(
+      operationalSummary.payload
+        ?.currentStage,
+      "EVIDENCE_REVIEW",
+    );
+
+    assert.equal(
+      operationalSummary.payload
+        ?.currentOwner,
+      "APPLICANT",
+    );
+
+    assert.equal(
+      operationalSummary.payload
+        ?.blockingSummary
+        .blocked,
+      true,
+    );
+
+    assert.equal(
+      operationalSummary.payload
+        ?.waitingSummary
+        .waiting,
+      true,
+    );
+
+    assert.equal(
+      operationalSummary.payload
+        ?.waitingSummary
+        .waitingOn,
+      "APPLICANT",
+    );
+
+    assert.equal(
+      operationalSummary.payload
+        ?.completionSummary,
+      null,
+    );
+
+    assert.equal(
+      operationalSummary.payload
+        ?.transitionSummary,
+      null,
+    );
+
+    const workspace =
+      buildWorkspaceGuidanceSnapshot(
+        components,
+        operationalSummary,
+      );
+
+    assert.equal(
+      workspace.organizationId,
+      "ORG-PHASE-11",
+    );
+
+    assert.equal(
+      workspace.caseId,
+      "CASE-PHASE-11",
+    );
+
+    assert.equal(
+      workspace.overallStatus,
+      "BLOCKED",
+    );
+
+    assert.equal(
+      workspace.repositoryContextStatus,
+      "AVAILABLE",
+    );
+
+    assert.equal(
+      workspace.nextActionStatus,
+      "AVAILABLE",
+    );
+
+    assert.equal(
+      workspace.blockingStatus,
+      "BLOCKED",
+    );
+
+    assert.equal(
+      workspace.waitingOnStatus,
+      "WAITING",
+    );
+
+    assert.equal(
+      workspace.workflowStage,
+      "EVIDENCE_REVIEW",
+    );
+
+    assert.equal(
+      workspace.nextAction
+        ?.actionId,
+      "SUBMIT_EVIDENCE",
+    );
+
+    assert.equal(
+      workspace.blocked,
+      true,
+    );
+
+    assert.equal(
+      workspace.blockingConditionCount,
+      1,
+    );
+
+    assert.equal(
+      workspace.waiting,
+      true,
+    );
+
+    assert.equal(
+      workspace.waitingOn,
+      "APPLICANT",
+    );
+
+    assert.equal(
+      workspace.currentOwner,
+      "APPLICANT",
+    );
+  },
+);
+
+test(
+  "end-to-end guidance orchestration contract preserves single dependency resolution traces workspace and read-only participant routes",
+  async () => {
+    const {
+      readFile,
+    } =
+      await import(
+        "node:fs/promises"
+      );
+
+    const compositeServiceSource =
+      await readFile(
+        "./lib/guidance/compositeGuidanceService.ts",
+        "utf8",
+      );
+
+    const apiServiceSource =
+      await readFile(
+        "./lib/guidance/guidanceApiService.ts",
+        "utf8",
+      );
+
+    const operationalSummaryServiceSource =
+      await readFile(
+        "./lib/guidance/operationalSummaryService.ts",
+        "utf8",
+      );
+
+    const applicantRouteSource =
+      await readFile(
+        "./app/api/applicant/guidance/[caseId]/route.ts",
+        "utf8",
+      );
+
+    const reviewerRouteSource =
+      await readFile(
+        "./app/api/admin/verification/[caseId]/guidance/route.ts",
+        "utf8",
+      );
+
+    const repositoryResolutionCount =
+      (
+        compositeServiceSource.match(
+          /resolveRepositoryContext\s*\(/g,
+        ) ?? []
+      ).length;
+
+    assert.equal(
+      repositoryResolutionCount,
+      1,
+    );
+
+    assert.ok(
+      compositeServiceSource.includes(
+        "Repository Context is resolved exactly once.",
+      ),
+    );
+
+    assert.ok(
+      compositeServiceSource.includes(
+        "without recursively",
+      ),
+    );
+
+    assert.ok(
+      compositeServiceSource.includes(
+        "blockingConditions:",
+      ),
+    );
+
+    assert.ok(
+      compositeServiceSource.includes(
+        "components.repositoryContext",
+      ),
+    );
+
+    assert.ok(
+      compositeServiceSource.includes(
+        "components.nextAction",
+      ),
+    );
+
+    assert.ok(
+      compositeServiceSource.includes(
+        "components.blocking",
+      ),
+    );
+
+    assert.ok(
+      compositeServiceSource.includes(
+        "components.waitingOn",
+      ),
+    );
+
+    assert.ok(
+      compositeServiceSource.includes(
+        "repositoryContext:",
+      ),
+    );
+
+    assert.ok(
+      compositeServiceSource.includes(
+        "nextAction:",
+      ),
+    );
+
+    assert.ok(
+      compositeServiceSource.includes(
+        "blocking:",
+      ),
+    );
+
+    assert.ok(
+      compositeServiceSource.includes(
+        "waitingOn:",
+      ),
+    );
+
+    assert.ok(
+      compositeServiceSource.includes(
+        "composite:",
+      ),
+    );
+
+    assert.ok(
+      apiServiceSource.includes(
+        "Exactly one service path is executed for each request.",
+      ),
+    );
+
+    assert.ok(
+      apiServiceSource.includes(
+        "not rerun Repository Context, Next Action, Blocking, Waiting-On, or",
+      ),
+    );
+
+    assert.ok(
+      apiServiceSource.includes(
+        "Composite Guidance recursively.",
+      ),
+    );
+
+    assert.ok(
+      apiServiceSource.includes(
+        "buildWorkspaceGuidanceSnapshot",
+      ),
+    );
+
+    assert.ok(
+      apiServiceSource.includes(
+        "operationalSummary:",
+      ),
+    );
+
+    assert.ok(
+      operationalSummaryServiceSource.includes(
+        "does not recursively rerun Composite Guidance or any component engine.",
+      ),
+    );
+
+    assert.equal(
+      (
+        operationalSummaryServiceSource.match(
+          /resolveCompositeGuidance\s*\(/g,
+        ) ?? []
+      ).length,
+      1,
+      "The only resolveCompositeGuidance occurrence must be the explanatory comment, not an invocation.",
+    );
+
+    assert.ok(
+      applicantRouteSource.includes(
+        "Consolidated authenticated Operational Guidance endpoint.",
+      ),
+    );
+
+    assert.ok(
+      applicantRouteSource.includes(
+        "readOnly:",
+      ),
+    );
+
+    assert.ok(
+      applicantRouteSource.includes(
+        "workflowMutation:",
+      ),
+    );
+
+    assert.ok(
+      applicantRouteSource.includes(
+        "governanceAuthority:",
+      ),
+    );
+
+    assert.ok(
+      applicantRouteSource.includes(
+        "certificationAuthority:",
+      ),
+    );
+
+    assert.ok(
+      applicantRouteSource.includes(
+        "publicationAuthority:",
+      ),
+    );
+
+    assert.ok(
+      applicantRouteSource.includes(
+        "registryAuthority:",
+      ),
+    );
+
+    assert.ok(
+      applicantRouteSource.includes(
+        "verificationAuthority:",
+      ),
+    );
+
+    assert.ok(
+      reviewerRouteSource.includes(
+        "Organization scope is resolved from the canonical Snowflake case row.",
+      ),
+    );
+
+    assert.ok(
+      reviewerRouteSource.includes(
+        "It is never inferred from reviewer identity, request parameters, or UI state.",
+      ),
+    );
+
+    assert.ok(
+      reviewerRouteSource.includes(
+        "readOnly: true",
+      ),
+    );
+
+    assert.ok(
+      reviewerRouteSource.includes(
+        "workflowMutation:",
+      ),
+    );
+
+    assert.ok(
+      reviewerRouteSource.includes(
+        "repositoryMutation:",
+      ),
+    );
+
+    assert.ok(
+      reviewerRouteSource.includes(
+        "governanceAuthority:",
+      ),
+    );
+
+    assert.ok(
+      reviewerRouteSource.includes(
+        "certificationAuthority:",
+      ),
+    );
+
+    assert.ok(
+      reviewerRouteSource.includes(
+        "publicationAuthority:",
+      ),
+    );
+
+    assert.ok(
+      reviewerRouteSource.includes(
+        "registryAuthority:",
+      ),
+    );
+
+    assert.ok(
+      reviewerRouteSource.includes(
+        "verificationAuthority:",
+      ),
+    );
+
+    assert.ok(
+      reviewerRouteSource.includes(
+        "scoringAuthority:",
+      ),
+    );
+  },
+);
