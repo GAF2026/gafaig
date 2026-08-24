@@ -4988,3 +4988,309 @@ test(
     );
   },
 );
+
+test(
+  "applicant guidance UI contract preserves fail-closed loading refresh and previously loaded workspace states",
+  async () => {
+    const {
+      readFile,
+    } =
+      await import(
+        "node:fs/promises"
+      );
+
+    const hookSource =
+      await readFile(
+        "./lib/guidance/useApplicantGuidance.ts",
+        "utf8",
+      );
+
+    const panelSource =
+      await readFile(
+        "./components/applicant/guidance/ApplicantGuidancePanel.tsx",
+        "utf8",
+      );
+
+    assert.ok(
+      hookSource.includes(
+        '"idle"',
+      ),
+    );
+
+    assert.ok(
+      hookSource.includes(
+        '"loading"',
+      ),
+    );
+
+    assert.ok(
+      hookSource.includes(
+        '"refreshing"',
+      ),
+    );
+
+    assert.ok(
+      hookSource.includes(
+        '"success"',
+      ),
+    );
+
+    assert.ok(
+      hookSource.includes(
+        '"error"',
+      ),
+    );
+
+    assert.ok(
+      hookSource.includes(
+        "A case identifier is required to load Operational Guidance.",
+      ),
+    );
+
+    assert.ok(
+      hookSource.includes(
+        "abortControllerRef.current",
+      ),
+    );
+
+    assert.ok(
+      hookSource.includes(
+        "activeRequestIdRef.current",
+      ),
+    );
+
+    assert.ok(
+      hookSource.includes(
+        'mode === "initial"',
+      ),
+    );
+
+    assert.ok(
+      hookSource.includes(
+        'setLoadState("success")',
+      ),
+    );
+
+    assert.ok(
+      panelSource.includes(
+        "const hasRenderableWorkspace",
+      ),
+    );
+
+    assert.ok(
+      panelSource.includes(
+        "const liveMessage",
+      ),
+    );
+
+    assert.ok(
+      panelSource.includes(
+        'aria-busy={',
+      ),
+    );
+
+    assert.ok(
+      panelSource.includes(
+        "The latest refresh failed. Previously loaded guidance remains visible.",
+      ),
+    );
+
+    assert.ok(
+      panelSource.includes(
+        "The most recent refresh was unsuccessful. The last successfully",
+      ),
+    );
+
+    assert.ok(
+      panelSource.includes(
+        "loaded Guidance result remains visible.",
+      ),
+    );
+
+    assert.ok(
+      panelSource.includes(
+        "The Guidance API returned no workspace projection.",
+      ),
+    );
+
+    assert.ok(
+      panelSource.includes(
+        "Refreshing retrieves updated read-only Guidance. It does not",
+      ),
+    );
+
+    assert.ok(
+      panelSource.includes(
+        "change workflow or authority state.",
+      ),
+    );
+  },
+);
+
+test(
+  "reviewer guidance UI contract preserves fail-closed refresh behavior and read-only authority boundaries",
+  async () => {
+    const {
+      readFile,
+    } =
+      await import(
+        "node:fs/promises"
+      );
+
+    const hookSource =
+      await readFile(
+        "./lib/guidance/useReviewerGuidance.ts",
+        "utf8",
+      );
+
+    const panelSource =
+      await readFile(
+        "./components/admin/guidance/ReviewerGuidancePanel.tsx",
+        "utf8",
+      );
+
+    assert.ok(
+      hookSource.includes(
+        '"idle"',
+      ),
+    );
+
+    assert.ok(
+      hookSource.includes(
+        '"loading"',
+      ),
+    );
+
+    assert.ok(
+      hookSource.includes(
+        '"refreshing"',
+      ),
+    );
+
+    assert.ok(
+      hookSource.includes(
+        '"success"',
+      ),
+    );
+
+    assert.ok(
+      hookSource.includes(
+        '"error"',
+      ),
+    );
+
+    assert.ok(
+      hookSource.includes(
+        "A case identifier is required to load Reviewer Operational Guidance.",
+      ),
+    );
+
+    assert.ok(
+      hookSource.includes(
+        "abortControllerRef.current",
+      ),
+    );
+
+    assert.ok(
+      hookSource.includes(
+        "activeRequestIdRef.current",
+      ),
+    );
+
+    assert.ok(
+      hookSource.includes(
+        'mode === "initial"',
+      ),
+    );
+
+    assert.ok(
+      hookSource.includes(
+        'setLoadState("success")',
+      ),
+    );
+
+    assert.ok(
+      hookSource.includes(
+        "performs no workflow mutation",
+      ),
+    );
+
+    assert.ok(
+      hookSource.includes(
+        "performs no repository mutation",
+      ),
+    );
+
+    assert.ok(
+      panelSource.includes(
+        'aria-busy="true"',
+      ),
+    );
+
+    assert.ok(
+      panelSource.includes(
+        "Reviewer guidance unavailable",
+      ),
+    );
+
+    assert.ok(
+      panelSource.includes(
+        "Guidance remains unresolved",
+      ),
+    );
+
+    assert.ok(
+      panelSource.includes(
+        "Previously",
+      ),
+    );
+
+    assert.ok(
+      panelSource.includes(
+        "loaded guidance remains visible.",
+      ),
+    );
+
+    assert.ok(
+      panelSource.includes(
+        "Reviewer Operational Guidance is advisory and read-only.",
+      ),
+    );
+
+    assert.ok(
+      panelSource.includes(
+        "No Workflow Mutation",
+      ),
+    );
+
+    assert.ok(
+      panelSource.includes(
+        "No Governance Authority",
+      ),
+    );
+
+    assert.ok(
+      panelSource.includes(
+        "No Certification Authority",
+      ),
+    );
+
+    assert.ok(
+      panelSource.includes(
+        "No Publication Authority",
+      ),
+    );
+
+    assert.ok(
+      panelSource.includes(
+        "No Registry Authority",
+      ),
+    );
+
+    assert.ok(
+      panelSource.includes(
+        "No Verification Authority",
+      ),
+    );
+  },
+);
