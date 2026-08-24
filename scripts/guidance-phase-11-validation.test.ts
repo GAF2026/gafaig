@@ -3860,3 +3860,392 @@ test(
     );
   },
 );
+
+test(
+  "waiting-on guidance preserves explicit authoritative conditions and resolves one deterministic waiting party",
+  async () => {
+    const {
+      waitingOnEngine,
+    } =
+      await import(
+        "../lib/guidance/waitingOnEngine"
+      );
+
+    const repositoryContext = {
+      organizationId:
+        "ORG-PHASE-11",
+
+      caseId:
+        "CASE-PHASE-11",
+
+      workflowStatus:
+        "UNDER_REVIEW",
+
+      workflowStage:
+        "REVIEW_PENDING",
+
+      repositoryCount:
+        0,
+
+      repositoriesWithRecords: [],
+
+      emptyRepositories: [],
+
+      repositories: [],
+
+      relationshipAvailability:
+        "UNRESOLVED",
+
+      observedAt:
+        FIXED_GENERATED_AT,
+    } as any;
+
+    const authoritativeCondition = {
+      conditionId:
+        "WAITING_ON_GOVERNANCE_REVIEW",
+
+      title:
+        "Waiting on Governance Review",
+
+      description:
+        "Governance review is pending.",
+
+      state:
+        "REVIEW_PENDING",
+
+      waitingOn:
+        "GOVERNANCE_REVIEWER",
+
+      currentOwner:
+        "GOVERNANCE_REVIEWER",
+
+      relatedRepository:
+        null,
+
+      relatedStage:
+        "REVIEW_PENDING",
+
+      participantExplanation:
+        "The case is awaiting authorized governance review.",
+    } as any;
+
+    const result =
+      await waitingOnEngine.execute({
+        context:
+          phase11CompositeContext(),
+
+        input: {
+          repositoryContext,
+
+          authoritativeConditions: [
+            authoritativeCondition,
+          ],
+
+          sourceReferences: [],
+        },
+      });
+
+    assert.equal(
+      result.status,
+      "WAITING",
+    );
+
+    assert.ok(
+      result.payload,
+    );
+
+    assert.equal(
+      result.payload
+        ?.availability,
+      "AVAILABLE",
+    );
+
+    assert.equal(
+      result.payload
+        ?.waiting,
+      true,
+    );
+
+    assert.equal(
+      result.payload
+        ?.waitingOn,
+      "GOVERNANCE_REVIEWER",
+    );
+
+    assert.equal(
+      result.payload
+        ?.currentOwner,
+      "GOVERNANCE_REVIEWER",
+    );
+
+    assert.equal(
+      result.payload
+        ?.conditions[0],
+      authoritativeCondition,
+    );
+
+    assert.ok(
+      result.explanation
+        .ruleIds
+        .includes(
+          "OG-WAITING-ON-EXPLICIT-AUTHORITATIVE-CONDITIONS-PRESERVED",
+        ),
+    );
+
+    assert.ok(
+      result.explanation
+        .ruleIds
+        .includes(
+          "OG-WAITING-ON-SINGLE-WAITING-PARTY-REQUIRED",
+        ),
+    );
+
+    assert.ok(
+      result.explanation
+        .ruleIds
+        .includes(
+          "OG-WAITING-ON-NO-AUTOMATIC-REASSIGNMENT",
+        ),
+    );
+  },
+);
+
+test(
+  "waiting-on guidance fails closed while canonical relationship context is unresolved",
+  async () => {
+    const {
+      waitingOnEngine,
+    } =
+      await import(
+        "../lib/guidance/waitingOnEngine"
+      );
+
+    const repositoryContext = {
+      organizationId:
+        "ORG-PHASE-11",
+
+      caseId:
+        "CASE-PHASE-11",
+
+      workflowStatus:
+        "COMPLETE",
+
+      workflowStage:
+        "COMPLETE",
+
+      repositoryCount:
+        0,
+
+      repositoriesWithRecords: [],
+
+      emptyRepositories: [],
+
+      repositories: [],
+
+      relationshipAvailability:
+        "UNRESOLVED",
+
+      observedAt:
+        FIXED_GENERATED_AT,
+    } as any;
+
+    const result =
+      await waitingOnEngine.execute({
+        context:
+          phase11CompositeContext(),
+
+        input: {
+          repositoryContext,
+          sourceReferences: [],
+        },
+      });
+
+    assert.equal(
+      result.status,
+      "UNRESOLVED",
+    );
+
+    assert.ok(
+      result.payload,
+    );
+
+    assert.equal(
+      result.payload
+        ?.availability,
+      "UNRESOLVED",
+    );
+
+    assert.equal(
+      result.payload
+        ?.waiting,
+      null,
+    );
+
+    assert.equal(
+      result.payload
+        ?.waitingOn,
+      null,
+    );
+
+    assert.equal(
+      result.payload
+        ?.currentOwner,
+      null,
+    );
+
+    assert.ok(
+      result.explanation
+        .ruleIds
+        .includes(
+          "OG-WAITING-ON-RELATIONSHIP-CONTEXT-REQUIRED",
+        ),
+    );
+
+    assert.ok(
+      result.explanation
+        .ruleIds
+        .includes(
+          "OG-WAITING-ON-NO-RELATIONSHIP-INFERENCE",
+        ),
+    );
+
+    assert.ok(
+      result.explanation
+        .ruleIds
+        .includes(
+          "OG-WAITING-ON-NO-WAITING-INFERENCE",
+        ),
+    );
+
+    assert.ok(
+      result.explanation
+        .ruleIds
+        .includes(
+          "OG-WAITING-ON-NO-OWNER-INFERENCE",
+        ),
+    );
+
+    assert.ok(
+      result.explanation
+        .unresolvedConditions
+        .includes(
+          "The Waiting-On Engine cannot deterministically certify one waiting party and current owner.",
+        ),
+    );
+  },
+);
+
+test(
+  "waiting-on guidance returns available only when no authorized waiting rule is satisfied",
+  async () => {
+    const {
+      waitingOnEngine,
+    } =
+      await import(
+        "../lib/guidance/waitingOnEngine"
+      );
+
+    const repositoryContext = {
+      organizationId:
+        "ORG-PHASE-11",
+
+      caseId:
+        "CASE-PHASE-11",
+
+      workflowStatus:
+        "COMPLETE",
+
+      workflowStage:
+        "COMPLETE",
+
+      repositoryCount:
+        0,
+
+      repositoriesWithRecords: [],
+
+      emptyRepositories: [],
+
+      repositories: [],
+
+      relationshipAvailability:
+        "AVAILABLE",
+
+      observedAt:
+        FIXED_GENERATED_AT,
+    } as any;
+
+    const result =
+      await waitingOnEngine.execute({
+        context:
+          phase11CompositeContext(),
+
+        input: {
+          repositoryContext,
+          sourceReferences: [],
+        },
+      });
+
+    assert.equal(
+      result.status,
+      "AVAILABLE",
+    );
+
+    assert.ok(
+      result.payload,
+    );
+
+    assert.equal(
+      result.payload
+        ?.availability,
+      "AVAILABLE",
+    );
+
+    assert.equal(
+      result.payload
+        ?.waiting,
+      false,
+    );
+
+    assert.equal(
+      result.payload
+        ?.waitingOn,
+      null,
+    );
+
+    assert.equal(
+      result.payload
+        ?.currentOwner,
+      null,
+    );
+
+    assert.deepEqual(
+      result.payload
+        ?.conditions,
+      [],
+    );
+
+    assert.ok(
+      result.explanation
+        .ruleIds
+        .includes(
+          "OG-WAITING-ON-NO-AUTHORIZED-WAITING-RULE-SATISFIED",
+        ),
+    );
+
+    assert.ok(
+      result.explanation
+        .ruleIds
+        .includes(
+          "OG-WAITING-ON-NO-AUTOMATIC-REASSIGNMENT",
+        ),
+    );
+
+    assert.ok(
+      result.explanation
+        .ruleIds
+        .includes(
+          "OG-WAITING-ON-NO-AUTHORITY-CREATION",
+        ),
+    );
+  },
+);
