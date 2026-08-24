@@ -4804,3 +4804,187 @@ test(
     );
   },
 );
+
+test(
+  "repository context guidance fails closed before source access when explicit case scope is missing",
+  async () => {
+    const {
+      repositoryContextEngine,
+    } =
+      await import(
+        "../lib/guidance/repositoryContextEngine"
+      );
+
+    const context = {
+      ...phase11CompositeContext(),
+
+      caseId:
+        undefined,
+    } as any;
+
+    const result =
+      await repositoryContextEngine.execute({
+        context,
+
+        input: {
+          includeEmptyRepositories:
+            true,
+        },
+      });
+
+    assert.equal(
+      result.status,
+      "UNRESOLVED",
+    );
+
+    assert.equal(
+      result.failure?.code,
+      "CASE_SCOPE_INVALID",
+    );
+
+    assert.equal(
+      result.failure?.retryable,
+      false,
+    );
+
+    assert.equal(
+      result.failure?.message,
+      "Repository context requires an explicit case identifier.",
+    );
+
+    assert.equal(
+      result.payload,
+      undefined,
+    );
+
+    assert.deepEqual(
+      result.sourceReferences,
+      [],
+    );
+
+    assert.ok(
+      result.explanation
+        .ruleIds
+        .includes(
+          "OG-REPOSITORY-CONTEXT-CASE-SCOPE-REQUIRED",
+        ),
+    );
+
+    assert.ok(
+      result.explanation
+        .ruleIds
+        .includes(
+          "OG-REPOSITORY-CONTEXT-ORGANIZATION-SCOPE-PRESERVED",
+        ),
+    );
+
+    assert.ok(
+      result.explanation
+        .ruleIds
+        .includes(
+          "OG-REPOSITORY-CONTEXT-AUTHORITATIVE-RECORDS-ONLY",
+        ),
+    );
+
+    assert.ok(
+      result.explanation
+        .unresolvedConditions
+        .includes(
+          "Repository context requires an explicit case identifier.",
+        ),
+    );
+  },
+);
+
+test(
+  "repository context guidance rejects unrecognized runtime session before source access",
+  async () => {
+    const {
+      repositoryContextEngine,
+    } =
+      await import(
+        "../lib/guidance/repositoryContextEngine"
+      );
+
+    const context = {
+      ...phase11CompositeContext(),
+
+      session: {
+        role:
+          "PUBLIC",
+      },
+    } as any;
+
+    const result =
+      await repositoryContextEngine.execute({
+        context,
+
+        input: {
+          includeEmptyRepositories:
+            true,
+        },
+      });
+
+    assert.equal(
+      result.status,
+      "NOT_VISIBLE",
+    );
+
+    assert.equal(
+      result.failure?.code,
+      "PARTICIPANT_SCOPE_INVALID",
+    );
+
+    assert.equal(
+      result.failure?.retryable,
+      false,
+    );
+
+    assert.equal(
+      result.failure?.message,
+      "Repository context requires a recognized applicant or administrative guidance session.",
+    );
+
+    assert.equal(
+      result.payload,
+      undefined,
+    );
+
+    assert.deepEqual(
+      result.sourceReferences,
+      [],
+    );
+
+    assert.ok(
+      result.explanation
+        .ruleIds
+        .includes(
+          "OG-REPOSITORY-CONTEXT-CASE-SCOPE-REQUIRED",
+        ),
+    );
+
+    assert.ok(
+      result.explanation
+        .ruleIds
+        .includes(
+          "OG-REPOSITORY-CONTEXT-ORGANIZATION-SCOPE-PRESERVED",
+        ),
+    );
+
+    assert.ok(
+      result.explanation
+        .ruleIds
+        .includes(
+          "OG-REPOSITORY-CONTEXT-AUTHORITATIVE-RECORDS-ONLY",
+        ),
+    );
+
+    assert.ok(
+      result.explanation
+        .unresolvedConditions
+        .includes(
+          "Repository context requires a recognized applicant or administrative guidance session.",
+        ),
+    );
+  },
+);
