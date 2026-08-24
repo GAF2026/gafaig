@@ -800,6 +800,87 @@ Guidance production readiness.
 
 ------------------------------------------------------------------------
 
+# OG-KL-021 — DEPENDENCY SECURITY REVIEW
+
+Classification:
+
+OPEN ISSUE
+
+Disposition:
+
+REQUIRES VERIFICATION
+
+Current State:
+
+During the Phase 12 controlled rollback rehearsal, dependency installation
+completed successfully through npm ci.
+
+The initial dependency audit reported:
+
+- 23 vulnerabilities;
+- 7 moderate;
+- 15 high;
+- 1 critical.
+
+A subsequent production-only audit using npm audit --omit=dev reported:
+
+- 16 production dependency vulnerabilities;
+- 7 moderate;
+- 8 high;
+- 1 critical.
+
+A remediation dry run using npm audit fix --omit=dev --dry-run established
+that some production dependency findings have non-force remediation paths.
+
+The dry run also established that the critical Next.js finding requires a
+change from Next.js 14.2.5 to a patched version outside the currently stated
+dependency range.
+
+The Nodemailer high-severity findings likewise require a separately reviewed
+breaking dependency change according to the npm remediation output.
+
+No remediation command was executed.
+
+The repository dependency state was not modified by the assessment.
+
+These findings establish a dependency-security review condition.
+
+They do not by themselves establish that every reported vulnerability is
+reachable, exploitable, or applicable to the GAFAIG production execution
+path.
+
+No dependency upgrade or package modification is authorized by this known
+limitations record.
+
+Operational Effect:
+
+Operational Guidance must not be declared fully production-ready until the
+reported dependency-security condition has been assessed and an appropriate
+production-readiness disposition has been recorded.
+
+This condition does not invalidate the successful Phase 11 validation or the
+successful controlled rollback rehearsal.
+
+Required Behavior:
+
+Perform a targeted dependency-security assessment before separate production
+deployment authorization.
+
+Determine whether the reported critical and high-severity findings affect the
+GAFAIG production execution path.
+
+Identify the appropriate remediation or risk disposition through the
+authorized engineering process.
+
+Do not run an automatic or forced dependency upgrade merely to clear the
+audit result.
+
+Preserve existing architecture, Snowflake source-of-truth doctrine, Human
+Governance Authority, organization isolation, deterministic behavior, and
+fail-closed behavior during any separately authorized remediation.
+
+------------------------------------------------------------------------
+
 # CURRENT OPEN-ISSUE SUMMARY
 
 The following conditions remain open or externally dependent:
@@ -809,6 +890,8 @@ The following conditions remain open or externally dependent:
 3. Production telemetry retention requires verification.
 4. Production-specific alert and performance thresholds may require tuning.
 5. Production environment configuration requires targeted verification.
+6. Dependency-security findings from the Phase 12 rollback rehearsal require
+   targeted assessment before full production readiness.
 
 These conditions do not authorize architectural expansion.
 
