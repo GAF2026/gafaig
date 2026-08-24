@@ -4249,3 +4249,558 @@ test(
     );
   },
 );
+
+test(
+  "operational summary preserves composite status, component state, and non-inferred completion boundaries",
+  async () => {
+    const {
+      operationalSummaryEngine,
+    } =
+      await import(
+        "../lib/guidance/operationalSummaryEngine"
+      );
+
+    const repositoryContext = {
+      status:
+        "AVAILABLE",
+
+      payload: {
+        organizationId:
+          "ORG-PHASE-11",
+
+        caseId:
+          "CASE-PHASE-11",
+
+        workflowStatus:
+          "UNDER_REVIEW",
+
+        workflowStage:
+          "EVIDENCE_REVIEW",
+
+        repositoryCount:
+          1,
+
+        repositoriesWithRecords: [
+          "EVIDENCE",
+        ],
+
+        emptyRepositories: [
+          "CERTIFICATION",
+        ],
+
+        repositories: [],
+
+        relationshipAvailability:
+          "AVAILABLE",
+
+        observedAt:
+          FIXED_GENERATED_AT,
+      },
+
+      explanation: {
+        summary:
+          "Repository context is available.",
+
+        ruleIds: [
+          "OG-PHASE-11-REPOSITORY-RULE",
+        ],
+
+        facts: [],
+
+        unresolvedConditions: [],
+      },
+
+      sourceReferences: [],
+
+      metadata,
+    } as any;
+
+    const nextAction = {
+      status:
+        "AVAILABLE",
+
+      payload: {
+        organizationId:
+          "ORG-PHASE-11",
+
+        caseId:
+          "CASE-PHASE-11",
+
+        workflowStatus:
+          "UNDER_REVIEW",
+
+        workflowStage:
+          "EVIDENCE_REVIEW",
+
+        availability:
+          "AVAILABLE",
+
+        action: {
+          actionId:
+            "AWAIT_AUTHORIZED_REVIEW",
+
+          title:
+            "Await Authorized Review",
+
+          description:
+            "Await review by the authorized operational participant.",
+
+          owner:
+            "GAFAIG_OPERATIONS_REVIEWER",
+
+          relatedStage:
+            "EVIDENCE_REVIEW",
+
+          relatedRepository:
+            null,
+        },
+
+        blockingItems: [],
+
+        waitingOn:
+          "GAFAIG_OPERATIONS_REVIEWER",
+
+        repositoryCount:
+          1,
+
+        repositoriesWithRecords: [
+          "EVIDENCE",
+        ],
+
+        emptyRepositories: [
+          "CERTIFICATION",
+        ],
+
+        relationshipAvailability:
+          "AVAILABLE",
+
+        observedAt:
+          FIXED_GENERATED_AT,
+      },
+
+      explanation: {
+        summary:
+          "Next action is available.",
+
+        ruleIds: [
+          "OG-PHASE-11-NEXT-ACTION-RULE",
+        ],
+
+        facts: [],
+
+        unresolvedConditions: [],
+      },
+
+      sourceReferences: [],
+
+      metadata,
+    } as any;
+
+    const blocking = {
+      status:
+        "AVAILABLE",
+
+      payload: {
+        organizationId:
+          "ORG-PHASE-11",
+
+        caseId:
+          "CASE-PHASE-11",
+
+        workflowStatus:
+          "UNDER_REVIEW",
+
+        workflowStage:
+          "EVIDENCE_REVIEW",
+
+        availability:
+          "AVAILABLE",
+
+        blocked:
+          false,
+
+        blockingConditions: [],
+
+        highestSeverity:
+          null,
+
+        relationshipAvailability:
+          "AVAILABLE",
+
+        observedAt:
+          FIXED_GENERATED_AT,
+      },
+
+      explanation: {
+        summary:
+          "No blocking condition is active.",
+
+        ruleIds: [
+          "OG-PHASE-11-BLOCKING-RULE",
+        ],
+
+        facts: [],
+
+        unresolvedConditions: [],
+      },
+
+      sourceReferences: [],
+
+      metadata,
+    } as any;
+
+    const waitingOn = {
+      status:
+        "WAITING",
+
+      payload: {
+        organizationId:
+          "ORG-PHASE-11",
+
+        caseId:
+          "CASE-PHASE-11",
+
+        workflowStatus:
+          "UNDER_REVIEW",
+
+        workflowStage:
+          "EVIDENCE_REVIEW",
+
+        availability:
+          "AVAILABLE",
+
+        waiting:
+          true,
+
+        waitingOn:
+          "GAFAIG_OPERATIONS_REVIEWER",
+
+        currentOwner:
+          "GAFAIG_OPERATIONS_REVIEWER",
+
+        conditions: [],
+
+        relationshipAvailability:
+          "AVAILABLE",
+
+        observedAt:
+          FIXED_GENERATED_AT,
+      },
+
+      explanation: {
+        summary:
+          "Waiting on authorized review.",
+
+        ruleIds: [
+          "OG-PHASE-11-WAITING-RULE",
+        ],
+
+        facts: [],
+
+        unresolvedConditions: [],
+      },
+
+      sourceReferences: [],
+
+      metadata,
+    } as any;
+
+    const components = {
+      repositoryContext,
+      nextAction,
+      blocking,
+      waitingOn,
+    } as any;
+
+    const composite = {
+      status:
+        "WAITING",
+
+      payload: {
+        organizationId:
+          "ORG-PHASE-11",
+
+        caseId:
+          "CASE-PHASE-11",
+
+        repositoryContext,
+        nextAction,
+        blocking,
+        waitingOn,
+
+        observedAt:
+          FIXED_GENERATED_AT,
+      },
+
+      explanation: {
+        summary:
+          "Composite guidance is waiting.",
+
+        ruleIds: [
+          "OG-PHASE-11-COMPOSITE-RULE",
+        ],
+
+        facts: [],
+
+        unresolvedConditions: [],
+      },
+
+      sourceReferences: [],
+
+      metadata,
+    } as any;
+
+    const result =
+      await operationalSummaryEngine.execute({
+        context:
+          phase11CompositeContext(),
+
+        input: {
+          composite,
+          components,
+          sourceReferences: [],
+        },
+      });
+
+    assert.equal(
+      result.status,
+      "WAITING",
+    );
+
+    assert.ok(
+      result.payload,
+    );
+
+    assert.equal(
+      result.payload
+        ?.aggregatedStatus,
+      "WAITING",
+    );
+
+    assert.equal(
+      result.payload
+        ?.currentStage,
+      "EVIDENCE_REVIEW",
+    );
+
+    assert.equal(
+      result.payload
+        ?.currentOwner,
+      "GAFAIG_OPERATIONS_REVIEWER",
+    );
+
+    assert.equal(
+      result.payload
+        ?.nextRequiredAction
+        ?.actionId,
+      "AWAIT_AUTHORIZED_REVIEW",
+    );
+
+    assert.equal(
+      result.payload
+        ?.completionSummary,
+      null,
+    );
+
+    assert.equal(
+      result.payload
+        ?.transitionSummary,
+      null,
+    );
+
+    assert.deepEqual(
+      result.payload
+        ?.explainabilityBasis
+        .componentStatuses,
+      {
+        repositoryContext:
+          "AVAILABLE",
+
+        nextAction:
+          "AVAILABLE",
+
+        blocking:
+          "AVAILABLE",
+
+        waitingOn:
+          "WAITING",
+
+        composite:
+          "WAITING",
+      },
+    );
+
+    for (
+      const ruleId of [
+        "OG-PHASE-11-REPOSITORY-RULE",
+        "OG-PHASE-11-NEXT-ACTION-RULE",
+        "OG-PHASE-11-BLOCKING-RULE",
+        "OG-PHASE-11-WAITING-RULE",
+        "OG-PHASE-11-COMPOSITE-RULE",
+      ]
+    ) {
+      assert.ok(
+        result.payload
+          ?.explainabilityBasis
+          .appliedRuleIds
+          .includes(ruleId),
+      );
+    }
+
+    assert.ok(
+      result.explanation
+        .ruleIds
+        .includes(
+          "OG-OPERATIONAL-SUMMARY-NO-RESULT-RECOMPUTATION",
+        ),
+    );
+
+    assert.ok(
+      result.explanation
+        .ruleIds
+        .includes(
+          "OG-OPERATIONAL-SUMMARY-NO-NEW-CONCLUSION",
+        ),
+    );
+
+    assert.ok(
+      result.explanation
+        .ruleIds
+        .includes(
+          "OG-OPERATIONAL-SUMMARY-NO-WORKFLOW-MUTATION",
+        ),
+    );
+
+    assert.ok(
+      result.explanation
+        .ruleIds
+        .includes(
+          "OG-OPERATIONAL-SUMMARY-NO-AUTHORITY-CREATION",
+        ),
+    );
+  },
+);
+
+test(
+  "operational summary fails closed when authoritative composite payload is unavailable",
+  async () => {
+    const {
+      operationalSummaryEngine,
+    } =
+      await import(
+        "../lib/guidance/operationalSummaryEngine"
+      );
+
+    const unavailableComposite = {
+      status:
+        "UNAVAILABLE",
+
+      explanation: {
+        summary:
+          "Composite guidance is unavailable.",
+
+        ruleIds: [],
+
+        facts: [],
+
+        unresolvedConditions: [
+          "Composite dependency is unavailable.",
+        ],
+      },
+
+      sourceReferences: [],
+
+      metadata,
+    } as any;
+
+    const components = {
+      repositoryContext:
+        phase11CompositeResult(
+          "AVAILABLE",
+          phase11RepositoryPayload(),
+        ),
+
+      nextAction:
+        phase11CompositeResult(
+          "AVAILABLE",
+        ),
+
+      blocking:
+        phase11CompositeResult(
+          "AVAILABLE",
+        ),
+
+      waitingOn:
+        phase11CompositeResult(
+          "AVAILABLE",
+        ),
+    } as any;
+
+    const result =
+      await operationalSummaryEngine.execute({
+        context:
+          phase11CompositeContext(),
+
+        input: {
+          composite:
+            unavailableComposite,
+
+          components,
+
+          sourceReferences: [],
+        },
+      });
+
+    assert.equal(
+      result.status,
+      "UNRESOLVED",
+    );
+
+    assert.equal(
+      result.failure?.code,
+      "DEPENDENCY_FAILURE",
+    );
+
+    assert.equal(
+      result.failure?.retryable,
+      false,
+    );
+
+    assert.equal(
+      result.payload,
+      undefined,
+    );
+
+    assert.ok(
+      result.explanation
+        .ruleIds
+        .includes(
+          "OG-OPERATIONAL-SUMMARY-COMPOSITE-INPUT-REQUIRED",
+        ),
+    );
+
+    assert.ok(
+      result.explanation
+        .ruleIds
+        .includes(
+          "OG-OPERATIONAL-SUMMARY-FAIL-CLOSED",
+        ),
+    );
+
+    assert.ok(
+      result.explanation
+        .unresolvedConditions
+        .includes(
+          "No authoritative Composite Guidance payload is available.",
+        ),
+    );
+
+    assert.ok(
+      result.explanation
+        .unresolvedConditions
+        .includes(
+          "Composite dependency is unavailable.",
+        ),
+    );
+  },
+);
