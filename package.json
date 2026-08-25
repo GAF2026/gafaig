@@ -12,11 +12,11 @@
     "guidance:phase11": "tsx --test scripts/guidance-phase-11-validation.test.ts"
   },
   "dependencies": {
-    "next": "14.2.5",
-    "nodemailer": "^7.0.13",
+    "next": "14.2.35",
+    "nodemailer": "9.0.5",
     "react": "18.3.1",
     "react-dom": "18.3.1",
-    "snowflake-sdk": "^2.3.4",
+    "snowflake-sdk": "2.4.3",
     "tweetnacl": "^1.0.3"
   },
   "devDependencies": {
