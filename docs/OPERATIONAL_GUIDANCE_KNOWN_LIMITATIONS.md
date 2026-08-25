@@ -839,9 +839,46 @@ dependency range.
 The Nodemailer high-severity findings likewise require a separately reviewed
 breaking dependency change according to the npm remediation output.
 
-No remediation command was executed.
+A subsequent controlled dependency-security remediation was executed and
+recorded in repository commit:
 
-The repository dependency state was not modified by the assessment.
+23bd1b2 — Apply controlled dependency security remediation
+
+The controlled remediation updated:
+
+- Next.js from 14.2.5 to 14.2.35;
+- Nodemailer from 7.0.13 to 9.0.5;
+- Snowflake SDK to 2.4.3.
+
+Post-remediation validation confirmed:
+
+- npm ci completed successfully;
+- npm run typecheck completed successfully;
+- npm run guidance:smoke passed 8 of 8 tests;
+- the production build completed successfully.
+
+The post-remediation production-only audit reported:
+
+- 3 production dependency vulnerabilities;
+- 0 critical;
+- 3 high;
+- 0 moderate.
+
+The original critical production finding is no longer present.
+
+The remaining production findings are associated with:
+
+- Next.js;
+- nested PostCSS;
+- transitive Glob.
+
+The remaining Next.js audit remediation identifies Next.js 16.3.2, which is a
+major-version migration from the currently validated Next.js 14 execution
+baseline and therefore requires a separately controlled compatibility,
+implementation, and validation pass.
+
+The dependency-security condition has been materially reduced but is not yet
+closed.
 
 These findings establish a dependency-security review condition.
 

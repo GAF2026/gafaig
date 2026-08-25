@@ -254,6 +254,43 @@ reported:
 - 8 high;
 - 1 critical.
 
+A controlled dependency-security remediation was subsequently executed and
+recorded in repository commit:
+
+23bd1b2 — Apply controlled dependency security remediation
+
+The remediation updated:
+
+- Next.js from 14.2.5 to 14.2.35;
+- Nodemailer from 7.0.13 to 9.0.5;
+- Snowflake SDK to 2.4.3.
+
+Post-remediation validation confirmed:
+
+- npm ci completed successfully;
+- npm run typecheck completed successfully;
+- npm run guidance:smoke passed 8 of 8 tests;
+- the production build completed successfully.
+
+The post-remediation production-only dependency audit reported:
+
+- 3 production dependency vulnerabilities;
+- 0 critical;
+- 3 high;
+- 0 moderate.
+
+The original critical production finding is no longer present.
+
+The remaining findings include the direct Next.js high-severity condition and
+nested or transitive PostCSS and Glob findings.
+
+The available audit remediation for the remaining Next.js condition requires
+migration to Next.js 16.3.2. This is a major-version migration from the
+validated Next.js 14 execution baseline and requires a separately controlled
+compatibility, implementation, and validation pass.
+
+OG-KL-021 therefore remains open.
+
 The dependency assessment identified material findings affecting production
 dependency paths.
 
@@ -308,9 +345,11 @@ UNRESOLVED
 
 Rationale:
 
-Required production-security evidence remains unresolved because a critical
-production dependency finding has not yet been remediated or otherwise
-objectively dispositioned through an authorized security review.
+Required production-security evidence remains unresolved because, although
+the original critical production finding has been remediated and the
+production-only vulnerability count has been materially reduced, remaining
+high-severity production findings have not yet been fully remediated or
+otherwise objectively dispositioned through an authorized security review.
 
 The implementation must not be promoted to
 READY_FOR_SEPARATE_DEPLOYMENT_AUTHORIZATION while this condition remains
@@ -322,10 +361,16 @@ unresolved.
 
 The next required action is:
 
-TARGETED DEPENDENCY SECURITY REMEDIATION ASSESSMENT
+TARGETED NEXT.JS MAJOR-VERSION COMPATIBILITY AND SECURITY ASSESSMENT
 
-This assessment must determine the narrowest authorized dependency changes
-required to address the production dependency-security findings while
+This assessment must determine whether the remaining direct Next.js
+high-severity condition can be resolved through a controlled migration to
+Next.js 16.3.2 while preserving the validated GAFAIG execution baseline.
+
+It must also determine the appropriate remediation or objective risk
+disposition for the remaining nested or transitive PostCSS and Glob findings.
+
+Any further dependency change must preserve:
 preserving:
 
 - approved Operational Guidance architecture;

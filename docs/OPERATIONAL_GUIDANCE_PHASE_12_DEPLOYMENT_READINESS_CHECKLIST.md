@@ -365,15 +365,43 @@ Reason:
 A production dependency-security condition remains open under
 OG-KL-021 — DEPENDENCY SECURITY REVIEW.
 
-The production-only dependency audit reported:
+The original production-only dependency audit reported:
 
 - 16 production dependency vulnerabilities;
 - 7 moderate;
 - 8 high;
 - 1 critical.
 
-The critical Next.js finding requires a separately reviewed dependency
-change before readiness can be elevated.
+A controlled dependency-security remediation was subsequently executed and
+recorded in repository commit:
+
+23bd1b2 — Apply controlled dependency security remediation
+
+The validated remediation updated Next.js to 14.2.35, Nodemailer to 9.0.5,
+and Snowflake SDK to 2.4.3.
+
+Post-remediation validation confirmed successful npm ci, TypeScript
+typechecking, the 8-test Operational Guidance smoke suite, and the production
+build.
+
+The post-remediation production-only audit reported:
+
+- 3 production dependency vulnerabilities;
+- 0 critical;
+- 3 high;
+- 0 moderate.
+
+The original critical production finding is no longer present.
+
+The remaining findings include a direct Next.js high-severity condition plus
+nested or transitive PostCSS and Glob findings.
+
+The available Next.js audit remediation requires migration to Next.js 16.3.2.
+That major-version migration remains subject to a separately controlled
+compatibility, implementation, and validation pass.
+
+Accordingly, OG-KL-021 remains open and the current Phase 12 readiness outcome
+remains UNRESOLVED.
 
 Current Project Owner production-deployment approval:
 
